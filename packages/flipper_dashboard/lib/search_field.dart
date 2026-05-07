@@ -105,7 +105,7 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          _textSubject.debounceTime(const Duration(milliseconds: 400)).listen((
+          _textSubject.debounceTime(const Duration(milliseconds: 150)).listen((
             value,
           ) {
             if (ref.read(searchStringProvider) != value) {
@@ -115,10 +115,6 @@ class SearchFieldState extends ConsumerState<SearchField>
                 });
 
                 processDebouncedValue(value, model, widget.controller)
-                    .then((_) {
-                      // Add a small delay to ensure all operations complete
-                      return Future.delayed(const Duration(milliseconds: 300));
-                    })
                     .then((_) {
                       if (mounted) {
                         setState(() {
@@ -171,7 +167,9 @@ class SearchFieldState extends ConsumerState<SearchField>
                             final isAutoAdd = ref.watch(autoAddSearchProvider);
                             return IconButton(
                               onPressed: () {
-                                ref.read(autoAddSearchProvider.notifier).toggle();
+                                ref
+                                    .read(autoAddSearchProvider.notifier)
+                                    .toggle();
                               },
                               icon: Icon(
                                 isAutoAdd
@@ -240,15 +238,15 @@ class SearchFieldState extends ConsumerState<SearchField>
                       ],
                     )
                   : (hasText
-                      ? IconButton(
-                          onPressed: _clearSearchText,
-                          icon: const Icon(
-                            FluentIcons.dismiss_24_regular,
-                            color: Colors.grey,
-                          ),
-                          tooltip: 'Clear',
-                        )
-                      : null),
+                        ? IconButton(
+                            onPressed: _clearSearchText,
+                            icon: const Icon(
+                              FluentIcons.dismiss_24_regular,
+                              color: Colors.grey,
+                            ),
+                            tooltip: 'Clear',
+                          )
+                        : null),
             ),
           );
         },

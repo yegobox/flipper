@@ -217,30 +217,33 @@ mixin CapellaVariantMixin implements VariantInterface {
       List<dynamic> items = [];
       int? totalCount;
 
-      // New devices have an empty local Ditto store until the mesh pulls from
-      // the cloud. Always register subscriptions (Ditto dedupes); callers no
-      // longer need to thread fetchRemote correctly for sync to work.
-      // See product_mixin broad subscription + Ditto support #2648.
-      const broadVariantsSql =
-          'SELECT * FROM variants WHERE branchId = :branchId';
-      try {
-        final preparedBroad = prepareDqlSyncSubscription(
-          broadVariantsSql,
-          {'branchId': branchId},
-        );
-        await ditto.sync.registerSubscription(
-          preparedBroad.dql,
-          arguments: preparedBroad.arguments,
-        );
-        talker.debug('variants: registered broad branch subscription for sync');
-      } catch (e, st) {
-        talker.warning(
-          'variants: broad registerSubscription failed: $e\n'
-          '${describeDqlSyncSubscriptionAttempt(broadVariantsSql, {
-                'branchId': branchId,
-              })}\n'
-          '$st',
-        );
+      Future<void> registerBroadBranchSubscription() async {
+        const broadVariantsSql =
+            'SELECT * FROM variants WHERE branchId = :branchId';
+        try {
+          final preparedBroad = prepareDqlSyncSubscription(broadVariantsSql, {
+            'branchId': branchId,
+          });
+          await ditto.sync.registerSubscription(
+            preparedBroad.dql,
+            arguments: preparedBroad.arguments,
+          );
+          talker.debug(
+            'variants: registered broad branch subscription for sync',
+          );
+        } catch (e, st) {
+          talker.warning(
+            'variants: broad registerSubscription failed: $e\n'
+            '${describeDqlSyncSubscriptionAttempt(broadVariantsSql, {'branchId': branchId})}\n'
+            '$st',
+          );
+        }
+      }
+
+      if (fetchRemote) {
+        // Keep listing/searching local-first; explicit refresh/cold-start paths
+        // can still ask Ditto to pull remote data without blocking the query.
+        unawaited(registerBroadBranchSubscription());
       }
 
       // Replication: broad branch subscription only. Filtered SELECT (search,
@@ -257,11 +260,18 @@ mixin CapellaVariantMixin implements VariantInterface {
       // First page only: empty may mean sync not landed yet; later pages empty
       // usually means end of list, not worth waiting.
       final isFirstPage = page == null || page == 0;
-      if (items.isEmpty && isFirstPage) {
+      final shouldWaitForRemote =
+          fetchRemote &&
+          isFirstPage &&
+          (name == null || name.trim().isEmpty) &&
+          productId == null &&
+          variantId == null &&
+          bcd == null;
+      if (items.isEmpty && shouldWaitForRemote) {
         await Future.delayed(const Duration(milliseconds: 600));
         items = await runExecute();
       }
-      if (items.isEmpty && isFirstPage) {
+      if (items.isEmpty && shouldWaitForRemote) {
         await Future.delayed(const Duration(milliseconds: 1200));
         items = await runExecute();
       }
@@ -327,7 +337,9 @@ mixin CapellaVariantMixin implements VariantInterface {
 
           if (name != null && name.isNotEmpty) {
             countQuery +=
-                " AND (UPPER(name) LIKE UPPER(:namePattern) OR UPPER(bcd) LIKE UPPER(:bcdPattern))";
+                " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
+                "LOWER(COALESCE(bcd, '')) LIKE :searchLike OR "
+                "LOWER(COALESCE(productName, '')) LIKE :searchLike)";
           }
 
           if (productId != null) {
@@ -352,14 +364,28 @@ mixin CapellaVariantMixin implements VariantInterface {
         }
       }
 
+      final stockIds = items
+          .map((doc) => Map<String, dynamic>.from(doc.value)['stockId'])
+          .whereType<String>()
+          .where((id) => id.trim().isNotEmpty)
+          .toSet()
+          .toList();
+      final stocksById = stockIds.isEmpty
+          ? <String, Stock>{}
+          : await (this as StockInterface).batchGetStocksByIds(stockIds);
+
+      for (final id in stockIds) {
+        if (stocksById.containsKey(id)) continue;
+        final stock = await (this as StockInterface).getStockById(id: id);
+        if (stock != null) stocksById[id] = stock;
+      }
+
       // Parse results
       final pagedVariants = <Variant>[];
       for (var doc in items) {
         final variant = Variant.fromJson(Map<String, dynamic>.from(doc.value));
         if (variant.stockId != null) {
-          variant.stock = await (this as StockInterface).getStockById(
-            id: variant.stockId!,
-          );
+          variant.stock = stocksById[variant.stockId];
         }
         pagedVariants.add(variant);
       }
@@ -613,8 +639,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Subscribe to ensure we have the latest data
       try {
-        final preparedGetVariant =
-            prepareDqlSyncSubscription(query, arguments);
+        final preparedGetVariant = prepareDqlSyncSubscription(query, arguments);
         await dittoService.dittoInstance!.sync.registerSubscription(
           preparedGetVariant.dql,
           arguments: preparedGetVariant.arguments,
@@ -771,8 +796,11 @@ mixin CapellaVariantMixin implements VariantInterface {
 
   @override
   Future<Map<String, Variant>> batchGetVariantsByIds(List<String> ids) async {
-    final unique =
-        ids.where((id) => id.trim().isNotEmpty).map((id) => id.trim()).toSet().toList();
+    final unique = ids
+        .where((id) => id.trim().isNotEmpty)
+        .map((id) => id.trim())
+        .toSet()
+        .toList();
     if (unique.isEmpty) return {};
 
     final ditto = dittoService.dittoInstance;
@@ -782,8 +810,11 @@ mixin CapellaVariantMixin implements VariantInterface {
     }
 
     try {
-      final placeholders =
-          unique.asMap().entries.map((e) => ':v${e.key}').join(', ');
+      final placeholders = unique
+          .asMap()
+          .entries
+          .map((e) => ':v${e.key}')
+          .join(', ');
       final arguments = <String, dynamic>{
         for (var i = 0; i < unique.length; i++) 'v$i': unique[i],
       };
@@ -799,9 +830,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           out[variant.id] = variant;
         }
         final dittoId = data['_id']?.toString();
-        if (dittoId != null &&
-            dittoId.isNotEmpty &&
-            dittoId != variant.id) {
+        if (dittoId != null && dittoId.isNotEmpty && dittoId != variant.id) {
           out[dittoId] = variant;
         }
       }
@@ -1040,7 +1069,7 @@ mixin CapellaVariantMixin implements VariantInterface {
         final newStock = Stock(
           id: const Uuid().v4(),
           currentStock: variant.qty ?? 0,
-          branchId: variant.branchId ?? ProxyService.box.getBranchId()!,
+          branchId: variant.branchId,
           lastTouched: DateTime.now().toUtc(),
           rsdQty: variant.qty ?? 0,
           initialStock: variant.qty ?? 0,
@@ -1160,8 +1189,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Subscribe to ensure we have the latest data
       try {
-        final preparedByStock =
-            prepareDqlSyncSubscription(query, arguments);
+        final preparedByStock = prepareDqlSyncSubscription(query, arguments);
         await ditto.sync.registerSubscription(
           preparedByStock.dql,
           arguments: preparedByStock.arguments,
