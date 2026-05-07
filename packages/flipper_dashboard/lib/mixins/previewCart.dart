@@ -68,6 +68,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   // Track if we're already processing a payment to prevent double-processing
   bool _isProcessingPayment = false;
 
+  Future<void> _invokeCompleteTransactionCallback(Function callback) async {
+    final result = callback();
+    if (result is Future) await result;
+  }
+
   @override
   void dispose() {
     // Cancel timer to prevent it from running after widget disposal
@@ -612,10 +617,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 showCloseButton: true,
               );
               ref.read(payButtonStateProvider.notifier).stopLoading();
-              completeTransaction();
-            } else {
-              completeTransaction();
             }
+            await _invokeCompleteTransactionCallback(completeTransaction);
           },
         );
         talker.debug(
@@ -950,7 +953,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 );
                 _isProcessingPayment = false;
                 _paymentTimeout?.cancel(); // Cancel timeout on success
-                completeTransaction();
+                await _invokeCompleteTransactionCallback(completeTransaction);
                 talker.info(
                   "✅ completeTransaction callback executed - Bottom sheet should now close",
                 );

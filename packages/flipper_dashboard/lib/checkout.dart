@@ -22,6 +22,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_dashboard/providers/customer_provider.dart';
 
 /// Customer search now lives inside [QuickSellingView] (cart column). No top
 /// overlay inset on desktop checkout.
@@ -287,6 +289,44 @@ class CheckOutState extends ConsumerState<CheckOut>
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
+  Future<void> _resetCheckoutAfterSuccessfulSale(ITransaction transaction) async {
+    ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
+    ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+
+    if (!mounted) return;
+
+    final branchId = ProxyService.box.getBranchId() ?? '0';
+    ref.invalidate(
+      transactionItemsStreamProvider(
+        transactionId: transaction.id,
+        branchId: branchId,
+      ),
+    );
+    ref.invalidate(oldImplementationOfRiverpod.paymentMethodsProvider);
+    ref.read(optimisticOrderCountProvider.notifier).reset();
+
+    discountController.clear();
+    receivedAmountController.clear();
+    customerPhoneNumberController.clear();
+    deliveryNoteCotroller.clear();
+    ref.read(customerNameControllerProvider).clear();
+
+    await newTransaction(
+      typeOfThisTransactionIsExpense: ProxyService.box.isOrdering() ?? false,
+    );
+
+    ref.invalidate(
+      pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false,
+      ),
+    );
+
+    if (ref.read(oldImplementationOfRiverpod.previewingCart)) {
+      ref.read(oldImplementationOfRiverpod.previewingCart.notifier).state =
+          false;
+    }
+  }
+
   Future<bool> _handleCompleteTransaction(
     ITransaction transaction,
     bool immediateCompletion, [
@@ -312,6 +352,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       applyDiscount: applyDiscount,
       refreshTransactionItems: refreshTransactionItems,
       discountController: discountController,
+      afterCheckoutSaleCleanup: _resetCheckoutAfterSuccessfulSale,
       transactionItemsHint: transactionItemsHint,
       onPaymentConfirmed: onPaymentConfirmed != null
           ? () {

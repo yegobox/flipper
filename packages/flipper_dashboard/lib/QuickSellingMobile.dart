@@ -478,23 +478,25 @@ class _QuickSellingMobileContentState
 
                                     if (isPriceOverride) {
                                       final newQty = price / originalUnitPrice;
-                                      await ProxyService.strategy
-                                          .updateTransactionItem(
-                                            qty: newQty,
-                                            price: originalUnitPrice.toDouble(),
-                                            ignoreForReport: false,
-                                            transactionItemId:
-                                                transactionItem.id,
-                                          );
+                                      await ProxyService.getStrategy(
+                                        Strategy.capella,
+                                      ).updateTransactionItem(
+                                        qty: newQty,
+                                        price: originalUnitPrice.toDouble(),
+                                        ignoreForReport: false,
+                                        transactionItemId:
+                                            transactionItem.id,
+                                      );
                                     } else {
-                                      await ProxyService.strategy
-                                          .updateTransactionItem(
-                                            qty: qty,
-                                            price: price,
-                                            ignoreForReport: false,
-                                            transactionItemId:
-                                                transactionItem.id,
-                                          );
+                                      await ProxyService.getStrategy(
+                                        Strategy.capella,
+                                      ).updateTransactionItem(
+                                        qty: qty,
+                                        price: price,
+                                        ignoreForReport: false,
+                                        transactionItemId:
+                                            transactionItem.id,
+                                      );
                                     }
 
                                     // Force refresh the provider
@@ -1052,7 +1054,7 @@ class _QuickSellingMobileContentState
         }
 
         // Reset cashReceived when all items are deleted
-        await ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           transactionId: widget.transactionIdInt.toString(),
           cashReceived: 0.0,
         );
@@ -1224,8 +1226,11 @@ class _QuickSellingMobileContentState
                                           );
                                     }
                                     // Reset cashReceived when all items are cleared
-                                    await ProxyService.strategy.updateTransaction(
-                                      transactionId: widget.transactionIdInt.toString(),
+                                    await ProxyService.getStrategy(
+                                      Strategy.capella,
+                                    ).updateTransaction(
+                                      transactionId:
+                                          widget.transactionIdInt.toString(),
                                       cashReceived: 0.0,
                                     );
                                     // Invalidate transaction provider to force refresh

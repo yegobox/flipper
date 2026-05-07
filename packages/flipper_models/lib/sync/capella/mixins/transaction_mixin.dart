@@ -12,7 +12,6 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 
 mixin CapellaTransactionMixin implements TransactionInterface {
   Repository get repository;
@@ -794,26 +793,21 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool updatePendingTransactionSubtotal = true,
   }) async {
     try {
-      final s = Stopwatch()..start();
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized for saveTransactionItem');
         return false;
       }
 
-      // 1. Check if item exists in transaction
+      // 1. Check if item exists in transaction (narrow columns — hot path).
       final query =
-          "SELECT * FROM transaction_items WHERE transactionId = :transactionId AND variantId = :variantId";
+          "SELECT _id, id, qty, remainingStock, supplyPriceAtSale, supplyPrice FROM transaction_items WHERE transactionId = :transactionId AND variantId = :variantId LIMIT 1";
       final args = {
         'transactionId': pendingTransaction.id,
         'variantId': variation.id,
       };
 
       final result = await ditto.store.execute(query, arguments: args);
-      talker.warning(
-        "saveTransactionItem: CheckExists took ${s.elapsedMilliseconds}ms",
-      );
-      s.reset();
 
       // Optimize SubTotal calculation by avoiding full re-fetch of items
       double delta = 0.0;
@@ -931,25 +925,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
         delta = itemTotal;
       }
-      talker.warning(
-        "saveTransactionItem: Insert/Update took ${s.elapsedMilliseconds}ms",
-      );
-      s.reset();
 
-      if (updatePendingTransactionSubtotal) {
-        // Update Transaction SubTotal incrementally
-        final double newSubTotal = (pendingTransaction.subTotal ?? 0.0) + delta;
-
-        await updateTransaction(
-          transaction: pendingTransaction,
-          subTotal: newSubTotal,
-          updatedAt: DateTime.now(),
-          lastTouched: DateTime.now(),
+      if (updatePendingTransactionSubtotal && delta != 0) {
+        await _dittoAdjustTransactionSubtotalByDelta(
+          transactionId: pendingTransaction.id,
+          delta: delta,
         );
-        talker.warning(
-          "saveTransactionItem: UpdateTransaction took ${s.elapsedMilliseconds}ms",
-        );
-        s.reset();
       }
 
       return true;
@@ -1032,19 +1013,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           double? newRem;
           if (oldRem != null) {
             newRem = oldRem - qtyDelta;
-          } else {
-            final vid = d['variantId'] as String?;
-            if (vid != null) {
-              try {
-                final v = await ProxyService.getStrategy(
-                  Strategy.capella,
-                ).getVariant(id: vid);
-                final shelf = v?.stock?.currentStock?.toDouble();
-                if (shelf != null) newRem = shelf - newQty;
-              } catch (_) {}
-            }
+            addUpdate('remainingStock', newRem);
           }
-          addUpdate('remainingStock', newRem);
+          // When remainingStock was never set on the row, skip Ditto reads here —
+          // POS +/- taps should stay instant (was: blocking `getVariant`).
         }
       }
 
@@ -1054,6 +1026,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       addUpdate('active', active);
       addUpdate('isRefunded', isRefunded);
       addUpdate('doneWithTransaction', doneWithTransaction);
+      addUpdate('ebmSynced', ebmSynced);
+      addUpdate('quantityShipped', quantityShipped);
+      addUpdate('ignoreForReport', ignoreForReport);
+      addUpdate('discount', discount);
+      addUpdate('taxAmt', taxAmt);
+      addUpdate('quantityApproved', quantityApproved);
+      addUpdate('quantityRequested', quantityRequested);
+      addUpdate('taxblAmt', taxblAmt);
+      if (totAmt != null) {
+        addUpdate('totAmt', totAmt);
+      } else if (resolvedNewQty != null && price == null && prc == null) {
+        final unitPriceRow = (d['price'] as num?)?.toDouble() ?? 0.0;
+        addUpdate('totAmt', unitPriceRow * resolvedNewQty);
+      }
+      addUpdate('dcRt', dcRt);
+      addUpdate('dcAmt', dcAmt);
       addUpdate('updatedAt', DateTime.now().toIso8601String());
 
       // Unit snapshot: supplyPriceAtSale (and supplyPrice) = cost per unit at sale.
@@ -1066,15 +1054,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         if (rawSup != null) {
           unitSupply = (rawSup as num).toDouble();
         } else {
-          unitSupply = 0;
-          final vid = d['variantId'] as String?;
-          if (vid != null) {
-            try {
-              final v = await ProxyService.getStrategy(
-                Strategy.capella,
-              ).getVariant(id: vid);
-              unitSupply = v?.supplyPrice ?? 0;
-            } catch (_) {}
+          final existingSply = (d['splyAmt'] as num?)?.toDouble();
+          if (existingSply != null && oldQtyFromDb.abs() > 1e-9) {
+            unitSupply = existingSply / oldQtyFromDb;
+          } else {
+            unitSupply = 0;
           }
         }
         unitSupplySynced = unitSupply;
@@ -1094,12 +1078,81 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       await ditto.store.execute(query, arguments: arguments);
 
       final String? transactionId = d['transactionId'];
-      if (transactionId != null) {
-        await _recalculateTransactionSubTotal(transactionId);
+      final bool onlyQtyChangesLineTotals =
+          resolvedNewQty != null &&
+          price == null &&
+          prc == null &&
+          discount == null &&
+          dcRt == null &&
+          dcAmt == null &&
+          taxAmt == null &&
+          taxblAmt == null &&
+          totAmt == null &&
+          active == null &&
+          splyAmt == null;
+
+      if (transactionId != null && onlyQtyChangesLineTotals) {
+        final unitPriceRow = (d['price'] as num?)?.toDouble() ?? 0.0;
+        final qtyDelta = resolvedNewQty - oldQtyFromDb;
+        await _bumpTransactionSubtotalFromQtyDelta(
+          transactionId: transactionId,
+          unitPrice: unitPriceRow,
+          qtyDelta: qtyDelta,
+        );
+      } else {
+        final bool affectsLineTotals =
+            resolvedNewQty != null ||
+            price != null ||
+            prc != null ||
+            discount != null ||
+            dcRt != null ||
+            dcAmt != null ||
+            taxAmt != null ||
+            taxblAmt != null ||
+            totAmt != null ||
+            active != null ||
+            splyAmt != null;
+        if (transactionId != null && affectsLineTotals) {
+          await _recalculateTransactionSubTotal(transactionId);
+        }
       }
     } catch (e, s) {
       talker.error('Error in updateTransactionItem: $e', s);
     }
+  }
+
+  /// Single Ditto round-trip: adjust transaction subtotal in-place (POS hot path).
+  Future<void> _dittoAdjustTransactionSubtotalByDelta({
+    required String transactionId,
+    required double delta,
+  }) async {
+    if (delta == 0) return;
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    final now = DateTime.now().toIso8601String();
+    await ditto.store.execute(
+      'UPDATE transactions SET subTotal = COALESCE(subTotal, 0) + :delta, updatedAt = :ua, lastTouched = :lt WHERE _id = :id OR id = :id',
+      arguments: {
+        'delta': delta,
+        'ua': now,
+        'lt': now,
+        'id': transactionId,
+      },
+    );
+  }
+
+  /// Fast path for POS qty +/- : arithmetic UPDATE only (no read-modify-write).
+  Future<void> _bumpTransactionSubtotalFromQtyDelta({
+    required String transactionId,
+    required double unitPrice,
+    required double qtyDelta,
+  }) async {
+    await _dittoAdjustTransactionSubtotalByDelta(
+      transactionId: transactionId,
+      delta: unitPrice * qtyDelta,
+    );
   }
 
   Future<void> _recalculateTransactionSubTotal(String transactionId) async {

@@ -13,6 +13,7 @@ import 'package:flipper_models/providers/counter_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -551,6 +552,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     _lastPaymentInitTransactionId = null;
     _cachedNonCreditPaid = null;
     ref.invalidate(paymentMethodsProvider);
+    ref.read(optimisticOrderCountProvider.notifier).reset();
     widget.deliveryNoteCotroller.clear();
     widget.receivedAmountController.clear();
     widget.discountController.clear();
@@ -2176,7 +2178,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             final transaction = transactionAsync.asData?.value;
             if (transaction != null && transaction.id.isNotEmpty) {
               unawaited(
-                ProxyService.strategy.updateTransaction(
+                ProxyService.getStrategy(Strategy.capella).updateTransaction(
                   transaction: transaction,
                   customerName: value,
                 ),
@@ -2291,7 +2293,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     final transaction = transactionAsync.asData?.value;
                     if (transaction != null && transaction.id.isNotEmpty) {
                       unawaited(
-                        ProxyService.strategy.updateTransaction(
+                        ProxyService.getStrategy(Strategy.capella).updateTransaction(
                           transaction: transaction,
                           customerPhone:
                               widget.countryCodeController.text + value,

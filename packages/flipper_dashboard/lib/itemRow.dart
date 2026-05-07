@@ -33,6 +33,33 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
 
+/// One map built per cart stream emission; rows use `.select` so only variants whose
+/// qty changed rebuild.
+final pendingCartQtyByVariantIdProvider =
+    Provider.family<Map<String, int>, ({String transactionId, String branchId})>(
+  (ref, args) {
+    final async = ref.watch(
+      transactionItemsStreamProvider(
+        transactionId: args.transactionId,
+        branchId: args.branchId,
+      ),
+    );
+    return async.maybeWhen(
+      data: (List<TransactionItem> items) {
+        final out = <String, int>{};
+        for (final it in items) {
+          if (it.active == false) continue;
+          final vid = it.variantId;
+          if (vid == null || vid.isEmpty) continue;
+          out[vid] = (out[vid] ?? 0) + it.qty.round();
+        }
+        return out;
+      },
+      orElse: () => const <String, int>{},
+    );
+  },
+);
+
 Map<int, String> positionString = {
   0: 'first',
   1: 'second',
@@ -193,31 +220,20 @@ class _RowItemState extends ConsumerState<RowItem>
     if (txnForListen != null &&
         txnForListen.id.isNotEmpty &&
         variantIdForListen != null) {
-      ref.listen(
-        transactionItemsStreamProvider(
+      final branchId = ProxyService.box.branchIdString() ?? '0';
+      ref.listen<int>(
+        pendingCartQtyByVariantIdProvider((
           transactionId: txnForListen.id,
-          branchId: ProxyService.box.branchIdString() ?? '0',
-        ),
-        (prev, next) {
+          branchId: branchId,
+        )).select((map) => map[variantIdForListen] ?? 0),
+        (previous, next) {
           if (!mounted) return;
           final v = widget.variant;
           if (v == null || v.id != variantIdForListen) return;
 
-          int qtyFor(List<TransactionItem> list) {
-            return list
-                .where((it) => it.active != false && it.variantId == v.id)
-                .fold<num>(0, (s, it) => s + it.qty)
-                .round();
-          }
-
-          final prevItems = prev?.asData?.value;
-          final nextItems = next.asData?.value;
-          if (prevItems == null || nextItems == null) return;
-
-          final p = qtyFor(prevItems);
-          final n = qtyFor(nextItems);
-          if (n > p && _cartOptimisticBump > 0) {
-            final delta = n - p;
+          final prevQty = previous ?? 0;
+          if (next > prevQty && _cartOptimisticBump > 0) {
+            final delta = next - prevQty;
             setState(() {
               _cartOptimisticBump =
                   (_cartOptimisticBump - delta).clamp(0, 999);
@@ -853,23 +869,15 @@ class _RowItemState extends ConsumerState<RowItem>
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
-        final itemsAsync = ref.watch(
-          transactionItemsStreamProvider(
+        final branchId = ProxyService.box.branchIdString() ?? '0';
+        final streamTotalQty = ref.watch(
+          pendingCartQtyByVariantIdProvider((
             transactionId: txn.id,
-            branchId: ProxyService.box.branchIdString() ?? '0',
-          ),
+            branchId: branchId,
+          )).select((map) => map[v.id] ?? 0),
         );
-
-        final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
-        final matching = items
-            .where((it) => it.active != false)
-            .where((it) => it.variantId == v.id)
-            .toList();
-
-        final num streamTotalQty =
-            matching.fold<num>(0, (sum, it) => sum + (it.qty));
         final int displayQty =
-            (streamTotalQty + _cartOptimisticBump).round().clamp(0, 999999);
+            (streamTotalQty + _cartOptimisticBump).clamp(0, 999999);
 
         if (displayQty <= 0) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
@@ -884,6 +892,19 @@ class _RowItemState extends ConsumerState<RowItem>
           decrementEnabled: decrementEnabled,
           onDecrement: () async {
             if (!decrementEnabled) return;
+            final items = ref
+                    .read(
+                      transactionItemsStreamProvider(
+                        transactionId: txn.id,
+                        branchId: branchId,
+                      ),
+                    )
+                    .asData
+                    ?.value ??
+                const <TransactionItem>[];
+            final matching = items
+                .where((it) => it.active != false && it.variantId == v.id)
+                .toList();
             await _decrementOne(
               transactionId: txn.id,
               matchingItems: matching,

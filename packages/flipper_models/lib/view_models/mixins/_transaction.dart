@@ -22,6 +22,10 @@ mixin TransactionMixinOld {
 
   final talker = Talker();
 
+  Future<void> _awaitPossibleFuture(dynamic result) async {
+    if (result is Future) await result;
+  }
+
   Future<RwApiResponse> finalizePayment({
     String? purchaseCode,
     required String paymentType,
@@ -105,7 +109,7 @@ mixin TransactionMixinOld {
       }
 
       if (response == null) {
-        onComplete();
+        await _awaitPossibleFuture(onComplete());
         return RwApiResponse(
           resultCd: "001",
           resultMsg: isLoan && !isFullyPaid
@@ -115,7 +119,7 @@ mixin TransactionMixinOld {
       }
 
       // Only call onComplete on success, not on error
-      onComplete();
+      await _awaitPossibleFuture(onComplete());
 
       return response;
     } catch (e) {

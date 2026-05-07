@@ -20,6 +20,8 @@ class CheckoutController {
     required Function applyDiscount,
     required Function refreshTransactionItems,
     required TextEditingController discountController,
+    required Future<void> Function(ITransaction transaction)
+        afterCheckoutSaleCleanup,
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
     List<TransactionItem>? transactionItemsHint,
@@ -43,8 +45,10 @@ class CheckoutController {
         immediateCompletion: immediateCompletion,
         onPaymentConfirmed: onPaymentConfirmed,
         onPaymentFailed: onPaymentFailed,
-        completeTransaction: () {
+        completeTransaction: () async {
           ref.read(payButtonStateProvider.notifier).stopLoading();
+
+          await afterCheckoutSaleCleanup(transaction);
 
           if (!kIsWeb &&
               (defaultTargetPlatform == TargetPlatform.iOS ||

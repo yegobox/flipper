@@ -279,6 +279,7 @@ class FlipperApp extends StatefulWidget {
 
 class _FlipperAppState extends State<FlipperApp> {
   late final ThemeData _theme;
+
   /// Must be created once per app lifetime. Calling [stackedRouter.delegate] on every
   /// [build] recreates the navigator delegate and can attach [RenderObject]s while an
   /// ancestor [LayoutBuilder] is still in [performLayout], triggering Flutter's
@@ -345,7 +346,8 @@ class _FlipperAppState extends State<FlipperApp> {
             title: 'flipper',
             theme: _theme,
             // Required by package:device_preview when enabled (assert).
-            useInheritedMediaQuery: kFlipperDevicePreviewEnabled, // ignore: deprecated_member_use
+            useInheritedMediaQuery:
+                kFlipperDevicePreviewEnabled, // ignore: deprecated_member_use
             localizationsDelegates: [
               FirebaseUILocalizations.withDefaultOverrides(
                 const LabelOverrides(),
@@ -387,7 +389,8 @@ class LauncherShortcutRouterHost extends StatefulWidget {
       _LauncherShortcutRouterHostState();
 }
 
-class _LauncherShortcutRouterHostState extends State<LauncherShortcutRouterHost> {
+class _LauncherShortcutRouterHostState
+    extends State<LauncherShortcutRouterHost> {
   @override
   void initState() {
     super.initState();
@@ -415,8 +418,7 @@ class _LauncherShortcutRouterHostState extends State<LauncherShortcutRouterHost>
     if (!_isFlipperBusinessShellRoute()) return;
 
     final width = MediaQuery.sizeOf(ctx).width;
-    final isBigScreen =
-        width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    final isBigScreen = width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
     try {
       await navigateToDashboardAppPage(
         context: ctx,
