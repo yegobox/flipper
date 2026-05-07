@@ -19,6 +19,13 @@ abstract class StockInterface {
     bool appending = false,
     DateTime? lastTouched,
   });
+
+  /// Replaces [currentStock] and [rsdQty] for many stocks (non-appending), in fewer
+  /// round-trips than repeated [updateStock] (Capella: parallel Ditto UPDATEs).
+  Future<void> batchUpdateStocks(
+    Map<String, ({double currentStock, double rsdQty})> byStockId,
+  );
+
   Future<List<InventoryRequest>> requests({required String requestId});
   Future<Stock> saveStock({
     Variant? variant,

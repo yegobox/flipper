@@ -357,7 +357,10 @@ class CheckOutState extends ConsumerState<CheckOut>
       onPaymentConfirmed: onPaymentConfirmed != null
           ? () {
               onPaymentConfirmed();
-              newTransaction(typeOfThisTransactionIsExpense: false);
+              newTransaction(
+                typeOfThisTransactionIsExpense:
+                    ProxyService.box.isOrdering() ?? false,
+              );
             }
           : null,
       onPaymentFailed: onPaymentFailed,

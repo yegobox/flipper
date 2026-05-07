@@ -452,6 +452,53 @@ mixin CapellaStockMixin implements StockInterface {
     }
   }
 
+  static const int _batchUpdateStocksConcurrency = 8;
+
+  @override
+  Future<void> batchUpdateStocks(
+    Map<String, ({double currentStock, double rsdQty})> byStockId,
+  ) async {
+    if (byStockId.isEmpty) return;
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized: batchUpdateStocks');
+      return;
+    }
+
+    Future<void> updateOne(String stockId, double current, double rsd) async {
+      await ditto.store.execute(
+        '''
+UPDATE stocks SET currentStock = :currentStock, rsdQty = :rsdQty
+WHERE _id = :stockId
+''',
+        arguments: {
+          'stockId': stockId,
+          'currentStock': current,
+          'rsdQty': rsd,
+        },
+      );
+    }
+
+    final entries = byStockId.entries.toList();
+    for (var i = 0; i < entries.length; i += _batchUpdateStocksConcurrency) {
+      final end = (i + _batchUpdateStocksConcurrency < entries.length)
+          ? i + _batchUpdateStocksConcurrency
+          : entries.length;
+      await Future.wait(
+        [
+          for (var j = i; j < end; j++)
+            updateOne(
+              entries[j].key,
+              entries[j].value.currentStock,
+              entries[j].value.rsdQty,
+            ),
+        ],
+        eagerError: true,
+      );
+    }
+  }
+
   @override
   Future<Stock> saveStock({
     Variant? variant,

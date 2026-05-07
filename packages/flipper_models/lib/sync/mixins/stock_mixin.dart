@@ -83,6 +83,19 @@ mixin StockMixin implements StockInterface {
   }
 
   @override
+  Future<void> batchUpdateStocks(
+    Map<String, ({double currentStock, double rsdQty})> byStockId,
+  ) async {
+    for (final e in byStockId.entries) {
+      await updateStock(
+        stockId: e.key,
+        currentStock: e.value.currentStock,
+        rsdQty: e.value.rsdQty,
+      );
+    }
+  }
+
+  @override
   Stream<List<InventoryRequest>> requestsStream({
     required String branchId,
     String filter = RequestStatus.pending,

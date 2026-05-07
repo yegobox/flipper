@@ -450,7 +450,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       if (!isProformaOrTraining && itemsNeedingDeduction.isNotEmpty) {
         final variantIds =
             itemsNeedingDeduction.map((e) => e.variantId!).toSet().toList();
+        final swVariants = Stopwatch()..start();
         final variantsMap = await capella.batchGetVariantsByIds(variantIds);
+        swVariants.stop();
 
         final stockIds = <String>{};
         for (final item in itemsNeedingDeduction) {
@@ -459,6 +461,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           if (sid != null && sid.isNotEmpty) stockIds.add(sid);
         }
 
+        final swStocks = Stopwatch()..start();
         final stocksMap =
             await capella.batchGetStocksByIds(stockIds.toList());
         for (final sid in stockIds) {
@@ -466,6 +469,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             stocksMap[sid] = await capella.getStockById(id: sid);
           }
         }
+        swStocks.stop();
 
         final qtyDeltaPerStock = <String, double>{};
         for (final item in itemsNeedingDeduction) {
@@ -476,6 +480,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               (qtyDeltaPerStock[sid] ?? 0) + item.qty.toDouble();
         }
 
+        final stockUpdatesById =
+            <String, ({double currentStock, double rsdQty})>{};
         final deductedStockIds = <String>{};
         for (final e in qtyDeltaPerStock.entries) {
           final sid = e.key;
@@ -489,13 +495,17 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
           final newStock =
               (current - delta).roundToTwoDecimalPlaces();
-          await capella.updateStock(
-            stockId: sid,
+          stockUpdatesById[sid] = (
             currentStock: newStock,
             rsdQty: newStock,
           );
         }
 
+        final swUpdateStocks = Stopwatch()..start();
+        await capella.batchUpdateStocks(stockUpdatesById);
+        swUpdateStocks.stop();
+
+        final swUpdateItems = Stopwatch()..start();
         await Future.wait(
           itemsNeedingDeduction.map((item) async {
             final v = variantsMap[item.variantId!];
@@ -509,6 +519,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               ignoreForReport: false,
             );
           }),
+        );
+        swUpdateItems.stop();
+
+        talker.debug(
+          '[sale_completion_timing] deduction_detail_ms '
+          'batch_variants_ms=${swVariants.elapsedMilliseconds} '
+          'batch_stocks_ms=${swStocks.elapsedMilliseconds} '
+          'update_stocks_ms=${swUpdateStocks.elapsedMilliseconds} '
+          'update_transaction_items_ms=${swUpdateItems.elapsedMilliseconds} '
+          'total_ms=${flowWatch.elapsedMilliseconds}',
         );
       }
       talker.debug(

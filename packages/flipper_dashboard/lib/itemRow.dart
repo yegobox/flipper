@@ -158,6 +158,9 @@ class _RowItemState extends ConsumerState<RowItem>
   /// Adds not yet reflected on [transactionItemsStreamProvider] — keeps +/- UI responsive.
   int _cartOptimisticBump = 0;
 
+  /// Clears optimistic bump when the pending cart transaction changes (e.g. after checkout).
+  String? _lastObservedPendingTxnId;
+
   @override
   void initState() {
     super.initState();
@@ -193,6 +196,10 @@ class _RowItemState extends ConsumerState<RowItem>
   void didUpdateWidget(RowItem oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    if (widget.isOrdering != oldWidget.isOrdering) {
+      _lastObservedPendingTxnId = null;
+    }
+
     if (widget.variant?.id != oldWidget.variant?.id) {
       _cartOptimisticBump = 0;
     }
@@ -213,8 +220,23 @@ class _RowItemState extends ConsumerState<RowItem>
 
   @override
   Widget build(BuildContext context) {
-    final pendingTxnForListen =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    final expensePendingTxn = pendingTransactionStreamProvider(
+      isExpense: widget.isOrdering,
+    );
+    final pendingTxnForListen = ref.watch(expensePendingTxn);
+    ref.listen(expensePendingTxn, (previous, next) {
+      final txn = next.asData?.value;
+      if (txn == null) return;
+      final id = txn.id;
+      if (id.isEmpty) return;
+      if (_lastObservedPendingTxnId == id) return;
+      final hadTxn = _lastObservedPendingTxnId != null &&
+          _lastObservedPendingTxnId!.isNotEmpty;
+      _lastObservedPendingTxnId = id;
+      if (!hadTxn || !mounted) return;
+      if (_cartOptimisticBump == 0) return;
+      setState(() => _cartOptimisticBump = 0);
+    });
     final txnForListen = pendingTxnForListen.asData?.value;
     final variantIdForListen = widget.variant?.id;
     if (txnForListen != null &&
@@ -863,7 +885,9 @@ class _RowItemState extends ConsumerState<RowItem>
 
     return Consumer(
       builder: (context, ref, _) {
-        final txnAsync = ref.watch(pendingTransactionStreamProvider(isExpense: false));
+        final txnAsync = ref.watch(
+          pendingTransactionStreamProvider(isExpense: widget.isOrdering),
+        );
         final txn = txnAsync.asData?.value;
         if (txn == null || txn.id.isEmpty) {
           return _buildPlusOnlyButton(textTheme, colorScheme);

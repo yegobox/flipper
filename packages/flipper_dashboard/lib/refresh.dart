@@ -17,7 +17,11 @@ mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   Future<void> newTransaction(
       {required bool typeOfThisTransactionIsExpense}) async {
-    await ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+    await ref.refresh(
+      pendingTransactionStreamProvider(
+        isExpense: typeOfThisTransactionIsExpense,
+      ),
+    );
   }
 
   Future<void> refreshPendingTransactionWithExpense(
