@@ -1281,9 +1281,112 @@ class CapellaSync extends AiStrategyImpl
     double amount = 0.0,
     String? paymentMethod,
     required bool singlePaymentOnly,
-  }) {
-    // TODO: implement savePaymentType
-    throw UnimplementedError();
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for savePaymentType');
+      return;
+    }
+
+    if (transactionId == null) {
+      throw ArgumentError('transactionId cannot be null');
+    }
+
+    if (paymentMethod == null && paymentRecord == null) {
+      throw ArgumentError(
+        'Either paymentMethod or paymentRecord must be provided',
+      );
+    }
+
+    Future<void> mirrorDeleteZeroAmountSqlite() async {
+      final withAmount0 = await repository
+          .get<TransactionPaymentRecord>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(
+              where: [
+                brick.Where('transactionId').isExactly(transactionId),
+                brick.Where('amount').isExactly(0.0),
+              ],
+            ),
+          )
+          .then((records) => records.isEmpty ? null : records.first);
+      if (withAmount0 != null) {
+        await repository.delete<TransactionPaymentRecord>(
+          withAmount0,
+          query: brick.Query(action: QueryAction.delete),
+        );
+      }
+    }
+
+    // 1) Drop stale zero-amount rows (matches CoreSync semantics).
+    try {
+      await ditto.store.execute(
+        'DELETE FROM transaction_payment_records WHERE transactionId = :transactionId AND amount = :zero',
+        arguments: {'transactionId': transactionId, 'zero': 0.0},
+      );
+    } catch (e, s) {
+      talker.warning('savePaymentType: Ditto delete zero-amount rows failed: $e',
+          s);
+    }
+
+    await mirrorDeleteZeroAmountSqlite();
+
+    // 2) Single-payment mode: clear existing tender rows before inserting the new one.
+    if (singlePaymentOnly) {
+      await deletePaymentRecords(transactionId: transactionId);
+
+      final existingRecords = await repository.get<TransactionPaymentRecord>(
+        query: brick.Query(
+          where: [brick.Where('transactionId').isExactly(transactionId)],
+        ),
+      );
+
+      await Future.wait(
+        existingRecords.map(
+          (record) => repository.delete<TransactionPaymentRecord>(
+            record,
+            query: brick.Query(action: QueryAction.delete),
+          ),
+        ),
+      );
+    }
+
+    Future<void> upsertDitto(TransactionPaymentRecord r) async {
+      final doc = <String, dynamic>{
+        'id': r.id,
+        '_id': r.id,
+        'transactionId': r.transactionId,
+        'amount': r.amount,
+        'paymentMethod': r.paymentMethod,
+        'createdAt': r.createdAt?.toUtc().toIso8601String(),
+      };
+
+      await ditto.store.execute(
+        'INSERT INTO transaction_payment_records DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+        arguments: {'doc': doc},
+      );
+    }
+
+    if (paymentRecord != null) {
+      await upsertDitto(paymentRecord);
+      await repository.upsert<TransactionPaymentRecord>(paymentRecord);
+      return;
+    }
+
+    if (amount != 0) {
+      final newPaymentRecord = TransactionPaymentRecord(
+        createdAt: DateTime.now().toUtc(),
+        amount: amount,
+        transactionId: transactionId,
+        paymentMethod: paymentMethod,
+      );
+
+      await upsertDitto(newPaymentRecord);
+      await repository.upsert<TransactionPaymentRecord>(
+        newPaymentRecord,
+        query: brick.Query(action: QueryAction.insert),
+      );
+    }
   }
 
   @override

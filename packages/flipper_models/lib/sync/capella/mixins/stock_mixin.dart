@@ -206,6 +206,56 @@ mixin CapellaStockMixin implements StockInterface {
     }
   }
 
+  @override
+  Future<Map<String, Stock>> batchGetStocksByIds(List<String> ids) async {
+    final unique = ids
+        .where((id) => id.trim().isNotEmpty)
+        .map((id) => id.trim())
+        .toSet()
+        .toList();
+    if (unique.isEmpty) return {};
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized batchGetStocksByIds');
+      return {};
+    }
+
+    try {
+      final placeholders = unique
+          .asMap()
+          .entries
+          .map((e) => ':s${e.key}')
+          .join(', ');
+      final arguments = <String, dynamic>{
+        for (var i = 0; i < unique.length; i++) 's$i': unique[i],
+      };
+      final query =
+          'SELECT * FROM stocks WHERE _id IN ($placeholders) OR id IN ($placeholders)';
+      final result = await ditto.store.execute(query, arguments: arguments);
+
+      final out = <String, Stock>{};
+      for (final doc in result.items) {
+        final stock = _convertFromDittoDocument(
+          Map<String, dynamic>.from(doc.value),
+        );
+        out[stock.id] = stock;
+      }
+      return out;
+    } catch (e, st) {
+      talker.warning(
+        'batchGetStocksByIds failed ($e), falling back per id\n$st',
+      );
+      final out = <String, Stock>{};
+      for (final id in unique) {
+        try {
+          out[id] = await getStockById(id: id);
+        } catch (_) {}
+      }
+      return out;
+    }
+  }
+
   /// Watch stock by ID and get updates as a stream
   Stream<Stock?> watchStockById(String id) {
     try {

@@ -1535,6 +1535,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                         await _onQuickSellComplete(transaction);
                                       },
                                       transactionId: transaction.id,
+                                      transactionHint: transaction,
+                                      transactionItemsHint:
+                                          internalTransactionItems,
                                       paymentMethods: ref.watch(
                                         paymentMethodsProvider,
                                       ),
@@ -1873,12 +1876,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               ),
             );
             transactionAsyncValue.whenData((ITransaction transaction) {
+              final branchId = ProxyService.box.getBranchId() ?? '0';
+              final transactionItemsHint = ref
+                  .read(
+                    transactionItemsStreamProvider(
+                      transactionId: transaction.id,
+                      branchId: branchId,
+                    ),
+                  )
+                  .asData
+                  ?.value;
               startCompleteTransactionFlow(
                 immediateCompletion: false,
                 completeTransaction: () async {
                   await _onQuickSellComplete(transaction);
                 },
                 transactionId: transaction.id,
+                transactionHint: transaction,
+                transactionItemsHint: transactionItemsHint,
                 paymentMethods: ref.watch(paymentMethodsProvider),
               );
             });

@@ -1313,10 +1313,38 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required String branchId,
     String? id,
     bool awaitRemote = false,
-  }) {
-    throw UnimplementedError(
-      'getTransaction needs to be implemented for Capella',
-    );
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for getTransaction');
+        return null;
+      }
+
+      final args = <String, dynamic>{'branchId': branchId};
+      var query = 'SELECT * FROM transactions WHERE branchId = :branchId';
+
+      if (id != null && id.isNotEmpty) {
+        query += ' AND (id = :id OR _id = :id)';
+        args['id'] = id;
+      }
+
+      if (sarNo != null && sarNo.isNotEmpty) {
+        query += ' AND sarNo = :sarNo';
+        args['sarNo'] = sarNo;
+      }
+
+      query += ' ORDER BY lastTouched DESC LIMIT 1';
+
+      final result = await ditto.store.execute(query, arguments: args);
+      if (result.items.isEmpty) return null;
+
+      final data = Map<String, dynamic>.from(result.items.first.value);
+      return _convertFromDittoDocument(data);
+    } catch (e, s) {
+      talker.error('Error in Capella getTransaction: $e', s);
+      return null;
+    }
   }
 
   @override

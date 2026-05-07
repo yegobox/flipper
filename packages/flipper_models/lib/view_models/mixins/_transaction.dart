@@ -36,6 +36,7 @@ mixin TransactionMixinOld {
     required TextEditingController countryCodeController,
     void Function()? onSuccess,
     required double discount,
+    List<TransactionItem>? preloadedLineItemsForCollectPayment,
   }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -88,6 +89,7 @@ mixin TransactionMixinOld {
             transaction,
             customerName: customerNameController.text,
             countryCode: countryCodeController.text,
+            preloadedLineItems: preloadedLineItemsForCollectPayment,
           );
         }
       } else {
@@ -98,6 +100,7 @@ mixin TransactionMixinOld {
           transaction,
           customerName: customerNameController.text,
           countryCode: countryCodeController.text,
+          preloadedLineItems: preloadedLineItemsForCollectPayment,
         );
       }
 
@@ -304,6 +307,7 @@ mixin TransactionMixinOld {
     ITransaction transaction, {
     required String customerName,
     required String countryCode,
+    List<TransactionItem>? preloadedLineItems,
   }) async {
     try {
       final branchId = ProxyService.box.getBranchId();
@@ -337,9 +341,10 @@ mixin TransactionMixinOld {
       final finalCustomerName =
           ProxyService.box.customerName() ?? customer?.custNm ?? customerName;
       // Calculate and update tax amount before finalizing payment
-      final items = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).transactionItems(transactionId: transaction.id);
+      final items = preloadedLineItems ??
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).transactionItems(transactionId: transaction.id);
       double totalTax = 0.0;
       for (final item in items) {
         totalTax += item.taxAmt?.toDouble() ?? 0.0;
@@ -367,6 +372,7 @@ mixin TransactionMixinOld {
         customerPhone:
             customer?.telNo ??
             ProxyService.box.currentSaleCustomerPhoneNumber(),
+        preloadedLineItems: items,
       );
       // Clean up temporary storage
       ProxyService.box.remove(key: 'pendingCustomerName');

@@ -131,12 +131,12 @@ class DittoSingleton {
       await Ditto.init();
       print('✅ [INIT] Ditto.init() completed');
 
-      if (kDebugMode) {
-        DittoLogger.isEnabled = true;
-        DittoLogger.minimumLogLevel = LogLevel.debug;
-        DittoLogger.isDevtoolsLoggingEnabled = true;
-        print('✅ [INIT] DittoLogger enabled (debug, DevTools)');
-      }
+      // if (kDebugMode) {
+      //   DittoLogger.isEnabled = true;
+      //   DittoLogger.minimumLogLevel = LogLevel.debug;
+      //   DittoLogger.isDevtoolsLoggingEnabled = true;
+      //   print('✅ [INIT] DittoLogger enabled (debug, DevTools)');
+      // }
 
       print('🔧 [INIT] Creating DittoConfig (Ditto 5)...');
       final config = DittoConfig(
@@ -167,17 +167,13 @@ class DittoSingleton {
         await _ditto!.store.execute(
           'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION = false',
         );
-        print(
-          '✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (= false)',
-        );
+        print('✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (= false)');
       } catch (e) {
         try {
           await _ditto!.store.execute(
             'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION TO false',
           );
-          print(
-            '✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (TO false)',
-          );
+          print('✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (TO false)');
         } catch (e2) {
           print(
             '⚠️ [INIT] DQL_RESTRICT_SUBSCRIPTION not applied (use dql_for_sync_subscription in app; alter errors: $e / $e2)',

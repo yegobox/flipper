@@ -22,6 +22,7 @@ class CheckoutController {
     required TextEditingController discountController,
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
+    List<TransactionItem>? transactionItemsHint,
   }) async {
     final startTime = transaction.createdAt!;
 
@@ -37,6 +38,8 @@ class CheckoutController {
       
       final isWaitingForPayment = await startCompleteTransactionFlow(
         transactionId: transaction.id,
+        transactionHint: transaction,
+        transactionItemsHint: transactionItemsHint,
         immediateCompletion: immediateCompletion,
         onPaymentConfirmed: onPaymentConfirmed,
         onPaymentFailed: onPaymentFailed,

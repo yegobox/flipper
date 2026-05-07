@@ -770,6 +770,59 @@ mixin CapellaVariantMixin implements VariantInterface {
   }
 
   @override
+  Future<Map<String, Variant>> batchGetVariantsByIds(List<String> ids) async {
+    final unique =
+        ids.where((id) => id.trim().isNotEmpty).map((id) => id.trim()).toSet().toList();
+    if (unique.isEmpty) return {};
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized batchGetVariantsByIds');
+      return {};
+    }
+
+    try {
+      final placeholders =
+          unique.asMap().entries.map((e) => ':v${e.key}').join(', ');
+      final arguments = <String, dynamic>{
+        for (var i = 0; i < unique.length; i++) 'v$i': unique[i],
+      };
+      final query =
+          'SELECT * FROM variants WHERE _id IN ($placeholders) OR id IN ($placeholders)';
+      final result = await ditto.store.execute(query, arguments: arguments);
+
+      final out = <String, Variant>{};
+      for (final doc in result.items) {
+        final data = Map<String, dynamic>.from(doc.value);
+        final variant = Variant.fromJson(data);
+        if (variant.id.isNotEmpty) {
+          out[variant.id] = variant;
+        }
+        final dittoId = data['_id']?.toString();
+        if (dittoId != null &&
+            dittoId.isNotEmpty &&
+            dittoId != variant.id) {
+          out[dittoId] = variant;
+        }
+      }
+      return out;
+    } catch (e, st) {
+      talker.warning(
+        'batchGetVariantsByIds failed ($e), falling back per id\n$st',
+      );
+      final out = <String, Variant>{};
+      for (final id in unique) {
+        final v = await getVariant(id: id);
+        if (v != null && v.id.isNotEmpty) {
+          out[v.id] = v;
+          if (id != v.id) out[id] = v;
+        }
+      }
+      return out;
+    }
+  }
+
+  @override
   Future<int> addVariant({
     required List<Variant> variations,
     required String branchId,

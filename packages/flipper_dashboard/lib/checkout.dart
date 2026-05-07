@@ -295,6 +295,16 @@ class CheckOutState extends ConsumerState<CheckOut>
   ]) async {
     final controller = CheckoutController(ref: ref, context: context);
 
+    final transactionItemsHint = ref
+        .read(
+          transactionItemsStreamProvider(
+            transactionId: transaction.id,
+            branchId: ProxyService.box.getBranchId() ?? '0',
+          ),
+        )
+        .asData
+        ?.value;
+
     return await controller.handleCompleteTransaction(
       transaction: transaction,
       immediateCompletion: immediateCompletion,
@@ -302,6 +312,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       applyDiscount: applyDiscount,
       refreshTransactionItems: refreshTransactionItems,
       discountController: discountController,
+      transactionItemsHint: transactionItemsHint,
       onPaymentConfirmed: onPaymentConfirmed != null
           ? () {
               onPaymentConfirmed();

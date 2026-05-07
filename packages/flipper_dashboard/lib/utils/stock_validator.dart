@@ -8,19 +8,45 @@ import 'package:flipper_services/proxy.dart';
 Future<List<TransactionItem>> validateStockQuantity(
   List<TransactionItem> items,
 ) async {
-  final outOfStockItems = <TransactionItem>[];
+  final capella = ProxyService.getStrategy(Strategy.capella);
+  final variantIds = items
+      .map((e) => e.variantId)
+      .whereType<String>()
+      .where((id) => id.trim().isNotEmpty)
+      .toSet()
+      .toList();
 
+  if (variantIds.isEmpty) return [];
+
+  final variantsMap = await capella.batchGetVariantsByIds(variantIds);
+  final stockIds = <String>{};
+  for (final id in variantIds) {
+    final sid = variantsMap[id]?.stockId;
+    if (sid != null && sid.isNotEmpty) stockIds.add(sid);
+  }
+
+  final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
+  for (final sid in stockIds) {
+    if (!stocksMap.containsKey(sid)) {
+      stocksMap[sid] = await capella.getStockById(id: sid);
+    }
+  }
+
+  final outOfStockItems = <TransactionItem>[];
   for (final item in items) {
     try {
-      final variant = await ProxyService.getStrategy(Strategy.capella)
-          .getVariant(id: item.variantId);
-      final stock = await ProxyService.getStrategy(Strategy.capella)
-          .getStockById(id: variant!.stockId!);
-      if (stock.currentStock! < item.qty) {
+      final vid = item.variantId;
+      if (vid == null || vid.isEmpty) continue;
+      final variant = variantsMap[vid];
+      final sid = variant?.stockId;
+      if (sid == null || sid.isEmpty) continue;
+      final stock = stocksMap[sid];
+      final current = stock?.currentStock;
+      if (current == null) continue;
+      if (current < item.qty) {
         outOfStockItems.add(item);
       }
     } catch (e) {
-      // If we can't get stock info, assume it's available to avoid blocking transactions
       continue;
     }
   }
