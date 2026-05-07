@@ -134,6 +134,7 @@ class _QuickSellingMobileContentState
   String?
   _lastTransactionId; // Track the last transaction ID for payment initialization
   String? _itemToDeleteId; // Track which item's delete button is visible
+  final Map<String, double> _optimisticQtyByItemId = {};
 
   @override
   void initState() {
@@ -484,8 +485,7 @@ class _QuickSellingMobileContentState
                                         qty: newQty,
                                         price: originalUnitPrice.toDouble(),
                                         ignoreForReport: false,
-                                        transactionItemId:
-                                            transactionItem.id,
+                                        transactionItemId: transactionItem.id,
                                       );
                                     } else {
                                       await ProxyService.getStrategy(
@@ -494,8 +494,7 @@ class _QuickSellingMobileContentState
                                         qty: qty,
                                         price: price,
                                         ignoreForReport: false,
-                                        transactionItemId:
-                                            transactionItem.id,
+                                        transactionItemId: transactionItem.id,
                                       );
                                     }
 
@@ -543,16 +542,16 @@ class _QuickSellingMobileContentState
                                   : () async {
                                       try {
                                         await ProxyService.getStrategy(
-                                                Strategy.capella)
-                                            .deleteItemFromCart(
-                                              transactionItemId:
-                                                  transactionItem,
-                                              transactionId: transactionId,
-                                            );
+                                          Strategy.capella,
+                                        ).deleteItemFromCart(
+                                          transactionItemId: transactionItem,
+                                          transactionId: transactionId,
+                                        );
                                         ref.invalidate(
                                           transactionItemsStreamProvider(
                                             transactionId: transactionId,
-                                            branchId: ProxyService.box.getBranchId()!,
+                                            branchId: ProxyService.box
+                                                .getBranchId()!,
                                           ),
                                         );
                                         Navigator.of(context).pop();
@@ -608,10 +607,12 @@ class _QuickSellingMobileContentState
 
     // CREDIT (loan) payments require a customer for tracking.
     final payments = ref.read(oldProvider.paymentMethodsProvider);
-    final hasCreditPayment =
-        payments.any((p) => p.method == "CREDIT" && p.amount > 0);
+    final hasCreditPayment = payments.any(
+      (p) => p.method == "CREDIT" && p.amount > 0,
+    );
     if (hasCreditPayment) {
-      final hasCustomer = (customerPhone.isNotEmpty) ||
+      final hasCustomer =
+          (customerPhone.isNotEmpty) ||
           widget.transaction.customerName != null ||
           widget.transaction.customerId != null;
       if (!hasCustomer) {
@@ -761,19 +762,19 @@ class _QuickSellingMobileContentState
         final alreadyPaid = (transactionAsync.value?.cashReceived ?? 0.0);
         final pendingPayment = calculateTotalPaid(payments);
         final totalPaid = alreadyPaid + pendingPayment;
-        
+
         // Calculate total amount
         final totalAmount = calculateTransactionTotal(
           items: items,
           transaction: transactionAsync.value ?? widget.transaction,
         );
-        
+
         // Calculate remaining balance
         final remainingBalance = calculateRemainingBalance(
           total: totalAmount,
           paid: totalPaid,
         );
-        
+
         // Get digital payment status, defaulting to false if loading or error
         final isDigitalPaymentEnabled =
             digitalPaymentAsync.asData?.value ?? false;
@@ -881,6 +882,7 @@ class _QuickSellingMobileContentState
     TransactionItem transactionItem, {
     required ITransaction transaction,
   }) {
+    final displayQty = _displayQtyFor(transactionItem);
     return Container(
       margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -910,16 +912,51 @@ class _QuickSellingMobileContentState
           transactionItem.name,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(
-          '${formatNumber(transactionItem.price.toDouble())} × ${transactionItem.qty}',
-          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${formatNumber(transactionItem.price.toDouble())} × ${_formatQty(displayQty)}',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            SizedBox(height: 6),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildQuantityButton(
+                  icon: Icons.remove,
+                  enabled: displayQty > 1,
+                  onPressed: () => _updateQuantity(
+                    transactionItem,
+                    displayQty - 1,
+                    transaction,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    _formatQty(displayQty),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                _buildQuantityButton(
+                  icon: Icons.add,
+                  enabled: true,
+                  onPressed: () => _updateQuantity(
+                    transactionItem,
+                    displayQty + 1,
+                    transaction,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              (transactionItem.price * transactionItem.qty)
-                  .toCurrencyFormatted(),
+              (transactionItem.price * displayQty).toCurrencyFormatted(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -942,8 +979,9 @@ class _QuickSellingMobileContentState
                       }
                     : () async {
                         try {
-                          await ProxyService.getStrategy(Strategy.capella)
-                              .deleteItemFromCart(
+                          await ProxyService.getStrategy(
+                            Strategy.capella,
+                          ).deleteItemFromCart(
                             transactionItemId: transactionItem,
                             transactionId: widget.transactionIdInt.toString(),
                           );
@@ -1008,6 +1046,88 @@ class _QuickSellingMobileContentState
     );
   }
 
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required bool enabled,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: 30,
+      height: 30,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        icon: Icon(icon, size: 16),
+        color: enabled ? Colors.blue[700] : Colors.grey[400],
+        onPressed: enabled ? onPressed : null,
+        style: IconButton.styleFrom(
+          backgroundColor: enabled ? Colors.blue[50] : Colors.grey[100],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateQuantity(
+    TransactionItem item,
+    double newQty,
+    ITransaction transaction,
+  ) async {
+    if (item.partOfComposite ?? false) return;
+    if ((transaction.cashReceived ?? 0) > 0) {
+      showErrorNotification(
+        context,
+        'Cannot modify items in a transaction with partial payments',
+      );
+      return;
+    }
+
+    final previousDisplayQty = _displayQtyFor(item);
+    setState(() => _optimisticQtyByItemId[item.id] = newQty);
+
+    try {
+      await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
+        transactionItemId: item.id.toString(),
+        ignoreForReport: false,
+        qty: newQty,
+      );
+      ref.invalidate(
+        transactionItemsStreamProvider(
+          transactionId: widget.transactionIdInt.toString(),
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          if ((previousDisplayQty - item.qty.toDouble()).abs() < 0.0001) {
+            _optimisticQtyByItemId.remove(item.id);
+          } else {
+            _optimisticQtyByItemId[item.id] = previousDisplayQty;
+          }
+        });
+        showErrorNotification(
+          context,
+          'Error updating quantity: ${e.toString()}',
+        );
+      }
+    }
+  }
+
+  double _displayQtyFor(TransactionItem item) {
+    final optimisticQty = _optimisticQtyByItemId[item.id];
+    if (optimisticQty == null) return item.qty.toDouble();
+
+    if ((item.qty.toDouble() - optimisticQty).abs() < 0.0001) {
+      _optimisticQtyByItemId.remove(item.id);
+      return item.qty.toDouble();
+    }
+
+    return optimisticQty;
+  }
+
+  String _formatQty(double qty) {
+    return qty.toStringAsFixed(qty.truncateToDouble() == qty ? 0 : 2);
+  }
+
   Future<void> _deleteAllItems() async {
     // Check if there's a partial payment
     if ((widget.transaction.cashReceived ?? 0) > 0) {
@@ -1022,7 +1142,9 @@ class _QuickSellingMobileContentState
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Delete All Items'),
-        content: Text('Are you sure you want to remove all items from this transaction?'),
+        content: Text(
+          'Are you sure you want to remove all items from this transaction?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1058,7 +1180,7 @@ class _QuickSellingMobileContentState
           transactionId: widget.transactionIdInt.toString(),
           cashReceived: 0.0,
         );
-        
+
         // Invalidate all related providers to force refresh
         ref.invalidate(
           transactionItemsStreamProvider(
@@ -1129,9 +1251,7 @@ class _QuickSellingMobileContentState
                 onPressed: _deleteAllItems,
                 icon: Icon(Icons.delete_sweep, size: 18),
                 label: Text('Delete All'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
-                ),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
               ),
             ],
           ),
@@ -1217,20 +1337,19 @@ class _QuickSellingMobileContentState
                                   try {
                                     for (TransactionItem item in items) {
                                       await ProxyService.getStrategy(
-                                              Strategy.capella)
-                                          .deleteItemFromCart(
-                                            transactionItemId: item,
-                                            transactionId: widget
-                                                .transactionIdInt
-                                                .toString(),
-                                          );
+                                        Strategy.capella,
+                                      ).deleteItemFromCart(
+                                        transactionItemId: item,
+                                        transactionId: widget.transactionIdInt
+                                            .toString(),
+                                      );
                                     }
                                     // Reset cashReceived when all items are cleared
                                     await ProxyService.getStrategy(
                                       Strategy.capella,
                                     ).updateTransaction(
-                                      transactionId:
-                                          widget.transactionIdInt.toString(),
+                                      transactionId: widget.transactionIdInt
+                                          .toString(),
                                       cashReceived: 0.0,
                                     );
                                     // Invalidate transaction provider to force refresh
