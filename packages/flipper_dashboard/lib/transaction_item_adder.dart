@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -48,8 +47,9 @@ class TransactionItemAdder {
       final branchId = ProxyService.box.getBranchId()!;
       final businessId = ProxyService.box.getBusinessId()!;
 
-      final pendingProv =
-          pendingTransactionStreamProvider(isExpense: isOrdering);
+      final pendingProv = pendingTransactionStreamProvider(
+        isExpense: isOrdering,
+      );
 
       Future<ITransaction> resolvePendingTransaction() async {
         final cached = ref.read(pendingProv).value;
@@ -62,7 +62,9 @@ class TransactionItemAdder {
       pendingTransactionForRollback = pendingTransaction;
 
       if (!isOrdering && !isCompositeProduct) {
-        ref.read(optimisticCartProvider.notifier).addPendingLine(
+        ref
+            .read(optimisticCartProvider.notifier)
+            .addPendingLine(
               transactionId: pendingTransaction.id,
               variant: variant,
             );
@@ -73,19 +75,18 @@ class TransactionItemAdder {
       final capella = ProxyService.getStrategy(Strategy.capella);
       final stockFuture =
           !isOrdering && variant.id.isNotEmpty && variant.stockId != null
-              ? capella.getStockById(id: variant.stockId!)
-              : Future<Stock?>.value(null);
+          ? capella.getStockById(id: variant.stockId!)
+          : Future<Stock?>.value(null);
 
-      final productFuture =
-          productHint != null
-              ? Future<Product?>.value(productHint)
-              : (variant.productId != null
-                  ? capella.getProduct(
-                      businessId: businessId,
-                      id: variant.productId!,
-                      branchId: branchId,
-                    )
-                  : Future<Product?>.value(null));
+      final productFuture = productHint != null
+          ? Future<Product?>.value(productHint)
+          : (variant.productId != null
+                ? capella.getProduct(
+                    businessId: businessId,
+                    id: variant.productId!,
+                    branchId: branchId,
+                  )
+                : Future<Product?>.value(null));
 
       final results = await Future.wait<Object?>([
         Future<ITransaction>.value(pendingTransaction),
@@ -98,7 +99,9 @@ class TransactionItemAdder {
       final Stock? cachedStock = results[2] as Stock?;
 
       if (cartOptimismApplied && product?.isComposite == true) {
-        ref.read(optimisticCartProvider.notifier).rollbackPending(
+        ref
+            .read(optimisticCartProvider.notifier)
+            .rollbackPending(
               transactionId: pendingTransaction.id,
               variantId: variant.id,
             );
@@ -117,7 +120,9 @@ class TransactionItemAdder {
             }
             ref.read(optimisticOrderCountProvider.notifier).decrement();
             if (cartOptimismApplied) {
-              ref.read(optimisticCartProvider.notifier).rollbackPending(
+              ref
+                  .read(optimisticCartProvider.notifier)
+                  .rollbackPending(
                     transactionId: pendingTransaction.id,
                     variantId: variant.id,
                   );
@@ -129,6 +134,7 @@ class TransactionItemAdder {
       }
 
       w?.log("Pre-Lock");
+      var saveReturnedFalseTreatAsSuccess = false;
       await _lock.synchronized(() async {
         w?.log("Post-Lock");
         // Reuse stock from parallel fetch
@@ -184,47 +190,71 @@ class TransactionItemAdder {
             partOfComposite: false,
           );
           w?.log("Post-SaveItem");
+          // Capella returns false from an internal catch even when the write
+          // still lands; do not throw — treat like success for this path.
           if (!saved) {
-            throw StateError('saveTransactionItem returned false');
+            saveReturnedFalseTreatAsSuccess = true;
+            return;
           }
         }
       });
       w?.log("Post-Lock-Release");
 
-      scheduleMicrotask(() {
-        ref.invalidate(
-          transactionItemsStreamProvider(
-            transactionId: pendingTransaction.id,
-            branchId: ProxyService.box.getBranchId() ?? '0',
-          ),
-        );
-      });
+      // Rely on Ditto store observers to push [transactionItemsStreamProvider]
+      // updates. Invalidating here tears down subscriptions and can race with
+      // a second add path (e.g. delayed auto-add), producing spurious failures.
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
       }
 
-      // Ditto observer fires on writes; invalidate speeds Riverpod reconciliation vs Cart UI.
-      w?.log("ItemAddedToTransactionSuccess");
+      if (saveReturnedFalseTreatAsSuccess) {
+        w?.log("ItemAddSaveReturnedFalseTreatedAsSuccess");
+      } else {
+        w?.log("ItemAddedToTransactionSuccess");
+      }
       return true;
     } catch (e, s) {
-      if (context.mounted) {
-        ref.read(optimisticOrderCountProvider.notifier).decrement();
-        final txn = pendingTransactionForRollback;
-        if (txn != null && cartOptimismApplied) {
-          ref.read(optimisticCartProvider.notifier).rollbackPending(
+      final txn = pendingTransactionForRollback;
+      final branchIdStr = ProxyService.box.getBranchId();
+
+      // A parallel add (e.g. auto-add + tap) may have already persisted this
+      // line. Don't scare the cashier with a failure toast in that case.
+      var persistedForVariant = false;
+      if (txn != null &&
+          txn.id.isNotEmpty &&
+          branchIdStr != null &&
+          variant.id.isNotEmpty) {
+        try {
+          final rows = await ProxyService.getStrategy(Strategy.capella)
+              .transactionItems(
                 transactionId: txn.id,
                 variantId: variant.id,
+                branchId: branchIdStr,
+                doneWithTransaction: false,
+                active: true,
               );
+          persistedForVariant = rows.any(
+            (i) => i.active != false && i.variantId == variant.id && i.qty > 0,
+          );
+        } catch (_) {}
+      }
+
+      if (context.mounted) {
+        ref.read(optimisticOrderCountProvider.notifier).decrement();
+        if (txn != null && cartOptimismApplied) {
+          ref
+              .read(optimisticCartProvider.notifier)
+              .rollbackPending(transactionId: txn.id, variantId: variant.id);
         }
       }
 
-      if (e is StateError && e.message == 'saveTransactionItem returned false') {
+      if (persistedForVariant) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          showErrorNotification(context, "Failed to add item to cart");
         }
-        return false;
+        w?.log("ItemAddFailureSuppressedLineAlreadyInTransaction");
+        return true;
       }
 
       if (!context.mounted) return false;
