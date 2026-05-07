@@ -3870,6 +3870,9 @@ class CoreSync extends AiStrategyImpl
                   createdAt: accessJson['created_at'] != null
                       ? DateTime.tryParse(accessJson['created_at'])
                       : null,
+                  expiresAt: accessJson['expires_at'] != null
+                      ? DateTime.tryParse(accessJson['expires_at'])
+                      : null,
                 ),
               );
             }
