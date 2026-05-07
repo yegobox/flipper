@@ -44,6 +44,7 @@ import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/stock_recount_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
@@ -85,6 +86,7 @@ class CapellaSync extends AiStrategyImpl
         CategoryMixin,
         CapellaDelegationMixin,
         StockRecountMixin,
+        CapellaStockRecountMixin,
         CapellaSettingsMixin,
         CapellaProductionOutputMixin
     implements DatabaseSyncInterface {
@@ -694,8 +696,9 @@ class CapellaSync extends AiStrategyImpl
       completionStatus: COMPLETE,
       preloadedLineItems: preloaded,
     );
-    final movementReceipt =
-        isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+    final movementReceipt = isIncome
+        ? TransactionType.cashIn
+        : TransactionType.cashOut;
     await updateTransaction(
       transaction: txn,
       receiptType: movementReceipt,
@@ -985,10 +988,9 @@ class CapellaSync extends AiStrategyImpl
       talker.warning('getUtilityVariant Ditto path failed: $e\n$st');
     }
     try {
-      return await ProxyService.getStrategy(Strategy.cloudSync).getUtilityVariant(
-        name: name,
-        branchId: branchId,
-      );
+      return await ProxyService.getStrategy(
+        Strategy.cloudSync,
+      ).getUtilityVariant(name: name, branchId: branchId);
     } catch (e, st) {
       talker.error('getUtilityVariant fallback failed: $e\n$st');
       return null;
@@ -1325,8 +1327,10 @@ class CapellaSync extends AiStrategyImpl
         arguments: {'transactionId': transactionId, 'zero': 0.0},
       );
     } catch (e, s) {
-      talker.warning('savePaymentType: Ditto delete zero-amount rows failed: $e',
-          s);
+      talker.warning(
+        'savePaymentType: Ditto delete zero-amount rows failed: $e',
+        s,
+      );
     }
 
     await mirrorDeleteZeroAmountSqlite();
@@ -1788,7 +1792,10 @@ class CapellaSync extends AiStrategyImpl
         arguments: args,
       );
     } catch (e, s) {
-      talker.warning('Capella updateCategory Ditto mirror failed (non-fatal): $e', s);
+      talker.warning(
+        'Capella updateCategory Ditto mirror failed (non-fatal): $e',
+        s,
+      );
     }
   }
 

@@ -43,6 +43,8 @@ void showCustomSnackBarUtil(
   Widget? leading,
   Widget? trailing,
 }) {
+  if (!context.mounted) return;
+
   // Trigger haptic feedback based on notification type
   if (enableHapticFeedback) {
     _triggerHapticFeedback(type);
@@ -58,8 +60,9 @@ void showCustomSnackBarUtil(
   final isWideScreen = screenWidth > 600;
   final horizontalMargin =
       isWideScreen ? (screenWidth > 1200 ? 400.0 : 350.0) : 16.0;
+  final messenger = ScaffoldMessenger.of(context);
 
-  ScaffoldMessenger.of(context).showSnackBar(
+  messenger.showSnackBar(
     SnackBar(
       margin: EdgeInsets.only(
         left:
@@ -80,7 +83,7 @@ void showCustomSnackBarUtil(
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -113,17 +116,17 @@ void showCustomSnackBarUtil(
                   if (onAction != null) {
                     onAction();
                   } else {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    messenger.hideCurrentSnackBar();
                   }
                 },
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -184,14 +187,17 @@ void showDeletionConfirmationSnackBar<T>(
   String? customWarning,
   double? maxWidth,
 }) {
+  if (!context.mounted) return;
+
   if (enableHapticFeedback) {
     HapticFeedback.mediumImpact();
   }
 
   final screenWidth = MediaQuery.of(context).size.width;
   final isWideScreen = screenWidth > 600;
+  final messenger = ScaffoldMessenger.of(context);
 
-  ScaffoldMessenger.of(context).showSnackBar(
+  messenger.showSnackBar(
     SnackBar(
       backgroundColor: const Color(0xFF1E1E1E),
       duration: const Duration(seconds: 6),
@@ -206,7 +212,7 @@ void showDeletionConfirmationSnackBar<T>(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: Colors.red.withOpacity(0.3),
+          color: Colors.red.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -221,7 +227,7 @@ void showDeletionConfirmationSnackBar<T>(
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -262,7 +268,7 @@ void showDeletionConfirmationSnackBar<T>(
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               constraints: const BoxConstraints(maxHeight: 120),
@@ -280,7 +286,8 @@ void showDeletionConfirmationSnackBar<T>(
                                       width: 4,
                                       height: 4,
                                       decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.6),
+                                        color:
+                                            Colors.red.withValues(alpha: 0.6),
                                         shape: BoxShape.circle,
                                       ),
                                     ),
@@ -327,7 +334,7 @@ void showDeletionConfirmationSnackBar<T>(
                     if (enableHapticFeedback) {
                       HapticFeedback.lightImpact();
                     }
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    messenger.hideCurrentSnackBar();
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey[400],
@@ -354,7 +361,7 @@ void showDeletionConfirmationSnackBar<T>(
                     if (enableHapticFeedback) {
                       HapticFeedback.mediumImpact();
                     }
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    messenger.hideCurrentSnackBar();
                     onConfirm();
                   },
                   style: ElevatedButton.styleFrom(

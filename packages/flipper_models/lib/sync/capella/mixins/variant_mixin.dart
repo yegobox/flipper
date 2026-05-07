@@ -887,7 +887,7 @@ mixin CapellaVariantMixin implements VariantInterface {
             // Sync stock to Ditto
             if (ditto != null) {
               await ditto.store.execute(
-                "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+                "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
                 arguments: {'doc': stockToSave.toJson()},
               );
             }
@@ -908,7 +908,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           // Sync Variant to Ditto
           if (ditto != null) {
             await ditto.store.execute(
-              "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+              "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
               arguments: {'doc': variantToSave.toFlipperJson()},
             );
           }
@@ -1058,7 +1058,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Upsert the variant
       await ditto.store.execute(
-        "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+        "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
         arguments: {'doc': variant.toFlipperJson()},
       );
       final repository = Repository();
@@ -1081,14 +1081,14 @@ mixin CapellaVariantMixin implements VariantInterface {
         variant.stockId = newStock.id;
 
         await ditto.store.execute(
-          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': newStock.toJson()},
         );
         await repository.upsert<Stock>(newStock);
       } else if (variant.stock != null) {
         // Ensure existing stock is synced
         await ditto.store.execute(
-          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': variant.stock!.toJson()},
         );
         await repository.upsert<Stock>(variant.stock!);

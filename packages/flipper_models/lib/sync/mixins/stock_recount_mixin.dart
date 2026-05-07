@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/sync/stock_recount_rra_validation.dart';
 import 'package:flipper_models/sync/interfaces/stock_recount_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_services/proxy.dart';
@@ -7,7 +10,7 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/models/stock_recount.model.dart';
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
-import 'package:supabase_models/brick/models/transactionItem.model.dart';
+import 'package:supabase_models/brick/models/transactionItemUtil.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
@@ -70,9 +73,7 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
   Future<List<StockRecountItem>> getRecountItems({
     required String recountId,
   }) async {
-    final query = Query(
-      where: [Where('recountId').isExactly(recountId)],
-    );
+    final query = Query(where: [Where('recountId').isExactly(recountId)]);
 
     return await repository.get<StockRecountItem>(
       query: query,
@@ -103,8 +104,9 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
     // Fetch current stock
     Stock? stock;
     if (variant.stockId != null) {
-      final stockQuery =
-          Query(where: [Where('id').isExactly(variant.stockId!)]);
+      final stockQuery = Query(
+        where: [Where('id').isExactly(variant.stockId!)],
+      );
       final stocks = await repository.get<Stock>(
         query: stockQuery,
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
@@ -116,10 +118,12 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
     final stockId = stock?.id ?? const Uuid().v4();
 
     // Check if item already exists in this recount
-    final existingItemsQuery = Query(where: [
-      Where('recountId').isExactly(recountId),
-      Where('variantId').isExactly(variantId),
-    ]);
+    final existingItemsQuery = Query(
+      where: [
+        Where('recountId').isExactly(recountId),
+        Where('variantId').isExactly(variantId),
+      ],
+    );
 
     final existingItems = await repository.get<StockRecountItem>(
       query: existingItemsQuery,
@@ -160,8 +164,9 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
     final recount = await getRecount(recountId: recountId);
     if (recount != null) {
       final allItems = await getRecountItems(recountId: recountId);
-      final updatedRecount =
-          recount.copyWith(totalItemsCounted: allItems.length);
+      final updatedRecount = recount.copyWith(
+        totalItemsCounted: allItems.length,
+      );
       await repository.upsert<StockRecount>(updatedRecount);
     }
 
@@ -187,8 +192,9 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
     final recount = await getRecount(recountId: item.recountId);
     if (recount != null) {
       final remainingItems = await getRecountItems(recountId: item.recountId);
-      final updatedRecount =
-          recount.copyWith(totalItemsCounted: remainingItems.length);
+      final updatedRecount = recount.copyWith(
+        totalItemsCounted: remainingItems.length,
+      );
       await repository.upsert<StockRecount>(updatedRecount);
     }
   }
@@ -218,6 +224,9 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
         throw Exception('Item ${item.productName} validation failed: $error');
       }
     }
+
+    // Release builds (production): persist counted qty only — no RRA / EBM.
+    // Debug & profile: full stock IO via tax API when EBM + SAR exist.
 
     // Update Stock records for each item
     for (final item in items) {
@@ -251,58 +260,75 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
       await repository.upsert<Stock>(stock);
 
       // Trigger RRA stock IO for the variant
-      final variantQuery =
-          Query(where: [Where('id').isExactly(item.variantId)]);
+      final variantQuery = Query(
+        where: [Where('id').isExactly(item.variantId)],
+      );
       final variants = await repository.get<Variant>(query: variantQuery);
-      if (variants.isNotEmpty) {
-        final variant = variants.first;
-        final ebm = await ProxyService.strategy.ebm(branchId: recount.branchId);
-        final sar =
-            await ProxyService.strategy.getSar(branchId: recount.branchId);
+      if (variants.isEmpty) {
+        continue;
+      }
 
-        if (ebm != null && sar != null) {
-          sar.sarNo = sar.sarNo + 1;
-          await repository.upsert<Sar>(sar);
+      final variant = variants.first;
 
-          await ProxyService.tax.saveStockItems(
-            items: [
-              TransactionItem(
-                pkgUnitCd: variant.pkgUnitCd,
-                itemSeq: 1,
-                itemCd: variant.itemCd!,
-                itemClsCd: variant.itemClsCd!,
-                itemNm: variant.itemNm!,
-                qty: item.countedQuantity,
-                prc: variant.retailPrice ?? 0,
-                dcRt: variant.dcRt ?? 0,
-                taxTyCd: variant.taxTyCd ?? "A",
-                name: variant.name,
-                price: variant.retailPrice ?? 0,
-                discount: variant.dcRt != null
-                    ? ((variant.dcRt! / 100) * (variant.retailPrice ?? 0))
-                    : 0,
-                ttCatCd: variant.ttCatCd,
-              )
-            ],
-            tinNumber: ebm.tinNumber.toString(),
-            bhFId: ebm.bhfId,
-            totalSupplyPrice: variant.supplyPrice ?? 0,
-            totalvat: 0,
-            totalAmount: variant.retailPrice ?? 0,
-            sarTyCd: "06",
-            sarNo: sar.sarNo.toString(),
-            remark: "Stock recount adjustment",
-            ocrnDt: DateTime.now().toUtc(),
-            URI: ebm.taxServerUrl,
-          );
-          // save master stock
-          await ProxyService.tax.saveStockMaster(
-            variant: variant,
-            URI: ebm.taxServerUrl,
-            // approvedQty: approvedQty,
-            stockMasterQty: item.countedQuantity,
+      // Skip stock reporting for services (same as variant save path)
+      if (variant.itemTyCd == '3') {
+        continue;
+      }
+
+      if (kReleaseMode) {
+        continue;
+      }
+
+      final rraBlockReason = missingRraIdentifiersMessageForStockRecountIo(
+        variant,
+      );
+      if (rraBlockReason != null) {
+        throw Exception('${variant.name}: $rraBlockReason');
+      }
+
+      final syncHost = this as DatabaseSyncInterface;
+      final ebm = await syncHost.ebm(branchId: recount.branchId);
+      final sar = await syncHost.getSar(branchId: recount.branchId);
+
+      if (ebm != null && sar != null) {
+        sar.sarNo = sar.sarNo + 1;
+        await repository.upsert<Sar>(sar);
+
+        final rwSave = await ProxyService.tax.saveStockItems(
+          items: [
+            TransactionItemUtil.fromVariant(
+              variant,
+              itemSeq: 1,
+              approvedQty: item.countedQuantity.toDouble(),
+            ),
+          ],
+          tinNumber: ebm.tinNumber.toString(),
+          bhFId: ebm.bhfId,
+          totalSupplyPrice: variant.supplyPrice ?? 0,
+          totalvat: 0,
+          totalAmount: variant.retailPrice ?? 0,
+          sarTyCd: "06",
+          sarNo: sar.sarNo.toString(),
+          invoiceNumber: sar.sarNo,
+          remark: "Stock recount adjustment",
+          ocrnDt: DateTime.now().toUtc(),
+          URI: ebm.taxServerUrl,
+          updateMaster: false,
+        );
+        if (rwSave.resultCd != "000") {
+          throw Exception(
+            rwSave.resultMsg.isEmpty
+                ? "RRA saveStockItems failed (${rwSave.resultCd})"
+                : rwSave.resultMsg,
           );
         }
+        // save master stock
+        await ProxyService.tax.saveStockMaster(
+          variant: variant,
+          URI: ebm.taxServerUrl,
+          // approvedQty: approvedQty,
+          stockMasterQty: item.countedQuantity,
+        );
       }
     }
 

@@ -1,3 +1,6 @@
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/stock_recount.model.dart';
@@ -5,6 +8,9 @@ import 'package:supabase_models/brick/models/stock_recount_item.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+
+DatabaseSyncInterface _stockRecountCapella() =>
+    ProxyService.getStrategy(Strategy.capella);
 
 class StockRecountActiveScreen extends StatefulWidget {
   final String recountId;
@@ -25,13 +31,29 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
   bool _isAddingItem = false;
   bool _canSubmit = true;
 
+  StockRecount? _recount;
+  List<StockRecountItem> _items = [];
+  bool _bootstrapLoading = true;
+  Object? _bootstrapError;
+
   @override
   void initState() {
     super.initState();
-    // Check if we can submit on initial load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkCanSubmit();
-    });
+    _bootstrap();
+  }
+
+  @override
+  void didUpdateWidget(covariant StockRecountActiveScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.recountId != widget.recountId) {
+      setState(() {
+        _bootstrapLoading = true;
+        _bootstrapError = null;
+        _recount = null;
+        _items = [];
+      });
+      _bootstrap();
+    }
   }
 
   @override
@@ -41,29 +63,61 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     super.dispose();
   }
 
-  Future<void> _checkCanSubmit() async {
+  Future<void> _bootstrap() async {
     try {
-      final items = await ProxyService.strategy.getRecountItems(
-        recountId: widget.recountId,
-      );
+      final capella = _stockRecountCapella();
+      final recount = await capella.getRecount(recountId: widget.recountId);
+      if (!mounted) return;
+      if (recount == null) {
+        setState(() {
+          _recount = null;
+          _items = [];
+          _bootstrapLoading = false;
+          _bootstrapError = null;
+        });
+        return;
+      }
 
-      // Disable submit only when any item is below system stock (negative variance)
+      final items = await capella.getRecountItems(recountId: widget.recountId);
+      if (!mounted) return;
+
       final hasNegativeVariance = items.any((item) => item.difference < 0);
 
       setState(() {
+        _recount = recount;
+        _items = items;
         _canSubmit = !hasNegativeVariance;
+        _bootstrapLoading = false;
+        _bootstrapError = null;
       });
-    } catch (e) {
+    } catch (e, st) {
+      talker.error('StockRecountActiveScreen: bootstrap failed', e, st);
+      if (!mounted) return;
       setState(() {
-        _canSubmit = true;
+        _bootstrapError = e;
+        _bootstrapLoading = false;
       });
     }
   }
 
+  Future<void> _reloadItems() async {
+    try {
+      final items = await _stockRecountCapella().getRecountItems(
+        recountId: widget.recountId,
+      );
+      if (!mounted) return;
+      final hasNegativeVariance = items.any((item) => item.difference < 0);
+      setState(() {
+        _items = items;
+        _canSubmit = !hasNegativeVariance;
+      });
+    } catch (e, st) {
+      talker.error('StockRecountActiveScreen: _reloadItems failed', e, st);
+    }
+  }
+
   Future<void> _onItemsChanged() async {
-    if (!mounted) return;
-    setState(() {});
-    await _checkCanSubmit();
+    await _reloadItems();
   }
 
   Future<void> _submitRecount() async {
@@ -130,12 +184,13 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     });
 
     try {
-      await ProxyService.strategy.submitRecount(recountId: widget.recountId);
+      await _stockRecountCapella().submitRecount(recountId: widget.recountId);
       if (mounted) {
         showSuccessNotification(context, 'Recount submitted successfully');
         Navigator.of(context).pop();
       }
-    } catch (e) {
+    } catch (e, st) {
+      talker.error('StockRecountActiveScreen: submitRecount failed', e, st);
       if (mounted) {
         showErrorNotification(context, 'Error submitting recount: $e');
       }
@@ -168,7 +223,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     });
 
     try {
-      await ProxyService.strategy.addOrUpdateRecountItem(
+      await _stockRecountCapella().addOrUpdateRecountItem(
         recountId: widget.recountId,
         variantId: _selectedVariant!.id,
         countedQuantity: quantity,
@@ -182,10 +237,15 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
           _quantityController.clear();
           _searchController.clear();
         });
-        await _checkCanSubmit();
+        await _reloadItems();
         showSuccessNotification(context, 'Item added to recount');
       }
-    } catch (e) {
+    } catch (e, st) {
+      talker.error(
+        'StockRecountActiveScreen: addOrUpdateRecountItem failed',
+        e,
+        st,
+      );
       if (mounted) {
         showErrorNotification(context, 'Error adding item: $e');
       }
@@ -200,12 +260,13 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
 
   Future<void> _removeItem(String itemId) async {
     try {
-      await ProxyService.strategy.removeRecountItem(itemId: itemId);
+      await _stockRecountCapella().removeRecountItem(itemId: itemId);
       if (mounted) {
-        await _checkCanSubmit();
+        await _reloadItems();
         showSuccessNotification(context, 'Item removed');
       }
-    } catch (e) {
+    } catch (e, st) {
+      talker.error('StockRecountActiveScreen: removeRecountItem failed', e, st);
       if (mounted) {
         showErrorNotification(context, 'Error removing item: $e');
       }
@@ -214,559 +275,529 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<StockRecount?>(
-      future: ProxyService.strategy.getRecount(recountId: widget.recountId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+    if (_bootstrapLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-        final recount = snapshot.data;
-        if (recount == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Recount Not Found')),
-            body: const Center(child: Text('Recount not found')),
-          );
-        }
-
-        final isDraft = recount.status == 'draft';
-
-        return Scaffold(
-          backgroundColor: const Color(0xFFF5F7FA),
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black87,
-            title: Text(
-              isDraft ? 'Stock Recount' : 'View Recount',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+    if (_bootstrapError != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Stock Recount')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'Could not load recount: $_bootstrapError',
+              textAlign: TextAlign.center,
             ),
-            actions: [
-              if (isDraft && !_isSubmitting)
-                Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: ElevatedButton.icon(
-                    onPressed: _canSubmit ? _submitRecount : null,
-                    icon: const Icon(Icons.check_circle_outline, size: 20),
-                    label: const Text('Submit Recount'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _canSubmit
-                          ? const Color(0xFF0078D4)
-                          : Colors.grey,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ),
-                ),
-              if (_isSubmitting)
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF0078D4),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
           ),
-          body: Column(
-            children: [
-              // Recount Info Card
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF0078D4,
-                            ).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.inventory_2_rounded,
-                            color: Color(0xFF0078D4),
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                recount.deviceName ?? 'Unknown Device',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Created ${DateFormat('MMM dd, yyyy at HH:mm').format(recount.createdAt)}',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: recount.status == 'draft'
-                                ? const Color(0xFFFFF4E5)
-                                : const Color(0xFFE3F2FD),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            recount.status.toUpperCase(),
-                            style: TextStyle(
-                              color: recount.status == 'draft'
-                                  ? const Color(0xFFE67E22)
-                                  : const Color(0xFF0078D4),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (recount.notes != null && recount.notes!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.notes,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                recount.notes!,
-                                style: TextStyle(
-                                  color: Colors.grey[700],
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    // Warning banner if cannot submit
-                    if (!_canSubmit && isDraft) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3CD),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFFFE69C)),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              color: Color(0xFF856404),
-                              size: 20,
-                            ),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Cannot submit: Some items have counts lower than system stock',
-                                style: TextStyle(
-                                  color: Color(0xFF856404),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
+        ),
+      );
+    }
+
+    final recount = _recount;
+    if (recount == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Recount Not Found')),
+        body: const Center(child: Text('Recount not found')),
+      );
+    }
+
+    final isDraft = recount.status == 'draft';
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        title: Text(
+          isDraft ? 'Stock Recount' : 'View Recount',
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+        ),
+        actions: [
+          if (isDraft && !_isSubmitting)
+            Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: ElevatedButton.icon(
+                onPressed: _canSubmit ? _submitRecount : null,
+                icon: const Icon(Icons.check_circle_outline, size: 20),
+                label: const Text('Submit Recount'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _canSubmit
+                      ? const Color(0xFF0078D4)
+                      : Colors.grey,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                 ),
               ),
-
-              // Add Item Section (only for draft)
-              if (isDraft)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+            ),
+          if (_isSubmitting)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0078D4)),
+                ),
+              ),
+            ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Recount Info Card
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0078D4).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                      child: const Icon(
+                        Icons.inventory_2_rounded,
+                        color: Color(0xFF0078D4),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFF0078D4,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.add_circle_outline,
-                              color: Color(0xFF0078D4),
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Add Product to Count',
-                            style: TextStyle(
-                              fontSize: 16,
+                          Text(
+                            recount.deviceName ?? 'Unknown Device',
+                            style: const TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.w600,
                               color: Colors.black87,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: _ProductSearchField(
-                              controller: _searchController,
-                              onProductSelected: (variant) {
-                                setState(() {
-                                  _selectedVariant = variant;
-                                  _quantityController.text = '';
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              controller: _quantityController,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              decoration: InputDecoration(
-                                labelText: 'Counted Qty',
-                                labelStyle: const TextStyle(fontSize: 14),
-                                hintText: '0',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: Colors.grey[300]!,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: Colors.grey[300]!,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF0078D4),
-                                    width: 2,
-                                  ),
-                                ),
-                                prefixIcon: const Icon(Icons.pin, size: 20),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 16,
-                                ),
-                              ),
-                              enabled: _selectedVariant != null,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: _selectedVariant != null && !_isAddingItem
-                                ? _addOrUpdateItem
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0078D4),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 16,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              disabledBackgroundColor: Colors.grey[300],
-                            ),
-                            child: _isAddingItem
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF0078D4),
-                                      ),
-                                    ),
-                                  )
-                                : const Row(
-                              children: [
-                                Icon(Icons.add, size: 20),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Add',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(height: 2),
+                          Text(
+                            'Created ${DateFormat('MMM dd, yyyy at HH:mm').format(recount.createdAt)}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
                             ),
                           ),
                         ],
-                      ),
-                      if (_selectedVariant != null) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE3F2FD),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFBBDEFB)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                size: 18,
-                                color: Color(0xFF0078D4),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _selectedVariant!.name,
-                                      style: const TextStyle(
-                                        color: Color(0xFF0078D4),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    if (_selectedVariant!.sku != null)
-                                      Text(
-                                        'SKU: ${_selectedVariant!.sku}',
-                                        style: TextStyle(
-                                          color: Colors.grey[700],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  size: 18,
-                                  color: Color(0xFF0078D4),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _selectedVariant = null;
-                                    _searchController.clear();
-                                    _quantityController.clear();
-                                  });
-                                },
-                                tooltip: 'Clear selection',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-
-              const SizedBox(height: 16),
-
-              // Items List Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    const Text(
-                      'Count Items',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
                       ),
                     ),
-                    const Spacer(),
-                    FutureBuilder<List<StockRecountItem>>(
-                      future: ProxyService.strategy.getRecountItems(
-                        recountId: widget.recountId,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
                       ),
-                      builder: (context, snapshot) {
-                        final items = snapshot.data ?? [];
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${items.length} ${items.length == 1 ? 'item' : 'items'}',
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        );
-                      },
+                      decoration: BoxDecoration(
+                        color: recount.status == 'draft'
+                            ? const Color(0xFFFFF4E5)
+                            : const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        recount.status.toUpperCase(),
+                        style: TextStyle(
+                          color: recount.status == 'draft'
+                              ? const Color(0xFFE67E22)
+                              : const Color(0xFF0078D4),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Items List
-              Expanded(
-                child: FutureBuilder<List<StockRecountItem>>(
-                  future: ProxyService.strategy.getRecountItems(
-                    recountId: widget.recountId,
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final items = snapshot.data ?? [];
-
-                    if (items.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.inventory_outlined,
-                                size: 64,
-                                color: Colors.grey[400],
-                              ),
+                if (recount.notes != null && recount.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.notes, size: 16, color: Colors.grey[600]),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            recount.notes!,
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 14,
                             ),
-                            const SizedBox(height: 24),
-                            Text(
-                              'No items yet',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              isDraft
-                                  ? 'Start by searching and adding products to count'
-                                  : 'This recount has no items',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        return _RecountItemCard(
-                          item: item,
-                          isDraft: isDraft,
-                          onRemove: () => _removeItem(item.id),
-                          recountId: widget.recountId,
-                          onUpdated: _onItemsChanged,
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+                      ],
+                    ),
+                  ),
+                ],
+                // Warning banner if cannot submit
+                if (!_canSubmit && isDraft) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3CD),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFFFE69C)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: Color(0xFF856404),
+                          size: 20,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Cannot submit: Some items have counts lower than system stock',
+                            style: TextStyle(
+                              color: Color(0xFF856404),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
-        );
-      },
+
+          // Add Item Section (only for draft)
+          if (isDraft)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0078D4).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.add_circle_outline,
+                          color: Color(0xFF0078D4),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Add Product to Count',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: _ProductSearchField(
+                          controller: _searchController,
+                          onProductSelected: (variant) {
+                            setState(() {
+                              _selectedVariant = variant;
+                              _quantityController.text = '';
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _quantityController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Counted Qty',
+                            labelStyle: const TextStyle(fontSize: 14),
+                            hintText: '0',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF0078D4),
+                                width: 2,
+                              ),
+                            ),
+                            prefixIcon: const Icon(Icons.pin, size: 20),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 16,
+                            ),
+                          ),
+                          enabled: _selectedVariant != null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: _selectedVariant != null && !_isAddingItem
+                            ? _addOrUpdateItem
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0078D4),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          disabledBackgroundColor: Colors.grey[300],
+                        ),
+                        child: _isAddingItem
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF0078D4),
+                                  ),
+                                ),
+                              )
+                            : const Row(
+                                children: [
+                                  Icon(Icons.add, size: 20),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Add',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ],
+                  ),
+                  if (_selectedVariant != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFBBDEFB)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            size: 18,
+                            color: Color(0xFF0078D4),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _selectedVariant!.name,
+                                  style: const TextStyle(
+                                    color: Color(0xFF0078D4),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (_selectedVariant!.sku != null)
+                                  Text(
+                                    'SKU: ${_selectedVariant!.sku}',
+                                    style: TextStyle(
+                                      color: Colors.grey[700],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              size: 18,
+                              color: Color(0xFF0078D4),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _selectedVariant = null;
+                                _searchController.clear();
+                                _quantityController.clear();
+                              });
+                            },
+                            tooltip: 'Clear selection',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 16),
+
+          // Items List Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Text(
+                  'Count Items',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_items.length} ${_items.length == 1 ? 'item' : 'items'}',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Items List
+          Expanded(
+            child: _items.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.inventory_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'No items yet',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          isDraft
+                              ? 'Start by searching and adding products to count'
+                              : 'This recount has no items',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _items.length,
+                    itemBuilder: (context, index) {
+                      final item = _items[index];
+                      return _RecountItemCard(
+                        item: item,
+                        isDraft: isDraft,
+                        onRemove: () => _removeItem(item.id),
+                        recountId: widget.recountId,
+                        onUpdated: _onItemsChanged,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -789,9 +820,11 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
   bool _isSearching = false;
 
   void _performSearch(String query) async {
-    if (query.isEmpty) {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
       setState(() {
         _searchResults = [];
+        _isSearching = false;
       });
       return;
     }
@@ -802,40 +835,46 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
 
     try {
       final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) return;
+      if (branchId == null) {
+        setState(() {
+          _searchResults = [];
+          _isSearching = false;
+        });
+        return;
+      }
 
-      // Search for variants with proper tax type codes based on VAT settings
-      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-      final taxTyCds = ebm?.vatEnabled == true
-          ? ['A', 'B', 'C', 'TT']
-          : ['D', 'TT'];
-      final paged = await ProxyService.strategy.variants(
+      // Capella/Ditto: do not pass [taxTyCds] here — SQL uses `taxTyCd IN (...)`
+      // which drops variants whose Ditto doc has NULL/missing taxTyCd (common on mesh).
+      // Submit-time RRA validation still enforces tax identifiers where needed.
+      // Pass [name] so Ditto applies LIKE on name, productName, and barcode (see CapellaVariantMixin).
+      final paged = await _stockRecountCapella().variants(
         branchId: branchId,
-        taxTyCds: taxTyCds,
+        name: trimmed,
+        fetchRemote: true,
       );
 
       final variants = List<Variant>.from(paged.variants);
 
-      // Filter out service items (itemTyCd == "2" or itemTyCd == "3") and match search query
       final filtered = variants
           .where((v) {
-            // Exclude service items (service, "3" = service)
-            final isService = v.itemTyCd == "3";
-            // Match search query
-            final matchesQuery = v.name.toLowerCase().contains(
-              query.toLowerCase(),
-            );
-            return !isService && matchesQuery;
+            final isService = v.itemTyCd == '3';
+            return !isService;
           })
-          .take(10)
+          .take(20)
           .toList();
 
       setState(() {
         _searchResults = filtered;
         _isSearching = false;
       });
-    } catch (e) {
+    } catch (e, st) {
+      talker.error(
+        'StockRecountActiveScreen: variant search failed (query="$trimmed")',
+        e,
+        st,
+      );
       setState(() {
+        _searchResults = [];
         _isSearching = false;
       });
     }
@@ -1016,7 +1055,7 @@ class _RecountItemCardState extends State<_RecountItemCard> {
     });
 
     try {
-      await ProxyService.strategy.addOrUpdateRecountItem(
+      await _stockRecountCapella().addOrUpdateRecountItem(
         recountId: widget.recountId,
         variantId: widget.item.variantId,
         countedQuantity: qty,
@@ -1029,7 +1068,12 @@ class _RecountItemCardState extends State<_RecountItemCard> {
       });
       widget.onUpdated();
       showSuccessNotification(context, 'Count updated');
-    } catch (e) {
+    } catch (e, st) {
+      talker.error(
+        'StockRecountActiveScreen: _saveCounted addOrUpdateRecountItem failed',
+        e,
+        st,
+      );
       if (!mounted) return;
       showErrorNotification(context, 'Error updating count: $e');
     } finally {
@@ -1148,7 +1192,8 @@ class _RecountItemCardState extends State<_RecountItemCard> {
                             setState(() {
                               _isEditingCounted = false;
                               _countedController.text = widget
-                                  .item.countedQuantity
+                                  .item
+                                  .countedQuantity
                                   .toStringAsFixed(0);
                             });
                           },
@@ -1160,7 +1205,8 @@ class _RecountItemCardState extends State<_RecountItemCard> {
                                   setState(() {
                                     _isEditingCounted = true;
                                     _countedController.text = widget
-                                        .item.countedQuantity
+                                        .item
+                                        .countedQuantity
                                         .toStringAsFixed(0);
                                   });
                                 }
@@ -1267,7 +1313,9 @@ class _EditableCountedChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFE3F2FD),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF0078D4).withValues(alpha: 0.2)),
+        border: Border.all(
+          color: const Color(0xFF0078D4).withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1314,7 +1362,10 @@ class _EditableCountedChip extends StatelessWidget {
                   backgroundColor: const Color(0xFF0078D4),
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -1325,7 +1376,9 @@ class _EditableCountedChip extends StatelessWidget {
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Text('Save'),

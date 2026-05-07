@@ -531,7 +531,7 @@ WHERE _id = :stockId
     );
     // Ensure existing stock is synced
     await ditto.store.execute(
-      "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+      "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
       arguments: {'doc': stock.toJson()},
     );
     await repository.upsert<Stock>(stock);

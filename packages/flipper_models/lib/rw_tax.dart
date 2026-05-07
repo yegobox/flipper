@@ -310,7 +310,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "modrId": mod,
         "modrNm": mod,
         "sarNo": sarNo,
-        "orgSarNo": invoiceNumber,
+        "orgSarNo": invoiceNumber ?? int.tryParse(sarNo ?? '') ?? 0,
         "itemList": itemsList,
       };
       // if custTin is invalid remove it from the json
@@ -324,11 +324,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       /// save stock master for  the involved variants
       /// to keep stock master in sync
-      if (updateMaster) {
+      if (updateMaster && data.resultCd == "000") {
         for (var item in items) {
-          Variant? variant = await ProxyService.strategy.getVariant(
-            id: item.variantId!,
-          );
+          final vid = item.variantId;
+          if (vid == null) continue;
+          Variant? variant = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getVariant(id: vid);
           if (variant != null) {
             await saveStockMaster(variant: variant, URI: URI);
           }
@@ -1106,6 +1108,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     Map<String, dynamic> sortedItemJson = Map.from(itemJson);
     final itemSeqValue = sortedItemJson.remove('itemSeq');
     sortedItemJson.addAll({'itemSeq': itemSeqValue});
+
+    final qUnit =
+        sortedItemJson['qtyUnitCd'] ?? item.qtyUnitCd ?? item.pkgUnitCd ?? 'U';
+    sortedItemJson['qtyUnitCd'] = qUnit is String && qUnit.isNotEmpty
+        ? qUnit
+        : 'U';
+
     return sortedItemJson;
   }
 

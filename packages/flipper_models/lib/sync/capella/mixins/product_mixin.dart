@@ -193,7 +193,7 @@ mixin CapellaProductMixin implements ProductInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto != null) {
       await ditto.store.execute(
-        "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+        "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
         arguments: {'doc': newSku.toJson()},
       );
     }
@@ -270,7 +270,7 @@ mixin CapellaProductMixin implements ProductInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto != null) {
         await ditto.store.execute(
-          "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': sku.toJson()},
         );
       }
@@ -278,7 +278,7 @@ mixin CapellaProductMixin implements ProductInterface {
       final createdProduct = await repository.upsert<Product>(product);
       if (ditto != null) {
         await ditto.store.execute(
-          "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': createdProduct.toJson()},
         );
       }
@@ -369,7 +369,7 @@ mixin CapellaProductMixin implements ProductInterface {
         final createdStock = await repository.upsert<Stock>(stock);
         if (ditto != null) {
           await ditto.store.execute(
-            "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+            "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
             arguments: {'doc': createdStock.toJson()},
           );
         }
@@ -664,7 +664,7 @@ mixin CapellaProductMixin implements ProductInterface {
         // Update in Ditto
         if (ditto != null) {
           await ditto.store.execute(
-            "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+            "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
             arguments: {'doc': product.toJson()},
           );
           if (ProxyService.box.getUserLoggingEnabled() ?? false) {

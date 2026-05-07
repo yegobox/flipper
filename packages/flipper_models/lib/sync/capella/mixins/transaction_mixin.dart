@@ -1134,12 +1134,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final now = DateTime.now().toIso8601String();
     await ditto.store.execute(
       'UPDATE transactions SET subTotal = COALESCE(subTotal, 0) + :delta, updatedAt = :ua, lastTouched = :lt WHERE _id = :id OR id = :id',
-      arguments: {
-        'delta': delta,
-        'ua': now,
-        'lt': now,
-        'id': transactionId,
-      },
+      arguments: {'delta': delta, 'ua': now, 'lt': now, 'id': transactionId},
     );
   }
 
@@ -1478,8 +1473,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<Sar> getSar({required String branchId}) async {
-    throw UnimplementedError('getSar needs to be implemented for Capella');
+  Future<Sar?> getSar({required String branchId}) async {
+    return (await repository.get<Sar>(
+      query: Query(
+        orderBy: [const OrderBy('createdAt', ascending: false)],
+        where: [Where('branchId').isExactly(branchId)],
+      ),
+    )).firstOrNull;
   }
 
   @override
@@ -1536,8 +1536,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized for getPaymentSumsByTransactionIds');
-        throw Exception('Ditto not initialized for getPaymentSumsByTransactionIds');
+        talker.error(
+          'Ditto not initialized for getPaymentSumsByTransactionIds',
+        );
+        throw Exception(
+          'Ditto not initialized for getPaymentSumsByTransactionIds',
+        );
       }
 
       final placeholders = transactionIds
@@ -1546,15 +1550,20 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           .map((e) => ':t${e.key}')
           .join(', ');
       final arguments = <String, dynamic>{
-        for (var i = 0; i < transactionIds.length; i++) 't$i': transactionIds[i],
+        for (var i = 0; i < transactionIds.length; i++)
+          't$i': transactionIds[i],
       };
 
       final query =
           'SELECT * FROM transaction_payment_records WHERE transactionId IN ($placeholders)';
-      final queryResult = await ditto.store.execute(query, arguments: arguments);
+      final queryResult = await ditto.store.execute(
+        query,
+        arguments: arguments,
+      );
 
       final byId = <String, ({double byHand, double credit, int count})>{
-        for (final id in transactionIds) id: (byHand: 0.0, credit: 0.0, count: 0),
+        for (final id in transactionIds)
+          id: (byHand: 0.0, credit: 0.0, count: 0),
       };
 
       for (final item in queryResult.items) {
