@@ -7,6 +7,7 @@ abstract class EventInterface {
   Future<void> saveEvent(
       String channel, String eventType, Map<String, dynamic> data);
   void subscribeLoginEvent({required String channel});
+  void unsubscribeLoginEvent();
   void subscribeToLogoutEvent({required String channel});
   DittoService connect();
   void subscribeToMessages({required String channel});

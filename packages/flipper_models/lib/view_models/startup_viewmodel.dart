@@ -68,20 +68,26 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // Initialize Ditto early if user is logged in
       // This ensures Ditto is available for LoginChoices screen to fetch businesses
       final userId = ProxyService.box.getUserId();
-      if (userId != null) {
-        try {
-          debugPrint(
-            '🚀 [StartupViewModel] Initializing Ditto early for userId: $userId',
-          );
-          await appService
-              .initDittoForLogin(userId)
-              .timeout(const Duration(seconds: 10));
-          debugPrint('🚀 [StartupViewModel] Ditto initialized early');
-        } catch (e) {
-          debugPrint(
-            '⚠️ [StartupViewModel] Failed to initialize Ditto early (will continue): $e',
-          );
-        }
+      if (userId == null) {
+        debugPrint(
+          '🚀 [StartupViewModel] No user in local storage; showing login',
+        );
+        _routerService.clearStackAndShow(LoginRoute());
+        return;
+      }
+
+      try {
+        debugPrint(
+          '🚀 [StartupViewModel] Initializing Ditto early for userId: $userId',
+        );
+        await appService
+            .initDittoForLogin(userId)
+            .timeout(const Duration(seconds: 10));
+        debugPrint('🚀 [StartupViewModel] Ditto initialized early');
+      } catch (e) {
+        debugPrint(
+          '⚠️ [StartupViewModel] Failed to initialize Ditto early (will continue): $e',
+        );
       }
       _progress = 0.2;
       notifyListeners();
@@ -412,8 +418,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       if (isTestEnvironment()) {
         return;
       }
-      // check there is a user logged in by getUserId()!
-      ProxyService.box.getUserId()!;
+      final userId = ProxyService.box.getUserId();
+      if (userId == null) {
+        throw SessionException(term: 'No user in local storage');
+      }
       talker.warning("StartupViewModel _allRequirementsMeets");
 
       // Check if business ID is set

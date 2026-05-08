@@ -103,10 +103,6 @@ mixin CapellaProductMixin implements ProductInterface {
         preparedProd.dql,
         arguments: preparedProd.arguments,
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM products WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
       // Workaround for initial sync
       final preparedProdBiz = prepareDqlSyncSubscription(
         "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",
@@ -115,10 +111,6 @@ mixin CapellaProductMixin implements ProductInterface {
       ditto.sync.registerSubscription(
         preparedProdBiz.dql,
         arguments: preparedProdBiz.arguments,
-      );
-      ditto.store.registerObserver(
-        "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",
-        arguments: {'branchId': branchId, 'businessId': businessId},
       );
 
       final List<String> whereClauses = [

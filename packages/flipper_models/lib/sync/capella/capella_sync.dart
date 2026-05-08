@@ -341,10 +341,6 @@ class CapellaSync extends AiStrategyImpl
         preparedBa.dql,
         arguments: preparedBa.arguments,
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM business_analytics WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
 
       final result = await ditto.store.execute(
         'SELECT * FROM business_analytics WHERE branchId = :branchId',

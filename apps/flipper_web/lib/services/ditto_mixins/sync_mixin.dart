@@ -40,6 +40,8 @@ mixin SyncMixin on DittoCore {
   /// Sets the Ditto instance (called from main.dart after initialization)
   /// This method should be called by the class that uses this mixin after setting the Ditto instance in DittoCore
   void setupDittoWithSync(Ditto ditto) {
+    final isLoginDitto = _isLoginDitto(ditto);
+
     // Request necessary permissions for Ditto
     final platform = Ditto.currentPlatform;
     if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
@@ -49,7 +51,9 @@ mixin SyncMixin on DittoCore {
     // Only set if we don't already have the same instance
     if (_lastSetupDitto == ditto) {
       debugPrint('Same Ditto instance already set up, skipping');
-      startSync();
+      if (!isLoginDitto) {
+        startSync();
+      }
       return;
     }
 
@@ -71,7 +75,7 @@ mixin SyncMixin on DittoCore {
       return;
     }
 
-    if (kDebugMode) {
+    if (kDebugMode && !isLoginDitto) {
       debugPrint(
         'ℹ️  mDNS NameConflict warnings are normal in development when multiple instances are running',
       );
@@ -80,8 +84,18 @@ mixin SyncMixin on DittoCore {
       );
     }
 
-    startSync();
+    if (!isLoginDitto) {
+      startSync();
+    }
     _setupObservation();
+  }
+
+  bool _isLoginDitto(Ditto ditto) {
+    try {
+      return ditto.deviceName.contains('-login-');
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Request necessary permissions for Ditto

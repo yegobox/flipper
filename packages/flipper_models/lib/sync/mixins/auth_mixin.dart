@@ -1003,11 +1003,29 @@ mixin AuthMixin implements AuthInterface {
   /// Helper function to initialize Ditto with proper guards against repeated initialization
   /// This prevents double initialization while preserving skipInitialFetch and error logging behavior
   Future<void> _initializeDitto(String userId) async {
-    // Check if Ditto is already initialized to prevent repeated initialization
-    // Using a static flag to track initialization state since DittoSingleton doesn't have isInitialized
-    if (_isDittoInitialized) {
-      talker.debug("Ditto already initialized, skipping re-initialization");
+    final existingDitto = DittoSingleton.instance.ditto;
+    final existingUserId = DittoSingleton.persistenceUserId;
+
+    // Only skip when the singleton truly matches this user. Otherwise a stale
+    // [_isDittoInitialized] flag (e.g. after Ditto.dispose or QR-login teardown)
+    // would skip initialization and strand login behind replication / JWT retries.
+    if (_isDittoInitialized &&
+        existingDitto != null &&
+        existingUserId != null &&
+        existingUserId == userId) {
+      talker.debug(
+        'Ditto already initialized for userId $userId, skipping re-initialization',
+      );
       return;
+    }
+
+    if (_isDittoInitialized &&
+        (existingDitto == null || existingUserId != userId)) {
+      talker.debug(
+        'Clearing Ditto init flag (ditto=${existingDitto != null}, '
+        'persistedUser=$existingUserId, requested=$userId)',
+      );
+      _isDittoInitialized = false;
     }
 
     final appID = foundation.kDebugMode

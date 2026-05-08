@@ -144,10 +144,6 @@ class _FailedPaymentState extends State<FailedPayment>
           preparedSkip.dql,
           arguments: preparedSkip.arguments,
         );
-        ditto.store.registerObserver(
-          'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
-          arguments: {'businessId': businessId},
-        );
       }
 
       final settings = await getPaymentSkipSettings(businessId: businessId);

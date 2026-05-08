@@ -50,6 +50,14 @@ class DittoSyncRegistry {
 
             debugPrint('✅ Repository is ready');
 
+            if (_isLoginDitto(ditto)) {
+              debugPrint(
+                '⏭️  Skipping generated Ditto sync coordinator for login device: ${ditto.deviceName}',
+              );
+              await DittoSyncCoordinator.instance.setDitto(null);
+              return;
+            }
+
             debugPrint('🔄 Setting Ditto instance in coordinator...');
             await DittoSyncCoordinator.instance
                 .setDitto(ditto, skipInitialFetch: true);
@@ -85,6 +93,15 @@ class DittoSyncRegistry {
     DittoService.instance.addDittoListener(_dittoListener!);
 
     debugPrint('✅ DittoSyncRegistry.registerDefaults completed');
+  }
+
+  static bool _isLoginDitto(Ditto ditto) {
+    try {
+      final deviceName = ditto.deviceName;
+      return deviceName.contains('-login-') || deviceName.startsWith('login-');
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Restores data for a single registered adapter supporting backup pulls.

@@ -56,10 +56,6 @@ mixin CapellaSettingsMixin {
         preparedSettings.dql,
         arguments: preparedSettings.arguments,
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM settings WHERE businessId = :businessId",
-        arguments: {'businessId': businessId},
-      );
 
       final result = await ditto.store.execute(
         "SELECT * FROM settings WHERE businessId = :businessId",

@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/platform.dart';
 import 'package:flipper_web/core/utils/platform_utils.dart';
@@ -23,6 +22,9 @@ class DittoSingleton {
   static LockMechanism? _lockMechanism;
   static bool _lockAcquired = false;
 
+  /// Join concurrent JWT/login calls (expiration handler + explicit login).
+  static Future<void>? _dittoAuthInFlight;
+
   DittoSingleton._();
 
   static DittoSingleton get instance {
@@ -33,6 +35,10 @@ class DittoSingleton {
 
   /// Get existing Ditto instance or null if not initialized
   Ditto? get ditto => _ditto;
+
+  /// Last [userId] passed to [initialize] (raw id, not including `@flipper.rw`).
+  /// Used to avoid skipping re-init when the auth guard is stale.
+  static String? get persistenceUserId => _userId;
 
   /// Check if Ditto is ready
   bool get isReady => _ditto != null && !_isInitializing;
@@ -87,15 +93,21 @@ class DittoSingleton {
       return _ditto;
     }
 
+    final isLoginIdentity = userId.startsWith('login-');
+
     _isInitializing = true;
     _initCompleter = Completer<Ditto?>();
     print('🔄 [INIT] Set _isInitializing = true');
 
     try {
+      print(
+        '🔐 [INIT] loginFlow=$isLoginIdentity (QR/desktop login uses isolated store + cloud-only sync)',
+      );
+
       // Get the persistence directory first
       print('📂 [INIT] Getting persistence directory...');
       final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
-        subDirectory: 'db2',
+        subDirectory: isLoginIdentity ? 'login_ditto/$userId' : 'db2',
       );
       print('📂 [INIT] Persistence directory: $persistenceDirectory');
 
@@ -131,13 +143,6 @@ class DittoSingleton {
       await Ditto.init();
       print('✅ [INIT] Ditto.init() completed');
 
-      // if (kDebugMode) {
-      //   DittoLogger.isEnabled = true;
-      //   DittoLogger.minimumLogLevel = LogLevel.debug;
-      //   DittoLogger.isDevtoolsLoggingEnabled = true;
-      //   print('✅ [INIT] DittoLogger enabled (debug, DevTools)');
-      // }
-
       print('🔧 [INIT] Creating DittoConfig (Ditto 5)...');
       final config = DittoConfig(
         databaseID: appId,
@@ -152,45 +157,75 @@ class DittoSingleton {
         '✅ [INIT] Ditto.open() completed, instance hashCode: ${_ditto.hashCode}',
       );
 
-      // Legacy Flutter SDK could grow unbounded local __history; safe no-op if absent.
-      try {
-        await _ditto!.store.execute('EVICT FROM __history');
-        print('✅ [INIT] EVICT FROM __history completed (best-effort)');
-      } catch (e) {
-        print('⚠️ [INIT] __history evict skipped or unsupported: $e');
-      }
+      if (!isLoginIdentity) {
+        // Legacy Flutter SDK could grow unbounded local __history; safe no-op if absent.
+        try {
+          await _ditto!.store.execute('EVICT FROM __history');
+          print('✅ [INIT] EVICT FROM __history completed (best-effort)');
+        } catch (e) {
+          print('⚠️ [INIT] __history evict skipped or unsupported: $e');
+        }
 
-      // Optional: relax subscription DQL restrictions (in-memory; see
-      // https://docs.ditto.live/sync/using-alter-system ). DQL supports `=` or `TO`.
-      // Unsupported setting names fail here and are non-fatal.
-      try {
-        await _ditto!.store.execute(
-          'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION = false',
-        );
-        print('✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (= false)');
-      } catch (e) {
         try {
           await _ditto!.store.execute(
-            'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION TO false',
+            'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION = false',
           );
-          print('✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (TO false)');
-        } catch (e2) {
-          print(
-            '⚠️ [INIT] DQL_RESTRICT_SUBSCRIPTION not applied (use dql_for_sync_subscription in app; alter errors: $e / $e2)',
-          );
+          print('✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (= false)');
+        } catch (e) {
+          try {
+            await _ditto!.store.execute(
+              'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION TO false',
+            );
+            print('✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (TO false)');
+          } catch (e2) {
+            print(
+              '⚠️ [INIT] DQL_RESTRICT_SUBSCRIPTION not applied (use dql_for_sync_subscription in app; alter errors: $e / $e2)',
+            );
+          }
         }
+      } else {
+        print('⏭️ [INIT] Skipping Ditto maintenance queries for QR login flow');
       }
 
-      // Ditto 5 defaults to DQL_STRICT_MODE=false (schema-free); no ALTER needed.
+      // Name + transports BEFORE DittoService.setDitto — SyncMixin uses deviceName
+      // to detect login peers; default host names wrongly enable AWDL/BLE + sync.
+      final userName = platformUserName;
+      final platform = getPlatformName();
+      _ditto!.deviceName = '$userName-$platform-$userId';
 
-      print('🔧 [INIT] Registering auth expiration handler...');
-      await _ditto!.auth.setExpirationHandler((ditto, timeUntilExpiration) {
-        unawaited(_performAuthentication(ditto, appId));
-      });
-      print('✅ [INIT] Auth expiration handler set');
+      try {
+        print('🔧 [INIT] Configuring transports...');
+        if (isLoginIdentity) {
+          _ditto!.transportConfig = TransportConfig(
+            connect: Connect(webSocketUrls: {'wss://$appId.cloud.ditto.live/'}),
+          );
+          print(
+            '✅ [INIT] Peer-to-peer transports disabled for QR login (cloud WebSocket only)',
+          );
+        } else {
+          _ditto!.updateTransportConfig((builder) {
+            builder.setAllPeerToPeerEnabled(true);
+          });
+          print('✅ [INIT] Peer-to-peer transports enabled');
+        }
+      } catch (e) {
+        print('⚠️ [INIT] Error configuring Ditto transports: $e');
+      }
 
-      // Set DittoService instance BEFORE starting sync.
-      // This ensures ProxyService.ditto.getUserAccess works even if sync setup fails.
+      // Ditto 5 invokes expiration handler immediately when no JWT exists — defer on QR
+      // login so we do not double-fetch JWT alongside [_authenticateThenStartLoginSync].
+      if (!isLoginIdentity) {
+        print('🔧 [INIT] Registering auth expiration handler...');
+        await _ditto!.auth.setExpirationHandler((ditto, timeUntilExpiration) {
+          unawaited(_performAuthentication(ditto, appId));
+        });
+        print('✅ [INIT] Auth expiration handler set');
+      } else {
+        print(
+          '⏭️ [INIT] Deferring auth expiration handler until after first JWT',
+        );
+      }
+
       print(
         '📌 [INIT] About to call DittoService().setDitto(_ditto!) with instance: ${_ditto.hashCode}',
       );
@@ -205,26 +240,24 @@ class DittoSingleton {
         print('Stack: $stack');
       }
 
-      try {
-        print('🔧 [INIT] Configuring transports and starting sync...');
-        // Configure transports manually for the web/cloud sync
-        _ditto!.updateTransportConfig((builder) {
-          // Note: this will not enable peer-to-peer sync on the web platform
-          builder.setAllPeerToPeerEnabled(true);
-        });
-
-        // Start sync to connect to Ditto cloud
-        final userName = platformUserName;
-        final platform = getPlatformName();
-        _ditto!.deviceName = '$userName-$platform-$userId';
-        _ditto!.sync.start();
-
+      if (isLoginIdentity) {
         print(
-          "✅ [INIT] Sync started. is sync active: ${_ditto!.sync.isActive}",
+          '🔐 [INIT] Authenticating QR-login Ditto before starting sync...',
         );
-        print("✅ [INIT] Auth status: ${_ditto!.auth.status}");
-      } catch (e) {
-        print('⚠️ [INIT] Error starting Ditto sync: $e');
+        unawaited(_authenticateThenStartLoginSync(appId));
+      } else {
+        try {
+          print('🔧 [INIT] Starting Ditto sync...');
+          if (!_ditto!.sync.isActive) {
+            _ditto!.sync.start();
+          }
+          print(
+            "✅ [INIT] Sync started. is sync active: ${_ditto!.sync.isActive}",
+          );
+          print("✅ [INIT] Auth status: ${_ditto!.auth.status}");
+        } catch (e) {
+          print('⚠️ [INIT] Error starting Ditto sync: $e');
+        }
       }
 
       print(
@@ -247,6 +280,35 @@ class DittoSingleton {
     }
   }
 
+  Future<void> _authenticateThenStartLoginSync(String appId) async {
+    final ditto = _ditto;
+    if (ditto == null) return;
+
+    await _performAuthentication(ditto, appId);
+
+    try {
+      print('🔧 [INIT] Registering auth expiration handler after QR-login JWT');
+      await ditto.auth.setExpirationHandler((d, _) {
+        unawaited(_performAuthentication(d, appId));
+      });
+      print('✅ [INIT] Auth expiration handler set');
+    } catch (e) {
+      print('⚠️ [INIT] Failed to register auth expiration handler: $e');
+    }
+
+    try {
+      if (_ditto == ditto && !ditto.sync.isActive) {
+        ditto.sync.start();
+      }
+      print(
+        '✅ [INIT] QR-login sync started after auth. is sync active: '
+        '${ditto.sync.isActive}',
+      );
+    } catch (e) {
+      print('⚠️ [INIT] Error starting QR-login sync after auth: $e');
+    }
+  }
+
   /// Release the lock file and close the handle
   Future<void> _releaseLock() async {
     if (_lockMechanism != null) {
@@ -263,13 +325,13 @@ class DittoSingleton {
       await _instance!.dispose();
       _instance = null;
     }
-    // Also reset static variables to ensure clean state
     _ditto = null;
     _isInitializing = false;
     _initCompleter = null;
     _userId = null;
     _lockMechanism = null;
     _lockAcquired = false;
+    _dittoAuthInFlight = null;
     print('✅ DittoSingleton reset complete');
   }
 
@@ -280,7 +342,6 @@ class DittoSingleton {
         print('🛑 Stopping Ditto sync and disposing singleton...');
         _ditto!.sync.stop();
         try {
-          // Explicitly close the Ditto instance to release internal locks
           _ditto!.close();
         } catch (e) {
           print('⚠️ Error closing Ditto instance: $e');
@@ -306,7 +367,6 @@ class DittoSingleton {
         print('🛑 Logging out from Ditto...');
         _ditto!.sync.stop();
         await _ditto!.auth.logout();
-        // Reset userId state
         _userId = null;
         print('✅ Ditto logout complete');
       } catch (e) {
@@ -315,8 +375,19 @@ class DittoSingleton {
     }
   }
 
-  /// Internal helper to perform authentication with timeout and error handling
-  Future<void> _performAuthentication(Ditto ditto, String appId) async {
+  Future<void> _performAuthentication(Ditto ditto, String appId) {
+    final existing = DittoSingleton._dittoAuthInFlight;
+    DittoSingleton._dittoAuthInFlight ??=
+        _performAuthenticationOnce(ditto, appId).whenComplete(() {
+          DittoSingleton._dittoAuthInFlight = null;
+        });
+    if (existing != null) {
+      print('⏳ [AUTH] Joining in-flight Ditto authentication');
+    }
+    return DittoSingleton._dittoAuthInFlight!;
+  }
+
+  Future<void> _performAuthenticationOnce(Ditto ditto, String appId) async {
     try {
       print('🔐 Starting Ditto authentication for appId: $appId');
 
@@ -327,8 +398,8 @@ class DittoSingleton {
         );
       }
 
-      const provider = "auth-provider-01";
-      final userID = "$_userId@flipper.rw";
+      const provider = 'auth-provider-01';
+      final userID = '$_userId@flipper.rw';
 
       print('🔑 Generating JWT for user: $userID');
       final token = await YBAuthIdentity.generateJWT(
@@ -343,8 +414,6 @@ class DittoSingleton {
     } catch (e, stackTrace) {
       print('❌ Ditto authentication failed: $e');
       print('Stack trace: $stackTrace');
-      // We catch the error here to prevent the sync worker from crashing,
-      // but the failure is logged for debugging.
     }
   }
 }
@@ -355,8 +424,6 @@ class YBAuthIdentity {
     bool isUserRegistered, {
     required String appId,
   }) async {
-    // Make API call to auth endpoint to get a valid JWT
-    // Using the local auth service endpoint that matches the Kotlin implementation
     final url = Uri.parse(
       '${AppSecrets.apihubProdDomain}/v2/api/auth/ditto/login',
     );

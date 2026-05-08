@@ -95,10 +95,6 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           preparedBranch.dql,
           arguments: preparedBranch.arguments,
         );
-        ditto.store.registerObserver(
-          "SELECT * FROM customers WHERE branchId = :branchId",
-          arguments: {'branchId': branchId},
-        );
       }
 
       /// end of workaround
@@ -427,7 +423,6 @@ mixin CapellaCustomerMixin implements CustomerInterface {
         preparedAll.dql,
         arguments: preparedAll.arguments,
       );
-      ditto.store.registerObserver("SELECT * FROM customers");
 
       /// end of workaround
       ///

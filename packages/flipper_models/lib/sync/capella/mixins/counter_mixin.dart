@@ -103,10 +103,6 @@ mixin CapellaCounterMixin implements CounterInterface {
         preparedCnt.dql,
         arguments: preparedCnt.arguments,
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM counters WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
 
       observer = ditto.store.registerObserver(
         'SELECT * FROM counters WHERE branchId = :branchId',

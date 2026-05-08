@@ -2564,10 +2564,6 @@ class CoreSync extends AiStrategyImpl
         preparedEbm.dql,
         arguments: preparedEbm.arguments,
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
-        arguments: {'businessId': businessId, 'branchId': branchId},
-      );
 
       // Query the ebms table using Ditto
       String query =

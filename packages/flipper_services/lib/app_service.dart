@@ -79,7 +79,7 @@ class AppService with ListenableServiceMixin {
   ///
   Future<bool> isLoggedIn() async {
     if (ProxyService.box.getUserId() == null) {
-      throw Exception("Not logged in User is null");
+      return false;
     }
     return true;
   }
@@ -165,7 +165,7 @@ class AppService with ListenableServiceMixin {
   Future<void> setDefaultBusiness(Business business) async {
     // Update Hive preferences first (fast, no DB locks)
     await _updateBusinessPreferences(business);
-    
+
     // Defer SQLite updates to avoid blocking UI - runs in background
     Future.delayed(Duration.zero, () async {
       await updateAllBusinessesInactive();
@@ -175,7 +175,7 @@ class AppService with ListenableServiceMixin {
         isDefault: true,
       );
     });
-    
+
     if (ProxyService.ditto.isReady()) {
       loadFeatures();
     }
@@ -263,13 +263,22 @@ class AppService with ListenableServiceMixin {
     // Initialize DittoSingleton with the temporary ID
     await DittoSingleton.instance.initialize(appId: appID, userId: tempUserId);
 
-    // Set it in the coordinator
-    DittoSyncCoordinator.instance.setDitto(
-      DittoSingleton.instance.ditto,
-      skipInitialFetch: true,
-    );
+    // QR login only needs the events collection subscription. Do not attach the
+    // generated model sync coordinator to the temporary login Ditto identity.
+    await DittoSyncCoordinator.instance.setDitto(null);
     print("Ditto initialized for login flow");
-    await _attachLocalStorageDittoIfReady();
+  }
+
+  /// Tear down Ditto started for desktop QR login (temp identity + replication).
+  /// Call when the user switches to PIN so sync does not compete with SQLite/Brick.
+  Future<void> disposeQrLoginDitto() async {
+    try {
+      await DittoSyncCoordinator.instance.setDitto(null);
+      await DittoSingleton.instance.dispose();
+      print('Ditto QR-login singleton disposed');
+    } catch (e) {
+      print('disposeQrLoginDitto: $e');
+    }
   }
 
   Future<void> _attachLocalStorageDittoIfReady() async {
@@ -516,9 +525,11 @@ class AppService with ListenableServiceMixin {
           .from('business_types')
           .select();
       return (response as List)
-          .map((e) => helper.BusinessType.fromSupabaseRow(
-                Map<String, dynamic>.from(e as Map),
-              ))
+          .map(
+            (e) => helper.BusinessType.fromSupabaseRow(
+              Map<String, dynamic>.from(e as Map),
+            ),
+          )
           .toList();
     } catch (e) {
       if (kDebugMode) {

@@ -61,10 +61,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM transactions WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
 
       // Build SQL WHERE clause conditions
       final List<String> whereClauses = [];
@@ -372,10 +368,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       ditto.sync.registerSubscription(
         preparedTx.dql,
         arguments: preparedTx.arguments,
-      );
-      ditto.store.registerObserver(
-        "SELECT * FROM transactions WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
       );
 
       // Build SQL WHERE clause conditions

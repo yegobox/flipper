@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -47,6 +48,8 @@ class EventService
   dynamic _eventObserver;
   // Observer for login-specific updates (per-channel)
   dynamic _loginObserver;
+  dynamic _loginSubscription;
+  void Function(Ditto?)? _loginDittoListener;
 
   @override
   Stream<DesktopLoginStatus> desktopLoginStatusStream() =>
@@ -243,13 +246,12 @@ class EventService
   @override
   void subscribeLoginEvent({required String channel}) {
     talker.debug('Subscribing to login events for channel $channel');
-    // Cancel any existing login observer
-    _loginObserver?.cancel();
+    _teardownLoginEventSubscription(removeListener: true);
 
     // Use the listener pattern to wait for Ditto to be ready
     // The listener is called immediately with the current value (may be null)
     // and called again when Ditto becomes available
-    DittoService.instance.addDittoListener((ditto) {
+    _loginDittoListener = (ditto) {
       if (ditto != null) {
         talker.debug(
           'Ditto listener fired with non-null instance for channel $channel',
@@ -260,7 +262,37 @@ class EventService
           'Ditto listener fired with null instance, waiting for Ditto to initialize...',
         );
       }
-    });
+    };
+    DittoService.instance.addDittoListener(_loginDittoListener!);
+  }
+
+  @override
+  void unsubscribeLoginEvent() {
+    _teardownLoginEventSubscription(removeListener: true);
+  }
+
+  void _teardownLoginEventSubscription({required bool removeListener}) {
+    if (removeListener && _loginDittoListener != null) {
+      DittoService.instance.removeDittoListener(_loginDittoListener!);
+      _loginDittoListener = null;
+    }
+
+    _loginPollingTimer?.cancel();
+    _loginPollingTimer = null;
+
+    final loginObserver = _loginObserver;
+    _loginObserver = null;
+    if (loginObserver != null) {
+      unawaited(Future<void>.value(loginObserver.cancel()));
+    }
+
+    final loginSubscription = _loginSubscription;
+    _loginSubscription = null;
+    try {
+      loginSubscription?.cancel();
+    } catch (e) {
+      talker.warning('Error canceling login sync subscription: $e');
+    }
   }
 
   // Timer for polling login events
@@ -283,7 +315,7 @@ class EventService
         "SELECT * FROM events WHERE channel = :channel",
         {"channel": channel},
       );
-      ditto.sync.registerSubscription(
+      _loginSubscription = ditto.sync.registerSubscription(
         preparedLoginEv.dql,
         arguments: preparedLoginEv.arguments,
       );
@@ -376,8 +408,10 @@ class EventService
     talker.debug('Processing login event: $event');
     _processedLoginEventIds.add(eventId);
 
-    // Stop polling after processing a valid login event
-    _loginPollingTimer?.cancel();
+    // The QR login Ditto instance is temporary. Once we have the payload, tear
+    // down its observer/subscription before the real login flow opens db2 and
+    // starts app sync. Keeping both active caused debug-mode SQLite/Ditto stalls.
+    _teardownLoginEventSubscription(removeListener: true);
 
     _processLoginEvent(event, channel);
   }
@@ -496,7 +530,7 @@ class EventService
       if (responseChannel != null) {
         await publish(
           loginDetails: {
-            'channel': loginData?.channel,
+            'channel': responseChannel,
             'status': 'success',
             'loggedOut': false,
             'message': 'Login successful',
@@ -506,7 +540,6 @@ class EventService
           "Sent login success response to channel: $responseChannel",
         );
       }
-      await Future<void>.delayed(const Duration(seconds: 5));
       locator<RouterService>().navigateTo(LoginChoicesRoute());
     } catch (e) {
       talker.error('Login processing error: $e');
@@ -594,7 +627,7 @@ class EventService
   /// Dispose of resources
   void dispose() {
     _eventObserver?.cancel();
-    _loginObserver?.cancel();
+    _teardownLoginEventSubscription(removeListener: true);
     _eventController.close();
     _desktopLoginStatusController.close();
   }

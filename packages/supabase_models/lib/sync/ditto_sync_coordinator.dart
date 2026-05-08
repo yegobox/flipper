@@ -407,8 +407,8 @@ class DittoSyncCoordinator {
     }
 
     // Process in small batches with delays to prevent database locking
-    const batchSize = 5;
-    const delayBetweenBatches = Duration(milliseconds: 100);
+    const batchSize = 3;
+    const delayBetweenBatches = Duration(milliseconds: 200);
 
     for (var i = 0; i < upsertTasks.length; i += batchSize) {
       final end = (i + batchSize < upsertTasks.length)
