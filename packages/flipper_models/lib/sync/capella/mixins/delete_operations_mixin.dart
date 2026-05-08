@@ -64,14 +64,27 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
   ) async {
     if (delta == 0) return;
 
+    final tid = transactionId;
+    final row = await ditto.store.execute(
+      'SELECT subTotal FROM transactions WHERE _id = :tid OR id = :tid LIMIT 1',
+      arguments: {'tid': tid},
+    );
+    if (row.items.isEmpty) return;
+
+    final current = (Map<String, dynamic>.from(row.items.first.value)['subTotal']
+            as num?)
+        ?.toDouble() ??
+        0.0;
+    final newSubTotal = current + delta;
+
     final now = DateTime.now().toIso8601String();
     await ditto.store.execute(
-      'UPDATE transactions SET subTotal = COALESCE(subTotal, 0) + :delta, updatedAt = :ua, lastTouched = :lt WHERE _id = :id OR id = :id',
+      'UPDATE transactions SET subTotal = :subTotal, updatedAt = :ua, lastTouched = :lt WHERE _id = :tid OR id = :tid',
       arguments: {
-        'delta': delta,
+        'subTotal': newSubTotal,
         'ua': now,
         'lt': now,
-        'id': transactionId,
+        'tid': tid,
       },
     );
   }

@@ -901,12 +901,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           modrNm: variation.modrNm,
         );
 
-        final docMap = newItem.toFlipperJson();
-        // Ensure dates are strings for Ditto
-        docMap['createdAt'] = newItem.createdAt?.toIso8601String();
-        docMap['updatedAt'] = newItem.updatedAt?.toIso8601String();
-        // Explicitly set _id to match our generated id
-        docMap['_id'] = newItem.id;
+        final docMap =
+            await TransactionItemDittoAdapter.instance.toDittoDocument(newItem);
 
         await ditto.store.execute(
           "INSERT INTO transaction_items DOCUMENTS (:doc)",
@@ -1113,7 +1109,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
-  /// Single Ditto round-trip: adjust transaction subtotal in-place (POS hot path).
+  /// Adjust transaction subtotal (Ditto forbids `field + :param` style updates for
+  /// register fields — use read + scalar SET instead).
   Future<void> _dittoAdjustTransactionSubtotalByDelta({
     required String transactionId,
     required double delta,
@@ -1123,14 +1120,32 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return;
 
+    final tid = transactionId;
+    final row = await ditto.store.execute(
+      'SELECT subTotal FROM transactions WHERE _id = :tid OR id = :tid LIMIT 1',
+      arguments: {'tid': tid},
+    );
+    if (row.items.isEmpty) return;
+
+    final current = (Map<String, dynamic>.from(row.items.first.value)['subTotal']
+            as num?)
+        ?.toDouble() ??
+        0.0;
+    final newSubTotal = current + delta;
+
     final now = DateTime.now().toIso8601String();
     await ditto.store.execute(
-      'UPDATE transactions SET subTotal = COALESCE(subTotal, 0) + :delta, updatedAt = :ua, lastTouched = :lt WHERE _id = :id OR id = :id',
-      arguments: {'delta': delta, 'ua': now, 'lt': now, 'id': transactionId},
+      'UPDATE transactions SET subTotal = :subTotal, updatedAt = :ua, lastTouched = :lt WHERE _id = :tid OR id = :tid',
+      arguments: {
+        'subTotal': newSubTotal,
+        'ua': now,
+        'lt': now,
+        'tid': tid,
+      },
     );
   }
 
-  /// Fast path for POS qty +/- : arithmetic UPDATE only (no read-modify-write).
+  /// Fast path for POS qty +/- : one SELECT + scalar UPDATE (Ditto-safe subtotal bump).
   Future<void> _bumpTransactionSubtotalFromQtyDelta({
     required String transactionId,
     required double unitPrice,
