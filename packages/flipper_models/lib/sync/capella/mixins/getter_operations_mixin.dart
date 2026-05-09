@@ -91,7 +91,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     bool? preferFresh,
   }) async {
     try {
-      // Prefer Ditto when live (e.g. PlanSyncJob). Plan is not in Brick/SQLite — if Ditto misses
+      // Prefer Ditto when live (e.g. PlanDittoScheduler). Plan is not in Brick/SQLite — if Ditto misses
       // or is not ready, read the `plans` row from Supabase (same as GetterOperationsMixin).
       if (dittoService.isReady()) {
         final plan = await dittoService.getPaymentPlanFromDitto(businessId);

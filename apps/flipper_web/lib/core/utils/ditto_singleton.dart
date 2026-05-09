@@ -159,30 +159,12 @@ class DittoSingleton {
 
       if (!isLoginIdentity) {
         // Legacy Flutter SDK could grow unbounded local __history; safe no-op if absent.
-        try {
-          await _ditto!.store.execute('EVICT FROM __history');
-          print('✅ [INIT] EVICT FROM __history completed (best-effort)');
-        } catch (e) {
-          print('⚠️ [INIT] __history evict skipped or unsupported: $e');
-        }
-
-        try {
-          await _ditto!.store.execute(
-            'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION = false',
-          );
-          print('✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (= false)');
-        } catch (e) {
-          try {
-            await _ditto!.store.execute(
-              'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION TO false',
-            );
-            print('✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (TO false)');
-          } catch (e2) {
-            print(
-              '⚠️ [INIT] DQL_RESTRICT_SUBSCRIPTION not applied (use dql_for_sync_subscription in app; alter errors: $e / $e2)',
-            );
-          }
-        }
+        // try {
+        //   await _ditto!.store.execute('EVICT FROM __history');
+        //   print('✅ [INIT] EVICT FROM __history completed (best-effort)');
+        // } catch (e) {
+        //   print('⚠️ [INIT] __history evict skipped or unsupported: $e');
+        // }
       } else {
         print('⏭️ [INIT] Skipping Ditto maintenance queries for QR login flow');
       }

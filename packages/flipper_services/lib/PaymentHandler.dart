@@ -1,7 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
-import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_routing/app.locator.dart';

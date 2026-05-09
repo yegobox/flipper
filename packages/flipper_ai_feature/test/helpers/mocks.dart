@@ -11,7 +11,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:record/record.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
-import 'package:supabase_models/brick/models/plan.dart';
+import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:supabase_models/brick/models/retryable.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/repository/storage.dart';

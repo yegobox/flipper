@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase_models/brick/models/plan.dart';
-import 'package:flipper_models/exceptions.dart';
 
 /// Represents the different states of payment verification
 enum PaymentVerificationResult { active, noPlan, planExistsButInactive, error }

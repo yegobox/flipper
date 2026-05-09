@@ -22,7 +22,7 @@ import 'package:http/src/streamed_response.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
-
+import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';

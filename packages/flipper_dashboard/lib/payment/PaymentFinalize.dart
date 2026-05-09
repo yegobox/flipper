@@ -3,7 +3,6 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +10,7 @@ import 'package:flipper_services/PaymentHandler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/models/subscription_plan.dart';
 
 class PaymentFinalize extends StatefulWidget {
   @override
@@ -31,7 +31,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   double _originalPrice = 0;
   bool _isValidatingCode = false;
   String? _discountError;
-  models.Plan? _plan;
+  Plan? _plan;
 
   @override
   void initState() {
@@ -69,7 +69,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           .eq('business_id', businessId)
           .listen((rows) {
             if (rows.isEmpty) return;
-            final updatedPlan = models.Plan.fromSupabaseJson(
+            final updatedPlan = Plan.fromSupabaseJson(
               Map<String, dynamic>.from(rows.first),
             );
             if (!_mounted) return;
@@ -531,7 +531,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       isLoading = true;
     });
     try {
-      models.Plan? paymentPlan = await ProxyService.strategy.getPaymentPlan(
+      Plan? paymentPlan = await ProxyService.strategy.getPaymentPlan(
         businessId: (await ProxyService.strategy.activeBusiness())!.id,
       );
 
