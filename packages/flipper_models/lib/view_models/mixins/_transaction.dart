@@ -22,6 +22,10 @@ mixin TransactionMixinOld {
 
   final talker = Talker();
 
+  Future<void> _awaitPossibleFuture(dynamic result) async {
+    if (result is Future) await result;
+  }
+
   Future<RwApiResponse> finalizePayment({
     String? purchaseCode,
     required String paymentType,
@@ -36,6 +40,7 @@ mixin TransactionMixinOld {
     required TextEditingController countryCodeController,
     void Function()? onSuccess,
     required double discount,
+    List<TransactionItem>? preloadedLineItemsForCollectPayment,
   }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -88,6 +93,7 @@ mixin TransactionMixinOld {
             transaction,
             customerName: customerNameController.text,
             countryCode: countryCodeController.text,
+            preloadedLineItems: preloadedLineItemsForCollectPayment,
           );
         }
       } else {
@@ -98,11 +104,12 @@ mixin TransactionMixinOld {
           transaction,
           customerName: customerNameController.text,
           countryCode: countryCodeController.text,
+          preloadedLineItems: preloadedLineItemsForCollectPayment,
         );
       }
 
       if (response == null) {
-        onComplete();
+        await _awaitPossibleFuture(onComplete());
         return RwApiResponse(
           resultCd: "001",
           resultMsg: isLoan && !isFullyPaid
@@ -112,7 +119,7 @@ mixin TransactionMixinOld {
       }
 
       // Only call onComplete on success, not on error
-      onComplete();
+      await _awaitPossibleFuture(onComplete());
 
       return response;
     } catch (e) {
@@ -304,6 +311,7 @@ mixin TransactionMixinOld {
     ITransaction transaction, {
     required String customerName,
     required String countryCode,
+    List<TransactionItem>? preloadedLineItems,
   }) async {
     try {
       final branchId = ProxyService.box.getBranchId();
@@ -337,9 +345,10 @@ mixin TransactionMixinOld {
       final finalCustomerName =
           ProxyService.box.customerName() ?? customer?.custNm ?? customerName;
       // Calculate and update tax amount before finalizing payment
-      final items = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).transactionItems(transactionId: transaction.id);
+      final items = preloadedLineItems ??
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).transactionItems(transactionId: transaction.id);
       double totalTax = 0.0;
       for (final item in items) {
         totalTax += item.taxAmt?.toDouble() ?? 0.0;
@@ -367,6 +376,7 @@ mixin TransactionMixinOld {
         customerPhone:
             customer?.telNo ??
             ProxyService.box.currentSaleCustomerPhoneNumber(),
+        preloadedLineItems: items,
       );
       // Clean up temporary storage
       ProxyService.box.remove(key: 'pendingCustomerName');

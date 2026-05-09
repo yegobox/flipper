@@ -65,6 +65,33 @@ mixin VariantMixin implements VariantInterface {
   }
 
   @override
+  Future<Map<String, Variant>> batchGetVariantsByIds(List<String> ids) async {
+    final unique =
+        ids.where((id) => id.trim().isNotEmpty).map((id) => id.trim()).toSet().toList();
+    if (unique.isEmpty) return {};
+
+    final branchId = ProxyService.box.getBranchId()!;
+    try {
+      final variants = await repository.get<Variant>(
+        query: Query(where: [
+          Where('branchId').isExactly(branchId),
+          Where('id').isIn(unique),
+        ]),
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+      final out = <String, Variant>{};
+      for (final v in variants) {
+        if (v.id.isEmpty) continue;
+        out[v.id] = v;
+      }
+      return out;
+    } catch (e, st) {
+      talker.error('batchGetVariantsByIds: $e\n$st');
+      return {};
+    }
+  }
+
+  @override
   Future<PagedVariants> variants({
     required String branchId,
     String? productId,

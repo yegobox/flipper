@@ -10,6 +10,10 @@ const String PAYMENT_REACTIVATION_REQUIRED =
 
 const int dbVersion = 45;
 
+/// Written when a launcher shortcut opens the app before the dashboard shell is ready;
+/// cleared after navigation from quick access / shortcuts.
+const String kPendingLauncherShortcutPageKey = 'pending_launcher_shortcut_page';
+
 // Enums
 enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS, CR, CP, PR, TR }
 

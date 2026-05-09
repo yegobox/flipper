@@ -33,6 +33,34 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
 
+/// One map built per cart stream emission; rows use `.select` so only variants whose
+/// qty changed rebuild.
+final pendingCartQtyByVariantIdProvider =
+    Provider.family<
+      Map<String, int>,
+      ({String transactionId, String branchId})
+    >((ref, args) {
+      final async = ref.watch(
+        transactionItemsStreamProvider(
+          transactionId: args.transactionId,
+          branchId: args.branchId,
+        ),
+      );
+      return async.maybeWhen(
+        data: (List<TransactionItem> items) {
+          final out = <String, int>{};
+          for (final it in items) {
+            if (it.active == false) continue;
+            final vid = it.variantId;
+            if (vid == null || vid.isEmpty) continue;
+            out[vid] = (out[vid] ?? 0) + it.qty.round();
+          }
+          return out;
+        },
+        orElse: () => const <String, int>{},
+      );
+    });
+
 Map<int, String> positionString = {
   0: 'first',
   1: 'second',
@@ -124,12 +152,16 @@ class _RowItemState extends ConsumerState<RowItem>
 
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
-  String? _imageUrl;
+  Future<String?>? _cachedLocalImageFuture;
   String? _branchId;
   Widget? _cachedImageWidget;
+  static final Map<String, Future<void>> _assetDownloadCache = {};
 
   /// Adds not yet reflected on [transactionItemsStreamProvider] — keeps +/- UI responsive.
   int _cartOptimisticBump = 0;
+
+  /// Clears optimistic bump when the pending cart transaction changes (e.g. after checkout).
+  String? _lastObservedPendingTxnId;
 
   @override
   void initState() {
@@ -144,19 +176,10 @@ class _RowItemState extends ConsumerState<RowItem>
 
   void _initImageCache() {
     try {
-      _imageUrl = widget.imageUrl;
       // Objects live under `public/branch-{id}/…` for the branch that owned the
       // upload. Prefer the variant's branch so rows match S3 even when the
       // session branch id differs or is not ready yet.
-      _branchId =
-          widget.variant?.branchId ?? ProxyService.box.getBranchId();
-
-      if (_imageUrl != null && _imageUrl!.isNotEmpty && _branchId != null) {
-        _cachedRemoteUrlFuture = preSignedUrl(
-          imageInS3: _imageUrl!,
-          branchId: _branchId!,
-        );
-      }
+      _branchId = widget.variant?.branchId ?? ProxyService.box.getBranchId();
     } catch (e) {
       talker.error('Error initializing image cache: $e');
     }
@@ -166,17 +189,21 @@ class _RowItemState extends ConsumerState<RowItem>
   void didUpdateWidget(RowItem oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    if (widget.isOrdering != oldWidget.isOrdering) {
+      _lastObservedPendingTxnId = null;
+    }
+
     if (widget.variant?.id != oldWidget.variant?.id) {
       _cartOptimisticBump = 0;
     }
 
     if (widget.imageUrl != oldWidget.imageUrl ||
         (widget.variant?.branchId != oldWidget.variant?.branchId)) {
-      _imageUrl = widget.imageUrl;
       _branchId = widget.variant?.branchId;
 
       // Clear cached futures and widget when image URL changes
       _cachedRemoteUrlFuture = null;
+      _cachedLocalImageFuture = null;
       _cachedImageWidget = null;
 
       // Reinitialize cache
@@ -186,41 +213,45 @@ class _RowItemState extends ConsumerState<RowItem>
 
   @override
   Widget build(BuildContext context) {
-    final pendingTxnForListen =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    final expensePendingTxn = pendingTransactionStreamProvider(
+      isExpense: widget.isOrdering,
+    );
+    final pendingTxnForListen = ref.watch(expensePendingTxn);
+    ref.listen(expensePendingTxn, (previous, next) {
+      final txn = next.asData?.value;
+      if (txn == null) return;
+      final id = txn.id;
+      if (id.isEmpty) return;
+      if (_lastObservedPendingTxnId == id) return;
+      final hadTxn =
+          _lastObservedPendingTxnId != null &&
+          _lastObservedPendingTxnId!.isNotEmpty;
+      _lastObservedPendingTxnId = id;
+      if (!hadTxn || !mounted) return;
+      if (_cartOptimisticBump == 0) return;
+      setState(() => _cartOptimisticBump = 0);
+    });
     final txnForListen = pendingTxnForListen.asData?.value;
     final variantIdForListen = widget.variant?.id;
     if (txnForListen != null &&
         txnForListen.id.isNotEmpty &&
         variantIdForListen != null) {
-      ref.listen(
-        transactionItemsStreamProvider(
+      final branchId = ProxyService.box.branchIdString() ?? '0';
+      ref.listen<int>(
+        pendingCartQtyByVariantIdProvider((
           transactionId: txnForListen.id,
-          branchId: ProxyService.box.branchIdString() ?? '0',
-        ),
-        (prev, next) {
+          branchId: branchId,
+        )).select((map) => map[variantIdForListen] ?? 0),
+        (previous, next) {
           if (!mounted) return;
           final v = widget.variant;
           if (v == null || v.id != variantIdForListen) return;
 
-          int qtyFor(List<TransactionItem> list) {
-            return list
-                .where((it) => it.active != false && it.variantId == v.id)
-                .fold<num>(0, (s, it) => s + it.qty)
-                .round();
-          }
-
-          final prevItems = prev?.asData?.value;
-          final nextItems = next.asData?.value;
-          if (prevItems == null || nextItems == null) return;
-
-          final p = qtyFor(prevItems);
-          final n = qtyFor(nextItems);
-          if (n > p && _cartOptimisticBump > 0) {
-            final delta = n - p;
+          final prevQty = previous ?? 0;
+          if (next > prevQty && _cartOptimisticBump > 0) {
+            final delta = next - prevQty;
             setState(() {
-              _cartOptimisticBump =
-                  (_cartOptimisticBump - delta).clamp(0, 999);
+              _cartOptimisticBump = (_cartOptimisticBump - delta).clamp(0, 999);
             });
           }
         },
@@ -659,10 +690,10 @@ class _RowItemState extends ConsumerState<RowItem>
     final String primaryLine = hasDistinctVariant
         ? variantTitle
         : (productTitle.isNotEmpty
-            ? productTitle
-            : (widget.variant?.productName?.trim().isNotEmpty == true
-                  ? widget.variant!.productName!.trim()
-                  : variantTitle));
+              ? productTitle
+              : (widget.variant?.productName?.trim().isNotEmpty == true
+                    ? widget.variant!.productName!.trim()
+                    : variantTitle));
     final String? productSubtitle =
         hasDistinctVariant && productTitle.isNotEmpty ? productTitle : null;
 
@@ -698,8 +729,9 @@ class _RowItemState extends ConsumerState<RowItem>
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: HexColor(widget.color.isEmpty ? "#673AB7" : widget.color)
-                  .withValues(alpha: 0.18),
+              color: HexColor(
+                widget.color.isEmpty ? "#673AB7" : widget.color,
+              ).withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(12),
             ),
             alignment: Alignment.center,
@@ -707,8 +739,9 @@ class _RowItemState extends ConsumerState<RowItem>
               initials.isEmpty ? 'PRD' : initials,
               style: textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: HexColor(widget.color.isEmpty ? "#673AB7" : widget.color)
-                    .withValues(alpha: 0.9),
+                color: HexColor(
+                  widget.color.isEmpty ? "#673AB7" : widget.color,
+                ).withValues(alpha: 0.9),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -847,29 +880,25 @@ class _RowItemState extends ConsumerState<RowItem>
 
     return Consumer(
       builder: (context, ref, _) {
-        final txnAsync = ref.watch(pendingTransactionStreamProvider(isExpense: false));
+        final txnAsync = ref.watch(
+          pendingTransactionStreamProvider(isExpense: widget.isOrdering),
+        );
         final txn = txnAsync.asData?.value;
         if (txn == null || txn.id.isEmpty) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
-        final itemsAsync = ref.watch(
-          transactionItemsStreamProvider(
+        final branchId = ProxyService.box.branchIdString() ?? '0';
+        final streamTotalQty = ref.watch(
+          pendingCartQtyByVariantIdProvider((
             transactionId: txn.id,
-            branchId: ProxyService.box.branchIdString() ?? '0',
-          ),
+            branchId: branchId,
+          )).select((map) => map[v.id] ?? 0),
         );
-
-        final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
-        final matching = items
-            .where((it) => it.active != false)
-            .where((it) => it.variantId == v.id)
-            .toList();
-
-        final num streamTotalQty =
-            matching.fold<num>(0, (sum, it) => sum + (it.qty));
-        final int displayQty =
-            (streamTotalQty + _cartOptimisticBump).round().clamp(0, 999999);
+        final int displayQty = (streamTotalQty + _cartOptimisticBump).clamp(
+          0,
+          999999,
+        );
 
         if (displayQty <= 0) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
@@ -884,10 +913,21 @@ class _RowItemState extends ConsumerState<RowItem>
           decrementEnabled: decrementEnabled,
           onDecrement: () async {
             if (!decrementEnabled) return;
-            await _decrementOne(
-              transactionId: txn.id,
-              matchingItems: matching,
-            );
+            final items =
+                ref
+                    .read(
+                      transactionItemsStreamProvider(
+                        transactionId: txn.id,
+                        branchId: branchId,
+                      ),
+                    )
+                    .asData
+                    ?.value ??
+                const <TransactionItem>[];
+            final matching = items
+                .where((it) => it.active != false && it.variantId == v.id)
+                .toList();
+            await _decrementOne(transactionId: txn.id, matchingItems: matching);
           },
           onIncrement: () async {
             final core = CoreViewModel();
@@ -943,9 +983,7 @@ class _RowItemState extends ConsumerState<RowItem>
             height: 32,
             child: IconButton(
               padding: EdgeInsets.zero,
-              onPressed: decrementEnabled
-                  ? () async => onDecrement()
-                  : null,
+              onPressed: decrementEnabled ? () async => onDecrement() : null,
               icon: const Icon(Icons.remove, size: 18),
               color: decrementEnabled
                   ? colorScheme.onSurface
@@ -1103,14 +1141,15 @@ class _RowItemState extends ConsumerState<RowItem>
   // to fix lint warnings and prevent potential regression issues
 
   Widget _buildImage() {
-    if (widget.imageUrl == null) {
+    final imageUrl = widget.imageUrl;
+    if (imageUrl == null || imageUrl.isEmpty) {
       return _buildImageErrorPlaceholder();
     }
 
-    // Always try local paths first (consistent with DesktopProductAdd.dart)
+    _cachedLocalImageFuture ??= _resolveLocalImagePath(imageUrl);
     return FutureBuilder<String?>(
-      key: ValueKey('local-${widget.variant?.id}-${widget.imageUrl}'),
-      future: getImageFilePath(imageFileName: widget.imageUrl!),
+      key: ValueKey('local-${widget.variant?.id}-$imageUrl'),
+      future: _cachedLocalImageFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildImageLoadingIndicator();
@@ -1126,31 +1165,8 @@ class _RowItemState extends ConsumerState<RowItem>
               return _buildRemoteImageFallback();
             },
           );
-        } else {
-          // Try to load from asset's local path in database
-          return FutureBuilder<String?>(
-            key: ValueKey('db-local-${widget.imageUrl}'),
-            future: _tryLoadFromAssetPath(widget.imageUrl!),
-            builder: (context, assetSnapshot) {
-              if (assetSnapshot.connectionState == ConnectionState.waiting) {
-                return _buildImageLoadingIndicator();
-              } else if (assetSnapshot.hasData && assetSnapshot.data != null) {
-                return Image.file(
-                  File(assetSnapshot.data!),
-                  key: ValueKey('file-${assetSnapshot.data}'),
-                  fit: BoxFit.cover,
-                  cacheWidth: 300,
-                  cacheHeight: 300,
-                  errorBuilder: (context, error, stackTrace) =>
-                      _buildRemoteImageFallback(),
-                );
-              } else {
-                // No local images found, try remote URL
-                return _buildRemoteImageFallback();
-              }
-            },
-          );
         }
+        return _buildRemoteImageFallback();
       },
     );
   }
@@ -1286,6 +1302,8 @@ class _RowItemState extends ConsumerState<RowItem>
       final ok = await itemAdder.addItemToTransaction(
         variant: widget.variant!,
         isOrdering: isOrdering,
+        productHint: widget.product,
+        isCompositeProduct: widget.isComposite,
       );
       w?.log("Item Added to Quick Sell");
       return ok;
@@ -1311,6 +1329,12 @@ class _RowItemState extends ConsumerState<RowItem>
     }
   }
 
+  Future<String?> _resolveLocalImagePath(String assetName) async {
+    final localPath = await getImageFilePath(imageFileName: assetName);
+    if (localPath != null) return localPath;
+    return _tryLoadFromAssetPath(assetName);
+  }
+
   // Try to load an image from the asset's localPath in the database
   Future<String?> _tryLoadFromAssetPath(String assetName) async {
     try {
@@ -1327,15 +1351,18 @@ class _RowItemState extends ConsumerState<RowItem>
         }
       }
 
-      // Lazy download from S3 if missing locally (new device).
+      // Lazy download from S3 if missing locally (new device). Share the same
+      // in-flight download across all rows that render the same product image.
       try {
-        final stream = await ProxyService.strategy.downloadAssetSave(
-          assetName: assetName,
-          subPath: 'branch',
-        );
-        await for (final p in stream) {
-          if (p >= 100) break;
+        final downloadKey = '${_branchId ?? ''}/$assetName';
+        _assetDownloadCache[downloadKey] ??= _downloadAsset(assetName);
+        try {
+          await _assetDownloadCache[downloadKey];
+        } catch (_) {
+          _assetDownloadCache.remove(downloadKey);
+          rethrow;
         }
+
         final downloaded = await getImageFilePath(imageFileName: assetName);
         if (downloaded != null) return downloaded;
       } catch (e) {
@@ -1346,6 +1373,23 @@ class _RowItemState extends ConsumerState<RowItem>
     } catch (e) {
       talker.error('Error loading asset from local path: $e');
       return null;
+    }
+  }
+
+  Future<void> _downloadAsset(String assetName) async {
+    final branchId = _branchId;
+    final stream = branchId == null || branchId.isEmpty
+        ? await ProxyService.strategy.downloadAssetSave(
+            assetName: assetName,
+            subPath: 'branch',
+          )
+        : await ProxyService.strategy.downloadAsset(
+            branchId: branchId,
+            assetName: assetName,
+            subPath: 'branch',
+          );
+    await for (final p in stream) {
+      if (p >= 100) break;
     }
   }
 

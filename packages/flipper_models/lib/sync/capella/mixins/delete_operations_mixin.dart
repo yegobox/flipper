@@ -48,34 +48,43 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
 
       final txnId = transactionId ?? transactionItemId.transactionId;
       if (txnId != null) {
-        await _recalculateTransactionSubTotal(ditto, txnId);
+        final contrib =
+            transactionItemId.price.toDouble() * transactionItemId.qty.toDouble();
+        await _adjustTransactionSubtotalByDelta(ditto, txnId, -contrib);
       }
     } catch (e) {
       talker.error('Error deleting item from cart in Capella: $e');
     }
   }
 
-  Future<void> _recalculateTransactionSubTotal(
-      dynamic ditto, String transactionId) async {
-    final itemsResult = await ditto.store.execute(
-      "SELECT * FROM transaction_items WHERE transactionId = :tid AND active = :active",
-      arguments: {'tid': transactionId, 'active': true},
+  Future<void> _adjustTransactionSubtotalByDelta(
+    dynamic ditto,
+    String transactionId,
+    double delta,
+  ) async {
+    if (delta == 0) return;
+
+    final tid = transactionId;
+    final row = await ditto.store.execute(
+      'SELECT subTotal FROM transactions WHERE _id = :tid OR id = :tid LIMIT 1',
+      arguments: {'tid': tid},
     );
+    if (row.items.isEmpty) return;
 
-    double newSubTotal = 0.0;
-    for (final item in itemsResult.items) {
-      final data = Map<String, dynamic>.from(item.value);
-      final qty = (data['qty'] as num?)?.toDouble() ?? 0.0;
-      final price = (data['price'] as num?)?.toDouble() ?? 0.0;
-      newSubTotal += price * qty;
-    }
+    final current = (Map<String, dynamic>.from(row.items.first.value)['subTotal']
+            as num?)
+        ?.toDouble() ??
+        0.0;
+    final newSubTotal = current + delta;
 
+    final now = DateTime.now().toIso8601String();
     await ditto.store.execute(
-      "UPDATE transactions SET subTotal = :subTotal, updatedAt = :updatedAt WHERE _id = :id OR id = :id",
+      'UPDATE transactions SET subTotal = :subTotal, updatedAt = :ua, lastTouched = :lt WHERE _id = :tid OR id = :tid',
       arguments: {
         'subTotal': newSubTotal,
-        'updatedAt': DateTime.now().toIso8601String(),
-        'id': transactionId,
+        'ua': now,
+        'lt': now,
+        'tid': tid,
       },
     );
   }
@@ -103,15 +112,19 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
 
     if (endPoint == 'transactionItem') {
       try {
-        // Fetch the item first to get transactionId for subtotal recalculation
+        // Fetch the item first to get transactionId and line total for subTotal delta
         final fetchResult = await ditto.store.execute(
           "SELECT * FROM transaction_items WHERE _id = :id OR id = :id",
           arguments: {'id': id},
         );
         String? transactionId;
+        double subtotalDelta = 0;
         if (fetchResult.items.isNotEmpty) {
           final data = Map<String, dynamic>.from(fetchResult.items.first.value);
           transactionId = data['transactionId'] as String?;
+          final qty = (data['qty'] as num?)?.toDouble() ?? 0.0;
+          final price = (data['price'] as num?)?.toDouble() ?? 0.0;
+          subtotalDelta = -(price * qty);
         }
 
         const query =
@@ -119,7 +132,11 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
         await ditto.store.execute(query, arguments: {'id': id});
 
         if (transactionId != null) {
-          await _recalculateTransactionSubTotal(ditto, transactionId);
+          await _adjustTransactionSubtotalByDelta(
+            ditto,
+            transactionId,
+            subtotalDelta,
+          );
         }
         return true;
       } catch (e) {

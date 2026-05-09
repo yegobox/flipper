@@ -1,0 +1,286 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.canvas{display:flex;gap:24px;align-items:flex-start;padding:16px 0}
+.frame-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.frame-label i{font-size:14px}
+
+.mobile-frame{width:260px;flex-shrink:0}
+.mobile-shell{width:260px;border-radius:20px;border:6px solid var(--color-text-primary);overflow:hidden;background:var(--color-background-tertiary)}
+.m-topbar{display:flex;align-items:center;padding:0 12px;height:40px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);gap:8px}
+.m-back{width:26px;height:26px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:transparent;display:flex;align-items:center;justify-content:center;color:#1a73e8;font-size:12px;flex-shrink:0}
+.m-title{font-size:12px;font-weight:500;color:var(--color-text-primary);flex:1;text-align:center}
+.m-help{width:26px;height:26px;border-radius:50%;border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;color:var(--color-text-secondary);font-size:12px;flex-shrink:0}
+.m-search-area{padding:10px 10px 8px;background:var(--color-background-primary)}
+.m-search{position:relative}
+.m-search i{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--color-text-tertiary)}
+.m-search-input{width:100%;padding:0 8px 0 28px;height:32px;border-radius:var(--border-radius-md);border:1.5px solid #1a73e8;background:var(--color-background-primary);font-size:11px;color:var(--color-text-primary);outline:none;font-family:var(--font-sans)}
+.m-search-input::placeholder{color:var(--color-text-tertiary)}
+.m-add{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:7px;margin-top:7px;border-radius:var(--border-radius-md);border:1.5px dashed #1a73e8;background:#e8f0fe;color:#1a73e8;font-size:11px;font-weight:500}
+.m-add i{font-size:13px}
+.m-divider{height:0.5px;background:var(--color-border-tertiary)}
+.m-list-header{display:flex;align-items:center;justify-content:space-between;padding:7px 10px 4px}
+.m-list-label{font-size:10px;color:var(--color-text-tertiary);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.m-sort{font-size:10px;color:#1a73e8;display:flex;align-items:center;gap:2px}
+.m-list{padding:0 6px 8px;display:flex;flex-direction:column;gap:5px}
+.m-card{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.m-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:10px;flex-shrink:0}
+.av-purple{background:#EEEDFE;color:#3C3489}
+.av-amber{background:#FAEEDA;color:#633806}
+.av-teal{background:#E1F5EE;color:#085041}
+.av-blue{background:#E6F1FB;color:#0C447C}
+.av-coral{background:#FAECE7;color:#712B13}
+.m-cinfo{flex:1;min-width:0}
+.m-cname{font-size:11px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-cphone{font-size:10px;color:var(--color-text-secondary);display:flex;align-items:center;gap:2px;margin-top:1px}
+.m-cphone i{font-size:10px}
+.m-tag{font-size:9px;padding:1px 5px;border-radius:20px;font-weight:500;flex-shrink:0}
+.tag-active{background:#EAF3DE;color:#27500A}
+.tag-new{background:#E6F1FB;color:#0C447C}
+.m-chev{font-size:12px;color:var(--color-text-tertiary)}
+
+.desktop-frame{flex:1;min-width:0}
+.d-shell{border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);overflow:hidden;background:var(--color-background-tertiary)}
+.d-topbar{display:flex;align-items:center;padding:0 16px;height:44px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);gap:10px}
+.d-back{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:transparent;display:flex;align-items:center;justify-content:center;color:#1a73e8;font-size:14px;flex-shrink:0}
+.d-title{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1;text-align:center}
+.d-help{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;color:var(--color-text-secondary);font-size:14px;flex-shrink:0}
+.d-body{display:flex;height:480px}
+.d-left{width:220px;flex-shrink:0;display:flex;flex-direction:column;border-right:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.d-search-area{padding:10px 12px 8px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.d-search{position:relative}
+.d-search i{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--color-text-tertiary)}
+.d-search-input{width:100%;padding:0 9px 0 30px;height:32px;border-radius:var(--border-radius-md);border:1.5px solid #1a73e8;background:var(--color-background-primary);font-size:11px;color:var(--color-text-primary);outline:none;font-family:var(--font-sans)}
+.d-search-input::placeholder{color:var(--color-text-tertiary)}
+.d-add{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:7px;margin-top:7px;border-radius:var(--border-radius-md);border:1.5px dashed #1a73e8;background:#e8f0fe;color:#1a73e8;font-size:11px;font-weight:500}
+.d-add i{font-size:13px}
+.d-list-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 4px}
+.d-list-label{font-size:10px;color:var(--color-text-tertiary);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.d-sort{font-size:10px;color:#1a73e8;display:flex;align-items:center;gap:2px}
+.d-list{overflow-y:auto;flex:1;padding:0 6px 6px;display:flex;flex-direction:column;gap:3px}
+.d-card{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--border-radius-md);border:none;background:transparent;cursor:pointer;width:100%;text-align:left;transition:background .15s}
+.d-card:hover{background:var(--color-background-secondary)}
+.d-card.active{background:#e8f0fe}
+.d-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:10px;flex-shrink:0}
+.d-cinfo{flex:1;min-width:0}
+.d-cname{font-size:11px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-cphone{font-size:10px;color:var(--color-text-secondary);display:flex;align-items:center;gap:2px;margin-top:1px}
+.d-ctag{font-size:9px;padding:1px 5px;border-radius:20px;font-weight:500;flex-shrink:0}
+
+.d-right{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--color-background-primary)}
+.d-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--color-text-tertiary)}
+.d-empty i{font-size:36px}
+.d-empty p{font-size:12px}
+.d-detail{flex:1;overflow-y:auto;padding:20px;display:none;flex-direction:column;gap:16px}
+.d-detail.visible{display:flex}
+.d-dtop{display:flex;align-items:center;gap:14px}
+.d-dav{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;flex-shrink:0}
+.d-dname{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.d-dsub{font-size:11px;color:var(--color-text-secondary);margin-top:3px;display:flex;align-items:center;gap:5px}
+.d-dactions{display:flex;gap:6px;margin-top:8px}
+.d-dact{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);font-size:11px;font-weight:500;color:var(--color-text-primary);font-family:var(--font-sans)}
+.d-dact.primary{background:#1a73e8;color:#fff;border-color:#1a73e8}
+.d-dact i{font-size:13px}
+.d-sec-label{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.d-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.d-info-item{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:9px 11px}
+.d-info-lbl{font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px;display:flex;align-items:center;gap:3px}
+.d-info-lbl i{font-size:11px}
+.d-info-val{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.d-hist{display:flex;flex-direction:column;gap:6px}
+.d-hist-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)}
+.d-hist-ic{width:26px;height:26px;border-radius:50%;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.d-hist-ic i{font-size:13px;color:var(--color-text-secondary)}
+.d-hist-text{flex:1}
+.d-hist-title{font-size:11px;font-weight:500;color:var(--color-text-primary)}
+.d-hist-date{font-size:10px;color:var(--color-text-tertiary);margin-top:1px}
+.d-hist-amt{font-size:11px;font-weight:500;color:#1a73e8}
+</style>
+
+<h2 class="sr-only">Side-by-side comparison of mobile and desktop Add Customer screen designs</h2>
+
+<div class="canvas">
+
+  <div class="mobile-frame">
+    <div class="frame-label"><i class="ti ti-device-mobile" aria-hidden="true"></i> Mobile</div>
+    <div class="mobile-shell">
+      <div class="m-topbar">
+        <div class="m-back"><i class="ti ti-arrow-left" aria-hidden="true"></i></div>
+        <span class="m-title">Add customer</span>
+        <div class="m-help"><i class="ti ti-help-circle" aria-hidden="true"></i></div>
+      </div>
+      <div class="m-search-area">
+        <div class="m-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input class="m-search-input" type="text" placeholder="Name or phone number"/>
+        </div>
+        <div class="m-add"><i class="ti ti-user-plus" aria-hidden="true"></i> Add new customer</div>
+      </div>
+      <div class="m-divider"></div>
+      <div class="m-list-header">
+        <span class="m-list-label">5 customers</span>
+        <span class="m-sort"><i class="ti ti-arrows-sort" aria-hidden="true"></i> Sort</span>
+      </div>
+      <div class="m-list">
+        <div class="m-card">
+          <div class="m-av av-purple">AP</div>
+          <div class="m-cinfo"><div class="m-cname">Another Person</div><div class="m-cphone"><i class="ti ti-phone" aria-hidden="true"></i>0783 054 874</div></div>
+          <span class="m-tag tag-active">Active</span>
+          <i class="ti ti-chevron-right m-chev" aria-hidden="true"></i>
+        </div>
+        <div class="m-card">
+          <div class="m-av av-amber">M</div>
+          <div class="m-cinfo"><div class="m-cname">Mura</div><div class="m-cphone"><i class="ti ti-phone" aria-hidden="true"></i>783 054 874</div></div>
+          <span class="m-tag tag-new">New</span>
+          <i class="ti ti-chevron-right m-chev" aria-hidden="true"></i>
+        </div>
+        <div class="m-card">
+          <div class="m-av av-teal">SK</div>
+          <div class="m-cinfo"><div class="m-cname">Sara Kimani</div><div class="m-cphone"><i class="ti ti-phone" aria-hidden="true"></i>0712 345 678</div></div>
+          <span class="m-tag tag-active">Active</span>
+          <i class="ti ti-chevron-right m-chev" aria-hidden="true"></i>
+        </div>
+        <div class="m-card">
+          <div class="m-av av-blue">JO</div>
+          <div class="m-cinfo"><div class="m-cname">James Oduya</div><div class="m-cphone"><i class="ti ti-phone" aria-hidden="true"></i>0798 765 432</div></div>
+          <span class="m-tag tag-active">Active</span>
+          <i class="ti ti-chevron-right m-chev" aria-hidden="true"></i>
+        </div>
+        <div class="m-card">
+          <div class="m-av av-coral">PN</div>
+          <div class="m-cinfo"><div class="m-cname">Priya Nair</div><div class="m-cphone"><i class="ti ti-phone" aria-hidden="true"></i>0755 443 322</div></div>
+          <span class="m-tag tag-new">New</span>
+          <i class="ti ti-chevron-right m-chev" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-frame">
+    <div class="frame-label"><i class="ti ti-device-desktop" aria-hidden="true"></i> Desktop</div>
+    <div class="d-shell">
+      <div class="d-topbar">
+        <div class="d-back"><i class="ti ti-arrow-left" aria-hidden="true"></i></div>
+        <span class="d-title">Add customer</span>
+        <div class="d-help"><i class="ti ti-help-circle" aria-hidden="true"></i></div>
+      </div>
+      <div class="d-body">
+        <div class="d-left">
+          <div class="d-search-area">
+            <div class="d-search">
+              <i class="ti ti-search" aria-hidden="true"></i>
+              <input class="d-search-input" type="text" placeholder="Name or phone number" oninput="dFilter(this.value)"/>
+            </div>
+            <div class="d-add"><i class="ti ti-user-plus" aria-hidden="true"></i> Add new customer</div>
+          </div>
+          <div class="d-list-header">
+            <span class="d-list-label" id="d-count">5 customers</span>
+            <span class="d-sort"><i class="ti ti-arrows-sort" aria-hidden="true"></i> Sort</span>
+          </div>
+          <div class="d-list" id="d-list">
+            <button class="d-card" data-idx="0" onclick="dSelect(this,0)">
+              <div class="d-av av-purple">AP</div>
+              <div class="d-cinfo"><div class="d-cname">Another Person</div><div class="d-cphone"><i class="ti ti-phone" aria-hidden="true"></i>0783 054 874</div></div>
+              <span class="d-ctag tag-active">Active</span>
+            </button>
+            <button class="d-card" data-idx="1" onclick="dSelect(this,1)">
+              <div class="d-av av-amber">M</div>
+              <div class="d-cinfo"><div class="d-cname">Mura</div><div class="d-cphone"><i class="ti ti-phone" aria-hidden="true"></i>783 054 874</div></div>
+              <span class="d-ctag tag-new">New</span>
+            </button>
+            <button class="d-card" data-idx="2" onclick="dSelect(this,2)">
+              <div class="d-av av-teal">SK</div>
+              <div class="d-cinfo"><div class="d-cname">Sara Kimani</div><div class="d-cphone"><i class="ti ti-phone" aria-hidden="true"></i>0712 345 678</div></div>
+              <span class="d-ctag tag-active">Active</span>
+            </button>
+            <button class="d-card" data-idx="3" onclick="dSelect(this,3)">
+              <div class="d-av av-blue">JO</div>
+              <div class="d-cinfo"><div class="d-cname">James Oduya</div><div class="d-cphone"><i class="ti ti-phone" aria-hidden="true"></i>0798 765 432</div></div>
+              <span class="d-ctag tag-active">Active</span>
+            </button>
+            <button class="d-card" data-idx="4" onclick="dSelect(this,4)">
+              <div class="d-av av-coral">PN</div>
+              <div class="d-cinfo"><div class="d-cname">Priya Nair</div><div class="d-cphone"><i class="ti ti-phone" aria-hidden="true"></i>0755 443 322</div></div>
+              <span class="d-ctag tag-new">New</span>
+            </button>
+          </div>
+        </div>
+        <div class="d-right">
+          <div class="d-empty" id="d-empty">
+            <i class="ti ti-user-search" aria-hidden="true"></i>
+            <p>Select a customer to view details</p>
+          </div>
+          <div class="d-detail" id="d-detail">
+            <div class="d-dtop">
+              <div class="d-dav" id="dd-av"></div>
+              <div>
+                <div class="d-dname" id="dd-name"></div>
+                <div class="d-dsub" id="dd-sub"></div>
+                <div class="d-dactions">
+                  <div class="d-dact primary"><i class="ti ti-user-check" aria-hidden="true"></i> Select customer</div>
+                  <div class="d-dact"><i class="ti ti-edit" aria-hidden="true"></i> Edit</div>
+                  <div class="d-dact"><i class="ti ti-dots" aria-hidden="true"></i></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="d-sec-label">Contact details</div>
+              <div class="d-info-grid" id="dd-info"></div>
+            </div>
+            <div>
+              <div class="d-sec-label">Recent activity</div>
+              <div class="d-hist" id="dd-hist"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const custs=[
+  {name:"Another Person",ini:"AP",av:"av-purple",phone:"0783 054 874",email:"another@email.com",joined:"Jan 2024",status:"Active",visits:14,spent:"KSh 32,400",history:[{icon:"ti-receipt",t:"Purchase — 3 items",d:"2 days ago",a:"KSh 2,100"},{icon:"ti-receipt",t:"Purchase — 1 item",d:"1 week ago",a:"KSh 850"}]},
+  {name:"Mura",ini:"M",av:"av-amber",phone:"783 054 874",email:"mura@email.com",joined:"Mar 2025",status:"New",visits:2,spent:"KSh 1,950",history:[{icon:"ti-receipt",t:"First purchase — 2 items",d:"5 days ago",a:"KSh 1,950"}]},
+  {name:"Sara Kimani",ini:"SK",av:"av-teal",phone:"0712 345 678",email:"sara.k@email.com",joined:"Aug 2023",status:"Active",visits:31,spent:"KSh 88,200",history:[{icon:"ti-receipt",t:"Purchase — 5 items",d:"Yesterday",a:"KSh 4,300"},{icon:"ti-star",t:"VIP tier reached",d:"2 weeks ago",a:""}]},
+  {name:"James Oduya",ini:"JO",av:"av-blue",phone:"0798 765 432",email:"james.o@email.com",joined:"Nov 2023",status:"Active",visits:9,spent:"KSh 21,300",history:[{icon:"ti-receipt",t:"Purchase — 4 items",d:"3 days ago",a:"KSh 3,200"}]},
+  {name:"Priya Nair",ini:"PN",av:"av-coral",phone:"0755 443 322",email:"priya.n@email.com",joined:"Apr 2025",status:"New",visits:1,spent:"KSh 3,100",history:[{icon:"ti-receipt",t:"First purchase — 3 items",d:"1 week ago",a:"KSh 3,100"}]}
+];
+function dSelect(el,idx){
+  document.querySelectorAll('.d-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const c=custs[idx];
+  document.getElementById('d-empty').style.display='none';
+  const dv=document.getElementById('d-detail');
+  dv.classList.add('visible');
+  const av=document.getElementById('dd-av');
+  av.textContent=c.ini; av.className='d-dav '+c.av;
+  document.getElementById('dd-name').textContent=c.name;
+  document.getElementById('dd-sub').innerHTML=`<span class="d-ctag ${c.status==='Active'?'tag-active':'tag-new'}">${c.status}</span> Since ${c.joined}`;
+  document.getElementById('dd-info').innerHTML=`
+    <div class="d-info-item"><div class="d-info-lbl"><i class="ti ti-phone" aria-hidden="true"></i> Phone</div><div class="d-info-val">${c.phone}</div></div>
+    <div class="d-info-item"><div class="d-info-lbl"><i class="ti ti-mail" aria-hidden="true"></i> Email</div><div class="d-info-val">${c.email}</div></div>
+    <div class="d-info-item"><div class="d-info-lbl"><i class="ti ti-shopping-cart" aria-hidden="true"></i> Visits</div><div class="d-info-val">${c.visits}</div></div>
+    <div class="d-info-item"><div class="d-info-lbl"><i class="ti ti-coin" aria-hidden="true"></i> Total spent</div><div class="d-info-val">${c.spent}</div></div>
+  `;
+  document.getElementById('dd-hist').innerHTML=c.history.map(h=>`
+    <div class="d-hist-item">
+      <div class="d-hist-ic"><i class="ti ${h.icon}" aria-hidden="true"></i></div>
+      <div class="d-hist-text"><div class="d-hist-title">${h.t}</div><div class="d-hist-date">${h.d}</div></div>
+      ${h.a?`<div class="d-hist-amt">${h.a}</div>`:''}
+    </div>
+  `).join('');
+}
+function dFilter(q){
+  q=q.toLowerCase().trim();
+  const cards=document.querySelectorAll('.d-card');
+  let n=0;
+  cards.forEach((c,i)=>{
+    const show=!q||custs[i].name.toLowerCase().includes(q)||custs[i].phone.includes(q);
+    c.style.display=show?'flex':'none';
+    if(show)n++;
+  });
+  document.getElementById('d-count').textContent=n+' customer'+(n!==1?'s':'');
+}
+</script>

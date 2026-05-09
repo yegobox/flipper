@@ -1,7 +1,5 @@
 export 'branch.model.dart';
 export 'counter.model.dart';
-export 'plan.dart';
-export 'plan_addon.model.dart';
 export 'ebm.model.dart';
 export 'variant.model.dart';
 export 'product.model.dart';

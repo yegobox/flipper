@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
 import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -21,7 +22,7 @@ import 'package:http/src/streamed_response.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
-
+import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
@@ -43,6 +44,7 @@ import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/stock_recount_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
@@ -84,6 +86,7 @@ class CapellaSync extends AiStrategyImpl
         CategoryMixin,
         CapellaDelegationMixin,
         StockRecountMixin,
+        CapellaStockRecountMixin,
         CapellaSettingsMixin,
         CapellaProductionOutputMixin
     implements DatabaseSyncInterface {
@@ -330,13 +333,13 @@ class CapellaSync extends AiStrategyImpl
       }
 
       // Subscribe to the collection first
-      ditto.sync.registerSubscription(
+      final preparedBa = prepareDqlSyncSubscription(
         "SELECT * FROM business_analytics WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+        {'branchId': branchId},
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM business_analytics WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+      ditto.sync.registerSubscription(
+        preparedBa.dql,
+        arguments: preparedBa.arguments,
       );
 
       final result = await ditto.store.execute(
@@ -689,8 +692,9 @@ class CapellaSync extends AiStrategyImpl
       completionStatus: COMPLETE,
       preloadedLineItems: preloaded,
     );
-    final movementReceipt =
-        isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+    final movementReceipt = isIncome
+        ? TransactionType.cashIn
+        : TransactionType.cashOut;
     await updateTransaction(
       transaction: txn,
       receiptType: movementReceipt,
@@ -775,16 +779,6 @@ class CapellaSync extends AiStrategyImpl
   @override
   Stream<Credit?> credit({required String branchId}) {
     // TODO: implement credit
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Customer>> customersStream({
-    required String branchId,
-    String? key,
-    String? id,
-  }) {
-    // TODO: implement customersStream
     throw UnimplementedError();
   }
 
@@ -980,10 +974,9 @@ class CapellaSync extends AiStrategyImpl
       talker.warning('getUtilityVariant Ditto path failed: $e\n$st');
     }
     try {
-      return await ProxyService.getStrategy(Strategy.cloudSync).getUtilityVariant(
-        name: name,
-        branchId: branchId,
-      );
+      return await ProxyService.getStrategy(
+        Strategy.cloudSync,
+      ).getUtilityVariant(name: name, branchId: branchId);
     } catch (e, st) {
       talker.error('getUtilityVariant fallback failed: $e\n$st');
       return null;
@@ -1276,9 +1269,114 @@ class CapellaSync extends AiStrategyImpl
     double amount = 0.0,
     String? paymentMethod,
     required bool singlePaymentOnly,
-  }) {
-    // TODO: implement savePaymentType
-    throw UnimplementedError();
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for savePaymentType');
+      return;
+    }
+
+    if (transactionId == null) {
+      throw ArgumentError('transactionId cannot be null');
+    }
+
+    if (paymentMethod == null && paymentRecord == null) {
+      throw ArgumentError(
+        'Either paymentMethod or paymentRecord must be provided',
+      );
+    }
+
+    Future<void> mirrorDeleteZeroAmountSqlite() async {
+      final withAmount0 = await repository
+          .get<TransactionPaymentRecord>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(
+              where: [
+                brick.Where('transactionId').isExactly(transactionId),
+                brick.Where('amount').isExactly(0.0),
+              ],
+            ),
+          )
+          .then((records) => records.isEmpty ? null : records.first);
+      if (withAmount0 != null) {
+        await repository.delete<TransactionPaymentRecord>(
+          withAmount0,
+          query: brick.Query(action: QueryAction.delete),
+        );
+      }
+    }
+
+    // 1) Drop stale zero-amount rows (matches CoreSync semantics).
+    try {
+      await ditto.store.execute(
+        'DELETE FROM transaction_payment_records WHERE transactionId = :transactionId AND amount = :zero',
+        arguments: {'transactionId': transactionId, 'zero': 0.0},
+      );
+    } catch (e, s) {
+      talker.warning(
+        'savePaymentType: Ditto delete zero-amount rows failed: $e',
+        s,
+      );
+    }
+
+    await mirrorDeleteZeroAmountSqlite();
+
+    // 2) Single-payment mode: clear existing tender rows before inserting the new one.
+    if (singlePaymentOnly) {
+      await deletePaymentRecords(transactionId: transactionId);
+
+      final existingRecords = await repository.get<TransactionPaymentRecord>(
+        query: brick.Query(
+          where: [brick.Where('transactionId').isExactly(transactionId)],
+        ),
+      );
+
+      await Future.wait(
+        existingRecords.map(
+          (record) => repository.delete<TransactionPaymentRecord>(
+            record,
+            query: brick.Query(action: QueryAction.delete),
+          ),
+        ),
+      );
+    }
+
+    Future<void> upsertDitto(TransactionPaymentRecord r) async {
+      final doc = <String, dynamic>{
+        'id': r.id,
+        '_id': r.id,
+        'transactionId': r.transactionId,
+        'amount': r.amount,
+        'paymentMethod': r.paymentMethod,
+        'createdAt': r.createdAt?.toUtc().toIso8601String(),
+      };
+
+      await ditto.store.execute(
+        'INSERT INTO transaction_payment_records DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+        arguments: {'doc': doc},
+      );
+    }
+
+    if (paymentRecord != null) {
+      await upsertDitto(paymentRecord);
+      await repository.upsert<TransactionPaymentRecord>(paymentRecord);
+      return;
+    }
+
+    if (amount != 0) {
+      final newPaymentRecord = TransactionPaymentRecord(
+        createdAt: DateTime.now().toUtc(),
+        amount: amount,
+        transactionId: transactionId,
+        paymentMethod: paymentMethod,
+      );
+
+      await upsertDitto(newPaymentRecord);
+      await repository.upsert<TransactionPaymentRecord>(
+        newPaymentRecord,
+        query: brick.Query(action: QueryAction.insert),
+      );
+    }
   }
 
   @override
@@ -1680,7 +1778,10 @@ class CapellaSync extends AiStrategyImpl
         arguments: args,
       );
     } catch (e, s) {
-      talker.warning('Capella updateCategory Ditto mirror failed (non-fatal): $e', s);
+      talker.warning(
+        'Capella updateCategory Ditto mirror failed (non-fatal): $e',
+        s,
+      );
     }
   }
 

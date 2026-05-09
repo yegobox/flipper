@@ -26,6 +26,10 @@ abstract class VariantInterface {
   });
   Future<Variant?> getVariant({required String id});
 
+  /// Loads many variants in as few round-trips as possible (Capella: single Ditto query).
+  /// Map keys include variant [Variant.id] and Ditto `_id` when they differ.
+  Future<Map<String, Variant>> batchGetVariantsByIds(List<String> ids);
+
   Future<int> addVariant({
     required List<Variant> variations,
     required String branchId,

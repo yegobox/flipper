@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -310,7 +311,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "modrId": mod,
         "modrNm": mod,
         "sarNo": sarNo,
-        "orgSarNo": invoiceNumber,
+        "orgSarNo": invoiceNumber ?? int.tryParse(sarNo ?? '') ?? 0,
         "itemList": itemsList,
       };
       // if custTin is invalid remove it from the json
@@ -324,11 +325,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       /// save stock master for  the involved variants
       /// to keep stock master in sync
-      if (updateMaster) {
+      if (updateMaster && data.resultCd == "000") {
         for (var item in items) {
-          Variant? variant = await ProxyService.strategy.getVariant(
-            id: item.variantId!,
-          );
+          final vid = item.variantId;
+          if (vid == null) continue;
+          Variant? variant = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getVariant(id: vid);
           if (variant != null) {
             await saveStockMaster(variant: variant, URI: URI);
           }
@@ -620,6 +623,98 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
   }
 
+  /// After [trnsSales/saveSales] succeeds, RRA still expects stock movement and
+  /// master updates. Those calls are not needed to build the signed receipt;
+  /// running them here in the background lets [generateReceiptSignature] return
+  /// sooner so PDF generation and printing can start immediately.
+  Future<void> _syncStockAfterSuccessfulSaveSales({
+    required String receiptType,
+    required List<TransactionItem> items,
+    required models.Ebm ebm,
+    required int highestInvcNo,
+    String? sarTyCd,
+    required ITransaction transaction,
+    required Repository repository,
+  }) async {
+    try {
+      if (receiptType != 'NR' && receiptType != 'CR' && receiptType != 'TR') {
+        await saveStockItems(
+          items: items,
+          tinNumber: ebm.tinNumber.toString(),
+          bhFId: ebm.bhfId,
+          updateMaster: false,
+          customerName: null,
+          custTin: null,
+          invoiceNumber: highestInvcNo,
+          regTyCd: "A",
+          sarNo: highestInvcNo.toString(),
+          sarTyCd: sarTyCd ?? "06",
+          custBhfId: transaction.customerBhfId,
+          totalSupplyPrice: transaction.subTotal!,
+          totalvat: transaction.taxAmount!.toDouble(),
+          totalAmount: transaction.subTotal!,
+          remark: transaction.remark ?? "",
+          ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
+          URI: ebm.taxServerUrl,
+        );
+        for (var item in items) {
+          final Variant? variant = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getVariant(id: item.variantId!);
+          final Stock stock = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getStockById(id: variant?.stockId ?? "");
+          if (variant == null) continue;
+
+          await ProxyService.tax.saveStockMaster(
+            variant: variant,
+            URI: ebm.taxServerUrl,
+            stockMasterQty: stock.currentStock!,
+          );
+        }
+      } else if (receiptType == 'NR' || receiptType == 'TR') {
+        final sar = await ProxyService.strategy.getSar(
+          branchId: ProxyService.box.getBranchId()!,
+        );
+
+        sar!.sarNo = sar.sarNo + 1;
+        await repository.upsert<Sar>(sar);
+
+        await saveStockItems(
+          updateMaster: true,
+          items: items,
+          tinNumber: ebm.tinNumber.toString(),
+          bhFId: ebm.bhfId,
+          customerName: transaction.customerName,
+          custTin: transaction.customerTin,
+          invoiceNumber: transaction.invoiceNumber!,
+          regTyCd: "A",
+          sarNo: sar.sarNo.toString(),
+          sarTyCd: "06",
+          custBhfId: transaction.customerBhfId,
+          totalSupplyPrice: transaction.subTotal!,
+          totalvat: transaction.taxAmount!.toDouble(),
+          totalAmount: transaction.subTotal!,
+          remark: transaction.remark ?? "",
+          ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
+          URI: ebm.taxServerUrl,
+        );
+      }
+    } catch (e, s) {
+      _talker?.error(e);
+      _talker?.error(s);
+      await GlobalErrorHandler.logError(
+        e,
+        stackTrace: s,
+        type: "tax_stock_sync_error",
+        context: {
+          'businessId': ProxyService.box.getBusinessId(),
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
+    }
+  }
+
   @override
   Future<RwApiResponse> generateReceiptSignature({
     required ITransaction transaction,
@@ -832,69 +927,19 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final data = successData;
       // remove any tin saved in local storage on success
       ProxyService.box.remove(key: 'customerTin');
-      if (receiptType != 'NR' && receiptType != 'CR' && receiptType != 'TR') {
-        await saveStockItems(
+      // Stock / SAR sync to RRA can run after saveSales succeeds; receipt build
+      // and printing no longer wait on these calls.
+      unawaited(
+        _syncStockAfterSuccessfulSaveSales(
+          receiptType: receiptType,
           items: items,
-          tinNumber: ebm.tinNumber.toString(),
-          bhFId: ebm.bhfId,
-          updateMaster: false,
-          customerName: null,
-          custTin: null,
-          invoiceNumber: highestInvcNo,
-          regTyCd: "A",
-          sarNo: highestInvcNo.toString(),
-          sarTyCd: sarTyCd ?? "06",
-          custBhfId: transaction.customerBhfId,
-          totalSupplyPrice: transaction.subTotal!,
-          totalvat: transaction.taxAmount!.toDouble(),
-          totalAmount: transaction.subTotal!,
-          remark: transaction.remark ?? "",
-          ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
-          URI: ebm.taxServerUrl,
-        );
-        for (var item in items) {
-          Variant? variant = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getVariant(id: item.variantId!);
-          Stock stock = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getStockById(id: variant?.stockId ?? "");
-          if (variant == null) continue;
-
-          await ProxyService.tax.saveStockMaster(
-            variant: variant,
-            URI: ebm.taxServerUrl,
-            stockMasterQty: stock.currentStock!,
-          );
-        }
-      } else if (receiptType == 'NR' || receiptType == 'TR') {
-        final sar = await ProxyService.strategy.getSar(
-          branchId: ProxyService.box.getBranchId()!,
-        );
-
-        sar!.sarNo = sar.sarNo + 1;
-        await repository.upsert<Sar>(sar);
-
-        await saveStockItems(
-          updateMaster: true,
-          items: items,
-          tinNumber: ebm.tinNumber.toString(),
-          bhFId: ebm.bhfId,
-          customerName: transaction.customerName,
-          custTin: transaction.customerTin,
-          invoiceNumber: transaction.invoiceNumber!,
-          regTyCd: "A",
-          sarNo: sar.sarNo.toString(),
-          sarTyCd: "06",
-          custBhfId: transaction.customerBhfId,
-          totalSupplyPrice: transaction.subTotal!,
-          totalvat: transaction.taxAmount!.toDouble(),
-          totalAmount: transaction.subTotal!,
-          remark: transaction.remark ?? "",
-          ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
-          URI: ebm.taxServerUrl,
-        );
-      }
+          ebm: ebm,
+          highestInvcNo: highestInvcNo,
+          sarTyCd: sarTyCd,
+          transaction: transaction,
+          repository: repository,
+        ),
+      );
       return data;
     } catch (e, s) {
       _talker?.error(e);
@@ -1106,6 +1151,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     Map<String, dynamic> sortedItemJson = Map.from(itemJson);
     final itemSeqValue = sortedItemJson.remove('itemSeq');
     sortedItemJson.addAll({'itemSeq': itemSeqValue});
+
+    final qUnit =
+        sortedItemJson['qtyUnitCd'] ?? item.qtyUnitCd ?? item.pkgUnitCd ?? 'U';
+    sortedItemJson['qtyUnitCd'] = qUnit is String && qUnit.isNotEmpty
+        ? qUnit
+        : 'U';
+
     return sortedItemJson;
   }
 

@@ -457,8 +457,7 @@ Stream<double> totalIncomeStream(
 }
 
 // ---------------------------------------------------------------------------
-// pendingTransactionStream — unchanged; uses the default strategy because
-// pending/managing transactions must remain on SQLite.
+// pendingTransactionStream — Capella/Ditto pending cart (single writer path).
 // ---------------------------------------------------------------------------
 @riverpod
 Stream<ITransaction> pendingTransactionStream(
@@ -480,10 +479,10 @@ Stream<ITransaction> pendingTransactionStream(
 
   try {
     talker.info(
-      'Starting manageTransactionStream for branch $branchId '
+      'Starting manageTransactionStream (Capella) for branch $branchId '
       '(isExpense: $isExpense)',
     );
-    yield* ProxyService.strategy.manageTransactionStream(
+    yield* ProxyService.getStrategy(Strategy.capella).manageTransactionStream(
       transactionType: isExpense
           ? TransactionType.purchase
           : TransactionType.sale,

@@ -446,11 +446,11 @@ abstract class DatabaseSyncInterface extends AiStrategy
     // required String payStackUserId,
     required String paymentMethod,
     String? customerCode,
-    models.Plan? plan,
+    Plan? plan,
     int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   });
-  Future<models.Plan?> getPaymentPlan({
+  Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
     bool? preferFresh,

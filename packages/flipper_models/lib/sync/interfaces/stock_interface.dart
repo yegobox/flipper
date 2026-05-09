@@ -4,6 +4,10 @@ import 'package:flipper_services/constants.dart';
 
 abstract class StockInterface {
   Future<Stock?> getStockById({required String id});
+
+  /// Loads many stocks in as few round-trips as possible (Capella: single Ditto query).
+  Future<Map<String, Stock>> batchGetStocksByIds(List<String> ids);
+
   Future<void> updateStock({
     required String stockId,
     double? qty,
@@ -15,6 +19,13 @@ abstract class StockInterface {
     bool appending = false,
     DateTime? lastTouched,
   });
+
+  /// Replaces [currentStock] and [rsdQty] for many stocks (non-appending), in fewer
+  /// round-trips than repeated [updateStock] (Capella: parallel Ditto UPDATEs).
+  Future<void> batchUpdateStocks(
+    Map<String, ({double currentStock, double rsdQty})> byStockId,
+  );
+
   Future<List<InventoryRequest>> requests({required String requestId});
   Future<Stock> saveStock({
     Variant? variant,

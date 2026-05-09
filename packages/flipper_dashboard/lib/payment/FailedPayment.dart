@@ -6,8 +6,9 @@ import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as models;
+import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -50,7 +51,7 @@ class _FailedPaymentState extends State<FailedPayment>
 
   bool _isLoading = true;
   String? _errorMessage;
-  models.Plan? _plan;
+  Plan? _plan;
   bool _usePhoneNumber = false;
   bool _mounted = true;
   bool _waitingForPaymentCompletion = false;
@@ -135,13 +136,13 @@ class _FailedPaymentState extends State<FailedPayment>
       // Register for realtime updates
       final ditto = dittoService.dittoInstance;
       if (ditto != null) {
-        ditto.sync.registerSubscription(
+        final preparedSkip = prepareDqlSyncSubscription(
           'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
-          arguments: {'businessId': businessId},
+          {'businessId': businessId},
         );
-        ditto.store.registerObserver(
-          'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
-          arguments: {'businessId': businessId},
+        ditto.sync.registerSubscription(
+          preparedSkip.dql,
+          arguments: preparedSkip.arguments,
         );
       }
 
@@ -198,7 +199,7 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   /// Initialize plan switch state from current plan
-  void _initSwitchPlanFromPlan(models.Plan? plan) {
+  void _initSwitchPlanFromPlan(Plan? plan) {
     if (plan == null) return;
     final name = plan.selectedPlan ?? 'Mobile';
     final validPlans = ['Mobile', 'Mobile + Desktop', 'Entreprise'];
@@ -211,7 +212,7 @@ class _FailedPaymentState extends State<FailedPayment>
     _planWasActive = _isPlanStillActive(plan);
   }
 
-  bool _isPlanStillActive(models.Plan plan) {
+  bool _isPlanStillActive(Plan plan) {
     final next = plan.nextBillingDate;
     if (next == null) return false;
     try {
@@ -223,14 +224,14 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   /// Charge base before discounts: server accumulated due, or catalogue when switching plan.
-  double _baseChargeBeforeDiscount(models.Plan plan) {
+  double _baseChargeBeforeDiscount(Plan plan) {
     if (_switchUiDiffersFromPlan(plan)) {
       return _calculateSwitchPlanPrice();
     }
     return _chargeBaseRwf ?? plan.totalPrice?.toDouble() ?? 0.0;
   }
 
-  double _totalDisplayAmount(models.Plan plan) {
+  double _totalDisplayAmount(Plan plan) {
     if (_discountAmount > 0) {
       final sub = _originalPrice > 0
           ? _originalPrice
@@ -284,7 +285,7 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   /// True when the switch-plan UI does not match the saved plan (user changed tier, billing cycle, or add-ons).
-  bool _switchUiDiffersFromPlan(models.Plan p) {
+  bool _switchUiDiffersFromPlan(Plan p) {
     if (_switchPlanSelected != (p.selectedPlan ?? '')) return true;
     if (_switchPlanIsYearly != (p.isYearlyPlan ?? false)) return true;
     if (_switchPlanExtraSupport ||
@@ -298,13 +299,13 @@ class _FailedPaymentState extends State<FailedPayment>
 
   /// Build plan for retry: when the user did not change anything in the switch UI, keep the saved
   /// plan's [totalPrice], [rule], and tiers — do not replace with catalogue [_calculateSwitchPlanPrice].
-  models.Plan _buildEffectivePlanForRetry() {
+  Plan _buildEffectivePlanForRetry() {
     final base = _plan!;
     if (!_switchUiDiffersFromPlan(base)) {
       return base;
     }
     final price = _calculateSwitchPlanPrice();
-    return models.Plan(
+    return Plan(
       id: base.id,
       businessId: base.businessId,
       branchId: base.branchId,
@@ -374,12 +375,17 @@ class _FailedPaymentState extends State<FailedPayment>
   // Keep original setup logic exactly as is
   Future<void> _setupPlanSubscription() async {
     try {
-      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
+      // Avoid an infinite spinner when Brick, Ditto, or Supabase never completes (e.g. flaky network).
+      final businessId = (await ProxyService.strategy
+          .activeBusiness()
+          .timeout(const Duration(seconds: 15)))?.id;
       if (businessId == null) throw Exception('No active business');
 
-      final fetchedPlan = await ProxyService.strategy.getPaymentPlan(
-        businessId: businessId,
-      );
+      final fetchedPlan = await ProxyService.strategy
+          .getPaymentPlan(
+            businessId: businessId,
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (!_mounted) return;
 
@@ -443,7 +449,7 @@ class _FailedPaymentState extends State<FailedPayment>
             .eq('business_id', businessId)
             .listen((rows) {
               if (rows.isEmpty) return;
-              final updatedPlan = models.Plan.fromSupabaseJson(
+              final updatedPlan = Plan.fromSupabaseJson(
                 Map<String, dynamic>.from(rows.first),
               );
               if (!_mounted) return;
@@ -469,23 +475,26 @@ class _FailedPaymentState extends State<FailedPayment>
         // Subscription fails when offline; initial plan came from Ditto / getPaymentPlan
       }
     } catch (e) {
-      if (!_mounted || !context.mounted) return;
+      if (!_mounted) return;
+
+      final message = e is TimeoutException
+          ? 'Loading took too long. Check your connection, refresh the page, or try again.'
+          : 'Error loading plan details: $e';
 
       setState(() {
-        _errorMessage = 'Error loading plan details: $e';
+        _errorMessage = message;
         _isLoading = false;
       });
 
       // Defer SnackBar to ensure context is valid
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          showCustomSnackBarUtil(
-            context,
-            'Payment Failed try again',
-            backgroundColor: Colors.red,
-            showCloseButton: true,
-          );
-        }
+        if (!mounted) return;
+        showCustomSnackBarUtil(
+          context,
+          'Payment Failed try again',
+          backgroundColor: Colors.red,
+          showCloseButton: true,
+        );
       });
     }
   }
@@ -1762,7 +1771,7 @@ class _FailedPaymentState extends State<FailedPayment>
     );
   }
 
-  Widget _buildPlanDetails(models.Plan plan) {
+  Widget _buildPlanDetails(Plan plan) {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
     return Container(
@@ -2001,7 +2010,7 @@ class _FailedPaymentState extends State<FailedPayment>
   // Retry payment with mobile money. Returns payment reference when successful.
   Future<String?> _retryPayment(
     BuildContext context, {
-    required models.Plan plan,
+    required Plan plan,
     required bool isLoading,
     String? phoneNumber,
   }) async {

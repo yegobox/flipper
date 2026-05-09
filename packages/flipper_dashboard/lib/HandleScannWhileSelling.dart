@@ -43,78 +43,48 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       // Trigger search in outerVariantsProvider
       ref.read(searchStringProvider.notifier).emitString(value: value);
 
-      // Wait for search results
+      // Allow search to propagate before awaiting results.
       await Future.delayed(const Duration(milliseconds: 200));
 
-      // Get results from outerVariantsProvider
       final branchId = ProxyService.box.getBranchId()!;
-      final variantsAsync = ref.read(outerVariantsProvider(branchId));
-
-      variantsAsync.when(
-        data: (variants) async {
-          if (variants.isNotEmpty) {
-            if (variants.length == 1) {
-              // If only one variant is found, proceed directly
-              await _processTransaction(variants.first, model);
-            } else {
-              // If multiple variants are found, prompt the user to select one
-              Variant? selectedVariant = await _showVariantSelectionDialog(
-                variants,
-              );
-              if (selectedVariant != null) {
-                await _processTransaction(selectedVariant, model);
-              }
-            }
-          } else {
-            // Show a message when no variants are found
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('No variants found for "$value"'),
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
-          }
-        },
-        loading: () {
-          // Show loading indicator
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    SizedBox(width: 10),
-                    Text('Searching...'),
-                  ],
-                ),
-                duration: Duration(milliseconds: 500),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        },
-        error: (error, _) {
-          // Handle errors
+      try {
+        final variants =
+            await ref.read(outerVariantsProvider(branchId).future);
+        if (variants.isEmpty) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  'Error searching for variants: ${error.toString()}',
-                ),
+                content: Text('No variants found for "$value"'),
                 duration: const Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
               ),
             );
           }
-        },
-      );
+          return;
+        }
+        if (variants.length == 1) {
+          await _processTransaction(variants.first, model);
+        } else {
+          final Variant? selectedVariant = await _showVariantSelectionDialog(
+            variants,
+          );
+          if (selectedVariant != null) {
+            await _processTransaction(selectedVariant, model);
+          }
+        }
+      } catch (e, _) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error searching for variants: ${e.toString()}',
+              ),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -129,25 +99,19 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     // Wait for search results
     await Future.delayed(const Duration(milliseconds: 100));
 
-    // Get results from outerVariantsProvider
     final branchId = ProxyService.box.getBranchId()!;
-    final variantsAsync = ref.read(outerVariantsProvider(branchId));
-
-    variantsAsync.when(
-      data: (variants) async {
-        if (variants.length == 1) {
-          // Exactly one match - auto-add to cart
-          controller.clear();
-          hasText = false;
-          // Clear search to avoid showing search results
-          ref.read(searchStringProvider.notifier).emitString(value: "");
-          await _processTransaction(variants.first, model);
-        }
-        // If multiple or no matches, search results are already showing via outerVariantsProvider
-      },
-      loading: () {}, // Search is in progress
-      error: (e, _) {}, // Error handled by UI
-    );
+    try {
+      final variants = await ref.read(outerVariantsProvider(branchId).future);
+      if (variants.length == 1) {
+        // Exactly one match - auto-add to cart
+        controller.clear();
+        hasText = false;
+        ref.read(searchStringProvider.notifier).emitString(value: "");
+        await _processTransaction(variants.first, model);
+      }
+    } catch (_) {
+      // Matches prior [when]/error branch: UI surfaces via outerVariantsProvider.
+    }
   }
 
   Future<void> refreshTransactionItems({required String transactionId}) async {

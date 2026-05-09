@@ -58,8 +58,10 @@ class AmplifyConfigHelper {
         safePrint('❌ [AmplifyConfigHelper] Error configuring Amplify: $e');
         safePrint('❌ [AmplifyConfigHelper] Stack trace: $s');
         // On iOS simulators, Keychain issues can cause Amplify to fail.
-        if (AppSecrets.isTestEnvironment()) {
-          safePrint('⚠️ Skipping Amplify rethrow in test/debug environment');
+        if (!block || AppSecrets.isTestEnvironment()) {
+          safePrint(
+            '⚠️ Continuing without blocking startup after Amplify configuration failure',
+          );
         } else {
           rethrow;
         }

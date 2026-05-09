@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/sync/interfaces/DelegationInterface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -111,7 +112,12 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       () async {
         try {
           // Subscribe to ensure we have the latest data from Ditto mesh
-          await ditto.sync.registerSubscription(query, arguments: arguments);
+          final preparedDel =
+              prepareDqlSyncSubscription(query, arguments);
+          await ditto.sync.registerSubscription(
+            preparedDel.dql,
+            arguments: preparedDel.arguments,
+          );
 
           // Use registerObserver with initial data fetch
           final completer = Completer<List<TransactionDelegation>>();
@@ -185,7 +191,12 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       debugPrint('   Arguments: $arguments');
 
       // Subscribe to ensure we have the latest data from Ditto mesh
-      await ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedDevices =
+          prepareDqlSyncSubscription(query, arguments);
+      await ditto.sync.registerSubscription(
+        preparedDevices.dql,
+        arguments: preparedDevices.arguments,
+      );
 
       // Use registerObserver to wait for data
       final completer = Completer<List<dynamic>>();

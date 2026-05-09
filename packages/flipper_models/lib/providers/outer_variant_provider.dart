@@ -99,9 +99,7 @@ class OuterVariants extends _$OuterVariants {
     // First page + no search: Ditto may still be pulling from the mesh after
     // app start. A single empty success would cache forever unless we retry.
     final PagedVariants paged;
-    if (fetchPageIndex == 0 &&
-        _currentSearch.isEmpty &&
-        branchId.isNotEmpty) {
+    if (fetchPageIndex == 0 && _currentSearch.isEmpty && branchId.isNotEmpty) {
       paged = await _fetchVariantsWithColdStartGrace(branchId);
     } else {
       paged = await _fetchVariants(branchId, fetchPageIndex, _currentSearch);
@@ -121,7 +119,7 @@ class OuterVariants extends _$OuterVariants {
   Future<PagedVariants> _fetchVariantsWithColdStartGrace(
     String branchId,
   ) async {
-    var paged = await _fetchVariants(branchId, 0, '');
+    var paged = await _fetchVariants(branchId, 0, '', fetchRemote: true);
     if (paged.variants.isNotEmpty) return paged;
 
     const delays = <Duration>[
@@ -135,7 +133,7 @@ class OuterVariants extends _$OuterVariants {
         '(Ditto / cloud sync)',
       );
       await Future.delayed(d);
-      paged = await _fetchVariants(branchId, 0, '');
+      paged = await _fetchVariants(branchId, 0, '', fetchRemote: true);
       if (paged.variants.isNotEmpty) break;
     }
     return paged;
@@ -144,22 +142,15 @@ class OuterVariants extends _$OuterVariants {
   Future<PagedVariants> _fetchVariants(
     String branchId,
     int page,
-    String searchString,
-  ) async {
+    String searchString, {
+    bool fetchRemote = false,
+  }) async {
     talker.info(
       'OuterVariants: _fetchVariants called (page=$page, itemsPerPage=${_itemsPerPage ?? 'null'}, searchString="$searchString")',
     );
 
     final taxTyCds = _isVatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
     final currentScanMode = ref.read(scanningModeProvider);
-
-    // Always fetch remote for searches to get server-side filtering
-    bool fetchRemote = searchString.isNotEmpty || page == 0;
-
-    // For subsequent pages of the same search, don't fetch remote again
-    if (page > 0 && searchString == _currentSearch) {
-      fetchRemote = false;
-    }
 
     final paged = await ProxyService.getStrategy(Strategy.capella).variants(
       name: searchString.toLowerCase(),
@@ -186,11 +177,7 @@ class OuterVariants extends _$OuterVariants {
     }
 
     final nextPage = _lastCachedPage + 1;
-    final paged = await _fetchVariants(
-      branchId,
-      nextPage,
-      _currentSearch,
-    );
+    final paged = await _fetchVariants(branchId, nextPage, _currentSearch);
     _pageCache[nextPage] = List<Variant>.from(paged.variants);
     _lastCachedPage = nextPage;
 
@@ -216,7 +203,7 @@ class OuterVariants extends _$OuterVariants {
 
   /// Method to force a full refresh of variants (e.g., after adding new products).
   Future<void> refresh() async {
-    final paged = await _fetchVariants(branchId, 0, '');
+    final paged = await _fetchVariants(branchId, 0, '', fetchRemote: true);
     _currentSearch = '';
     _totalCount = paged.totalCount;
     _pageCache.clear();

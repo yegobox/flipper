@@ -7,7 +7,8 @@ class ConnectedPeersWidget extends ConsumerStatefulWidget {
   const ConnectedPeersWidget({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<ConnectedPeersWidget> createState() => _ConnectedPeersWidgetState();
+  ConsumerState<ConnectedPeersWidget> createState() =>
+      _ConnectedPeersWidgetState();
 }
 
 class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
@@ -31,7 +32,11 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
 
   void _showPeersDialog(BuildContext context, PresenceGraph presenceGraph) {
     final peers = presenceGraph.remotePeers;
+    final peerList = peers.toList();
     final localPeer = presenceGraph.localPeer;
+
+    String shortPeerKey(String key) =>
+        key.length > 20 ? '${key.substring(0, 20)}...' : key;
 
     showDialog(
       context: context,
@@ -65,20 +70,25 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                 ),
                 title: Text(localPeer.deviceName),
                 subtitle: Text(
-                  localPeer.peerKeyString.length > 20
-                      ? '${localPeer.peerKeyString.substring(0, 20)}...'
-                      : localPeer.peerKeyString,
+                  shortPeerKey(localPeer.deviceName),
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                 ),
                 trailing: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Text(
                     'Online',
-                    style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -88,7 +98,10 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
               ),
               Text(
                 'Connected Peers (${peers.length})',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 8),
               if (peers.isEmpty)
@@ -97,16 +110,26 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                   child: Center(
                     child: Column(
                       children: [
-                        Icon(Icons.sensors_off, size: 48, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.sensors_off,
+                          size: 48,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'No other devices found on the network',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 13,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Ensure other devices have Flipper open',
-                          style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ),
@@ -116,9 +139,9 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                 Flexible(
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: peers.length,
+                    itemCount: peerList.length,
                     itemBuilder: (context, index) {
-                      final peer = peers[index];
+                      final peer = peerList[index];
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Container(
@@ -127,16 +150,25 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                             color: Colors.green.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.devices_other, size: 20, color: Colors.green),
+                          child: const Icon(
+                            Icons.devices_other,
+                            size: 20,
+                            color: Colors.green,
+                          ),
                         ),
                         title: Text(peer.deviceName),
                         subtitle: Text(
-                          peer.peerKeyString.length > 20
-                              ? '${peer.peerKeyString.substring(0, 20)}...'
-                              : peer.peerKeyString,
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                          shortPeerKey(peer.peerKeyString),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
+                          ),
                         ),
-                        trailing: const Icon(Icons.sync, color: Colors.green, size: 16),
+                        trailing: const Icon(
+                          Icons.sync,
+                          color: Colors.green,
+                          size: 16,
+                        ),
                       );
                     },
                   ),
@@ -199,7 +231,10 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                     children: [
                       if (isConnected)
                         ScaleTransition(
-                          scale: Tween(begin: 1.0, end: 1.6).animate(_pulseController),
+                          scale: Tween(
+                            begin: 1.0,
+                            end: 1.6,
+                          ).animate(_pulseController),
                           child: FadeTransition(
                             opacity: ReverseAnimation(_pulseController),
                             child: Container(
@@ -257,5 +292,3 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
     );
   }
 }
-
-

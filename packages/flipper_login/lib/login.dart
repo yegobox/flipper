@@ -79,7 +79,7 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<LoginViewModel>.reactive(
+    return ViewModelBuilder<LoginViewModel>.nonReactive(
       onViewModelReady: (model) => handleAuthStateChanges(model),
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
@@ -87,7 +87,7 @@ class _LoginState extends State<Login> {
 
         if (isDesktop && !kIsWeb) {
           return Scaffold(
-            body: DesktopLoginView(),
+            body: const DesktopLoginView(),
             backgroundColor: Colors.white,
           );
         }

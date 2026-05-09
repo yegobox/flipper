@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/sync/interfaces/counter_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
@@ -94,13 +95,13 @@ mixin CapellaCounterMixin implements CounterInterface {
       final controller = StreamController<List<Counter>>.broadcast();
       dynamic observer;
 
-      ditto.sync.registerSubscription(
+      final preparedCnt = prepareDqlSyncSubscription(
         "SELECT * FROM counters WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+        {'branchId': branchId},
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM counters WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+      ditto.sync.registerSubscription(
+        preparedCnt.dql,
+        arguments: preparedCnt.arguments,
       );
 
       observer = ditto.store.registerObserver(

@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/utils.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'dart:async'; // Import for Timer
 
 /// Modern Transaction Item Table Mixin
@@ -23,6 +24,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   final Map<String, FocusNode> _quantityFocusNodes = {};
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, FocusNode> _priceFocusNodes = {};
+  final Map<String, double> _optimisticQtyByItemId = {};
+  final Set<String> _optimisticallyDeletedItemIds = {};
   final SettingsService _settingsService = locator<SettingsService>();
 
   // === MODERN UX ENHANCEMENTS ===
@@ -45,13 +48,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _initController(TransactionItem item) {
     final id = item.id;
-    final qty = item.qty;
     final price = item.price;
+    final displayQty = _displayQtyFor(item);
 
     // Quantity Controller
     _quantityControllers.putIfAbsent(
       id,
-      () => TextEditingController(text: qty.toString()),
+      () => TextEditingController(text: displayQty.toString()),
     );
     _quantityFocusNodes.putIfAbsent(id, () => FocusNode());
 
@@ -65,8 +68,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     // Update controller text only if not focused to avoid input issues
     // and if the backend value is different (e.g., after a refresh)
     if (!_quantityFocusNodes[id]!.hasFocus &&
-        _quantityControllers[id]!.text != qty.toString()) {
-      _quantityControllers[id]!.text = qty.toString();
+        _quantityControllers[id]!.text != displayQty.toString()) {
+      _quantityControllers[id]!.text = displayQty.toString();
     }
     if (!_priceFocusNodes[id]!.hasFocus &&
         _priceControllers[id]!.text != price.toStringAsFixed(2)) {
@@ -96,6 +99,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       _priceFocusNodes.remove(id);
 
       // Clean up modern UX state and debounce timers
+      _optimisticQtyByItemId.remove(id);
+      _optimisticallyDeletedItemIds.remove(id);
       _isItemSaving.remove(id);
       _hasItemChanged.remove(id);
       _itemErrors.remove(id);
@@ -137,15 +142,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   num get grandTotal {
     num total = 0;
 
-    for (final item in internalTransactionItems) {
+    for (final item in _visibleTransactionItems) {
       final price = (item.compositePrice ?? 0) != 0
           ? item.compositePrice!
           : item.price;
 
+      final displayQty = _displayQtyFor(item);
       if (_settingsService.isCurrencyDecimal) {
-        total += (price * item.qty).toDouble().roundToTwoDecimalPlaces();
+        total += (price * displayQty).toDouble().roundToTwoDecimalPlaces();
       } else {
-        total += (price * item.qty).toDouble().roundToDouble();
+        total += (price * displayQty).toDouble().roundToDouble();
       }
     }
 
@@ -178,14 +184,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       child: Column(
         mainAxisSize: pinGrandTotal ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          if (internalTransactionItems.isNotEmpty)
+          if (_visibleTransactionItems.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${internalTransactionItems.length} item${internalTransactionItems.length > 1 ? 's' : ''}',
+                    '${_visibleTransactionItems.length} item${_visibleTransactionItems.length > 1 ? 's' : ''}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -213,7 +219,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 ],
               ),
             ),
-          if (internalTransactionItems.isEmpty)
+          if (_visibleTransactionItems.isEmpty)
             pinGrandTotal
                 ? Expanded(child: _buildPinnedEmptyStateScrollSlot())
                 : _buildEmptyState()
@@ -236,9 +242,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           physics: const AlwaysScrollableScrollPhysics(),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: _buildEmptyState(compact: true),
-            ),
+            child: Center(child: _buildEmptyState(compact: true)),
           ),
         );
       },
@@ -283,7 +287,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           Text(
             'Add your first item to get started',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: compact ? 13 : 14, color: Colors.grey[500]),
+            style: TextStyle(
+              fontSize: compact ? 13 : 14,
+              color: Colors.grey[500],
+            ),
           ),
         ],
       ),
@@ -291,23 +298,28 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildItemsList(bool isOrdering, {required bool scrollable}) {
+    final visibleItems = _visibleTransactionItems;
     return ListView.separated(
       shrinkWrap: !scrollable,
       physics: scrollable
           ? const AlwaysScrollableScrollPhysics()
           : const NeverScrollableScrollPhysics(),
-      itemCount: internalTransactionItems.length,
+      itemCount: visibleItems.length,
       separatorBuilder: (context, index) => Container(
         height: 1,
         color: Colors.grey[100],
         margin: const EdgeInsets.symmetric(horizontal: 20),
       ),
       itemBuilder: (context, index) {
-        final item = internalTransactionItems[index];
+        final item = visibleItems[index];
         return _buildModernItemRow(item, isOrdering);
       },
     );
   }
+
+  List<TransactionItem> get _visibleTransactionItems => internalTransactionItems
+      .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
+      .toList();
 
   Widget _buildModernItemRow(TransactionItem item, bool isOrdering) {
     final isExpanded = _expandedItemId == item.id;
@@ -325,10 +337,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             ? Colors.blue[50]
             : Colors.transparent,
         border: isExpanded
-            ? Border.all(
-                color: PosLayoutBreakpoints.posAccentBlue,
-                width: 2,
-              )
+            ? Border.all(color: PosLayoutBreakpoints.posAccentBlue, width: 2)
             : null,
       ),
       child: Column(
@@ -452,6 +461,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // === DUOLINGO-INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
+    final pendingOpt =
+        ref
+            .watch(optimisticCartProvider)
+            .pendingQtyByVariantId[item.variantId ?? ''] ??
+        0;
+    final qtyLocked = pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
+    final displayQty = _displayQtyFor(item);
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.center,
@@ -462,14 +478,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           _buildCircularQtyButton(
             icon: Icons.remove,
             onTap: () => _decrementQuantity(item, isOrdering),
-            enabled: item.qty > 0,
+            enabled: displayQty > 0 && !qtyLocked,
             id: '${item.id}-remove',
           ),
           const SizedBox(width: 10),
           Text(
-            item.qty.toStringAsFixed(
-              item.qty.truncateToDouble() == item.qty ? 0 : 2,
-            ),
+            _formatQty(displayQty),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -481,7 +495,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           _buildCircularQtyButton(
             icon: Icons.add,
             onTap: () => _incrementQuantity(item, isOrdering),
-            enabled: true,
+            enabled: !qtyLocked,
             id: '${item.id}-add',
           ),
         ],
@@ -509,16 +523,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         child: Ink(
           width: 34,
           height: 34,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: border,
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: border),
           child: Icon(
             icon,
             size: 18,
-            color: enabled
-                ? const Color(0xFF374151)
-                : Colors.grey[400],
+            color: enabled ? const Color(0xFF374151) : Colors.grey[400],
           ),
         ),
       ),
@@ -541,14 +550,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               ? null
               : () {
                   setState(() {
-                    _expandedItemId =
-                        _expandedItemId == item.id ? null : item.id;
+                    _expandedItemId = _expandedItemId == item.id
+                        ? null
+                        : item.id;
                   });
                 },
           icon: Icon(
-            _expandedItemId == item.id
-                ? Icons.expand_less
-                : Icons.expand_more,
+            _expandedItemId == item.id ? Icons.expand_less : Icons.expand_more,
             color: isSaving
                 ? Colors.grey[400]
                 : PosLayoutBreakpoints.posAccentBlue,
@@ -775,12 +783,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           bottomLeft: Radius.circular(8),
           bottomRight: Radius.circular(8),
         ),
-        border: Border(
-          top: BorderSide(
-            color: Color(0xFFE5E7EB),
-            width: 1,
-          ),
-        ),
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -826,7 +829,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ],
         ),
         content: Text(
-          'Are you sure you want to remove all ${internalTransactionItems.length} items from this transaction?',
+          'Are you sure you want to remove all ${_visibleTransactionItems.length} items from this transaction?',
         ),
         actions: [
           TextButton(
@@ -850,24 +853,33 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _deleteAllItems(bool isOrdering) async {
-    final itemsToDelete = List<TransactionItem>.from(internalTransactionItems);
-    
-    for (final item in itemsToDelete) {
-      setState(() {
-        _isItemSaving[item.id] = true;
-      });
+    final itemsToDelete = List<TransactionItem>.from(_visibleTransactionItems);
+
+    final txnId = itemsToDelete.isNotEmpty
+        ? itemsToDelete.first.transactionId
+        : null;
+    if (txnId != null && txnId.isNotEmpty) {
+      ref.read(optimisticCartProvider.notifier).clearForTransaction(txnId);
     }
+
+    setState(() {
+      for (final item in itemsToDelete) {
+        _isItemSaving[item.id] = true;
+        _optimisticallyDeletedItemIds.add(item.id);
+        _optimisticQtyByItemId.remove(item.id);
+      }
+    });
 
     try {
       for (final item in itemsToDelete) {
+        if (OptimisticCartIds.isOptimistic(item.id)) continue;
         if (!(item.partOfComposite ?? false)) {
-          await ProxyService.getStrategy(Strategy.capella).flipperDelete(
-            id: item.id,
-            endPoint: 'transactionItem',
-          );
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).flipperDelete(id: item.id, endPoint: 'transactionItem');
         }
       }
-      
+
       if (itemsToDelete.isNotEmpty) {
         _refreshTransactionItems(
           isOrdering,
@@ -876,6 +888,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       }
     } catch (e, s) {
       talker.error('Error deleting items: $e', s);
+      setState(() {
+        for (final item in itemsToDelete) {
+          _optimisticallyDeletedItemIds.remove(item.id);
+        }
+      });
     } finally {
       for (final item in itemsToDelete) {
         setState(() {
@@ -936,13 +953,51 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   String _getItemTotal(TransactionItem item) {
+    final displayQty = _displayQtyFor(item);
     final double price;
     if (_settingsService.isCurrencyDecimal) {
-      price = (item.price * item.qty).toDouble().roundToTwoDecimalPlaces();
+      price = (item.price * displayQty).toDouble().roundToTwoDecimalPlaces();
     } else {
-      price = (item.price * item.qty).toDouble().roundToDouble();
+      price = (item.price * displayQty).toDouble().roundToDouble();
     }
     return formatNumber(price);
+  }
+
+  double _displayQtyFor(TransactionItem item) {
+    final optimisticQty = _optimisticQtyByItemId[item.id];
+    if (optimisticQty == null) return item.qty.toDouble();
+
+    if ((item.qty.toDouble() - optimisticQty).abs() < 0.0001) {
+      _optimisticQtyByItemId.remove(item.id);
+      _hasItemChanged[item.id] = false;
+      return item.qty.toDouble();
+    }
+
+    return optimisticQty;
+  }
+
+  String _formatQty(double qty) {
+    return qty.toStringAsFixed(qty.truncateToDouble() == qty ? 0 : 2);
+  }
+
+  void _setOptimisticQty(TransactionItem item, double qty) {
+    _optimisticQtyByItemId[item.id] = qty;
+    _quantityControllers[item.id]?.text = qty.toString();
+    _hasItemChanged[item.id] = true;
+  }
+
+  void _rollbackOptimisticQty(TransactionItem item, double delta) {
+    final current = _optimisticQtyByItemId[item.id];
+    if (current == null) return;
+    final rolledBack = current - delta;
+    if ((rolledBack - item.qty.toDouble()).abs() < 0.0001) {
+      _optimisticQtyByItemId.remove(item.id);
+      _quantityControllers[item.id]?.text = item.qty.toString();
+      _hasItemChanged[item.id] = false;
+    } else {
+      _optimisticQtyByItemId[item.id] = rolledBack;
+      _quantityControllers[item.id]?.text = rolledBack.toString();
+    }
   }
 
   Future<void> _updateTransactionItemInDb(
@@ -951,8 +1006,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     double? price,
     bool isIncrement = false,
     bool isOrdering = false,
+    double? optimisticDelta,
   }) async {
     if (item.partOfComposite ?? false) return;
+    if (OptimisticCartIds.isOptimistic(item.id)) return;
+    final pendingOpt =
+        ref.read(optimisticCartProvider).pendingQtyByVariantId[item.variantId ??
+            ''] ??
+        0;
+    if (pendingOpt > 0) return;
 
     setState(() {
       _isItemSaving[item.id] = true;
@@ -971,13 +1033,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       // After successful update, refresh the provider to update the UI
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
       setState(() {
-        _hasItemChanged[item.id] = false;
+        _hasItemChanged[item.id] = _optimisticQtyByItemId.containsKey(item.id);
       });
     } catch (e) {
       setState(() {
         _itemErrors[item.id] = 'Failed to update item';
+        if (optimisticDelta != null) {
+          _rollbackOptimisticQty(item, optimisticDelta);
+        }
         // Revert controller text to original if update fails
-        _quantityControllers[item.id]?.text = item.qty.toString();
+        _quantityControllers[item.id]?.text =
+            _optimisticQtyByItemId[item.id]?.toString() ?? item.qty.toString();
         _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
       });
       talker.error('Failed to update transaction item: $e');
@@ -990,16 +1056,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   Future<void> _incrementQuantity(TransactionItem item, bool isOrdering) async {
     if (item.partOfComposite ?? false) return;
-    // Update controller immediately for visual feedback
-    // We don't need to read current quantity from controller here, as we are telling backend to increment
-    // For visual feedback, you could temporarily update the controller here or just wait for refresh.
-    // For accuracy, waiting for refresh is better. If we want immediate visual feedback *before* DB,
-    // we would need to manually increment item.qty and then revert on error.
-    // For now, let's keep it simple and just trigger the DB update.
+    final newQty = _displayQtyFor(item) + 1;
+    setState(() => _setOptimisticQty(item, newQty));
     await _updateTransactionItemInDb(
       item,
       isIncrement: true,
       isOrdering: isOrdering,
+      optimisticDelta: 1,
     );
   }
 
@@ -1009,22 +1072,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       // Ensure quantity doesn't go below 0
       // We can't use incrementQty: true for decrement.
       // So, for decrement, we must calculate the new quantity locally.
-      final currentQty =
-          double.tryParse(
-            _quantityControllers[item.id]?.text ?? item.qty.toString(),
-          ) ??
-          item.qty;
+      final currentQty = _displayQtyFor(item);
       final newQty = currentQty - 1;
-      // Update controller immediately for visual feedback
-      _quantityControllers[item.id]?.text = newQty.toString();
-      setState(() {
-        _hasItemChanged[item.id] = true;
-      });
+      setState(() => _setOptimisticQty(item, newQty));
       await _updateTransactionItemInDb(
         item,
         qty: newQty.toDouble(),
         price: item.price.toDouble(),
         isOrdering: isOrdering,
+        optimisticDelta: newQty - currentQty,
       );
     }
   }
@@ -1126,13 +1182,24 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   Future<void> _deleteItem(TransactionItem item, bool isOrdering) async {
     setState(() {
       _isItemSaving[item.id] = true;
+      _optimisticallyDeletedItemIds.add(item.id);
+      _optimisticQtyByItemId.remove(item.id);
     });
     try {
+      if (OptimisticCartIds.isOptimistic(item.id)) {
+        final tid = item.transactionId;
+        final vid = item.variantId;
+        if (tid != null && vid != null) {
+          ref
+              .read(optimisticCartProvider.notifier)
+              .clearPendingForVariant(transactionId: tid, variantId: vid);
+        }
+        return;
+      }
       if (!(item.partOfComposite ?? false)) {
-        await ProxyService.getStrategy(Strategy.capella).flipperDelete(
-          id: item.id,
-          endPoint: 'transactionItem',
-        );
+        await ProxyService.getStrategy(
+          Strategy.capella,
+        ).flipperDelete(id: item.id, endPoint: 'transactionItem');
       } else {
         final paged = await ProxyService.strategy.variants(
           taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
@@ -1162,6 +1229,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     } catch (e, s) {
       talker.error('Error deleting item: $e', s);
       setState(() {
+        _optimisticallyDeletedItemIds.remove(item.id);
         _itemErrors[item.id] = 'Failed to delete item';
       });
     } finally {

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 
@@ -242,9 +243,11 @@ class DittoSyncCoordinator {
     }
 
     try {
+      final preparedAdapter =
+          prepareDqlSyncSubscription(query.query, query.arguments);
       final subscription = ditto.sync.registerSubscription(
-        query.query,
-        arguments: query.arguments,
+        preparedAdapter.dql,
+        arguments: preparedAdapter.arguments,
       );
       _subscriptions[type] = subscription;
       if (kDebugMode) {
@@ -404,8 +407,8 @@ class DittoSyncCoordinator {
     }
 
     // Process in small batches with delays to prevent database locking
-    const batchSize = 5;
-    const delayBetweenBatches = Duration(milliseconds: 100);
+    const batchSize = 3;
+    const delayBetweenBatches = Duration(milliseconds: 200);
 
     for (var i = 0; i < upsertTasks.length; i += batchSize) {
       final end = (i + batchSize < upsertTasks.length)

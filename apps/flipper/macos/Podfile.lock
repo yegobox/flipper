@@ -25,10 +25,10 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
-  - ditto_live (4.14.3):
-    - DittoFlutter (= 4.14.3)
+  - ditto_live (4.14.4):
+    - DittoFlutter (= 4.14.4)
     - FlutterMacOS
-  - DittoFlutter (4.14.3)
+  - DittoFlutter (4.14.4)
   - file_picker (0.0.1):
     - FlutterMacOS
   - file_selector_macos (0.0.1):
@@ -240,7 +240,7 @@ PODS:
     - CocoaAsyncSocket (~> 7.6)
     - Flutter
     - FlutterMacOS
-  - PostHog (3.57.3)
+  - PostHog (3.58.1)
   - posthog_flutter (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -254,11 +254,11 @@ PODS:
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
-  - Sentry/HybridSDK (8.58.1)
-  - sentry_flutter (9.19.0):
+  - Sentry/HybridSDK (8.58.2)
+  - sentry_flutter (9.20.0):
     - Flutter
     - FlutterMacOS
-    - Sentry/HybridSDK (= 8.58.1)
+    - Sentry/HybridSDK (= 8.58.2)
   - share_plus (0.0.1):
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
@@ -442,8 +442,8 @@ SPEC CHECKSUMS:
   desktop_drop: 1eeeb9484299585770b6461e4f3d60950e99efa2
   desktop_webview_auth: 9bba53a29c9bc6a4ff621fd0ebfbb18856c4dada
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
-  ditto_live: d8345b7bc3a9576458bb1240bc85a169d15031c5
-  DittoFlutter: 1745a5b3152fb758f1604f5f9a26fb3d64362dba
+  ditto_live: e8eb228af3af0ef676dccdc50b6d71d4addaa09c
+  DittoFlutter: 31cbc02a685eec1bc7e9c9e3589458fe574f3f66
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   Firebase: 14f11e91129d246a8a6166b4c1c2ea61b56806ec
@@ -467,7 +467,7 @@ SPEC CHECKSUMS:
   flutter_contacts: 79bd91c6f0edbe70e001ec3f0ded2ef1a1e9711e
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_localization: 4035848ae2ed142875d5fd3dde328250a5e81f42
-  flutter_soloud: d8352f2d1b07b9b28396b0c5ad269ef8a36900ef
+  flutter_soloud: 21ef2703cfe4b698f87fa1020b4244d183f6e81d
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   google_sign_in_ios: 7411fab6948df90490dc4620ecbcabdc3ca04017
@@ -484,15 +484,15 @@ SPEC CHECKSUMS:
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   pasteboard: 9b69dba6fedbb04866be632205d532fe2f6b1d99
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
-  PostHog: c33925273e18b9c6bf3b33401416b08fa3db578e
+  PostHog: 162c013c6a8e442382f6804076bf3ad072c8778a
   posthog_flutter: 91cc329875300250370eb806ac7286329a75e9cd
   printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   record_macos: 4680f37daeebf52162e715efb7ff682f0a5ce4fd
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
-  Sentry: 958d9619ceccf6abb8c4736003fa336dac1a80a7
-  sentry_flutter: 9bde8d71f013f0e807c424017de923f0ee489e9a
+  Sentry: de29b881e83bd91cf99a927f82f1fd86bfb39db2
+  sentry_flutter: aafdf112550e9550972852e71f44994bd4239254
   share_plus: 1fa619de8392a4398bfaf176d441853922614e89
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   sign_in_with_apple: a9e97e744e8edc36aefc2723111f652102a7a727

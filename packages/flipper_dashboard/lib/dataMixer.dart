@@ -242,6 +242,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             stock: stock,
             model: model,
             variant: variant,
+            product: product,
             productName: variant.productName ?? "Unknown Product",
             variantName: variant.name,
             imageUrl: variantImage, // Prefer variant image
@@ -269,6 +270,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             stock: stock,
             model: model,
             variant: variant,
+            product: product,
             productName: variant.productName ?? "Unknown Product",
             variantName: variant.name,
             imageUrl: variantImage, // Prefer variant image
@@ -298,6 +300,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               stock: stock,
               model: model,
               variant: variant,
+              product: product,
               productName: variant.productName ?? "Unknown Product",
               variantName: variant.name,
               imageUrl: variantImage, // Prefer variant image
@@ -331,6 +334,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               stock: stock,
               model: model,
               variant: variant,
+              product: product,
               productName: variant.productName!,
               variantName: variant.name,
               imageUrl: variantImage ?? asset?.assetName,

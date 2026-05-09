@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -32,6 +34,10 @@ class _PinLoginState extends State<PinLogin>
   bool _hasError = false;
   String _errorMessage = '';
   bool _showOtpField = false;
+
+  /// Drives the desktop side illustration only when "conceal" toggles — avoids
+  /// rebuilding a large SVG on every keystroke (which freezes the PIN field).
+  bool _illustrationConcealSecrets = false;
   AuthMethod _authMethod = AuthMethod.authenticator;
   final MfaProvider _mfa = const MfaProvider();
 
@@ -52,8 +58,13 @@ class _PinLoginState extends State<PinLogin>
     _otpController.addListener(_onSecretFieldTextChanged);
   }
 
-  void _onSecretFieldTextChanged() {
-    if (mounted) setState(() {});
+  void _onSecretFieldTextChanged() => _syncIllustrationConcealState();
+
+  void _syncIllustrationConcealState() {
+    final next = _pinController.text.isNotEmpty ||
+        (_showOtpField && _otpController.text.isNotEmpty);
+    if (!mounted || next == _illustrationConcealSecrets) return;
+    setState(() => _illustrationConcealSecrets = next);
   }
 
   void _initializeAnimations() {
@@ -177,8 +188,17 @@ class _PinLoginState extends State<PinLogin>
               });
               return;
             }
-            await _mfa.verifySmsOtpThenLogin(
-                otp: _otpController.text, pin: pin);
+            await _mfa
+                .verifySmsOtpThenLogin(
+                  otp: _otpController.text,
+                  pin: pin,
+                )
+                .timeout(
+                  const Duration(seconds: 90),
+                  onTimeout: () => throw TimeoutException(
+                    'Sign-in timed out. Check your connection and try again.',
+                  ),
+                );
           }
         } else {
           if (_authMethod == AuthMethod.sms) {
@@ -189,6 +209,7 @@ class _PinLoginState extends State<PinLogin>
                 _showOtpField = true;
                 _otpFocusNode.requestFocus();
               });
+              _syncIllustrationConcealState();
             } else {
               // No OTP required: proceed to login directly using the PIN details
               final pin = await _getPin();
@@ -217,6 +238,7 @@ class _PinLoginState extends State<PinLogin>
               _showOtpField = true;
               _otpFocusNode.requestFocus();
             });
+            _syncIllustrationConcealState();
           }
         }
       } catch (e, s) {
@@ -247,7 +269,11 @@ class _PinLoginState extends State<PinLogin>
     HapticFeedback.heavyImpact();
 
     String errorMessage;
-    if (e is NeedSignUpException) {
+    if (e is TimeoutException) {
+      errorMessage = e.message?.isNotEmpty == true
+          ? e.message!
+          : 'Sign-in timed out. Check your connection and try again.';
+    } else if (e is NeedSignUpException) {
       errorMessage = 'Account not found';
     } else {
       final errorDetails = await ProxyService.strategy.handleLoginError(e, s);
@@ -290,6 +316,7 @@ class _PinLoginState extends State<PinLogin>
       // Keep OTP stage if already shown; just clear current code
       _otpController.clear();
     });
+    _syncIllustrationConcealState();
     // If switching to SMS while already in OTP stage, request an SMS code immediately
     if (method == AuthMethod.sms && _showOtpField) {
       _requestSmsOtp();
@@ -310,6 +337,7 @@ class _PinLoginState extends State<PinLogin>
         setState(() {
           _showOtpField = true;
         });
+        _syncIllustrationConcealState();
         _otpFocusNode.requestFocus();
       }
     } catch (e, s) {
@@ -322,9 +350,6 @@ class _PinLoginState extends State<PinLogin>
   static const double _desktopTwoColumnBreakpoint = 800;
 
   Widget _buildDesktopSideIllustration(bool isDark) {
-    final concealEyes = _pinController.text.isNotEmpty ||
-        (_showOtpField && _otpController.text.isNotEmpty);
-
     return ColoredBox(
       color: isDark ? const Color(0xFF222222) : const Color(0xFFE8F4FC),
       child: Center(
@@ -334,13 +359,15 @@ class _PinLoginState extends State<PinLogin>
             duration: const Duration(milliseconds: 280),
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
-            child: SvgPicture.string(
-              buildPinLoginSideIllustrationSvg(
-                concealSecretInput: concealEyes,
+            child: RepaintBoundary(
+              key: ValueKey<bool>(_illustrationConcealSecrets),
+              child: SvgPicture.string(
+                buildPinLoginSideIllustrationSvg(
+                  concealSecretInput: _illustrationConcealSecrets,
+                ),
+                fit: BoxFit.contain,
+                alignment: Alignment.center,
               ),
-              key: ValueKey<bool>(concealEyes),
-              fit: BoxFit.contain,
-              alignment: Alignment.center,
             ),
           ),
         ),
@@ -449,8 +476,7 @@ class _PinLoginState extends State<PinLogin>
 
                 final isWideDesktop =
                     constraints.maxWidth > _desktopTwoColumnBreakpoint;
-                final cardWidth =
-                    isWideDesktop ? 400.0 : double.infinity;
+                final cardWidth = isWideDesktop ? 400.0 : double.infinity;
 
                 if (isWideDesktop) {
                   return Row(
@@ -468,8 +494,8 @@ class _PinLoginState extends State<PinLogin>
                             child: Center(
                               child: SizedBox(
                                 width: cardWidth,
-                                child: _buildPinForm(
-                                    model, isDark, screenHeight),
+                                child:
+                                    _buildPinForm(model, isDark, screenHeight),
                               ),
                             ),
                           ),

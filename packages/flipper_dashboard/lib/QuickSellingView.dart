@@ -13,6 +13,8 @@ import 'package:flipper_models/providers/counter_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -97,6 +99,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       transaction: transaction,
       discountPercent: discountPercent,
     );
+  }
+
+  /// Skip hints while cart lines are still catching up to Ditto, and never pass
+  /// client-only optimistic rows into sale completion.
+  List<TransactionItem>? _transactionItemsHintForCompletion(
+    String transactionId,
+  ) {
+    if (transactionId.isEmpty) return null;
+    if (ref
+        .read(optimisticCartProvider.notifier)
+        .hasPendingFor(transactionId)) {
+      return null;
+    }
+    final out = internalTransactionItems
+        .where((i) => !OptimisticCartIds.isOptimistic(i.id))
+        .toList();
+    return out;
   }
 
   void _updateReceivedAmountIfNeeded(
@@ -409,6 +428,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   // Controllers for quantity inputs per item (small device view)
   final Map<String, TextEditingController> _quantityControllers = {};
+  final Map<String, double> _optimisticQtyByItemId = {};
+  final Set<String> _optimisticallyDeletedItemIds = {};
 
   // _formKeyboardListenerFocusNode is non-late so KeyboardListener always has a node.
   late final FocusNode _receivedAmountFocusNode = FocusNode(
@@ -538,6 +559,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
+    ref
+        .read(optimisticCartProvider.notifier)
+        .clearForTransaction(transaction.id);
+
     // Clear stale cart items for the completed transaction.
     ref.invalidate(
       transactionItemsStreamProvider(
@@ -551,6 +576,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     _lastPaymentInitTransactionId = null;
     _cachedNonCreditPaid = null;
     ref.invalidate(paymentMethodsProvider);
+    ref.read(optimisticOrderCountProvider.notifier).reset();
     widget.deliveryNoteCotroller.clear();
     widget.receivedAmountController.clear();
     widget.discountController.clear();
@@ -616,16 +642,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           branchId: ProxyService.box.getBranchId() ?? '0',
         ),
         (previous, next) {
-          final transaction = ref
-              .read(
-                pendingTransactionStreamProvider(
-                  isExpense: ProxyService.box.isOrdering() ?? false,
-                ),
-              )
-              .value;
-          if (transaction != null && next.hasValue) {
-            _updateReceivedAmountIfNeeded(transaction, items: next.value);
-          }
+          next.whenData((items) {
+            ref
+                .read(optimisticCartProvider.notifier)
+                .onStreamEmitted(transactionId: transactionId, items: items);
+            final transaction = ref
+                .read(
+                  pendingTransactionStreamProvider(
+                    isExpense: ProxyService.box.isOrdering() ?? false,
+                  ),
+                )
+                .value;
+            if (transaction != null) {
+              final optimistic = ref.read(optimisticCartProvider);
+              final merged = mergeTransactionItemsWithOptimisticCart(
+                streamItems: items,
+                optimistic: optimistic,
+                transactionId: transactionId,
+              );
+              _updateReceivedAmountIfNeeded(transaction, items: merged);
+            }
+          });
         },
       );
     }
@@ -726,18 +763,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 branchId: ProxyService.box.getBranchId() ?? '0',
               ),
             );
+            final optimisticCart = ref.watch(optimisticCartProvider);
 
             // Properly handle AsyncValue states instead of accessing .value directly
             internalTransactionItems = transactionItemsAsync.when(
               data: (items) {
-                // Sort newest-first so last added item appears at top
-                final sorted = List<TransactionItem>.from(items)
-                  ..sort((a, b) {
-                    final aDate = a.createdAt ?? DateTime(2000);
-                    final bDate = b.createdAt ?? DateTime(2000);
-                    return bDate.compareTo(aDate);
-                  });
-                return sorted;
+                return mergeTransactionItemsWithOptimisticCart(
+                      streamItems: items,
+                      optimistic: optimisticCart,
+                      transactionId: transactionId,
+                    )
+                    .where(
+                      (item) =>
+                          !_optimisticallyDeletedItemIds.contains(item.id),
+                    )
+                    .toList();
               },
               loading: () => [],
               error: (err, stack) {
@@ -1072,13 +1112,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
 
     if (confirmed == true) {
+      var items = <TransactionItem>[];
       try {
-        final items = await ref.read(
+        items = await ref.read(
           transactionItemsStreamProvider(
             transactionId: transactionAsyncValue.value?.id ?? "",
             branchId: ProxyService.box.getBranchId()!,
           ).future,
         );
+
+        setState(() {
+          for (final item in items) {
+            _optimisticallyDeletedItemIds.add(item.id);
+            _optimisticQtyByItemId.remove(item.id);
+          }
+        });
 
         for (final item in items) {
           await ProxyService.getStrategy(
@@ -1095,6 +1143,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
       } catch (e) {
         if (mounted) {
+          setState(() {
+            for (final item in items) {
+              _optimisticallyDeletedItemIds.remove(item.id);
+            }
+          });
           showErrorNotification(
             context,
             'Error removing items: ${e.toString()}',
@@ -1111,15 +1164,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         branchId: ProxyService.box.getBranchId()!,
       ),
     );
+    final optimisticCart = ref.watch(optimisticCartProvider);
+    final transactionId = transactionAsyncValue.value?.id ?? '';
     return transactionItemsAsync.when(
       data: (rawItems) {
-        // Sort newest-first so last added item appears at top
-        final items = List<TransactionItem>.from(rawItems)
-          ..sort((a, b) {
-            final aDate = a.createdAt ?? DateTime(2000);
-            final bDate = b.createdAt ?? DateTime(2000);
-            return bDate.compareTo(aDate);
-          });
+        final items =
+            mergeTransactionItemsWithOptimisticCart(
+                  streamItems: rawItems,
+                  optimistic: optimisticCart,
+                  transactionId: transactionId,
+                )
+                .where(
+                  (item) => !_optimisticallyDeletedItemIds.contains(item.id),
+                )
+                .toList();
         if (items.isEmpty) {
           return SliverToBoxAdapter(
             child: _buildEmptyStateCard(
@@ -1185,10 +1243,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     TransactionItem item,
     AsyncValue<ITransaction> transactionAsyncValue,
   ) {
+    final displayQty = _displayQtyFor(item);
     return Semantics(
       label: 'Item: ${item.name}',
       hint:
-          'Quantity: ${item.qty}, Unit price: ${item.price.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}, Subtotal: ${(item.price * item.qty).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+          'Quantity: $displayQty, Unit price: ${item.price.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}, Subtotal: ${(item.price * displayQty).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
       child: Container(
         key: Key('item-card-${item.id}'), // Add a key to the item card
         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -1287,10 +1346,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         IconButton(
                           key: Key('quantity-remove-${item.id}'),
                           icon: Icon(Icons.remove, size: 16),
-                          onPressed: item.qty > 1
+                          onPressed: displayQty > 1
                               ? () => _updateQuantity(
                                   item,
-                                  (item.qty - 1).toInt(),
+                                  (displayQty - 1).toInt(),
                                   transactionAsyncValue,
                                 )
                               : null,
@@ -1302,7 +1361,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
-                            '${item.qty}',
+                            _formatQty(displayQty),
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
@@ -1313,7 +1372,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           onPressed: () {
                             _updateQuantity(
                               item,
-                              (item.qty + 1).toInt(),
+                              (displayQty + 1).toInt(),
                               transactionAsyncValue,
                             );
                           },
@@ -1348,7 +1407,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
-                      (item.price * item.qty).toCurrencyFormatted(
+                      (item.price * displayQty).toCurrencyFormatted(
                         symbol: ProxyService.box.defaultCurrency(),
                       ),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1535,6 +1594,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                         await _onQuickSellComplete(transaction);
                                       },
                                       transactionId: transaction.id,
+                                      transactionHint: transaction,
+                                      transactionItemsHint:
+                                          _transactionItemsHintForCompletion(
+                                            transaction.id,
+                                          ),
                                       paymentMethods: ref.watch(
                                         paymentMethodsProvider,
                                       ),
@@ -1609,13 +1673,25 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           FilledButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await ProxyService.getStrategy(
-                Strategy.capella,
-              ).updateTransactionItem(
-                transactionItemId: item.id.toString(),
-                active: false,
-                ignoreForReport: false,
-              );
+              setState(() {
+                _optimisticallyDeletedItemIds.add(item.id);
+                _optimisticQtyByItemId.remove(item.id);
+              });
+              try {
+                await ProxyService.getStrategy(
+                  Strategy.capella,
+                ).updateTransactionItem(
+                  transactionItemId: item.id.toString(),
+                  active: false,
+                  ignoreForReport: false,
+                );
+              } catch (e, stackTrace) {
+                talker.error('Failed to remove item', e, stackTrace);
+                if (mounted) {
+                  setState(() => _optimisticallyDeletedItemIds.remove(item.id));
+                  showErrorNotification(context, 'Failed to remove item');
+                }
+              }
             },
             child: Text('Remove'),
           ),
@@ -1638,11 +1714,44 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
-    await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
-      transactionItemId: item.id.toString(),
-      ignoreForReport: false,
-      qty: newQty.toDouble(),
-    );
+    final previousDisplayQty = _displayQtyFor(item);
+    setState(() => _optimisticQtyByItemId[item.id] = newQty.toDouble());
+
+    try {
+      await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
+        transactionItemId: item.id.toString(),
+        ignoreForReport: false,
+        qty: newQty.toDouble(),
+      );
+    } catch (e, stackTrace) {
+      talker.error('Failed to update item quantity', e, stackTrace);
+      if (mounted) {
+        setState(() {
+          if ((previousDisplayQty - item.qty.toDouble()).abs() < 0.0001) {
+            _optimisticQtyByItemId.remove(item.id);
+          } else {
+            _optimisticQtyByItemId[item.id] = previousDisplayQty;
+          }
+        });
+        showErrorNotification(context, 'Failed to update item quantity');
+      }
+    }
+  }
+
+  double _displayQtyFor(TransactionItem item) {
+    final optimisticQty = _optimisticQtyByItemId[item.id];
+    if (optimisticQty == null) return item.qty.toDouble();
+
+    if ((item.qty.toDouble() - optimisticQty).abs() < 0.0001) {
+      _optimisticQtyByItemId.remove(item.id);
+      return item.qty.toDouble();
+    }
+
+    return optimisticQty;
+  }
+
+  String _formatQty(double qty) {
+    return qty.toStringAsFixed(qty.truncateToDouble() == qty ? 0 : 2);
   }
 
   /// Cart column: checkout summary, items table, optional delivery.
@@ -1873,12 +1982,29 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               ),
             );
             transactionAsyncValue.whenData((ITransaction transaction) {
+              final branchId = ProxyService.box.getBranchId() ?? '0';
+              final transactionItemsHint =
+                  ref
+                      .read(optimisticCartProvider.notifier)
+                      .hasPendingFor(transaction.id)
+                  ? null
+                  : ref
+                        .read(
+                          transactionItemsStreamProvider(
+                            transactionId: transaction.id,
+                            branchId: branchId,
+                          ),
+                        )
+                        .asData
+                        ?.value;
               startCompleteTransactionFlow(
                 immediateCompletion: false,
                 completeTransaction: () async {
                   await _onQuickSellComplete(transaction);
                 },
                 transactionId: transaction.id,
+                transactionHint: transaction,
+                transactionItemsHint: transactionItemsHint,
                 paymentMethods: ref.watch(paymentMethodsProvider),
               );
             });
@@ -2161,7 +2287,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             final transaction = transactionAsync.asData?.value;
             if (transaction != null && transaction.id.isNotEmpty) {
               unawaited(
-                ProxyService.strategy.updateTransaction(
+                ProxyService.getStrategy(Strategy.capella).updateTransaction(
                   transaction: transaction,
                   customerName: value,
                 ),
@@ -2276,7 +2402,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     final transaction = transactionAsync.asData?.value;
                     if (transaction != null && transaction.id.isNotEmpty) {
                       unawaited(
-                        ProxyService.strategy.updateTransaction(
+                        ProxyService.getStrategy(
+                          Strategy.capella,
+                        ).updateTransaction(
                           transaction: transaction,
                           customerPhone:
                               widget.countryCodeController.text + value,

@@ -3,6 +3,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
+
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
@@ -54,65 +56,6 @@ Future<List<TransactionItem>> _getTransactionItems({
   return items;
 }
 
-/// Scales non-CREDIT payment rows so their sum does not exceed [saleTotal].
-/// Tender can exceed the sale (change); persisted payment rows must not, or
-/// payment-method reports sum above line revenue.
-List<Payment> _normalizePaymentMethodsToSaleTotal({
-  required List<Payment> paymentMethods,
-  required double saleTotal,
-  required bool shouldBeLoan,
-}) {
-  if (shouldBeLoan || saleTotal <= 0) return paymentMethods;
-
-  final nonCredit = paymentMethods
-      .where((p) => p.method.toUpperCase() != 'CREDIT')
-      .toList();
-  final sumNonCredit = nonCredit.fold<double>(0, (s, p) => s + p.amount);
-  if (sumNonCredit <= saleTotal + 0.0001) return paymentMethods;
-
-  final factor = saleTotal / sumNonCredit;
-  final adjusted = <Payment>[];
-  for (final p in paymentMethods) {
-    if (p.method.toUpperCase() == 'CREDIT') {
-      adjusted.add(p);
-      continue;
-    }
-    adjusted.add(
-      Payment(
-        amount: (p.amount * factor).roundToTwoDecimalPlaces(),
-        method: p.method,
-        id: p.id,
-        controller: p.controller,
-      ),
-    );
-  }
-
-  var sumAdj = 0.0;
-  for (final p in adjusted) {
-    if (p.method.toUpperCase() != 'CREDIT') sumAdj += p.amount;
-  }
-  final drift = saleTotal - sumAdj;
-  if (drift.abs() > 0.0001) {
-    for (var i = adjusted.length - 1; i >= 0; i--) {
-      if (adjusted[i].method.toUpperCase() == 'CREDIT') continue;
-      final p = adjusted[i];
-      adjusted[i] = Payment(
-        amount: (p.amount + drift).roundToTwoDecimalPlaces(),
-        method: p.method,
-        id: p.id,
-        controller: p.controller,
-      );
-      break;
-    }
-  }
-
-  talker.info(
-    'Normalized payment rows to sale total: saleTotal=$saleTotal '
-    'wasNonCreditSum=$sumNonCredit',
-  );
-  return adjusted;
-}
-
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
   // Store stream subscription for proper cleanup
@@ -124,6 +67,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   // Track if we're already processing a payment to prevent double-processing
   bool _isProcessingPayment = false;
+
+  Future<void> _invokeCompleteTransactionCallback(Function callback) async {
+    final result = callback();
+    if (result is Future) await result;
+  }
 
   @override
   void dispose() {
@@ -288,6 +236,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String transactionId,
     required Function completeTransaction,
     required List<Payment> paymentMethods,
+    ITransaction? transactionHint,
+    /// When non-null and every row belongs to [transactionId], skips an extra Ditto load.
+    List<TransactionItem>? transactionItemsHint,
     bool immediateCompletion = false,
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
@@ -295,19 +246,37 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
     String? completionCashierName;
+    final flowWatch = Stopwatch()..start();
+    final capella = ProxyService.getStrategy(Strategy.capella);
 
     try {
-      // Fetch the latest transaction from the database to ensure subTotal is up-to-date
       String branchIdInt = ProxyService.box.getBranchId()!;
-      final transaction = await ProxyService.strategy.getTransaction(
-        id: transactionId,
-        branchId: branchIdInt,
+
+      final resolveSw = Stopwatch()..start();
+      ITransaction? resolved;
+      if (transactionHint != null && transactionHint.id == transactionId) {
+        resolved = transactionHint;
+      } else {
+        resolved = await capella.getTransaction(
+          id: transactionId,
+          branchId: branchIdInt,
+        );
+        resolved ??= await ProxyService.strategy.getTransaction(
+          id: transactionId,
+          branchId: branchIdInt,
+        );
+      }
+      talker.debug(
+        '[sale_completion_timing] resolve_transaction_ms=${resolveSw.elapsedMilliseconds} '
+        'total_ms=${flowWatch.elapsedMilliseconds}',
       );
 
-      if (transaction == null) {
+      if (resolved == null) {
         throw Exception("Transaction not found for completion.");
       }
+      final transaction = resolved;
 
+      final cashierSw = Stopwatch()..start();
       // Denormalize cashier name once at completion time to avoid per-row lookups in reports.
       final currentUserId = ProxyService.box.getUserId();
       if (currentUserId != null && currentUserId.trim().isNotEmpty) {
@@ -340,6 +309,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           // Best-effort: completion should still work offline.
         }
       }
+      talker.debug(
+        '[sale_completion_timing] cashier_lookup_ms=${cashierSw.elapsedMilliseconds} '
+        'total_ms=${flowWatch.elapsedMilliseconds}',
+      );
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return false;
 
@@ -424,9 +397,26 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }
 
       // Validate stock levels before proceeding
-      final transactionItems = await _getTransactionItems(
-        transaction: transaction,
-      );
+      late List<TransactionItem> transactionItems;
+      final hint = transactionItemsHint;
+      if (hint != null &&
+          hint.isNotEmpty &&
+          hint.every((i) => i.transactionId == transactionId)) {
+        transactionItems = List<TransactionItem>.from(hint);
+        talker.debug(
+          '[sale_completion_timing] load_transaction_items_ms=0 (hint) '
+          'total_ms=${flowWatch.elapsedMilliseconds}',
+        );
+      } else {
+        final itemsSw = Stopwatch()..start();
+        transactionItems = await _getTransactionItems(
+          transaction: transaction,
+        );
+        talker.debug(
+          '[sale_completion_timing] load_transaction_items_ms=${itemsSw.elapsedMilliseconds} '
+          'total_ms=${flowWatch.elapsedMilliseconds}',
+        );
+      }
       // Filter out services (itemTyCd == "3") from stock validation
       final itemsToValidate = transactionItems
           .where((item) => item.itemTyCd != "3")
@@ -440,66 +430,111 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         return false;
       }
 
-      // Deduct stock for each transaction item in parallel
-      // Call handleProformaOrTrainingMode once to avoid repeated awaits inside the loop
       final bool isProformaOrTraining =
           await TurboTaxService.handleProformaOrTrainingMode();
 
-      final List<Future<void>> stockUpdateFutures = transactionItems.map((
-        item,
-      ) async {
-        // Do not deduct stock for services
-        if (item.itemTyCd == "3") {
-          return;
-        }
+      final stockDeductionSw = Stopwatch()..start();
 
-        // SKIP items that have already had their stock deducted for this transaction
-        // We use quantityShipped as a flag for "stock deduction completed for this item"
+      final itemsNeedingDeduction = transactionItems.where((item) {
+        if (item.itemTyCd == "3") return false;
         if (item.quantityShipped == item.qty.toInt()) {
           talker.info(
             "Skipping stock deduction for item ${item.name} as it was already processed.",
           );
-          return;
+          return false;
+        }
+        final vid = item.variantId;
+        return vid != null && vid.isNotEmpty;
+      }).toList();
+
+      if (!isProformaOrTraining && itemsNeedingDeduction.isNotEmpty) {
+        final variantIds =
+            itemsNeedingDeduction.map((e) => e.variantId!).toSet().toList();
+        final swVariants = Stopwatch()..start();
+        final variantsMap = await capella.batchGetVariantsByIds(variantIds);
+        swVariants.stop();
+
+        final stockIds = <String>{};
+        for (final item in itemsNeedingDeduction) {
+          final v = variantsMap[item.variantId!];
+          final sid = v?.stockId;
+          if (sid != null && sid.isNotEmpty) stockIds.add(sid);
         }
 
-        final variant = await ProxyService.getStrategy(
-          Strategy.capella,
-        ).getVariant(id: item.variantId!);
+        final swStocks = Stopwatch()..start();
+        final stocksMap =
+            await capella.batchGetStocksByIds(stockIds.toList());
+        for (final sid in stockIds) {
+          if (!stocksMap.containsKey(sid)) {
+            stocksMap[sid] = await capella.getStockById(id: sid);
+          }
+        }
+        swStocks.stop();
 
-        // Only deduct stock when we have a variant and we're NOT in proforma/training mode
-        if (variant != null && !isProformaOrTraining) {
-          final stock = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getStockById(id: variant.stockId!);
+        final qtyDeltaPerStock = <String, double>{};
+        for (final item in itemsNeedingDeduction) {
+          final v = variantsMap[item.variantId!];
+          final sid = v?.stockId;
+          if (sid == null || sid.isEmpty) continue;
+          qtyDeltaPerStock[sid] =
+              (qtyDeltaPerStock[sid] ?? 0) + item.qty.toDouble();
+        }
 
-          // Note: using a map for originalStockQuantities might have race conditions if multiple items point to same stockId.
-          // However, typical POS items are distinct variants. If multiple items share same stockId, they should ideally be aggregated.
-          // For now, assuming distinct items or acceptable risk.
-          // We lock the map access synchronously here if we were really paranoid, but Dart is single threaded event loop.
-          // Just be aware if multiple items update same stock, 'originalStockQuantities' might only capture one snapshot.
-          originalStockQuantities[stock.id] =
-              stock.currentStock!; // Store original
+        final stockUpdatesById =
+            <String, ({double currentStock, double rsdQty})>{};
+        final deductedStockIds = <String>{};
+        for (final e in qtyDeltaPerStock.entries) {
+          final sid = e.key;
+          final delta = e.value;
+          final stock = stocksMap[sid];
+          final current = stock?.currentStock;
+          if (current == null) continue;
 
-          final newStock = (stock.currentStock! - item.qty)
-              .roundToTwoDecimalPlaces();
-          // save new transaction item with remaining stock
-          await ProxyService.strategy.updateStock(
-            stockId: stock.id,
+          originalStockQuantities[sid] = current;
+          deductedStockIds.add(sid);
+
+          final newStock =
+              (current - delta).roundToTwoDecimalPlaces();
+          stockUpdatesById[sid] = (
             currentStock: newStock,
             rsdQty: newStock,
           );
-          // Mark the item as processed for stock deduction
-          // This prevents double-deduction on subsequent partial payments
-          item.quantityShipped = item.qty.toInt();
-          await ProxyService.strategy.updateTransactionItem(
-            transactionItemId: item.id,
-            quantityShipped: item.quantityShipped,
-            ignoreForReport: false,
-          );
         }
-      }).toList();
 
-      await Future.wait(stockUpdateFutures);
+        final swUpdateStocks = Stopwatch()..start();
+        await capella.batchUpdateStocks(stockUpdatesById);
+        swUpdateStocks.stop();
+
+        final swUpdateItems = Stopwatch()..start();
+        await Future.wait(
+          itemsNeedingDeduction.map((item) async {
+            final v = variantsMap[item.variantId!];
+            final sid = v?.stockId;
+            if (sid == null || !deductedStockIds.contains(sid)) return;
+
+            item.quantityShipped = item.qty.toInt();
+            await capella.updateTransactionItem(
+              transactionItemId: item.id,
+              quantityShipped: item.quantityShipped,
+              ignoreForReport: false,
+            );
+          }),
+        );
+        swUpdateItems.stop();
+
+        talker.debug(
+          '[sale_completion_timing] deduction_detail_ms '
+          'batch_variants_ms=${swVariants.elapsedMilliseconds} '
+          'batch_stocks_ms=${swStocks.elapsedMilliseconds} '
+          'update_stocks_ms=${swUpdateStocks.elapsedMilliseconds} '
+          'update_transaction_items_ms=${swUpdateItems.elapsedMilliseconds} '
+          'total_ms=${flowWatch.elapsedMilliseconds}',
+        );
+      }
+      talker.debug(
+        '[sale_completion_timing] stock_deduction_ms=${stockDeductionSw.elapsedMilliseconds} '
+        'total_ms=${flowWatch.elapsedMilliseconds}',
+      );
 
       // update this transaction as completed
 
@@ -562,6 +597,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           onPaymentFailed: onPaymentFailed,
           ticketName: ticketName,
         );
+        talker.debug(
+          '[sale_completion_timing] flow_total_until_waiting_payment_ms=${flowWatch.elapsedMilliseconds}',
+        );
         // Return true to indicate we're waiting for payment confirmation
         // Bottom sheet should NOT close yet
         return true;
@@ -575,6 +613,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           discount: discount,
           paymentType: paymentType,
           ticketName: ticketName,
+          preloadedLineItemsForCollectPayment: transactionItems,
           completeTransaction: () async {
             // Update the local transaction object with the payment amount we just processed.
             // This ensures markTransactionAsCompleted sees the correct total paid, avoiding race conditions
@@ -598,11 +637,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 showCloseButton: true,
               );
               ref.read(payButtonStateProvider.notifier).stopLoading();
-              completeTransaction();
-            } else {
-              completeTransaction();
             }
+            await _invokeCompleteTransactionCallback(completeTransaction);
           },
+        );
+        talker.debug(
+          '[sale_completion_timing] flow_total_sync_completion_ms=${flowWatch.elapsedMilliseconds}',
         );
         // Return false to indicate payment is complete
         // Bottom sheet will close after user confirmation
@@ -615,13 +655,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       for (var entry in originalStockQuantities.entries) {
         final stockId = entry.key;
         final originalStock = entry.value;
-        await ProxyService.strategy.updateStock(
+        await capella.updateStock(
           stockId: stockId,
           currentStock: originalStock,
           rsdQty: originalStock,
         );
       }
-      await ProxyService.strategy.updateTransaction(
+      await capella.updateTransaction(
         transactionId: transactionId,
         status: PENDING,
         cashReceived: ProxyService.box.getCashReceived(),
@@ -649,56 +689,37 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     String? ticketName,
     String? cashierName,
   }) async {
-    // Use the in-memory transaction directly instead of re-fetching from DB.
-    // collectPayment may persist cashReceived; the caller may also add the keypad amount.
-    // When nothing was typed, [transaction.cashReceived] is often still 0 — treat that as
-    // exact tender for the sale: use split payment lines if they have amounts, otherwise
-    // the computed sale total (same idea as assuming `transaction.subTotal`).
-    const _paymentEpsilon = 0.0001;
-    var effectiveCashReceived = transaction.cashReceived ?? 0;
-    if (effectiveCashReceived <= _paymentEpsilon) {
-      final sumFromPaymentLines = paymentMethods.fold<double>(
-        0,
-        (sum, p) => sum + p.amount,
-      );
-      effectiveCashReceived = sumFromPaymentLines > _paymentEpsilon
-          ? sumFromPaymentLines
-          : finalSubTotal;
-    }
+    final capella = ProxyService.getStrategy(Strategy.capella);
 
-    final totalCredit = paymentMethods
-        .where((p) => p.method.toUpperCase() == 'CREDIT')
-        .fold<double>(0, (sum, p) => sum + p.amount);
+    final paymentLines = paymentMethods
+        .map(
+          (p) => PaymentLineForSaleCompletion(
+            amount: p.amount,
+            method: p.method,
+          ),
+        )
+        .toList();
 
-    // IMPORTANT: Use the computed `finalSubTotal` (includes discounts/updates) rather than
-    // `transaction.subTotal`, which can be stale at this point and incorrectly park a fully
-    // paid transaction as a loan.
-    final saleTotal = finalSubTotal;
+    final derived = deriveSaleCompletionState(
+      transactionCashReceived: transaction.cashReceived ?? 0,
+      finalSubTotal: finalSubTotal,
+      paymentMethods: paymentLines,
+    );
 
-    final nonCreditCashReceivedRaw = effectiveCashReceived - totalCredit;
-    final nonCreditCashReceived = nonCreditCashReceivedRaw < 0
-        ? 0.0
-        : nonCreditCashReceivedRaw;
-    final isFullyPaid = (nonCreditCashReceived + _paymentEpsilon) >= saleTotal;
+    final paymentsToPersist = normalizePaymentLinesToSaleTotal(
+      paymentMethods: paymentLines,
+      saleTotal: finalSubTotal,
+      shouldBeLoan: derived.shouldBeLoan,
+    );
 
-    final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
-    final status = shouldBeLoan ? PARKED : COMPLETE;
-
-    final remainingBalance = shouldBeLoan
-        ? (totalCredit > 0
-              ? totalCredit
-              : ((saleTotal - nonCreditCashReceived) < 0
-                    ? 0.0
-                    : (saleTotal - nonCreditCashReceived)))
-        : 0.0;
-
+    final markSw = Stopwatch()..start();
     final now = DateTime.now();
-    await ProxyService.strategy.updateTransaction(
+    await capella.updateTransaction(
       transaction: transaction,
-      status: status,
-      isLoan: shouldBeLoan,
-      remainingBalance: remainingBalance,
-      cashReceived: nonCreditCashReceived,
+      status: derived.status,
+      isLoan: derived.shouldBeLoan,
+      remainingBalance: derived.remainingBalance,
+      cashReceived: derived.nonCreditCashReceived,
       subTotal: finalSubTotal,
       lastTouched: now,
       cashierName: cashierName,
@@ -713,16 +734,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     transaction.lastTouched = now;
     transaction.createdAt = now;
 
-    final paymentsToPersist = _normalizePaymentMethodsToSaleTotal(
-      paymentMethods: paymentMethods,
-      saleTotal: finalSubTotal,
-      shouldBeLoan: shouldBeLoan,
-    );
-
-    // Save payment methods in parallel to reduce sequential DB lock contention
     await Future.wait(
       paymentsToPersist.map((payment) async {
-        await ProxyService.strategy.savePaymentType(
+        await capella.savePaymentType(
           singlePaymentOnly: false,
           amount: payment.amount,
           transactionId: transaction.id,
@@ -731,7 +745,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }),
     );
 
-    return shouldBeLoan;
+    talker.debug(
+      '[sale_completion_timing] mark_completed_and_payments_ms=${markSw.elapsedMilliseconds}',
+    );
+
+    return derived.shouldBeLoan;
   }
 
   Future<Customer?> _getCustomer(String? customerId) async {
@@ -955,7 +973,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 );
                 _isProcessingPayment = false;
                 _paymentTimeout?.cancel(); // Cancel timeout on success
-                completeTransaction();
+                await _invokeCompleteTransactionCallback(completeTransaction);
                 talker.info(
                   "✅ completeTransaction callback executed - Bottom sheet should now close",
                 );
@@ -990,6 +1008,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required Function completeTransaction,
     required List<Payment> paymentMethods,
     String? ticketName,
+    List<TransactionItem>? preloadedLineItemsForCollectPayment,
   }) async {
     try {
       // Check if widget is still mounted before using ref
@@ -1047,6 +1066,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           amount: amount,
           onComplete: completeTransaction,
           discount: discount,
+          preloadedLineItemsForCollectPayment:
+              preloadedLineItemsForCollectPayment,
           onSuccess: () {
             ref.read(payButtonStateProvider.notifier).stopLoading();
           },

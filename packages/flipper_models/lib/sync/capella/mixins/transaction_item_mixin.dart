@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaTransactionItemMixin implements TransactionItemInterface {
@@ -260,7 +260,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       return Stream.value([]);
     }
 
-    String query = 'SELECT * FROM transaction_items';
+    String baseQuery = 'SELECT * FROM transaction_items';
     final arguments = <String, dynamic>{};
     final conditions = <String>[];
 
@@ -306,9 +306,11 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     }
 
     if (conditions.isNotEmpty) {
-      query += ' WHERE ' + conditions.join(' AND ');
+      baseQuery += ' WHERE ' + conditions.join(' AND ');
     }
-    query += ' ORDER BY createdAt DESC';
+    // Ditto 5: sync subscriptions reject ORDER BY; use unordered query for replication only.
+    final subscriptionQuery = baseQuery;
+    final query = '$baseQuery ORDER BY createdAt DESC';
 
     /// A workaround to first register to whole data instead of subset
     /// this is because after test on new device, it can't pull data using complex query
@@ -316,26 +318,13 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     ///
     /// NOTE: Broad subscription DISABLED - causes duplicate query warnings
     /// The specific subscription below is sufficient for most cases
-    final syncBranchId = branchId ?? ProxyService.box.getBranchId();
-    dynamic broadSubscription;
-    dynamic broadObserver;
-    // Broad subscription commented out to prevent duplicate queries
-    // if (fetchRemote && syncBranchId != null) {
-    //   talker.debug('Registering broad subscription for transaction_items');
-    //   broadSubscription = ditto.sync.registerSubscription(
-    //     "SELECT * FROM transaction_items WHERE branchId = :branchId",
-    //     arguments: {'branchId': syncBranchId},
-    //   );
-    //   broadObserver = ditto.store.registerObserver(
-    //     "SELECT * FROM transaction_items WHERE branchId = :branchId",
-    //     arguments: {'branchId': syncBranchId},
-    //   );
-    // }
-    // Register subscription to sync data
-    talker.debug('Registering specific subscription: $query');
+
+    // Register subscription to sync data (unordered; Ditto 5 rejects ORDER BY on subscriptions)
+    talker.debug('Registering specific subscription: $subscriptionQuery');
+    final preparedTi = prepareDqlSyncSubscription(subscriptionQuery, arguments);
     final specificSubscription = ditto.sync.registerSubscription(
-      query,
-      arguments: arguments,
+      preparedTi.dql,
+      arguments: preparedTi.arguments,
     );
 
     final controller = StreamController<List<TransactionItem>>.broadcast();
@@ -388,9 +377,6 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     controller.onCancel = () async {
       talker.debug('Cleaning up transactionItemsStreams subscriptions');
       await observer?.cancel();
-      // Broad subscription cleanup disabled (commented out above)
-      // await broadObserver?.cancel();
-      // broadSubscription?.cancel();
       specificSubscription.cancel();
       await controller.close();
       talker.debug('Cleanup completed for transactionItemsStreams');

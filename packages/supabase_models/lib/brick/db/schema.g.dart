@@ -1,16 +1,20 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20260509120000.migration.dart';
 part '20260425064844.migration.dart';
 part '20260423201159.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260425064844(),const Migration20260423201159()};
+  const Migration20260509120000(),
+  const Migration20260425064844(),
+  const Migration20260423201159(),
+};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260423201159,
+  20260509120000,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -954,25 +958,6 @@ final schema = Schema(
         SchemaColumn('owner_name', Column.varchar),
         SchemaColumn('token_uid', Column.varchar),
         SchemaColumn('uid', Column.varchar),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
-      'PlanAddon',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('plan_id', Column.varchar),
-        SchemaColumn('addon_name', Column.varchar),
-        SchemaColumn('created_at', Column.datetime),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

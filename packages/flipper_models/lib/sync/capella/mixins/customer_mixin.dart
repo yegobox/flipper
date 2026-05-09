@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/sync/interfaces/customer_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -10,6 +11,30 @@ import 'package:talker/talker.dart';
 mixin CapellaCustomerMixin implements CustomerInterface {
   DittoService get dittoService => DittoService.instance;
   Talker get talker;
+
+  Customer _customerFromDittoMap(Map<String, dynamic> item) {
+    return Customer(
+      id: item['id']?.toString(),
+      custNm: item['custNm']?.toString(),
+      email: item['email']?.toString(),
+      telNo: item['telNo']?.toString(),
+      adrs: item['adrs']?.toString(),
+      branchId: item['branchId']?.toString(),
+      updatedAt: item['updatedAt'] != null
+          ? DateTime.tryParse(item['updatedAt'].toString())
+          : null,
+      custNo: item['custNo']?.toString(),
+      custTin: item['custTin']?.toString(),
+      regrNm: item['regrNm']?.toString(),
+      regrId: item['regrId']?.toString(),
+      modrNm: item['modrNm']?.toString(),
+      modrId: item['modrId']?.toString(),
+      ebmSynced: item['ebmSynced'] as bool?,
+      bhfId: item['bhfId']?.toString(),
+      useYn: item['useYn']?.toString(),
+      customerType: item['customerType']?.toString(),
+    );
+  }
 
   @override
   Future<Customer?> addCustomer({
@@ -43,7 +68,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'Starting customers fetch',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -65,7 +91,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
             'Ditto service not initialized',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -84,13 +111,13 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
       ///
       if (branchId != null && branchId.isNotEmpty) {
+        final preparedBranch =
+            prepareDqlSyncSubscription("SELECT * FROM customers WHERE branchId = :branchId", {
+          'branchId': branchId,
+        });
         ditto.sync.registerSubscription(
-          "SELECT * FROM customers WHERE branchId = :branchId",
-          arguments: {'branchId': branchId},
-        );
-        ditto.store.registerObserver(
-          "SELECT * FROM customers WHERE branchId = :branchId",
-          arguments: {'branchId': branchId},
+          preparedBranch.dql,
+          arguments: preparedBranch.arguments,
         );
       }
 
@@ -117,14 +144,16 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       if (key != null && key.isNotEmpty) {
         final searchKey = '%$key%';
         whereClauses.add(
-            "(UPPER(custNm) LIKE UPPER(:searchKey) OR UPPER(email) LIKE UPPER(:searchKey) OR UPPER(telNo) LIKE UPPER(:searchKey))");
+          "(UPPER(custNm) LIKE UPPER(:searchKey) OR UPPER(email) LIKE UPPER(:searchKey) OR UPPER(telNo) LIKE UPPER(:searchKey))",
+        );
         arguments['searchKey'] = searchKey;
       }
 
       // If no filters are provided, return an empty list as per documentation
       if (whereClauses.isEmpty) {
-        talker
-            .info('No filters provided for customers(), returning empty list');
+        talker.info(
+          'No filters provided for customers(), returning empty list',
+        );
         return [];
       }
 
@@ -136,7 +165,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'Prepared Ditto query',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -158,7 +188,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'Registering Ditto subscription',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -170,16 +201,18 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           extra: {'query_metadata': 'redacted', 'args_count': arguments.length},
         );
       }
-      await ditto.sync.registerSubscription(query, arguments: arguments);
-
-      // Use registerObserver to wait for data
-      final completer = Completer<List<dynamic>>();
+      final preparedCustomers = prepareDqlSyncSubscription(query, arguments);
+      await ditto.sync.registerSubscription(
+        preparedCustomers.dql,
+        arguments: preparedCustomers.arguments,
+      );
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(
           'Registering Ditto observer',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -191,6 +224,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           extra: {'query_metadata': 'redacted', 'args_count': arguments.length},
         );
       }
+      final completer = Completer<List<dynamic>>();
       final observer = ditto.store.registerObserver(
         query,
         arguments: arguments,
@@ -205,7 +239,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
                 'Observer onChange triggered with $itemCount items',
                 type: 'business_fetch',
                 tags: {
-                  'userId': (ProxyService.box
+                  'userId':
+                      (ProxyService.box
                           .getUserId()
                           ?.toString()
                           .hashCode
@@ -227,7 +262,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'Waiting for observer data',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -250,7 +286,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
                   'Observer timeout waiting for customers',
                   type: 'business_fetch',
                   tags: {
-                    'userId': (ProxyService.box
+                    'userId':
+                        (ProxyService.box
                             .getUserId()
                             ?.toString()
                             .hashCode
@@ -275,7 +312,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'Received ${items.length} items from observer',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -290,27 +328,11 @@ mixin CapellaCustomerMixin implements CustomerInterface {
 
       // Parse results
       final customers = items
-          .map((doc) => Customer(
-                id: doc.value['id']?.toString(),
-                custNm: doc.value['custNm']?.toString(),
-                email: doc.value['email']?.toString(),
-                telNo: doc.value['telNo']?.toString(),
-                adrs: doc.value['adrs']?.toString(),
-                branchId: doc.value['branchId']?.toString(),
-                updatedAt: doc.value['updatedAt'] != null
-                    ? DateTime.tryParse(doc.value['updatedAt'].toString())
-                    : null,
-                custNo: doc.value['custNo']?.toString(),
-                custTin: doc.value['custTin']?.toString(),
-                regrNm: doc.value['regrNm']?.toString(),
-                regrId: doc.value['regrId']?.toString(),
-                modrNm: doc.value['modrNm']?.toString(),
-                modrId: doc.value['modrId']?.toString(),
-                ebmSynced: doc.value['ebmSynced'] as bool?,
-                bhfId: doc.value['bhfId']?.toString(),
-                useYn: doc.value['useYn']?.toString(),
-                customerType: doc.value['customerType']?.toString(),
-              ))
+          .map(
+            (doc) => _customerFromDittoMap(
+              Map<String, dynamic>.from(doc.value as Map),
+            ),
+          )
           .toList();
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -318,7 +340,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'Successfully parsed ${customers.length} customers',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -342,7 +365,7 @@ mixin CapellaCustomerMixin implements CustomerInterface {
         tags: {
           'userId':
               (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
-                  'unknown',
+              'unknown',
           'method': 'customers',
           'error': e.toString(),
         },
@@ -360,7 +383,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'Starting customerById fetch',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -380,7 +404,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
             'Ditto service not initialized',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -398,11 +423,11 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       /// this is because after test on new device, it can't pull data using complex query
       /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
       ///
+      final preparedAll =
+          prepareDqlSyncSubscription("SELECT * FROM customers", null);
       ditto.sync.registerSubscription(
-        "SELECT * FROM customers",
-      );
-      ditto.store.registerObserver(
-        "SELECT * FROM customers",
+        preparedAll.dql,
+        arguments: preparedAll.arguments,
       );
 
       /// end of workaround
@@ -414,7 +439,11 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       talker.info('Executing Ditto query: $query with args: $arguments');
 
       // Subscribe to ensure we have the latest data from Ditto mesh
-      await ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedById = prepareDqlSyncSubscription(query, arguments);
+      await ditto.sync.registerSubscription(
+        preparedById.dql,
+        arguments: preparedById.arguments,
+      );
 
       // Use registerObserver to wait for data
       final completer = Completer<List<dynamic>>();
@@ -448,26 +477,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       if (items.isEmpty) return null;
 
       final item = items.first.value;
-      final customer = Customer(
-        id: item['id']?.toString(),
-        custNm: item['custNm']?.toString(),
-        email: item['email']?.toString(),
-        telNo: item['telNo']?.toString(),
-        adrs: item['adrs']?.toString(),
-        branchId: item['branchId']?.toString(),
-        updatedAt: item['updatedAt'] != null
-            ? DateTime.tryParse(item['updatedAt'].toString())
-            : null,
-        custNo: item['custNo']?.toString(),
-        custTin: item['custTin']?.toString(),
-        regrNm: item['regrNm']?.toString(),
-        regrId: item['regrId']?.toString(),
-        modrNm: item['modrNm']?.toString(),
-        modrId: item['modrId']?.toString(),
-        ebmSynced: item['ebmSynced'] as bool?,
-        bhfId: item['bhfId']?.toString(),
-        useYn: item['useYn']?.toString(),
-        customerType: item['customerType']?.toString(),
+      final customer = _customerFromDittoMap(
+        Map<String, dynamic>.from(item as Map),
       );
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -475,7 +486,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
           'Successfully fetched customer by ID',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -497,12 +509,151 @@ mixin CapellaCustomerMixin implements CustomerInterface {
         tags: {
           'userId':
               (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
-                  'unknown',
+              'unknown',
           'method': 'customerById',
           'error': e.toString(),
         },
       );
       return null;
     }
+  }
+
+  /// Live Ditto-backed customer list; matches [CoreSync.customersStream] cases.
+  Stream<List<Customer>> customersStream({
+    required String branchId,
+    String? key,
+    String? id,
+  }) {
+    if (key != null && key.isNotEmpty) {
+      return Stream.fromFuture(
+        Future(() async {
+          final list = await customers(
+            branchId: branchId,
+            key: key,
+            id: id,
+          );
+          return List<Customer>.from(list);
+        }),
+      );
+    }
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized: customersStream');
+      return Stream.value([]);
+    }
+
+    if (id != null && id.isNotEmpty) {
+      final query = 'SELECT * FROM customers WHERE id = :id';
+      final arguments = <String, dynamic>{'id': id};
+      final prepared = prepareDqlSyncSubscription(query, arguments);
+      final subscription = ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+
+      final controller = StreamController<List<Customer>>.broadcast();
+      dynamic observer;
+
+      void emitFromResult(dynamic queryResult) {
+        if (controller.isClosed) return;
+        final customers = <Customer>[];
+        for (final doc in queryResult.items) {
+          try {
+            customers.add(
+              _customerFromDittoMap(
+                Map<String, dynamic>.from(doc.value as Map),
+              ),
+            );
+          } catch (e) {
+            talker.error('Error converting customer in stream: $e');
+          }
+        }
+        controller.add(customers);
+      }
+
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (queryResult) => emitFromResult(queryResult),
+      );
+
+      ditto.store
+          .execute(query, arguments: arguments)
+          .then(emitFromResult)
+          .catchError((Object e) {
+            talker.error('Error seeding customers stream (by id): $e');
+          });
+
+      controller.onCancel = () async {
+        await observer?.cancel();
+        subscription.cancel();
+        await controller.close();
+      };
+
+      return controller.stream;
+    }
+
+    if (branchId.isEmpty) {
+      return Stream.value([]);
+    }
+
+    final preparedBranch = prepareDqlSyncSubscription(
+      "SELECT * FROM customers WHERE branchId = :branchId",
+      {'branchId': branchId},
+    );
+    ditto.sync.registerSubscription(
+      preparedBranch.dql,
+      arguments: preparedBranch.arguments,
+    );
+
+    final query = 'SELECT * FROM customers WHERE branchId = :branchId';
+    final arguments = <String, dynamic>{'branchId': branchId};
+    final prepared = prepareDqlSyncSubscription(query, arguments);
+    final subscription = ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+
+    final controller = StreamController<List<Customer>>.broadcast();
+    dynamic observer;
+
+    void emitFromResult(dynamic queryResult) {
+      if (controller.isClosed) return;
+      final customers = <Customer>[];
+      for (final doc in queryResult.items) {
+        try {
+          customers.add(
+            _customerFromDittoMap(
+              Map<String, dynamic>.from(doc.value as Map),
+            ),
+          );
+        } catch (e) {
+          talker.error('Error converting customer in stream: $e');
+        }
+      }
+      controller.add(customers);
+    }
+
+    observer = ditto.store.registerObserver(
+      query,
+      arguments: arguments,
+      onChange: (queryResult) => emitFromResult(queryResult),
+    );
+
+    ditto.store
+        .execute(query, arguments: arguments)
+        .then(emitFromResult)
+        .catchError((Object e) {
+          talker.error('Error seeding customers stream: $e');
+        });
+
+    controller.onCancel = () async {
+      await observer?.cancel();
+      subscription.cancel();
+      await controller.close();
+    };
+
+    return controller.stream;
   }
 }

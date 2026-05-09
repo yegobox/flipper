@@ -1,8 +1,14 @@
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/stock_recount.model.dart';
 import 'package:intl/intl.dart';
 import 'stock_recount_active_screen.dart';
+
+DatabaseSyncInterface _stockRecountCapella() =>
+    ProxyService.getStrategy(Strategy.capella);
 
 class StockRecountListScreen extends StatefulWidget {
   const StockRecountListScreen({Key? key}) : super(key: key);
@@ -15,6 +21,28 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
   String _filterStatus = 'all';
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  /// Avoid creating a new [Stream] on every rebuild — that resets [StreamBuilder]
+  /// and retriggers loading for unrelated `setState` (e.g. search field).
+  Stream<List<StockRecount>>? _recountsStreamCache;
+  String? _streamBranchId;
+  String? _streamFilterSignature;
+
+  Stream<List<StockRecount>> _recountsStreamFor(String branchId) {
+    final signature =
+        '${branchId}_${_filterStatus == 'all' ? 'all' : _filterStatus}';
+    if (_streamBranchId != branchId ||
+        _streamFilterSignature != signature ||
+        _recountsStreamCache == null) {
+      _streamBranchId = branchId;
+      _streamFilterSignature = signature;
+      _recountsStreamCache = _stockRecountCapella().recountsStream(
+        branchId: branchId,
+        status: _filterStatus == 'all' ? null : _filterStatus,
+      );
+    }
+    return _recountsStreamCache!;
+  }
 
   @override
   void dispose() {
@@ -41,8 +69,8 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
     }
 
     try {
-      final deviceId = await ProxyService.strategy.getPlatformDeviceId();
-      final recount = await ProxyService.strategy.startRecountSession(
+      final deviceId = await _stockRecountCapella().getPlatformDeviceId();
+      final recount = await _stockRecountCapella().startRecountSession(
         branchId: branchId,
         userId: ProxyService.box.getUserId()?.toString(),
         deviceId: deviceId,
@@ -58,7 +86,8 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, st) {
+      talker.error('StockRecountListScreen: startRecountSession failed', e, st);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -100,10 +129,7 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey),
-            ),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -124,7 +150,7 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
 
     if (confirm == true) {
       try {
-        await ProxyService.strategy.deleteRecount(recountId: recountId);
+        await _stockRecountCapella().deleteRecount(recountId: recountId);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -139,7 +165,8 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
             ),
           );
         }
-      } catch (e) {
+      } catch (e, st) {
+        talker.error('StockRecountListScreen: deleteRecount failed', e, st);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -156,11 +183,7 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
   Widget build(BuildContext context) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
-      return const Scaffold(
-        body: Center(
-          child: Text('No branch selected'),
-        ),
-      );
+      return const Scaffold(body: Center(child: Text('No branch selected')));
     }
 
     return Scaffold(
@@ -172,10 +195,7 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
         foregroundColor: Colors.black87,
         title: const Text(
           'Stock Recount',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
         ),
         actions: [
           IconButton(
@@ -364,19 +384,14 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
           // Recounts List
           Expanded(
             child: StreamBuilder<List<StockRecount>>(
-              stream: ProxyService.strategy.recountsStream(
-                branchId: branchId,
-                status: _filterStatus == 'all' ? null : _filterStatus,
-              ),
+              stream: _recountsStreamFor(branchId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  );
+                  return Center(child: Text('Error: ${snapshot.error}'));
                 }
 
                 var recounts = snapshot.data ?? [];
@@ -399,15 +414,17 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
                         Container(
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF0078D4).withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF0078D4,
+                            ).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.inventory_2_rounded,
                             size: 80,
-                            color:
-                                const Color(0xFF0078D4).withValues(alpha: 0.7),
+                            color: const Color(
+                              0xFF0078D4,
+                            ).withValues(alpha: 0.7),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -485,10 +502,7 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
         icon: const Icon(Icons.add, size: 22),
         label: const Text(
           'New Recount',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
         ),
         backgroundColor: const Color(0xFF0078D4),
         foregroundColor: Colors.white,
@@ -691,10 +705,7 @@ class _RecountCard extends StatelessWidget {
                   // Delete button
                   if (onDelete != null)
                     IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline_rounded,
-                        size: 22,
-                      ),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 22),
                       color: const Color(0xFFEF4444),
                       onPressed: onDelete,
                       tooltip: 'Delete recount',
@@ -714,11 +725,7 @@ class _RecountCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.notes,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
+                      Icon(Icons.notes, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(

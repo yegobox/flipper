@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -94,22 +95,22 @@ mixin CapellaProductMixin implements ProductInterface {
       /// this is because after test on new device, it can't pull data using complex query
       /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
       ///
-      ditto.sync.registerSubscription(
+      final preparedProd = prepareDqlSyncSubscription(
         "SELECT * FROM products WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+        {'branchId': branchId},
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM products WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+      ditto.sync.registerSubscription(
+        preparedProd.dql,
+        arguments: preparedProd.arguments,
       );
       // Workaround for initial sync
-      ditto.sync.registerSubscription(
+      final preparedProdBiz = prepareDqlSyncSubscription(
         "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",
-        arguments: {'branchId': branchId, 'businessId': businessId},
+        {'branchId': branchId, 'businessId': businessId},
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",
-        arguments: {'branchId': branchId, 'businessId': businessId},
+      ditto.sync.registerSubscription(
+        preparedProdBiz.dql,
+        arguments: preparedProdBiz.arguments,
       );
 
       final List<String> whereClauses = [
@@ -184,7 +185,7 @@ mixin CapellaProductMixin implements ProductInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto != null) {
       await ditto.store.execute(
-        "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+        "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
         arguments: {'doc': newSku.toJson()},
       );
     }
@@ -261,7 +262,7 @@ mixin CapellaProductMixin implements ProductInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto != null) {
         await ditto.store.execute(
-          "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': sku.toJson()},
         );
       }
@@ -269,7 +270,7 @@ mixin CapellaProductMixin implements ProductInterface {
       final createdProduct = await repository.upsert<Product>(product);
       if (ditto != null) {
         await ditto.store.execute(
-          "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': createdProduct.toJson()},
         );
       }
@@ -360,7 +361,7 @@ mixin CapellaProductMixin implements ProductInterface {
         final createdStock = await repository.upsert<Stock>(stock);
         if (ditto != null) {
           await ditto.store.execute(
-            "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+            "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
             arguments: {'doc': createdStock.toJson()},
           );
         }
@@ -655,7 +656,7 @@ mixin CapellaProductMixin implements ProductInterface {
         // Update in Ditto
         if (ditto != null) {
           await ditto.store.execute(
-            "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+            "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
             arguments: {'doc': product.toJson()},
           );
           if (ProxyService.box.getUserLoggingEnabled() ?? false) {

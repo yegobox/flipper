@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/production_output_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
@@ -49,7 +50,11 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
           "SELECT * FROM work_orders WHERE ${whereClauses.join(' AND ')}";
 
       // Subscribe to keep data synced
-      ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedPo = prepareDqlSyncSubscription(query, arguments);
+      ditto.sync.registerSubscription(
+        preparedPo.dql,
+        arguments: preparedPo.arguments,
+      );
 
       // Execute query
       final result = await ditto.store.execute(query, arguments: arguments);
@@ -210,7 +215,11 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
       final query =
           "SELECT * FROM actual_outputs WHERE ${whereClauses.join(' AND ')}";
 
-      ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedAo = prepareDqlSyncSubscription(query, arguments);
+      ditto.sync.registerSubscription(
+        preparedAo.dql,
+        arguments: preparedAo.arguments,
+      );
 
       final result = await ditto.store.execute(query, arguments: arguments);
 
@@ -366,7 +375,11 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     final query =
         "SELECT * FROM work_orders WHERE ${whereClauses.join(' AND ')}";
 
-    ditto.sync.registerSubscription(query, arguments: arguments);
+    final preparedPoStream = prepareDqlSyncSubscription(query, arguments);
+    ditto.sync.registerSubscription(
+      preparedPoStream.dql,
+      arguments: preparedPoStream.arguments,
+    );
 
     // Use registerObserver for reactive stream
     StreamController<List<WorkOrder>> controller = StreamController();

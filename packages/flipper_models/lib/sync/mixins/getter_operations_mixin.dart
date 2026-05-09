@@ -7,7 +7,6 @@ import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart'
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supabase_models/brick/models/plan.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 mixin GetterOperationsMixin implements GetterOperationsInterface {

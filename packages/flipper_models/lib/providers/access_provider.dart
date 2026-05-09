@@ -7,17 +7,28 @@ import 'package:flutter/foundation.dart' hide Category;
 part 'access_provider.g.dart';
 
 @riverpod
-Future<bool> isAdmin(Ref ref, String userId,
-    {required String featureName}) async {
-  return await ProxyService.strategy
-      .isAdmin(userId: userId, appFeature: featureName);
+Future<bool> isAdmin(
+  Ref ref,
+  String userId, {
+  required String featureName,
+}) async {
+  return await ProxyService.strategy.isAdmin(
+    userId: userId,
+    appFeature: featureName,
+  );
 }
 
 @riverpod
-Future<List<Access>> userAccesses(Ref ref, String userId,
-    {required String featureName}) async {
-  return await ProxyService.strategy
-      .access(userId: userId, featureName: featureName, fetchRemote: false);
+Future<List<Access>> userAccesses(
+  Ref ref,
+  String userId, {
+  required String featureName,
+}) async {
+  return await ProxyService.strategy.access(
+    userId: userId,
+    featureName: featureName,
+    fetchRemote: false,
+  );
 }
 
 @riverpod
@@ -31,10 +42,14 @@ Future<Tenant?> tenant(Ref ref, String userId) async {
 }
 
 @riverpod
-bool featureAccess(Ref ref,
-    {required String userId, required String featureName}) {
+bool featureAccess(
+  Ref ref, {
+  required String userId,
+  required String featureName,
+}) {
   try {
-    final accesses = ref
+    final accesses =
+        ref
             .watch(userAccessesProvider(userId, featureName: featureName))
             .value ??
         [];
@@ -46,23 +61,28 @@ bool featureAccess(Ref ref,
     }
     if (accesses.isEmpty) {
       talker.info(
-          "Access DENIED for userId: $userId, feature: $featureName (no access records)");
+        "Access DENIED for userId: $userId, feature: $featureName (no access records)",
+      );
       return false; // Deny access if no accesses exist
     }
 
-    final granted = accesses.any((access) =>
-        access.featureName == featureName &&
-        (access.accessLevel?.capitalized == "Write" ||
-            access.accessLevel?.capitalized == "Admin") &&
-        access.status == 'active' &&
-        (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+    final granted = accesses.any(
+      (access) =>
+          access.featureName == featureName &&
+          (access.accessLevel?.capitalized == "Write" ||
+              access.accessLevel?.capitalized == "Admin") &&
+          access.status == 'active' &&
+          (access.expiresAt == null || access.expiresAt!.isAfter(now)),
+    );
 
     if (granted) {
       talker.info(
-          "Access GRANTED for userId: $userId, feature: $featureName | Accesses: ${accesses.map((a) => '{id: ${a.id}, status: ${a.status}, expiresAt: ${a.expiresAt}}').toList()}");
+        "Access GRANTED for userId: $userId, feature: $featureName | Accesses: ${accesses.map((a) => '{id: ${a.id}, status: ${a.status}, expiresAt: ${a.expiresAt}}').toList()}",
+      );
     } else {
       talker.info(
-          "Access DENIED for userId: $userId, feature: $featureName | Accesses: ${accesses.map((a) => '{id: ${a.id}, status: ${a.status}, expiresAt: ${a.expiresAt}}').toList()}");
+        "Access DENIED for userId: $userId, feature: $featureName | Accesses: ${accesses.map((a) => '{id: ${a.id}, status: ${a.status}, expiresAt: ${a.expiresAt}}').toList()}",
+      );
     }
 
     return granted;
@@ -76,19 +96,40 @@ bool featureAccess(Ref ref,
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
 /// to whatever he is trying to access
 @riverpod
-bool featureAccessLevel(Ref ref,
-    {required String userId, required String accessLevel}) {
+bool featureAccessLevel(
+  Ref ref, {
+  required String userId,
+  required String accessLevel,
+}) {
   try {
     final accesses = ref.watch(allAccessesProvider(userId)).value ?? [];
-    final granted = accesses.any((access) =>
-        access.userType?.toLowerCase() == accessLevel.toLowerCase());
+    final now = DateTime.now();
+    final normalizedAccessLevel = accessLevel.toLowerCase();
+    final granted = accesses.any(
+      (access) =>
+          access.accessLevel?.toLowerCase() == normalizedAccessLevel &&
+          access.status == 'active' &&
+          (access.expiresAt == null || access.expiresAt!.isAfter(now)),
+    );
+    final accessLevelCounts = <String, int>{};
+    final userTypeCounts = <String, int>{};
+
+    for (final access in accesses) {
+      final accessLevelKey = access.accessLevel ?? 'null';
+      final userTypeKey = access.userType ?? 'null';
+      accessLevelCounts[accessLevelKey] =
+          (accessLevelCounts[accessLevelKey] ?? 0) + 1;
+      userTypeCounts[userTypeKey] = (userTypeCounts[userTypeKey] ?? 0) + 1;
+    }
 
     if (granted) {
       talker.info(
-          "AccessLevel GRANTED for userId: $userId, accessLevel: $accessLevel | User types found: ${accesses.map((a) => a.userType).toList()}");
+        "AccessLevel GRANTED for userId: $userId, accessLevel: $accessLevel | total records: ${accesses.length}, access levels: $accessLevelCounts, user types: $userTypeCounts",
+      );
     } else {
       talker.info(
-          "AccessLevel DENIED for userId: $userId, accessLevel: $accessLevel | User types found: ${accesses.map((a) => a.userType).toList()}");
+        "AccessLevel DENIED for userId: $userId, accessLevel: $accessLevel | total records: ${accesses.length}, access levels: $accessLevelCounts, user types: $userTypeCounts",
+      );
     }
 
     return granted;

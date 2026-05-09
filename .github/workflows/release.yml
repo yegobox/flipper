@@ -21,11 +21,12 @@ on:
       - main
       - dev
       - re-design
+      - v4
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: "3.41.8"
+  FLUTTER_VERSION: "3.41.9"
   # SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} # Securely store this
   IS_TEST_ENV: true
 

@@ -1,6 +1,7 @@
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart' hide Category;
-import 'package:supabase_models/brick/models/plan.dart';
+import 'package:flipper_models/models/subscription_plan.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'ditto_core_mixin.dart';
 
 mixin PlanMixin on DittoCore {
@@ -8,8 +9,14 @@ mixin PlanMixin on DittoCore {
   /// [Sync.registerSubscription] for the `plans` collection.
   static final Set<String> _planReplicationSubscriptions = {};
 
+  /// Registered plan ids for `addons` replication.
+  static final Set<String> _addonReplicationSubscriptions = {};
+
   static const String _planQuery =
       'SELECT * FROM plans WHERE businessId = :businessId';
+
+  static const String _addonQuery =
+      'SELECT * FROM addons WHERE planId = :planId';
 
   /// Ensures Ditto **replicates** matching `plans` documents from the mesh /
   /// Big Peer. Without this, [Store.execute] only sees whatever is already
@@ -19,11 +26,31 @@ mixin PlanMixin on DittoCore {
   bool _ensurePlanReplicationSubscription(String businessId) {
     if (dittoInstance == null) return false;
     if (_planReplicationSubscriptions.contains(businessId)) return false;
-    dittoInstance!.sync.registerSubscription(
+    final prepared = prepareDqlSyncSubscription(
       _planQuery,
-      arguments: {'businessId': businessId},
+      {'businessId': businessId},
+    );
+    dittoInstance!.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
     );
     _planReplicationSubscriptions.add(businessId);
+    return true;
+  }
+
+  /// Returns `true` the first time we register for this [planId].
+  bool _ensureAddonReplicationSubscription(String planId) {
+    if (dittoInstance == null) return false;
+    if (_addonReplicationSubscriptions.contains(planId)) return false;
+    final prepared = prepareDqlSyncSubscription(
+      _addonQuery,
+      {'planId': planId},
+    );
+    dittoInstance!.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+    _addonReplicationSubscriptions.add(planId);
     return true;
   }
 
@@ -81,10 +108,55 @@ mixin PlanMixin on DittoCore {
       if (merged.isEmpty) return null;
 
       final doc = _selectCanonicalPlanDocument(merged);
-      return _planFromDittoDocument(doc);
+      final planId = (doc['_id'] ?? doc['id'])?.toString();
+      List<PlanAddon> addons = const [];
+      if (planId != null && planId.isNotEmpty) {
+        addons = await _addonsForPlanFromDitto(planId);
+      }
+      return _planFromDittoDocument(doc, addons: addons);
     } catch (e) {
       debugPrint('❌ Error getting payment plan from Ditto: $e');
       return null;
+    }
+  }
+
+  Future<List<PlanAddon>> _addonsForPlanFromDitto(String planId) async {
+    if (dittoInstance == null) return const [];
+
+    final args = {'planId': planId};
+    try {
+      final isNew = _ensureAddonReplicationSubscription(planId);
+      List<Map<String, dynamic>>? observerSnapshot;
+
+      if (isNew) {
+        late final StoreObserver observer;
+        observer = dittoInstance!.store.registerObserver(
+          _addonQuery,
+          arguments: args,
+          onChange: (result) {
+            observerSnapshot = _mapsFromQueryResult(result);
+          },
+        );
+        final streamSub = observer.changes.listen((_) {});
+        try {
+          await Future.delayed(const Duration(milliseconds: 1200));
+        } finally {
+          await streamSub.cancel();
+          observer.cancel();
+        }
+      }
+
+      final execResult = await dittoInstance!.store.execute(
+        _addonQuery,
+        arguments: args,
+      );
+      final execDocs = _mapsFromQueryResult(execResult);
+      final merged = <Map<String, dynamic>>[...execDocs, ...?observerSnapshot];
+
+      return merged.map(PlanAddon.fromDittoDocument).toList(growable: false);
+    } catch (e) {
+      debugPrint('❌ Error getting plan addons from Ditto: $e');
+      return const [];
     }
   }
 
@@ -136,33 +208,38 @@ mixin PlanMixin on DittoCore {
     return 0;
   }
 
-  Plan _planFromDittoDocument(Map<String, dynamic> document) {
-    final id = document["_id"] ?? document["id"];
-    if (id == null) throw ArgumentError('Plan document missing id');
+  Plan _planFromDittoDocument(
+    Map<String, dynamic> document, {
+    List<PlanAddon> addons = const [],
+  }) {
+    final idRaw = document['_id'] ?? document['id'];
+    if (idRaw == null) throw ArgumentError('Plan document missing id');
+    final id = idRaw.toString();
 
     return Plan(
       id: id,
-      businessId: document["businessId"],
-      branchId: document["branchId"],
-      selectedPlan: document["selectedPlan"],
-      additionalDevices: document["additionalDevices"],
-      isYearlyPlan: document["isYearlyPlan"],
-      totalPrice: document["totalPrice"],
-      createdAt: _parseDateTime(document["createdAt"]),
-      paymentCompletedByUser: document["paymentCompletedByUser"],
-      rule: document["rule"],
-      paymentMethod: document["paymentMethod"],
-      nextBillingDate: _parseDateTime(document["nextBillingDate"]),
-      numberOfPayments: document["numberOfPayments"],
-      phoneNumber: document["phoneNumber"],
-      externalId: document["externalId"],
-      paymentStatus: document["paymentStatus"],
-      lastProcessedAt: _parseDateTime(document["lastProcessedAt"]),
-      lastError: document["lastError"],
-      updatedAt: _parseDateTime(document["updatedAt"]),
-      lastUpdated: _parseDateTime(document["lastUpdated"]),
-      processingStatus: document["processingStatus"],
-      lastPaymentDate: _parseDateTime(document["lastPaymentDate"]),
+      businessId: document['businessId']?.toString(),
+      branchId: document['branchId']?.toString(),
+      selectedPlan: document['selectedPlan']?.toString(),
+      additionalDevices: (document['additionalDevices'] as num?)?.toInt(),
+      isYearlyPlan: document['isYearlyPlan'] as bool?,
+      totalPrice: (document['totalPrice'] as num?)?.toInt(),
+      createdAt: _parseDateTime(document['createdAt']),
+      paymentCompletedByUser: document['paymentCompletedByUser'] == true,
+      rule: document['rule']?.toString(),
+      paymentMethod: document['paymentMethod']?.toString(),
+      nextBillingDate: _parseDateTime(document['nextBillingDate']),
+      numberOfPayments: (document['numberOfPayments'] as num?)?.toInt(),
+      addons: addons,
+      phoneNumber: document['phoneNumber']?.toString(),
+      externalId: document['externalId']?.toString(),
+      paymentStatus: document['paymentStatus']?.toString(),
+      lastProcessedAt: _parseDateTime(document['lastProcessedAt']),
+      lastError: document['lastError']?.toString(),
+      updatedAt: _parseDateTime(document['updatedAt']),
+      lastUpdated: _parseDateTime(document['lastUpdated']),
+      processingStatus: document['processingStatus']?.toString(),
+      lastPaymentDate: _parseDateTime(document['lastPaymentDate']),
     );
   }
 

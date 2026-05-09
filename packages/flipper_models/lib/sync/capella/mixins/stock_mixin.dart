@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:uuid/uuid.dart';
@@ -205,6 +206,56 @@ mixin CapellaStockMixin implements StockInterface {
     }
   }
 
+  @override
+  Future<Map<String, Stock>> batchGetStocksByIds(List<String> ids) async {
+    final unique = ids
+        .where((id) => id.trim().isNotEmpty)
+        .map((id) => id.trim())
+        .toSet()
+        .toList();
+    if (unique.isEmpty) return {};
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized batchGetStocksByIds');
+      return {};
+    }
+
+    try {
+      final placeholders = unique
+          .asMap()
+          .entries
+          .map((e) => ':s${e.key}')
+          .join(', ');
+      final arguments = <String, dynamic>{
+        for (var i = 0; i < unique.length; i++) 's$i': unique[i],
+      };
+      final query =
+          'SELECT * FROM stocks WHERE _id IN ($placeholders) OR id IN ($placeholders)';
+      final result = await ditto.store.execute(query, arguments: arguments);
+
+      final out = <String, Stock>{};
+      for (final doc in result.items) {
+        final stock = _convertFromDittoDocument(
+          Map<String, dynamic>.from(doc.value),
+        );
+        out[stock.id] = stock;
+      }
+      return out;
+    } catch (e, st) {
+      talker.warning(
+        'batchGetStocksByIds failed ($e), falling back per id\n$st',
+      );
+      final out = <String, Stock>{};
+      for (final id in unique) {
+        try {
+          out[id] = await getStockById(id: id);
+        } catch (_) {}
+      }
+      return out;
+    }
+  }
+
   /// Watch stock by ID and get updates as a stream
   Stream<Stock?> watchStockById(String id) {
     try {
@@ -224,7 +275,11 @@ mixin CapellaStockMixin implements StockInterface {
           final arguments = {'id': id};
 
           // Subscribe to ensure we have the latest data from Ditto mesh
-          await ditto.sync.registerSubscription(query, arguments: arguments);
+          final prepared = prepareDqlSyncSubscription(query, arguments);
+          await ditto.sync.registerSubscription(
+            prepared.dql,
+            arguments: prepared.arguments,
+          );
 
           // Use registerObserver with initial data fetch
           final completer = Completer<Stock?>();
@@ -397,6 +452,53 @@ mixin CapellaStockMixin implements StockInterface {
     }
   }
 
+  static const int _batchUpdateStocksConcurrency = 8;
+
+  @override
+  Future<void> batchUpdateStocks(
+    Map<String, ({double currentStock, double rsdQty})> byStockId,
+  ) async {
+    if (byStockId.isEmpty) return;
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized: batchUpdateStocks');
+      return;
+    }
+
+    Future<void> updateOne(String stockId, double current, double rsd) async {
+      await ditto.store.execute(
+        '''
+UPDATE stocks SET currentStock = :currentStock, rsdQty = :rsdQty
+WHERE _id = :stockId
+''',
+        arguments: {
+          'stockId': stockId,
+          'currentStock': current,
+          'rsdQty': rsd,
+        },
+      );
+    }
+
+    final entries = byStockId.entries.toList();
+    for (var i = 0; i < entries.length; i += _batchUpdateStocksConcurrency) {
+      final end = (i + _batchUpdateStocksConcurrency < entries.length)
+          ? i + _batchUpdateStocksConcurrency
+          : entries.length;
+      await Future.wait(
+        [
+          for (var j = i; j < end; j++)
+            updateOne(
+              entries[j].key,
+              entries[j].value.currentStock,
+              entries[j].value.rsdQty,
+            ),
+        ],
+        eagerError: true,
+      );
+    }
+  }
+
   @override
   Future<Stock> saveStock({
     Variant? variant,
@@ -429,7 +531,7 @@ mixin CapellaStockMixin implements StockInterface {
     );
     // Ensure existing stock is synced
     await ditto.store.execute(
-      "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+      "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
       arguments: {'doc': stock.toJson()},
     );
     await repository.upsert<Stock>(stock);
@@ -489,7 +591,11 @@ mixin CapellaStockMixin implements StockInterface {
     query += ' ORDER BY createdAt DESC LIMIT :limit';
 
     // Register subscription
-    ditto.sync.registerSubscription(query, arguments: arguments);
+    final prepared = prepareDqlSyncSubscription(query, arguments);
+    ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
 
     observer = ditto.store.registerObserver(
       query,
@@ -507,7 +613,9 @@ mixin CapellaStockMixin implements StockInterface {
             if (request.subBranchId != null) {
               // Ensure we subscribe to this branch data so it syncs to this device
               ditto.sync.registerSubscription(
-                "SELECT * FROM branches WHERE _id = '${request.subBranchId}'",
+                dqlForSyncSubscription(
+                  "SELECT * FROM branches WHERE _id = '${request.subBranchId}'",
+                ),
               );
 
               talker.info(
@@ -578,7 +686,11 @@ mixin CapellaStockMixin implements StockInterface {
     query += ' ORDER BY createdAt DESC LIMIT :limit';
 
     // Register subscription
-    ditto.sync.registerSubscription(query, arguments: arguments);
+    final preparedOutgoing = prepareDqlSyncSubscription(query, arguments);
+    ditto.sync.registerSubscription(
+      preparedOutgoing.dql,
+      arguments: preparedOutgoing.arguments,
+    );
 
     observer = ditto.store.registerObserver(
       query,
@@ -596,7 +708,9 @@ mixin CapellaStockMixin implements StockInterface {
             if (request.mainBranchId != null) {
               // Ensure subscription
               ditto.sync.registerSubscription(
-                "SELECT * FROM branches WHERE _id = '${request.mainBranchId}'",
+                dqlForSyncSubscription(
+                  "SELECT * FROM branches WHERE _id = '${request.mainBranchId}'",
+                ),
               );
 
               final branchResult = await ditto.store.execute(
@@ -715,9 +829,13 @@ mixin CapellaStockMixin implements StockInterface {
 
       final controller = StreamController<Stock?>.broadcast();
       dynamic observer;
-      ditto.sync.registerSubscription(
+      final preparedStockId = prepareDqlSyncSubscription(
         "SELECT * FROM stocks WHERE id = :id",
-        arguments: {'id': stockId},
+        {'id': stockId},
+      );
+      ditto.sync.registerSubscription(
+        preparedStockId.dql,
+        arguments: preparedStockId.arguments,
       );
       observer = ditto.store.registerObserver(
         'SELECT * FROM stocks WHERE id = :id',

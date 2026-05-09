@@ -170,8 +170,31 @@ class SharedPreferenceStorage implements LocalStorage {
       _cache = Map<String, dynamic>.from(legacy)..addAll(dittoMap);
     }
 
+    // Ditto 5: merged snapshot can briefly win for branch/business/user even when
+    // the in-memory cache was just updated (e.g. LoginChoices setDefaultBranch).
+    // Prefer non-empty legacy values so Capella queries never see an empty branchId.
+    _preferLegacySessionContext(_cache, legacy);
+
     await _writeDittoPayload();
     await _savePreferences();
+  }
+
+  static const Set<String> _sessionContextKeys = {
+    'branchId',
+    'businessId',
+    'userId',
+  };
+
+  void _preferLegacySessionContext(
+    Map<String, dynamic> merged,
+    Map<String, dynamic> legacy,
+  ) {
+    for (final k in _sessionContextKeys) {
+      final leg = legacy[k];
+      if (leg is String && leg.isNotEmpty) {
+        merged[k] = leg;
+      }
+    }
   }
 
   Future<Map<String, dynamic>?> _readDittoPayloadMap() async {

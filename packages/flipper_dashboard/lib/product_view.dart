@@ -450,6 +450,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         return ref
             .watch(outerVariantsProvider(branchId))
             .when(
+              skipLoadingOnReload: true,
+              skipLoadingOnRefresh: true,
               data: (variants) {
                 if (variants.isEmpty) {
                   final hasBranch = branchId.isNotEmpty;

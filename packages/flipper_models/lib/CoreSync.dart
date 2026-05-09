@@ -9,6 +9,7 @@ import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
@@ -1308,24 +1309,24 @@ class CoreSync extends AiStrategyImpl
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 
-  Future<models.Plan?> _paymentPlanFromSupabase(String businessId) async {
+  Future<Plan?> _paymentPlanFromSupabase(String businessId) async {
     final row = await Supabase.instance.client
         .from('plans')
         .select()
         .eq('business_id', businessId)
         .maybeSingle();
     if (row == null) return null;
-    return models.Plan.fromSupabaseJson(Map<String, dynamic>.from(row));
+    return Plan.fromSupabaseJson(Map<String, dynamic>.from(row));
   }
 
   @override
-  Future<models.Plan?> getPaymentPlan({
+  Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
     bool? preferFresh,
   }) async {
     try {
-      // Prefer Ditto when live (e.g. PlanSyncJob). Plan is not in Brick/SQLite — if Ditto misses
+      // Prefer Ditto when live (e.g. PlanDittoScheduler). Plan is not in Brick/SQLite — if Ditto misses
       // or is not ready, read the `plans` row from Supabase (same as GetterOperationsMixin).
       if (dittoService.isReady()) {
         final plan = await dittoService.getPaymentPlanFromDitto(businessId);
@@ -1356,7 +1357,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> upsertPlan({
     required String businessId,
-    required models.Plan selectedPlan,
+    required Plan selectedPlan,
   }) async {
     try {
       selectedPlan.updatedAt = DateTime.now();
@@ -1388,9 +1389,26 @@ class CoreSync extends AiStrategyImpl
         'processing_status': selectedPlan.processingStatus,
         'last_payment_date': selectedPlan.lastPaymentDate?.toIso8601String(),
       });
+      unawaited(_notifyTurboPlanSyncedToDitto(planId: id));
     } catch (e) {
       talker.error('upsertPlan error: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _notifyTurboPlanSyncedToDitto({required String planId}) async {
+    try {
+      final response = await ProxyService.http.post(
+        Uri.parse('$apihub/v2/api/plans/$planId/sync-ditto'),
+      );
+      if (response.statusCode >= 400) {
+        talker.warning(
+          'Plan Ditto sync notify failed (${response.statusCode}): ${response.body}',
+        );
+      }
+    } catch (e, st) {
+      talker.warning('Plan Ditto sync notify error: $e');
+      foundation.debugPrintStack(stackTrace: st);
     }
   }
 
@@ -1465,7 +1483,7 @@ class CoreSync extends AiStrategyImpl
     // required String payStackUserId,
     required String paymentMethod,
     String? customerCode,
-    models.Plan? plan,
+    Plan? plan,
     int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   }) async {
@@ -1508,7 +1526,7 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
-  Future<List<models.PlanAddon>> _fetchExistingAddons(String businessId) async {
+  Future<List<PlanAddon>> _fetchExistingAddons(String businessId) async {
     try {
       final response = await Supabase.instance.client
           .from('plans')
@@ -1526,7 +1544,7 @@ class CoreSync extends AiStrategyImpl
       }
 
       return addonsData.map((addonJson) {
-        return models.PlanAddon(
+        return PlanAddon(
           id: addonJson['id'] as String,
           planId: addonJson['plan_id'] as String?,
           addonName: addonJson['addon_name'] as String?,
@@ -1541,15 +1559,15 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
-  Future<List<models.PlanAddon>> _processNewAddons({
+  Future<List<PlanAddon>> _processNewAddons({
     required String businessId,
-    required List<models.PlanAddon> existingAddons,
+    required List<PlanAddon> existingAddons,
     required List<String>? newAddonNames,
     required bool isYearlyPlan,
   }) async {
     if (newAddonNames == null || newAddonNames.isEmpty) return existingAddons;
 
-    final updatedAddons = List<models.PlanAddon>.from(existingAddons);
+    final updatedAddons = List<PlanAddon>.from(existingAddons);
     final existingAddonNames = existingAddons.map((e) => e.addonName).toSet();
 
     final newAddonsToInsert = <Map<String, dynamic>>[];
@@ -1557,7 +1575,7 @@ class CoreSync extends AiStrategyImpl
     for (final addonName in newAddonNames) {
       if (existingAddonNames.contains(addonName)) continue;
 
-      final newAddon = models.PlanAddon(
+      final newAddon = PlanAddon(
         addonName: addonName,
         createdAt: DateTime.now().toUtc(),
         planId: businessId,
@@ -1581,17 +1599,17 @@ class CoreSync extends AiStrategyImpl
     return updatedAddons;
   }
 
-  Future<models.Plan> _upsertPlan({
+  Future<Plan> _upsertPlan({
     required String businessId,
     required String selectedPlan,
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
     required String paymentMethod,
-    required List<models.PlanAddon> addons,
+    required List<PlanAddon> addons,
     required DateTime nextBillingDate,
     required int numberOfPayments,
-    models.Plan? plan,
+    Plan? plan,
   }) async {
     final planId = plan?.id ?? const Uuid().v4();
     final now = DateTime.now().toUtc();
@@ -1614,7 +1632,9 @@ class CoreSync extends AiStrategyImpl
 
     await Supabase.instance.client.from('plans').upsert(planData);
 
-    final savedPlan = models.Plan(
+    unawaited(_notifyTurboPlanSyncedToDitto(planId: planId));
+
+    final savedPlan = Plan(
       id: planId,
       businessId: businessId,
       selectedPlan: selectedPlan,
@@ -2555,13 +2575,13 @@ class CoreSync extends AiStrategyImpl
         talker.error('Ditto not initialized:001');
         return false;
       }
-      ditto.sync.registerSubscription(
+      final preparedEbm = prepareDqlSyncSubscription(
         "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
-        arguments: {'businessId': businessId, 'branchId': branchId},
+        {'businessId': businessId, 'branchId': branchId},
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
-        arguments: {'businessId': businessId, 'branchId': branchId},
+      ditto.sync.registerSubscription(
+        preparedEbm.dql,
+        arguments: preparedEbm.arguments,
       );
 
       // Query the ebms table using Ditto
@@ -2573,7 +2593,11 @@ class CoreSync extends AiStrategyImpl
       };
 
       // Subscribe to ensure we have the latest data from Ditto mesh
-      await ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedEbm2 = prepareDqlSyncSubscription(query, arguments);
+      await ditto.sync.registerSubscription(
+        preparedEbm2.dql,
+        arguments: preparedEbm2.arguments,
+      );
 
       // Use registerObserver to wait for data
       final completer = Completer<List<dynamic>>();
@@ -3861,6 +3885,9 @@ class CoreSync extends AiStrategyImpl
                   createdAt: accessJson['created_at'] != null
                       ? DateTime.tryParse(accessJson['created_at'])
                       : null,
+                  expiresAt: accessJson['expires_at'] != null
+                      ? DateTime.tryParse(accessJson['expires_at'])
+                      : null,
                 ),
               );
             }
@@ -3884,7 +3911,7 @@ class CoreSync extends AiStrategyImpl
     final rows = List<Map<String, dynamic>>.from(
       (raw as List).map((e) => Map<String, dynamic>.from(e as Map)),
     );
-    final plans = rows.map(models.Plan.fromSupabaseJson).toList();
+    final plans = rows.map(Plan.fromSupabaseJson).toList();
 
     if (plans.length < 2) return;
 
@@ -3895,7 +3922,7 @@ class CoreSync extends AiStrategyImpl
         .where((p) => !(p.paymentCompletedByUser ?? false))
         .toList();
 
-    models.Plan? planToKeep;
+    Plan? planToKeep;
 
     if (paidPlans.isNotEmpty) {
       paidPlans.sort(

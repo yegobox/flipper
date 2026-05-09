@@ -27,6 +27,11 @@ mixin StockMixin implements StockInterface {
   }
 
   @override
+  Future<Map<String, Stock>> batchGetStocksByIds(List<String> ids) async {
+    return ProxyService.getStrategy(Strategy.capella).batchGetStocksByIds(ids);
+  }
+
+  @override
   Stream<Stock?> watchStockByVariantId({required String stockId}) {
     throw UnimplementedError('watchStockByVariantId needs to be implemented');
   }
@@ -75,6 +80,19 @@ mixin StockMixin implements StockInterface {
     }
 
     await repository.upsert(stock);
+  }
+
+  @override
+  Future<void> batchUpdateStocks(
+    Map<String, ({double currentStock, double rsdQty})> byStockId,
+  ) async {
+    for (final e in byStockId.entries) {
+      await updateStock(
+        stockId: e.key,
+        currentStock: e.value.currentStock,
+        rsdQty: e.value.rsdQty,
+      );
+    }
   }
 
   @override
