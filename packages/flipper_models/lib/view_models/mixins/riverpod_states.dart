@@ -43,7 +43,7 @@ final connectivityStreamProvider = StreamProvider<bool>((ref) {
 final customersStreamProvider = StreamProvider.autoDispose
     .family<List<Customer>, ({String? branchId, String? id})>((ref, params) {
       final (:branchId, :id) = params;
-      return ProxyService.strategy.customersStream(
+      return ProxyService.getStrategy(Strategy.capella).customersStream(
         branchId: branchId ?? "",
         id: id,
       );
@@ -268,16 +268,14 @@ class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
     List<Customer> customers,
     String searchString,
   ) {
-    if (searchString.isNotEmpty) {
-      return customers
-          .where(
-            (customer) => customer.custNm!.toLowerCase().contains(
-              searchString.toLowerCase(),
-            ),
-          )
-          .toList();
-    }
-    return customers;
+    if (searchString.isEmpty) return customers;
+    final q = searchString.toLowerCase();
+    return customers.where((customer) {
+      final name = customer.custNm?.toLowerCase() ?? '';
+      final email = customer.email?.toLowerCase() ?? '';
+      final tel = customer.telNo?.toLowerCase() ?? '';
+      return name.contains(q) || email.contains(q) || tel.contains(q);
+    }).toList();
   }
 }
 

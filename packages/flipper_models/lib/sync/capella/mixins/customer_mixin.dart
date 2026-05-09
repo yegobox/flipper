@@ -12,6 +12,30 @@ mixin CapellaCustomerMixin implements CustomerInterface {
   DittoService get dittoService => DittoService.instance;
   Talker get talker;
 
+  Customer _customerFromDittoMap(Map<String, dynamic> item) {
+    return Customer(
+      id: item['id']?.toString(),
+      custNm: item['custNm']?.toString(),
+      email: item['email']?.toString(),
+      telNo: item['telNo']?.toString(),
+      adrs: item['adrs']?.toString(),
+      branchId: item['branchId']?.toString(),
+      updatedAt: item['updatedAt'] != null
+          ? DateTime.tryParse(item['updatedAt'].toString())
+          : null,
+      custNo: item['custNo']?.toString(),
+      custTin: item['custTin']?.toString(),
+      regrNm: item['regrNm']?.toString(),
+      regrId: item['regrId']?.toString(),
+      modrNm: item['modrNm']?.toString(),
+      modrId: item['modrId']?.toString(),
+      ebmSynced: item['ebmSynced'] as bool?,
+      bhfId: item['bhfId']?.toString(),
+      useYn: item['useYn']?.toString(),
+      customerType: item['customerType']?.toString(),
+    );
+  }
+
   @override
   Future<Customer?> addCustomer({
     required Customer customer,
@@ -305,26 +329,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       // Parse results
       final customers = items
           .map(
-            (doc) => Customer(
-              id: doc.value['id']?.toString(),
-              custNm: doc.value['custNm']?.toString(),
-              email: doc.value['email']?.toString(),
-              telNo: doc.value['telNo']?.toString(),
-              adrs: doc.value['adrs']?.toString(),
-              branchId: doc.value['branchId']?.toString(),
-              updatedAt: doc.value['updatedAt'] != null
-                  ? DateTime.tryParse(doc.value['updatedAt'].toString())
-                  : null,
-              custNo: doc.value['custNo']?.toString(),
-              custTin: doc.value['custTin']?.toString(),
-              regrNm: doc.value['regrNm']?.toString(),
-              regrId: doc.value['regrId']?.toString(),
-              modrNm: doc.value['modrNm']?.toString(),
-              modrId: doc.value['modrId']?.toString(),
-              ebmSynced: doc.value['ebmSynced'] as bool?,
-              bhfId: doc.value['bhfId']?.toString(),
-              useYn: doc.value['useYn']?.toString(),
-              customerType: doc.value['customerType']?.toString(),
+            (doc) => _customerFromDittoMap(
+              Map<String, dynamic>.from(doc.value as Map),
             ),
           )
           .toList();
@@ -471,26 +477,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       if (items.isEmpty) return null;
 
       final item = items.first.value;
-      final customer = Customer(
-        id: item['id']?.toString(),
-        custNm: item['custNm']?.toString(),
-        email: item['email']?.toString(),
-        telNo: item['telNo']?.toString(),
-        adrs: item['adrs']?.toString(),
-        branchId: item['branchId']?.toString(),
-        updatedAt: item['updatedAt'] != null
-            ? DateTime.tryParse(item['updatedAt'].toString())
-            : null,
-        custNo: item['custNo']?.toString(),
-        custTin: item['custTin']?.toString(),
-        regrNm: item['regrNm']?.toString(),
-        regrId: item['regrId']?.toString(),
-        modrNm: item['modrNm']?.toString(),
-        modrId: item['modrId']?.toString(),
-        ebmSynced: item['ebmSynced'] as bool?,
-        bhfId: item['bhfId']?.toString(),
-        useYn: item['useYn']?.toString(),
-        customerType: item['customerType']?.toString(),
+      final customer = _customerFromDittoMap(
+        Map<String, dynamic>.from(item as Map),
       );
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -528,5 +516,144 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       );
       return null;
     }
+  }
+
+  /// Live Ditto-backed customer list; matches [CoreSync.customersStream] cases.
+  Stream<List<Customer>> customersStream({
+    required String branchId,
+    String? key,
+    String? id,
+  }) {
+    if (key != null && key.isNotEmpty) {
+      return Stream.fromFuture(
+        Future(() async {
+          final list = await customers(
+            branchId: branchId,
+            key: key,
+            id: id,
+          );
+          return List<Customer>.from(list);
+        }),
+      );
+    }
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized: customersStream');
+      return Stream.value([]);
+    }
+
+    if (id != null && id.isNotEmpty) {
+      final query = 'SELECT * FROM customers WHERE id = :id';
+      final arguments = <String, dynamic>{'id': id};
+      final prepared = prepareDqlSyncSubscription(query, arguments);
+      final subscription = ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+
+      final controller = StreamController<List<Customer>>.broadcast();
+      dynamic observer;
+
+      void emitFromResult(dynamic queryResult) {
+        if (controller.isClosed) return;
+        final customers = <Customer>[];
+        for (final doc in queryResult.items) {
+          try {
+            customers.add(
+              _customerFromDittoMap(
+                Map<String, dynamic>.from(doc.value as Map),
+              ),
+            );
+          } catch (e) {
+            talker.error('Error converting customer in stream: $e');
+          }
+        }
+        controller.add(customers);
+      }
+
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (queryResult) => emitFromResult(queryResult),
+      );
+
+      ditto.store
+          .execute(query, arguments: arguments)
+          .then(emitFromResult)
+          .catchError((Object e) {
+            talker.error('Error seeding customers stream (by id): $e');
+          });
+
+      controller.onCancel = () async {
+        await observer?.cancel();
+        subscription.cancel();
+        await controller.close();
+      };
+
+      return controller.stream;
+    }
+
+    if (branchId.isEmpty) {
+      return Stream.value([]);
+    }
+
+    final preparedBranch = prepareDqlSyncSubscription(
+      "SELECT * FROM customers WHERE branchId = :branchId",
+      {'branchId': branchId},
+    );
+    ditto.sync.registerSubscription(
+      preparedBranch.dql,
+      arguments: preparedBranch.arguments,
+    );
+
+    final query = 'SELECT * FROM customers WHERE branchId = :branchId';
+    final arguments = <String, dynamic>{'branchId': branchId};
+    final prepared = prepareDqlSyncSubscription(query, arguments);
+    final subscription = ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+
+    final controller = StreamController<List<Customer>>.broadcast();
+    dynamic observer;
+
+    void emitFromResult(dynamic queryResult) {
+      if (controller.isClosed) return;
+      final customers = <Customer>[];
+      for (final doc in queryResult.items) {
+        try {
+          customers.add(
+            _customerFromDittoMap(
+              Map<String, dynamic>.from(doc.value as Map),
+            ),
+          );
+        } catch (e) {
+          talker.error('Error converting customer in stream: $e');
+        }
+      }
+      controller.add(customers);
+    }
+
+    observer = ditto.store.registerObserver(
+      query,
+      arguments: arguments,
+      onChange: (queryResult) => emitFromResult(queryResult),
+    );
+
+    ditto.store
+        .execute(query, arguments: arguments)
+        .then(emitFromResult)
+        .catchError((Object e) {
+          talker.error('Error seeding customers stream: $e');
+        });
+
+    controller.onCancel = () async {
+      await observer?.cancel();
+      subscription.cancel();
+      await controller.close();
+    };
+
+    return controller.stream;
   }
 }

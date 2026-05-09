@@ -783,16 +783,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<Customer>> customersStream({
-    required String branchId,
-    String? key,
-    String? id,
-  }) {
-    // TODO: implement customersStream
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<Branch?> defaultBranch() {
     // TODO: implement defaultBranch
     throw UnimplementedError();

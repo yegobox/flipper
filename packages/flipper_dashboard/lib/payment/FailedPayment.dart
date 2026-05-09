@@ -375,12 +375,17 @@ class _FailedPaymentState extends State<FailedPayment>
   // Keep original setup logic exactly as is
   Future<void> _setupPlanSubscription() async {
     try {
-      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
+      // Avoid an infinite spinner when Brick, Ditto, or Supabase never completes (e.g. flaky network).
+      final businessId = (await ProxyService.strategy
+          .activeBusiness()
+          .timeout(const Duration(seconds: 15)))?.id;
       if (businessId == null) throw Exception('No active business');
 
-      final fetchedPlan = await ProxyService.strategy.getPaymentPlan(
-        businessId: businessId,
-      );
+      final fetchedPlan = await ProxyService.strategy
+          .getPaymentPlan(
+            businessId: businessId,
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (!_mounted) return;
 
@@ -470,23 +475,26 @@ class _FailedPaymentState extends State<FailedPayment>
         // Subscription fails when offline; initial plan came from Ditto / getPaymentPlan
       }
     } catch (e) {
-      if (!_mounted || !context.mounted) return;
+      if (!_mounted) return;
+
+      final message = e is TimeoutException
+          ? 'Loading took too long. Check your connection, refresh the page, or try again.'
+          : 'Error loading plan details: $e';
 
       setState(() {
-        _errorMessage = 'Error loading plan details: $e';
+        _errorMessage = message;
         _isLoading = false;
       });
 
       // Defer SnackBar to ensure context is valid
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          showCustomSnackBarUtil(
-            context,
-            'Payment Failed try again',
-            backgroundColor: Colors.red,
-            showCloseButton: true,
-          );
-        }
+        if (!mounted) return;
+        showCustomSnackBarUtil(
+          context,
+          'Payment Failed try again',
+          backgroundColor: Colors.red,
+          showCloseButton: true,
+        );
       });
     }
   }

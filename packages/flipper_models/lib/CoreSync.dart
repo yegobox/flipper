@@ -1389,9 +1389,26 @@ class CoreSync extends AiStrategyImpl
         'processing_status': selectedPlan.processingStatus,
         'last_payment_date': selectedPlan.lastPaymentDate?.toIso8601String(),
       });
+      unawaited(_notifyTurboPlanSyncedToDitto(planId: id));
     } catch (e) {
       talker.error('upsertPlan error: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _notifyTurboPlanSyncedToDitto({required String planId}) async {
+    try {
+      final response = await ProxyService.http.post(
+        Uri.parse('$apihub/v2/api/plans/$planId/sync-ditto'),
+      );
+      if (response.statusCode >= 400) {
+        talker.warning(
+          'Plan Ditto sync notify failed (${response.statusCode}): ${response.body}',
+        );
+      }
+    } catch (e, st) {
+      talker.warning('Plan Ditto sync notify error: $e');
+      foundation.debugPrintStack(stackTrace: st);
     }
   }
 
@@ -1614,6 +1631,8 @@ class CoreSync extends AiStrategyImpl
     };
 
     await Supabase.instance.client.from('plans').upsert(planData);
+
+    unawaited(_notifyTurboPlanSyncedToDitto(planId: planId));
 
     final savedPlan = Plan(
       id: planId,

@@ -2,6 +2,7 @@
 
 import 'dart:developer';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -115,7 +116,9 @@ class PaymentsState extends ConsumerState<Payments> {
         /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
         /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
         /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
-        Customer? customer = (await ProxyService.strategy.customers(
+        Customer? customer = (await ProxyService.getStrategy(
+          Strategy.capella,
+        ).customers(
           id: widget.transaction.customerId ?? "",
           branchId: ProxyService.box.getBranchId()!,
         )).firstOrNull;

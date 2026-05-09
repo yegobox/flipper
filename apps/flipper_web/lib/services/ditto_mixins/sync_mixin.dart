@@ -65,9 +65,9 @@ mixin SyncMixin on DittoCore {
     try {
       debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
       debugPrint(
-        '📁 Ditto persistence directory: ${ditto.absolutePersistenceDirectory}',
+        '📁 Ditto persistence directory: ${ditto.persistenceDirectory}',
       );
-      debugPrint('🔗 Ditto sync active: ${dittoInstance!.sync.isActive}');
+      debugPrint('🔗 Ditto sync active: ${dittoInstance!.isSyncActive}');
       debugPrint('🔑 Ditto auth status: ${dittoInstance!.auth.status}');
     } catch (e) {
       debugPrint('❌ ERROR: Ditto instance is not properly initialized: $e');
@@ -224,7 +224,7 @@ mixin SyncMixin on DittoCore {
   /// Internal method to start sync
   void _startSync({bool fallback = false}) {
     try {
-      dittoInstance!.sync.start();
+      dittoInstance!.startSync();
       debugPrint(
         fallback
             ? 'Ditto sync started (fallback after permission check error)'
@@ -239,7 +239,7 @@ mixin SyncMixin on DittoCore {
   void stopSync() {
     if (dittoInstance != null) {
       try {
-        dittoInstance!.sync.stop();
+        dittoInstance!.stopSync();
         debugPrint('Ditto sync stopped');
       } catch (e) {
         debugPrint('Error stopping Ditto sync: $e');

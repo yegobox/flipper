@@ -143,16 +143,23 @@ class DittoSingleton {
       await Ditto.init();
       print('✅ [INIT] Ditto.init() completed');
 
-      print('🔧 [INIT] Creating DittoConfig (Ditto 5)...');
-      final config = DittoConfig(
-        databaseID: appId,
-        connect: DittoConfigConnectServer(
-          url: 'https://$appId.cloud.ditto.live',
+      print('🔧 [INIT] Creating OnlineWithAuthenticationIdentity (Ditto v4)...');
+      final identity = OnlineWithAuthenticationIdentity(
+        appID: appId,
+        authenticationHandler: AuthenticationHandler(
+          authenticationRequired: (authenticator) {
+            unawaited(_performAuthentication(authenticator.ditto, appId));
+          },
+          authenticationExpiringSoon: (authenticator, secondsRemaining) {
+            unawaited(_performAuthentication(authenticator.ditto, appId));
+          },
         ),
+      );
+      print('✅ [INIT] Calling Ditto.open(identity, persistenceDirectory)...');
+      _ditto = await Ditto.open(
+        identity: identity,
         persistenceDirectory: persistenceDirectory,
       );
-      print('✅ [INIT] Calling Ditto.open(config)...');
-      _ditto = await Ditto.open(config);
       print(
         '✅ [INIT] Ditto.open() completed, instance hashCode: ${_ditto.hashCode}',
       );
@@ -185,8 +192,8 @@ class DittoSingleton {
             '✅ [INIT] Peer-to-peer transports disabled for QR login (cloud WebSocket only)',
           );
         } else {
-          _ditto!.updateTransportConfig((builder) {
-            builder.setAllPeerToPeerEnabled(true);
+          _ditto!.updateTransportConfig((config) {
+            config.setAllPeerToPeerEnabled(true);
           });
           print('✅ [INIT] Peer-to-peer transports enabled');
         }
@@ -194,19 +201,8 @@ class DittoSingleton {
         print('⚠️ [INIT] Error configuring Ditto transports: $e');
       }
 
-      // Ditto 5 invokes expiration handler immediately when no JWT exists — defer on QR
-      // login so we do not double-fetch JWT alongside [_authenticateThenStartLoginSync].
-      if (!isLoginIdentity) {
-        print('🔧 [INIT] Registering auth expiration handler...');
-        await _ditto!.auth.setExpirationHandler((ditto, timeUntilExpiration) {
-          unawaited(_performAuthentication(ditto, appId));
-        });
-        print('✅ [INIT] Auth expiration handler set');
-      } else {
-        print(
-          '⏭️ [INIT] Deferring auth expiration handler until after first JWT',
-        );
-      }
+      // v4: auth refresh is driven by [AuthenticationHandler] on
+      // [OnlineWithAuthenticationIdentity] (registered inside Ditto.open).
 
       print(
         '📌 [INIT] About to call DittoService().setDitto(_ditto!) with instance: ${_ditto.hashCode}',
@@ -230,11 +226,11 @@ class DittoSingleton {
       } else {
         try {
           print('🔧 [INIT] Starting Ditto sync...');
-          if (!_ditto!.sync.isActive) {
-            _ditto!.sync.start();
+          if (!_ditto!.isSyncActive) {
+            _ditto!.startSync();
           }
           print(
-            "✅ [INIT] Sync started. is sync active: ${_ditto!.sync.isActive}",
+            "✅ [INIT] Sync started. is sync active: ${_ditto!.isSyncActive}",
           );
           print("✅ [INIT] Auth status: ${_ditto!.auth.status}");
         } catch (e) {
@@ -269,22 +265,12 @@ class DittoSingleton {
     await _performAuthentication(ditto, appId);
 
     try {
-      print('🔧 [INIT] Registering auth expiration handler after QR-login JWT');
-      await ditto.auth.setExpirationHandler((d, _) {
-        unawaited(_performAuthentication(d, appId));
-      });
-      print('✅ [INIT] Auth expiration handler set');
-    } catch (e) {
-      print('⚠️ [INIT] Failed to register auth expiration handler: $e');
-    }
-
-    try {
-      if (_ditto == ditto && !ditto.sync.isActive) {
-        ditto.sync.start();
+      if (_ditto == ditto && !ditto.isSyncActive) {
+        ditto.startSync();
       }
       print(
         '✅ [INIT] QR-login sync started after auth. is sync active: '
-        '${ditto.sync.isActive}',
+        '${ditto.isSyncActive}',
       );
     } catch (e) {
       print('⚠️ [INIT] Error starting QR-login sync after auth: $e');
@@ -322,7 +308,7 @@ class DittoSingleton {
     if (_ditto != null) {
       try {
         print('🛑 Stopping Ditto sync and disposing singleton...');
-        _ditto!.sync.stop();
+        _ditto!.stopSync();
         try {
           _ditto!.close();
         } catch (e) {
@@ -347,7 +333,7 @@ class DittoSingleton {
     if (_ditto != null) {
       try {
         print('🛑 Logging out from Ditto...');
-        _ditto!.sync.stop();
+        _ditto!.stopSync();
         await _ditto!.auth.logout();
         _userId = null;
         print('✅ Ditto logout complete');
