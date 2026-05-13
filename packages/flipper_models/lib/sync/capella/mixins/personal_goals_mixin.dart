@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:flipper_models/helpers/sale_personal_goal_auto_allocation.dart';
 import 'package:flipper_models/models/personal_goal.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaPersonalGoalsMixin {
@@ -147,5 +149,177 @@ mixin CapellaPersonalGoalsMixin {
       'INSERT INTO personal_goals DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},
     );
+  }
+
+  /// After a completed Capella payment, move a slice into goals that have
+  /// [PersonalGoal.autoAllocationPercent] set: **sales** use gross line profit;
+  /// **utility cash book cash-in** ([completeCashMovement]) uses the movement total.
+  /// Idempotent per transaction via `personalGoalSweepApplied` on the transaction
+  /// document in Ditto.
+  Future<void> applyPersonalGoalAutoSweepIfEligible({
+    required String branchId,
+    required String transactionId,
+    required String? completionStatus,
+    required bool isIncome,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String? transactionType,
+    required List<TransactionItem> items,
+    bool isUtilityCashbookMovement = false,
+    bool skipPersonalGoalAutoSweep = false,
+  }) async {
+    final movementSubtotal = items.fold<double>(
+      0.0,
+      (a, b) => a + b.price.toDouble() * b.qty.toDouble(),
+    );
+
+    final utilityCashInEligible = !skipPersonalGoalAutoSweep &&
+        shouldAttemptPersonalGoalUtilityCashInSweep(
+          completionStatus: completionStatus,
+          isIncome: isIncome,
+          isProformaMode: isProformaMode,
+          isTrainingMode: isTrainingMode,
+          isUtilityCashbookMovement: isUtilityCashbookMovement,
+          movementSubTotal: movementSubtotal,
+        );
+
+    final saleEligible = !skipPersonalGoalAutoSweep &&
+        !isUtilityCashbookMovement &&
+        shouldAttemptPersonalGoalSaleSweep(
+          completionStatus: completionStatus,
+          isIncome: isIncome,
+          isProformaMode: isProformaMode,
+          isTrainingMode: isTrainingMode,
+          transactionType: transactionType,
+          hasProductLineItems: items.isNotEmpty,
+        );
+
+    if (!saleEligible && !utilityCashInEligible) {
+      return;
+    }
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.warning('applyPersonalGoalAutoSweepIfEligible: Ditto not ready');
+      return;
+    }
+
+    if (await _transactionPersonalGoalSweepApplied(transactionId)) {
+      return;
+    }
+
+    final double allocationBase;
+    if (utilityCashInEligible) {
+      allocationBase = movementSubtotal;
+    } else {
+      allocationBase = computeSaleGrossProfitFromSaleLines(
+        items
+            .map(
+              (item) => SaleLineForProfit(
+                price: item.price.toDouble(),
+                qty: item.qty.toDouble(),
+                supplyPriceAtSale: item.supplyPriceAtSale?.toDouble(),
+                supplyPrice: item.supplyPrice?.toDouble(),
+                ignoreForReport: item.ignoreForReport == true,
+                partOfComposite: item.partOfComposite == true,
+              ),
+            )
+            .toList(),
+      );
+    }
+
+    if (allocationBase <= 0) {
+      return;
+    }
+
+    List<PersonalGoal> goals;
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM personal_goals WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+      );
+      goals = <PersonalGoal>[];
+      for (final row in result.items) {
+        try {
+          goals.add(
+            PersonalGoal.fromJson(Map<String, dynamic>.from(row.value)),
+          );
+        } catch (e) {
+          talker.warning('applyPersonalGoalAutoSweepIfEligible: bad goal row $e');
+        }
+      }
+    } catch (e, s) {
+      talker.error('applyPersonalGoalAutoSweepIfEligible: load goals $e\n$s');
+      return;
+    }
+
+    final contributions = computeAutoAllocationContributions(
+      allocationBase: allocationBase,
+      goals: goals,
+    );
+    if (contributions.isEmpty) {
+      return;
+    }
+
+    try {
+      for (final c in contributions) {
+        await addToGoalSavedAmount(
+          goalId: c.goalId,
+          branchId: branchId,
+          amount: c.amount,
+          transactionId: transactionId,
+        );
+      }
+      await _markTransactionPersonalGoalSweepApplied(transactionId);
+    } catch (e, s) {
+      talker.error('applyPersonalGoalAutoSweepIfEligible: sweep failed $e\n$s');
+    }
+  }
+
+  Future<bool> _transactionPersonalGoalSweepApplied(String transactionId) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return false;
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM transactions WHERE (_id = :id OR id = :id) LIMIT 1',
+        arguments: {'id': transactionId},
+      );
+      if (result.items.isEmpty) return false;
+      final doc = Map<String, dynamic>.from(result.items.first.value);
+      final v = doc['personalGoalSweepApplied'];
+      if (v is bool) return v;
+      if (v is num) return v != 0;
+      if (v is String) {
+        final lower = v.toLowerCase();
+        return lower == 'true' || lower == '1';
+      }
+      return false;
+    } catch (e) {
+      talker.warning('_transactionPersonalGoalSweepApplied: $e');
+      return false;
+    }
+  }
+
+  Future<void> _markTransactionPersonalGoalSweepApplied(
+    String transactionId,
+  ) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    try {
+      await ditto.store.execute(
+        'UPDATE transactions SET personalGoalSweepApplied = :applied, '
+        'personalGoalSweepAt = :ts WHERE (_id = :id OR id = :id)',
+        arguments: {
+          'id': transactionId,
+          'applied': true,
+          'ts': DateTime.now().toUtc().toIso8601String(),
+        },
+      );
+    } catch (e) {
+      talker.warning(
+        'Could not stamp personalGoalSweepApplied on transaction '
+        '$transactionId (idempotency may be weaker): $e',
+      );
+    }
   }
 }

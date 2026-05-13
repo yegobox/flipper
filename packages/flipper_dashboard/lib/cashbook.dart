@@ -1688,6 +1688,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       talker.info('Starting transaction save with amount: $amount');
       talker.info('Transaction type: $transactionType, isIncome: $isIncome');
 
+      final hasPersonalGoalCashInIntent =
+          ref.read(personalGoalCashInIntentProvider) != null;
+
+      HapticFeedback.lightImpact();
+
       final saveResult = await _saveTransaction(
         countryCode: countryCode,
         bhfId: bhfId,
@@ -1699,6 +1704,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         transactionType: transactionType,
         category: category,
         note: _descriptionController.text,
+        skipPersonalGoalAutoSweep: hasPersonalGoalCashInIntent,
       );
 
       if (saveResult == null) {
@@ -1771,6 +1777,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     required String bhfId,
     required Category category,
     String? note,
+    bool skipPersonalGoalAutoSweep = false,
   }) async {
     try {
       final strategy = ProxyService.strategy;
@@ -1799,6 +1806,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         transactionTypeForRecord: category.name ?? TransactionType.sale,
         categoryId: category.id.toString(),
         note: note,
+        skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
       );
 
       talker.info(

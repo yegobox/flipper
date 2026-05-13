@@ -222,12 +222,18 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? completionStatus,
     /// When set, skip loading line items from the local DB (faster for cash book after a fresh insert).
     List<TransactionItem>? preloadedLineItems,
+    /// Set by [completeCashMovement] so auto-allocation uses cash amount, not SKU margin.
+    bool isUtilityCashbookMovement = false,
+    /// When true, skips auto-allocation (e.g. manual goal cash-in intent on the same save).
+    bool skipPersonalGoalAutoSweep = false,
   });
 
   /// Cash book fast path: one pending txn, one utility line, then completion.
   ///
   /// [utilityVariantName] is typically [TransactionType.cashIn] or [TransactionType.cashOut].
   /// [transactionTypeForRecord] is the category/reporting label (see cashbook / keypad).
+  /// [skipPersonalGoalAutoSweep]: when true, skips Capella auto-allocation into goals
+  /// (e.g. cashbook opened from a goal so the full amount is credited manually).
   Future<ITransaction> completeCashMovement({
     required String branchId,
     required String bhfId,
@@ -242,6 +248,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String transactionTypeForRecord,
     String? categoryId,
     String? note,
+    bool skipPersonalGoalAutoSweep = false,
   });
 
   Future<Setting?> getSetting({required String businessId});

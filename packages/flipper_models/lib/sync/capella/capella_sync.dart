@@ -467,6 +467,8 @@ class CapellaSync extends AiStrategyImpl
     String? note,
     String? completionStatus,
     List<TransactionItem>? preloadedLineItems,
+    bool isUtilityCashbookMovement = false,
+    bool skipPersonalGoalAutoSweep = false,
   }) async {
     if (transaction == null) {
       throw Exception('transaction is null');
@@ -587,6 +589,25 @@ class CapellaSync extends AiStrategyImpl
         isLoan: transaction.isLoan,
       );
 
+      try {
+        final resolvedCompletionForGoals =
+            completionStatus ?? transaction.status;
+        await applyPersonalGoalAutoSweepIfEligible(
+          branchId: branchId,
+          transactionId: transaction.id,
+          completionStatus: resolvedCompletionForGoals,
+          isIncome: isIncome,
+          isProformaMode: isProformaMode,
+          isTrainingMode: isTrainingMode,
+          transactionType: transactionType,
+          items: items,
+          isUtilityCashbookMovement: isUtilityCashbookMovement,
+          skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+        );
+      } catch (e, s) {
+        talker.warning('collectPayment: personal goal auto-sweep skipped: $e\n$s');
+      }
+
       // Defer variant lastTouched updates to avoid DB contention during receipt
       Future.delayed(const Duration(seconds: 5), () async {
         try {
@@ -628,6 +649,7 @@ class CapellaSync extends AiStrategyImpl
     required String transactionTypeForRecord,
     String? categoryId,
     String? note,
+    bool skipPersonalGoalAutoSweep = false,
   }) async {
     final pending = await manageTransaction(
       branchId: branchId,
@@ -693,6 +715,8 @@ class CapellaSync extends AiStrategyImpl
       note: note,
       completionStatus: COMPLETE,
       preloadedLineItems: preloaded,
+      isUtilityCashbookMovement: true,
+      skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
     );
     final movementReceipt = isIncome
         ? TransactionType.cashIn
