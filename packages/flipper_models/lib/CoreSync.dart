@@ -2121,6 +2121,8 @@ class CoreSync extends AiStrategyImpl
     String? note,
     String? completionStatus,
     List<TransactionItem>? preloadedLineItems,
+    bool isUtilityCashbookMovement = false,
+    bool skipPersonalGoalAutoSweep = false,
   }) async {
     if (transaction != null) {
       if (note != null) {
@@ -2277,6 +2279,7 @@ class CoreSync extends AiStrategyImpl
     required String transactionTypeForRecord,
     String? categoryId,
     String? note,
+    bool skipPersonalGoalAutoSweep = false,
   }) async {
     final pending = await manageTransaction(
       branchId: branchId,
@@ -2344,6 +2347,8 @@ class CoreSync extends AiStrategyImpl
       note: note,
       completionStatus: COMPLETE,
       preloadedLineItems: preloaded,
+      isUtilityCashbookMovement: true,
+      skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
     );
     // Cash book: use receiptType so Transaction Reports Type column is Cash In / Out (not NS).
     txn.receiptType =

@@ -22,7 +22,9 @@ class PersonalGoal {
   final double targetAmount;
   final bool isTopPriority;
 
-  /// When set (0–100), UI may show “auto allocation” (profit hook is out of scope).
+  /// When set (0–100), Capella credits this percent into the goal on completed flows:
+  /// **product sales** use gross line profit (retail − supply); **cashbook utility cash-in**
+  /// uses the recorded cash-in amount ([completeCashMovement]).
   final int? autoAllocationPercent;
   final String? note;
   final DateTime? createdAt;
