@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/helpers/personal_goal_contribution_device_key.dart';
 import 'package:flipper_models/helpers/sale_personal_goal_auto_allocation.dart';
 import 'package:flipper_models/models/personal_goal.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
@@ -134,6 +135,7 @@ mixin CapellaPersonalGoalsMixin {
     }
 
     final newSaved = toDouble(raw['savedAmount']) + amount;
+    final deviceKey = await personalGoalContributionDeviceKey();
     final now = DateTime.now();
     final doc = existing
         .copyWith(
@@ -141,8 +143,12 @@ mixin CapellaPersonalGoalsMixin {
           updatedAt: now,
         )
         .toJson();
+    doc['lastContributionDeviceKey'] = deviceKey;
+    doc['lastContributionAmount'] = amount;
     if (transactionId != null && transactionId.isNotEmpty) {
       doc['lastContributionTransactionId'] = transactionId;
+    } else {
+      doc.remove('lastContributionTransactionId');
     }
 
     await ditto.store.execute(

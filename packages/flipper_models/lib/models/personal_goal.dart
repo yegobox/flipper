@@ -13,6 +13,9 @@ class PersonalGoal {
     this.note,
     this.createdAt,
     this.updatedAt,
+    this.lastContributionTransactionId,
+    this.lastContributionDeviceKey,
+    this.lastContributionAmount,
   });
 
   final String id;
@@ -29,6 +32,11 @@ class PersonalGoal {
   final String? note;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  /// Last credit metadata (Ditto); used for cross-device contribution toasts.
+  final String? lastContributionTransactionId;
+  final String? lastContributionDeviceKey;
+  final double? lastContributionAmount;
 
   /// Progress in 0..1
   double get progressRatio {
@@ -52,6 +60,10 @@ class PersonalGoal {
     bool clearNote = false,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? lastContributionTransactionId,
+    String? lastContributionDeviceKey,
+    double? lastContributionAmount,
+    bool clearLastContributionMeta = false,
   }) {
     return PersonalGoal(
       id: id ?? this.id,
@@ -66,6 +78,16 @@ class PersonalGoal {
       note: clearNote ? null : (note ?? this.note),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      lastContributionTransactionId: clearLastContributionMeta
+          ? null
+          : (lastContributionTransactionId ??
+              this.lastContributionTransactionId),
+      lastContributionDeviceKey: clearLastContributionMeta
+          ? null
+          : (lastContributionDeviceKey ?? this.lastContributionDeviceKey),
+      lastContributionAmount: clearLastContributionMeta
+          ? null
+          : (lastContributionAmount ?? this.lastContributionAmount),
     );
   }
 
@@ -83,6 +105,12 @@ class PersonalGoal {
       if (note != null && note!.isNotEmpty) 'note': note,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       'updatedAt': (updatedAt ?? DateTime.now()).toIso8601String(),
+      if (lastContributionTransactionId != null)
+        'lastContributionTransactionId': lastContributionTransactionId,
+      if (lastContributionDeviceKey != null)
+        'lastContributionDeviceKey': lastContributionDeviceKey,
+      if (lastContributionAmount != null)
+        'lastContributionAmount': lastContributionAmount,
     };
   }
 
@@ -112,6 +140,12 @@ class PersonalGoal {
       note: raw['note']?.toString(),
       createdAt: parseDt(raw['createdAt']),
       updatedAt: parseDt(raw['updatedAt']),
+      lastContributionTransactionId:
+          raw['lastContributionTransactionId']?.toString(),
+      lastContributionDeviceKey: raw['lastContributionDeviceKey']?.toString(),
+      lastContributionAmount: raw['lastContributionAmount'] == null
+          ? null
+          : toDouble(raw['lastContributionAmount']),
     );
   }
 }

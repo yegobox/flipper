@@ -59,5 +59,21 @@ void main() {
       expect(decoded.targetAmount, original.targetAmount);
       expect(decoded.autoAllocationPercent, 15);
     });
+
+    test('fromJson maps last contribution metadata', () {
+      final g = PersonalGoal.fromJson({
+        '_id': 'g1',
+        'branchId': 'b1',
+        'name': 'Inventory',
+        'savedAmount': 150,
+        'targetAmount': 1000,
+        'lastContributionTransactionId': 'txn-9',
+        'lastContributionDeviceKey': 'device-remote',
+        'lastContributionAmount': 15,
+      });
+      expect(g.lastContributionTransactionId, 'txn-9');
+      expect(g.lastContributionDeviceKey, 'device-remote');
+      expect(g.lastContributionAmount, 15);
+    });
   });
 }

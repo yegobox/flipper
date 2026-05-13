@@ -9,6 +9,7 @@ import 'package:flipper_rw/state_observer.dart';
 import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+import 'package:flipper_dashboard/features/personal_goals/personal_goal_remote_contribution_listener.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
@@ -366,7 +367,11 @@ class _FlipperAppState extends State<FlipperApp> {
             routerDelegate: _routerDelegate,
             routeInformationParser: _routeInformationParser,
             builder: (context, child) {
-              return LauncherShortcutRouterHost(child: child!);
+              return LauncherShortcutRouterHost(
+                child: PersonalGoalRemoteContributionListener(
+                  child: child!,
+                ),
+              );
             },
           ),
         ),
