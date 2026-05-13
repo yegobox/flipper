@@ -3,15 +3,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_models/providers/category_provider.dart';
 
@@ -72,24 +72,61 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
         .toList();
   }
 
-  /// Persists focused category via [CoreViewModel], sets an optimistic label so
-  /// [CategorySelector] updates immediately (Brick stream can lag), then invalidates streams.
-  Future<void> _onCategorySelected(
-    CoreViewModel model,
-    Category category,
-  ) async {
+  /// Persists focused category via Capella (Ditto + Brick mirror). Sets optimistic focus
+  /// and list selection immediately so UIs (cashbook, MoMo, [CategorySelector]) do not wait
+  /// on the persist round-trip; clears and reverts selection if persist fails.
+  Future<void> _onCategorySelected(Category category) async {
+    final previousSelectedId = _selectedCategoryId;
     setState(() {
       _selectedCategoryId = category.id.toString();
     });
-    final ok = await model.updateCategoryCore(category: category);
-    log('Category selected: ${category.name}');
-    if (!mounted || !ok) return;
     ref.read(optimisticFocusedCategoryProvider.notifier).setFocused(category);
-    ref.invalidate(categoryProvider);
-    final bid = ProxyService.box.getBranchId();
-    if (bid != null) {
-      ref.invalidate(categoriesProvider(branchId: bid));
+
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      if (!mounted) return;
+      ref.read(optimisticFocusedCategoryProvider.notifier).clear();
+      setState(() {
+        _selectedCategoryId = previousSelectedId;
+      });
+      return;
     }
+
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    bool ok = false;
+    try {
+      final allCategories = await capella.categories(branchId: branchId);
+      for (final cat in allCategories) {
+        await capella.updateCategory(
+          categoryId: cat.id,
+          focused: false,
+          active: false,
+          branchId: branchId,
+        );
+      }
+      await capella.updateCategory(
+        categoryId: category.id,
+        focused: true,
+        active: true,
+        branchId: branchId,
+      );
+      ok = true;
+      log('Category selected: ${category.name}');
+    } catch (e) {
+      log('Error updating category: $e');
+    }
+
+    if (!mounted) return;
+    if (!ok) {
+      ref.read(optimisticFocusedCategoryProvider.notifier).clear();
+      setState(() {
+        _selectedCategoryId = previousSelectedId;
+      });
+      return;
+    }
+
+    ref.invalidate(categoryProvider);
+    ref.invalidate(categoriesProvider(branchId: branchId));
   }
 
   bool _isMobileLayout(BuildContext context) =>
@@ -97,7 +134,6 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
 
   Widget buildCategoryItem({
     required Category category,
-    required CoreViewModel model,
     required String groupValue,
   }) {
     final isSelected = category.id.toString() == groupValue;
@@ -106,7 +142,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: ListTile(
         onTap: () {
-          _onCategorySelected(model, category);
+          _onCategorySelected(category);
         },
         title: Text(
           category.name ?? '',
@@ -117,12 +153,6 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
         ),
         trailing: Radio<String>(
           value: category.id.toString(),
-          groupValue: groupValue,
-          activeColor: Theme.of(context).primaryColor,
-          onChanged: (value) {
-            if (value == null) return;
-            _onCategorySelected(model, category);
-          },
         ),
         tileColor: isSelected
             ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
@@ -142,7 +172,6 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
 
   Widget buildCategoryItemMobile({
     required Category category,
-    required CoreViewModel model,
     required String groupValue,
   }) {
     final idx = _categoryVisualIndex(category.id);
@@ -150,7 +179,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          _onCategorySelected(model, category);
+          _onCategorySelected(category);
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
@@ -183,12 +212,6 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
               ),
               Radio<String>(
                 value: category.id.toString(),
-                groupValue: groupValue,
-                activeColor: Theme.of(context).colorScheme.primary,
-                onChanged: (value) {
-                  if (value == null) return;
-                  _onCategorySelected(model, category);
-                },
                 visualDensity: VisualDensity.compact,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -201,45 +224,86 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
 
   Widget buildCategoryList({
     required List<Category> categories,
-    required CoreViewModel model,
     required String groupValue,
   }) {
-    return ListView.builder(
-      itemCount: categories.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        return buildCategoryItem(
-          category: categories[index],
-          model: model,
-          groupValue: groupValue,
-        );
-      },
+    final selectedId =
+        groupValue.isEmpty ? null : groupValue;
+    return RadioTheme(
+      data: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Theme.of(context).primaryColor;
+          }
+          return null;
+        }),
+      ),
+      child: RadioGroup<String>(
+        groupValue: selectedId,
+        onChanged: (String? value) {
+          if (value == null) return;
+          final category = categories.firstWhere(
+            (c) => c.id.toString() == value,
+          );
+          _onCategorySelected(category);
+        },
+        child: ListView.builder(
+          itemCount: categories.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            return buildCategoryItem(
+              category: categories[index],
+              groupValue: groupValue,
+            );
+          },
+        ),
+      ),
     );
   }
 
   Widget buildCategoryListMobile({
     required List<Category> categories,
-    required CoreViewModel model,
     required String groupValue,
   }) {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      itemCount: categories.length,
-      separatorBuilder: (_, __) => Divider(
-        height: 1,
-        thickness: 1,
-        color: Colors.grey.shade200,
-        indent: 44,
-        endIndent: 0,
+    final selectedId =
+        groupValue.isEmpty ? null : groupValue;
+    final primary = Theme.of(context).colorScheme.primary;
+    return RadioTheme(
+      data: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return primary;
+          }
+          return null;
+        }),
       ),
-      itemBuilder: (context, index) {
-        return buildCategoryItemMobile(
-          category: categories[index],
-          model: model,
-          groupValue: groupValue,
-        );
-      },
+      child: RadioGroup<String>(
+        groupValue: selectedId,
+        onChanged: (String? value) {
+          if (value == null) return;
+          final category = categories.firstWhere(
+            (c) => c.id.toString() == value,
+          );
+          _onCategorySelected(category);
+        },
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          itemCount: categories.length,
+          separatorBuilder: (_, __) => Divider(
+            height: 1,
+            thickness: 1,
+            color: Colors.grey.shade200,
+            indent: 44,
+            endIndent: 0,
+          ),
+          itemBuilder: (context, index) {
+            return buildCategoryItemMobile(
+              category: categories[index],
+              groupValue: groupValue,
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -247,7 +311,6 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
 
   Widget _buildMobileBody({
     required BuildContext context,
-    required CoreViewModel model,
     required List<Category> listForListView,
     required String groupValue,
   }) {
@@ -296,7 +359,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => _routerService.navigateTo(AddCategoryRoute()),
+                onTap: () => showAddCategoryModal(context),
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -363,7 +426,6 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                   )
                 : buildCategoryListMobile(
                     categories: listForListView,
-                    model: model,
                     groupValue: groupValue,
                   ),
           ),
@@ -375,85 +437,102 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
   @override
   Widget build(BuildContext context) {
     final isMobile = _isMobileLayout(context);
-    return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () => CoreViewModel(),
-      builder: (context, model, child) {
-        return Scaffold(
-          backgroundColor: isMobile
-              ? const Color(0xFFF7F4EF)
-              : Theme.of(context).scaffoldBackgroundColor,
-          appBar: CustomAppBar(
-            onPop: () {
-              log('back');
-              _routerService.back();
-            },
-            showActionButton: false,
-            title: 'Categories',
-            icon: Icons.arrow_back_ios,
-            multi: 3,
-            bottomSpacer: 80,
-          ),
-          body: ref
-              .watch(
-                categoriesProvider(branchId: ProxyService.box.getBranchId()!),
-              )
-              .when(
-                data: (categories) {
-                  final withoutCustom = categories
-                      .where(
-                        (c) =>
-                            (c.name ?? '').toLowerCase() != 'custom',
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId != null) {
+      ref.listen<AsyncValue<List<Category>>>(
+        capellaCategoriesProvider(branchId: branchId),
+        (previous, next) {
+          next.whenData((list) {
+            final optimistic = ref.read(optimisticFocusedCategoryProvider);
+            if (optimistic == null) return;
+            Category? focusedDb;
+            try {
+              focusedDb = list.firstWhere(
+                (c) => c.focused && (c.active ?? false),
+              );
+            } catch (_) {
+              focusedDb = null;
+            }
+            if (focusedDb != null && focusedDb.id == optimistic.id) {
+              ref.read(optimisticFocusedCategoryProvider.notifier).clear();
+            }
+          });
+        },
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: isMobile
+          ? const Color(0xFFF7F4EF)
+          : Theme.of(context).scaffoldBackgroundColor,
+      appBar: CustomAppBar(
+        onPop: () {
+          log('back');
+          _routerService.back();
+        },
+        showActionButton: false,
+        title: 'Categories',
+        icon: Icons.arrow_back_ios,
+        multi: 3,
+        bottomSpacer: 80,
+      ),
+      body: ref
+          .watch(
+            capellaCategoriesProvider(
+              branchId: ProxyService.box.getBranchId()!,
+            ),
+          )
+          .when(
+            data: (categories) {
+              final withoutCustom = categories
+                  .where(
+                    (c) => (c.name ?? '').toLowerCase() != 'custom',
+                  )
+                  .toList();
+              final groupValue =
+                  _selectedCategoryId ??
+                  withoutCustom
+                      .firstWhere(
+                        (c) => (c.focused) && (c.active ?? false),
+                        orElse: () => Category(id: '', name: ''),
                       )
-                      .toList();
-                  final groupValue =
-                      _selectedCategoryId ??
-                      withoutCustom
-                          .firstWhere(
-                            (c) => (c.focused) && (c.active ?? false),
-                            orElse: () => Category(id: '', name: ''),
-                          )
-                          .id
-                          .toString();
+                      .id
+                      .toString();
 
-                  if (isMobile) {
-                    return _buildMobileBody(
-                      context: context,
-                      model: model,
-                      listForListView: _searchFiltered(withoutCustom),
-                      groupValue: groupValue,
-                    );
-                  }
+              if (isMobile) {
+                return _buildMobileBody(
+                  context: context,
+                  listForListView: _searchFiltered(withoutCustom),
+                  groupValue: groupValue,
+                );
+              }
 
-                  return SingleChildScrollView(
-                    child: Column(
-                      children: <Widget>[
-                        Card(
-                          margin: const EdgeInsets.all(8),
-                          child: ListTile(
-                            onTap: () =>
-                                _routerService.navigateTo(AddCategoryRoute()),
-                            title: const Text(
-                              'Create Category',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            trailing: const Icon(FluentIcons.add_24_regular),
-                          ),
+              return SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    Card(
+                      margin: const EdgeInsets.all(8),
+                      child: ListTile(
+                        onTap: () => showAddCategoryModal(context),
+                        title: const Text(
+                          'Create Category',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 16),
-                        buildCategoryList(
-                          categories: withoutCustom,
-                          model: model,
-                          groupValue: groupValue,
-                        ),
-                      ],
+                        trailing: const Icon(FluentIcons.add_24_regular),
+                      ),
                     ),
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(child: Text('Error: $error')),
-              ),
-        );
-      },
+                    const SizedBox(height: 16),
+                    buildCategoryList(
+                      categories: withoutCustom,
+                      groupValue: groupValue,
+                    ),
+                  ],
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(child: Text('Error: $error')),
+          ),
     );
   }
 }

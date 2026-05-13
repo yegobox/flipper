@@ -3,7 +3,9 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/widgets/momo_transaction_form.dart';
+import 'package:flipper_dashboard/features/personal_goals/personal_goals_providers.dart';
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -48,6 +50,27 @@ enum _RecentTxFilter { all, cashIn, cashOut, momo }
 
 enum _PaymentSheetChoice { cash, momo }
 
+/// Which category id should appear selected in the cashbook grid.
+///
+/// When the user taps a tile, [optimisticFocused] is set immediately so the UI
+/// does not wait on persistence; otherwise the focused row from [categories] is used.
+String? resolvedCashbookSelectedCategoryId(
+  List<Category> categories,
+  Category? optimisticFocused,
+) {
+  if (optimisticFocused != null && optimisticFocused.id.isNotEmpty) {
+    return optimisticFocused.id;
+  }
+  try {
+    final focused = categories.firstWhere(
+      (c) => c.focused && (c.active ?? false),
+    );
+    return focused.id;
+  } catch (_) {
+    return null;
+  }
+}
+
 class Cashbook extends StatefulHookConsumerWidget {
   const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
   final bool isBigScreen;
@@ -67,6 +90,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   _RecentTxFilter _recentTxFilter = _RecentTxFilter.all;
 
+  bool _personalGoalCashInIntentApplied = false;
+
+  /// Root scope; safe after this State is disposed (unlike [ref]).
+  ProviderContainer? _providerContainer;
+
   @override
   void initState() {
     super.initState();
@@ -79,7 +107,21 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _providerContainer ??= ProviderScope.containerOf(context);
+  }
+
+  @override
   void dispose() {
+    final container = _providerContainer;
+    if (container != null) {
+      // Notifier updates are not allowed during dispose (same constraint as build);
+      // popping this route runs dispose while the tree may still be settling.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        container.read(personalGoalCashInIntentProvider.notifier).clear();
+      });
+    }
     _amountController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -87,9 +129,41 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<List<Category>>>(categoryProvider, (previous, next) {
+      next.whenData((list) {
+        final optimistic = ref.read(optimisticFocusedCategoryProvider);
+        if (optimistic == null) return;
+        Category? focusedDb;
+        try {
+          focusedDb = list.firstWhere(
+            (c) => c.focused && (c.active ?? false),
+          );
+        } catch (_) {
+          focusedDb = null;
+        }
+        if (focusedDb != null && focusedDb.id == optimistic.id) {
+          ref.read(optimisticFocusedCategoryProvider.notifier).clear();
+        }
+      });
+    });
+
     return ViewModelBuilder<CoreViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => CoreViewModel(),
+      onViewModelReady: (model) {
+        final pgIntent = ref.read(personalGoalCashInIntentProvider);
+        if (pgIntent == null || _personalGoalCashInIntentApplied) return;
+        _personalGoalCashInIntentApplied = true;
+        // Apply before the first [builder] paint so we don't flash the tx list.
+        // Keypad reset is deferred slightly to avoid Riverpod "modify during build"
+        // if this runs in the same scheduling turn as ancestor layout.
+        _startNewTransaction(
+          model,
+          TransactionType.cashIn,
+          deferKeypadReset: true,
+        );
+        _descriptionController.text = 'Personal goal: ${pgIntent.goalName}';
+      },
       builder: (context, model, child) {
         return PopScope(
           canPop: !_isMomoMode && !model.newTransactionPressed,
@@ -202,15 +276,13 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _headerRoundIconButton(
+              AppBarRoundIconButton(
                 icon: Icons.close,
-                iconColor: Colors.grey.shade700,
-                borderColor: Colors.grey.shade400,
                 onPressed: () => _onCashbookClosePressed(model),
                 tooltip: 'Close',
               ),
               const Expanded(child: SizedBox()),
-              _headerRoundIconButton(
+              AppBarRoundIconButton(
                 icon: Icons.calendar_today_rounded,
                 iconColor: Colors.blue.shade600,
                 borderColor: Colors.blue.shade300,
@@ -229,35 +301,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _headerRoundIconButton({
-    required IconData icon,
-    required Color iconColor,
-    required Color borderColor,
-    required VoidCallback onPressed,
-    required String tooltip,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: borderColor, width: 1.5),
-            ),
-            alignment: Alignment.center,
-            child: Icon(icon, color: iconColor, size: 22),
-          ),
-        ),
       ),
     );
   }
@@ -1070,11 +1113,26 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     );
   }
 
-  void _startNewTransaction(CoreViewModel model, String transactionType) {
+  void _startNewTransaction(
+    CoreViewModel model,
+    String transactionType, {
+    bool deferKeypadReset = false,
+  }) {
     _amountController.clear();
     _descriptionController.clear();
 
-    ref.read(keypadProvider.notifier).reset();
+    void resetKeypad() {
+      ref.read(keypadProvider.notifier).reset();
+    }
+
+    if (deferKeypadReset) {
+      scheduleMicrotask(() {
+        if (!mounted) return;
+        resetKeypad();
+      });
+    } else {
+      resetKeypad();
+    }
 
     model.newTransactionPressed = true;
     model.newTransactionType = transactionType;
@@ -1348,17 +1406,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   String? _resolvedSelectedCategoryId(List<Category> categories) {
     final optimistic = ref.watch(optimisticFocusedCategoryProvider);
-    if (optimistic != null && optimistic.id.isNotEmpty) {
-      return optimistic.id;
-    }
-    try {
-      final focused = categories.firstWhere(
-        (c) => c.focused && (c.active ?? false),
-      );
-      return focused.id;
-    } catch (_) {
-      return null;
-    }
+    return resolvedCashbookSelectedCategoryId(categories, optimistic);
   }
 
   IconData _categorySlotIcon(int index) {
@@ -1513,9 +1561,16 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Future<void> _onCategoryTap(CoreViewModel model, Category category) async {
-    final ok = await model.updateCategoryCore(category: category);
-    if (!mounted || !ok) return;
     ref.read(optimisticFocusedCategoryProvider.notifier).setFocused(category);
+    if (mounted) setState(() {});
+
+    final ok = await model.updateCategoryCore(category: category);
+    if (!mounted) return;
+    if (!ok) {
+      ref.read(optimisticFocusedCategoryProvider.notifier).clear();
+      setState(() {});
+      return;
+    }
     ref.invalidate(categoryProvider);
     final bid = ProxyService.box.getBranchId();
     if (bid != null) {
@@ -1650,6 +1705,24 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         return;
       }
 
+      final pgIntentBefore = ref.read(personalGoalCashInIntentProvider);
+      var popAfterPersonalGoalCashIn = false;
+      if (pgIntentBefore != null && isIncome) {
+        try {
+          await ref.read(personalGoalsDataSourceProvider).addToGoalSavedAmount(
+                goalId: pgIntentBefore.goalId,
+                branchId: branchId,
+                amount: amount,
+                transactionId: saveResult.transactionId,
+              );
+          ref.read(personalGoalCashInIntentProvider.notifier).clear();
+          ref.invalidate(personalGoalsStreamProvider(branchId));
+          popAfterPersonalGoalCashIn = true;
+        } catch (e, s) {
+          talker.error('Personal goal contribution failed: $e\n$s');
+        }
+      }
+
       model.newTransactionPressed = false;
       model.notifyListeners();
 
@@ -1661,18 +1734,22 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       final String tid = saveResult.transactionId;
       final bool wasIncome = saveResult.isIncome;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) {
+        final container = _providerContainer;
+        if (container == null) {
           return;
         }
-        ref.refresh(transactionItemsProvider(transactionId: tid));
-        ref.refresh(pendingTransactionStreamProvider(isExpense: !wasIncome));
+        container.refresh(transactionItemsProvider(transactionId: tid));
+        container.refresh(pendingTransactionStreamProvider(isExpense: !wasIncome));
         SchedulerBinding.instance.scheduleTask(() {
-          if (context.mounted) {
-            ref.invalidate(dashboardTransactionsProvider);
-            ref.invalidate(cashbookRecentTransactionsProvider);
-            ref.invalidate(transactionsScreenTransactionsProvider);
-          }
+          container.invalidate(dashboardTransactionsProvider);
+          container.invalidate(cashbookRecentTransactionsProvider);
+          container.invalidate(transactionsScreenTransactionsProvider);
         }, Priority.idle);
+        if (popAfterPersonalGoalCashIn &&
+            context.mounted &&
+            Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       });
     } catch (e) {
       talker.error('Error saving transaction: $e');
