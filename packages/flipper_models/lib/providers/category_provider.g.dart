@@ -8,19 +8,19 @@ part of 'category_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+/// After updating focus flags, [categoryProvider]'s underlying stream can
 /// emit slightly later; set this synchronously when the user confirms a category so UI
 /// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
 
 @ProviderFor(OptimisticFocusedCategory)
 const optimisticFocusedCategoryProvider = OptimisticFocusedCategoryProvider._();
 
-/// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+/// After updating focus flags, [categoryProvider]'s underlying stream can
 /// emit slightly later; set this synchronously when the user confirms a category so UI
 /// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
 final class OptimisticFocusedCategoryProvider
     extends $NotifierProvider<OptimisticFocusedCategory, Category?> {
-  /// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+  /// After updating focus flags, [categoryProvider]'s underlying stream can
   /// emit slightly later; set this synchronously when the user confirms a category so UI
   /// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
   const OptimisticFocusedCategoryProvider._()
@@ -53,7 +53,7 @@ final class OptimisticFocusedCategoryProvider
 String _$optimisticFocusedCategoryHash() =>
     r'ad7ae66ac3ddfda84129fa983f59d36f33b60c39';
 
-/// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+/// After updating focus flags, [categoryProvider]'s underlying stream can
 /// emit slightly later; set this synchronously when the user confirms a category so UI
 /// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
 
@@ -188,4 +188,93 @@ final class CategoriesFamily extends $Family
 
   @override
   String toString() => r'categoriesProvider';
+}
+
+/// Ditto-backed category list (Capella). Prefer for screens that should not rely on the
+/// default Brick cloudSync category subscription on native.
+
+@ProviderFor(capellaCategories)
+const capellaCategoriesProvider = CapellaCategoriesFamily._();
+
+/// Ditto-backed category list (Capella). Prefer for screens that should not rely on the
+/// default Brick cloudSync category subscription on native.
+
+final class CapellaCategoriesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Category>>,
+          List<Category>,
+          Stream<List<Category>>
+        >
+    with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
+  /// Ditto-backed category list (Capella). Prefer for screens that should not rely on the
+  /// default Brick cloudSync category subscription on native.
+  const CapellaCategoriesProvider._({
+    required CapellaCategoriesFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'capellaCategoriesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$capellaCategoriesHash();
+
+  @override
+  String toString() {
+    return r'capellaCategoriesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Category>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Category>> create(Ref ref) {
+    final argument = this.argument as String;
+    return capellaCategories(ref, branchId: argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CapellaCategoriesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$capellaCategoriesHash() => r'38faeb7e50dbd4bd9becb751d2404699b930a827';
+
+/// Ditto-backed category list (Capella). Prefer for screens that should not rely on the
+/// default Brick cloudSync category subscription on native.
+
+final class CapellaCategoriesFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<Category>>, String> {
+  const CapellaCategoriesFamily._()
+    : super(
+        retry: null,
+        name: r'capellaCategoriesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Ditto-backed category list (Capella). Prefer for screens that should not rely on the
+  /// default Brick cloudSync category subscription on native.
+
+  CapellaCategoriesProvider call({required String branchId}) =>
+      CapellaCategoriesProvider._(argument: branchId, from: this);
+
+  @override
+  String toString() => r'capellaCategoriesProvider';
 }

@@ -1,4 +1,5 @@
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
+import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
 import 'package:flipper_dashboard/features/services_gigs/services_gigs_app.dart';
@@ -90,6 +91,13 @@ Future<void> navigateToDashboardAppPage({
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (context) => const LeadsMobileScreen(),
+        ),
+      );
+      break;
+    case 'PersonalGoals':
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (context) => const PersonalGoalsScreen(),
         ),
       );
       break;

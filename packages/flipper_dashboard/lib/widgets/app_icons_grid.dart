@@ -56,6 +56,13 @@ class AppIconsGrid extends ConsumerWidget {
         'feature': 'Cashbook',
       },
       {
+        'icon': FluentIcons.savings_24_regular,
+        'color': const Color(0xFF7C3AED),
+        'page': "PersonalGoals",
+        'label': "Personal goals",
+        'feature': 'Cashbook',
+      },
+      {
         'icon': FluentIcons.arrow_swap_20_regular,
         'color': const Color(0xFFFF0331),
         'page': "Transactions",

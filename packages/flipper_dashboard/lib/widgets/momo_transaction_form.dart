@@ -98,6 +98,24 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<List<Category>>>(categoryProvider, (previous, next) {
+      next.whenData((list) {
+        final optimistic = ref.read(optimisticFocusedCategoryProvider);
+        if (optimistic == null) return;
+        Category? focusedDb;
+        try {
+          focusedDb = list.firstWhere(
+            (c) => c.focused && (c.active ?? false),
+          );
+        } catch (_) {
+          focusedDb = null;
+        }
+        if (focusedDb != null && focusedDb.id == optimistic.id) {
+          ref.read(optimisticFocusedCategoryProvider.notifier).clear();
+        }
+      });
+    });
+
     final currency = ProxyService.box.defaultCurrency();
 
     return Padding(
@@ -782,10 +800,17 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
   }
 
   Future<void> _onCategoryTap(Category category) async {
+    ref.read(optimisticFocusedCategoryProvider.notifier).setFocused(category);
+    if (mounted) setState(() {});
+
     final ok =
         await widget.coreViewModel.updateCategoryCore(category: category);
-    if (!mounted || !ok) return;
-    ref.read(optimisticFocusedCategoryProvider.notifier).setFocused(category);
+    if (!mounted) return;
+    if (!ok) {
+      ref.read(optimisticFocusedCategoryProvider.notifier).clear();
+      setState(() {});
+      return;
+    }
     ref.invalidate(categoryProvider);
     final bid = ProxyService.box.getBranchId();
     if (bid != null) {
