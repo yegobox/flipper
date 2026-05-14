@@ -996,7 +996,9 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.subTotal = subTotal ?? transaction.subTotal;
     transaction.note = note ?? transaction.note;
     transaction.supplierId = supplierId ?? transaction.supplierId;
-    transaction.status = status ?? transaction.status;
+    if (status != null) {
+      transaction.status = status;
+    }
     transaction.ticketName = ticketName ?? transaction.ticketName;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;
     transaction.customerId = customerId ?? transaction.customerId;

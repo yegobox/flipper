@@ -113,7 +113,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
   Future<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.strategy.updateTransaction(
+    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
       transaction: transaction,
       status: ORDERING,
     );

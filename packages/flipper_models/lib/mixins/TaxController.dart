@@ -24,6 +24,7 @@ class TaxController<OBJ> {
     String? purchaseCode,
     void Function()? onSuccess,
     required FilterType filterType,
+
     /// When false, receipt metadata stays on [transaction] only until a later
     /// persistence pass (e.g. [markTransactionAsCompleted] with Capella).
     bool persistReceiptTransactionFields = true,
@@ -277,7 +278,8 @@ class TaxController<OBJ> {
       transaction.lastPaymentDate = DateTime.now();
       transaction.createdAt = DateTime.now();
       transaction.updatedAt = DateTime.now();
-      unawaited(repository.upsert(transaction));
+
+      //unawaited(repository.upsert(transaction));
       // Normal processing (desktop or mobile)
       RwApiResponse responses;
       Uint8List? bytes;
@@ -454,7 +456,9 @@ class TaxController<OBJ> {
 
             transaction.receiptPrinted = true;
             if (persistReceiptTransactionFields) {
-              await ProxyService.strategy.updateTransaction(
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).updateTransaction(
                 transactionId: transaction.id,
                 receiptPrinted: true,
               );
@@ -670,7 +674,7 @@ class TaxController<OBJ> {
           transaction.invoiceNumber =
               transaction.invoiceNumber ?? highestInvcNo;
           if (persistReceiptTransactionFields) {
-            await ProxyService.strategy.updateTransaction(
+            await ProxyService.getStrategy(Strategy.capella).updateTransaction(
               transaction: transaction,
               receiptType: receiptType,
               sarNo: highestInvcNo.toString(),

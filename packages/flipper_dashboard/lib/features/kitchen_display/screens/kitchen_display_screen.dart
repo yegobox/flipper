@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -248,7 +249,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
 
       // Use the same approach as in transaction_mixin.dart to update the transaction
       // This is how transactions are updated throughout the Flipper codebase
-      await ProxyService.strategy.updateTransaction(transaction: updatedOrder);
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(transaction: updatedOrder);
 
       // Force refresh the stream to reflect changes
       ref.invalidate(kitchenOrdersStreamProvider);

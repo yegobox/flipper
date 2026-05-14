@@ -1134,7 +1134,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
             textColor: Colors.white,
             onPressed: () async {
               try {
-                await ProxyService.strategy.updateTransaction(
+                await ProxyService.getStrategy(Strategy.capella).updateTransaction(
                   transaction: saved,
                   status: WAITING,
                   subTotal: saved.subTotal ?? amount,
@@ -1321,7 +1321,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
       final movementReceipt = isIncome
           ? TransactionType.cashIn
           : TransactionType.cashOut;
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: updatedTransaction,
         receiptType: movementReceipt,
         updatedAt: DateTime.now(),

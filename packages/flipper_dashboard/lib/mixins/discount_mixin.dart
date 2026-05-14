@@ -70,7 +70,7 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
       }
     }
 
-    await ProxyService.strategy.updateTransaction(
+    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
       transaction: transaction,
       subTotal: itemsTotal - discountAmount,
     );

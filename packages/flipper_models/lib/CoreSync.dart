@@ -2076,11 +2076,12 @@ class CoreSync extends AiStrategyImpl
       );
       if (transaction != null) {
         transaction.receiptFileName = fileName + ".pdf";
+
         ProxyService.box.writeString(
           key: 'getReceiptFileName',
           value: fileName + ".pdf",
         );
-        await repository.upsert(transaction);
+        // await repository.upsert(transaction);
       }
       return result.uploadedItem.path;
     } catch (e) {
@@ -2353,8 +2354,9 @@ class CoreSync extends AiStrategyImpl
       skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
     );
     // Cash book: use receiptType so Transaction Reports Type column is Cash In / Out (not NS).
-    txn.receiptType =
-        isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+    txn.receiptType = isIncome
+        ? TransactionType.cashIn
+        : TransactionType.cashOut;
     await repository.upsert<ITransaction>(txn);
     return txn;
   }

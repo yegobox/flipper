@@ -1,5 +1,6 @@
 import 'dart:async' show FutureOr;
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -78,7 +79,7 @@ mixin DeleteMixin implements DeleteInterface {
       // Calculate and update the transaction's subtotal
       double newSubTotal =
           remainingItems.fold(0, (sum, item) => sum + (item.price * item.qty));
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transactionId: transactionId,
         subTotal: newSubTotal,
         updatedAt: DateTime.now().toUtc(),

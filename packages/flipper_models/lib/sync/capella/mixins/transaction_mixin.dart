@@ -1379,7 +1379,17 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
     }
 
-    addUpdate('status', status ?? transaction?.status);
+    // Only persist status when the caller passes [status] explicitly. Using
+    // `transaction?.status` here caused regressions: a stale in-memory
+    // [ITransaction] (e.g. from a provider or an unawaited callback) could
+    // still be PENDING after Ditto was already updated to COMPLETE, and a
+    // later partial update (customer fields, receipt counters, subtotal, …)
+    // would overwrite the row back to PENDING without any exception (so
+    // rollback in previewCart never runs). Callers that intend to set status
+    // from a model should pass `status: transaction.status`.
+    if (status != null) {
+      addUpdate('status', status);
+    }
     addUpdate('subTotal', subTotal ?? transaction?.subTotal);
     addUpdate('cashierName', cashierName);
     final resolvedUpdatedAt =

@@ -253,7 +253,7 @@ class CoreViewModel extends FlipperBaseModel
             active: true,
           );
 
-      ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: pendingTransaction,
         subTotal: updatedItems.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
@@ -353,7 +353,7 @@ class CoreViewModel extends FlipperBaseModel
           ignoreForReport: false,
           prc: amount,
         );
-        ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           transaction: pendingTransaction,
           subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty) + amount),
         );
@@ -381,7 +381,7 @@ class CoreViewModel extends FlipperBaseModel
           amountTotal: amountTotal,
         );
 
-        await ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           transaction: pendingTransaction,
           subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty) + amount),
         );
@@ -395,7 +395,7 @@ class CoreViewModel extends FlipperBaseModel
         prc: double.parse((amount * 18 / 118).toStringAsFixed(2)),
       );
 
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: pendingTransaction,
         subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty)),
       );
@@ -729,7 +729,7 @@ class CoreViewModel extends FlipperBaseModel
       final items = await ProxyService.getStrategy(
         Strategy.capella,
       ).transactionItems(transactionId: transaction.id);
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: transaction,
         status: 'parked',
         note: ticketNote,
@@ -906,10 +906,9 @@ class CoreViewModel extends FlipperBaseModel
       callback("customer deleted");
     } else {
       /// first detach the customer from trans
-      await ProxyService.strategy.updateTransaction(
-        transaction: transaction,
-        customerId: null,
-      );
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).updateTransaction(transaction: transaction, customerId: null);
       await ProxyService.strategy.flipperDelete(
         id: id,
         endPoint: 'customer',
