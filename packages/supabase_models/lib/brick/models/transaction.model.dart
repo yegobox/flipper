@@ -150,6 +150,11 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(name: 'cashier_name')
   String? cashierName;
 
+  /// Ditto / install scope for pending carts so multiple devices under one login do not share state.
+  @Sqlite(name: 'device_id')
+  @Supabase(name: 'device_id')
+  String? deviceId;
+
   /// Tracks which strategy/database this transaction was loaded from
   /// This ensures we delete from the correct database (Capella/Ditto or CloudSync/SQLite)
   @Supabase(ignore: true)
@@ -220,6 +225,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.customerPhone,
     required this.agentId,
     this.cashierName,
+    this.deviceId,
     this.dataSource,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
@@ -308,6 +314,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     String? customerPhone,
     String? agentId,
     String? cashierName,
+    String? deviceId,
     Strategy? dataSource,
   }) {
     return ITransaction(
@@ -376,6 +383,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       ticketName: ticketName ?? this.ticketName,
       agentId: agentId ?? this.agentId,
       cashierName: cashierName ?? this.cashierName,
+      deviceId: deviceId ?? this.deviceId,
       dataSource: dataSource ?? this.dataSource,
     );
   }

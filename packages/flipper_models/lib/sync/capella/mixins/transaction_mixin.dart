@@ -12,6 +12,7 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 
 mixin CapellaTransactionMixin implements TransactionInterface {
   Repository get repository;
@@ -321,6 +322,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       discountAmount: parseDouble(data['discountAmount'])?.toDouble(),
       customerPhone: data['customerPhone'],
       ticketName: data['ticketName'],
+      deviceId: data['deviceId'] as String?,
     );
   }
 
@@ -598,6 +600,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) return null;
 
+      final saleDeviceId = await resolveSaleDeviceId();
+
       // 1. Check for existing transaction
       final agentId = ProxyService.box.getUserId();
       final Map<String, dynamic> args = {
@@ -605,10 +609,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'status': status,
         'transactionType': transactionType,
         'isExpense': isExpense,
+        'deviceId': saleDeviceId,
       };
 
       String query =
-          "SELECT * FROM transactions WHERE branchId = :branchId AND status = :status AND transactionType = :transactionType AND isExpense = :isExpense";
+          "SELECT * FROM transactions WHERE branchId = :branchId AND status = :status AND transactionType = :transactionType AND isExpense = :isExpense AND deviceId = :deviceId";
       if (agentId != null) {
         query += " AND agentId = :agentId";
         args['agentId'] = agentId;
@@ -628,6 +633,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       final newTransaction = ITransaction(
         agentId: agentId ?? 'unknown',
+        deviceId: saleDeviceId,
         lastTouched: now,
         reference: randomRef,
         transactionNumber: randomRef,
@@ -693,6 +699,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }) async* {
     talker.info('Managing transaction stream for branch: $branchId');
 
+    await resolveSaleDeviceId();
+
     // 1. Try to find an existing pending transaction
     Stream<ITransaction> pendingStream = pendingTransaction(
       branchId: branchId,
@@ -704,7 +712,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     ITransaction? existingTransaction;
     try {
       existingTransaction = await pendingStream.first.timeout(
-        Duration(milliseconds: 500),
+        const Duration(milliseconds: 1500),
       );
     } catch (e) {
       // Timeout means no pending transaction found quickly
@@ -1648,49 +1656,65 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return Stream.empty();
       }
 
-      final agentId = ProxyService.box.getUserId();
-      final Map<String, dynamic> arguments = {
-        'branchId': branchId,
-        'status': PENDING,
-        'transactionType': transactionType,
-        'isExpense': isExpense,
-      };
-
-      String query =
-          "SELECT * FROM transactions WHERE branchId = :branchId AND status = :status AND transactionType = :transactionType AND isExpense = :isExpense";
-
-      if (agentId != null) {
-        query += " AND agentId = :agentId";
-        arguments['agentId'] = agentId;
-      }
-
-      query += " ORDER BY lastTouched DESC";
-
-      final preparedPending = prepareDqlSyncSubscription(query, arguments);
-      ditto.sync.registerSubscription(
-        preparedPending.dql,
-        arguments: preparedPending.arguments,
-      );
-
       final controller = StreamController<ITransaction>.broadcast();
-
-      final observer = ditto.store.registerObserver(
-        query,
-        arguments: arguments,
-        onChange: (queryResult) {
-          if (queryResult.items.isNotEmpty) {
-            final data = Map<String, dynamic>.from(
-              queryResult.items.first.value,
-            );
-            controller.add(_convertFromDittoDocument(data));
-          }
-        },
-      );
+      final observerSlot = <dynamic>[null];
 
       controller.onCancel = () {
-        observer.cancel();
-        controller.close();
+        try {
+          observerSlot[0]?.cancel();
+        } catch (_) {}
+        if (!controller.isClosed) {
+          controller.close();
+        }
       };
+
+      unawaited(() async {
+        try {
+          final saleDeviceId = await resolveSaleDeviceId();
+          final agentId = ProxyService.box.getUserId();
+          final Map<String, dynamic> arguments = {
+            'branchId': branchId,
+            'status': PENDING,
+            'transactionType': transactionType,
+            'isExpense': isExpense,
+            'deviceId': saleDeviceId,
+          };
+
+          String query =
+              "SELECT * FROM transactions WHERE branchId = :branchId AND status = :status AND transactionType = :transactionType AND isExpense = :isExpense AND deviceId = :deviceId";
+
+          if (agentId != null) {
+            query += " AND agentId = :agentId";
+            arguments['agentId'] = agentId;
+          }
+
+          query += " ORDER BY lastTouched DESC";
+
+          final preparedPending = prepareDqlSyncSubscription(query, arguments);
+          ditto.sync.registerSubscription(
+            preparedPending.dql,
+            arguments: preparedPending.arguments,
+          );
+
+          observerSlot[0] = ditto.store.registerObserver(
+            query,
+            arguments: arguments,
+            onChange: (queryResult) {
+              if (queryResult.items.isNotEmpty) {
+                final data = Map<String, dynamic>.from(
+                  queryResult.items.first.value,
+                );
+                if (!controller.isClosed) {
+                  controller.add(_convertFromDittoDocument(data));
+                }
+              }
+            },
+          );
+        } catch (e, s) {
+          talker.error('Error in pendingTransaction stream: $e', s);
+          if (!controller.isClosed) await controller.close();
+        }
+      }());
 
       return controller.stream;
     } catch (e, s) {
@@ -1823,6 +1847,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'customerPhone': transaction.customerPhone,
       'agentId': transaction.agentId,
       'ticketName': transaction.ticketName,
+      'deviceId': transaction.deviceId,
     };
   }
 }

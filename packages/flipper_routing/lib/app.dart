@@ -19,8 +19,8 @@ import 'all_routes.dart';
     CustomRoute(page: AiScreen),
     CustomRoute(page: PhoneInputScreen),
     CustomRoute(page: InventoryRequestMobileView),
-    //End of login routes
 
+    //End of login routes
     CustomRoute(page: AddProductView),
     CustomRoute(page: AddToFavorites),
     CustomRoute(page: AddDiscount),
@@ -73,7 +73,7 @@ import 'all_routes.dart';
   dependencies: [
     LazySingleton(classType: BottomSheetService),
     LazySingleton(classType: DialogService),
-    LazySingleton(classType: RouterService)
+    LazySingleton(classType: RouterService),
   ],
   bottomsheets: [
     StackedBottomsheet(classType: NoticeSheet),
@@ -899,4 +899,7 @@ class App {}
 // https://one.google.com/ai?sc=EgIIAQ&hl=en-RW&g1_landing_page=75
 // flutter build macos --config-only
 // flutter build ios --config-only
+// https://pub.dev/packages/flutter_face_liveness
+// Ctrl+Shift+T (Windows/Linux)
+// Cmd+Shift+T (macOS)
 
