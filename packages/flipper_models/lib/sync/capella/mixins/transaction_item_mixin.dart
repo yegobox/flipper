@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
@@ -15,7 +17,6 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   Future<void> addTransactionItem({
     ITransaction? transaction,
     required bool partOfComposite,
-    required bool ignoreForReport,
     required DateTime lastTouched,
     required double discount,
     double? compositePrice,
@@ -26,9 +27,91 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     required double amountTotal,
     required String name,
     TransactionItem? item,
-  }) {
-    // TODO: implement addTransactionItem
-    throw UnimplementedError();
+    required bool ignoreForReport,
+  }) async {
+    if (transaction == null) {
+      throw ArgumentError('Transaction cannot be null.');
+    }
+    if (item == null && variation == null) {
+      throw ArgumentError('Either `item` or `variation` must be provided.');
+    }
+
+    final capella = ProxyService.getStrategy(Strategy.capella);
+
+    if (item != null) {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for addTransactionItem');
+        return;
+      }
+      final docMap = await TransactionItemDittoAdapter.instance
+          .toDittoDocument(item);
+      await ditto.store.execute(
+        "INSERT INTO transaction_items DOCUMENTS (:doc)",
+        arguments: {'doc': docMap},
+      );
+      final lineTotal =
+          item.totAmt?.toDouble() ??
+          (item.price.toDouble() * item.qty.toDouble());
+      await (capella as dynamic)._dittoAdjustTransactionSubtotalByDelta(
+        transactionId: transaction.id,
+        delta: lineTotal,
+      );
+      return;
+    }
+
+    final v = variation!;
+    final ok = await (capella as dynamic).saveTransactionItem(
+      compositePrice: compositePrice,
+      ignoreForReport: ignoreForReport,
+      updatableQty: quantity,
+      variation: v,
+      doneWithTransaction: doneWithTransaction ?? false,
+      amountTotal: amountTotal,
+      customItem: false,
+      pendingTransaction: transaction,
+      invoiceNumber: null,
+      currentStock: currentStock,
+      useTransactionItemForQty: true,
+      partOfComposite: partOfComposite,
+      item: null,
+      sarTyCd: null,
+      updatePendingTransactionSubtotal: true,
+    ) as bool;
+    if (!ok) {
+      throw StateError('saveTransactionItem failed in addTransactionItem');
+    }
+  }
+
+  @override
+  Future<TransactionItem?> getTransactionItem({
+    required String variantId,
+    String? transactionId,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) return null;
+
+      final conditions = <String>['variantId = :variantId'];
+      final arguments = <String, dynamic>{'variantId': variantId};
+      if (transactionId != null && transactionId.isNotEmpty) {
+        conditions.add('transactionId = :transactionId');
+        arguments['transactionId'] = transactionId;
+      }
+      conditions.add('active = :active');
+      arguments['active'] = true;
+
+      final query =
+          'SELECT * FROM transaction_items WHERE ${conditions.join(' AND ')} ORDER BY updatedAt DESC LIMIT 1';
+      final result = await ditto.store.execute(query, arguments: arguments);
+      if (result.items.isEmpty) return null;
+
+      final doc = Map<String, dynamic>.from(result.items.first.value);
+      return TransactionItemDittoAdapter.instance.fromDittoDocument(doc);
+    } catch (e, s) {
+      talker.error('Capella getTransactionItem: $e', s);
+      return null;
+    }
   }
 
   @override

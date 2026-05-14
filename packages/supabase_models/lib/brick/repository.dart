@@ -572,6 +572,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         if (instance is ITransaction) {
           instance.items ??= [];
         }
+        if (instance is TransactionItem) {
+          debugPrint('We got item to save: ${instance.toString()}');
+        }
         instance = await super.upsert(instance, policy: policy, query: query);
         // Notify Ditto for all models (unless explicitly skipped)
         if (!skipDittoSync) {

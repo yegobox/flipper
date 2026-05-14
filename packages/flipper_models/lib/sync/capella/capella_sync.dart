@@ -1035,18 +1035,8 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  @override
   getTop5RecentConversations() {
     // TODO: implement getTop5RecentConversations
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<TransactionItem?> getTransactionItem({
-    required String variantId,
-    String? transactionId,
-  }) {
-    // TODO: implement getTransactionItem
     throw UnimplementedError();
   }
 

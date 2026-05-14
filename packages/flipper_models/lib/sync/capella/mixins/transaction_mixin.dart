@@ -22,8 +22,7 @@ String _pendingCartLockKey(
   String branchId,
   String transactionType,
   bool isExpense,
-) =>
-    '$branchId|$transactionType|$isExpense';
+) => '$branchId|$transactionType|$isExpense';
 
 Lock _lockForPendingCartScope(
   String branchId,
@@ -78,9 +77,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
     final currentAgent = ProxyService.box.getUserId();
     final rowAgent = priorRow['agentId'] as String?;
-    if (currentAgent != null &&
-        rowAgent != null &&
-        rowAgent != currentAgent) {
+    if (currentAgent != null && rowAgent != null && rowAgent != currentAgent) {
       return false;
     }
     return true;
@@ -114,10 +111,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
       pendingQuery += " ORDER BY createdAt DESC";
 
-      final result = await ditto.store.execute(
-        pendingQuery,
-        arguments: args,
-      );
+      final result = await ditto.store.execute(pendingQuery, arguments: args);
       if (result.items.isNotEmpty) {
         final data = Map<String, dynamic>.from(result.items.first.value);
         final txn = _convertFromDittoDocument(data);
@@ -1059,13 +1053,21 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   @override
   Future<void> markItemAsDoneWithTransaction({
     required List<TransactionItem> inactiveItems,
-    bool? ignoreForReport,
     required ITransaction pendingTransaction,
+    required bool ignoreForReport,
     bool isDoneWithTransaction = false,
-  }) {
-    throw UnimplementedError(
-      'markItemAsDoneWithTransaction needs to be implemented for Capella',
-    );
+  }) async {
+    if (inactiveItems.isEmpty) return;
+    for (final inactiveItem in inactiveItems) {
+      inactiveItem.active = true;
+      if (isDoneWithTransaction) {
+        await updateTransactionItem(
+          transactionItemId: inactiveItem.id,
+          ignoreForReport: ignoreForReport,
+          doneWithTransaction: true,
+        );
+      }
+    }
   }
 
   Future<void> updateTransactionItem({
@@ -1400,6 +1402,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     addUpdate('lastTouched', resolvedLastTouched);
     // Keep transaction createdAt aligned with last activity (same as lastTouched).
     addUpdate('createdAt', resolvedLastTouched);
+    addUpdate('receiptFileName', transaction?.receiptFileName);
     addUpdate('cashReceived', cashReceived ?? transaction?.cashReceived);
     addUpdate('customerPhone', customerPhone ?? transaction?.customerPhone);
     addUpdate('customerType', customerType ?? transaction?.customerType);
@@ -1548,7 +1551,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   @override
   Future<ITransaction?> getTransaction({
     String? sarNo,
-    required String branchId,
+    String? branchId,
     String? id,
     bool awaitRemote = false,
   }) async {
@@ -1926,9 +1929,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
                 return;
               }
 
-              if (lastEmitted == null ||
-                  branchId == null ||
-                  branchId.isEmpty) {
+              if (lastEmitted == null || branchId == null || branchId.isEmpty) {
                 return;
               }
 
@@ -1996,7 +1997,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
                 }
               }
             } catch (e, s) {
-              talker.warning('pendingTransaction initial snapshot failed: $e', s);
+              talker.warning(
+                'pendingTransaction initial snapshot failed: $e',
+                s,
+              );
             }
           }
         } catch (e, s) {

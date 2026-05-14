@@ -55,25 +55,10 @@ class MobileUpload implements UploadT {
     required URLTYPE urlType,
     required dynamic uploader,
   }) async {
-    final String? token = ProxyService.box.getBearerToken();
-
-    late String url;
-    url = '${AppSecrets.coreApi}/s3/upload';
+    '${AppSecrets.coreApi}/s3/upload';
 
     log(paths.length.toString(), name: 'paths');
     uploader.clearUploads();
-
-    // TODO: Implement file upload logic using `uploader`
-    // Example:
-    // await uploader.enqueue(
-    //   MultipartFormDataUpload(
-    //     url: url,
-    //     files: [FileItem(path: paths.first!, field: 'file')],
-    //     method: UploadMethod.POST,
-    //     tag: 'file',
-    //     headers: {'Authorization': token!},
-    //   ),
-    // ).whenComplete(() => log('Done uploading', name: 'upload'));
   }
 
   @override

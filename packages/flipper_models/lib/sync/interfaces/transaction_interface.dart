@@ -133,6 +133,7 @@ abstract class TransactionInterface {
     TransactionItem? item,
     int? invoiceNumber,
     String? sarTyCd,
+
     /// When false, avoid updating the parent transaction's subtotal on insert (Capella:
     /// [collectPayment] will recompute from line items). Speeds up cash book save.
     bool updatePendingTransactionSubtotal = true,
@@ -187,7 +188,7 @@ abstract class TransactionInterface {
   });
   Future<ITransaction?> getTransaction({
     String? sarNo,
-    required String branchId,
+    String? branchId,
     String? id,
     bool awaitRemote = false,
   });

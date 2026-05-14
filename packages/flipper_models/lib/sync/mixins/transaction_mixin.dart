@@ -813,8 +813,7 @@ mixin TransactionMixin implements TransactionInterface {
           ? variation.stock!.currentStock!
           : quantity;
 
-      await ProxyService.strategy.addTransactionItem(
-        doneWithTransaction: doneWithTransaction,
+      await ProxyService.getStrategy(Strategy.capella).addTransactionItem(
         transaction: pendingTransaction,
         ignoreForReport: false,
         lastTouched: DateTime.now().toUtc(),
@@ -847,7 +846,7 @@ mixin TransactionMixin implements TransactionInterface {
     required double amountTotal,
     required bool ignoreForReport,
   }) async {
-    await ProxyService.strategy.updateTransactionItem(
+    await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
       transactionItemId: item.id,
       ignoreForReport: ignoreForReport,
       doneWithTransaction: false,
@@ -892,7 +891,9 @@ mixin TransactionMixin implements TransactionInterface {
       for (TransactionItem inactiveItem in inactiveItems) {
         inactiveItem.active = true;
         if (isDoneWithTransaction) {
-          await ProxyService.strategy.updateTransactionItem(
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).updateTransactionItem(
             transactionItemId: inactiveItem.id,
             ignoreForReport: ignoreForReport,
             doneWithTransaction: true,
@@ -1045,7 +1046,7 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   Future<ITransaction?> getTransaction({
     String? sarNo,
-    required String branchId,
+    String? branchId,
     String? id,
     bool awaitRemote = false,
   }) async {
@@ -1360,8 +1361,10 @@ mixin TransactionMixin implements TransactionInterface {
 
       final filtered = excludePaymentMethod != null
           ? paymentRecords.where(
-              (r) =>
-                  !paymentMethodEqualsIgnoreCase(r.paymentMethod, excludePaymentMethod),
+              (r) => !paymentMethodEqualsIgnoreCase(
+                r.paymentMethod,
+                excludePaymentMethod,
+              ),
             )
           : paymentRecords;
 
