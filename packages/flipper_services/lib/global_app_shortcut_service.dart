@@ -8,7 +8,7 @@ import 'package:flipper_services/proxy.dart';
 /// (or another shell) via [Shortcuts] / [Actions].
 class GlobalAppShortcutService {
   GlobalAppShortcutService({KeyPadService? keypad})
-      : _keypad = keypad ?? ProxyService.keypad;
+    : _keypad = keypad ?? ProxyService.keypad;
 
   final KeyPadService _keypad;
 
@@ -19,8 +19,7 @@ class GlobalAppShortcutService {
       return 'No branch is selected.';
     }
 
-    final transaction =
-        await _keypad.getPendingTransaction(branchId: branchId);
+    final transaction = await _keypad.getPendingTransaction(branchId: branchId);
     if (transaction == null) {
       return 'No pending sale transaction.';
     }

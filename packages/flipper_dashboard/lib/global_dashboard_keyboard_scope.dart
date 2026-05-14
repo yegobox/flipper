@@ -45,12 +45,13 @@ class GlobalDashboardKeyboardScope extends StatelessWidget {
     return Builder(
       builder: (ctx) {
         final defaultActions = <Type, Action<Intent>>{
-          CopyPendingTransactionIntent: CallbackAction<CopyPendingTransactionIntent>(
-            onInvoke: (_) {
-              unawaited(_copyPendingSaleTransaction(ctx));
-              return null;
-            },
-          ),
+          CopyPendingTransactionIntent:
+              CallbackAction<CopyPendingTransactionIntent>(
+                onInvoke: (_) {
+                  unawaited(_copyPendingSaleTransaction(ctx));
+                  return null;
+                },
+              ),
         };
         return Shortcuts(
           shortcuts: shortcuts,
@@ -65,8 +66,8 @@ class GlobalDashboardKeyboardScope extends StatelessWidget {
 }
 
 Future<void> _copyPendingSaleTransaction(BuildContext context) async {
-  final text =
-      await ProxyService.globalAppShortcuts.buildPendingSaleTransactionClipboardText();
+  final text = await ProxyService.globalAppShortcuts
+      .buildPendingSaleTransactionClipboardText();
   await Clipboard.setData(ClipboardData(text: text));
   if (!context.mounted) return;
   showSuccessNotification(

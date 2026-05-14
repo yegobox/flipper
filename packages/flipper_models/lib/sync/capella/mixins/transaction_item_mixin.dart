@@ -390,7 +390,6 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     required String transactionItemId,
     double? discount,
     bool? active,
-    bool? ignoreForReport,
     double? taxAmt,
     int? quantityApproved,
     int? quantityRequested,
@@ -399,13 +398,14 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     bool? incrementQty,
     double? price,
     double? prc,
-    double? splyAmt,
     bool? doneWithTransaction,
     int? quantityShipped,
     double? taxblAmt,
     double? totAmt,
     double? dcRt,
     double? dcAmt,
+    required bool ignoreForReport,
+    bool skipParentSaleSubtotalRecalc = false,
   }) async {
     try {
       final ditto = dittoService.dittoInstance;
@@ -424,7 +424,6 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       if (isRefunded != null) updates['isRefunded'] = isRefunded;
       if (price != null) updates['price'] = price;
       if (prc != null) updates['prc'] = prc;
-      if (splyAmt != null) updates['splyAmt'] = splyAmt;
       if (doneWithTransaction != null)
         updates['doneWithTransaction'] = doneWithTransaction;
       if (taxblAmt != null) updates['taxblAmt'] = taxblAmt;

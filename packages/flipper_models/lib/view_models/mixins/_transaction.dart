@@ -41,6 +41,14 @@ mixin TransactionMixinOld {
     void Function()? onSuccess,
     required double discount,
     List<TransactionItem>? preloadedLineItemsForCollectPayment,
+
+    /// When true, [collectPayment] updates shift totals and in-memory fields only;
+    /// the caller must persist the transaction (e.g. [markTransactionAsCompleted]).
+    bool skipTransactionPersist = false,
+
+    /// When true, tax/receipt handling does not call [updateTransaction] for receipt
+    /// metadata; the completion persist should include those fields (Capella sale flow).
+    bool deferPersistTaxReceiptFields = false,
   }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -85,6 +93,7 @@ mixin TransactionMixinOld {
           transaction: transaction,
           purchaseCode: purchaseCode,
           onSuccess: onSuccess,
+          persistReceiptTransactionFields: !deferPersistTaxReceiptFields,
         );
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
@@ -95,6 +104,7 @@ mixin TransactionMixinOld {
             countryCode: countryCodeController.text,
             preloadedLineItems: preloadedLineItemsForCollectPayment,
             tenderAmount: amount,
+            skipTransactionPersist: skipTransactionPersist,
           );
         }
       } else {
@@ -107,6 +117,7 @@ mixin TransactionMixinOld {
           countryCode: countryCodeController.text,
           preloadedLineItems: preloadedLineItemsForCollectPayment,
           tenderAmount: amount,
+          skipTransactionPersist: skipTransactionPersist,
         );
       }
 
@@ -229,6 +240,7 @@ mixin TransactionMixinOld {
     required GlobalKey<FormState> formKey,
     void Function()? onSuccess,
     required BuildContext context,
+    bool persistReceiptTransactionFields = true,
   }) async {
     try {
       // Note: This method is now called unawaited by finalizePayment.
@@ -240,6 +252,7 @@ mixin TransactionMixinOld {
             purchaseCode: purchaseCode,
             filterType: getFilterType(transactionType: transaction.receiptType),
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
           );
       final (:response, :bytes) = responseFrom;
 
@@ -315,6 +328,7 @@ mixin TransactionMixinOld {
     required String countryCode,
     List<TransactionItem>? preloadedLineItems,
     required double tenderAmount,
+    bool skipTransactionPersist = false,
   }) async {
     try {
       final branchId = ProxyService.box.getBranchId();
@@ -355,7 +369,8 @@ mixin TransactionMixinOld {
       final finalCustomerName =
           ProxyService.box.customerName() ?? customer?.custNm ?? customerName;
       // Calculate and update tax amount before finalizing payment
-      final items = preloadedLineItems ??
+      final items =
+          preloadedLineItems ??
           await ProxyService.getStrategy(
             Strategy.capella,
           ).transactionItems(transactionId: transaction.id);
@@ -387,6 +402,7 @@ mixin TransactionMixinOld {
             customer?.telNo ??
             ProxyService.box.currentSaleCustomerPhoneNumber(),
         preloadedLineItems: items,
+        skipTransactionPersist: skipTransactionPersist,
       );
       // Clean up temporary storage
       ProxyService.box.remove(key: 'pendingCustomerName');

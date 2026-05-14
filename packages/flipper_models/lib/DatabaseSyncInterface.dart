@@ -226,6 +226,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool isUtilityCashbookMovement = false,
     /// When true, skips auto-allocation (e.g. manual goal cash-in intent on the same save).
     bool skipPersonalGoalAutoSweep = false,
+    /// When true, mutates [transaction] in memory (shift totals, cash fields) but does not
+    /// persist the transaction row; caller must persist (e.g. one [updateTransaction] on completion).
+    bool skipTransactionPersist = false,
   });
 
   /// Cash book fast path: one pending txn, one utility line, then completion.
