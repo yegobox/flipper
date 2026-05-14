@@ -13,6 +13,7 @@ import 'package:flipper_dashboard/widgets/reset_transaction_button.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -760,10 +761,13 @@ class _CheckoutPosProductSearchState
   final _model = CoreViewModel();
   StreamSubscription<String>? _debounceSub;
   bool _isSearching = false;
+  late int _saleSessionSnapshotAtLastTextChange;
 
   @override
   void initState() {
     super.initState();
+    _saleSessionSnapshotAtLastTextChange =
+        ref.read(pendingCartSaleSessionProvider);
     focusNode = FocusNode();
     hasText = widget.controller.text.isNotEmpty;
     widget.controller.addListener(_onControllerChanged);
@@ -775,6 +779,8 @@ class _CheckoutPosProductSearchState
 
   void _onControllerChanged() {
     final text = widget.controller.text;
+    _saleSessionSnapshotAtLastTextChange =
+        ref.read(pendingCartSaleSessionProvider);
     if (mounted) {
       setState(() {
         hasText = text.isNotEmpty;
@@ -785,6 +791,10 @@ class _CheckoutPosProductSearchState
 
   Future<void> _onDebounced(String value) async {
     if (!mounted) return;
+    if (ref.read(pendingCartSaleSessionProvider) !=
+        _saleSessionSnapshotAtLastTextChange) {
+      return;
+    }
     if (ref.read(searchStringProvider) == value) return;
     if (_isSearching) return;
     setState(() => _isSearching = true);

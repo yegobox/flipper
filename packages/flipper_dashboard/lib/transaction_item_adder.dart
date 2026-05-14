@@ -8,9 +8,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -39,6 +41,7 @@ class TransactionItemAdder {
 
     ITransaction? pendingTransactionForRollback;
     var cartOptimismApplied = false;
+    final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
 
     try {
       // Increment optimistic count IMMEDIATELY for instant UI feedback
@@ -135,8 +138,45 @@ class TransactionItemAdder {
 
       w?.log("Pre-Lock");
       var saveReturnedFalseTreatAsSuccess = false;
+      var itemAddAbortedStale = false;
+
+      void rollbackStaleAddAttempt() {
+        ref.read(optimisticOrderCountProvider.notifier).decrement();
+        if (cartOptimismApplied) {
+          ref
+              .read(optimisticCartProvider.notifier)
+              .rollbackPending(
+                transactionId: pendingTransaction.id,
+                variantId: variant.id,
+              );
+        }
+      }
+
       await _lock.synchronized(() async {
         w?.log("Post-Lock");
+        if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+          w?.log("ItemAddAbortedSaleSessionBumped");
+          rollbackStaleAddAttempt();
+          itemAddAbortedStale = true;
+          return;
+        }
+
+        final branchIdCheck = ProxyService.box.getBranchId();
+        if (branchIdCheck != null && branchIdCheck.isNotEmpty) {
+          final refreshed = await capella.getTransaction(
+            id: pendingTransaction.id,
+            branchId: branchIdCheck,
+          );
+          if (refreshed == null || refreshed.status != PENDING) {
+            w?.log(
+              "ItemAddAbortedTransactionNotPending status=${refreshed?.status}",
+            );
+            rollbackStaleAddAttempt();
+            itemAddAbortedStale = true;
+            return;
+          }
+        }
+
         // Reuse stock from parallel fetch
         final stock = cachedStock;
 
@@ -198,6 +238,15 @@ class TransactionItemAdder {
           }
         }
       });
+
+      if (itemAddAbortedStale) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        }
+        w?.log("ItemAddAbortedStale_NoSave");
+        return false;
+      }
+
       w?.log("Post-Lock-Release");
 
       // Rely on Ditto store observers to push [transactionItemsStreamProvider]

@@ -29,6 +29,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -189,13 +190,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _refreshTransactionItems({required String transactionId}) async {
     ref.refresh(transactionItemsProvider(transactionId: transactionId));
-
-    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-
-    /// get new transaction id
-    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-
-    ref.refresh(transactionItemsProvider(transactionId: transactionId));
   }
 
   Future<void> applyDiscount(ITransaction transaction) async {
@@ -262,6 +256,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required Function completeTransaction,
     required List<Payment> paymentMethods,
     ITransaction? transactionHint,
+
     /// When non-null and every row belongs to [transactionId], skips an extra Ditto load.
     List<TransactionItem>? transactionItemsHint,
     bool immediateCompletion = false,
@@ -271,6 +266,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
     String? completionCashierName;
+    bool transactionWasMarkedCompleted = false;
     final flowWatch = Stopwatch()..start();
     final capella = ProxyService.getStrategy(Strategy.capella);
 
@@ -487,8 +483,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         }
 
         final swStocks = Stopwatch()..start();
-        final stocksMap =
-            await capella.batchGetStocksByIds(stockIds.toList());
+        final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
         for (final sid in stockIds) {
           if (!stocksMap.containsKey(sid)) {
             stocksMap[sid] = await capella.getStockById(id: sid);
@@ -518,8 +513,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           originalStockQuantities[sid] = current;
           deductedStockIds.add(sid);
 
-          final newStock =
-              (current - delta).roundToTwoDecimalPlaces();
+          final newStock = (current - delta).roundToTwoDecimalPlaces();
           stockUpdatesById[sid] = (
             currentStock: newStock,
             rsdQty: newStock,
@@ -629,6 +623,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           onPaymentConfirmed: onPaymentConfirmed,
           onPaymentFailed: onPaymentFailed,
           ticketName: ticketName,
+          finalSubTotal: finalSubTotal,
+          completionCashierName: completionCashierName,
         );
         talker.debug(
           '[sale_completion_timing] flow_total_until_waiting_payment_ms=${flowWatch.elapsedMilliseconds}',
@@ -660,6 +656,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               ticketName: ticketName,
               cashierName: completionCashierName,
             );
+            transactionWasMarkedCompleted = true;
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
@@ -671,7 +668,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               );
               ref.read(payButtonStateProvider.notifier).stopLoading();
             }
-            await _invokeCompleteTransactionCallback(completeTransaction);
+            try {
+              await _invokeCompleteTransactionCallback(completeTransaction);
+            } catch (e) {
+              talker.error("Error in completeTransaction callback: $e");
+            }
           },
         );
         talker.debug(
@@ -684,21 +685,23 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     } catch (e, s) {
       talker.error("Error in complete transaction flow: $e", s);
 
-      // Rollback stock quantities
-      for (var entry in originalStockQuantities.entries) {
-        final stockId = entry.key;
-        final originalStock = entry.value;
-        await capella.updateStock(
-          stockId: stockId,
-          currentStock: originalStock,
-          rsdQty: originalStock,
+      if (!transactionWasMarkedCompleted) {
+        // Rollback stock quantities
+        for (var entry in originalStockQuantities.entries) {
+          final stockId = entry.key;
+          final originalStock = entry.value;
+          await capella.updateStock(
+            stockId: stockId,
+            currentStock: originalStock,
+            rsdQty: originalStock,
+          );
+        }
+        await capella.updateTransaction(
+          transactionId: transactionId,
+          status: PENDING,
+          cashReceived: ProxyService.box.getCashReceived(),
         );
       }
-      await capella.updateTransaction(
-        transactionId: transactionId,
-        status: PENDING,
-        cashReceived: ProxyService.box.getCashReceived(),
-      );
 
       if (mounted) {
         ref.read(payButtonStateProvider.notifier).stopLoading();
@@ -766,6 +769,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
     transaction.createdAt = now;
+    transaction.status = derived.status;
 
     await Future.wait(
       paymentsToPersist.map((payment) async {
@@ -781,6 +785,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     talker.debug(
       '[sale_completion_timing] mark_completed_and_payments_ms=${markSw.elapsedMilliseconds}',
     );
+
+    if (mounted) {
+      ref.invalidate(
+        pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        ),
+      );
+      ref.read(pendingCartSaleSessionProvider.notifier).state =
+          ref.read(pendingCartSaleSessionProvider) + 1;
+    }
 
     return derived.shouldBeLoan;
   }
@@ -829,6 +843,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     Function(String)? onPaymentFailed,
     required List<Payment> paymentMethods,
     String? ticketName,
+    required double finalSubTotal,
+    String? completionCashierName,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -960,8 +976,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 talker.info(
                   "🧾 Starting receipt generation after payment confirmation...",
                 );
-                final bool
-                didComplete = await _finalStepInCompletingTransaction(
+                final bool didComplete =
+                    await _finalStepInCompletingTransaction(
                   customer: customer,
                   transaction: transaction,
                   amount: amount,
@@ -1004,9 +1020,28 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 talker.info(
                   "🔄 Calling completeTransaction callback to close bottom sheet...",
                 );
+
+                // Update the local transaction object with the payment amount we just processed.
+                transaction.cashReceived =
+                    (transaction.cashReceived ?? 0) + amount;
+
+                await markTransactionAsCompleted(
+                  transaction: transaction,
+                  finalSubTotal: finalSubTotal,
+                  paymentMethods: paymentMethods,
+                  ticketName: ticketName,
+                  cashierName: completionCashierName,
+                );
+
                 _isProcessingPayment = false;
                 _paymentTimeout?.cancel(); // Cancel timeout on success
-                await _invokeCompleteTransactionCallback(completeTransaction);
+
+                try {
+                  await _invokeCompleteTransactionCallback(completeTransaction);
+                } catch (e) {
+                  talker.error("Error in completeTransaction callback: $e");
+                }
+
                 talker.info(
                   "✅ completeTransaction callback executed - Bottom sheet should now close",
                 );
@@ -1067,8 +1102,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (dialogResult != true) {
           if (mounted) {
             // Stop loading but DO NOT refresh the pendingTransaction stream here.
-            // Refreshing triggers `manageTransactionStream` which may create a new
-            // pending transaction; cancelling should not create a new one.
+            // Capella ensures the next pending cart when status leaves [PENDING];
+            // refreshing here can cancel the Ditto observer and is unnecessary.
             ref.read(payButtonStateProvider.notifier).stopLoading();
           }
           return false;
@@ -1076,11 +1111,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(
-            pendingTransactionStreamProvider(
-              isExpense: ProxyService.box.isOrdering() ?? false,
-            ),
-          );
         }
       } else {
         // Get the controller value before async operations
@@ -1108,11 +1138,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(
-            pendingTransactionStreamProvider(
-              isExpense: ProxyService.box.isOrdering() ?? false,
-            ),
-          );
         }
       }
 

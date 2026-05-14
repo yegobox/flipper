@@ -15,14 +15,11 @@ mixin Refresh<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     } catch (e) {}
   }
 
+  /// No-op: the next pending cart is ensured in Capella/Ditto when a sale
+  /// cart leaves [PENDING] ([updateTransaction] + [pendingTransaction] stream).
+  /// Refreshing here used to cancel the Ditto observer and race creation.
   Future<void> newTransaction(
-      {required bool typeOfThisTransactionIsExpense}) async {
-    await ref.refresh(
-      pendingTransactionStreamProvider(
-        isExpense: typeOfThisTransactionIsExpense,
-      ),
-    );
-  }
+      {required bool typeOfThisTransactionIsExpense}) async {}
 
   Future<void> refreshPendingTransactionWithExpense(
       {required String transactionId}) async {
