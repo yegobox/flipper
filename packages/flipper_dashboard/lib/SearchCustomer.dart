@@ -327,7 +327,7 @@ class _SearchInputWithDropdownState
     );
     if (transaction.value?.id != null) {
       try {
-        await ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           transactionId: transaction.value!.id,
           customerType: _selectedCustomerType,
         );

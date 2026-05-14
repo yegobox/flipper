@@ -19,7 +19,6 @@ import 'package:flutter/foundation.dart' hide Category;
 
 import 'package:ditto_live/ditto_live.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -635,7 +634,8 @@ class CronService {
       return;
     }
 
-    final momoTransactions = await ProxyService.strategy.transactions(
+    final momoTransactions = await ProxyService.getStrategy(Strategy.capella)
+        .transactions(
       branchId: branchId,
       status: WAITING_MOMO_COMPLETE,
       isExpense: null,
@@ -665,21 +665,16 @@ class CronService {
 
     for (final transaction in transactionsToComplete) {
       try {
-        await ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           transaction: transaction,
           status: COMPLETE,
           subTotal: transaction.subTotal ?? transaction.cashReceived ?? 0,
-          skipDittoSync: true,
         );
       } catch (e) {
         talker.error(
           "Failed to auto-complete transaction ${transaction.id}: $e",
         );
       }
-    }
-
-    for (final transaction in transactionsToComplete) {
-      unawaited(DittoSyncCoordinator.instance.notifyLocalUpsert(transaction));
     }
   }
 }

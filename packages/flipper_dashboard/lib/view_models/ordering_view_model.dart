@@ -123,7 +123,7 @@ class OrderingViewModel extends ProductViewModel
       }
 
       transaction.supplierId = supplier.serverId!;
-      ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: transaction,
         supplierId: supplier.serverId!,
       );
@@ -224,7 +224,7 @@ class OrderingViewModel extends ProductViewModel
   FutureOr<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.strategy.updateTransaction(
+    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
       transaction: transaction,
       status: ORDERING,
     );

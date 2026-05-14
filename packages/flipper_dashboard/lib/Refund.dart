@@ -358,7 +358,7 @@ class _RefundState extends ConsumerState<Refund> {
       if (filterType == FilterType.NR ||
           filterType == FilterType.CR ||
           filterType == FilterType.TR) {
-        await ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           transaction: widget.transaction!,
           isRefunded: true,
         );

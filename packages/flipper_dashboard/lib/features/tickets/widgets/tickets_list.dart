@@ -629,7 +629,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       onResume: (t) => _resumeOrder(t),
       onStatusChange: (newStatus) async {
         try {
-          await ProxyService.strategy.updateTransaction(
+          await ProxyService.getStrategy(Strategy.capella).updateTransaction(
             transaction: ticket,
             status: newStatus,
             updatedAt: DateTime.now().toUtc(),
@@ -691,7 +691,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       ticket.status = PENDING;
       ticket.agentId = ProxyService.box.getUserId();
 
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: ticket,
         status: PENDING,
         updatedAt: DateTime.now().toUtc(),

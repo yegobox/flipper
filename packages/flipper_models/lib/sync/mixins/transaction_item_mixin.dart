@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -325,13 +326,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
       // Update transaction with skipDittoSync to avoid immediate remote sync
       // This reduces database lock contention during rapid updates
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: transaction,
         subTotal: newSubTotal,
         cashReceived: ProxyService.box.getCashReceived(),
         updatedAt: DateTime.now(),
         lastTouched: DateTime.now(),
-        skipDittoSync: true,
       );
     } catch (e, s) {
       talker.error(s);
@@ -656,12 +656,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
       // Update transaction with skipDittoSync to avoid immediate remote sync
       // This reduces database lock contention during rapid updates
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transactionId: item.transactionId,
         subTotal: newSubTotal,
         updatedAt: DateTime.now().toUtc(),
         lastTouched: DateTime.now().toUtc(),
-        skipDittoSync: true,
       );
     }
   }
