@@ -469,6 +469,7 @@ class CapellaSync extends AiStrategyImpl
     List<TransactionItem>? preloadedLineItems,
     bool isUtilityCashbookMovement = false,
     bool skipPersonalGoalAutoSweep = false,
+    bool skipTransactionPersist = false,
   }) async {
     if (transaction == null) {
       throw Exception('transaction is null');
@@ -573,21 +574,23 @@ class CapellaSync extends AiStrategyImpl
       transaction.isExpense = !isIncome;
       transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
 
-      // Write transaction to Ditto
-      await updateTransaction(
-        transaction: transaction,
-        status: completionStatus,
-        subTotal: transaction.subTotal,
-        cashReceived: transaction.cashReceived,
-        customerName: transaction.customerName,
-        customerTin: customerTin,
-        customerPhone: transaction.customerPhone,
-        note: transaction.note,
-        updatedAt: DateTime.now(),
-        lastTouched: DateTime.now(),
-        remainingBalance: transaction.remainingBalance?.toDouble(),
-        isLoan: transaction.isLoan,
-      );
+      // Write transaction to Ditto (optional: caller persists once on completion).
+      if (!skipTransactionPersist) {
+        await updateTransaction(
+          transaction: transaction,
+          status: completionStatus,
+          subTotal: transaction.subTotal,
+          cashReceived: transaction.cashReceived,
+          customerName: transaction.customerName,
+          customerTin: customerTin,
+          customerPhone: transaction.customerPhone,
+          note: transaction.note,
+          updatedAt: DateTime.now(),
+          lastTouched: DateTime.now(),
+          remainingBalance: transaction.remainingBalance?.toDouble(),
+          isLoan: transaction.isLoan,
+        );
+      }
 
       try {
         final resolvedCompletionForGoals =

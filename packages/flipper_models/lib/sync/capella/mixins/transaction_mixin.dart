@@ -1088,7 +1088,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     double? dcRt,
     double? dcAmt,
     double? splyAmt, // Added missing parameter
-    bool? ignoreForReport,
+    required bool ignoreForReport,
+    bool skipParentSaleSubtotalRecalc = false,
   }) async {
     try {
       final ditto = dittoService.dittoInstance;
@@ -1192,6 +1193,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           'UPDATE transaction_items SET ${updates.join(', ')} WHERE _id = :id OR id = :id';
 
       await ditto.store.execute(query, arguments: arguments);
+
+      if (skipParentSaleSubtotalRecalc) {
+        return;
+      }
 
       final String? transactionId = d['transactionId'];
       final bool onlyQtyChangesLineTotals =

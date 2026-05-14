@@ -170,7 +170,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   FutureOr<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.strategy.updateTransaction(
+    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
       transaction: transaction,
       status: ORDERING,
     );
@@ -234,14 +234,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           itemDiscountAmount = (itemTotal / itemsTotal) * discountAmount;
           remainingDiscount -= itemDiscountAmount;
         }
-        ProxyService.strategy.updateTransactionItem(
+        ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
           transactionItemId: item.id,
           dcRt: discountRate,
           ignoreForReport: false,
           dcAmt: itemDiscountAmount,
         );
       }
-      ProxyService.strategy.updateTransaction(
+      ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: transaction,
         cashReceived: ProxyService.box.getCashReceived(),
         subTotal: itemsTotal - discountAmount,
@@ -536,6 +536,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               transactionItemId: item.id,
               quantityShipped: item.quantityShipped,
               ignoreForReport: false,
+              skipParentSaleSubtotalRecalc: true,
             );
           }),
         );
@@ -643,6 +644,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentType: paymentType,
           ticketName: ticketName,
           preloadedLineItemsForCollectPayment: transactionItems,
+          skipCollectPaymentTransactionPersist: true,
           completeTransaction: () async {
             // Update the local transaction object with the payment amount we just processed.
             // This ensures markTransactionAsCompleted sees the correct total paid, avoiding race conditions
@@ -765,6 +767,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           : transaction.ticketName,
       customerName: transaction.customerName,
       customerPhone: transaction.customerPhone,
+      // Receipt / EBM fields (may be set in memory during tax receipt flow).
+      receiptType: transaction.receiptType,
+      sarNo: transaction.sarNo,
+      receiptNumber: transaction.receiptNumber,
+      totalReceiptNumber: transaction.totalReceiptNumber,
+      invoiceNumber: transaction.invoiceNumber,
+      receiptPrinted: transaction.receiptPrinted,
+      isProformaMode: ProxyService.box.isProformaMode(),
+      isTrainingMode: ProxyService.box.isTrainingMode(),
     );
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
@@ -985,6 +996,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   paymentMethods: paymentMethods,
                   paymentType: paymentType,
                   ticketName: ticketName,
+                  skipCollectPaymentTransactionPersist: false,
                   completeTransaction: () {
                     // For digital payments, don't call completeTransaction yet
                     // We'll call it after this succeeds
@@ -1077,6 +1089,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required List<Payment> paymentMethods,
     String? ticketName,
     List<TransactionItem>? preloadedLineItemsForCollectPayment,
+    /// When true, [collectPayment] skips persisting the txn row because [completeTransaction]
+    /// immediately calls [markTransactionAsCompleted] (sync cash path). When false, persist
+    /// in [collectPayment] so a later early return (e.g. receipt cancelled) still records payment.
+    bool skipCollectPaymentTransactionPersist = false,
   }) async {
     try {
       // Check if widget is still mounted before using ref
@@ -1131,6 +1147,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           discount: discount,
           preloadedLineItemsForCollectPayment:
               preloadedLineItemsForCollectPayment,
+          skipTransactionPersist: skipCollectPaymentTransactionPersist,
+          deferPersistTaxReceiptFields: true,
           onSuccess: () {
             ref.read(payButtonStateProvider.notifier).stopLoading();
           },
@@ -1227,6 +1245,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               paymentType: paymentType,
               transaction: transaction,
               context: dialogContext,
+              skipTransactionPersist: true,
             ),
             child: Builder(
               builder: (context) {

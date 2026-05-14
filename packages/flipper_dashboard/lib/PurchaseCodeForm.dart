@@ -22,6 +22,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   final TextEditingController countryCodeController;
   final GlobalKey<FormState> formKey;
   Function onComplete;
+  final bool skipTransactionPersist;
 
   PurchaseCodeFormBloc({
     required this.customerNameController,
@@ -33,6 +34,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
     required this.transaction,
     required this.context,
     required this.onComplete,
+    this.skipTransactionPersist = false,
   }) {
     addFieldBlocs(fieldBlocs: [purchaseCode]);
   }
@@ -52,6 +54,8 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
         amount: amount,
         discount: discount,
         purchaseCode: purchaseCode.value,
+        skipTransactionPersist: skipTransactionPersist,
+        deferPersistTaxReceiptFields: skipTransactionPersist,
       );
 
       if (response.resultCd == "000") {

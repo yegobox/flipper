@@ -2123,6 +2123,7 @@ class CoreSync extends AiStrategyImpl
     List<TransactionItem>? preloadedLineItems,
     bool isUtilityCashbookMovement = false,
     bool skipPersonalGoalAutoSweep = false,
+    bool skipTransactionPersist = false,
   }) async {
     if (transaction != null) {
       if (note != null) {
@@ -2248,13 +2249,14 @@ class CoreSync extends AiStrategyImpl
           }
         });
 
-        talker.info("collectPayment: Upserting transaction");
-
         if (completionStatus != null) {
           transaction.status = completionStatus;
         }
-        await repository.upsert<ITransaction>(transaction);
-        talker.info("collectPayment: Transaction upserted successfully");
+        if (!skipTransactionPersist) {
+          talker.info("collectPayment: Upserting transaction");
+          await repository.upsert<ITransaction>(transaction);
+          talker.info("collectPayment: Transaction upserted successfully");
+        }
         return transaction;
       } catch (e, s) {
         talker.error(s);

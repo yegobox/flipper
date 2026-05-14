@@ -72,5 +72,8 @@ abstract class TransactionItemInterface {
     double? dcRt,
     double? dcAmt,
     required bool ignoreForReport,
+    /// When true, skips syncing the parent transaction subtotal from line items
+    /// (avoids an extra [updateTransaction] per item during batched fulfillment updates).
+    bool skipParentSaleSubtotalRecalc = false,
   });
 }
