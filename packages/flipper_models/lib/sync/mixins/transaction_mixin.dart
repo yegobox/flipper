@@ -9,6 +9,7 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
@@ -27,19 +28,19 @@ mixin TransactionMixin implements TransactionInterface {
     required bool isExpense,
     required String transactionType,
     bool forceRealData = true,
-  }) {
+  }) async* {
     if (!forceRealData) {
-      return Stream.value(
-        DummyTransactionGenerator.generateDummyTransactions(
-          count: 1,
-          branchId: branchId ?? "",
-          status: PENDING,
-          transactionType: transactionType,
-          withItems: false,
-        ).first,
-      );
+      yield DummyTransactionGenerator.generateDummyTransactions(
+        count: 1,
+        branchId: branchId ?? "",
+        status: PENDING,
+        transactionType: transactionType,
+        withItems: false,
+      ).first;
+      return;
     }
-    return repository
+    final saleDeviceId = await resolveSaleDeviceId();
+    yield* repository
         .subscribe<ITransaction>(
           query: Query(
             where: [
@@ -47,6 +48,7 @@ mixin TransactionMixin implements TransactionInterface {
               Where('transactionType').isExactly(transactionType),
               Where('status').isExactly(PENDING),
               Where('agentId').isExactly(ProxyService.box.getUserId()!),
+              Where('deviceId').isExactly(saleDeviceId),
               if (branchId != null) Where('branchId').isExactly(branchId),
             ],
             orderBy: [
@@ -333,6 +335,7 @@ mixin TransactionMixin implements TransactionInterface {
     try {
       final userId = ProxyService.box.getUserId();
       if (userId == null) return null;
+      final saleDeviceId = await resolveSaleDeviceId();
       // Base query to find PENDING transactions matching the criteria
       final baseWhere = [
         Where('branchId').isExactly(branchId),
@@ -340,6 +343,7 @@ mixin TransactionMixin implements TransactionInterface {
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(status),
         Where('transactionType').isIn([transactionType, "NS"]),
+        Where('deviceId').isExactly(saleDeviceId),
         if (shiftId != null) Where('shiftId').isExactly(shiftId),
       ];
 
@@ -408,6 +412,7 @@ mixin TransactionMixin implements TransactionInterface {
 
       _isProcessingTransaction = true;
       try {
+        final saleDeviceId = await resolveSaleDeviceId();
         // Always pass includeSubTotalCheck: false to find any existing PENDING transaction
         // regardless of subtotal to prevent duplicate transactions
         final existTransaction = await _pendingTransaction(
@@ -426,6 +431,7 @@ mixin TransactionMixin implements TransactionInterface {
 
         final transaction = ITransaction(
           agentId: ProxyService.box.getUserId()!,
+          deviceId: saleDeviceId,
           lastTouched: now,
           reference: randomRef,
           transactionNumber: randomRef,
@@ -1246,12 +1252,16 @@ mixin TransactionMixin implements TransactionInterface {
         transactionType: transactionType,
       ).firstOrNull;
     }
+    final saleDeviceId = await resolveSaleDeviceId();
+    final userId = ProxyService.box.getUserId();
     return (await repository.get<ITransaction>(
       query: Query(
         where: [
           Where('isExpense').isExactly(isExpense),
           Where('transactionType').isExactly(transactionType),
           Where('status').isExactly(PENDING),
+          if (userId != null) Where('agentId').isExactly(userId),
+          Where('deviceId').isExactly(saleDeviceId),
           if (branchId != null) Where('branchId').isExactly(branchId),
         ],
       ),

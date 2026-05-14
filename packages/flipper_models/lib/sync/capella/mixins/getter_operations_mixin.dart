@@ -4,6 +4,7 @@ import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart'
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -172,9 +173,11 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
 
   @override
   Future<String?> getPlatformDeviceId() async {
-    throw UnimplementedError(
-      'getPlatformDeviceId needs to be implemented for Capella',
-    );
+    try {
+      return await resolveSaleDeviceId();
+    } catch (_) {
+      return null;
+    }
   }
 
   @override

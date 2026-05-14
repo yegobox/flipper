@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/global_dashboard_keyboard_scope.dart';
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
 import 'package:flipper_dashboard/inventory_app.dart';
@@ -31,37 +32,38 @@ class DashboardLayout extends HookConsumerWidget {
     final searchController = useTextEditingController();
     useAccessPermissionsRealtimeSync(ref);
 
-    return ViewModelBuilder<CoreViewModel>.nonReactive(
-      viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (model) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.read(previewingCart.notifier).state = false;
-          final defaultApp = ProxyService.box.getDefaultApp();
-          if (defaultApp != null) {
-            DashboardPage page;
-            switch (defaultApp) {
-              case 'POS':
-              case 'Inventory':
-                page = DashboardPage.inventory;
-                break;
-              case 'Reports':
-                page = DashboardPage.reports;
-                break;
-              case 'Orders':
-                page = DashboardPage.orders;
-                break;
-              default:
-                page = DashboardPage.inventory;
-                break;
+    return GlobalDashboardKeyboardScope(
+      child: ViewModelBuilder<CoreViewModel>.nonReactive(
+        viewModelBuilder: () => CoreViewModel(),
+        onViewModelReady: (model) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(previewingCart.notifier).state = false;
+            final defaultApp = ProxyService.box.getDefaultApp();
+            if (defaultApp != null) {
+              DashboardPage page;
+              switch (defaultApp) {
+                case 'POS':
+                case 'Inventory':
+                  page = DashboardPage.inventory;
+                  break;
+                case 'Reports':
+                  page = DashboardPage.reports;
+                  break;
+                case 'Orders':
+                  page = DashboardPage.orders;
+                  break;
+                default:
+                  page = DashboardPage.inventory;
+                  break;
+              }
+              ref.read(selectedPageProvider.notifier).state = page;
             }
-            ref.read(selectedPageProvider.notifier).state = page;
-          }
-        });
-      },
-      builder: (context, model, child) {
-        final selectedPageWidget = _buildSelectedApp(ref, searchController);
+          });
+        },
+        builder: (context, model, child) {
+          final selectedPageWidget = _buildSelectedApp(ref, searchController);
 
-        return PopScope(
+          return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, result) {
             // Silently prevent back navigation.
@@ -147,8 +149,9 @@ class DashboardLayout extends HookConsumerWidget {
               );
             },
           ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

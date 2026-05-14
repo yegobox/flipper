@@ -168,6 +168,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "customerPhone": model.customerPhone,
       "agentId": model.agentId,
       "cashierName": model.cashierName,
+      "deviceId": model.deviceId,
     };
   }
 
@@ -266,6 +267,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       customerPhone: document["customerPhone"],
       agentId: document["agentId"],
       cashierName: document["cashierName"],
+      deviceId: document["deviceId"],
       dataSource: null, // Excluded from Ditto sync
     );
   }

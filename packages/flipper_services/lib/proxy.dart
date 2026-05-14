@@ -17,6 +17,7 @@ import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
+import 'package:flipper_services/global_app_shortcut_service.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/local_notification_service.dart';
@@ -71,6 +72,11 @@ abstract class ProxyService {
   static ProductService get productService => getIt<ProductService>();
   static UploadT get upload => getIt<UploadT>();
   static KeyPadService get keypad => getIt<KeyPadService>();
+
+  /// Keyboard-driven helpers used from dashboard / shell widgets.
+  static GlobalAppShortcutService get globalAppShortcuts =>
+      _globalAppShortcuts ??= GlobalAppShortcutService();
+  static GlobalAppShortcutService? _globalAppShortcuts;
   static Country get country => getIt<Country>();
   static Language get locale => getIt<Language>();
   static Remote get remoteConfig => getIt<Remote>();

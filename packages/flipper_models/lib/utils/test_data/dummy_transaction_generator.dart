@@ -1,5 +1,6 @@
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:uuid/uuid.dart';
 import 'package:faker/faker.dart';
 
@@ -120,6 +121,7 @@ class DummyTransactionGenerator {
       isAutoBilled: false,
       numberOfItems: 0, // Will be updated if items are added
       discountAmount: 0.0,
+      deviceId: (status ?? '') == PENDING ? 'dummy_device_id' : null,
     );
   }
 

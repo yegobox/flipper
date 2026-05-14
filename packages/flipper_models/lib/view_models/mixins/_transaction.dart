@@ -94,6 +94,7 @@ mixin TransactionMixinOld {
             customerName: customerNameController.text,
             countryCode: countryCodeController.text,
             preloadedLineItems: preloadedLineItemsForCollectPayment,
+            tenderAmount: amount,
           );
         }
       } else {
@@ -105,6 +106,7 @@ mixin TransactionMixinOld {
           customerName: customerNameController.text,
           countryCode: countryCodeController.text,
           preloadedLineItems: preloadedLineItemsForCollectPayment,
+          tenderAmount: amount,
         );
       }
 
@@ -312,6 +314,7 @@ mixin TransactionMixinOld {
     required String customerName,
     required String countryCode,
     List<TransactionItem>? preloadedLineItems,
+    required double tenderAmount,
   }) async {
     try {
       final branchId = ProxyService.box.getBranchId();
@@ -320,11 +323,18 @@ mixin TransactionMixinOld {
       }
 
       final bhfId = (await ProxyService.box.bhfId()) ?? "00";
-      final amount =
-          double.tryParse(
-            ProxyService.box.readString(key: 'receivedAmount') ?? "0",
-          ) ??
-          0;
+      const eps = 0.0001;
+      var amount = tenderAmount;
+      if (amount <= eps) {
+        amount =
+            double.tryParse(
+              ProxyService.box.readString(key: 'receivedAmount') ?? "0",
+            ) ??
+            0;
+      }
+      if (amount <= eps) {
+        amount = ProxyService.box.getCashReceived() ?? 0;
+      }
       final discount =
           double.tryParse(
             ProxyService.box.readString(key: 'discountRate') ?? "0",

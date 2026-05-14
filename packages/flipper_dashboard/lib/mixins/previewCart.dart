@@ -56,6 +56,31 @@ Future<List<TransactionItem>> _getTransactionItems({
   return items;
 }
 
+/// Resolves how much tender was received when the dedicated "received amount"
+/// field is empty or stale (e.g. mobile checkout only updates payment rows, or
+/// QuickSellingView binds a different [TextEditingController] than the mixin).
+double resolveTenderAmountForSaleCompletion({
+  required TextEditingController receivedAmountController,
+  required List<Payment> paymentMethods,
+  required double saleTotal,
+}) {
+  const eps = 0.0001;
+  var amount =
+      double.tryParse(receivedAmountController.text.trim()) ?? 0.0;
+  if (amount > eps) return amount;
+
+  amount = paymentMethods.fold<double>(0.0, (s, p) => s + p.amount);
+  if (amount > eps) return amount;
+
+  amount = paymentMethods.fold<double>(
+    0.0,
+    (s, p) => s + (double.tryParse(p.controller.text.trim()) ?? 0.0),
+  );
+  if (amount > eps) return amount;
+
+  return saleTotal > eps ? saleTotal : 0.0;
+}
+
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
   // Store stream subscription for proper cleanup
@@ -556,7 +581,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       transaction.subTotal = finalSubTotal;
 
-      final amount = double.tryParse(receivedAmountController.text) ?? 0;
+      final amount = resolveTenderAmountForSaleCompletion(
+        receivedAmountController: receivedAmountController,
+        paymentMethods: paymentMethods,
+        saleTotal: finalSubTotal,
+      );
+      ProxyService.box.writeString(
+        key: 'receivedAmount',
+        value: amount.toString(),
+      );
       final discount = double.tryParse(discountController.text) ?? 0;
 
       final String branchId = (await ProxyService.strategy.activeBranch(
