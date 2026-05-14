@@ -400,12 +400,21 @@ class IconRowState extends ConsumerState<IconRow>
   }
 
   void _showReport(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     showDialog(
       barrierDismissible: true,
       context: context,
       builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        clipBehavior: Clip.antiAlias,
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: const _DeferredTransactionListDialogBody(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: size.height * 0.9,
+            maxWidth: size.width * 0.95,
+          ),
+          child: const TransactionListWrapper(showDetailedReport: true),
+        ),
       ),
     );
   }
@@ -458,54 +467,6 @@ class IconRowState extends ConsumerState<IconRow>
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Opens the transactions dialog shell on the first frame, then mounts
-/// [TransactionListWrapper] (full report chrome: KPIs, filters, cashier, export)
-/// after layout so the modal appears immediately instead of blocking during
-/// [showDialog].
-class _DeferredTransactionListDialogBody extends ConsumerStatefulWidget {
-  const _DeferredTransactionListDialogBody();
-
-  @override
-  ConsumerState<_DeferredTransactionListDialogBody> createState() =>
-      _DeferredTransactionListDialogBodyState();
-}
-
-class _DeferredTransactionListDialogBodyState
-    extends ConsumerState<_DeferredTransactionListDialogBody> {
-  bool _mountList = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() => _mountList = true);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final maxH = MediaQuery.sizeOf(context).height * 0.9;
-    final maxW = MediaQuery.sizeOf(context).width * 0.95;
-
-    if (!_mountList) {
-      return ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxH, maxWidth: maxW),
-        child: const SizedBox(
-          height: 360,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      );
-    }
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxH, maxWidth: maxW),
-      child: TransactionListWrapper(showDetailedReport: true),
     );
   }
 }

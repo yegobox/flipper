@@ -5,7 +5,6 @@ import 'package:flipper_dashboard/providers/transaction_report_filters_provider.
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
