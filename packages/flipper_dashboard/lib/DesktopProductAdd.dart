@@ -234,8 +234,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               if (invoiceNumber == null) return;
 
               if (!mounted) return;
-              final pendingTransaction = await ProxyService.strategy
-                  .manageTransaction(
+              final pendingTransaction =
+                  await ProxyService.getStrategy(
+                    Strategy.capella,
+                  ).manageTransaction(
                     transactionType: TransactionType.adjustment,
                     isExpense: true,
                     branchId: ProxyService.box.getBranchId()!,
@@ -294,8 +296,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               if (invoiceNumber == null) return;
 
               if (!mounted) return;
-              final pendingTransaction = await ProxyService.strategy
-                  .manageTransaction(
+              final pendingTransaction =
+                  await ProxyService.getStrategy(
+                    Strategy.capella,
+                  ).manageTransaction(
                     transactionType: TransactionType.adjustment,
                     isExpense: true,
                     branchId: ProxyService.box.getBranchId()!,
@@ -927,9 +931,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                               children: [
                                 Text(
                                   'Product color',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
+                                  style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 const SizedBox(height: 8),
@@ -947,15 +949,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                           height: 56,
                                           decoration: BoxDecoration(
                                             color: pickerColor,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                             border: Border.all(
                                               color: Colors.grey.shade400,
                                             ),
                                           ),
                                           child: Icon(
                                             Icons.palette_outlined,
-                                            color: pickerColor.computeLuminance() >
+                                            color:
+                                                pickerColor.computeLuminance() >
                                                     0.5
                                                 ? Colors.black87
                                                 : Colors.white,
@@ -973,7 +977,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                     TextButton.icon(
                                       onPressed: () =>
                                           _showProductColorPicker(context),
-                                      icon: const Icon(Icons.color_lens_outlined),
+                                      icon: const Icon(
+                                        Icons.color_lens_outlined,
+                                      ),
                                       label: const Text('Choose color'),
                                     ),
                                   ],
@@ -983,12 +989,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                   Text(
                                     'Add photos on each variant in the table below.',
                                     textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: Colors.grey.shade700,
-                                        ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: Colors.grey.shade700),
                                   ),
                                 ],
                               ],
@@ -1462,16 +1464,15 @@ Future<void> _showVariantSheet({
   final barcodeController = TextEditingController(
     text: initialBarcode ?? existingVariant?.bcd ?? existingVariant?.sku ?? '',
   );
-  final _initialStockNum = (existingVariant?.stock?.currentStock ??
-          existingVariant?.qty ??
-          0)
-      .toDouble();
+  final _initialStockNum =
+      (existingVariant?.stock?.currentStock ?? existingVariant?.qty ?? 0)
+          .toDouble();
   final stockController = TextEditingController(
     text: _initialStockNum == 0
         ? '0'
         : (_initialStockNum == _initialStockNum.roundToDouble()
-            ? _initialStockNum.toInt().toString()
-            : _initialStockNum.toString()),
+              ? _initialStockNum.toInt().toString()
+              : _initialStockNum.toString()),
   );
   final stockFocusNode = FocusNode();
   stockFocusNode.addListener(() {
@@ -1617,8 +1618,8 @@ Future<void> _showVariantSheet({
                                             // Pick first so we can preview immediately.
                                             final pickedPath =
                                                 await pickLocalImagePathForSheetResult(
-                                              sourceResult,
-                                            );
+                                                  sourceResult,
+                                                );
                                             if (pickedPath == null) return;
 
                                             setModalState(() {
@@ -1838,9 +1839,10 @@ Future<void> _showVariantSheet({
                                 TextFormField(
                                   controller: lowStockController,
                                   textInputAction: TextInputAction.next,
-                                  keyboardType: const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(
                                       RegExp(r'[0-9.]'),
@@ -1869,12 +1871,8 @@ Future<void> _showVariantSheet({
                                   Text(
                                     'This branch is not VAT-registered. Only '
                                     '"None" (D) applies.',
-                                    style: Theme.of(ctx)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: Colors.grey.shade700,
-                                        ),
+                                    style: Theme.of(ctx).textTheme.bodySmall
+                                        ?.copyWith(color: Colors.grey.shade700),
                                   ),
                                 ],
                                 const SizedBox(height: 8),
@@ -1886,23 +1884,20 @@ Future<void> _showVariantSheet({
                                       ChoiceChip(
                                         label: const Text('Standard B'),
                                         selected: taxTyCd == 'B',
-                                        onSelected: (_) => setModalState(
-                                          () => taxTyCd = 'B',
-                                        ),
+                                        onSelected: (_) =>
+                                            setModalState(() => taxTyCd = 'B'),
                                       ),
                                       ChoiceChip(
                                         label: const Text('Standard A'),
                                         selected: taxTyCd == 'A',
-                                        onSelected: (_) => setModalState(
-                                          () => taxTyCd = 'A',
-                                        ),
+                                        onSelected: (_) =>
+                                            setModalState(() => taxTyCd = 'A'),
                                       ),
                                       ChoiceChip(
                                         label: const Text('Exempt'),
                                         selected: taxTyCd == 'C',
-                                        onSelected: (_) => setModalState(
-                                          () => taxTyCd = 'C',
-                                        ),
+                                        onSelected: (_) =>
+                                            setModalState(() => taxTyCd = 'C'),
                                       ),
                                     ],
                                   )
@@ -1915,9 +1910,9 @@ Future<void> _showVariantSheet({
                                         size: 20,
                                       ),
                                       label: const Text('None (D)'),
-                                      backgroundColor: Theme.of(ctx)
-                                          .colorScheme
-                                          .surfaceContainerHighest,
+                                      backgroundColor: Theme.of(
+                                        ctx,
+                                      ).colorScheme.surfaceContainerHighest,
                                     ),
                                   ),
                                 const SizedBox(height: 12),
@@ -2021,16 +2016,15 @@ Future<void> _showVariantSheet({
                                         barCode: effectiveBarcode,
                                         retailPrice: override ?? baseRetail,
                                         supplyPrice: baseSupply,
-                                        isTaxExempted:
-                                            effectiveTaxTyCd == 'C',
+                                        isTaxExempted: effectiveTaxTyCd == 'C',
                                         product: productRef,
                                         variantDisplayName: variantName,
                                       );
 
                                       final idx = model.scannedVariants
                                           .indexWhere(
-                                        (v) => v.bcd == effectiveBarcode,
-                                      );
+                                            (v) => v.bcd == effectiveBarcode,
+                                          );
                                       final v = idx != -1
                                           ? model.scannedVariants[idx]
                                           : (model.scannedVariants.isNotEmpty
@@ -2060,8 +2054,10 @@ Future<void> _showVariantSheet({
                                       existingVariant.name = variantName;
                                       existingVariant.bcd = effectiveBarcode;
                                       existingVariant.sku = effectiveBarcode;
-                                      existingVariant.taxTyCd = effectiveTaxTyCd;
-                                      existingVariant.taxName = effectiveTaxTyCd;
+                                      existingVariant.taxTyCd =
+                                          effectiveTaxTyCd;
+                                      existingVariant.taxName =
+                                          effectiveTaxTyCd;
                                       existingVariant.retailPrice =
                                           override ?? baseRetail;
                                       existingVariant.supplyPrice = baseSupply;

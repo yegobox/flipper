@@ -1,5 +1,5 @@
 // ignore_for_file: unused_result
-
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/widgets/contact_picker_button.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -104,9 +104,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         if (optimistic == null) return;
         Category? focusedDb;
         try {
-          focusedDb = list.firstWhere(
-            (c) => c.focused && (c.active ?? false),
-          );
+          focusedDb = list.firstWhere((c) => c.focused && (c.active ?? false));
         } catch (_) {
           focusedDb = null;
         }
@@ -148,10 +146,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                     const SizedBox(height: 10),
                     _buildCategoryGrid(),
                     const SizedBox(height: 18),
-                    Text(
-                      'DESCRIPTION',
-                      style: _captionLabelStyle(context),
-                    ),
+                    Text('DESCRIPTION', style: _captionLabelStyle(context)),
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: _descriptionController,
@@ -207,11 +202,11 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
 
   TextStyle _captionLabelStyle(BuildContext context) {
     return Theme.of(context).textTheme.labelSmall!.copyWith(
-          letterSpacing: 1.1,
-          fontWeight: FontWeight.w600,
-          color: _MomoUiColors.labelMuted,
-          fontSize: 11,
-        );
+      letterSpacing: 1.1,
+      fontWeight: FontWeight.w600,
+      color: _MomoUiColors.labelMuted,
+      fontSize: 11,
+    );
   }
 
   Widget _buildHeroBanner(BuildContext context) {
@@ -246,11 +241,11 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                   Text(
                     _isIncome ? 'MoMo Cash In' : 'MoMo Cash Out',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: _isIncome
-                              ? const Color(0xFF166534)
-                              : const Color(0xFFB91C1C),
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: _isIncome
+                          ? const Color(0xFF166534)
+                          : const Color(0xFFB91C1C),
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -258,8 +253,8 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                         ? 'Receive money via MTN MoMo'
                         : 'Send money via MTN MoMo',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade700,
-                        ),
+                      color: Colors.grey.shade700,
+                    ),
                   ),
                 ],
               ),
@@ -376,10 +371,11 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
             hintStyle: TextStyle(color: Colors.grey.shade500),
             filled: true,
             fillColor: _MomoUiColors.beigeField,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-            prefixIcon:
-                Icon(Icons.phone_outlined, color: Colors.grey.shade700),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 16,
+            ),
+            prefixIcon: Icon(Icons.phone_outlined, color: Colors.grey.shade700),
             suffixIconConstraints: const BoxConstraints(
               minWidth: 56,
               minHeight: 48,
@@ -441,8 +437,10 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
             hintStyle: TextStyle(color: Colors.grey.shade500),
             filled: true,
             fillColor: _MomoUiColors.beigeField,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 16,
+            ),
             prefixIcon: Icon(Icons.apps_rounded, color: Colors.grey.shade700),
             helperText: 'Usually 6–10 digits',
             helperStyle: TextStyle(color: Colors.grey.shade600, fontSize: 12),
@@ -499,11 +497,11 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
             Text(
               'AMOUNT',
               style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w700,
-                    color: _MomoUiColors.primaryGreen,
-                    fontSize: 11,
-                  ),
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w700,
+                color: _MomoUiColors.primaryGreen,
+                fontSize: 11,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -515,26 +513,27 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                   child: Text(
                     currency,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: _MomoUiColors.primaryGreen,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: _MomoUiColors.primaryGreen,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 Expanded(
                   child: TextFormField(
                     controller: _amountController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(
                         RegExp(r'^\d+\.?\d{0,2}'),
                       ),
                     ],
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF166534),
-                          letterSpacing: -0.5,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF166534),
+                      letterSpacing: -0.5,
+                    ),
                     decoration: const InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
@@ -565,9 +564,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                     ? 'Enter the amount to receive'
                     : 'Enter the amount to send',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: _MomoUiColors.primaryGreen.withValues(alpha: 0.95),
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: _MomoUiColors.primaryGreen.withValues(alpha: 0.95),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             const SizedBox(height: 14),
@@ -740,8 +739,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
             children: [
               Icon(
                 icon,
-                color:
-                    selected ? const Color(0xFF166534) : Colors.grey.shade700,
+                color: selected
+                    ? const Color(0xFF166534)
+                    : Colors.grey.shade700,
                 size: 26,
               ),
               const SizedBox(height: 8),
@@ -753,8 +753,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
-                  color:
-                      selected ? const Color(0xFF166534) : Colors.grey.shade800,
+                  color: selected
+                      ? const Color(0xFF166534)
+                      : Colors.grey.shade800,
                 ),
               ),
             ],
@@ -803,8 +804,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     ref.read(optimisticFocusedCategoryProvider.notifier).setFocused(category);
     if (mounted) setState(() {});
 
-    final ok =
-        await widget.coreViewModel.updateCategoryCore(category: category);
+    final ok = await widget.coreViewModel.updateCategoryCore(
+      category: category,
+    );
     if (!mounted) return;
     if (!ok) {
       ref.read(optimisticFocusedCategoryProvider.notifier).clear();
@@ -844,8 +846,11 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.info_outline_rounded,
-                color: Colors.blue.shade700, size: 22),
+            Icon(
+              Icons.info_outline_rounded,
+              color: Colors.blue.shade700,
+              size: 22,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -972,7 +977,11 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                     color: const Color(0xFFFFCC00),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.dialpad, size: 20, color: Colors.black87),
+                  child: const Icon(
+                    Icons.dialpad,
+                    size: 20,
+                    color: Colors.black87,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -989,7 +998,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                   icon: const Icon(Icons.copy, size: 20),
                   tooltip: 'Copy to clipboard',
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFCC00).withValues(alpha: 0.25),
+                    backgroundColor: const Color(
+                      0xFFFFCC00,
+                    ).withValues(alpha: 0.25),
                   ),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: ussdCode));
@@ -1052,8 +1063,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
       final isIncome = _isIncome;
 
       final String branchId = ProxyService.box.getBranchId()!;
-      final Category? category =
-          await ProxyService.strategy.activeCategory(branchId: branchId);
+      final Category? category = await ProxyService.strategy.activeCategory(
+        branchId: branchId,
+      );
 
       if (category == null) {
         if (mounted) {
@@ -1127,7 +1139,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                   status: WAITING,
                   subTotal: saved.subTotal ?? amount,
                 );
-                providerContainer.invalidate(cashbookRecentTransactionsProvider);
+                providerContainer.invalidate(
+                  cashbookRecentTransactionsProvider,
+                );
                 providerContainer.invalidate(
                   transactionsScreenTransactionsProvider,
                 );
@@ -1184,8 +1198,8 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     return _lock.synchronized(() async {
       final String branchId = ProxyService.box.getBranchId()!;
 
-      ITransaction? pendingTransaction = await ProxyService.strategy
-          .manageTransaction(
+      ITransaction? pendingTransaction =
+          await ProxyService.getStrategy(Strategy.capella).manageTransaction(
             branchId: branchId,
             transactionType: widget.transactionType,
             isExpense: !isIncome,
@@ -1280,32 +1294,33 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
 
       final phoneForCollect =
           (customerPhoneForCollect != null &&
-                  customerPhoneForCollect.isNotEmpty)
-              ? customerPhoneForCollect
-              : null;
+              customerPhoneForCollect.isNotEmpty)
+          ? customerPhoneForCollect
+          : null;
 
-      ITransaction updatedTransaction =
-          await ProxyService.strategy.collectPayment(
-        cashReceived: amount,
-        countryCode: 'RW',
-        branchId: branchId,
-        bhfId: (await ProxyService.box.bhfId()) ?? '00',
-        isProformaMode: false,
-        isTrainingMode: ProxyService.box.isTrainingMode(),
-        transaction: pendingTransaction,
-        paymentType: 'MTN MOMO',
-        discount: 0,
-        transactionType: category.name ?? widget.transactionType,
-        directlyHandleReceipt: false,
-        isIncome: isIncome,
-        categoryId: category.id.toString(),
-        note: note,
-        completionStatus: COMPLETE,
-        customerPhone: phoneForCollect,
-      );
+      ITransaction updatedTransaction = await ProxyService.strategy
+          .collectPayment(
+            cashReceived: amount,
+            countryCode: 'RW',
+            branchId: branchId,
+            bhfId: (await ProxyService.box.bhfId()) ?? '00',
+            isProformaMode: false,
+            isTrainingMode: ProxyService.box.isTrainingMode(),
+            transaction: pendingTransaction,
+            paymentType: 'MTN MOMO',
+            discount: 0,
+            transactionType: category.name ?? widget.transactionType,
+            directlyHandleReceipt: false,
+            isIncome: isIncome,
+            categoryId: category.id.toString(),
+            note: note,
+            completionStatus: COMPLETE,
+            customerPhone: phoneForCollect,
+          );
 
-      final movementReceipt =
-          isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+      final movementReceipt = isIncome
+          ? TransactionType.cashIn
+          : TransactionType.cashOut;
       await ProxyService.strategy.updateTransaction(
         transaction: updatedTransaction,
         receiptType: movementReceipt,
@@ -1332,10 +1347,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
 }
 
 final class _MomoDashedRoundedBorderPainter extends CustomPainter {
-  _MomoDashedRoundedBorderPainter({
-    required this.color,
-    required this.radius,
-  });
+  _MomoDashedRoundedBorderPainter({required this.color, required this.radius});
 
   final Color color;
   final double radius;

@@ -28,6 +28,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flipper_models/providers/notice_provider.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 
 import 'package:flipper_dashboard/umusada_helper.dart';
@@ -66,16 +67,21 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   bool hasText = false;
   bool isSearching = false;
+  late int _saleSessionSnapshotAtLastTextChange;
 
   @override
   void initState() {
     super.initState();
+    _saleSessionSnapshotAtLastTextChange =
+        ref.read(pendingCartSaleSessionProvider);
     focusNode = FocusNode();
     widget.controller.addListener(_handleTextChange);
   }
 
   void _handleTextChange() {
     final text = widget.controller.text;
+    _saleSessionSnapshotAtLastTextChange =
+        ref.read(pendingCartSaleSessionProvider);
     _textSubject.add(text);
     if (mounted) {
       setState(() {
@@ -108,6 +114,15 @@ class SearchFieldState extends ConsumerState<SearchField>
           _textSubject.debounceTime(const Duration(milliseconds: 150)).listen((
             value,
           ) {
+            if (ref.read(pendingCartSaleSessionProvider) !=
+                _saleSessionSnapshotAtLastTextChange) {
+              if (mounted) {
+                setState(() {
+                  isSearching = false;
+                });
+              }
+              return;
+            }
             if (ref.read(searchStringProvider) != value) {
               if (!isSearching) {
                 setState(() {

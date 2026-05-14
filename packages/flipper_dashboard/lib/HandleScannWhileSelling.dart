@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -40,16 +41,24 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     controller.clear();
     hasText = false;
     if (value.isNotEmpty) {
+      final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
       // Trigger search in outerVariantsProvider
       ref.read(searchStringProvider.notifier).emitString(value: value);
 
       // Allow search to propagate before awaiting results.
       await Future.delayed(const Duration(milliseconds: 200));
 
+      if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+        return;
+      }
+
       final branchId = ProxyService.box.getBranchId()!;
       try {
         final variants =
             await ref.read(outerVariantsProvider(branchId).future);
+        if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+          return;
+        }
         if (variants.isEmpty) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -63,12 +72,18 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           return;
         }
         if (variants.length == 1) {
+          if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+            return;
+          }
           await _processTransaction(variants.first, model);
         } else {
           final Variant? selectedVariant = await _showVariantSelectionDialog(
             variants,
           );
           if (selectedVariant != null) {
+            if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+              return;
+            }
             await _processTransaction(selectedVariant, model);
           }
         }
@@ -93,20 +108,31 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     CoreViewModel model,
     TextEditingController controller,
   ) async {
+    final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
     // Trigger search in outerVariantsProvider
     ref.read(searchStringProvider.notifier).emitString(value: value);
 
     // Wait for search results
     await Future.delayed(const Duration(milliseconds: 100));
 
+    if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+      return;
+    }
+
     final branchId = ProxyService.box.getBranchId()!;
     try {
       final variants = await ref.read(outerVariantsProvider(branchId).future);
+      if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+        return;
+      }
       if (variants.length == 1) {
         // Exactly one match - auto-add to cart
         controller.clear();
         hasText = false;
         ref.read(searchStringProvider.notifier).emitString(value: "");
+        if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+          return;
+        }
         await _processTransaction(variants.first, model);
       }
     } catch (_) {

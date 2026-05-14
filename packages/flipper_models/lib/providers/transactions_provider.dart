@@ -479,30 +479,40 @@ Stream<ITransaction> pendingTransactionStream(
 
   try {
     talker.info(
-      'Starting manageTransactionStream (Capella) for branch $branchId '
+      'Starting pendingTransaction stream (Capella) for branch $branchId '
       '(isExpense: $isExpense)',
     );
-    yield* ProxyService.getStrategy(Strategy.capella).manageTransactionStream(
-      transactionType: isExpense
-          ? TransactionType.purchase
-          : TransactionType.sale,
-      isExpense: isExpense,
-      branchId: branchId,
-    );
+    yield* ProxyService.getStrategy(Strategy.capella)
+        .pendingTransaction(
+          branchId: branchId,
+          transactionType: isExpense
+              ? TransactionType.purchase
+              : TransactionType.sale,
+          isExpense: isExpense,
+        )
+        .map((txn) {
+          talker.info(
+            'pendingTransactionStream emitted id=${txn.id} status=${txn.status}',
+          );
+          return txn;
+        });
   } catch (e, stack) {
-    talker.error('FATAL: manageTransactionStream threw an error!', e, stack);
+    talker.error('FATAL: pendingTransaction stream threw an error!', e, stack);
     rethrow;
   }
 }
 
 // ---------------------------------------------------------------------------
-// transactionById — single-transaction lookup; kept on default strategy.
+// transactionById — Ditto-backed: [Strategy.capella].transactionsStream with
+// current [branchId] so the observer matches [transactionItemsStreamProvider].
 // ---------------------------------------------------------------------------
 @riverpod
 Stream<ITransaction?> transactionById(Ref ref, String transactionId) {
-  return ProxyService.strategy
+  final branchId = ProxyService.box.getBranchId();
+  return ProxyService.getStrategy(Strategy.capella)
       .transactionsStream(
         id: transactionId,
+        branchId: branchId,
         includePending: true,
         includeParked: true,
         includeZeroSubTotal: true,

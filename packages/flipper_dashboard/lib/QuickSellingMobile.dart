@@ -25,6 +25,7 @@ import 'package:flipper_services/utils.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 
 import 'data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -718,9 +719,21 @@ class _QuickSellingMobileContentState
     // Watch customer phone number to update button state
     final customerPhone = ref.watch(customerPhoneNumberProvider);
 
-    // Watch transaction to get authoritative total
+    // Watch transaction to get authoritative total (Capella/Ditto; must match items stream)
     final transactionAsync = ref.watch(
       transactionByIdProvider(widget.transactionIdInt.toString()),
+    );
+
+    ref.listen(
+      transactionByIdProvider(widget.transactionIdInt.toString()),
+      (previous, next) {
+        tv_talk.talker.info(
+          'QuickSellingMobile.transactionById sheetTid=${widget.transactionIdInt} '
+          'widgetPassThru id=${widget.transaction.id} status=${widget.transaction.status} '
+          'byId id=${next.value?.id} status=${next.value?.status} '
+          'loading=${next.isLoading} err=${next.hasError}',
+        );
+      },
     );
 
     // Watch payment methods

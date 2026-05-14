@@ -1016,7 +1016,7 @@ final class PendingTransactionStreamProvider
 }
 
 String _$pendingTransactionStreamHash() =>
-    r'd8eaa4d832e4db52a410683b17c7ab678d7e4a22';
+    r'f72ebeca6a2e570a8c7922344f50198c13a4faef';
 
 final class PendingTransactionStreamFamily extends $Family
     with
