@@ -88,7 +88,7 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
         ? remainingDiscount
         : (item.price * item.qty / itemsTotal) * totalDiscountAmount;
 
-    await ProxyService.strategy.updateTransactionItem(
+    await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
       transactionItemId: item.id,
       dcRt: discountRate,
       ignoreForReport: false,

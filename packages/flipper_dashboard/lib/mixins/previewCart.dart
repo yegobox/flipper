@@ -158,7 +158,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             financingId: financeOption.id,
           );
       await _markItemsAsDone(items, transaction);
-      _changeTransactionStatus(transaction: transaction);
+      await _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
       talker.info(e);
@@ -180,7 +180,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     List<TransactionItem> items,
     dynamic pendingTransaction,
   ) async {
-    ProxyService.strategy.markItemAsDoneWithTransaction(
+    await ProxyService.getStrategy(Strategy.capella).markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       ignoreForReport: false,

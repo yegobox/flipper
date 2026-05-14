@@ -197,7 +197,7 @@ class CoreViewModel extends FlipperBaseModel
 
         for (TransactionItem item in items) {
           item.active = true;
-          ProxyService.strategy.updateTransactionItem(
+          ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
             transactionItemId: item.id,
             ignoreForReport: false,
             active: true,
@@ -237,14 +237,14 @@ class CoreViewModel extends FlipperBaseModel
       // ProxyService.keypad.reset();
       reset();
       TransactionItem itemToDelete = items.last;
-      await ProxyService.strategy.flipperDelete(
+      await ProxyService.getStrategy(Strategy.capella).flipperDelete(
         id: itemToDelete.id,
         endPoint: 'transactionItem',
         flipperHttpClient: ProxyService.http,
       );
 
-      List<TransactionItem> updatedItems = await ProxyService.strategy
-          .transactionItems(
+      List<TransactionItem> updatedItems =
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
             branchId: (await ProxyService.strategy.activeBranch(
               branchId: ProxyService.box.getBranchId()!,
             )).id,
@@ -292,7 +292,7 @@ class CoreViewModel extends FlipperBaseModel
         : variation.productName!;
 
     if (items.isEmpty) {
-      ProxyService.strategy.addTransactionItem(
+      ProxyService.getStrategy(Strategy.capella).addTransactionItem(
         transaction: pendingTransaction,
         lastTouched: DateTime.now().toUtc(),
         discount: 0.0,
@@ -329,8 +329,8 @@ class CoreViewModel extends FlipperBaseModel
           ? '${variation.productName}(${variation.name})'
           : variation.productName!;
 
-      TransactionItem? existTransactionItem = await ProxyService.strategy
-          .getTransactionItem(
+      TransactionItem? existTransactionItem =
+          await ProxyService.getStrategy(Strategy.capella).getTransactionItem(
             variantId: variation.id,
             transactionId: pendingTransaction?.id,
           );
@@ -346,11 +346,11 @@ class CoreViewModel extends FlipperBaseModel
           );
 
       if (existTransactionItem != null) {
-        ProxyService.strategy.updateTransactionItem(
+        ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
+          ignoreForReport: false,
           transactionItemId: existTransactionItem.id,
           qty: existTransactionItem.qty + 1,
           price: amount,
-          ignoreForReport: false,
           prc: amount,
         );
         await ProxyService.getStrategy(Strategy.capella).updateTransaction(
@@ -367,7 +367,7 @@ class CoreViewModel extends FlipperBaseModel
               doneWithTransaction: false,
               active: true,
             );
-        ProxyService.strategy.addTransactionItem(
+        ProxyService.getStrategy(Strategy.capella).addTransactionItem(
           transaction: pendingTransaction,
           lastTouched: DateTime.now().toUtc(),
           discount: 0.0,
@@ -387,7 +387,7 @@ class CoreViewModel extends FlipperBaseModel
         );
       }
     } else {
-      await ProxyService.strategy.updateTransactionItem(
+      await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
         transactionItemId: items.last.id,
         ignoreForReport: false,
         taxAmt: double.parse((amount * 18 / 118).toStringAsFixed(2)),
@@ -801,7 +801,7 @@ class CoreViewModel extends FlipperBaseModel
     required String id,
     required BuildContext context,
   }) async {
-    await ProxyService.strategy.flipperDelete(
+    await ProxyService.getStrategy(Strategy.capella).flipperDelete(
       id: id,
       endPoint: 'transactionItem',
       flipperHttpClient: ProxyService.http,

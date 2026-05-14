@@ -522,13 +522,13 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount!) {
           // item.discount = item.price;
-          ProxyService.strategy.updateTransactionItem(
+          ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
             ignoreForReport: false,
             transactionItemId: item.id,
             discount: item.price.toDouble(),
           );
         } else {
-          ProxyService.strategy.updateTransactionItem(
+          ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
             transactionItemId: item.id,
             ignoreForReport: false,
             discount: discount.amount!.toDouble(),

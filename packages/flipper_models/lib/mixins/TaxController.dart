@@ -649,7 +649,7 @@ class TaxController<OBJ> {
               id: item.variantId,
             );
 
-            await ProxyService.strategy.addTransactionItem(
+            await ProxyService.getStrategy(Strategy.capella).addTransactionItem(
               transaction: newTransaction,
               item: copy,
               ignoreForReport: true,

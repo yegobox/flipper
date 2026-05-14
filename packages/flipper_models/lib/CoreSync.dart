@@ -2071,15 +2071,27 @@ class CoreSync extends AiStrategyImpl
           )
           .result;
       // update thi transacton
-      ITransaction? transaction = await _getTransaction(
-        transactionId: transactionId,
-      );
-      if (transaction != null) {
-        transaction.receiptFileName = fileName + ".pdf";
+      ITransaction? iTransaction =
+          await ProxyService.getStrategy(Strategy.capella).getTransaction(
+            id: transactionId,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+      if (iTransaction != null) {
+        /// never update transaction status here or any other properties
+        /// first get transaction as it might be updated by other means
+        ///
+        final fileNameWithExtension = fileName + ".pdf";
+
+        iTransaction.receiptFileName = fileNameWithExtension;
+
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+          transaction: iTransaction,
+          transactionId: iTransaction.id,
+        );
 
         ProxyService.box.writeString(
           key: 'getReceiptFileName',
-          value: fileName + ".pdf",
+          value: fileNameWithExtension,
         );
         // await repository.upsert(transaction);
       }
@@ -2552,22 +2564,6 @@ class CoreSync extends AiStrategyImpl
       policy: OfflineFirstGetPolicy.awaitRemote,
       query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
     );
-  }
-
-  Future<ITransaction?> _getTransaction({String? transactionId}) async {
-    return (await repository.get<ITransaction>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: brick.Query(
-        where: [
-          if (transactionId != null)
-            brick.Where(
-              'id',
-              value: transactionId,
-              compare: brick.Compare.exact,
-            ),
-        ],
-      ),
-    )).firstOrNull;
   }
 
   @override
@@ -3958,7 +3954,7 @@ class CoreSync extends AiStrategyImpl
       planToKeep = unpaidPlans.first;
 
       for (final plan in unpaidPlans) {
-        if (plan.id != planToKeep!.id && plan.id != null) {
+        if (plan.id != planToKeep.id && plan.id != null) {
           await Supabase.instance.client
               .from('plans')
               .delete()
