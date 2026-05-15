@@ -20,43 +20,141 @@ mixin CapellaPersonalGoalsMixin {
         return Stream.value(<PersonalGoal>[]);
       }
 
-      final prepared = prepareDqlSyncSubscription(
-        'SELECT * FROM personal_goals WHERE branchId = :branchId',
-        {'branchId': branchId},
-      );
-      ditto.sync.registerSubscription(
-        prepared.dql,
-        arguments: prepared.arguments,
-      );
-
-      const query =
+      const broadSql =
+          'SELECT * FROM personal_goals WHERE branchId = :branchId';
+      const orderedQuery =
           'SELECT * FROM personal_goals WHERE branchId = :branchId ORDER BY isTopPriority DESC, updatedAt DESC';
-      final controller = StreamController<List<PersonalGoal>>.broadcast();
-      dynamic observer;
+      final arguments = {'branchId': branchId};
 
-      observer = ditto.store.registerObserver(
-        query,
-        arguments: {'branchId': branchId},
-        onChange: (queryResult) {
-          if (controller.isClosed) return;
-          final list = <PersonalGoal>[];
-          for (final item in queryResult.items) {
-            try {
-              list.add(
-                PersonalGoal.fromJson(Map<String, dynamic>.from(item.value)),
-              );
-            } catch (e) {
-              talker.error('Error mapping personal goal: $e');
-            }
+      List<PersonalGoal> mapQueryResult(dynamic queryResult) {
+        final list = <PersonalGoal>[];
+        for (final item in queryResult.items as Iterable<dynamic>) {
+          try {
+            list.add(
+              PersonalGoal.fromJson(
+                Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>),
+              ),
+            );
+          } catch (e) {
+            talker.error('Error mapping personal goal: $e');
           }
-          controller.add(list);
+        }
+        return list;
+      }
+
+      dynamic observer;
+      var cancelled = false;
+      var listenStarted = false;
+
+      Future<void> registerBroadBranchSubscription() async {
+        final prepared = prepareDqlSyncSubscription(broadSql, arguments);
+        try {
+          await ditto.sync.registerSubscription(
+            prepared.dql,
+            arguments: prepared.arguments,
+          );
+          talker.debug(
+            'personal_goals: registered broad branch subscription for sync',
+          );
+        } catch (e, st) {
+          talker.warning(
+            'personal_goals: broad registerSubscription failed: $e\n'
+            '${describeDqlSyncSubscriptionAttempt(broadSql, arguments)}\n'
+            '$st',
+          );
+        }
+      }
+
+      late final StreamController<List<PersonalGoal>> controller;
+
+      controller = StreamController<List<PersonalGoal>>(
+        onListen: () {
+          if (listenStarted) return;
+          listenStarted = true;
+          unawaited(() async {
+            try {
+              await registerBroadBranchSubscription();
+
+              Future<void> emitIfOpen(dynamic queryResult) async {
+                if (cancelled || controller.isClosed) return;
+                controller.add(mapQueryResult(queryResult));
+              }
+
+              /// Returns number of goals emitted (0 while store still empty).
+              Future<int> executeAndEmit() async {
+                if (cancelled || controller.isClosed) return -1;
+                final r = await ditto.store.execute(
+                  orderedQuery,
+                  arguments: arguments,
+                );
+                if (cancelled || controller.isClosed) return -1;
+                final list = mapQueryResult(r);
+                controller.add(list);
+                return list.length;
+              }
+
+              if (cancelled || controller.isClosed) return;
+
+              // Register the observer before any retry sleeps so replication that
+              // lands during cold-start backoff still pushes updates (otherwise
+              // the UI can stay empty until pull-to-refresh recreates the stream).
+              observer = ditto.store.registerObserver(
+                orderedQuery,
+                arguments: arguments,
+                onChange: (queryResult) {
+                  unawaited(emitIfOpen(queryResult));
+                },
+              );
+
+              var count = await executeAndEmit();
+
+              // [CapellaVariantMixin]-style short waits when the first read is empty
+              // while Ditto / cloud sync is still landing.
+              if (count == 0) {
+                for (final d in const [
+                  Duration(milliseconds: 600),
+                  Duration(milliseconds: 1200),
+                ]) {
+                  if (cancelled || controller.isClosed) break;
+                  await Future<void>.delayed(d);
+                  if (cancelled || controller.isClosed) break;
+                  count = await executeAndEmit();
+                  if (count > 0) break;
+                }
+              }
+              // One longer read for slow mesh / cold devices; avoid the full
+              // [OuterVariants] multi-second chain so an empty branch is not
+              // blocked for ~10s+ on every open.
+              if (count == 0) {
+                if (!cancelled && !controller.isClosed) {
+                  await Future<void>.delayed(
+                    const Duration(milliseconds: 2000),
+                  );
+                  if (!cancelled && !controller.isClosed) {
+                    await executeAndEmit();
+                  }
+                }
+              }
+            } catch (e, s) {
+              talker.error('Error in personalGoalsStream setup: $e\n$s');
+              if (!cancelled && !controller.isClosed) {
+                controller.add(<PersonalGoal>[]);
+              }
+            }
+          }());
+        },
+        onCancel: () async {
+          cancelled = true;
+          try {
+            await observer?.cancel();
+          } catch (e) {
+            talker.warning('personalGoalsStream: observer cancel failed: $e');
+          }
+          if (!controller.isClosed) {
+            await controller.close();
+          }
         },
       );
-
-      controller.onCancel = () async {
-        await observer?.cancel();
-        await controller.close();
-      };
 
       return controller.stream;
     } catch (e) {
@@ -74,10 +172,7 @@ mixin CapellaPersonalGoalsMixin {
 
     final now = DateTime.now();
     final doc = goal
-        .copyWith(
-          updatedAt: now,
-          createdAt: goal.createdAt ?? now,
-        )
+        .copyWith(updatedAt: now, createdAt: goal.createdAt ?? now)
         .toJson();
 
     await ditto.store.execute(
@@ -138,10 +233,7 @@ mixin CapellaPersonalGoalsMixin {
     final deviceKey = await personalGoalContributionDeviceKey();
     final now = DateTime.now();
     final doc = existing
-        .copyWith(
-          savedAmount: newSaved,
-          updatedAt: now,
-        )
+        .copyWith(savedAmount: newSaved, updatedAt: now)
         .toJson();
     doc['lastContributionDeviceKey'] = deviceKey;
     doc['lastContributionAmount'] = amount;
@@ -179,7 +271,8 @@ mixin CapellaPersonalGoalsMixin {
       (a, b) => a + b.price.toDouble() * b.qty.toDouble(),
     );
 
-    final utilityCashInEligible = !skipPersonalGoalAutoSweep &&
+    final utilityCashInEligible =
+        !skipPersonalGoalAutoSweep &&
         shouldAttemptPersonalGoalUtilityCashInSweep(
           completionStatus: completionStatus,
           isIncome: isIncome,
@@ -189,7 +282,8 @@ mixin CapellaPersonalGoalsMixin {
           movementSubTotal: movementSubtotal,
         );
 
-    final saleEligible = !skipPersonalGoalAutoSweep &&
+    final saleEligible =
+        !skipPersonalGoalAutoSweep &&
         !isUtilityCashbookMovement &&
         shouldAttemptPersonalGoalSaleSweep(
           completionStatus: completionStatus,
@@ -251,7 +345,9 @@ mixin CapellaPersonalGoalsMixin {
             PersonalGoal.fromJson(Map<String, dynamic>.from(row.value)),
           );
         } catch (e) {
-          talker.warning('applyPersonalGoalAutoSweepIfEligible: bad goal row $e');
+          talker.warning(
+            'applyPersonalGoalAutoSweepIfEligible: bad goal row $e',
+          );
         }
       }
     } catch (e, s) {
@@ -282,7 +378,9 @@ mixin CapellaPersonalGoalsMixin {
     }
   }
 
-  Future<bool> _transactionPersonalGoalSweepApplied(String transactionId) async {
+  Future<bool> _transactionPersonalGoalSweepApplied(
+    String transactionId,
+  ) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return false;
     try {
