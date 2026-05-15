@@ -109,8 +109,16 @@ List<({String goalId, double amount})> computeAutoAllocationContributions({
   for (final g in goals) {
     final pct = g.autoAllocationPercent;
     if (pct == null || pct <= 0) continue;
+    if (g.isAtOrAboveTarget) continue;
+
     final raw = allocationBase * pct / 100.0;
-    final amount = _roundMoney(raw);
+    var amount = _roundMoney(raw);
+    if (amount <= 0) continue;
+
+    final remaining = g.remainingToTarget;
+    if (remaining.isFinite && amount > remaining) {
+      amount = _roundMoney(remaining);
+    }
     if (amount > 0) {
       out.add((goalId: g.id, amount: amount));
     }

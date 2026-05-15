@@ -38,6 +38,8 @@ class PersonalGoal {
   final String? lastContributionDeviceKey;
   final double? lastContributionAmount;
 
+  static const double targetReachedEpsilon = 0.0001;
+
   /// Progress in 0..1
   double get progressRatio {
     if (targetAmount <= 0) return 0;
@@ -46,6 +48,18 @@ class PersonalGoal {
 
   /// Progress 0..100
   int get progressPercent => (progressRatio * 100).round();
+
+  /// True when [savedAmount] has reached or exceeded [targetAmount].
+  bool get isAtOrAboveTarget =>
+      targetAmount > 0 &&
+      savedAmount >= targetAmount - targetReachedEpsilon;
+
+  /// Amount still needed to hit [targetAmount]; `0` when already at/above target.
+  double get remainingToTarget {
+    if (targetAmount <= 0) return double.infinity;
+    final remaining = targetAmount - savedAmount;
+    return remaining <= targetReachedEpsilon ? 0 : remaining;
+  }
 
   PersonalGoal copyWith({
     String? id,

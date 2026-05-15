@@ -32,6 +32,8 @@ void main() {
       );
       expect(over.progressRatio, 1);
       expect(over.progressPercent, 100);
+      expect(over.isAtOrAboveTarget, isTrue);
+      expect(over.remainingToTarget, 0);
 
       final zeroTarget = PersonalGoal(
         id: '2',
@@ -41,6 +43,16 @@ void main() {
         targetAmount: 0,
       );
       expect(zeroTarget.progressRatio, 0);
+
+      final open = PersonalGoal(
+        id: '3',
+        branchId: 'b',
+        name: 'z',
+        savedAmount: 40,
+        targetAmount: 100,
+      );
+      expect(open.isAtOrAboveTarget, isFalse);
+      expect(open.remainingToTarget, 60);
     });
 
     test('toJson roundtrip preserves amounts', () {

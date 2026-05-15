@@ -15,5 +15,6 @@ abstract class PersonalGoalsInterface {
     required String branchId,
     required double amount,
     String? transactionId,
+    bool enforceTargetCap = false,
   });
 }
