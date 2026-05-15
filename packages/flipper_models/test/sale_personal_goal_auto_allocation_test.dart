@@ -177,6 +177,39 @@ void main() {
       ]);
       expect(profit, 60);
     });
+
+    test('gross profit zero when supply matches retail (no allocation w/o revenue fallback)', () {
+      final profit = computeSaleGrossProfitFromSaleLines([
+        const SaleLineForProfit(
+          price: 100,
+          qty: 1,
+          supplyPriceAtSale: 100,
+        ),
+      ]);
+      expect(profit, 0);
+      final revenue = computeSaleLineRevenueForPersonalGoals([
+        const SaleLineForProfit(
+          price: 100,
+          qty: 1,
+          supplyPriceAtSale: 100,
+        ),
+      ]);
+      expect(revenue, 100);
+    });
+  });
+
+  group('computeSaleLineRevenueForPersonalGoals', () {
+    test('matches price x qty with same skips as profit', () {
+      final rev = computeSaleLineRevenueForPersonalGoals([
+        const SaleLineForProfit(price: 10, qty: 3, supplyPrice: 5),
+        const SaleLineForProfit(
+          price: 999,
+          qty: 1,
+          ignoreForReport: true,
+        ),
+      ]);
+      expect(rev, 30);
+    });
   });
 
   group('computeAutoAllocationContributions', () {

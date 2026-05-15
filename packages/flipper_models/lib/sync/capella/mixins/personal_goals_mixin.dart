@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flipper_models/helpers/personal_goal_contribution_device_key.dart';
+import 'package:flipper_models/helpers/personal_goals_branch_cache.dart';
 import 'package:flipper_models/helpers/sale_personal_goal_auto_allocation.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/personal_goal.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -12,6 +14,165 @@ mixin CapellaPersonalGoalsMixin {
   DittoService get dittoService;
   Talker get talker;
 
+  static const _personalGoalsBroadSql =
+      'SELECT * FROM personal_goals WHERE branchId = :branchId';
+  static const _personalGoalsAllSql = 'SELECT * FROM personal_goals';
+
+  static bool _collectionWideSubscriptionRegistered = false;
+
+  List<PersonalGoal> _personalGoalsFromQueryResult(dynamic queryResult) {
+    final list = <PersonalGoal>[];
+    for (final item in queryResult.items as Iterable<dynamic>) {
+      try {
+        list.add(
+          PersonalGoal.fromJson(
+            Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>),
+          ),
+        );
+      } catch (e) {
+        talker.error('Error mapping personal goal: $e');
+      }
+    }
+    return list;
+  }
+
+  static bool _branchIdsMatch(String a, String b) =>
+      a.trim().toLowerCase() == b.trim().toLowerCase();
+
+  List<PersonalGoal> _goalsForBranchFromAllRows(
+    List<PersonalGoal> all,
+    String branchId,
+  ) =>
+      all.where((g) => _branchIdsMatch(g.branchId, branchId)).toList();
+
+  void _cacheBranchGoals(String branchId, List<PersonalGoal> goals) {
+    if (branchId.isEmpty || goals.isEmpty) return;
+    PersonalGoalsBranchCache.putBranchGoals(branchId, goals);
+  }
+
+  Future<void> _registerPersonalGoalsCollectionSubscription(
+    dynamic ditto,
+  ) async {
+    if (_collectionWideSubscriptionRegistered) return;
+    final prepared = prepareDqlSyncSubscription(_personalGoalsAllSql, null);
+    try {
+      await ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+      _collectionWideSubscriptionRegistered = true;
+      talker.debug(
+        'personal_goals: registered collection-wide subscription for sync',
+      );
+    } catch (e, st) {
+      talker.warning(
+        'personal_goals: collection-wide registerSubscription failed: $e\n'
+        '${describeDqlSyncSubscriptionAttempt(_personalGoalsAllSql, null)}\n'
+        '$st',
+      );
+    }
+  }
+
+  Future<void> _registerPersonalGoalsBranchSubscription(
+    dynamic ditto,
+    String branchId,
+  ) async {
+    await _registerPersonalGoalsCollectionSubscription(ditto);
+    final arguments = {'branchId': branchId};
+    final prepared = prepareDqlSyncSubscription(_personalGoalsBroadSql, arguments);
+    try {
+      await ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+      talker.debug(
+        'personal_goals: registered broad branch subscription for sync',
+      );
+    } catch (e, st) {
+      talker.warning(
+        'personal_goals: broad registerSubscription failed: $e\n'
+        '${describeDqlSyncSubscriptionAttempt(_personalGoalsBroadSql, arguments)}\n'
+        '$st',
+      );
+    }
+  }
+
+  /// Loads branch goals: memory cache → Ditto (branch query) → unfiltered scan.
+  Future<List<PersonalGoal>> _loadPersonalGoalsForBranch(
+    dynamic ditto,
+    String branchId, {
+    bool retryWhenEmpty = true,
+  }) async {
+    final cached = PersonalGoalsBranchCache.goalsForBranch(branchId);
+    if (cached != null && cached.isNotEmpty) {
+      talker.debug(
+        'personal_goals: using ${cached.length} cached goals for branch $branchId',
+      );
+      return cached;
+    }
+
+    await _registerPersonalGoalsBranchSubscription(ditto, branchId);
+    final arguments = {'branchId': branchId};
+
+    Future<List<PersonalGoal>> executeBranchQuery() async {
+      final result = await ditto.store.execute(
+        _personalGoalsBroadSql,
+        arguments: arguments,
+      );
+      return _personalGoalsFromQueryResult(result);
+    }
+
+    Future<List<PersonalGoal>> executeUnfilteredScan() async {
+      final result = await ditto.store.execute(_personalGoalsAllSql);
+      final all = _personalGoalsFromQueryResult(result);
+      return _goalsForBranchFromAllRows(all, branchId);
+    }
+
+    Future<List<PersonalGoal>> loadOnce() async {
+      var goals = await executeBranchQuery();
+      if (goals.isEmpty) {
+        goals = await executeUnfilteredScan();
+        if (goals.isNotEmpty) {
+          talker.info(
+            'personal_goals: branch query empty; found ${goals.length} via '
+            'collection scan for $branchId',
+          );
+        }
+      }
+      if (goals.isNotEmpty) {
+        _cacheBranchGoals(branchId, goals);
+      }
+      return goals;
+    }
+
+    var goals = await loadOnce();
+    if (!retryWhenEmpty || goals.isNotEmpty) return goals;
+
+    const delays = <Duration>[
+      Duration(milliseconds: 600),
+      Duration(milliseconds: 1200),
+      Duration(milliseconds: 2000),
+      Duration(milliseconds: 3500),
+      Duration(milliseconds: 5000),
+    ];
+    for (final d in delays) {
+      await Future<void>.delayed(d);
+      goals = await loadOnce();
+      if (goals.isNotEmpty) return goals;
+    }
+
+    final boxBranchId = ProxyService.box.getBranchId();
+    if (boxBranchId != null &&
+        boxBranchId.isNotEmpty &&
+        !_branchIdsMatch(boxBranchId, branchId)) {
+      talker.warning(
+        'personal_goals: still empty for branchId=$branchId '
+        '(box branchId=$boxBranchId)',
+      );
+    }
+    return goals;
+  }
+
   Stream<List<PersonalGoal>> personalGoalsStream({required String branchId}) {
     try {
       final ditto = dittoService.dittoInstance;
@@ -20,50 +181,13 @@ mixin CapellaPersonalGoalsMixin {
         return Stream.value(<PersonalGoal>[]);
       }
 
-      const broadSql =
-          'SELECT * FROM personal_goals WHERE branchId = :branchId';
       const orderedQuery =
           'SELECT * FROM personal_goals WHERE branchId = :branchId ORDER BY isTopPriority DESC, updatedAt DESC';
       final arguments = {'branchId': branchId};
 
-      List<PersonalGoal> mapQueryResult(dynamic queryResult) {
-        final list = <PersonalGoal>[];
-        for (final item in queryResult.items as Iterable<dynamic>) {
-          try {
-            list.add(
-              PersonalGoal.fromJson(
-                Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>),
-              ),
-            );
-          } catch (e) {
-            talker.error('Error mapping personal goal: $e');
-          }
-        }
-        return list;
-      }
-
       dynamic observer;
       var cancelled = false;
       var listenStarted = false;
-
-      Future<void> registerBroadBranchSubscription() async {
-        final prepared = prepareDqlSyncSubscription(broadSql, arguments);
-        try {
-          await ditto.sync.registerSubscription(
-            prepared.dql,
-            arguments: prepared.arguments,
-          );
-          talker.debug(
-            'personal_goals: registered broad branch subscription for sync',
-          );
-        } catch (e, st) {
-          talker.warning(
-            'personal_goals: broad registerSubscription failed: $e\n'
-            '${describeDqlSyncSubscriptionAttempt(broadSql, arguments)}\n'
-            '$st',
-          );
-        }
-      }
 
       late final StreamController<List<PersonalGoal>> controller;
 
@@ -73,11 +197,13 @@ mixin CapellaPersonalGoalsMixin {
           listenStarted = true;
           unawaited(() async {
             try {
-              await registerBroadBranchSubscription();
+              await _registerPersonalGoalsBranchSubscription(ditto, branchId);
 
               Future<void> emitIfOpen(dynamic queryResult) async {
                 if (cancelled || controller.isClosed) return;
-                controller.add(mapQueryResult(queryResult));
+                final list = _personalGoalsFromQueryResult(queryResult);
+                _cacheBranchGoals(branchId, list);
+                controller.add(list);
               }
 
               /// Returns number of goals emitted (0 while store still empty).
@@ -88,7 +214,8 @@ mixin CapellaPersonalGoalsMixin {
                   arguments: arguments,
                 );
                 if (cancelled || controller.isClosed) return -1;
-                final list = mapQueryResult(r);
+                final list = _personalGoalsFromQueryResult(r);
+                _cacheBranchGoals(branchId, list);
                 controller.add(list);
                 return list.length;
               }
@@ -179,6 +306,12 @@ mixin CapellaPersonalGoalsMixin {
       'INSERT INTO personal_goals DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},
     );
+    PersonalGoalsBranchCache.upsertGoal(
+      goal.copyWith(
+        updatedAt: now,
+        createdAt: goal.createdAt ?? now,
+      ),
+    );
   }
 
   Future<void> deletePersonalGoal({
@@ -195,6 +328,7 @@ mixin CapellaPersonalGoalsMixin {
       'DELETE FROM personal_goals WHERE (_id = :id OR id = :id) AND branchId = :branchId',
       arguments: {'id': id, 'branchId': branchId},
     );
+    PersonalGoalsBranchCache.removeGoal(branchId: branchId, goalId: id);
   }
 
   Future<void> addToGoalSavedAmount({
@@ -246,6 +380,15 @@ mixin CapellaPersonalGoalsMixin {
     await ditto.store.execute(
       'INSERT INTO personal_goals DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},
+    );
+    PersonalGoalsBranchCache.upsertGoal(
+      existing.copyWith(
+        savedAmount: newSaved,
+        updatedAt: now,
+        lastContributionDeviceKey: deviceKey,
+        lastContributionAmount: amount,
+        lastContributionTransactionId: transactionId,
+      ),
     );
   }
 
@@ -308,48 +451,49 @@ mixin CapellaPersonalGoalsMixin {
       return;
     }
 
+    final saleLines = items
+        .map(
+          (item) => SaleLineForProfit(
+            price: item.price.toDouble(),
+            qty: item.qty.toDouble(),
+            supplyPriceAtSale: item.supplyPriceAtSale?.toDouble(),
+            supplyPrice: item.supplyPrice?.toDouble(),
+            ignoreForReport: item.ignoreForReport == true,
+            partOfComposite: item.partOfComposite == true,
+          ),
+        )
+        .toList();
+
     final double allocationBase;
     if (utilityCashInEligible) {
       allocationBase = movementSubtotal;
     } else {
-      allocationBase = computeSaleGrossProfitFromSaleLines(
-        items
-            .map(
-              (item) => SaleLineForProfit(
-                price: item.price.toDouble(),
-                qty: item.qty.toDouble(),
-                supplyPriceAtSale: item.supplyPriceAtSale?.toDouble(),
-                supplyPrice: item.supplyPrice?.toDouble(),
-                ignoreForReport: item.ignoreForReport == true,
-                partOfComposite: item.partOfComposite == true,
-              ),
-            )
-            .toList(),
-      );
+      final gross = computeSaleGrossProfitFromSaleLines(saleLines);
+      if (gross > 0) {
+        allocationBase = gross;
+      } else {
+        // Gross profit 0 is common when supply equals retail or COGS tracks sale price.
+        allocationBase = computeSaleLineRevenueForPersonalGoals(saleLines);
+        if (allocationBase > 0) {
+          talker.info(
+            'applyPersonalGoalAutoSweepIfEligible: gross profit <= 0 '
+            'for txn $transactionId; using line revenue $allocationBase as base',
+          );
+        }
+      }
     }
 
     if (allocationBase <= 0) {
+      talker.debug(
+        'applyPersonalGoalAutoSweepIfEligible: skip txn $transactionId — '
+        'allocationBase=$allocationBase (no gross profit / revenue after filters)',
+      );
       return;
     }
 
     List<PersonalGoal> goals;
     try {
-      final result = await ditto.store.execute(
-        'SELECT * FROM personal_goals WHERE branchId = :branchId',
-        arguments: {'branchId': branchId},
-      );
-      goals = <PersonalGoal>[];
-      for (final row in result.items) {
-        try {
-          goals.add(
-            PersonalGoal.fromJson(Map<String, dynamic>.from(row.value)),
-          );
-        } catch (e) {
-          talker.warning(
-            'applyPersonalGoalAutoSweepIfEligible: bad goal row $e',
-          );
-        }
-      }
+      goals = await _loadPersonalGoalsForBranch(ditto, branchId);
     } catch (e, s) {
       talker.error('applyPersonalGoalAutoSweepIfEligible: load goals $e\n$s');
       return;
@@ -360,6 +504,30 @@ mixin CapellaPersonalGoalsMixin {
       goals: goals,
     );
     if (contributions.isEmpty) {
+      talker.debug(
+        'applyPersonalGoalAutoSweepIfEligible: skip txn $transactionId — '
+        '${goals.length} goals loaded, no positive autoAllocationPercent contributions '
+        '(base=$allocationBase)',
+      );
+      if (goals.isEmpty) {
+        unawaited(
+          _retryPersonalGoalSweepWhenGoalsArrive(
+            branchId: branchId,
+            transactionId: transactionId,
+            allocationBase: allocationBase,
+            completionStatus: completionStatus,
+            isIncome: isIncome,
+            isProformaMode: isProformaMode,
+            isTrainingMode: isTrainingMode,
+            transactionType: transactionType,
+            items: items,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+            skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+            utilityCashInEligible: utilityCashInEligible,
+            saleEligible: saleEligible,
+          ),
+        );
+      }
       return;
     }
 
@@ -375,6 +543,67 @@ mixin CapellaPersonalGoalsMixin {
       await _markTransactionPersonalGoalSweepApplied(transactionId);
     } catch (e, s) {
       talker.error('applyPersonalGoalAutoSweepIfEligible: sweep failed $e\n$s');
+    }
+  }
+
+  /// If goals were not replicated yet at payment time, try again once after a
+  /// short delay (does not block [collectPayment]).
+  Future<void> _retryPersonalGoalSweepWhenGoalsArrive({
+    required String branchId,
+    required String transactionId,
+    required double allocationBase,
+    required String? completionStatus,
+    required bool isIncome,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String? transactionType,
+    required List<TransactionItem> items,
+    required bool isUtilityCashbookMovement,
+    required bool skipPersonalGoalAutoSweep,
+    required bool utilityCashInEligible,
+    required bool saleEligible,
+  }) async {
+    if (!saleEligible && !utilityCashInEligible) return;
+    if (await _transactionPersonalGoalSweepApplied(transactionId)) return;
+
+    const delays = <Duration>[
+      Duration(seconds: 3),
+      Duration(seconds: 8),
+    ];
+    for (final d in delays) {
+      await Future<void>.delayed(d);
+      if (await _transactionPersonalGoalSweepApplied(transactionId)) return;
+
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) return;
+
+      final goals = await _loadPersonalGoalsForBranch(ditto, branchId);
+      final contributions = computeAutoAllocationContributions(
+        allocationBase: allocationBase,
+        goals: goals,
+      );
+      if (contributions.isEmpty) continue;
+
+      talker.info(
+        'applyPersonalGoalAutoSweepIfEligible: deferred sweep applying '
+        '${contributions.length} contribution(s) for txn $transactionId',
+      );
+      try {
+        for (final c in contributions) {
+          await addToGoalSavedAmount(
+            goalId: c.goalId,
+            branchId: branchId,
+            amount: c.amount,
+            transactionId: transactionId,
+          );
+        }
+        await _markTransactionPersonalGoalSweepApplied(transactionId);
+      } catch (e, s) {
+        talker.error(
+          'applyPersonalGoalAutoSweepIfEligible: deferred sweep failed $e\n$s',
+        );
+      }
+      return;
     }
   }
 

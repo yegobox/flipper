@@ -83,6 +83,19 @@ double computeSaleGrossProfitFromSaleLines(List<SaleLineForProfit> lines) {
   return total;
 }
 
+/// Same line filters as [computeSaleGrossProfitFromSaleLines]; sums **line revenue**
+/// (price × qty) only. Used when gross profit is ≤ 0 so `%` goals still allocate from
+/// the sale total merchants care about (supply price often equals retail or is unset).
+double computeSaleLineRevenueForPersonalGoals(List<SaleLineForProfit> lines) {
+  var total = 0.0;
+  for (final item in lines) {
+    if (item.ignoreForReport) continue;
+    if (item.partOfComposite) continue;
+    total += item.price * item.qty;
+  }
+  return total;
+}
+
 double _roundMoney(double v) => (v * 100).round() / 100.0;
 
 /// For each goal with [PersonalGoal.autoAllocationPercent], take that percent of [allocationBase]

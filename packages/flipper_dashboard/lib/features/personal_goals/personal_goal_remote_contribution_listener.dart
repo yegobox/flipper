@@ -75,6 +75,15 @@ class _PersonalGoalRemoteContributionListenerState
       (prev, next) => next.whenData(_onGoalsSnapshot),
       fireImmediately: true,
     );
+
+    // Prime Ditto replication + branch cache before checkout (auto-sweep reads cache).
+    unawaited(
+      ref
+          .read(personalGoalsDataSourceProvider)
+          .personalGoalsStream(branchId: branchId)
+          .first
+          .then((_) {}, onError: (_) {}),
+    );
   }
 
   void _maybeNotifyRemoteCredit(PersonalGoal goal) {
