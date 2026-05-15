@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helpers/personal_goal_contribution_device_key.dart';
 import 'package:flipper_models/helpers/personal_goals_branch_cache.dart';
 import 'package:flipper_models/helpers/sale_personal_goal_auto_allocation.dart';
@@ -392,6 +393,22 @@ mixin CapellaPersonalGoalsMixin {
     );
   }
 
+  /// Sends a local (system) notification for a goal credit.
+  /// Works in foreground and background — does NOT use the overlay toast.
+  Future<void> _sendGoalCreditNotification({
+    required String goalName,
+    required double amount,
+  }) async {
+    try {
+      final symbol = ProxyService.box.defaultCurrency();
+      final formatted = amount.toCurrencyFormatted(symbol: symbol);
+      final body = '$goalName: +$formatted auto-saved from sale';
+      await ProxyService.notification.sendLocalNotification(body: body);
+    } catch (e) {
+      talker.warning('personal_goals: notification failed: $e');
+    }
+  }
+
   /// After a completed Capella payment, move a slice into goals that have
   /// [PersonalGoal.autoAllocationPercent] set: **sales** use gross line profit;
   /// **utility cash book cash-in** ([completeCashMovement]) uses the movement total.
@@ -539,6 +556,14 @@ mixin CapellaPersonalGoalsMixin {
           amount: c.amount,
           transactionId: transactionId,
         );
+        final goalName = goals
+            .where((g) => g.id == c.goalId)
+            .map((g) => g.name)
+            .firstOrNull ?? c.goalId;
+        unawaited(_sendGoalCreditNotification(
+          goalName: goalName,
+          amount: c.amount,
+        ));
       }
       await _markTransactionPersonalGoalSweepApplied(transactionId);
     } catch (e, s) {
@@ -596,6 +621,14 @@ mixin CapellaPersonalGoalsMixin {
             amount: c.amount,
             transactionId: transactionId,
           );
+          final goalName = goals
+              .where((g) => g.id == c.goalId)
+              .map((g) => g.name)
+              .firstOrNull ?? c.goalId;
+          unawaited(_sendGoalCreditNotification(
+            goalName: goalName,
+            amount: c.amount,
+          ));
         }
         await _markTransactionPersonalGoalSweepApplied(transactionId);
       } catch (e, s) {

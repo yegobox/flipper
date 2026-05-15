@@ -10,6 +10,7 @@ import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goal_remote_contribution_listener.dart';
+import 'package:flipper_models/services/personal_goal_notification_service.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
@@ -136,6 +137,9 @@ Future<void> main() async {
 
       debugPrint('🚀 [main] Step 8: DittoSyncRegistry.registerDefaults...');
       await DittoSyncRegistry.registerDefaults();
+
+      debugPrint('🚀 [main] Step 9: PersonalGoalNotificationService...');
+      unawaited(PersonalGoalNotificationService.instance.initialize());
 
       debugPrint('🎉 [main] initializeApp completed successfully!');
     }
