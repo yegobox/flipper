@@ -267,5 +267,60 @@ void main() {
       expect(rows.firstWhere((e) => e.goalId == 'a').amount, 100);
       expect(rows.firstWhere((e) => e.goalId == 'b').amount, 50);
     });
+
+    test('skips goals already at or above target', () {
+      final goals = [
+        PersonalGoal(
+          id: 'full',
+          branchId: 'b',
+          name: 'Full',
+          savedAmount: 89,
+          targetAmount: 89,
+          autoAllocationPercent: 15,
+        ),
+        PersonalGoal(
+          id: 'over',
+          branchId: 'b',
+          name: 'Over',
+          savedAmount: 200,
+          targetAmount: 89,
+          autoAllocationPercent: 10,
+        ),
+        PersonalGoal(
+          id: 'open',
+          branchId: 'b',
+          name: 'Open',
+          savedAmount: 0,
+          targetAmount: 1000,
+          autoAllocationPercent: 10,
+        ),
+      ];
+      final rows = computeAutoAllocationContributions(
+        allocationBase: 1000,
+        goals: goals,
+      );
+      expect(rows.length, 1);
+      expect(rows.first.goalId, 'open');
+      expect(rows.first.amount, 100);
+    });
+
+    test('caps contribution to remaining amount to target', () {
+      final goals = [
+        PersonalGoal(
+          id: 'almost',
+          branchId: 'b',
+          name: 'Almost',
+          savedAmount: 95,
+          targetAmount: 100,
+          autoAllocationPercent: 10,
+        ),
+      ];
+      final rows = computeAutoAllocationContributions(
+        allocationBase: 1000,
+        goals: goals,
+      );
+      expect(rows.length, 1);
+      expect(rows.first.amount, 5);
+    });
   });
 }

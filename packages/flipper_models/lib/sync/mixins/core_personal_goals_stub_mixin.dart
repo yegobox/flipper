@@ -27,6 +27,7 @@ mixin CorePersonalGoalsStubMixin {
     required String branchId,
     required double amount,
     String? transactionId,
+    bool enforceTargetCap = false,
   }) async {
     talker.warning(
       'Personal goals: Capella only — addToGoalSavedAmount ignored (CoreSync).',

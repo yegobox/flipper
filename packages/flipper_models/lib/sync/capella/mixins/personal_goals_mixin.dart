@@ -337,6 +337,8 @@ mixin CapellaPersonalGoalsMixin {
     required String branchId,
     required double amount,
     String? transactionId,
+    /// When true (auto-sweep), skip goals at target and cap credits to [remainingToTarget].
+    bool enforceTargetCap = false,
   }) async {
     if (amount == 0) return;
 
@@ -364,14 +366,32 @@ mixin CapellaPersonalGoalsMixin {
       return double.tryParse(v.toString()) ?? 0;
     }
 
-    final newSaved = toDouble(raw['savedAmount']) + amount;
+    if (enforceTargetCap && existing.isAtOrAboveTarget) {
+      talker.debug(
+        'addToGoalSavedAmount: goal $goalId already at target '
+        '(${existing.savedAmount}/${existing.targetAmount}), skip',
+      );
+      return;
+    }
+
+    var credit = amount;
+    if (enforceTargetCap && existing.targetAmount > 0) {
+      final remaining = existing.remainingToTarget;
+      if (remaining <= PersonalGoal.targetReachedEpsilon) return;
+      if (credit > remaining) {
+        credit = (remaining * 100).round() / 100.0;
+      }
+    }
+    if (credit <= 0) return;
+
+    final newSaved = toDouble(raw['savedAmount']) + credit;
     final deviceKey = await personalGoalContributionDeviceKey();
     final now = DateTime.now();
     final doc = existing
         .copyWith(savedAmount: newSaved, updatedAt: now)
         .toJson();
     doc['lastContributionDeviceKey'] = deviceKey;
-    doc['lastContributionAmount'] = amount;
+    doc['lastContributionAmount'] = credit;
     if (transactionId != null && transactionId.isNotEmpty) {
       doc['lastContributionTransactionId'] = transactionId;
     } else {
@@ -387,7 +407,7 @@ mixin CapellaPersonalGoalsMixin {
         savedAmount: newSaved,
         updatedAt: now,
         lastContributionDeviceKey: deviceKey,
-        lastContributionAmount: amount,
+        lastContributionAmount: credit,
         lastContributionTransactionId: transactionId,
       ),
     );
@@ -555,6 +575,7 @@ mixin CapellaPersonalGoalsMixin {
           branchId: branchId,
           amount: c.amount,
           transactionId: transactionId,
+          enforceTargetCap: true,
         );
         final goalName = goals
             .where((g) => g.id == c.goalId)
@@ -620,6 +641,7 @@ mixin CapellaPersonalGoalsMixin {
             branchId: branchId,
             amount: c.amount,
             transactionId: transactionId,
+            enforceTargetCap: true,
           );
           final goalName = goals
               .where((g) => g.id == c.goalId)
