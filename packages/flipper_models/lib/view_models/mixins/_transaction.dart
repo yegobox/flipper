@@ -1,5 +1,6 @@
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -355,7 +356,11 @@ mixin TransactionMixinOld {
           ) ??
           0;
       final paymentType = ProxyService.box.paymentType() ?? "CASH";
-      final transactionType = transaction.receiptType ?? TransactionType.sale;
+      // Domain type for Capella business logic (e.g. personal-goal sweep) must be
+      // [TransactionType.sale], not [transaction.receiptType] (EBM filter codes
+      // like NS/PS from [getFilterType]).
+      final transactionTypeForCollect =
+          transaction.transactionType ?? TransactionType.sale;
       Customer? customer;
       // Only fetch customer from DB if transaction has a valid customerId
       if (transaction.customerId != null &&
@@ -381,6 +386,25 @@ mixin TransactionMixinOld {
 
       // Update transaction with calculated tax amount
       transaction.taxAmount = totalTax;
+
+      // [collectPayment] runs before [onComplete] (e.g. PreviewCart's
+      // [markTransactionAsCompleted]), so [transaction.status] is often still
+      // pending here. Derive the same completion vs parked outcome as the cart
+      // so personal-goal auto-sweep sees `completed` when appropriate.
+      final saleTotalForDerived = items.isEmpty
+          ? amount
+          : items.fold<double>(
+              0,
+              (a, b) => a + (b.price.toDouble() * b.qty.toDouble()),
+            );
+      final derivedCompletion = deriveSaleCompletionState(
+        transactionCashReceived: (transaction.cashReceived ?? 0) + amount,
+        finalSubTotal: saleTotalForDerived,
+        paymentMethods: [
+          PaymentLineForSaleCompletion(amount: amount, method: paymentType),
+        ],
+      );
+
       // Collect payment via Capella so items are read from Ditto
       await ProxyService.getStrategy(Strategy.capella).collectPayment(
         branchId: branchId,
@@ -393,7 +417,7 @@ mixin TransactionMixinOld {
         cashReceived: amount,
         transaction: transaction,
         categoryId: transaction.categoryId,
-        transactionType: transactionType,
+        transactionType: transactionTypeForCollect,
         isIncome: true,
         paymentType: paymentType,
         discount: discount,
@@ -403,6 +427,7 @@ mixin TransactionMixinOld {
             ProxyService.box.currentSaleCustomerPhoneNumber(),
         preloadedLineItems: items,
         skipTransactionPersist: skipTransactionPersist,
+        completionStatus: derivedCompletion.status,
       );
       // Clean up temporary storage
       ProxyService.box.remove(key: 'pendingCustomerName');
