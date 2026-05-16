@@ -3,10 +3,12 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+const supabaseServiceKey =
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_ANON_KEY')!;
 const yegoboxBearerToken = Deno.env.get('YEGOBOX_BEARER_TOKEN')!;
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
     global: {
         fetch: (...args) => fetch(...args),
     },
@@ -14,6 +16,31 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 
 const SMS_API_URL = "https://apihub.yegobox.com/v2/api/sms-broadcast";
 const SMS_CREDIT_COST = 30; // Define the cost of sending one SMS
+
+/** messages.branch_id is UUID; deduct_credits needs numeric branches.server_id */
+async function resolveBranchServerId(
+  branchIdRaw: string | number | null | undefined,
+): Promise<number | null> {
+  if (branchIdRaw == null || branchIdRaw === "") return null;
+  const asString = String(branchIdRaw);
+  const asNum = Number(asString);
+  if (Number.isFinite(asNum) && !asString.includes("-")) {
+    return asNum;
+  }
+  const { data, error } = await supabase
+    .from("branches")
+    .select("server_id")
+    .eq("id", asString)
+    .maybeSingle();
+  if (error) {
+    console.error("resolveBranchServerId:", error.message);
+    return null;
+  }
+  const serverId = data?.server_id;
+  if (serverId == null) return null;
+  const numeric = Number(serverId);
+  return Number.isFinite(numeric) ? numeric : null;
+}
 
 async function sendSMS(text, phoneNumber) {
     try {
@@ -139,16 +166,15 @@ async function processPendingSMS() {
                 continue;
             }
 
-            // Make sure the branch_id is a number
-            const branchId = Number(record.branch_id);
-            if (isNaN(branchId)) {
-                console.error(`Invalid branch_id (not a number) for message ID: ${record.id}`);
-                errors.push(`Message ${record.id}: Invalid branch_id (not a number)`);
+            const branchServerId = await resolveBranchServerId(record.branch_id);
+            if (branchServerId == null) {
+                console.error(`Could not resolve server_id for branch ${record.branch_id}`);
+                errors.push(`Message ${record.id}: Invalid branch_id`);
                 failedCount++;
                 continue;
             }
 
-            const creditCheckResult = await deductCredits(branchId, SMS_CREDIT_COST); // Call deductCredits for each message
+            const creditCheckResult = await deductCredits(branchServerId, SMS_CREDIT_COST);
             if (!creditCheckResult.success) {
                 console.warn(`Skipping message ${record.id} due to credit issues: ${creditCheckResult.error}`);
                 errors.push(`Message ${record.id}: ${creditCheckResult.error}`);
@@ -273,10 +299,12 @@ Deno.serve(async (req) => {
 import { createClient } from '@supabase/supabase-js';
 // supabase functions deploy sendSms
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+const supabaseServiceKey =
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_ANON_KEY')!;
 const yegoboxBearerToken = Deno.env.get('YEGOBOX_BEARER_TOKEN')!;
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
     global: {
         fetch: (...args) => fetch(...args),
     },
