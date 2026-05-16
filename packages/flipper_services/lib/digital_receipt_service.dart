@@ -11,6 +11,7 @@ class DigitalReceiptService {
   DigitalReceiptService._();
 
   static const _functionName = 'generateReceiptUrl';
+  static const _sendSmsFunctionName = 'sendSms';
   static String _pendingKey(String transactionId) =>
       'pending_digital_receipt_$transactionId';
 
@@ -88,9 +89,10 @@ class DigitalReceiptService {
     final shortUrlId = result.shortUrlId;
     talker.info(
       'digital receipt: short link $shortUrlId queued — '
-      'message_id=${result.messageId ?? "n/a"} '
-      '(Supabase messages table; run sendSms to deliver)',
+      'message_id=${result.messageId ?? "n/a"}',
     );
+
+    await _invokeSendSms();
 
     try {
       final strategy = ProxyService.getStrategy(Strategy.capella);
@@ -161,6 +163,28 @@ class DigitalReceiptService {
       } catch (_) {}
     }
     return null;
+  }
+
+  /// Delivers pending rows in `messages` via the [sendSms] edge function.
+  static Future<void> _invokeSendSms() async {
+    try {
+      final response = await Supabase.instance.client.functions.invoke(
+        _sendSmsFunctionName,
+        body: <String, dynamic>{},
+      );
+      final data = _parseResponseData(response.data);
+      talker.info(
+        'digital receipt: sendSms status=${response.status} stats=$data',
+      );
+      if (response.status != 200) {
+        talker.warning(
+          'digital receipt: sendSms failed (${response.status}) — '
+          'schedule sendSms cron or invoke manually',
+        );
+      }
+    } catch (e, s) {
+      talker.warning('digital receipt: sendSms invoke error: $e\n$s');
+    }
   }
 
   /// When the deployed edge build omits [message_id], resolve the row we just queued.
