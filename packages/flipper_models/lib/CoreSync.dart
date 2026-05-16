@@ -63,6 +63,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/digital_receipt_service.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
@@ -2093,7 +2094,17 @@ class CoreSync extends AiStrategyImpl
           key: 'getReceiptFileName',
           value: fileNameWithExtension,
         );
-        // await repository.upsert(transaction);
+
+        unawaited(
+          DigitalReceiptService.maybeSendAfterUpload(
+            transactionId: transactionId,
+            branchId: branchId,
+            receiptFileName: fileNameWithExtension,
+            customerPhone: iTransaction.customerPhone,
+            alternatePhone: iTransaction.currentSaleCustomerPhoneNumber,
+            alreadySent: iTransaction.isDigitalReceiptGenerated,
+          ),
+        );
       }
       return result.uploadedItem.path;
     } catch (e) {

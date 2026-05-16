@@ -27,10 +27,14 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/notifications/notification_handler.dart';
+import 'package:flipper_services/personal_goal_fcm_background.dart';
 
 import 'new_relic.dart' if (dart.library.html) 'new_relic_web.dart';
 
-Future<void> backgroundHandler(RemoteMessage message) async {}
+@pragma('vm:entry-point')
+Future<void> backgroundHandler(RemoteMessage message) async {
+  await handlePersonalGoalFcmBackgroundMessage(message);
+}
 
 const kWebRecaptchaSiteKey = '';
 

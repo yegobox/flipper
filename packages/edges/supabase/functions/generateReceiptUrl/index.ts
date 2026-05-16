@@ -1,458 +1,280 @@
 // @ts-nocheck
+// Request-driven receipt URLs. Transaction state lives in Ditto; this function
+// only presigns S3, stores url_shorteners, and optionally queues SMS (messages).
 
-import { S3Client, GetObjectCommand, HeadObjectCommand } from 'aws-s3';
-import { getSignedUrl } from 'aws-presigner';
-import { createClient } from '@supabase/supabase-js';
+import { S3Client, GetObjectCommand, HeadObjectCommand } from "aws-s3";
+import { getSignedUrl } from "aws-presigner";
+import { createClient } from "@supabase/supabase-js";
 
-console.log("Generate Pre-signed URL Function Started!")
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
-const s3BucketName = Deno.env.get('S3_BUCKET_NAME')!
-const s3Region = Deno.env.get('S3_REGION')!
-const awsAccessKeyId = Deno.env.get('AWS_ACCESS_KEY_ID')!
-const awsSecretAccessKey = Deno.env.get('AWS_SECRET_ACCESS_KEY')!
+const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
+
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+const s3BucketName = Deno.env.get("S3_BUCKET_NAME")!;
+const s3Region = Deno.env.get("S3_REGION")!;
+const awsAccessKeyId = Deno.env.get("AWS_ACCESS_KEY_ID")!;
+const awsSecretAccessKey = Deno.env.get("AWS_SECRET_ACCESS_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
-    global: {
-        fetch: (...args) => fetch(...args),
-    },
+  global: { fetch: (...args) => fetch(...args) },
 });
 
 const s3Client = new S3Client({
   region: s3Region,
   credentials: {
-      accessKeyId: awsAccessKeyId,
-      secretAccessKey: awsSecretAccessKey
-  }
+    accessKeyId: awsAccessKeyId,
+    secretAccessKey: awsSecretAccessKey,
+  },
 });
 
 const SMS_TEMPLATE = "Your Receipt is ready for download: ";
 const BASE_SHORT_URL = "https://apihub.yegobox.com/s/";
+const PRESIGN_EXPIRY_SEC = 60 * 60 * 24 * 7;
+
+async function resolveS3Key(
+  branchId: string,
+  fileName: string,
+): Promise<string> {
+  const candidates = [
+    `public/invoices-${branchId}/${fileName}`,
+    `invoices-${branchId}/${fileName}`,
+    `invoices/${fileName}`,
+    fileName,
+  ];
+
+  for (const key of candidates) {
+    try {
+      await s3Client.send(
+        new HeadObjectCommand({ Bucket: s3BucketName, Key: key }),
+      );
+      console.log(`S3 object found: ${key}`);
+      return key;
+    } catch {
+      console.log(`S3 object not at: ${key}`);
+    }
+  }
+
+  throw new Error(`Receipt file not found in S3: ${fileName}`);
+}
+
+async function presignGetUrl(s3Key: string): Promise<string> {
+  const command = new GetObjectCommand({ Bucket: s3BucketName, Key: s3Key });
+  return await getSignedUrl(s3Client, command, {
+    expiresIn: PRESIGN_EXPIRY_SEC,
+  });
+}
+
+async function storeShortUrl(
+  longUrl: string,
+  existingShortUrlId?: string,
+): Promise<string> {
+  const shortUrlId =
+    existingShortUrlId || crypto.randomUUID().substring(0, 4);
+
+  const result = existingShortUrlId
+    ? await supabase
+        .from("url_shorteners")
+        .update({ long_url: longUrl })
+        .eq("short_url_id", shortUrlId)
+        .select()
+    : await supabase
+        .from("url_shorteners")
+        .insert({ long_url: longUrl, short_url_id: shortUrlId })
+        .select();
+
+  if (result.error) {
+    throw new Error(`Failed to store short URL: ${result.error.message}`);
+  }
+
+  return shortUrlId;
+}
+
+async function queueReceiptSms(
+  phone: string,
+  branchId: string,
+  shortUrlId: string,
+): Promise<void> {
+  const messageText = `${SMS_TEMPLATE}${BASE_SHORT_URL}${shortUrlId}`;
+  const { error } = await supabase.from("messages").insert({
+    text: messageText,
+    phone_number: phone,
+    branch_id: branchId,
+  });
+
+  if (error) {
+    throw new Error(`Failed to queue SMS: ${error.message}`);
+  }
+}
+
+async function handleRenew(renewUrl: string): Promise<Response> {
+  if (!renewUrl.startsWith(BASE_SHORT_URL)) {
+    return new Response(JSON.stringify({ error: "Invalid short URL format" }), {
+      status: 400,
+      headers: jsonHeaders,
+    });
+  }
+
+  const shortUrlId = renewUrl.replace(BASE_SHORT_URL, "");
+  console.log(`Renewing short URL: ${shortUrlId}`);
+
+  const { data: existingUrl, error: lookupError } = await supabase
+    .from("url_shorteners")
+    .select("*")
+    .eq("short_url_id", shortUrlId)
+    .single();
+
+  if (lookupError || !existingUrl) {
+    return new Response(
+      JSON.stringify({
+        error: lookupError?.message || "Short URL not found",
+        code: "URL_NOT_FOUND",
+      }),
+      { status: 404, headers: jsonHeaders },
+    );
+  }
+
+  const urlObj = new URL(existingUrl.long_url);
+  let keyParam = urlObj.searchParams.get("Key");
+  if (!keyParam) {
+    const pathParts = urlObj.pathname.split("/");
+    keyParam = pathParts.filter((part) => part.length > 0).pop();
+  }
+  if (!keyParam) {
+    return new Response(
+      JSON.stringify({ error: "Could not extract file path from stored URL" }),
+      { status: 500, headers: jsonHeaders },
+    );
+  }
+
+  try {
+    await s3Client.send(
+      new HeadObjectCommand({ Bucket: s3BucketName, Key: keyParam }),
+    );
+  } catch {
+    return new Response(
+      JSON.stringify({ error: `Receipt file no longer exists: ${keyParam}` }),
+      { status: 404, headers: jsonHeaders },
+    );
+  }
+
+  const newSignedUrl = await presignGetUrl(keyParam);
+  const { error: updateError } = await supabase
+    .from("url_shorteners")
+    .update({ long_url: newSignedUrl, updated_at: new Date().toISOString() })
+    .eq("short_url_id", shortUrlId);
+
+  if (updateError) {
+    return new Response(JSON.stringify({ error: updateError.message }), {
+      status: 500,
+      headers: jsonHeaders,
+    });
+  }
+
+  return new Response(
+    JSON.stringify({
+      url: shortUrlId,
+      short_url_ids: [shortUrlId],
+      success: true,
+      renewed: true,
+    }),
+    { headers: jsonHeaders },
+  );
+}
+
+async function handleCreateReceiptLink(body: Record<string, unknown>): Promise<Response> {
+  const branchId = String(body.branchId ?? "");
+  const fileName = String(
+    body.imageInS3 ?? body.receiptFileName ?? "",
+  );
+  const phone = body.phone != null ? String(body.phone) : "";
+  const sendSms = body.sendSms !== false;
+  const existingShortUrlId = body.shortUrlId
+    ? String(body.shortUrlId)
+    : undefined;
+  const transactionId = body.transactionId
+    ? String(body.transactionId)
+    : undefined;
+
+  if (!branchId || !fileName) {
+    return new Response(
+      JSON.stringify({
+        error: "Missing branchId and imageInS3/receiptFileName",
+        hint:
+          "POST from the app after S3 upload. Transactions are in Ditto, not Supabase.",
+      }),
+      { status: 400, headers: jsonHeaders },
+    );
+  }
+
+  console.log(
+    `Receipt link request branch=${branchId} file=${fileName} tx=${transactionId ?? "n/a"}`,
+  );
+
+  const s3Key = await resolveS3Key(branchId, fileName);
+  const signedUrl = await presignGetUrl(s3Key);
+  const shortUrlId = await storeShortUrl(signedUrl, existingShortUrlId);
+
+  let smsQueued = false;
+  if (sendSms && phone.trim()) {
+    await queueReceiptSms(phone.trim(), branchId, shortUrlId);
+    smsQueued = true;
+  }
+
+  return new Response(
+    JSON.stringify({
+      url: shortUrlId,
+      short_url_ids: [shortUrlId],
+      short_url: `${BASE_SHORT_URL}${shortUrlId}`,
+      success: true,
+      sms_queued: smsQueued,
+      transaction_id: transactionId,
+    }),
+    { headers: jsonHeaders },
+  );
+}
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
-    let requestBody = null; // Initialize as null
+    let body: Record<string, unknown> | null = null;
     try {
-      requestBody = await req.json();
-    } catch (jsonError) {
-      //This is intentional to deal with case where request has no body
-      console.log("No JSON body provided or invalid JSON, assuming no body");
+      body = await req.json();
+    } catch {
+      body = null;
     }
 
-    if (!requestBody || Object.keys(requestBody).length === 0) { //Check for null as well
-      console.log("No request body provided, fetching transactions...");
-
-      // First, let's check if the transactions table exists and has any data
-      console.log("Step 1: Checking if transactions table has any data");
-      const { data: allTransactions, error: countError } = await supabase
-        .from('transactions')
-        .select('count')
-        .limit(1);
-
-      if (countError) {
-        console.error("Error accessing transactions table:", countError);
-        return new Response(JSON.stringify({
-          error: countError.message,
-          suggestion: "Check if the transactions table exists and your connection has proper permissions"
-        }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      console.log(`Total transactions in table: ${allTransactions?.length > 0 ? 'some records exist' : 'no records found'}`);
-
-      // Now check completed transactions
-      console.log("Step 2: Checking completed transactions");
-      const { data: completedTransactions, error: completedError } = await supabase
-        .from('transactions')
-        .select('count')
-        .eq('status', 'completed')
-        .limit(1);
-
-      if (completedError) {
-        console.error("Error querying completed transactions:", completedError);
-        return new Response(JSON.stringify({
-          error: completedError.message,
-          suggestion: "Check if the 'status' column exists in the transactions table"
-        }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      console.log(`Completed transactions: ${completedTransactions?.length > 0 ? 'some exist' : 'none found'}`);
-
-      // Then check if any need receipt generation
-      console.log("Step 3: Checking transactions needing receipt generation");
-      const { data: needReceiptTransactions, error: needReceiptError } = await supabase
-        .from('transactions')
-        .select('count')
-        .eq('status', 'completed')
-        .eq('is_digital_receipt_generated', false)
-        .limit(1);
-
-      if (needReceiptError) {
-        console.error("Error querying for receipt generation:", needReceiptError);
-        return new Response(JSON.stringify({
-          error: needReceiptError.message,
-          suggestion: "Check if the 'is_digital_receipt_generated' column exists in the transactions table"
-        }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      console.log(`Transactions needing receipt generation: ${needReceiptTransactions?.length > 0 ? 'some exist' : 'none found'}`);
-
-      // Finally perform the actual query with all needed fields
-      console.log("Step 4: Fetching transactions with all criteria and required fields");
-      const { data: transactions, error } = await supabase
-        .from('transactions')
-        .select('id, receipt_file_name, branch_id, current_sale_customer_phone_number') //Include branch_id and phone number in the select statement
-        .eq('status', 'completed')
-        .eq('is_digital_receipt_generated', false)
-        .not('receipt_file_name', 'is', null) // Ensure receipt_file_name is not null
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) {
-        console.error("Error fetching transactions:", error);
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      // Check for missing receipt_file_name
-      const transactionsWithReceipts = transactions?.filter(t => t.receipt_file_name) || [];
-      const transactionsWithoutReceipts = transactions?.filter(t => !t.receipt_file_name) || [];
-      console.log(`Transactions with receipt_file_name: ${transactionsWithReceipts.length}`);
-      console.log(`Transactions missing receipt_file_name: ${transactionsWithoutReceipts.length}`);
-
-      console.log(`Found ${transactions?.length || 0} transactions to process`);
-
-      if (!transactions || transactions.length === 0) {
-        return new Response(JSON.stringify({ message: "No transactions to process" }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      const results = [];
-      const errors = [];
-      let filePath = ''; // Define filePath outside the loop to update it
-
-      for (const transaction of transactions) {
-        try {
-          if (!transaction.receipt_file_name) {
-            console.log(`Skipping transaction ${transaction.id} - no receipt file name`);
-            continue;
-          }
-
-          if (!transaction.branch_id) {
-            console.log(`Skipping transaction ${transaction.id} - no branch_id`);
-            continue;
-          }
-
-          if (!transaction.current_sale_customer_phone_number) {
-            console.log(`Skipping transaction ${transaction.id} - no current_sale_customer_phone_number`);
-            continue;
-          }
-
-          // Make sure the path matches where your files are actually stored
-          filePath = `public/invoices-${transaction.branch_id}/${transaction.receipt_file_name}`; //Use branch_id here
-          console.log(`Processing transaction ${transaction.id}, initial file path: ${filePath}`);
-
-          // Verify the file exists in S3 before trying to generate a URL
-          let fileFound = false;
-
-          try {
-            const headCommand = new HeadObjectCommand({ Bucket: s3BucketName, Key: filePath });
-            await s3Client.send(headCommand);
-            console.log(`File confirmed to exist in S3: ${filePath}`);
-            fileFound = true;
-          } catch (headError) {
-            console.error(`File does not exist at initial path ${filePath} in S3:`, headError.message);
-
-            // Try alternative path formats
-            const alternativePaths = [
-              `invoices-${transaction.branch_id}/${transaction.receipt_file_name}`,
-              `invoices/${transaction.receipt_file_name}`,
-              `${transaction.receipt_file_name}`
-            ];
-
-            for (const altPath of alternativePaths) {
-              try {
-                console.log(`Trying alternative path: ${altPath}`);
-                const altHeadCommand = new HeadObjectCommand({ Bucket: s3BucketName, Key: altPath });
-                await s3Client.send(altHeadCommand);
-                console.log(`File found at alternative path: ${altPath}`);
-                filePath = altPath; // Update file path if found
-                fileFound = true;
-                break; // Exit the loop once the file is found
-              } catch (altError) {
-                console.log(`File not found at alternative path: ${altPath}, error: ${altError.message}`);
-              }
-            }
-
-            if (!fileFound) {
-              throw new Error(`Receipt file not found in S3 after trying alternative paths: ${transaction.receipt_file_name}`);
-            }
-          }
-
-          if (fileFound) {
-            try {
-              const command = new GetObjectCommand({ Bucket: s3BucketName, Key: filePath });
-              const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 7}); // 1 week
-              const shortUrlId = crypto.randomUUID().substring(0, 4);
-
-              console.log(`Generated signed URL for ${filePath}, creating short URL: ${shortUrlId}`);
-
-              // Insert the URL shortener record
-              const { data: shortenerData, error: shortenerError } = await supabase
-                .from('url_shorteners')
-                .insert({
-                  long_url: signedUrl,
-                  short_url_id: shortUrlId,
-                })
-                .select();
-
-              if (shortenerError) {
-                throw new Error(`Failed to insert URL shortener: ${shortenerError.message}`);
-              }
-
-              //Insert the message
-              const messageText = `${SMS_TEMPLATE} ${BASE_SHORT_URL}${shortUrlId}`;
-              const { data: messageData, error: messageError } = await supabase
-                .from('messages')
-                .insert({
-                    text: messageText,
-                    phone_number: transaction.current_sale_customer_phone_number,
-                    branch_id: transaction.branch_id,
-                })
-                .select();
-
-              if(messageError) {
-                  console.error(`Failed to insert message: ${messageError.message}`);
-                  //Decide whether to throw an error here.  If message insertion fails, should we stop the entire process?
-                  //For now, we'll just log the error and continue.
-              }
-
-              // Update the transaction only after everything else succeeds
-              // Don't update if shortenerError or messageError occurred
-              if (shortenerError) {
-                throw new Error(`Failed to insert URL shortener: ${shortenerError.message}`);
-              }
-              
-              // Only mark as generated if we successfully created the shortener record
-              const { data: updateData, error: updateError } = await supabase
-                .from('transactions')
-                .update({ 
-                  is_digital_receipt_generated: true,
-                  // Explicitly preserve the receipt_file_name to prevent it from being nullified
-                  receipt_file_name: transaction.receipt_file_name 
-                })
-                .eq('id', transaction.id)
-                .select();
-
-              if (updateError) {
-                throw new Error(`Failed to update transaction: ${updateError.message}`);
-              }
-
-              console.log(`Successfully processed transaction ${transaction.id} with short URL ${shortUrlId}`);
-              results.push({ transaction_id: transaction.id, short_url_id: shortUrlId });
-            } catch (s3Error) {
-              console.error(`S3 or database error for transaction ${transaction.id}:`, s3Error);
-              errors.push({ transaction_id: transaction.id, error: s3Error.message });
-            }
-          } else {
-            console.warn(`File not found in S3 for transaction ${transaction.id} after all attempts.`);
-            errors.push({transaction_id: transaction.id, error: "File not found in S3"});
-          }
-        } catch (transactionError) {
-          console.error(`Error processing transaction ${transaction.id}:`, transactionError);
-          errors.push({ transaction_id: transaction.id, error: transactionError.message });
-        }
-      }
-
-      // Extract just the short URL IDs for easy access
-      const shortUrlIds = results.map(result => result.short_url_id);
-
-      return new Response(JSON.stringify({
-        message: "Processed transactions",
-        success_count: results.length,
-        error_count: errors.length,
-        short_url_ids: shortUrlIds,
-        results,
-        errors: errors.length > 0 ? errors : undefined,
-        debug_info: {
-          total_transactions_fetched: transactions?.length || 0,
-          transactions_with_receipt_files: transactionsWithReceipts.length,
-          transactions_without_receipt_files: transactionsWithoutReceipts.length
-        }
-      }), {
-        headers: { "Content-Type": "application/json" },
-      });
+    if (!body || Object.keys(body).length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: "Request body required",
+          hint:
+            "Cron polling of Supabase transactions was removed. Invoke from the Flipper app after uploading a receipt PDF to S3.",
+        }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
 
-    // Handle request with body - either generating a new URL or renewing an existing one
-    const { imageInS3, branchId, shortUrlId: existingShortUrlId, renewUrl } = requestBody;
-    // Handle URL renewal case separately
-    if (renewUrl) {
-      if (!renewUrl.startsWith(BASE_SHORT_URL)) {
-        return new Response(JSON.stringify({ error: "Invalid short URL format" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      
-      const shortUrlId = renewUrl.replace(BASE_SHORT_URL, '');
-      console.log(`Attempting to renew URL with short ID: ${shortUrlId}`);
-      
-      // First get the existing record to find the file path
-      const { data: existingUrl, error: lookupError } = await supabase
-        .from('url_shorteners')
-        .select('*')
-        .eq('short_url_id', shortUrlId)
-        .single();
-        
-      if (lookupError || !existingUrl) {
-        console.error('Error finding URL to renew:', lookupError || 'URL not found');
-        return new Response(JSON.stringify({ 
-          error: lookupError?.message || 'Short URL not found',
-          code: 'URL_NOT_FOUND'
-        }), {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      
-      // Extract the file path from the existing URL
-      // We need to parse the existing URL to get the Key parameter
-      try {
-        // Parse the existing URL to extract the S3 key
-        // AWS S3 presigned URLs have the Key parameter in the query string
-        const urlObj = new URL(existingUrl.long_url);
-        
-        // First try to get from query parameters (standard AWS presigned URL format)
-        let keyParam = urlObj.searchParams.get('Key');
-        
-        // If not found in query params, try to extract from pathname as fallback
-        if (!keyParam) {
-          // Remove any query parameters and get the path
-          const pathParts = urlObj.pathname.split('/');
-          // Get the last non-empty part
-          keyParam = pathParts.filter(part => part.length > 0).pop();
-        }
-        
-        if (!keyParam) {
-          throw new Error('Could not extract file path from existing URL');
-        }
-        
-        // Verify the file still exists in S3 before generating a new URL
-        try {
-          const headCommand = new HeadObjectCommand({ Bucket: s3BucketName, Key: keyParam });
-          await s3Client.send(headCommand);
-          console.log(`File still exists in S3 at path: ${keyParam}`);
-        } catch (headError) {
-          console.error(`File no longer exists in S3 at path: ${keyParam}`, headError);
-          throw new Error(`Receipt file no longer exists in S3: ${keyParam}`);
-        }
-        
-        // Generate a new signed URL for the same file
-        const command = new GetObjectCommand({ Bucket: s3BucketName, Key: keyParam });
-        const newSignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 7});
-        
-        // Update the record with the new URL
-        const { data: updateData, error: updateError } = await supabase
-          .from('url_shorteners')
-          .update({ long_url: newSignedUrl, updated_at: new Date().toISOString() })
-          .eq('short_url_id', shortUrlId)
-          .select();
-          
-        if (updateError) {
-          throw new Error(`Failed to update URL: ${updateError.message}`);
-        }
-        
-        return new Response(JSON.stringify({
-          url: shortUrlId,
-          short_url_ids: [shortUrlId],
-          success: true,
-          renewed: true
-        }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch (renewError) {
-        console.error('Error renewing URL:', renewError);
-        return new Response(JSON.stringify({ error: renewError.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-    }
-    
-    if (!imageInS3 || !branchId) {
-      return new Response(JSON.stringify({ error: "Missing imageInS3 or branchId" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    if (body.renewUrl) {
+      return await handleRenew(String(body.renewUrl));
     }
 
-    const filePath = `public/invoices-${branchId}/${imageInS3}`;
-    console.log(`Generating pre-signed URL for: ${filePath}`);
-
-    try {
-      const command = new GetObjectCommand({ Bucket: s3BucketName, Key: filePath });
-      const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 7});
-      console.log(`Pre-signed URL generated: ${signedUrl}`);
-
-      let shortUrlId = existingShortUrlId || crypto.randomUUID().substring(0, 4);
-      let supabaseResult;
-
-      if (existingShortUrlId) {
-        console.log(`Updating existing short URL: ${existingShortUrlId}`);
-        supabaseResult = await supabase
-          .from('url_shorteners')
-          .update({ long_url: signedUrl })
-          .eq('short_url_id', existingShortUrlId)
-          .select();
-      } else {
-        console.log(`Creating new short URL: ${shortUrlId}`);
-        supabaseResult = await supabase
-          .from('url_shorteners')
-          .insert([{ long_url: signedUrl, short_url_id: shortUrlId }])
-          .select();
-      }
-
-      const { data, error } = supabaseResult;
-      if (error) {
-        console.error('Error storing/updating URL mapping in Supabase:', error);
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      return new Response(JSON.stringify({
-        url: shortUrlId,
-        short_url_ids: [shortUrlId],
-        success: true
-      }), {
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (s3Error) {
-      console.error(`Error generating pre-signed URL for ${filePath}:`, s3Error);
-      return new Response(JSON.stringify({ error: s3Error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    return await handleCreateReceiptLink(body);
   } catch (error) {
-    console.error("Error in request handler:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("generateReceiptUrl error:", error);
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : String(error),
+      }),
+      { status: 500, headers: jsonHeaders },
+    );
   }
 });

@@ -18,6 +18,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/digital_receipt_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -1279,6 +1280,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                             ref
                                 .read(isProcessingProvider.notifier)
                                 .stopProcessing();
+
+                            unawaited(
+                              DigitalReceiptService.queueSmsAfterReceiptUpload(
+                                transaction.id,
+                              ),
+                            );
 
                             // Call onComplete first to trigger transaction completion
                             onComplete();

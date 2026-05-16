@@ -4,7 +4,7 @@
   },
   "cmake.sourceDirectory": "/Users/richard/Documents/GitHub/flipper/open-sources/receipt/windows/runner",
   "deno.enablePaths": [
-    "supabase/functions"
+    "packages/edges/supabase/functions"
   ],
   "deno.lint": true,
   "deno.unstable": [

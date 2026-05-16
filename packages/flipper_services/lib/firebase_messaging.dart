@@ -2,9 +2,12 @@ import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import 'package:flipper_models/helpers/personal_goal_contribution_device_key.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/notifications/notification_manager.dart';
+import 'package:flipper_services/personal_goal_fcm_background.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
@@ -48,12 +51,33 @@ class FirebaseMessagingService implements Messaging {
   @override
   Future<void>
       initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {
-    if (isMacOs || isIos) return;
-    // TODO: when we get apn from apple meaning having paid our membership there we shall re-work on this
-    await FirebaseMessaging.instance
-        .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
-    String? _token = await token();
+    if (isMacOs) return;
+
+    final businessId = ProxyService.box.getBusinessId()?.toString();
+    if (businessId == null || businessId.isEmpty) return;
+
+    try {
+      await FirebaseMessaging.instance.subscribeToTopic(businessId);
+    } catch (e) {
+      print('FCM business topic subscribe failed: $e');
+    }
+
+    final branchId = ProxyService.box.getBranchId()?.toString();
+    if (branchId != null && branchId.isNotEmpty) {
+      try {
+        await FirebaseMessaging.instance.subscribeToTopic(
+          'branch_${_fcmTopicSegment(branchId)}',
+        );
+      } catch (e) {
+        print('FCM branch topic subscribe failed: $e');
+      }
+    }
+
+    await token();
   }
+
+  static String _fcmTopicSegment(String value) =>
+      value.replaceAll(RegExp(r'[^a-zA-Z0-9\-_.~%]'), '_');
 
   @override
   Future<String?> token() async {
@@ -71,7 +95,30 @@ class FirebaseMessagingService implements Messaging {
       {required RemoteMessage message,
       bool isNotificationClicked = false,
       bool showLocalNotification = false}) async {
-    final type = message.data['type'];
+    final type = message.data['type']?.toString();
+    if (type == kPersonalGoalContributionFcmType) {
+      final sourceKey = message.data['sourceDeviceKey']?.toString();
+      if (sourceKey != null && sourceKey.isNotEmpty) {
+        final localKey = await personalGoalContributionDeviceKey();
+        if (localKey.isNotEmpty && localKey == sourceKey) return;
+      }
+
+      final body = message.notification?.body ??
+          message.data['body']?.toString() ??
+          message.data['message']?.toString();
+      if (body != null &&
+          body.isNotEmpty &&
+          showLocalNotification &&
+          !isNotificationClicked) {
+        try {
+          await NotificationManager.instance.showNotification(
+            title: 'Personal goal',
+            body: body,
+          );
+        } catch (_) {}
+      }
+      return;
+    }
     if (type == "whatsapp") {
       final conversationKey = message.data['conversation'];
       Map<String, dynamic> conversationMap = json.decode(conversationKey);

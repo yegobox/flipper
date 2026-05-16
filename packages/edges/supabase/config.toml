@@ -264,6 +264,10 @@ policy = "oneshot"
 inspector_port = 8083
 
 # Use these configurations to customize your Edge Function.
+[functions.notify-personal-goal-contribution]
+verify_jwt = true
+import_map = "./functions/notify-personal-goal-contribution/deno.json"
+
 # [functions.MY_FUNCTION_NAME]
 # enabled = true
 # verify_jwt = true
