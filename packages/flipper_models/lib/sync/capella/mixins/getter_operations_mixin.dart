@@ -218,10 +218,8 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     );
   }
 
-  @override
-  Future<Branch?> branch({String? name, String? serverId}) async {
-    throw UnimplementedError('branch needs to be implemented for Capella');
-  }
+  // branch() is implemented by CapellaBranchMixin (do not stub here — later
+  // mixins shadow earlier ones and would hide the Ditto implementation).
 
   @override
   Future<List<ITransaction>> transactions({

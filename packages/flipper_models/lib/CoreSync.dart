@@ -64,6 +64,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/digital_receipt_service.dart';
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
@@ -319,6 +320,7 @@ class CoreSync extends AiStrategyImpl
     if (!offlineLogin) {
       // Perform online-specific configuration
       await firebaseLogin();
+      await SupabaseSessionService.ensureAccessToken();
     }
   }
 

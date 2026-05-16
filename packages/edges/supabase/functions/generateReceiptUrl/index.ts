@@ -15,13 +15,16 @@ const corsHeaders = {
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+// Service role bypasses RLS for url_shorteners / messages (gateway still verifies user JWT).
+const supabaseServiceKey =
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!;
 const s3BucketName = Deno.env.get("S3_BUCKET_NAME")!;
 const s3Region = Deno.env.get("S3_REGION")!;
 const awsAccessKeyId = Deno.env.get("AWS_ACCESS_KEY_ID")!;
 const awsSecretAccessKey = Deno.env.get("AWS_SECRET_ACCESS_KEY")!;
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: { autoRefreshToken: false, persistSession: false },
   global: { fetch: (...args) => fetch(...args) },
 });
 
@@ -97,14 +100,15 @@ async function storeShortUrl(
 
 async function queueReceiptSms(
   phone: string,
-  branchId: string,
+  branchUuid: string,
   shortUrlId: string,
 ): Promise<void> {
   const messageText = `${SMS_TEMPLATE}${BASE_SHORT_URL}${shortUrlId}`;
+  // messages.branch_id is UUID (Ditto branch id), not branches.server_id.
   const { error } = await supabase.from("messages").insert({
     text: messageText,
     phone_number: phone,
-    branch_id: branchId,
+    branch_id: branchUuid,
   });
 
   if (error) {
@@ -200,7 +204,6 @@ async function handleCreateReceiptLink(body: Record<string, unknown>): Promise<R
   const transactionId = body.transactionId
     ? String(body.transactionId)
     : undefined;
-
   if (!branchId || !fileName) {
     return new Response(
       JSON.stringify({
@@ -221,9 +224,12 @@ async function handleCreateReceiptLink(body: Record<string, unknown>): Promise<R
   const shortUrlId = await storeShortUrl(signedUrl, existingShortUrlId);
 
   let smsQueued = false;
+  let smsSkipReason: string | undefined;
   if (sendSms && phone.trim()) {
     await queueReceiptSms(phone.trim(), branchId, shortUrlId);
     smsQueued = true;
+  } else if (sendSms && !phone.trim()) {
+    smsSkipReason = "phone missing";
   }
 
   return new Response(
@@ -233,6 +239,7 @@ async function handleCreateReceiptLink(body: Record<string, unknown>): Promise<R
       short_url: `${BASE_SHORT_URL}${shortUrlId}`,
       success: true,
       sms_queued: smsQueued,
+      sms_skip_reason: smsSkipReason,
       transaction_id: transactionId,
     }),
     { headers: jsonHeaders },

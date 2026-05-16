@@ -1,7 +1,7 @@
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/sync/interfaces/system_interface.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase/supabase.dart' as superUser;
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 mixin SystemMixin implements SystemInterface {
@@ -29,22 +29,6 @@ mixin SystemMixin implements SystemInterface {
 
   @override
   Future<void> suserbaseAuth() async {
-    try {
-      final email = '${ProxyService.box.getBranchId()}@flipper.rw';
-      final superUser.User? existingUser =
-          Supabase.instance.client.auth.currentUser;
-
-      if (existingUser == null) {
-        await Supabase.instance.client.auth.signUp(
-          email: email,
-          password: email,
-        );
-      } else {
-        await Supabase.instance.client.auth.signInWithPassword(
-          email: email,
-          password: email,
-        );
-      }
-    } catch (e) {}
+    await SupabaseSessionService.ensureAccessToken();
   }
 }

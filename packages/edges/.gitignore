@@ -1,3 +1,4 @@
 .env
 scripts/personal-goal-push.test.env.local
+scripts/digital-receipt.test.env.local
 yegobox-*.json
