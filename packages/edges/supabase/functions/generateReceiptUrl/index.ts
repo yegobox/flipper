@@ -102,18 +102,48 @@ async function queueReceiptSms(
   phone: string,
   branchUuid: string,
   shortUrlId: string,
-): Promise<void> {
+): Promise<string> {
   const messageText = `${SMS_TEMPLATE}${BASE_SHORT_URL}${shortUrlId}`;
   // messages.branch_id is UUID (Ditto branch id), not branches.server_id.
-  const { error } = await supabase.from("messages").insert({
-    text: messageText,
-    phone_number: phone,
-    branch_id: branchUuid,
-  });
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      text: messageText,
+      phone_number: phone,
+      branch_id: branchUuid,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     throw new Error(`Failed to queue SMS: ${error.message}`);
   }
+
+  let messageId = data?.id != null ? String(data.id) : null;
+
+  if (!messageId) {
+    const { data: rows, error: lookupError } = await supabase
+      .from("messages")
+      .select("id")
+      .eq("phone_number", phone)
+      .eq("delivered", false)
+      .ilike("text", `%${shortUrlId}%`)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (lookupError) {
+      throw new Error(`Failed to queue SMS: ${lookupError.message}`);
+    }
+    messageId = rows?.[0]?.id != null ? String(rows[0].id) : null;
+  }
+
+  if (!messageId) {
+    throw new Error("Failed to queue SMS: could not resolve messages.id");
+  }
+
+  console.log(
+    `Queued SMS message id=${messageId} branch=${branchUuid} phone=${phone}`,
+  );
+  return messageId;
 }
 
 async function handleRenew(renewUrl: string): Promise<Response> {
@@ -224,26 +254,29 @@ async function handleCreateReceiptLink(body: Record<string, unknown>): Promise<R
   const shortUrlId = await storeShortUrl(signedUrl, existingShortUrlId);
 
   let smsQueued = false;
+  let messageId: string | undefined;
   let smsSkipReason: string | undefined;
   if (sendSms && phone.trim()) {
-    await queueReceiptSms(phone.trim(), branchId, shortUrlId);
+    messageId = await queueReceiptSms(phone.trim(), branchId, shortUrlId);
     smsQueued = true;
   } else if (sendSms && !phone.trim()) {
     smsSkipReason = "phone missing";
   }
 
-  return new Response(
-    JSON.stringify({
-      url: shortUrlId,
-      short_url_ids: [shortUrlId],
-      short_url: `${BASE_SHORT_URL}${shortUrlId}`,
-      success: true,
-      sms_queued: smsQueued,
-      sms_skip_reason: smsSkipReason,
-      transaction_id: transactionId,
-    }),
-    { headers: jsonHeaders },
-  );
+  const payload: Record<string, unknown> = {
+    url: shortUrlId,
+    short_url_ids: [shortUrlId],
+    short_url: `${BASE_SHORT_URL}${shortUrlId}`,
+    success: true,
+    sms_queued: smsQueued,
+    sms_skip_reason: smsSkipReason ?? null,
+    transaction_id: transactionId ?? null,
+  };
+  if (smsQueued && messageId) {
+    payload.message_id = messageId;
+  }
+
+  return new Response(JSON.stringify(payload), { headers: jsonHeaders });
 }
 
 Deno.serve(async (req) => {
