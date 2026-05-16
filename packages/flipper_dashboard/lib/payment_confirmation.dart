@@ -3,6 +3,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/digital_receipt_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -95,6 +96,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                   if (_formKey.currentState?.validate() ?? false) {
                     setState(() => _busy = true);
                     _formKey.currentState?.save();
+                    await DigitalReceiptService.queueSmsAfterReceiptUpload(
+                      widget.transaction.id,
+                    );
                     await handleReceiptGeneration(
                         purchaseCode: _controller.text,
                         filterType: FilterType.NS);
