@@ -1,8 +1,10 @@
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/digital_receipt_service.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
@@ -41,6 +43,18 @@ mixin TransactionMixinOld {
     void Function()? onSuccess,
     required double discount,
     List<TransactionItem>? preloadedLineItemsForCollectPayment,
+
+    /// When true, [collectPayment] updates shift totals and in-memory fields only;
+    /// the caller must persist the transaction (e.g. [markTransactionAsCompleted]).
+    bool skipTransactionPersist = false,
+
+    /// When true, tax/receipt handling does not call [updateTransaction] for receipt
+    /// metadata; the completion persist should include those fields (Capella sale flow).
+    bool deferPersistTaxReceiptFields = false,
+
+    /// When true, receipt PDF is generated and uploaded but not opened/printed;
+    /// SMS is sent after upload when [DigitalReceiptService.queueSmsAfterReceiptUpload] was called.
+    bool sendDigitalReceipt = false,
   }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -85,6 +99,8 @@ mixin TransactionMixinOld {
           transaction: transaction,
           purchaseCode: purchaseCode,
           onSuccess: onSuccess,
+          persistReceiptTransactionFields: !deferPersistTaxReceiptFields,
+          sendDigitalReceipt: sendDigitalReceipt,
         );
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
@@ -94,6 +110,8 @@ mixin TransactionMixinOld {
             customerName: customerNameController.text,
             countryCode: countryCodeController.text,
             preloadedLineItems: preloadedLineItemsForCollectPayment,
+            tenderAmount: amount,
+            skipTransactionPersist: skipTransactionPersist,
           );
         }
       } else {
@@ -105,6 +123,8 @@ mixin TransactionMixinOld {
           customerName: customerNameController.text,
           countryCode: countryCodeController.text,
           preloadedLineItems: preloadedLineItemsForCollectPayment,
+          tenderAmount: amount,
+          skipTransactionPersist: skipTransactionPersist,
         );
       }
 
@@ -227,17 +247,25 @@ mixin TransactionMixinOld {
     required GlobalKey<FormState> formKey,
     void Function()? onSuccess,
     required BuildContext context,
+    bool persistReceiptTransactionFields = true,
+    bool sendDigitalReceipt = false,
   }) async {
     try {
       // Note: This method is now called unawaited by finalizePayment.
       // We perform the heavy listing here (signing, printing).
       // If context unmounts, we try to handle gracefully.
 
+      if (sendDigitalReceipt) {
+        await DigitalReceiptService.queueSmsAfterReceiptUpload(transaction!.id);
+      }
+
       final responseFrom = await TaxController(object: transaction!)
           .handleReceipt(
             purchaseCode: purchaseCode,
             filterType: getFilterType(transactionType: transaction.receiptType),
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: sendDigitalReceipt,
           );
       final (:response, :bytes) = responseFrom;
 
@@ -247,8 +275,7 @@ mixin TransactionMixinOld {
         // Ignore form reset error if unmounted
       }
 
-      if (bytes != null) {
-        // Run printing
+      if (bytes != null && !sendDigitalReceipt) {
         await printing(bytes, context);
       }
       return response;
@@ -312,6 +339,8 @@ mixin TransactionMixinOld {
     required String customerName,
     required String countryCode,
     List<TransactionItem>? preloadedLineItems,
+    required double tenderAmount,
+    bool skipTransactionPersist = false,
   }) async {
     try {
       final branchId = ProxyService.box.getBranchId();
@@ -320,18 +349,29 @@ mixin TransactionMixinOld {
       }
 
       final bhfId = (await ProxyService.box.bhfId()) ?? "00";
-      final amount =
-          double.tryParse(
-            ProxyService.box.readString(key: 'receivedAmount') ?? "0",
-          ) ??
-          0;
+      const eps = 0.0001;
+      var amount = tenderAmount;
+      if (amount <= eps) {
+        amount =
+            double.tryParse(
+              ProxyService.box.readString(key: 'receivedAmount') ?? "0",
+            ) ??
+            0;
+      }
+      if (amount <= eps) {
+        amount = ProxyService.box.getCashReceived() ?? 0;
+      }
       final discount =
           double.tryParse(
             ProxyService.box.readString(key: 'discountRate') ?? "0",
           ) ??
           0;
       final paymentType = ProxyService.box.paymentType() ?? "CASH";
-      final transactionType = transaction.receiptType ?? TransactionType.sale;
+      // Domain type for Capella business logic (e.g. personal-goal sweep) must be
+      // [TransactionType.sale], not [transaction.receiptType] (EBM filter codes
+      // like NS/PS from [getFilterType]).
+      final transactionTypeForCollect =
+          transaction.transactionType ?? TransactionType.sale;
       Customer? customer;
       // Only fetch customer from DB if transaction has a valid customerId
       if (transaction.customerId != null &&
@@ -345,7 +385,8 @@ mixin TransactionMixinOld {
       final finalCustomerName =
           ProxyService.box.customerName() ?? customer?.custNm ?? customerName;
       // Calculate and update tax amount before finalizing payment
-      final items = preloadedLineItems ??
+      final items =
+          preloadedLineItems ??
           await ProxyService.getStrategy(
             Strategy.capella,
           ).transactionItems(transactionId: transaction.id);
@@ -356,6 +397,25 @@ mixin TransactionMixinOld {
 
       // Update transaction with calculated tax amount
       transaction.taxAmount = totalTax;
+
+      // [collectPayment] runs before [onComplete] (e.g. PreviewCart's
+      // [markTransactionAsCompleted]), so [transaction.status] is often still
+      // pending here. Derive the same completion vs parked outcome as the cart
+      // so personal-goal auto-sweep sees `completed` when appropriate.
+      final saleTotalForDerived = items.isEmpty
+          ? amount
+          : items.fold<double>(
+              0,
+              (a, b) => a + (b.price.toDouble() * b.qty.toDouble()),
+            );
+      final derivedCompletion = deriveSaleCompletionState(
+        transactionCashReceived: (transaction.cashReceived ?? 0) + amount,
+        finalSubTotal: saleTotalForDerived,
+        paymentMethods: [
+          PaymentLineForSaleCompletion(amount: amount, method: paymentType),
+        ],
+      );
+
       // Collect payment via Capella so items are read from Ditto
       await ProxyService.getStrategy(Strategy.capella).collectPayment(
         branchId: branchId,
@@ -368,7 +428,7 @@ mixin TransactionMixinOld {
         cashReceived: amount,
         transaction: transaction,
         categoryId: transaction.categoryId,
-        transactionType: transactionType,
+        transactionType: transactionTypeForCollect,
         isIncome: true,
         paymentType: paymentType,
         discount: discount,
@@ -377,6 +437,8 @@ mixin TransactionMixinOld {
             customer?.telNo ??
             ProxyService.box.currentSaleCustomerPhoneNumber(),
         preloadedLineItems: items,
+        skipTransactionPersist: skipTransactionPersist,
+        completionStatus: derivedCompletion.status,
       );
       // Clean up temporary storage
       ProxyService.box.remove(key: 'pendingCustomerName');

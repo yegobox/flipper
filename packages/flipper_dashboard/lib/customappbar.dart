@@ -9,12 +9,63 @@ import 'package:google_fonts/google_fonts.dart';
 
 enum CLOSEBUTTON { ICON, BUTTON, WIDGET }
 
-/// Matches the Tickets screen app bar: white surface, [GoogleFonts.outfit] title,
-/// circular leading control with a light border (see [tickets_screen.dart]).
-const Color kCustomAppBarIconCircleBorder = Color(0xFFE0E4EB);
+/// Cash Book / cash-in header: circular 44×44 tap target, grey outline, Material icon.
+class AppBarRoundIconButton extends StatelessWidget {
+  const AppBarRoundIconButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+    this.tooltip,
+    this.iconColor,
+    this.borderColor,
+    this.iconSize = 22,
+  });
 
-/// Bold “X” with round caps (see close-button reference in product UI spec).
-const Color _kCloseIconForeground = Color(0xFF0D0D0D);
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final String? tooltip;
+  final Color? iconColor;
+  final Color? borderColor;
+  final double iconSize;
+
+  static const double diameter = 44;
+  static const double borderWidth = 1.5;
+
+  @override
+  Widget build(BuildContext context) {
+    final ic = iconColor ?? Colors.grey.shade700;
+    final bc = borderColor ?? Colors.grey.shade400;
+    final inferredClose = icon == Icons.close || icon == CupertinoIcons.clear;
+    final tip =
+        tooltip ??
+        (inferredClose
+            ? MaterialLocalizations.of(context).closeButtonTooltip
+            : null);
+
+    Widget target = Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: diameter,
+          height: diameter,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: bc, width: borderWidth),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, color: ic, size: iconSize),
+        ),
+      ),
+    );
+
+    if (tip != null && tip.isNotEmpty) {
+      target = Tooltip(message: tip, child: target);
+    }
+    return target;
+  }
+}
 
 bool _useCupertinoStyle(BuildContext context) {
   if (kIsWeb) return false;
@@ -43,6 +94,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.useTransparentButton = false,
     this.multi,
     this.bottomSpacer,
+    this.barBackgroundColor,
     this.customLeadingWidget,
     this.bottomWidget,
     this.customTrailingWidget,
@@ -68,30 +120,23 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final StatelessWidget? customTrailingWidget;
   final bool? isDividerVisible;
 
+  /// Defaults to white; set to match the scaffold when the bar should blend in.
+  final Color? barBackgroundColor;
+
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(80.0 * (multi ?? 1.0));
+  Size get preferredSize {
+    final toolbar = 80.0 * (multi ?? 1.0);
+    // Built layout includes a [Divider] under the bar; omitting it caused a 1px overflow.
+    final dividerExtent = (isDividerVisible ?? true) ? 1.0 : 0.0;
+    return Size.fromHeight(toolbar + dividerExtent);
+  }
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
   static const double _horizontalPadding = 8;
-
-  static ButtonStyle _headerCircleIconStyle() {
-    return IconButton.styleFrom(
-      backgroundColor: Colors.white,
-      foregroundColor: _kCloseIconForeground,
-      shape: const CircleBorder(),
-      side: const BorderSide(
-        color: kCustomAppBarIconCircleBorder,
-        width: 1,
-      ),
-      padding: const EdgeInsets.all(9),
-      minimumSize: const Size(40, 40),
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +153,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
         mainAxisSize: MainAxisSize.min,
         children: [
           ColoredBox(
-            color: Colors.white,
+            color: widget.barBackgroundColor ?? Colors.white,
             child: SizedBox(
               height: widget.bottomSpacer ?? 80.0,
               child: Column(
@@ -163,11 +208,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               child: widget.bottomWidget!,
             ),
           if (widget.isDividerVisible ?? true)
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: Colors.grey.shade200,
-            ),
+            Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
         ],
       ),
     );
@@ -237,24 +278,13 @@ class _CustomAppBarState extends State<CustomAppBar> {
         return widget.customLeadingWidget!;
       case CLOSEBUTTON.ICON:
         final iconData = widget.icon ?? Icons.close;
-        final loc = MaterialLocalizations.of(context);
-        final isClose =
-            widget.icon == null ||
-            widget.icon == Icons.close ||
-            widget.icon == CupertinoIcons.clear;
 
-        final leadingIcon = isClose
-            ? const _AppBarCloseGlyph()
-            : Icon(iconData, size: 22, color: _kCloseIconForeground);
-
-        // Aligned with Material AppBar `leadingWidth: 56` (see TicketsScreen).
+        // Aligned with Material AppBar `leadingWidth: 56` and Cash Book header.
         return SizedBox(
           width: 56,
           child: Center(
-            child: IconButton(
-              tooltip: isClose ? loc.closeButtonTooltip : null,
-              style: _headerCircleIconStyle(),
-              icon: leadingIcon,
+            child: AppBarRoundIconButton(
+              icon: iconData,
               onPressed: widget.onPop,
             ),
           ),
@@ -283,47 +313,4 @@ class _CustomAppBarState extends State<CustomAppBar> {
         return TextButton(onPressed: onPressed, child: Text(label));
     }
   }
-}
-
-/// Bold, evenly weighted X with rounded line caps, centered in the icon slot.
-class _AppBarCloseGlyph extends StatelessWidget {
-  const _AppBarCloseGlyph();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      width: 20,
-      height: 20,
-      child: CustomPaint(
-        painter: _AppBarCloseGlyphPainter(),
-      ),
-    );
-  }
-}
-
-class _AppBarCloseGlyphPainter extends CustomPainter {
-  const _AppBarCloseGlyphPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final s = size.shortestSide;
-    // Inset so strokes stay inside the 20x20 box with round caps.
-    final inset = s * 0.14;
-    final strokeW = s * 0.13;
-    final paint = Paint()
-      ..color = _kCloseIconForeground
-      ..strokeWidth = strokeW
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke
-      ..isAntiAlias = true;
-    final tl = Offset(inset, inset);
-    final tr = Offset(s - inset, inset);
-    final bl = Offset(inset, s - inset);
-    final br = Offset(s - inset, s - inset);
-    canvas.drawLine(tl, br, paint);
-    canvas.drawLine(tr, bl, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -865,7 +865,7 @@ Future<void> _markMobileMoneyNotCompleted(
   ITransaction transaction,
 ) async {
   try {
-    await ProxyService.strategy.updateTransaction(
+    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
       transaction: transaction,
       status: WAITING,
       subTotal: transaction.subTotal ?? transaction.cashReceived ?? 0,

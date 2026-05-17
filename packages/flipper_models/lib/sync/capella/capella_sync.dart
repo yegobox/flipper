@@ -46,6 +46,7 @@ import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/stock_recount_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/personal_goals_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
@@ -88,7 +89,8 @@ class CapellaSync extends AiStrategyImpl
         StockRecountMixin,
         CapellaStockRecountMixin,
         CapellaSettingsMixin,
-        CapellaProductionOutputMixin
+        CapellaProductionOutputMixin,
+        CapellaPersonalGoalsMixin
     implements DatabaseSyncInterface {
   CapellaSync();
 
@@ -465,6 +467,9 @@ class CapellaSync extends AiStrategyImpl
     String? note,
     String? completionStatus,
     List<TransactionItem>? preloadedLineItems,
+    bool isUtilityCashbookMovement = false,
+    bool skipPersonalGoalAutoSweep = false,
+    bool skipTransactionPersist = false,
   }) async {
     if (transaction == null) {
       throw Exception('transaction is null');
@@ -569,21 +574,42 @@ class CapellaSync extends AiStrategyImpl
       transaction.isExpense = !isIncome;
       transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
 
-      // Write transaction to Ditto
-      await updateTransaction(
-        transaction: transaction,
-        status: completionStatus,
-        subTotal: transaction.subTotal,
-        cashReceived: transaction.cashReceived,
-        customerName: transaction.customerName,
-        customerTin: customerTin,
-        customerPhone: transaction.customerPhone,
-        note: transaction.note,
-        updatedAt: DateTime.now(),
-        lastTouched: DateTime.now(),
-        remainingBalance: transaction.remainingBalance?.toDouble(),
-        isLoan: transaction.isLoan,
-      );
+      // Write transaction to Ditto (optional: caller persists once on completion).
+      if (!skipTransactionPersist) {
+        await updateTransaction(
+          transaction: transaction,
+          status: completionStatus,
+          subTotal: transaction.subTotal,
+          cashReceived: transaction.cashReceived,
+          customerName: transaction.customerName,
+          customerTin: customerTin,
+          customerPhone: transaction.customerPhone,
+          note: transaction.note,
+          updatedAt: DateTime.now(),
+          lastTouched: DateTime.now(),
+          remainingBalance: transaction.remainingBalance?.toDouble(),
+          isLoan: transaction.isLoan,
+        );
+      }
+
+      try {
+        final resolvedCompletionForGoals =
+            completionStatus ?? transaction.status;
+        await applyPersonalGoalAutoSweepIfEligible(
+          branchId: branchId,
+          transactionId: transaction.id,
+          completionStatus: resolvedCompletionForGoals,
+          isIncome: isIncome,
+          isProformaMode: isProformaMode,
+          isTrainingMode: isTrainingMode,
+          transactionType: transactionType,
+          items: items,
+          isUtilityCashbookMovement: isUtilityCashbookMovement,
+          skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+        );
+      } catch (e, s) {
+        talker.warning('collectPayment: personal goal auto-sweep skipped: $e\n$s');
+      }
 
       // Defer variant lastTouched updates to avoid DB contention during receipt
       Future.delayed(const Duration(seconds: 5), () async {
@@ -626,6 +652,7 @@ class CapellaSync extends AiStrategyImpl
     required String transactionTypeForRecord,
     String? categoryId,
     String? note,
+    bool skipPersonalGoalAutoSweep = false,
   }) async {
     final pending = await manageTransaction(
       branchId: branchId,
@@ -691,6 +718,8 @@ class CapellaSync extends AiStrategyImpl
       note: note,
       completionStatus: COMPLETE,
       preloadedLineItems: preloaded,
+      isUtilityCashbookMovement: true,
+      skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
     );
     final movementReceipt = isIncome
         ? TransactionType.cashIn
@@ -1006,18 +1035,8 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  @override
   getTop5RecentConversations() {
     // TODO: implement getTop5RecentConversations
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<TransactionItem?> getTransactionItem({
-    required String variantId,
-    String? transactionId,
-  }) {
-    // TODO: implement getTransactionItem
     throw UnimplementedError();
   }
 

@@ -14,12 +14,13 @@ import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/firebase_messaging.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' hide Category;
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
 import 'package:ditto_live/ditto_live.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -570,18 +571,28 @@ class CronService {
         return;
       }
 
-      // Only setup on supported platforms
-      if (!Platform.isWindows && !isMacOs && !isIos) {
+      // Android + iOS (macOS/Windows skip FCM).
+      if (!Platform.isWindows && !isMacOs) {
         try {
-          String? token = await FirebaseMessaging.instance.getToken();
+          final messaging = FirebaseMessagingService();
+          await messaging
+              .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
+
+          final token = await FirebaseMessaging.instance.getToken();
           if (token != null) {
             business.deviceToken = token;
-            talker.info("Firebase messaging token registered");
+            final businessId = business.id;
+            if (businessId.isNotEmpty) {
+              await Supabase.instance.client.from('businesses').update({
+                'device_token': token,
+              }).eq('id', businessId);
+            }
+            talker.info('Firebase messaging token registered');
           } else {
-            talker.warning("Failed to get Firebase messaging token");
+            talker.warning('Failed to get Firebase messaging token');
           }
         } catch (e) {
-          talker.error("Firebase messaging setup failed: $e");
+          talker.error('Firebase messaging setup failed: $e');
         }
       }
     } catch (e, stackTrace) {
@@ -635,7 +646,8 @@ class CronService {
       return;
     }
 
-    final momoTransactions = await ProxyService.strategy.transactions(
+    final momoTransactions = await ProxyService.getStrategy(Strategy.capella)
+        .transactions(
       branchId: branchId,
       status: WAITING_MOMO_COMPLETE,
       isExpense: null,
@@ -665,21 +677,16 @@ class CronService {
 
     for (final transaction in transactionsToComplete) {
       try {
-        await ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           transaction: transaction,
           status: COMPLETE,
           subTotal: transaction.subTotal ?? transaction.cashReceived ?? 0,
-          skipDittoSync: true,
         );
       } catch (e) {
         talker.error(
           "Failed to auto-complete transaction ${transaction.id}: $e",
         );
       }
-    }
-
-    for (final transaction in transactionsToComplete) {
-      unawaited(DittoSyncCoordinator.instance.notifyLocalUpsert(transaction));
     }
   }
 }

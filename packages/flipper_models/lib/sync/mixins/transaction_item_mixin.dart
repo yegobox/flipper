@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -325,13 +326,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
       // Update transaction with skipDittoSync to avoid immediate remote sync
       // This reduces database lock contention during rapid updates
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: transaction,
         subTotal: newSubTotal,
         cashReceived: ProxyService.box.getCashReceived(),
         updatedAt: DateTime.now(),
         lastTouched: DateTime.now(),
-        skipDittoSync: true,
       );
     } catch (e, s) {
       talker.error(s);
@@ -538,7 +538,6 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   @override
   Future<void> updateTransactionItem({
     double? qty,
-    bool? ignoreForReport,
     required String transactionItemId,
     double? discount,
     bool? active,
@@ -556,6 +555,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     double? totAmt,
     double? dcRt,
     double? dcAmt,
+    required bool ignoreForReport,
+    bool skipParentSaleSubtotalRecalc = false,
   }) async {
     TransactionItem? item = (await repository.get<TransactionItem>(
       query: Query(
@@ -565,7 +566,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     if (item != null) {
       item.qty = incrementQty == true ? item.qty + 1 : qty ?? item.qty;
       item.discount = discount ?? item.discount;
-      item.ignoreForReport = ignoreForReport ?? item.ignoreForReport;
+      item.ignoreForReport = ignoreForReport;
       item.active = active ?? item.active;
       item.price = price ?? item.price;
       item.prc = prc ?? item.price;
@@ -655,12 +656,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
       // Update transaction with skipDittoSync to avoid immediate remote sync
       // This reduces database lock contention during rapid updates
-      await ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transactionId: item.transactionId,
         subTotal: newSubTotal,
         updatedAt: DateTime.now().toUtc(),
         lastTouched: DateTime.now().toUtc(),
-        skipDittoSync: true,
       );
     }
   }

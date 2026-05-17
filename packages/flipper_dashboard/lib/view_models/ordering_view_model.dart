@@ -123,7 +123,7 @@ class OrderingViewModel extends ProductViewModel
       }
 
       transaction.supplierId = supplier.serverId!;
-      ProxyService.strategy.updateTransaction(
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: transaction,
         supplierId: supplier.serverId!,
       );
@@ -212,7 +212,7 @@ class OrderingViewModel extends ProductViewModel
             financingId: financeOption.id,
           );
       await _markItemsAsDone(items, transaction);
-      _changeTransactionStatus(transaction: transaction);
+      await _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(ref: ref, transactionId: transaction.id);
     } catch (e, s) {
       talker.info(e);
@@ -224,7 +224,7 @@ class OrderingViewModel extends ProductViewModel
   FutureOr<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.strategy.updateTransaction(
+    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
       transaction: transaction,
       status: ORDERING,
     );
@@ -234,7 +234,7 @@ class OrderingViewModel extends ProductViewModel
     List<TransactionItem> items,
     dynamic pendingTransaction,
   ) async {
-    ProxyService.strategy.markItemAsDoneWithTransaction(
+    await ProxyService.getStrategy(Strategy.capella).markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       ignoreForReport: false,

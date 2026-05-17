@@ -8,6 +8,7 @@ import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 // ignore: unused_import
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
@@ -18,6 +19,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/digital_receipt_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -29,6 +31,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -56,6 +59,30 @@ Future<List<TransactionItem>> _getTransactionItems({
   return items;
 }
 
+/// Resolves how much tender was received when the dedicated "received amount"
+/// field is empty or stale (e.g. mobile checkout only updates payment rows, or
+/// QuickSellingView binds a different [TextEditingController] than the mixin).
+double resolveTenderAmountForSaleCompletion({
+  required TextEditingController receivedAmountController,
+  required List<Payment> paymentMethods,
+  required double saleTotal,
+}) {
+  const eps = 0.0001;
+  var amount = double.tryParse(receivedAmountController.text.trim()) ?? 0.0;
+  if (amount > eps) return amount;
+
+  amount = paymentMethods.fold<double>(0.0, (s, p) => s + p.amount);
+  if (amount > eps) return amount;
+
+  amount = paymentMethods.fold<double>(
+    0.0,
+    (s, p) => s + (double.tryParse(p.controller.text.trim()) ?? 0.0),
+  );
+  if (amount > eps) return amount;
+
+  return saleTotal > eps ? saleTotal : 0.0;
+}
+
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
   // Store stream subscription for proper cleanup
@@ -67,6 +94,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   // Track if we're already processing a payment to prevent double-processing
   bool _isProcessingPayment = false;
+
+  /// Queues SMS after PDF upload when the digital-receipt toggle is on.
+  /// Branch SMS is already required for the toggle to be shown in Quick Selling.
+  Future<bool> resolveSendDigitalReceipt(String transactionId) async {
+    if (!ref.read(digitalReceiptToggleProvider)) return false;
+    await DigitalReceiptService.queueSmsAfterReceiptUpload(transactionId);
+    return true;
+  }
+
+  void _resetDigitalReceiptToggleAfterSale() {
+    if (!mounted) return;
+    resetDigitalReceiptToggle(ref);
+  }
 
   Future<void> _invokeCompleteTransactionCallback(Function callback) async {
     final result = callback();
@@ -132,7 +172,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             financingId: financeOption.id,
           );
       await _markItemsAsDone(items, transaction);
-      _changeTransactionStatus(transaction: transaction);
+      await _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
       talker.info(e);
@@ -144,17 +184,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   FutureOr<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.strategy.updateTransaction(
-      transaction: transaction,
-      status: ORDERING,
-    );
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).updateTransaction(transaction: transaction, status: ORDERING);
   }
 
   Future<void> _markItemsAsDone(
     List<TransactionItem> items,
     dynamic pendingTransaction,
   ) async {
-    ProxyService.strategy.markItemAsDoneWithTransaction(
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       ignoreForReport: false,
@@ -163,13 +204,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _refreshTransactionItems({required String transactionId}) async {
-    ref.refresh(transactionItemsProvider(transactionId: transactionId));
-
-    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-
-    /// get new transaction id
-    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-
     ref.refresh(transactionItemsProvider(transactionId: transactionId));
   }
 
@@ -215,14 +249,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           itemDiscountAmount = (itemTotal / itemsTotal) * discountAmount;
           remainingDiscount -= itemDiscountAmount;
         }
-        ProxyService.strategy.updateTransactionItem(
+        ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
           transactionItemId: item.id,
           dcRt: discountRate,
           ignoreForReport: false,
           dcAmt: itemDiscountAmount,
         );
       }
-      ProxyService.strategy.updateTransaction(
+      ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: transaction,
         cashReceived: ProxyService.box.getCashReceived(),
         subTotal: itemsTotal - discountAmount,
@@ -237,6 +271,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required Function completeTransaction,
     required List<Payment> paymentMethods,
     ITransaction? transactionHint,
+
     /// When non-null and every row belongs to [transactionId], skips an extra Ditto load.
     List<TransactionItem>? transactionItemsHint,
     bool immediateCompletion = false,
@@ -246,6 +281,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
     String? completionCashierName;
+    bool transactionWasMarkedCompleted = false;
     final flowWatch = Stopwatch()..start();
     final capella = ProxyService.getStrategy(Strategy.capella);
 
@@ -301,9 +337,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           if (u != null) {
             completionCashierName =
                 TransactionReportCashierProfile.displayNameFromUserRow(
-              name: u.name,
-              email: u.key,
-            );
+                  name: u.name,
+                  email: u.key,
+                );
           }
         } catch (_) {
           // Best-effort: completion should still work offline.
@@ -409,9 +445,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         );
       } else {
         final itemsSw = Stopwatch()..start();
-        transactionItems = await _getTransactionItems(
-          transaction: transaction,
-        );
+        transactionItems = await _getTransactionItems(transaction: transaction);
         talker.debug(
           '[sale_completion_timing] load_transaction_items_ms=${itemsSw.elapsedMilliseconds} '
           'total_ms=${flowWatch.elapsedMilliseconds}',
@@ -448,8 +482,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }).toList();
 
       if (!isProformaOrTraining && itemsNeedingDeduction.isNotEmpty) {
-        final variantIds =
-            itemsNeedingDeduction.map((e) => e.variantId!).toSet().toList();
+        final variantIds = itemsNeedingDeduction
+            .map((e) => e.variantId!)
+            .toSet()
+            .toList();
         final swVariants = Stopwatch()..start();
         final variantsMap = await capella.batchGetVariantsByIds(variantIds);
         swVariants.stop();
@@ -462,8 +498,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         }
 
         final swStocks = Stopwatch()..start();
-        final stocksMap =
-            await capella.batchGetStocksByIds(stockIds.toList());
+        final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
         for (final sid in stockIds) {
           if (!stocksMap.containsKey(sid)) {
             stocksMap[sid] = await capella.getStockById(id: sid);
@@ -493,12 +528,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           originalStockQuantities[sid] = current;
           deductedStockIds.add(sid);
 
-          final newStock =
-              (current - delta).roundToTwoDecimalPlaces();
-          stockUpdatesById[sid] = (
-            currentStock: newStock,
-            rsdQty: newStock,
-          );
+          final newStock = (current - delta).roundToTwoDecimalPlaces();
+          stockUpdatesById[sid] = (currentStock: newStock, rsdQty: newStock);
         }
 
         final swUpdateStocks = Stopwatch()..start();
@@ -517,6 +548,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               transactionItemId: item.id,
               quantityShipped: item.quantityShipped,
               ignoreForReport: false,
+              skipParentSaleSubtotalRecalc: true,
             );
           }),
         );
@@ -556,7 +588,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       transaction.subTotal = finalSubTotal;
 
-      final amount = double.tryParse(receivedAmountController.text) ?? 0;
+      final amount = resolveTenderAmountForSaleCompletion(
+        receivedAmountController: receivedAmountController,
+        paymentMethods: paymentMethods,
+        saleTotal: finalSubTotal,
+      );
+      ProxyService.box.writeString(
+        key: 'receivedAmount',
+        value: amount.toString(),
+      );
       final discount = double.tryParse(discountController.text) ?? 0;
 
       final String branchId = (await ProxyService.strategy.activeBranch(
@@ -596,6 +636,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           onPaymentConfirmed: onPaymentConfirmed,
           onPaymentFailed: onPaymentFailed,
           ticketName: ticketName,
+          finalSubTotal: finalSubTotal,
+          completionCashierName: completionCashierName,
         );
         talker.debug(
           '[sale_completion_timing] flow_total_until_waiting_payment_ms=${flowWatch.elapsedMilliseconds}',
@@ -614,6 +656,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentType: paymentType,
           ticketName: ticketName,
           preloadedLineItemsForCollectPayment: transactionItems,
+          skipCollectPaymentTransactionPersist: true,
           completeTransaction: () async {
             // Update the local transaction object with the payment amount we just processed.
             // This ensures markTransactionAsCompleted sees the correct total paid, avoiding race conditions
@@ -627,6 +670,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               ticketName: ticketName,
               cashierName: completionCashierName,
             );
+            transactionWasMarkedCompleted = true;
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
@@ -638,7 +682,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               );
               ref.read(payButtonStateProvider.notifier).stopLoading();
             }
-            await _invokeCompleteTransactionCallback(completeTransaction);
+            try {
+              await _invokeCompleteTransactionCallback(completeTransaction);
+            } catch (e) {
+              talker.error("Error in completeTransaction callback: $e");
+            }
+            _resetDigitalReceiptToggleAfterSale();
           },
         );
         talker.debug(
@@ -651,21 +700,23 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     } catch (e, s) {
       talker.error("Error in complete transaction flow: $e", s);
 
-      // Rollback stock quantities
-      for (var entry in originalStockQuantities.entries) {
-        final stockId = entry.key;
-        final originalStock = entry.value;
-        await capella.updateStock(
-          stockId: stockId,
-          currentStock: originalStock,
-          rsdQty: originalStock,
+      if (!transactionWasMarkedCompleted) {
+        // Rollback stock quantities
+        for (var entry in originalStockQuantities.entries) {
+          final stockId = entry.key;
+          final originalStock = entry.value;
+          await capella.updateStock(
+            stockId: stockId,
+            currentStock: originalStock,
+            rsdQty: originalStock,
+          );
+        }
+        await capella.updateTransaction(
+          transactionId: transactionId,
+          status: PENDING,
+          cashReceived: ProxyService.box.getCashReceived(),
         );
       }
-      await capella.updateTransaction(
-        transactionId: transactionId,
-        status: PENDING,
-        cashReceived: ProxyService.box.getCashReceived(),
-      );
 
       if (mounted) {
         ref.read(payButtonStateProvider.notifier).stopLoading();
@@ -693,10 +744,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     final paymentLines = paymentMethods
         .map(
-          (p) => PaymentLineForSaleCompletion(
-            amount: p.amount,
-            method: p.method,
-          ),
+          (p) =>
+              PaymentLineForSaleCompletion(amount: p.amount, method: p.method),
         )
         .toList();
 
@@ -729,10 +778,20 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           : transaction.ticketName,
       customerName: transaction.customerName,
       customerPhone: transaction.customerPhone,
+      // Receipt / EBM fields (may be set in memory during tax receipt flow).
+      receiptType: transaction.receiptType,
+      sarNo: transaction.sarNo,
+      receiptNumber: transaction.receiptNumber,
+      totalReceiptNumber: transaction.totalReceiptNumber,
+      invoiceNumber: transaction.invoiceNumber,
+      receiptPrinted: transaction.receiptPrinted,
+      isProformaMode: ProxyService.box.isProformaMode(),
+      isTrainingMode: ProxyService.box.isTrainingMode(),
     );
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
     transaction.createdAt = now;
+    transaction.status = derived.status;
 
     await Future.wait(
       paymentsToPersist.map((payment) async {
@@ -748,6 +807,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     talker.debug(
       '[sale_completion_timing] mark_completed_and_payments_ms=${markSw.elapsedMilliseconds}',
     );
+
+    if (mounted) {
+      ref.invalidate(
+        pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        ),
+      );
+      ref.read(pendingCartSaleSessionProvider.notifier).state =
+          ref.read(pendingCartSaleSessionProvider) + 1;
+    }
 
     return derived.shouldBeLoan;
   }
@@ -796,6 +865,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     Function(String)? onPaymentFailed,
     required List<Payment> paymentMethods,
     String? ticketName,
+    required double finalSubTotal,
+    String? completionCashierName,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -936,6 +1007,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   paymentMethods: paymentMethods,
                   paymentType: paymentType,
                   ticketName: ticketName,
+                  skipCollectPaymentTransactionPersist: false,
                   completeTransaction: () {
                     // For digital payments, don't call completeTransaction yet
                     // We'll call it after this succeeds
@@ -971,9 +1043,29 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 talker.info(
                   "🔄 Calling completeTransaction callback to close bottom sheet...",
                 );
+
+                // Update the local transaction object with the payment amount we just processed.
+                transaction.cashReceived =
+                    (transaction.cashReceived ?? 0) + amount;
+
+                await markTransactionAsCompleted(
+                  transaction: transaction,
+                  finalSubTotal: finalSubTotal,
+                  paymentMethods: paymentMethods,
+                  ticketName: ticketName,
+                  cashierName: completionCashierName,
+                );
+
                 _isProcessingPayment = false;
                 _paymentTimeout?.cancel(); // Cancel timeout on success
-                await _invokeCompleteTransactionCallback(completeTransaction);
+
+                try {
+                  await _invokeCompleteTransactionCallback(completeTransaction);
+                } catch (e) {
+                  talker.error("Error in completeTransaction callback: $e");
+                }
+                _resetDigitalReceiptToggleAfterSale();
+
                 talker.info(
                   "✅ completeTransaction callback executed - Bottom sheet should now close",
                 );
@@ -1009,6 +1101,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required List<Payment> paymentMethods,
     String? ticketName,
     List<TransactionItem>? preloadedLineItemsForCollectPayment,
+
+    /// When true, [collectPayment] skips persisting the txn row because [completeTransaction]
+    /// immediately calls [markTransactionAsCompleted] (sync cash path). When false, persist
+    /// in [collectPayment] so a later early return (e.g. receipt cancelled) still records payment.
+    bool skipCollectPaymentTransactionPersist = false,
   }) async {
     try {
       // Check if widget is still mounted before using ref
@@ -1034,8 +1131,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (dialogResult != true) {
           if (mounted) {
             // Stop loading but DO NOT refresh the pendingTransaction stream here.
-            // Refreshing triggers `manageTransactionStream` which may create a new
-            // pending transaction; cancelling should not create a new one.
+            // Capella ensures the next pending cart when status leaves [PENDING];
+            // refreshing here can cancel the Ditto observer and is unnecessary.
             ref.read(payButtonStateProvider.notifier).stopLoading();
           }
           return false;
@@ -1043,17 +1140,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(
-            pendingTransactionStreamProvider(
-              isExpense: ProxyService.box.isOrdering() ?? false,
-            ),
-          );
         }
       } else {
         // Get the controller value before async operations
         final customerNameController = mounted
             ? ref.watch(customerNameControllerProvider)
             : TextEditingController();
+
+        final sendDigitalReceipt = await resolveSendDigitalReceipt(
+          transaction.id,
+        );
 
         await finalizePayment(
           formKey: formKey,
@@ -1068,6 +1164,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           discount: discount,
           preloadedLineItemsForCollectPayment:
               preloadedLineItemsForCollectPayment,
+          skipTransactionPersist: skipCollectPaymentTransactionPersist,
+          deferPersistTaxReceiptFields: true,
+          sendDigitalReceipt: sendDigitalReceipt,
           onSuccess: () {
             ref.read(payButtonStateProvider.notifier).stopLoading();
           },
@@ -1075,11 +1174,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(
-            pendingTransactionStreamProvider(
-              isExpense: ProxyService.box.isOrdering() ?? false,
-            ),
-          );
         }
       }
 
@@ -1158,6 +1252,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           final double height = MediaQuery.of(dialogContext).size.height;
           final double adjustedHeight = height * 0.8;
 
+          final sendDigitalReceiptFuture = resolveSendDigitalReceipt(
+            transaction.id,
+          );
+
           return BlocProvider(
             create: (context) => PurchaseCodeFormBloc(
               formKey: formKey,
@@ -1169,6 +1267,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               paymentType: paymentType,
               transaction: transaction,
               context: dialogContext,
+              skipTransactionPersist: true,
+              sendDigitalReceiptFuture: sendDigitalReceiptFuture,
             ),
             child: Builder(
               builder: (context) {
@@ -1202,6 +1302,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                             ref
                                 .read(isProcessingProvider.notifier)
                                 .stopProcessing();
+
+                            unawaited(
+                              DigitalReceiptService.queueSmsAfterReceiptUpload(
+                                transaction.id,
+                              ),
+                            );
 
                             // Call onComplete first to trigger transaction completion
                             onComplete();

@@ -1612,7 +1612,7 @@ class _AdminControlState extends State<AdminControl> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _adminSubSectionHeader('Account management', _kAdminBarBlue),
+                  // _adminSubSectionHeader('Account management', _kAdminBarBlue),
                   const SizedBox(height: 16),
                   SettingsCard(
                     title: 'User Management',

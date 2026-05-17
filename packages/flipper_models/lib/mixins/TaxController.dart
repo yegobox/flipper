@@ -24,6 +24,11 @@ class TaxController<OBJ> {
     String? purchaseCode,
     void Function()? onSuccess,
     required FilterType filterType,
+
+    /// When false, receipt metadata stays on [transaction] only until a later
+    /// persistence pass (e.g. [markTransactionAsCompleted] with Capella).
+    bool persistReceiptTransactionFields = true,
+    bool skipPresentation = false,
   }) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
@@ -76,6 +81,8 @@ class TaxController<OBJ> {
             // sarTyCd: StockInOutType.stockMovementIn,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -93,6 +100,8 @@ class TaxController<OBJ> {
             purchaseCode: purchaseCode,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -111,6 +120,8 @@ class TaxController<OBJ> {
             salesSttsCd: SalesSttsCd.refunded,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -128,6 +139,8 @@ class TaxController<OBJ> {
             sarTyCd: StockInOutType.sale,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -145,6 +158,8 @@ class TaxController<OBJ> {
             salesSttsCd: SalesSttsCd.approved,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -163,6 +178,8 @@ class TaxController<OBJ> {
             sarTyCd: StockInOutType.returnIn,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -180,6 +197,8 @@ class TaxController<OBJ> {
             originalInvoiceNumber: transaction.invoiceNumber,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -241,6 +260,8 @@ class TaxController<OBJ> {
     required String customerName,
     Customer? customer,
     void Function()? onSuccess,
+    bool persistReceiptTransactionFields = true,
+    bool skipPresentation = false,
   }) async {
     // Use provided items or fetch transaction items
     List<TransactionItem> transactionItems = items ?? [];
@@ -266,7 +287,8 @@ class TaxController<OBJ> {
       transaction.lastPaymentDate = DateTime.now();
       transaction.createdAt = DateTime.now();
       transaction.updatedAt = DateTime.now();
-      unawaited(repository.upsert(transaction));
+
+      //unawaited(repository.upsert(transaction));
       // Normal processing (desktop or mobile)
       RwApiResponse responses;
       Uint8List? bytes;
@@ -300,6 +322,7 @@ class TaxController<OBJ> {
             originalInvoiceNumber: originalInvoiceNumber,
             purchaseCode: purchaseCode,
             sarTyCd: sarTyCd,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
           );
           // fetch same transaction
 
@@ -438,13 +461,18 @@ class TaxController<OBJ> {
                 bytes = data;
                 onSuccess?.call();
               },
+              skipPresentation: skipPresentation,
             );
 
-            // Update receiptPrinted to true after successful printing
-            await ProxyService.strategy.updateTransaction(
-              transactionId: transaction.id,
-              receiptPrinted: true,
-            );
+            transaction.receiptPrinted = true;
+            if (persistReceiptTransactionFields) {
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).updateTransaction(
+                transactionId: transaction.id,
+                receiptPrinted: true,
+              );
+            }
 
             return (response: responses, bytes: bytes);
           }
@@ -478,6 +506,7 @@ class TaxController<OBJ> {
     String? custMblNo,
     required String customerName,
     Customer? customer,
+    bool persistReceiptTransactionFields = true,
   }) async {
     try {
       String branchId = ProxyService.box.getBranchId()!;
@@ -630,7 +659,7 @@ class TaxController<OBJ> {
               id: item.variantId,
             );
 
-            await ProxyService.strategy.addTransactionItem(
+            await ProxyService.getStrategy(Strategy.capella).addTransactionItem(
               transaction: newTransaction,
               item: copy,
               ignoreForReport: true,
@@ -648,18 +677,24 @@ class TaxController<OBJ> {
         } else if (receiptType == "NS" ||
             receiptType == "TS" ||
             receiptType == "PS") {
-          ProxyService.strategy.updateTransaction(
-            transaction: transaction,
-            receiptType: receiptType,
-            sarNo: highestInvcNo.toString(),
-            receiptNumber: highestInvcNo,
-            totalReceiptNumber: highestInvcNo,
-            // Prefer an existing transaction.invoiceNumber, otherwise use the
-            // highest invoice number across counters.
-            invoiceNumber: transaction.invoiceNumber ?? highestInvcNo,
-            isProformaMode: ProxyService.box.isProformaMode(),
-            isTrainingMode: ProxyService.box.isTrainingMode(),
-          );
+          transaction.receiptType = receiptType;
+          transaction.sarNo = highestInvcNo.toString();
+          transaction.receiptNumber = highestInvcNo;
+          transaction.totalReceiptNumber = highestInvcNo;
+          transaction.invoiceNumber =
+              transaction.invoiceNumber ?? highestInvcNo;
+          if (persistReceiptTransactionFields) {
+            await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+              transaction: transaction,
+              receiptType: receiptType,
+              sarNo: highestInvcNo.toString(),
+              receiptNumber: highestInvcNo,
+              totalReceiptNumber: highestInvcNo,
+              invoiceNumber: transaction.invoiceNumber ?? highestInvcNo,
+              isProformaMode: ProxyService.box.isProformaMode(),
+              isTrainingMode: ProxyService.box.isTrainingMode(),
+            );
+          }
         }
 
         await saveReceipt(

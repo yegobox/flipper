@@ -32,8 +32,19 @@ import 'package:stacked/stacked.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
+
+/// Compact label for correlating QuickSellingView with [pendingTransactionStream] logs.
+String _qsvPendingLabel(AsyncValue<ITransaction> v) {
+  if (v.isLoading) return 'loading';
+  if (v.hasError) return 'error:${v.error}';
+  if (!v.hasValue || v.value == null) return 'noValue';
+  final t = v.value!;
+  return 'id=${t.id} status=${t.status} invoiceNo=${t.invoiceNumber}';
+}
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -151,19 +162,55 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  /// Invoice number only (mobile / simple layouts).
+  /// Invoice number + current pending cart transaction id (mobile / desktop chip).
+  ///
+  /// **Note:** [highestCounterProvider] is the next invoice sequence, not the
+  /// Ditto transaction `_id`. The **Txn ID** label is the live pending cart from
+  /// [pendingTransactionStreamProvider].
   Widget _buildInvoiceNumberRow({required String branchId}) {
+    final isExpense = ProxyService.box.isOrdering() ?? false;
+    final pendingTxn = ref
+        .watch(pendingTransactionStreamProvider(isExpense: isExpense))
+        .value;
+    final txnId = pendingTxn?.id;
     final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
+    final body = Theme.of(context).textTheme.bodyMedium;
+    final bodyBold = body?.copyWith(fontWeight: FontWeight.bold);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('Invoice No: ', style: Theme.of(context).textTheme.bodyMedium),
+        if (txnId != null && txnId.isNotEmpty) ...[
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              await Clipboard.setData(ClipboardData(text: txnId));
+              if (!mounted) return;
+              showSuccessNotification(
+                context,
+                'Transaction ID copied to clipboard',
+                duration: const Duration(seconds: 2),
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Txn ID: ', style: body),
+                Text(
+                  txnId,
+                  key: const Key('pending-transaction-id-text'),
+                  style: bodyBold,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+        Text('Invoice No: ', style: body),
         Text(
           '$highestInvoiceNumber',
           key: const Key('invoice-number-text'),
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: bodyBold,
         ),
       ],
     );
@@ -382,6 +429,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
   }
 
+  /// Avoid redundant parent [updateTransaction] writes from customer fields
+  /// while pay is loading or [startCompleteTransactionFlow] is active (same
+  /// semantics as checkout via [CheckoutController]).
+  bool _skipLiveCustomerCapellaPersistDuringSaleCompletion() {
+    final payBusy =
+        ref.read(payButtonStateProvider).values.any((loading) => loading);
+    final completing =
+        ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
+    return payBusy || completing;
+  }
+
   void _prefillCustomerDetails(ITransaction transaction) {
     if (transaction.customerName != null &&
         transaction.customerName!.isNotEmpty &&
@@ -555,6 +613,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
+    resetDigitalReceiptToggle(ref);
+
     if (!mounted) {
       return;
     }
@@ -583,11 +643,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     widget.customerPhoneNumberController.clear();
     ref.read(customerNameControllerProvider).clear();
 
-    await newTransaction(
-      typeOfThisTransactionIsExpense: ProxyService.box.isOrdering() ?? false,
-    );
-
-    // Refresh the pending transaction provider to pick up the new transaction
     ref.invalidate(
       pendingTransactionStreamProvider(
         isExpense: ProxyService.box.isOrdering() ?? false,
@@ -616,10 +671,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         isExpense: ProxyService.box.isOrdering() ?? false,
       ),
       (previous, next) {
+        tv_talk.talker.info(
+          'QuickSellingView.pendingTxn ref.listen '
+          'prev=${previous == null ? 'null' : _qsvPendingLabel(previous)} '
+          'next=${_qsvPendingLabel(next)}',
+        );
         if (next.hasValue && next.value != null) {
           final isNewTransaction = previous?.value?.id != next.value!.id;
           _prefillCustomerDetails(next.value!);
           if (isNewTransaction) {
+            resetDigitalReceiptToggle(ref);
             _updateReceivedAmountIfNeeded(next.value!);
           }
         }
@@ -643,6 +704,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ),
         (previous, next) {
           next.whenData((items) {
+            tv_talk.talker.info(
+              'QuickSellingView.txItemsStream '
+              'streamArgTxnId=$transactionId branch=${ProxyService.box.getBranchId()} '
+              'itemCount=${items.length} '
+              'firstItemTxnId=${items.isEmpty ? 'n/a' : items.first.transactionId}',
+            );
             ref
                 .read(optimisticCartProvider.notifier)
                 .onStreamEmitted(transactionId: transactionId, items: items);
@@ -653,6 +720,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ),
                 )
                 .value;
+            tv_talk.talker.info(
+              'QuickSellingView.txItemsStream after read pending '
+              'readPendingId=${transaction?.id} readPendingStatus=${transaction?.status} '
+              'streamArgTxnId=$transactionId match=${transaction?.id == transactionId}',
+            );
             if (transaction != null) {
               final optimistic = ref.read(optimisticCartProvider);
               final merged = mergeTransactionItemsWithOptimisticCart(
@@ -697,6 +769,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       pendingTransactionStreamProvider(
         isExpense: ProxyService.box.isOrdering() ?? false,
       ),
+    );
+    final readPending = ref.read(
+      pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false,
+      ),
+    );
+    tv_talk.talker.debug(
+      'QuickSellingView.build pending '
+      'watch=${_qsvPendingLabel(transactionAsyncValue)} '
+      'read=${_qsvPendingLabel(readPending)}',
     );
 
     // Handle transaction async value error state early
@@ -757,6 +839,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               transactionAsyncValue.value != null &&
               transactionAsyncValue.value!.id.isNotEmpty) {
             final transactionId = transactionAsyncValue.value!.id;
+            tv_talk.talker.debug(
+              'QuickSellingView.ViewModelBuilder bind '
+              'transactionId=$transactionId '
+              'invoiceNo=${transactionAsyncValue.value!.invoiceNumber}',
+            );
             final transactionItemsAsync = ref.watch(
               transactionItemsStreamProvider(
                 transactionId: transactionId,
@@ -768,16 +855,25 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             // Properly handle AsyncValue states instead of accessing .value directly
             internalTransactionItems = transactionItemsAsync.when(
               data: (items) {
-                return mergeTransactionItemsWithOptimisticCart(
-                      streamItems: items,
-                      optimistic: optimisticCart,
-                      transactionId: transactionId,
-                    )
-                    .where(
-                      (item) =>
-                          !_optimisticallyDeletedItemIds.contains(item.id),
-                    )
-                    .toList();
+                final merged =
+                    mergeTransactionItemsWithOptimisticCart(
+                          streamItems: items,
+                          optimistic: optimisticCart,
+                          transactionId: transactionId,
+                        )
+                        .where(
+                          (item) =>
+                              !_optimisticallyDeletedItemIds.contains(item.id),
+                        )
+                        .toList();
+                if (merged.isNotEmpty) {
+                  tv_talk.talker.debug(
+                    'QuickSellingView.internalItems mergedCount=${merged.length} '
+                    'forPendingTxnId=$transactionId '
+                    'firstMergedTxnId=${merged.first.transactionId}',
+                  );
+                }
+                return merged;
               },
               loading: () => [],
               error: (err, stack) {
@@ -1587,24 +1683,38 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                 );
                                 return transactionAsyncValue.when(
                                   data: (ITransaction transaction) async {
-                                    await startCompleteTransactionFlow(
-                                      immediateCompletion:
-                                          immediateCompleteTransaction,
-                                      completeTransaction: () async {
-                                        await _onQuickSellComplete(transaction);
-                                      },
-                                      transactionId: transaction.id,
-                                      transactionHint: transaction,
-                                      transactionItemsHint:
-                                          _transactionItemsHintForCompletion(
-                                            transaction.id,
-                                          ),
-                                      paymentMethods: ref.watch(
-                                        paymentMethodsProvider,
-                                      ),
-                                      onPaymentConfirmed: onPaymentConfirmed,
-                                      onPaymentFailed: onPaymentFailed,
+                                    await ProxyService.box.writeBool(
+                                      key: 'transactionCompleting',
+                                      value: true,
                                     );
+                                    try {
+                                      await startCompleteTransactionFlow(
+                                        immediateCompletion:
+                                            immediateCompleteTransaction,
+                                        completeTransaction: () async {
+                                          await _onQuickSellComplete(
+                                            transaction,
+                                          );
+                                        },
+                                        transactionId: transaction.id,
+                                        transactionHint: transaction,
+                                        transactionItemsHint:
+                                            _transactionItemsHintForCompletion(
+                                              transaction.id,
+                                            ),
+                                        paymentMethods: ref.watch(
+                                          paymentMethodsProvider,
+                                        ),
+                                        onPaymentConfirmed: onPaymentConfirmed,
+                                        onPaymentFailed: onPaymentFailed,
+                                      );
+                                    } catch (e, s) {
+                                      await ProxyService.box.writeBool(
+                                        key: 'transactionCompleting',
+                                        value: false,
+                                      );
+                                      rethrow;
+                                    }
                                     ref.read(previewingCart.notifier).state =
                                         false;
                                     return true;
@@ -1997,16 +2107,41 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         )
                         .asData
                         ?.value;
-              startCompleteTransactionFlow(
-                immediateCompletion: false,
-                completeTransaction: () async {
-                  await _onQuickSellComplete(transaction);
-                },
-                transactionId: transaction.id,
-                transactionHint: transaction,
-                transactionItemsHint: transactionItemsHint,
-                paymentMethods: ref.watch(paymentMethodsProvider),
-              );
+              unawaited(() async {
+                final loadingNotifier =
+                    ref.read(payButtonStateProvider.notifier);
+                loadingNotifier.stopLoading();
+                loadingNotifier.startLoading(ButtonType.pay);
+                await ProxyService.box.writeBool(
+                  key: 'transactionCompleting',
+                  value: true,
+                );
+                try {
+                  await startCompleteTransactionFlow(
+                    immediateCompletion: false,
+                    completeTransaction: () async {
+                      await _onQuickSellComplete(transaction);
+                    },
+                    transactionId: transaction.id,
+                    transactionHint: transaction,
+                    transactionItemsHint: transactionItemsHint,
+                    paymentMethods: ref.watch(paymentMethodsProvider),
+                  );
+                } catch (e, s) {
+                  await ProxyService.box.writeBool(
+                    key: 'transactionCompleting',
+                    value: false,
+                  );
+                  if (mounted) {
+                    loadingNotifier.stopLoading(ButtonType.pay);
+                  }
+                  tv_talk.talker.error(
+                    'Keyboard-triggered sale completion failed',
+                    e,
+                    s,
+                  );
+                }
+              }());
             });
           }
           // Handle Enter key for focus traversal (without Ctrl/Cmd modifiers)
@@ -2035,6 +2170,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           children: [
             // Customer Information Section (only shown when not ordering)
             if (!isOrdering) ...[
+              _buildDigitalReceiptToggle(),
               _buildReceivedAmountField(
                 transactionId: transactionId,
                 alreadyPaid: alreadyPaid,
@@ -2146,6 +2282,47 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
         return null;
       },
+    );
+  }
+
+  Widget _buildDigitalReceiptToggle() {
+    final smsEnabledAsync = ref.watch(branchSmsNotificationsEnabledProvider);
+    return smsEnabledAsync.when(
+      data: (smsEnabled) {
+        if (!smsEnabled) return const SizedBox.shrink();
+        final useDigital = ref.watch(digitalReceiptToggleProvider);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: SwitchListTile.adaptive(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              title: const Text(
+                'Digital receipt',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              subtitle: const Text(
+                'Send receipt by SMS instead of opening a PDF',
+                style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              ),
+              value: useDigital,
+              activeTrackColor: PosLayoutBreakpoints.posAccentBlue,
+              onChanged: (value) {
+                ref.read(digitalReceiptToggleProvider.notifier).state = value;
+              },
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -2279,6 +2456,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           // new transaction by only updating when there is an existing pending
           // transaction instance available from the provider.
           try {
+            if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
+              return;
+            }
             final transactionAsync = ref.read(
               pendingTransactionStreamProvider(
                 isExpense: ProxyService.box.isOrdering() ?? false,
@@ -2394,6 +2574,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   // new transaction by only updating when there is an existing pending
                   // transaction instance available from the provider.
                   try {
+                    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
+                      return;
+                    }
                     final transactionAsync = ref.read(
                       pendingTransactionStreamProvider(
                         isExpense: ProxyService.box.isOrdering() ?? false,

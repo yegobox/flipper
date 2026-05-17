@@ -35,6 +35,7 @@ import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/mixins/discount_mixin.dart';
+import 'package:flipper_models/sync/mixins/core_personal_goals_stub_mixin.dart';
 import 'package:flipper_models/sync/mixins/settings_mixin.dart';
 import 'package:flipper_models/sync/mixins/getter_operations_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -62,6 +63,8 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/digital_receipt_service.dart';
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
@@ -103,7 +106,8 @@ class CoreSync extends AiStrategyImpl
         ProductionOutputMixin,
         DiscountMixin,
         SettingsMixin,
-        GetterOperationsMixin
+        GetterOperationsMixin,
+        CorePersonalGoalsStubMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -316,6 +320,7 @@ class CoreSync extends AiStrategyImpl
     if (!offlineLogin) {
       // Perform online-specific configuration
       await firebaseLogin();
+      await SupabaseSessionService.ensureAccessToken();
     }
   }
 
@@ -2069,16 +2074,39 @@ class CoreSync extends AiStrategyImpl
           )
           .result;
       // update thi transacton
-      ITransaction? transaction = await _getTransaction(
-        transactionId: transactionId,
-      );
-      if (transaction != null) {
-        transaction.receiptFileName = fileName + ".pdf";
+      ITransaction? iTransaction =
+          await ProxyService.getStrategy(Strategy.capella).getTransaction(
+            id: transactionId,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+      if (iTransaction != null) {
+        /// never update transaction status here or any other properties
+        /// first get transaction as it might be updated by other means
+        ///
+        final fileNameWithExtension = fileName + ".pdf";
+
+        iTransaction.receiptFileName = fileNameWithExtension;
+
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+          transaction: iTransaction,
+          transactionId: iTransaction.id,
+        );
+
         ProxyService.box.writeString(
           key: 'getReceiptFileName',
-          value: fileName + ".pdf",
+          value: fileNameWithExtension,
         );
-        await repository.upsert(transaction);
+
+        unawaited(
+          DigitalReceiptService.maybeSendAfterUpload(
+            transactionId: transactionId,
+            branchId: branchId,
+            receiptFileName: fileNameWithExtension,
+            customerPhone: iTransaction.customerPhone,
+            alternatePhone: iTransaction.currentSaleCustomerPhoneNumber,
+            alreadySent: iTransaction.isDigitalReceiptGenerated,
+          ),
+        );
       }
       return result.uploadedItem.path;
     } catch (e) {
@@ -2119,6 +2147,9 @@ class CoreSync extends AiStrategyImpl
     String? note,
     String? completionStatus,
     List<TransactionItem>? preloadedLineItems,
+    bool isUtilityCashbookMovement = false,
+    bool skipPersonalGoalAutoSweep = false,
+    bool skipTransactionPersist = false,
   }) async {
     if (transaction != null) {
       if (note != null) {
@@ -2244,13 +2275,14 @@ class CoreSync extends AiStrategyImpl
           }
         });
 
-        talker.info("collectPayment: Upserting transaction");
-
         if (completionStatus != null) {
           transaction.status = completionStatus;
         }
-        await repository.upsert<ITransaction>(transaction);
-        talker.info("collectPayment: Transaction upserted successfully");
+        if (!skipTransactionPersist) {
+          talker.info("collectPayment: Upserting transaction");
+          await repository.upsert<ITransaction>(transaction);
+          talker.info("collectPayment: Transaction upserted successfully");
+        }
         return transaction;
       } catch (e, s) {
         talker.error(s);
@@ -2275,6 +2307,7 @@ class CoreSync extends AiStrategyImpl
     required String transactionTypeForRecord,
     String? categoryId,
     String? note,
+    bool skipPersonalGoalAutoSweep = false,
   }) async {
     final pending = await manageTransaction(
       branchId: branchId,
@@ -2342,10 +2375,13 @@ class CoreSync extends AiStrategyImpl
       note: note,
       completionStatus: COMPLETE,
       preloadedLineItems: preloaded,
+      isUtilityCashbookMovement: true,
+      skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
     );
     // Cash book: use receiptType so Transaction Reports Type column is Cash In / Out (not NS).
-    txn.receiptType =
-        isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+    txn.receiptType = isIncome
+        ? TransactionType.cashIn
+        : TransactionType.cashOut;
     await repository.upsert<ITransaction>(txn);
     return txn;
   }
@@ -2541,22 +2577,6 @@ class CoreSync extends AiStrategyImpl
       policy: OfflineFirstGetPolicy.awaitRemote,
       query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
     );
-  }
-
-  Future<ITransaction?> _getTransaction({String? transactionId}) async {
-    return (await repository.get<ITransaction>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: brick.Query(
-        where: [
-          if (transactionId != null)
-            brick.Where(
-              'id',
-              value: transactionId,
-              compare: brick.Compare.exact,
-            ),
-        ],
-      ),
-    )).firstOrNull;
   }
 
   @override
@@ -3947,7 +3967,7 @@ class CoreSync extends AiStrategyImpl
       planToKeep = unpaidPlans.first;
 
       for (final plan in unpaidPlans) {
-        if (plan.id != planToKeep!.id && plan.id != null) {
+        if (plan.id != planToKeep.id && plan.id != null) {
           await Supabase.instance.client
               .from('plans')
               .delete()

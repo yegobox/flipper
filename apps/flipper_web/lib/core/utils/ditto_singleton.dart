@@ -143,7 +143,9 @@ class DittoSingleton {
       await Ditto.init();
       print('✅ [INIT] Ditto.init() completed');
 
-      print('🔧 [INIT] Creating OnlineWithAuthenticationIdentity (Ditto v4)...');
+      print(
+        '🔧 [INIT] Creating OnlineWithAuthenticationIdentity (Ditto v4)...',
+      );
       final identity = OnlineWithAuthenticationIdentity(
         appID: appId,
         authenticationHandler: AuthenticationHandler(
@@ -180,7 +182,10 @@ class DittoSingleton {
       // to detect login peers; default host names wrongly enable AWDL/BLE + sync.
       final userName = platformUserName;
       final platform = getPlatformName();
-      _ditto!.deviceName = '$userName-$platform-$userId';
+      // Per-browser install suffix so two browsers/tabs under the same login do not
+      // share the same Ditto peer name (and pending carts scoped by deviceId).
+      final installSuffix = _webPerBrowserInstallSuffix();
+      _ditto!.deviceName = '$userName-$platform-$userId-$installSuffix';
 
       try {
         print('🔧 [INIT] Configuring transports...');
@@ -384,6 +389,10 @@ class DittoSingleton {
       print('Stack trace: $stackTrace');
     }
   }
+}
+
+String _webPerBrowserInstallSuffix() {
+  return DateTime.now().microsecondsSinceEpoch.toRadixString(36);
 }
 
 class YBAuthIdentity {
