@@ -8,6 +8,7 @@ import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 // ignore: unused_import
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
@@ -67,8 +68,7 @@ double resolveTenderAmountForSaleCompletion({
   required double saleTotal,
 }) {
   const eps = 0.0001;
-  var amount =
-      double.tryParse(receivedAmountController.text.trim()) ?? 0.0;
+  var amount = double.tryParse(receivedAmountController.text.trim()) ?? 0.0;
   if (amount > eps) return amount;
 
   amount = paymentMethods.fold<double>(0.0, (s, p) => s + p.amount);
@@ -94,6 +94,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   // Track if we're already processing a payment to prevent double-processing
   bool _isProcessingPayment = false;
+
+  /// Queues SMS after PDF upload when the digital-receipt toggle is on.
+  /// Branch SMS is already required for the toggle to be shown in Quick Selling.
+  Future<bool> resolveSendDigitalReceipt(String transactionId) async {
+    if (!ref.read(digitalReceiptToggleProvider)) return false;
+    await DigitalReceiptService.queueSmsAfterReceiptUpload(transactionId);
+    return true;
+  }
+
+  void _resetDigitalReceiptToggleAfterSale() {
+    if (!mounted) return;
+    resetDigitalReceiptToggle(ref);
+  }
 
   Future<void> _invokeCompleteTransactionCallback(Function callback) async {
     final result = callback();
@@ -171,17 +184,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   FutureOr<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
-      transaction: transaction,
-      status: ORDERING,
-    );
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).updateTransaction(transaction: transaction, status: ORDERING);
   }
 
   Future<void> _markItemsAsDone(
     List<TransactionItem> items,
     dynamic pendingTransaction,
   ) async {
-    await ProxyService.getStrategy(Strategy.capella).markItemAsDoneWithTransaction(
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       ignoreForReport: false,
@@ -323,9 +337,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           if (u != null) {
             completionCashierName =
                 TransactionReportCashierProfile.displayNameFromUserRow(
-              name: u.name,
-              email: u.key,
-            );
+                  name: u.name,
+                  email: u.key,
+                );
           }
         } catch (_) {
           // Best-effort: completion should still work offline.
@@ -431,9 +445,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         );
       } else {
         final itemsSw = Stopwatch()..start();
-        transactionItems = await _getTransactionItems(
-          transaction: transaction,
-        );
+        transactionItems = await _getTransactionItems(transaction: transaction);
         talker.debug(
           '[sale_completion_timing] load_transaction_items_ms=${itemsSw.elapsedMilliseconds} '
           'total_ms=${flowWatch.elapsedMilliseconds}',
@@ -470,8 +482,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }).toList();
 
       if (!isProformaOrTraining && itemsNeedingDeduction.isNotEmpty) {
-        final variantIds =
-            itemsNeedingDeduction.map((e) => e.variantId!).toSet().toList();
+        final variantIds = itemsNeedingDeduction
+            .map((e) => e.variantId!)
+            .toSet()
+            .toList();
         final swVariants = Stopwatch()..start();
         final variantsMap = await capella.batchGetVariantsByIds(variantIds);
         swVariants.stop();
@@ -515,10 +529,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           deductedStockIds.add(sid);
 
           final newStock = (current - delta).roundToTwoDecimalPlaces();
-          stockUpdatesById[sid] = (
-            currentStock: newStock,
-            rsdQty: newStock,
-          );
+          stockUpdatesById[sid] = (currentStock: newStock, rsdQty: newStock);
         }
 
         final swUpdateStocks = Stopwatch()..start();
@@ -676,6 +687,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             } catch (e) {
               talker.error("Error in completeTransaction callback: $e");
             }
+            _resetDigitalReceiptToggleAfterSale();
           },
         );
         talker.debug(
@@ -732,10 +744,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     final paymentLines = paymentMethods
         .map(
-          (p) => PaymentLineForSaleCompletion(
-            amount: p.amount,
-            method: p.method,
-          ),
+          (p) =>
+              PaymentLineForSaleCompletion(amount: p.amount, method: p.method),
         )
         .toList();
 
@@ -988,8 +998,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 talker.info(
                   "🧾 Starting receipt generation after payment confirmation...",
                 );
-                final bool didComplete =
-                    await _finalStepInCompletingTransaction(
+                final bool
+                didComplete = await _finalStepInCompletingTransaction(
                   customer: customer,
                   transaction: transaction,
                   amount: amount,
@@ -1054,6 +1064,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 } catch (e) {
                   talker.error("Error in completeTransaction callback: $e");
                 }
+                _resetDigitalReceiptToggleAfterSale();
 
                 talker.info(
                   "✅ completeTransaction callback executed - Bottom sheet should now close",
@@ -1090,6 +1101,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required List<Payment> paymentMethods,
     String? ticketName,
     List<TransactionItem>? preloadedLineItemsForCollectPayment,
+
     /// When true, [collectPayment] skips persisting the txn row because [completeTransaction]
     /// immediately calls [markTransactionAsCompleted] (sync cash path). When false, persist
     /// in [collectPayment] so a later early return (e.g. receipt cancelled) still records payment.
@@ -1135,6 +1147,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             ? ref.watch(customerNameControllerProvider)
             : TextEditingController();
 
+        final sendDigitalReceipt = await resolveSendDigitalReceipt(
+          transaction.id,
+        );
+
         await finalizePayment(
           formKey: formKey,
           countryCodeController: countryCodeController,
@@ -1150,6 +1166,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               preloadedLineItemsForCollectPayment,
           skipTransactionPersist: skipCollectPaymentTransactionPersist,
           deferPersistTaxReceiptFields: true,
+          sendDigitalReceipt: sendDigitalReceipt,
           onSuccess: () {
             ref.read(payButtonStateProvider.notifier).stopLoading();
           },
@@ -1235,6 +1252,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           final double height = MediaQuery.of(dialogContext).size.height;
           final double adjustedHeight = height * 0.8;
 
+          final sendDigitalReceiptFuture = resolveSendDigitalReceipt(
+            transaction.id,
+          );
+
           return BlocProvider(
             create: (context) => PurchaseCodeFormBloc(
               formKey: formKey,
@@ -1247,6 +1268,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               transaction: transaction,
               context: dialogContext,
               skipTransactionPersist: true,
+              sendDigitalReceiptFuture: sendDigitalReceiptFuture,
             ),
             child: Builder(
               builder: (context) {

@@ -12,16 +12,25 @@ class DigitalReceiptService {
 
   static const _functionName = 'generateReceiptUrl';
   static const _sendSmsFunctionName = 'sendSms';
-  static String _pendingKey(String transactionId) =>
-      'pending_digital_receipt_$transactionId';
+
+  /// In-memory queue — [LocalStorage] only allows fixed keys, so per-transaction
+  /// `pending_digital_receipt_*` box writes were silently dropped.
+  static final Map<String, bool> _pendingSmsByTransactionId = {};
 
   static Future<void> queueSmsAfterReceiptUpload(String transactionId) async {
     if (transactionId.isEmpty) return;
-    await ProxyService.box.writeBool(
-      key: _pendingKey(transactionId),
-      value: true,
-    );
+    _pendingSmsByTransactionId[transactionId] = true;
     talker.info('digital receipt: queued SMS for transaction $transactionId');
+  }
+
+  static bool _isQueuedForSms(String transactionId) {
+    if (transactionId.isEmpty) return false;
+    return _pendingSmsByTransactionId[transactionId] == true;
+  }
+
+  static void _clearQueuedForSms(String transactionId) {
+    if (transactionId.isEmpty) return;
+    _pendingSmsByTransactionId.remove(transactionId);
   }
 
   static Future<void> maybeSendAfterUpload({
@@ -36,78 +45,103 @@ class DigitalReceiptService {
       'digital receipt: maybeSendAfterUpload tx=$transactionId file=$receiptFileName',
     );
 
-    //
-    if (alreadySent == true) {
-      talker.warning(
-        'digital receipt: skipped — already sent for $transactionId',
+    if (!_isQueuedForSms(transactionId)) {
+      talker.debug(
+        'digital receipt: skipped — not queued for $transactionId',
       );
       return;
     }
-
-    final rawPhone = _firstNonEmpty(customerPhone, alternatePhone);
-    if (rawPhone == null) {
-      talker.warning(
-        'digital receipt: skipped — no customerPhone on transaction $transactionId',
-      );
-      return;
-    }
-
-    final phone = _normalizePhoneForSms(rawPhone);
-    if (phone == null) {
-      talker.warning(
-        'digital receipt: skipped — invalid phone "$rawPhone" on $transactionId',
-      );
-      return;
-    }
-    if (phone != rawPhone.replaceAll(RegExp(r'\D'), '')) {
-      talker.debug('digital receipt: normalized phone $rawPhone → $phone');
-    }
-
-    final smsBranchId = await _resolveSmsBranchId(branchId);
-    if (smsBranchId == null) {
-      talker.warning(
-        'digital receipt: skipped — branch $branchId has no serverId for SMS credits',
-      );
-      return;
-    }
-
-    final result = await requestReceiptLink(
-      branchId: branchId,
-      receiptFileName: receiptFileName,
-      phoneNumber: phone,
-      transactionId: transactionId,
-      smsBranchId: smsBranchId,
-    );
-
-    if (result == null) {
-      talker.warning(
-        'digital receipt: generateReceiptUrl failed for $transactionId',
-      );
-      return;
-    }
-
-    final shortUrlId = result.shortUrlId;
-    talker.info(
-      'digital receipt: short link $shortUrlId queued — '
-      'message_id=${result.messageId ?? "n/a"}',
-    );
-
-    await _invokeSendSms();
 
     try {
-      final strategy = ProxyService.getStrategy(Strategy.capella);
-      final tx = await strategy.getTransaction(
-        id: transactionId,
+      if (alreadySent == true) {
+        talker.warning(
+          'digital receipt: skipped — already sent for $transactionId',
+        );
+        return;
+      }
+
+      final rawPhone = _firstNonEmpty(customerPhone, alternatePhone);
+      if (rawPhone == null) {
+        talker.warning(
+          'digital receipt: skipped — no customerPhone on transaction $transactionId',
+        );
+        return;
+      }
+
+      final phone = _normalizePhoneForSms(rawPhone);
+      if (phone == null) {
+        talker.warning(
+          'digital receipt: skipped — invalid phone "$rawPhone" on $transactionId',
+        );
+        return;
+      }
+      if (phone != rawPhone.replaceAll(RegExp(r'\D'), '')) {
+        talker.info('digital receipt: normalized phone $rawPhone → $phone');
+      }
+
+      talker.info(
+        'digital receipt: resolving SMS branch id for branchId=$branchId',
+      );
+      final smsBranchId = await _resolveSmsBranchId(branchId);
+      if (smsBranchId == null) {
+        talker.warning(
+          'digital receipt: skipped — branch $branchId has no serverId for SMS credits',
+        );
+        return;
+      }
+      talker.info('digital receipt: smsBranchId=$smsBranchId');
+
+      talker.info(
+        'digital receipt: invoking generateReceiptUrl for $transactionId '
+        'file=$receiptFileName phone=$phone',
+      );
+      final result = await requestReceiptLink(
         branchId: branchId,
-      );
-      if (tx == null) return;
-      tx.isDigitalReceiptGenerated = true;
-      await strategy.updateTransaction(
-        transaction: tx,
+        receiptFileName: receiptFileName,
+        phoneNumber: phone,
         transactionId: transactionId,
+        smsBranchId: smsBranchId,
       );
+
+      if (result == null) {
+        talker.warning(
+          'digital receipt: generateReceiptUrl returned no link for $transactionId '
+          '(see warnings above for status/body)',
+        );
+        return;
+      }
+
+      final shortUrlId = result.shortUrlId;
+      talker.info(
+        'digital receipt: short link $shortUrlId queued — '
+        'message_id=${result.messageId ?? "n/a"}',
+      );
+
+      await _invokeSendSms();
+
+      try {
+        final strategy = ProxyService.getStrategy(Strategy.capella);
+        final tx = await strategy.getTransaction(
+          id: transactionId,
+          branchId: branchId,
+        );
+        if (tx == null) return;
+        tx.isDigitalReceiptGenerated = true;
+        await strategy.updateTransaction(
+          transaction: tx,
+          transactionId: transactionId,
+        );
+      } catch (e, s) {
+        talker.warning('digital receipt: Ditto flag update failed: $e\n$s');
+      }
     } catch (e, s) {
-      talker.warning('digital receipt: Ditto flag update failed: $e\n$s');
+      talker.error(
+        'digital receipt: maybeSendAfterUpload failed for $transactionId: $e',
+        e,
+        s,
+      );
+    } finally {
+      _clearQueuedForSms(transactionId);
     }
   }
 
@@ -118,8 +152,12 @@ class DigitalReceiptService {
       ).branch(serverId: branchId);
       final serverId = branch?.serverId;
       if (serverId != null && serverId > 0) return serverId;
-    } catch (e) {
-      talker.debug('digital receipt: branch lookup failed: $e');
+    } catch (e, s) {
+      talker.warning(
+        'digital receipt: branch lookup failed for $branchId: $e',
+        e,
+        s,
+      );
     }
     final parsed = int.tryParse(branchId);
     return parsed != null && parsed > 0 ? parsed : null;
@@ -165,25 +203,47 @@ class DigitalReceiptService {
     return null;
   }
 
+  static String _describeFunctionResponse({
+    required String functionName,
+    required int status,
+    required dynamic rawData,
+  }) {
+    final data = _parseResponseData(rawData);
+    final error = data?['error'] ?? data?['message'] ?? data?['msg'];
+    final details = data?['details'] ?? data?['hint'];
+    final parts = <String>[
+      'function=$functionName',
+      'status=$status',
+      if (error != null) 'error=$error',
+      if (details != null) 'details=$details',
+      if (data != null && error == null) 'body=$data',
+      if (data == null && rawData != null) 'raw=$rawData',
+    ];
+    return parts.join(' ');
+  }
+
   /// Delivers pending rows in `messages` via the [sendSms] edge function.
   static Future<void> _invokeSendSms() async {
+    talker.info('digital receipt: invoking sendSms');
     try {
       final response = await Supabase.instance.client.functions.invoke(
         _sendSmsFunctionName,
         body: <String, dynamic>{},
+        headers: await SupabaseSessionService.edgeFunctionAuthHeaders(),
       );
       final data = _parseResponseData(response.data);
-      talker.info(
-        'digital receipt: sendSms status=${response.status} stats=$data',
-      );
-      if (response.status != 200) {
-        talker.warning(
-          'digital receipt: sendSms failed (${response.status}) — '
-          'schedule sendSms cron or invoke manually',
+      if (response.status == 200) {
+        talker.info(
+          'digital receipt: sendSms ok status=${response.status} stats=$data',
         );
+        return;
       }
+      talker.warning(
+        'digital receipt: sendSms failed — '
+        '${_describeFunctionResponse(functionName: _sendSmsFunctionName, status: response.status, rawData: response.data)}',
+      );
     } catch (e, s) {
-      talker.warning('digital receipt: sendSms invoke error: $e\n$s');
+      talker.error('digital receipt: sendSms invoke error: $e', e, s);
     }
   }
 
@@ -227,11 +287,12 @@ class DigitalReceiptService {
       return null;
     }
     if (normalizedPhone != phoneNumber.replaceAll(RegExp(r'\D'), '')) {
-      talker.debug(
+      talker.info(
         'digital receipt: normalized phone $phoneNumber → $normalizedPhone',
       );
     }
 
+    talker.info('digital receipt: ensuring Supabase session for edge functions');
     final token = await SupabaseSessionService.ensureAccessToken();
     if (token == null) {
       final userPhone = ProxyService.box.getUserPhone();
@@ -243,24 +304,36 @@ class DigitalReceiptService {
     }
 
     try {
+      final body = <String, dynamic>{
+        'branchId': branchId,
+        'imageInS3': receiptFileName,
+        'phone': normalizedPhone,
+        'sendSms': sendSms,
+        if (smsBranchId != null) 'smsBranchId': smsBranchId,
+        if (transactionId != null && transactionId.isNotEmpty)
+          'transactionId': transactionId,
+      };
+      talker.info(
+        'digital receipt: POST $_functionName body=$body',
+      );
+
       final response = await Supabase.instance.client.functions.invoke(
         _functionName,
-        body: {
-          'branchId': branchId,
-          'imageInS3': receiptFileName,
-          'phone': normalizedPhone,
-          'sendSms': sendSms,
-          if (smsBranchId != null) 'smsBranchId': smsBranchId,
-          if (transactionId != null && transactionId.isNotEmpty)
-            'transactionId': transactionId,
-        },
+        body: body,
         headers: await SupabaseSessionService.edgeFunctionAuthHeaders(),
       );
 
       final data = _parseResponseData(response.data);
-      talker.info(
-        'digital receipt: generateReceiptUrl status=${response.status} data=$data',
-      );
+      if (response.status == 200 && data != null) {
+        talker.info(
+          'digital receipt: generateReceiptUrl ok data=$data',
+        );
+      } else {
+        talker.warning(
+          'digital receipt: generateReceiptUrl failed — '
+          '${_describeFunctionResponse(functionName: _functionName, status: response.status, rawData: response.data)}',
+        );
+      }
 
       if (response.status == 401) {
         talker.warning(
@@ -280,7 +353,12 @@ class DigitalReceiptService {
       }
 
       final url = data['url']?.toString();
-      if (url == null || url.isEmpty) return null;
+      if (url == null || url.isEmpty) {
+        talker.warning(
+          'digital receipt: generateReceiptUrl 200 but missing url in response: $data',
+        );
+        return null;
+      }
 
       var messageId = data['message_id']?.toString();
       if ((messageId == null || messageId.isEmpty) &&
@@ -309,7 +387,11 @@ class DigitalReceiptService {
 
       return (shortUrlId: url, messageId: messageId);
     } catch (e, s) {
-      talker.warning('digital receipt invoke error: $e\n$s');
+      talker.error(
+        'digital receipt: generateReceiptUrl invoke error: $e',
+        e,
+        s,
+      );
       return null;
     }
   }

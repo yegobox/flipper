@@ -4,6 +4,7 @@ import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/digital_receipt_service.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
@@ -50,6 +51,10 @@ mixin TransactionMixinOld {
     /// When true, tax/receipt handling does not call [updateTransaction] for receipt
     /// metadata; the completion persist should include those fields (Capella sale flow).
     bool deferPersistTaxReceiptFields = false,
+
+    /// When true, receipt PDF is generated and uploaded but not opened/printed;
+    /// SMS is sent after upload when [DigitalReceiptService.queueSmsAfterReceiptUpload] was called.
+    bool sendDigitalReceipt = false,
   }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -95,6 +100,7 @@ mixin TransactionMixinOld {
           purchaseCode: purchaseCode,
           onSuccess: onSuccess,
           persistReceiptTransactionFields: !deferPersistTaxReceiptFields,
+          sendDigitalReceipt: sendDigitalReceipt,
         );
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
@@ -242,11 +248,16 @@ mixin TransactionMixinOld {
     void Function()? onSuccess,
     required BuildContext context,
     bool persistReceiptTransactionFields = true,
+    bool sendDigitalReceipt = false,
   }) async {
     try {
       // Note: This method is now called unawaited by finalizePayment.
       // We perform the heavy listing here (signing, printing).
       // If context unmounts, we try to handle gracefully.
+
+      if (sendDigitalReceipt) {
+        await DigitalReceiptService.queueSmsAfterReceiptUpload(transaction!.id);
+      }
 
       final responseFrom = await TaxController(object: transaction!)
           .handleReceipt(
@@ -254,6 +265,7 @@ mixin TransactionMixinOld {
             filterType: getFilterType(transactionType: transaction.receiptType),
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: sendDigitalReceipt,
           );
       final (:response, :bytes) = responseFrom;
 
@@ -263,8 +275,7 @@ mixin TransactionMixinOld {
         // Ignore form reset error if unmounted
       }
 
-      if (bytes != null) {
-        // Run printing
+      if (bytes != null && !sendDigitalReceipt) {
         await printing(bytes, context);
       }
       return response;

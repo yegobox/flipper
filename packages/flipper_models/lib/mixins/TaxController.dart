@@ -28,6 +28,7 @@ class TaxController<OBJ> {
     /// When false, receipt metadata stays on [transaction] only until a later
     /// persistence pass (e.g. [markTransactionAsCompleted] with Capella).
     bool persistReceiptTransactionFields = true,
+    bool skipPresentation = false,
   }) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
@@ -81,6 +82,7 @@ class TaxController<OBJ> {
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -99,6 +101,7 @@ class TaxController<OBJ> {
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -118,6 +121,7 @@ class TaxController<OBJ> {
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -136,6 +140,7 @@ class TaxController<OBJ> {
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -154,6 +159,7 @@ class TaxController<OBJ> {
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -173,6 +179,7 @@ class TaxController<OBJ> {
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -191,6 +198,7 @@ class TaxController<OBJ> {
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
           );
         } catch (e) {
           rethrow;
@@ -253,6 +261,7 @@ class TaxController<OBJ> {
     Customer? customer,
     void Function()? onSuccess,
     bool persistReceiptTransactionFields = true,
+    bool skipPresentation = false,
   }) async {
     // Use provided items or fetch transaction items
     List<TransactionItem> transactionItems = items ?? [];
@@ -452,6 +461,7 @@ class TaxController<OBJ> {
                 bytes = data;
                 onSuccess?.call();
               },
+              skipPresentation: skipPresentation,
             );
 
             transaction.receiptPrinted = true;

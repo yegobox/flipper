@@ -135,8 +135,11 @@ class SharedPreferenceStorage implements LocalStorage {
     'pendingCustomerTin',
     'getDefaultApp',
     'background_sync_enabled',
+    'pending_digital_receipt_'
     // Add new preference keys above this line
   };
+
+  static const String _pendingDigitalReceiptPrefix = 'pending_digital_receipt_';
 
   SharedPreferences? _webPrefs;
 
@@ -248,7 +251,8 @@ class SharedPreferenceStorage implements LocalStorage {
       try {
         await _writeDittoPayload();
       } catch (e) {
-        print('SharedPreferenceStorage: Ditto write failed, using JSON only: $e');
+        print(
+            'SharedPreferenceStorage: Ditto write failed, using JSON only: $e');
       }
     }
     await _savePreferences();
@@ -404,6 +408,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   /// Check if a key is allowed
   bool _isKeyAllowed(String key) {
+    if (key.startsWith(_pendingDigitalReceiptPrefix)) return true;
     return _allowedKeys.contains(key);
   }
 

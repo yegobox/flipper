@@ -23,6 +23,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   final GlobalKey<FormState> formKey;
   Function onComplete;
   final bool skipTransactionPersist;
+  final Future<bool>? sendDigitalReceiptFuture;
 
   PurchaseCodeFormBloc({
     required this.customerNameController,
@@ -35,6 +36,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
     required this.context,
     required this.onComplete,
     this.skipTransactionPersist = false,
+    this.sendDigitalReceiptFuture,
   }) {
     addFieldBlocs(fieldBlocs: [purchaseCode]);
   }
@@ -42,6 +44,8 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   @override
   void onSubmitting() async {
     try {
+      final sendDigitalReceipt =
+          await sendDigitalReceiptFuture ?? false;
       final response = await finalizePayment(
         onComplete: onComplete,
         formKey: formKey,
@@ -56,6 +60,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
         purchaseCode: purchaseCode.value,
         skipTransactionPersist: skipTransactionPersist,
         deferPersistTaxReceiptFields: skipTransactionPersist,
+        sendDigitalReceipt: sendDigitalReceipt,
       );
 
       if (response.resultCd == "000") {

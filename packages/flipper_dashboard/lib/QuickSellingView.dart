@@ -32,6 +32,7 @@ import 'package:stacked/stacked.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
@@ -612,6 +613,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
+    resetDigitalReceiptToggle(ref);
+
     if (!mounted) {
       return;
     }
@@ -677,6 +680,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           final isNewTransaction = previous?.value?.id != next.value!.id;
           _prefillCustomerDetails(next.value!);
           if (isNewTransaction) {
+            resetDigitalReceiptToggle(ref);
             _updateReceivedAmountIfNeeded(next.value!);
           }
         }
@@ -2166,6 +2170,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           children: [
             // Customer Information Section (only shown when not ordering)
             if (!isOrdering) ...[
+              _buildDigitalReceiptToggle(),
               _buildReceivedAmountField(
                 transactionId: transactionId,
                 alreadyPaid: alreadyPaid,
@@ -2277,6 +2282,47 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
         return null;
       },
+    );
+  }
+
+  Widget _buildDigitalReceiptToggle() {
+    final smsEnabledAsync = ref.watch(branchSmsNotificationsEnabledProvider);
+    return smsEnabledAsync.when(
+      data: (smsEnabled) {
+        if (!smsEnabled) return const SizedBox.shrink();
+        final useDigital = ref.watch(digitalReceiptToggleProvider);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: SwitchListTile.adaptive(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              title: const Text(
+                'Digital receipt',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              subtitle: const Text(
+                'Send receipt by SMS instead of opening a PDF',
+                style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              ),
+              value: useDigital,
+              activeTrackColor: PosLayoutBreakpoints.posAccentBlue,
+              onChanged: (value) {
+                ref.read(digitalReceiptToggleProvider.notifier).state = value;
+              },
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
