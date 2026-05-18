@@ -37,6 +37,47 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   String _tenantListSearchQuery = '';
   String? selectedTenantUserId;
   String? _selectedTenantBranchIdForEdit;
+  /// When [selectedUserType] is Agent: false = commission-only login (default).
+  bool allowBusinessLoginForAgent = false;
+  bool _agentBranchNameManuallyEdited = false;
+
+  /// Keeps BRANCH NAME (AGENT) in sync with FULL NAME until the user edits branch.
+  void initTenantFormListeners() {
+    nameController.addListener(_onFullNameChangedForAgentBranch);
+    agentBranchNameController.addListener(_onAgentBranchNameEdited);
+  }
+
+  void disposeTenantFormListeners() {
+    nameController.removeListener(_onFullNameChangedForAgentBranch);
+    agentBranchNameController.removeListener(_onAgentBranchNameEdited);
+  }
+
+  void _onFullNameChangedForAgentBranch() {
+    if (editMode || selectedUserType != 'Agent') return;
+    if (_agentBranchNameManuallyEdited) return;
+    _syncAgentBranchNameFromFullName();
+  }
+
+  void _onAgentBranchNameEdited() {
+    if (editMode || selectedUserType != 'Agent') return;
+    final name = nameController.text.trim();
+    final branch = agentBranchNameController.text.trim();
+    _agentBranchNameManuallyEdited =
+        branch.isNotEmpty && branch != name;
+  }
+
+  void _syncAgentBranchNameFromFullName() {
+    final name = nameController.text.trim();
+    if (name.isEmpty) return;
+    if (agentBranchNameController.text.trim() == name) return;
+    agentBranchNameController.text = name;
+  }
+
+  void _syncAgentBranchNameIfAgent() {
+    if (editMode || selectedUserType != 'Agent') return;
+    _agentBranchNameManuallyEdited = false;
+    _syncAgentBranchNameFromFullName();
+  }
 
   Future<void> selectTenantForEdit(Tenant tenant, FlipperBaseModel model) async {
     final uid = tenant.userId;
@@ -113,6 +154,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
   @override
   void dispose() {
+    disposeTenantFormListeners();
     nameController.dispose();
     phoneController.dispose();
     agentBranchNameController.dispose();
@@ -134,6 +176,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       _tenantPermissionsBaseline = {};
       _tenantActiveBaseline = {};
       _hasTenantPermissionBaseline = false;
+      allowBusinessLoginForAgent = false;
+      _agentBranchNameManuallyEdited = false;
     });
   }
 
@@ -186,6 +230,11 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         if (newValue == null) return;
         setState(() {
           selectedUserType = newValue;
+          if (newValue != 'Agent') {
+            allowBusinessLoginForAgent = false;
+          } else {
+            _syncAgentBranchNameIfAgent();
+          }
         });
       },
       items: <String>['Agent', 'Cashier', 'Admin', 'Driver']
@@ -247,7 +296,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         userType: userType,
         userId: userId,
         agentBranchName: userType == 'Agent'
-            ? agentBranchNameController.text
+            ? _resolvedAgentBranchName(name)
             : null,
         branchIdOverride: editMode ? _selectedTenantBranchIdForEdit : null,
         ref: ref,
@@ -261,6 +310,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             editMode && _hasTenantPermissionBaseline
                 ? _tenantActiveBaseline
                 : null,
+        allowBusinessLogin: selectedUserType == 'Agent'
+            ? allowBusinessLoginForAgent
+            : true,
       );
     } catch (error) {
       // Log the error to a logging service
@@ -301,6 +353,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         editedTenant = tenant;
         userId = tenant.userId;
         selectedUserType = tenant.type ?? 'Agent';
+        allowBusinessLoginForAgent = tenant.allowBusinessLogin;
         fn();
       }),
       tenantAllowedFeatures,
@@ -446,8 +499,15 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                 )
               else if (selectedUserType != 'Agent')
                 buildBranchDropdown(),
+              if (selectedUserType == 'Agent') ...[
+                const SizedBox(height: 16),
+                _buildAllowBusinessLoginSwitch(),
+              ],
               SizedBox(height: 20),
-              buildPermissionsSection(),
+              if (selectedUserType != 'Agent' || allowBusinessLoginForAgent)
+                buildPermissionsSection()
+              else
+                _buildCommissionOnlyHint(),
               SizedBox(height: 24),
               if (editMode)
                 Row(
@@ -551,6 +611,59 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  String _resolvedAgentBranchName(String fullName) {
+    final branch = agentBranchNameController.text.trim();
+    if (branch.isNotEmpty) return branch;
+    return fullName.trim();
+  }
+
+  Widget _buildAllowBusinessLoginSwitch() {
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        'Allow login on this business',
+        style: GoogleFonts.outfit(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: const Color(0xFF111827),
+        ),
+      ),
+      subtitle: Text(
+        'Off by default: agent receives a PIN but only sees commission for this business. '
+        'Turn on to grant full dashboard access per module permissions below.',
+        style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[600]),
+      ),
+      value: allowBusinessLoginForAgent,
+      activeThumbColor: _kUserMgmtAccent,
+      onChanged: (value) {
+        setState(() {
+          allowBusinessLoginForAgent = value;
+        });
+      },
+    );
+  }
+
+  Widget _buildCommissionOnlyHint() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Text(
+        'Module permissions are not used in commission-only mode. '
+        'The agent will sign in with their PIN and only see their commission for this business.',
+        style: GoogleFonts.outfit(
+          fontSize: 14,
+          height: 1.4,
+          color: Colors.grey[800],
         ),
       ),
     );

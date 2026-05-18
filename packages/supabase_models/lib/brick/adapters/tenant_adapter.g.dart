@@ -35,6 +35,7 @@ Future<Tenant> _$TenantFromSupabase(
         ? null
         : data['session_active'] as bool?,
     type: data['type'] == null ? null : data['type'] as String?,
+    allowBusinessLogin: data['allow_business_login'] as bool,
   );
 }
 
@@ -58,6 +59,7 @@ Future<Map<String, dynamic>> _$TenantToSupabase(
     'is_default': instance.isDefault,
     'session_active': instance.sessionActive,
     'type': instance.type,
+    'allow_business_login': instance.allowBusinessLogin,
   };
 }
 
@@ -95,6 +97,7 @@ Future<Tenant> _$TenantFromSqlite(
         ? null
         : data['session_active'] == 1,
     type: data['type'] == null ? null : data['type'] as String?,
+    allowBusinessLogin: data['allow_business_login'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -122,6 +125,7 @@ Future<Map<String, dynamic>> _$TenantToSqlite(
         ? null
         : (instance.sessionActive! ? 1 : 0),
     'type': instance.type,
+    'allow_business_login': instance.allowBusinessLogin ? 1 : 0,
   };
 }
 
@@ -190,6 +194,10 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
     'type': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'type',
+    ),
+    'allowBusinessLogin': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'allow_business_login',
     ),
   };
   @override
@@ -287,6 +295,12 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
       columnName: 'type',
       iterable: false,
       type: String,
+    ),
+    'allowBusinessLogin': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'allow_business_login',
+      iterable: false,
+      type: bool,
     ),
   };
   @override

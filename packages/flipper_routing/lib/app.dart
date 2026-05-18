@@ -47,6 +47,7 @@ import 'all_routes.dart';
     CustomRoute(page: BackUp),
     CustomRoute(page: LoginChoices),
     CustomRoute(page: TenantManagement),
+    CustomRoute(page: AgentCommissionScreen),
     CustomRoute(page: DrawerScreen),
     CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),

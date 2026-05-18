@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
+import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:flipper_services/app_service.dart';
@@ -485,17 +486,27 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   // Consolidating logic into AppService
 
-  void _completeAuthenticationFlow() {
+  Future<void> _completeAuthenticationFlow() async {
     final selectedBusinessId = ref.read(selectedBusinessIdProvider);
+    final commissionOnly = await resolveCommissionOnlyLogin(
+      businessId: selectedBusinessId,
+    );
+    await setCommissionOnlySession(commissionOnly);
+
     PosthogService.instance.capture(
       'login_success',
       properties: {
         'source': 'login_choices',
         if (selectedBusinessId != null) 'business_id': selectedBusinessId,
+        'commission_only': commissionOnly,
       },
     );
 
-    _routerService.navigateTo(FlipperAppRoute());
+    if (commissionOnly) {
+      _routerService.navigateTo(const AgentCommissionRoute());
+    } else {
+      _routerService.navigateTo(FlipperAppRoute());
+    }
 
     // Clear the navigation flag after a delay
     _navigationTimer?.cancel();

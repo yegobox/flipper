@@ -23,6 +23,7 @@ class UserManagement extends ConsumerState<TenantManagement>
       tenantAllowedFeatures[feature] = 'No Access';
     }
     selectedUserType = 'Cashier';
+    initTenantFormListeners();
   }
 
   @override

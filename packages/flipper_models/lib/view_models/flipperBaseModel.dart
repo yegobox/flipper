@@ -218,6 +218,7 @@ class FlipperBaseModel extends ReactiveViewModel {
       isDefault: r['is_default'] as bool?,
       sessionActive: r['session_active'] as bool?,
       type: (r['type'] as String?) ?? 'Agent',
+      allowBusinessLogin: (r['allow_business_login'] as bool?) ?? false,
     );
   }
 
