@@ -252,16 +252,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildCompactAmountSummary(alreadyPaid),
+                    if (branchId != null) ...[
+                      _checkoutToolbarDivider(),
+                      _buildTopBarInvoiceChip(branchId: branchId),
+                    ],
                     if (showSaveTicket) ...[
                       _checkoutToolbarDivider(),
                       _buildTopBarSaveTicketButton(
                         transaction: transaction,
                         model: model,
                       ),
-                    ],
-                    if (branchId != null) ...[
-                      _checkoutToolbarDivider(),
-                      _buildTopBarInvoiceChip(branchId: branchId),
                     ],
                   ],
                 ),
@@ -304,31 +304,44 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required ITransaction transaction,
     required CoreViewModel model,
   }) {
+    const accent = PosLayoutBreakpoints.posAccentBlue;
+
     return Tooltip(
       message: 'Park this sale as a ticket',
-      child: OutlinedButton.icon(
-        onPressed: () => _showParkDialog(transaction, model),
-        icon: Icon(
-          Icons.save_outlined,
-          size: 18,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        label: Text(
-          'Save ticket',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showParkDialog(transaction, model),
+          borderRadius: BorderRadius.circular(8),
+          hoverColor: accent.withValues(alpha: 0.08),
+          splashColor: accent.withValues(alpha: 0.14),
+          highlightColor: accent.withValues(alpha: 0.06),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(FluentIcons.bookmark_16_filled, size: 15, color: accent),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Save ticket',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: accent,
+                      letterSpacing: -0.1,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Theme.of(context).colorScheme.onSurface,
-          side: const BorderSide(color: Color(0xFFE5E7EB)),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
@@ -435,8 +448,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// while pay is loading or [startCompleteTransactionFlow] is active (same
   /// semantics as checkout via [CheckoutController]).
   bool _skipLiveCustomerCapellaPersistDuringSaleCompletion() {
-    final payBusy =
-        ref.read(payButtonStateProvider).values.any((loading) => loading);
+    final payBusy = ref
+        .read(payButtonStateProvider)
+        .values
+        .any((loading) => loading);
     final completing =
         ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
     return payBusy || completing;
@@ -2011,8 +2026,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         .asData
                         ?.value;
               unawaited(() async {
-                final loadingNotifier =
-                    ref.read(payButtonStateProvider.notifier);
+                final loadingNotifier = ref.read(
+                  payButtonStateProvider.notifier,
+                );
                 loadingNotifier.stopLoading();
                 loadingNotifier.startLoading(ButtonType.pay);
                 await ProxyService.box.writeBool(
