@@ -111,7 +111,7 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          _textSubject.debounceTime(const Duration(milliseconds: 150)).listen((
+          _textSubject.debounceTime(const Duration(milliseconds: 50)).listen((
             value,
           ) {
             if (ref.read(pendingCartSaleSessionProvider) !=
@@ -154,6 +154,20 @@ class SearchFieldState extends ConsumerState<SearchField>
             focusNode: focusNode,
             textInputAction: TextInputAction.done,
             keyboardType: TextInputType.text,
+            onFieldSubmitted: (value) {
+              if (!ref.read(autoAddSearchProvider)) return;
+              final trimmed = value.trim();
+              if (trimmed.isEmpty) return;
+              if (ref.read(searchStringProvider) == trimmed) return;
+              if (isSearching) return;
+              setState(() => isSearching = true);
+              processDebouncedValue(trimmed, model, widget.controller)
+                  .whenComplete(() {
+                if (mounted) {
+                  setState(() => isSearching = false);
+                }
+              });
+            },
             decoration: InputDecoration(
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),

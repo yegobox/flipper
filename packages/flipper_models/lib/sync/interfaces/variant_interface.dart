@@ -10,7 +10,8 @@ abstract class VariantInterface {
     String? productId,
     int? page,
     String? variantId,
-    String? name, // Can be a name or a barcode
+    String? name,
+    String? bcd,
     String? pchsSttsCd,
     String? purchaseId,
     int? itemsPerPage,
