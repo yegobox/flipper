@@ -36,8 +36,19 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
+import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
+
+/// Compact label for correlating QuickSellingView with [pendingTransactionStream] logs.
+String _qsvPendingLabel(AsyncValue<ITransaction> v) {
+  if (v.isLoading) return 'loading';
+  if (v.hasError) return 'error:${v.error}';
+  if (!v.hasValue || v.value == null) return 'noValue';
+  final t = v.value!;
+  return 'id=${t.id} status=${t.status} invoiceNo=${t.invoiceNumber}';
+}
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 
 /// Compact label for correlating QuickSellingView with [pendingTransactionStream] logs.
@@ -170,13 +181,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// **Note:** [highestCounterProvider] is the next invoice sequence, not the
   /// Ditto transaction `_id`. The **Txn ID** label is the live pending cart from
   /// [pendingTransactionStreamProvider].
+  /// Invoice number + current pending cart transaction id (mobile / desktop chip).
+  ///
+  /// **Note:** [highestCounterProvider] is the next invoice sequence, not the
+  /// Ditto transaction `_id`. The **Txn ID** label is the live pending cart from
+  /// [pendingTransactionStreamProvider].
   Widget _buildInvoiceNumberRow({required String branchId}) {
     final isExpense = ProxyService.box.isOrdering() ?? false;
     final pendingTxn = ref
         .watch(pendingTransactionStreamProvider(isExpense: isExpense))
         .value;
     final txnId = pendingTxn?.id;
+    final isExpense = ProxyService.box.isOrdering() ?? false;
+    final pendingTxn = ref
+        .watch(pendingTransactionStreamProvider(isExpense: isExpense))
+        .value;
+    final txnId = pendingTxn?.id;
     final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
+    final body = Theme.of(context).textTheme.bodyMedium;
+    final bodyBold = body?.copyWith(fontWeight: FontWeight.bold);
+
     final body = Theme.of(context).textTheme.bodyMedium;
     final bodyBold = body?.copyWith(fontWeight: FontWeight.bold);
 
@@ -210,9 +234,37 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           const SizedBox(width: 12),
         ],
         Text('Invoice No: ', style: body),
+        if (txnId != null && txnId.isNotEmpty) ...[
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              await Clipboard.setData(ClipboardData(text: txnId));
+              if (!mounted) return;
+              showSuccessNotification(
+                context,
+                'Transaction ID copied to clipboard',
+                duration: const Duration(seconds: 2),
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Txn ID: ', style: body),
+                Text(
+                  txnId,
+                  key: const Key('pending-transaction-id-text'),
+                  style: bodyBold,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+        Text('Invoice No: ', style: body),
         Text(
           '$highestInvoiceNumber',
           key: const Key('invoice-number-text'),
+          style: bodyBold,
           style: bodyBold,
         ),
       ],
@@ -632,6 +684,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     resetDigitalReceiptToggle(ref);
 
+    resetDigitalReceiptToggle(ref);
+
     if (!mounted) {
       return;
     }
@@ -699,10 +753,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           'prev=${previous == null ? 'null' : _qsvPendingLabel(previous)} '
           'next=${_qsvPendingLabel(next)}',
         );
+        tv_talk.talker.info(
+          'QuickSellingView.pendingTxn ref.listen '
+          'prev=${previous == null ? 'null' : _qsvPendingLabel(previous)} '
+          'next=${_qsvPendingLabel(next)}',
+        );
         if (next.hasValue && next.value != null) {
           final isNewTransaction = previous?.value?.id != next.value!.id;
           _prefillCustomerDetails(next.value!);
           if (isNewTransaction) {
+            resetDigitalReceiptToggle(ref);
             resetDigitalReceiptToggle(ref);
             _updateReceivedAmountIfNeeded(next.value!);
           }
@@ -1633,6 +1693,38 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                       );
                                       rethrow;
                                     }
+                                    await ProxyService.box.writeBool(
+                                      key: 'transactionCompleting',
+                                      value: true,
+                                    );
+                                    try {
+                                      await startCompleteTransactionFlow(
+                                        immediateCompletion:
+                                            immediateCompleteTransaction,
+                                        completeTransaction: () async {
+                                          await _onQuickSellComplete(
+                                            transaction,
+                                          );
+                                        },
+                                        transactionId: transaction.id,
+                                        transactionHint: transaction,
+                                        transactionItemsHint:
+                                            _transactionItemsHintForCompletion(
+                                              transaction.id,
+                                            ),
+                                        paymentMethods: ref.watch(
+                                          paymentMethodsProvider,
+                                        ),
+                                        onPaymentConfirmed: onPaymentConfirmed,
+                                        onPaymentFailed: onPaymentFailed,
+                                      );
+                                    } catch (e, s) {
+                                      await ProxyService.box.writeBool(
+                                        key: 'transactionCompleting',
+                                        value: false,
+                                      );
+                                      rethrow;
+                                    }
                                     ref.read(previewingCart.notifier).state =
                                         false;
                                     return true;
@@ -2090,6 +2182,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             // Customer Information Section (only shown when not ordering)
             if (!isOrdering) ...[
               _buildDigitalReceiptToggle(),
+              _buildDigitalReceiptToggle(),
               _buildReceivedAmountField(
                 transactionId: transactionId,
                 alreadyPaid: alreadyPaid,
@@ -2201,6 +2294,47 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
         return null;
       },
+    );
+  }
+
+  Widget _buildDigitalReceiptToggle() {
+    final smsEnabledAsync = ref.watch(branchSmsNotificationsEnabledProvider);
+    return smsEnabledAsync.when(
+      data: (smsEnabled) {
+        if (!smsEnabled) return const SizedBox.shrink();
+        final useDigital = ref.watch(digitalReceiptToggleProvider);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: SwitchListTile.adaptive(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              title: const Text(
+                'Digital receipt',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              subtitle: const Text(
+                'Send receipt by SMS instead of opening a PDF',
+                style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              ),
+              value: useDigital,
+              activeTrackColor: PosLayoutBreakpoints.posAccentBlue,
+              onChanged: (value) {
+                ref.read(digitalReceiptToggleProvider.notifier).state = value;
+              },
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -2378,6 +2512,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
               return;
             }
+            if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
+              return;
+            }
             final transactionAsync = ref.read(
               pendingTransactionStreamProvider(
                 isExpense: ProxyService.box.isOrdering() ?? false,
@@ -2493,6 +2630,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   // new transaction by only updating when there is an existing pending
                   // transaction instance available from the provider.
                   try {
+                    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
+                      return;
+                    }
                     if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
                       return;
                     }
