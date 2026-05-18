@@ -1,8 +1,9 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
-import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,6 +33,30 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     }
   }
 
+  /// Barcode-first lookup, then a minimal text search (max 2 rows).
+  Future<List<Variant>> _resolveAutoAddMatches(String value) async {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return const [];
+
+    final byBcd = await ProxyService.strategy.getVariant(bcd: trimmed);
+    if (byBcd != null) return [byBcd];
+
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) return const [];
+
+    final vatEnabled = await getVatEnabledFromEbm();
+    final taxTyCds = vatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+
+    final paged = await ProxyService.getStrategy(Strategy.capella).variants(
+      branchId: branchId,
+      bcd: trimmed,
+      page: 0,
+      itemsPerPage: 2,
+      taxTyCds: taxTyCds,
+    );
+    return List<Variant>.from(paged.variants);
+  }
+
   Future<void> handleScanningMode(
     String value,
     CoreViewModel model,
@@ -42,20 +67,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     hasText = false;
     if (value.isNotEmpty) {
       final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
-      // Trigger search in outerVariantsProvider
-      ref.read(searchStringProvider.notifier).emitString(value: value);
-
-      // Allow search to propagate before awaiting results.
-      await Future.delayed(const Duration(milliseconds: 200));
-
-      if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
-        return;
-      }
-
-      final branchId = ProxyService.box.getBranchId()!;
       try {
-        final variants =
-            await ref.read(outerVariantsProvider(branchId).future);
+        final variants = await _resolveAutoAddMatches(value);
         if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
           return;
         }
@@ -109,35 +122,33 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     TextEditingController controller,
   ) async {
     final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
-    // Trigger search in outerVariantsProvider
-    ref.read(searchStringProvider.notifier).emitString(value: value);
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return;
 
-    // Wait for search results
-    await Future.delayed(const Duration(milliseconds: 100));
+    List<Variant> variants;
+    try {
+      variants = await _resolveAutoAddMatches(trimmed);
+    } catch (_) {
+      return;
+    }
 
     if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
       return;
     }
 
-    final branchId = ProxyService.box.getBranchId()!;
-    try {
-      final variants = await ref.read(outerVariantsProvider(branchId).future);
+    if (variants.length == 1) {
+      controller.clear();
+      hasText = false;
+      ref.read(searchStringProvider.notifier).emitString(value: '');
       if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
         return;
       }
-      if (variants.length == 1) {
-        // Exactly one match - auto-add to cart
-        controller.clear();
-        hasText = false;
-        ref.read(searchStringProvider.notifier).emitString(value: "");
-        if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
-          return;
-        }
-        await _processTransaction(variants.first, model);
-      }
-    } catch (_) {
-      // Matches prior [when]/error branch: UI surfaces via outerVariantsProvider.
+      await _processTransaction(variants.first, model);
+      return;
     }
+
+    // Zero or multiple matches: refresh the product grid only.
+    ref.read(searchStringProvider.notifier).emitString(value: value);
   }
 
   Future<void> refreshTransactionItems({required String transactionId}) async {

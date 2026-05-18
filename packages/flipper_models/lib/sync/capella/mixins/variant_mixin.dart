@@ -163,15 +163,23 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments['itemTyCd'] = itemTyCd;
       }
 
-      // Name / product name / barcode search (substring, case-insensitive).
-      // Compare with LOWER so "mango" matches stored "Mango" on all Ditto/SQLite builds.
+      // Exact barcode match (scan / POS). Avoids "123" matching "123456789".
+      if (bcd != null && bcd.trim().isNotEmpty) {
+        query +=
+            " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
+        arguments['bcdExact'] = bcd.trim().toLowerCase();
+        talker.info('Added exact barcode filter');
+      }
+
+      // Name / product name search (substring). Barcode uses exact match above.
       if (name != null && name.isNotEmpty) {
         final q = name.trim();
         query +=
             " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
-            "LOWER(COALESCE(bcd, '')) LIKE :searchLike OR "
+            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
             "LOWER(COALESCE(productName, '')) LIKE :searchLike)";
         arguments['searchLike'] = '%$q%';
+        arguments['bcdExact'] = q.toLowerCase();
         talker.info('Added variant text search filter (case-insensitive): $q');
       }
 
@@ -335,10 +343,15 @@ mixin CapellaVariantMixin implements VariantInterface {
             countQuery += ' AND itemTyCd = :itemTyCd';
           }
 
+          if (bcd != null && bcd.trim().isNotEmpty) {
+            countQuery +=
+                " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
+          }
+
           if (name != null && name.isNotEmpty) {
             countQuery +=
                 " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
-                "LOWER(COALESCE(bcd, '')) LIKE :searchLike OR "
+                "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
                 "LOWER(COALESCE(productName, '')) LIKE :searchLike)";
           }
 
@@ -533,8 +546,13 @@ mixin CapellaVariantMixin implements VariantInterface {
           );
         }
       } else if (bcd != null) {
-        query += 'bcd = :bcd';
-        arguments['bcd'] = bcd;
+        final branchId = ProxyService.box.getBranchId();
+        if (branchId != null && branchId.isNotEmpty) {
+          query += 'branchId = :branchId AND ';
+          arguments['branchId'] = branchId;
+        }
+        query += "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
+        arguments['bcdExact'] = bcd.trim().toLowerCase();
         if (ProxyService.box.getUserLoggingEnabled() ?? false) {
           await logService.logException(
             'Using BCD filter for getVariant',

@@ -146,7 +146,7 @@ mixin VariantMixin implements VariantInterface {
             [
               Where('name').contains(key),
               Or('productName').contains(key),
-              Or('bcd').contains(key),
+              Or('bcd').isExactly(key),
             ],
             isRequired: true,
           ),
