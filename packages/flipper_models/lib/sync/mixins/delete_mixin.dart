@@ -38,6 +38,44 @@ mixin DeleteMixin implements DeleteInterface {
       {String? branchId, String? key, String? id});
   // FutureOr<List<InventoryRequest>> requests({String? branchId, String? requestId});
   @override
+  Future<void> deleteAllTransactionItems({required String transactionId}) async {
+    try {
+      final items = await repository.get<TransactionItem>(
+        query: Query(
+          where: [Where('transactionId').isExactly(transactionId)],
+        ),
+      );
+
+      final toDelete = items
+          .where((item) => !(item.partOfComposite ?? false))
+          .toList();
+      if (toDelete.isEmpty) return;
+
+      await Future.wait(
+        toDelete.map(
+          (item) => repository.delete<TransactionItem>(
+            item,
+            query: Query(
+              action: QueryAction.delete,
+              where: [Where('id').isExactly(item.id)],
+            ),
+          ),
+        ),
+      );
+
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+        transactionId: transactionId,
+        subTotal: 0,
+        updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
+      );
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> deleteTransactionItemAndResequence({required String id}) async {
     try {
       final transactionItemToDelete = await repository.get<TransactionItem>(

@@ -22,6 +22,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 
@@ -70,6 +71,11 @@ class CheckOutState extends ConsumerState<CheckOut>
       WidgetsBinding.instance.addObserver(this);
       tabController = TabController(length: 3, vsync: this);
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(pendingTransactionStreamProvider(isExpense: false).future);
+    });
   }
 
   @override
@@ -91,6 +97,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildMainContent() {
+    listenCachedPendingCartTransactionSyncWidget(ref, isExpense: false);
     final transactionAsyncValue = ref.watch(
       pendingTransactionStreamProvider(isExpense: false),
     );

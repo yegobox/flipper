@@ -12,6 +12,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'dart:async'; // Import for Timer
 
 /// Modern Transaction Item Table Mixin
@@ -19,7 +20,11 @@ import 'dart:async'; // Import for Timer
 mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   // === CORE DATA ===
-  List<TransactionItem> internalTransactionItems = [];
+  /// Cart lines come from [posCartDisplayItemsProvider] (Ditto + optimistic).
+  List<TransactionItem> get _cartLines => ref.watch(posCartDisplayItemsProvider);
+
+  /// Legacy name used by [QuickSellingView] totals / completion hints.
+  List<TransactionItem> get internalTransactionItems => _cartLines;
   final Map<String, TextEditingController> _quantityControllers = {};
   final Map<String, FocusNode> _quantityFocusNodes = {};
   final Map<String, TextEditingController> _priceControllers = {};
@@ -41,9 +46,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   @override
   void initState() {
     super.initState();
-    for (var item in internalTransactionItems) {
-      _initController(item);
-    }
   }
 
   void _initController(TransactionItem item) {
@@ -83,7 +85,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   void _removeUnusedControllers() {
-    final ids = internalTransactionItems.map((e) => e.id).toSet();
+    final ids = _cartLines.map((e) => e.id).toSet();
     final toRemove = _quantityControllers.keys
         .where((id) => !ids.contains(id))
         .toList();
@@ -132,7 +134,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   @override
   void didUpdateWidget(covariant T oldWidget) {
     super.didUpdateWidget(oldWidget);
-    for (var item in internalTransactionItems) {
+    for (var item in _cartLines) {
       _initController(item);
     }
     _removeUnusedControllers();
@@ -167,6 +169,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool isOrdering, {
     bool pinGrandTotal = false,
   }) {
+    for (final item in _cartLines) {
+      _initController(item);
+    }
+    _removeUnusedControllers();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -317,7 +324,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  List<TransactionItem> get _visibleTransactionItems => internalTransactionItems
+  List<TransactionItem> get _visibleTransactionItems => _cartLines
       .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
       .toList();
 
@@ -819,40 +826,70 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _showDeleteAllConfirmation(bool isOrdering) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
-            const SizedBox(width: 8),
-            const Text('Delete All Items'),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to remove all ${_visibleTransactionItems.length} items from this transaction?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await _deleteAllItems(isOrdering);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red[400],
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Delete All'),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        var isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
+                  const SizedBox(width: 8),
+                  const Text('Delete All Items'),
+                ],
+              ),
+              content: Text(
+                'Are you sure you want to remove all ${_visibleTransactionItems.length} items from this transaction?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() => isDeleting = true);
+                          final success = await _deleteAllItems(isOrdering);
+                          if (!dialogContext.mounted) return;
+                          if (success) {
+                            Navigator.of(dialogContext).pop();
+                          } else {
+                            setDialogState(() => isDeleting = false);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[400],
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(108, 40),
+                  ),
+                  child: isDeleting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Delete All'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
-  Future<void> _deleteAllItems(bool isOrdering) async {
+  Future<bool> _deleteAllItems(bool isOrdering) async {
     final itemsToDelete = List<TransactionItem>.from(_visibleTransactionItems);
 
     final txnId = itemsToDelete.isNotEmpty
@@ -871,21 +908,22 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     });
 
     try {
-      for (final item in itemsToDelete) {
-        if (OptimisticCartIds.isOptimistic(item.id)) continue;
-        if (!(item.partOfComposite ?? false)) {
-          await ProxyService.getStrategy(
-            Strategy.capella,
-          ).flipperDelete(id: item.id, endPoint: 'transactionItem');
-        }
+      final hasPersistedItems = itemsToDelete.any(
+        (item) =>
+            !OptimisticCartIds.isOptimistic(item.id) &&
+            !(item.partOfComposite ?? false),
+      );
+
+      if (hasPersistedItems && txnId != null && txnId.isNotEmpty) {
+        await ProxyService.getStrategy(
+          Strategy.capella,
+        ).deleteAllTransactionItems(transactionId: txnId);
       }
 
-      if (itemsToDelete.isNotEmpty) {
-        _refreshTransactionItems(
-          isOrdering,
-          transactionId: itemsToDelete.first.transactionId!,
-        );
+      if (itemsToDelete.isNotEmpty && txnId != null) {
+        _refreshTransactionItems(isOrdering, transactionId: txnId);
       }
+      return true;
     } catch (e, s) {
       talker.error('Error deleting items: $e', s);
       setState(() {
@@ -893,10 +931,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           _optimisticallyDeletedItemIds.remove(item.id);
         }
       });
+      return false;
     } finally {
-      for (final item in itemsToDelete) {
+      if (mounted) {
         setState(() {
-          _isItemSaving[item.id] = false;
+          for (final item in itemsToDelete) {
+            _isItemSaving[item.id] = false;
+          }
         });
       }
     }
@@ -905,36 +946,66 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _showDeleteConfirmation(TransactionItem item, bool isOrdering) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
-            const SizedBox(width: 8),
-            const Text('Confirm Delete'),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to remove "${_getItemName(item)}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deleteItem(item, isOrdering);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red[400],
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        var isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
+                  const SizedBox(width: 8),
+                  const Text('Confirm Delete'),
+                ],
+              ),
+              content: Text(
+                'Are you sure you want to remove "${_getItemName(item)}"?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          setDialogState(() => isDeleting = true);
+                          final success = await _deleteItem(item, isOrdering);
+                          if (!dialogContext.mounted) return;
+                          if (success) {
+                            Navigator.of(dialogContext).pop();
+                          } else {
+                            setDialogState(() => isDeleting = false);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[400],
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(88, 40),
+                  ),
+                  child: isDeleting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1179,7 +1250,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> _deleteItem(TransactionItem item, bool isOrdering) async {
+  Future<bool> _deleteItem(TransactionItem item, bool isOrdering) async {
     setState(() {
       _isItemSaving[item.id] = true;
       _optimisticallyDeletedItemIds.add(item.id);
@@ -1194,7 +1265,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               .read(optimisticCartProvider.notifier)
               .clearPendingForVariant(transactionId: tid, variantId: vid);
         }
-        return;
+        return true;
       }
       if (!(item.partOfComposite ?? false)) {
         await ProxyService.getStrategy(
@@ -1226,16 +1297,20 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         }
       }
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
+      return true;
     } catch (e, s) {
       talker.error('Error deleting item: $e', s);
       setState(() {
         _optimisticallyDeletedItemIds.remove(item.id);
         _itemErrors[item.id] = 'Failed to delete item';
       });
+      return false;
     } finally {
-      setState(() {
-        _isItemSaving[item.id] = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isItemSaving[item.id] = false;
+        });
+      }
     }
   }
 

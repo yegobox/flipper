@@ -13,10 +13,43 @@ import 'package:talker/talker.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:uuid/uuid.dart';
 
+/// Ditto sync subscriptions registered once per scope (branch / branch+business).
+final Set<String> _productSyncSubscriptionKeys = {};
+
 mixin CapellaProductMixin implements ProductInterface {
   DittoService get dittoService => DittoService.instance;
   Repository get repository;
   Talker get talker;
+
+  void _ensureProductSyncSubscriptions({
+    required dynamic ditto,
+    required String branchId,
+    required String businessId,
+  }) {
+    final branchKey = 'products|branch|$branchId';
+    if (_productSyncSubscriptionKeys.add(branchKey)) {
+      final preparedProd = prepareDqlSyncSubscription(
+        'SELECT * FROM products WHERE branchId = :branchId',
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedProd.dql,
+        arguments: preparedProd.arguments,
+      );
+    }
+
+    final bizKey = 'products|branch|$branchId|business|$businessId';
+    if (_productSyncSubscriptionKeys.add(bizKey)) {
+      final preparedProdBiz = prepareDqlSyncSubscription(
+        'SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId',
+        {'branchId': branchId, 'businessId': businessId},
+      );
+      ditto.sync.registerSubscription(
+        preparedProdBiz.dql,
+        arguments: preparedProdBiz.arguments,
+      );
+    }
+  }
 
   @override
   Future<List<Product>> products({required String branchId}) async {
@@ -91,26 +124,12 @@ mixin CapellaProductMixin implements ProductInterface {
         return null;
       }
 
-      /// a work around to first register to whole data instead of subset
-      /// this is because after test on new device, it can't pull data using complex query
-      /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
-      ///
-      final preparedProd = prepareDqlSyncSubscription(
-        "SELECT * FROM products WHERE branchId = :branchId",
-        {'branchId': branchId},
-      );
-      ditto.sync.registerSubscription(
-        preparedProd.dql,
-        arguments: preparedProd.arguments,
-      );
-      // Workaround for initial sync
-      final preparedProdBiz = prepareDqlSyncSubscription(
-        "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",
-        {'branchId': branchId, 'businessId': businessId},
-      );
-      ditto.sync.registerSubscription(
-        preparedProdBiz.dql,
-        arguments: preparedProdBiz.arguments,
+      /// Register broad product subscriptions once per branch/business so repeated
+      /// cart adds do not leak Ditto sync observers (see Ditto #2648 workaround).
+      _ensureProductSyncSubscriptions(
+        ditto: ditto,
+        branchId: branchId,
+        businessId: businessId,
       );
 
       final List<String> whereClauses = [
