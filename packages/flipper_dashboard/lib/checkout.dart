@@ -23,6 +23,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 
@@ -98,6 +99,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Widget _buildMainContent() {
     listenCachedPendingCartTransactionSyncWidget(ref, isExpense: false);
+    ref.listen(posCartStreamReconciliationProvider, (_, __) {});
     final transactionAsyncValue = ref.watch(
       pendingTransactionStreamProvider(isExpense: false),
     );

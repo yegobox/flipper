@@ -230,10 +230,20 @@ String cartTransactionIdForMerge({
   required String? pendingTransactionId,
   required OptimisticCartState optimistic,
 }) {
+  return cartTransactionIdForMergeIds(
+    pendingTransactionId: pendingTransactionId,
+    optimisticTransactionId: optimistic.activeTransactionId,
+  );
+}
+
+String cartTransactionIdForMergeIds({
+  required String? pendingTransactionId,
+  required String? optimisticTransactionId,
+}) {
   if (pendingTransactionId != null && pendingTransactionId.isNotEmpty) {
     return pendingTransactionId;
   }
-  return optimistic.activeTransactionId ?? '';
+  return optimisticTransactionId ?? '';
 }
 
 /// Pure merge used by the checkout UI: persisted rows + unresolved optimistic qty.

@@ -28,8 +28,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -214,33 +214,32 @@ class _RowItemState extends ConsumerState<RowItem>
 
   @override
   Widget build(BuildContext context) {
-    final expensePendingTxn = pendingTransactionStreamProvider(
-      isExpense: widget.isOrdering,
+    final txnIdForCart = ref.watch(
+      posCartPendingTransactionIdProvider(widget.isOrdering),
     );
-    final pendingTxnForListen = ref.watch(expensePendingTxn);
-    ref.listen(expensePendingTxn, (previous, next) {
-      final txn = next.asData?.value;
-      if (txn == null) return;
-      final id = txn.id;
-      if (id.isEmpty) return;
-      if (_lastObservedPendingTxnId == id) return;
+    ref.listen<String?>(posCartPendingTransactionIdProvider(widget.isOrdering), (
+      previous,
+      next,
+    ) {
+      if (next == null || next.isEmpty) return;
+      if (_lastObservedPendingTxnId == next) return;
       final hadTxn =
           _lastObservedPendingTxnId != null &&
           _lastObservedPendingTxnId!.isNotEmpty;
-      _lastObservedPendingTxnId = id;
+      _lastObservedPendingTxnId = next;
       if (!hadTxn || !mounted) return;
       if (_cartOptimisticBump == 0) return;
       setState(() => _cartOptimisticBump = 0);
     });
-    final txnForListen = pendingTxnForListen.asData?.value;
+    final txnForListen = (txnIdForCart != null && txnIdForCart.isNotEmpty)
+        ? txnIdForCart
+        : null;
     final variantIdForListen = widget.variant?.id;
-    if (txnForListen != null &&
-        txnForListen.id.isNotEmpty &&
-        variantIdForListen != null) {
+    if (txnForListen != null && variantIdForListen != null) {
       final branchId = ProxyService.box.branchIdString() ?? '0';
       ref.listen<int>(
         pendingCartQtyByVariantIdProvider((
-          transactionId: txnForListen.id,
+          transactionId: txnForListen,
           branchId: branchId,
         )).select((map) => map[variantIdForListen] ?? 0),
         (previous, next) {
@@ -881,18 +880,17 @@ class _RowItemState extends ConsumerState<RowItem>
 
     return Consumer(
       builder: (context, ref, _) {
-        final txnAsync = ref.watch(
-          pendingTransactionStreamProvider(isExpense: widget.isOrdering),
+        final txnId = ref.watch(
+          posCartPendingTransactionIdProvider(widget.isOrdering),
         );
-        final txn = txnAsync.asData?.value;
-        if (txn == null || txn.id.isEmpty) {
+        if (txnId == null || txnId.isEmpty) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
         final branchId = ProxyService.box.branchIdString() ?? '0';
         final streamTotalQty = ref.watch(
           pendingCartQtyByVariantIdProvider((
-            transactionId: txn.id,
+            transactionId: txnId,
             branchId: branchId,
           )).select((map) => map[v.id] ?? 0),
         );
@@ -918,7 +916,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 ref
                     .read(
                       transactionItemsStreamProvider(
-                        transactionId: txn.id,
+                        transactionId: txnId,
                         branchId: branchId,
                       ),
                     )
@@ -928,7 +926,7 @@ class _RowItemState extends ConsumerState<RowItem>
             final matching = items
                 .where((it) => it.active != false && it.variantId == v.id)
                 .toList();
-            await _decrementOne(transactionId: txn.id, matchingItems: matching);
+            await _decrementOne(transactionId: txnId, matchingItems: matching);
           },
           onIncrement: _onAddToCartWithOptimistic,
         );

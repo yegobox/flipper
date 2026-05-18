@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -29,7 +30,8 @@ class PosCartAddService {
     if (variant.id.isEmpty) return;
 
     final isExpense = isOrdering;
-    final resolvedTxnId = readPendingCartTransactionId(ref, isExpense: isExpense);
+    final resolvedTxnId =
+        readPosCartTransactionIdFast(ref, isExpense: isExpense);
     final optimismTxnId = (resolvedTxnId != null && resolvedTxnId.isNotEmpty)
         ? resolvedTxnId
         : OptimisticCartBootstrap.txnId;

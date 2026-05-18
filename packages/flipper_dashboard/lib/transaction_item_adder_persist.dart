@@ -36,11 +36,11 @@ Future<ITransaction?> resolvePendingTransactionForPersist({
   required dynamic pendingProv,
   required bool isOrdering,
 }) async {
-  var pendingTransaction = ref.read(pendingProv).value;
-  pendingTransaction ??= readCachedPendingCartTransaction(
+  var pendingTransaction = readCachedPendingCartTransaction(
     ref,
     isExpense: isOrdering,
   );
+  pendingTransaction ??= ref.read(pendingProv).value;
   if (pendingTransaction == null || pendingTransaction.id.isEmpty) {
     pendingTransaction = await ref.read(pendingProv.future);
   }

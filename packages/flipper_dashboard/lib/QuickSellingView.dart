@@ -26,6 +26,7 @@ import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -662,8 +663,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering() ?? false;
-    listenCachedPendingCartTransactionSyncWidget(ref, isExpense: isOrdering);
-    ref.watch(posCartStreamReconciliationProvider);
+    // Cache sync lives on [CheckOut]; reconciliation is listen-only (no rebuild).
+    ref.listen(posCartStreamReconciliationProvider, (_, __) {});
 
     // Listen for customer phone number changes from the provider and update the controller
     ref.listen<String?>(customerPhoneNumberProvider, (previous, next) {
@@ -740,19 +741,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         isExpense: ProxyService.box.isOrdering() ?? false,
       ),
     );
-    ref.watch(posCartDisplayItemsProvider);
-
-    final readPending = ref.read(
-      pendingTransactionStreamProvider(
-        isExpense: ProxyService.box.isOrdering() ?? false,
-      ),
-    );
-    tv_talk.talker.debug(
-      'QuickSellingView.build pending '
-      'watch=${_qsvPendingLabel(transactionAsyncValue)} '
-      'read=${_qsvPendingLabel(readPending)} '
-      'cartCount=${ref.read(posCartDisplayItemsProvider).length}',
-    );
+    if (kDebugMode) {
+      final readPending = ref.read(
+        pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        ),
+      );
+      tv_talk.talker.debug(
+        'QuickSellingView.build pending '
+        'watch=${_qsvPendingLabel(transactionAsyncValue)} '
+        'read=${_qsvPendingLabel(readPending)}',
+      );
+    }
 
     // Handle transaction async value error state early
     if (transactionAsyncValue.hasError) {
