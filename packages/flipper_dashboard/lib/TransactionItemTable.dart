@@ -25,6 +25,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   /// Legacy name used by [QuickSellingView] totals / completion hints.
   List<TransactionItem> get internalTransactionItems => _cartLines;
+
+  /// When set by [buildTransactionItemsTable], drives list UI for that frame.
+  List<TransactionItem>? _tableCartLines;
+
+  List<TransactionItem> get _linesForTable => _tableCartLines ?? _cartLines;
   final Map<String, TextEditingController> _quantityControllers = {};
   final Map<String, FocusNode> _quantityFocusNodes = {};
   final Map<String, TextEditingController> _priceControllers = {};
@@ -84,8 +89,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     _itemErrors.remove(id); // Clear errors on init/update
   }
 
-  void _removeUnusedControllers() {
-    final ids = _cartLines.map((e) => e.id).toSet();
+  void _removeUnusedControllers([List<TransactionItem>? lines]) {
+    final ids = (lines ?? _linesForTable).map((e) => e.id).toSet();
     final toRemove = _quantityControllers.keys
         .where((id) => !ids.contains(id))
         .toList();
@@ -168,11 +173,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   Widget buildTransactionItemsTable(
     bool isOrdering, {
     bool pinGrandTotal = false,
+    List<TransactionItem>? cartLines,
   }) {
-    for (final item in _cartLines) {
+    _tableCartLines = cartLines;
+    final lines = _linesForTable;
+    for (final item in lines) {
       _initController(item);
     }
-    _removeUnusedControllers();
+    _removeUnusedControllers(lines);
 
     return Container(
       decoration: BoxDecoration(
@@ -324,7 +332,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  List<TransactionItem> get _visibleTransactionItems => _cartLines
+  List<TransactionItem> get _visibleTransactionItems => _linesForTable
       .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
       .toList();
 
@@ -334,8 +342,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final hasError = _itemErrors.containsKey(item.id);
     final hasChanged = _hasItemChanged[item.id] ?? false;
 
+    final isOptimisticLine = OptimisticCartIds.isOptimistic(item.id);
+
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: isOptimisticLine
+          ? Duration.zero
+          : const Duration(milliseconds: 200),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: hasError

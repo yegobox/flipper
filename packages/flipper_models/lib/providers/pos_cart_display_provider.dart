@@ -4,9 +4,17 @@ import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 bool _posCartIsExpense() => ProxyService.box.isOrdering() ?? false;
+
+/// Bumped on every cart tap so [posCartDisplayItemsProvider] recomputes same frame.
+final posCartDisplayEpochProvider = StateProvider<int>((ref) => 0);
+
+void bumpPosCartDisplayEpoch(Ref ref) {
+  ref.read(posCartDisplayEpochProvider.notifier).update((n) => n + 1);
+}
 
 /// Pending sale/purchase id for cart merge — cache first, then stream (id only).
 final posCartPendingTransactionIdProvider = Provider.family<String?, bool>((
@@ -36,12 +44,15 @@ final posCartPendingTransactionIdProvider = Provider.family<String?, bool>((
 /// Transaction id used to merge Ditto line items with optimistic ghosts.
 final posCartMergeTxnIdProvider = Provider.family<String, bool>((ref, isExpense) {
   final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));
-  final optimisticId = ref.watch(
-    optimisticCartProvider.select((s) => s.activeTransactionId),
-  );
+  final optimistic = ref.watch(optimisticCartProvider);
+  final optimisticId = optimistic.activeTransactionId;
+  final preferBootstrap =
+      OptimisticCartBootstrap.isBootstrap(optimisticId) &&
+      optimistic.pendingQtyByVariantId.values.any((q) => q > 0);
   return cartTransactionIdForMergeIds(
     pendingTransactionId: pendingId,
     optimisticTransactionId: optimisticId,
+    preferBootstrapWhilePending: preferBootstrap,
   );
 });
 
@@ -54,14 +65,12 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
 
   void syncPendingTransaction(ITransaction txn) {
-    Future.microtask(() {
-      writeCachedPendingCartTransaction(
-        ref,
-        isExpense: isExpense,
-        transaction: txn,
-      );
-      ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
-    });
+    writeCachedPendingCartTransaction(
+      ref,
+      isExpense: isExpense,
+      transaction: txn,
+    );
+    ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
   }
 
   ref.listen(pendingProv, (_, next) {
@@ -82,12 +91,10 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
 
   ref.listen(itemsProv, (_, next) {
     if (next.hasValue) {
-      Future.microtask(() {
-        ref.read(optimisticCartProvider.notifier).onStreamEmitted(
-              transactionId: mergeTxnId,
-              items: next.value!,
-            );
-      });
+      ref.read(optimisticCartProvider.notifier).onStreamEmitted(
+            transactionId: mergeTxnId,
+            items: next.value!,
+          );
     }
   }, fireImmediately: true);
 });
@@ -96,19 +103,11 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
 final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   ref.keepAlive();
 
+  ref.watch(posCartDisplayEpochProvider);
   final isExpense = _posCartIsExpense();
   final mergeTxnId = ref.watch(posCartMergeTxnIdProvider(isExpense));
 
-  ref.watch(
-    optimisticCartProvider.select(
-      (s) => (
-        s.activeTransactionId,
-        s.pendingQtyByVariantId,
-        s.variantSnapshotByVariantId,
-      ),
-    ),
-  );
-  final optimisticState = ref.read(optimisticCartProvider);
+  final optimisticState = ref.watch(optimisticCartProvider);
 
   if (mergeTxnId.isEmpty) return const [];
 
@@ -146,14 +145,43 @@ String? readPosCartTransactionIdFast(Ref ref, {required bool isExpense}) {
   final cacheId = readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id;
   if (cacheId != null && cacheId.isNotEmpty) return cacheId;
 
-  final optId = ref.read(optimisticCartProvider).activeTransactionId;
-  if (optId != null && optId.isNotEmpty) return optId;
-
   final streamId = ref
       .read(pendingTransactionStreamProvider(isExpense: isExpense))
       .value
       ?.id;
   if (streamId != null && streamId.isNotEmpty) return streamId;
 
+  final optId = ref.read(optimisticCartProvider).activeTransactionId;
+  if (optId != null &&
+      optId.isNotEmpty &&
+      !OptimisticCartBootstrap.isBootstrap(optId)) {
+    return optId;
+  }
+
   return null;
+}
+
+/// Writes stream pending txn into cache when checkout opens (desktop split).
+void warmPosCartPendingTransactionCache(Ref ref, {required bool isExpense}) {
+  final txn = ref.read(pendingTransactionStreamProvider(isExpense: isExpense)).value;
+  if (txn != null && txn.id.isNotEmpty) {
+    writeCachedPendingCartTransaction(ref, isExpense: isExpense, transaction: txn);
+    ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
+  }
+}
+
+/// [WidgetRef] variant — not assignable to [Ref] in this Riverpod version.
+void warmPosCartPendingTransactionCacheWidget(
+  WidgetRef ref, {
+  required bool isExpense,
+}) {
+  final txn = ref.read(pendingTransactionStreamProvider(isExpense: isExpense)).value;
+  if (txn != null && txn.id.isNotEmpty) {
+    writeCachedPendingCartTransactionWidget(
+      ref,
+      isExpense: isExpense,
+      transaction: txn,
+    );
+    ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
+  }
 }

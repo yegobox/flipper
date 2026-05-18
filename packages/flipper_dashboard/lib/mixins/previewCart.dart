@@ -30,6 +30,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -1426,25 +1427,29 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 
   double getSumOfItems({String? transactionId}) {
-    final transactionItems = ref.watch(
-      transactionItemsProvider(transactionId: transactionId),
-    );
-
-    // Check if the AsyncValue is in a data state (has data)
-    if (transactionItems.hasValue) {
-      final settingsService = locator<SettingsService>();
-      final isCurrencyDecimal = settingsService.isCurrencyDecimal;
-
-      return transactionItems.value!.fold(0, (sum, item) {
-        final val = (item.price * item.qty).toDouble();
-        return sum +
-            (isCurrencyDecimal
-                ? val.roundToTwoDecimalPlaces()
-                : val.roundToDouble());
-      });
-    } else {
-      // Return 0 or handle the case where data is not available
+    final items = ref.watch(posCartDisplayItemsProvider);
+    if (items.isEmpty && transactionId != null) {
+      final transactionItems = ref.watch(
+        transactionItemsProvider(transactionId: transactionId),
+      );
+      if (transactionItems.hasValue) {
+        return _sumTransactionItems(transactionItems.value!);
+      }
       return 0.0;
     }
+    return _sumTransactionItems(items);
+  }
+
+  double _sumTransactionItems(List<TransactionItem> items) {
+    final settingsService = locator<SettingsService>();
+    final isCurrencyDecimal = settingsService.isCurrencyDecimal;
+
+    return items.fold(0.0, (sum, item) {
+      final val = (item.price * item.qty).toDouble();
+      return sum +
+          (isCurrencyDecimal
+              ? val.roundToTwoDecimalPlaces()
+              : val.roundToDouble());
+    });
   }
 }

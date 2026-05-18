@@ -146,6 +146,7 @@ class App {}
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 /// rm -rf path/to/submodule
 /// git submodule add https://github.com/yegobox/looma.git
+/// git submodule add https://github.com/yegobox/looma.git open-sources/looma
 /// find ./ -name pubspec.lock -type f -delete && find ./ -name pubspec_overrides.yaml -type f -delete && find ./ -name dependencies.txt -type f -delete
 /// find ./ -name pubspec_overrides.yaml -type f -delete
 /// find ./ -name dependencies.txt -type f -delete

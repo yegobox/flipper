@@ -75,6 +75,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
       ref.read(pendingTransactionStreamProvider(isExpense: false).future);
     });
   }

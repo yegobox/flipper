@@ -37,6 +37,7 @@ import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
+import 'package:flipper_dashboard/widgets/pos_cart_table_host.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 
@@ -232,7 +233,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final transaction = transactionAsyncValue.asData?.value;
 
     final showSaveTicket =
-        transaction != null && internalTransactionItems.isNotEmpty;
+        transaction != null &&
+        ref.watch(posCartDisplayItemsProvider.select((l) => l.isNotEmpty));
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(2, 0, 2, 6),
@@ -414,6 +416,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // Initial pre-fill for resumed transactions if they are already available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final isExpense = ProxyService.box.isOrdering() ?? false;
+      warmPosCartPendingTransactionCacheWidget(ref, isExpense: isExpense);
       // Warm pending cart so the first tap does not wait on Ditto txn resolution.
       ref.read(pendingTransactionStreamProvider(isExpense: isExpense).future);
       final transaction = ref
@@ -1078,7 +1081,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             ],
             const SizedBox(height: 16),
             if (transactionAsyncValue.value != null &&
-                internalTransactionItems.isNotEmpty)
+                ref.watch(
+                  posCartDisplayItemsProvider.select((l) => l.isNotEmpty),
+                ))
               SaveTicketButton(
                 onPressed: () =>
                     _showParkDialog(transactionAsyncValue.value!, model),
@@ -1815,9 +1820,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               label: 'Transaction items list',
               hint:
                   'List of items in the current transaction with quantities and prices',
-              child: buildTransactionItemsTable(
-                isOrdering,
-                pinGrandTotal: true,
+              child: PosCartTableHost(
+                builder: (lines) => buildTransactionItemsTable(
+                  isOrdering,
+                  pinGrandTotal: true,
+                  cartLines: lines,
+                ),
               ),
             ),
           )
@@ -1826,7 +1834,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             label: 'Transaction items list',
             hint:
                 'List of items in the current transaction with quantities and prices',
-            child: buildTransactionItemsTable(isOrdering, pinGrandTotal: false),
+            child: PosCartTableHost(
+              builder: (lines) => buildTransactionItemsTable(
+                isOrdering,
+                pinGrandTotal: false,
+                cartLines: lines,
+              ),
+            ),
           ),
         if (isOrdering) ...[
           const SizedBox(height: 20),
