@@ -23,3 +23,6 @@
 [submodule "open-sources/brick"]
 	path = open-sources/brick
 	url = https://github.com/yegobox/brick.git
+[submodule "open-sources/looma"]
+	path = open-sources/looma
+	url = https://github.com/yegobox/looma.git
