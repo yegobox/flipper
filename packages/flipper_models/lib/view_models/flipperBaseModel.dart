@@ -23,6 +23,93 @@ class FlipperBaseModel extends ReactiveViewModel {
     notifyListeners();
   }
 
+  /// Resolves [businessId] from box to the businesses.id UUID used in Supabase.
+  static Future<String?> _resolveBusinessUuid(String businessId) async {
+    try {
+      final row = await Supabase.instance.client
+          .from('businesses')
+          .select('id')
+          .eq('id', businessId)
+          .maybeSingle();
+      return row?['id']?.toString();
+    } catch (e, s) {
+      debugPrint('loadTenants resolve business uuid: $e\n$s');
+      return null;
+    }
+  }
+
+  /// Loads all tenants for a business from Supabase (not Brick).
+  ///
+  /// Many legacy rows have `tenants.business_id` null and are linked via `pins`.
+  static Future<List<Tenant>> _fetchTenantsFromSupabase(
+    String businessUuid,
+  ) async {
+    final client = Supabase.instance.client;
+    final byTenantId = <String, Tenant>{};
+
+    void ingestRows(List<dynamic> raw) {
+      for (final item in raw) {
+        if (item is! Map) continue;
+        final row = Map<String, dynamic>.from(item);
+        if (row['deleted_at'] != null) continue;
+        if (row['business_id'] == null) {
+          row['business_id'] = businessUuid;
+        }
+        final tenant = _tenantFromSupabaseRow(row);
+        byTenantId.putIfAbsent(tenant.id, () => tenant);
+      }
+    }
+
+    final direct = await client
+        .from('tenants')
+        .select()
+        .eq('business_id', businessUuid)
+        .order('name');
+    ingestRows(direct as List);
+
+    final pinRows = await client
+        .from('pins')
+        .select('user_id')
+        .eq('business_id', businessUuid);
+
+    final userIds = <String>{};
+    for (final row in pinRows as List) {
+      if (row is! Map) continue;
+      final uid = row['user_id']?.toString();
+      if (uid != null && uid.isNotEmpty) userIds.add(uid);
+    }
+
+    if (userIds.isNotEmpty) {
+      final viaPins = await client
+          .from('tenants')
+          .select()
+          .inFilter('user_id', userIds.toList())
+          .order('name');
+      ingestRows(viaPins as List);
+    }
+
+    final junction = await client
+        .from('tenant_businesses')
+        .select('tenants(*)')
+        .eq('business_id', businessUuid)
+        .isFilter('deleted_at', null);
+
+    for (final row in junction as List) {
+      if (row is! Map) continue;
+      final nested = row['tenants'];
+      if (nested is! Map) continue;
+      ingestRows([nested]);
+    }
+
+    final tenants = byTenantId.values.toList()
+      ..sort(
+        (a, b) => (a.name ?? '').toLowerCase().compareTo(
+          (b.name ?? '').toLowerCase(),
+        ),
+      );
+    return tenants;
+  }
+
   Future<void> loadTenants() async {
     final businessId = ProxyService.box.getBusinessId();
     if (businessId == null || businessId.isEmpty) {
@@ -33,67 +120,68 @@ class FlipperBaseModel extends ReactiveViewModel {
 
     List<Tenant> users;
     try {
-      final raw = await Supabase.instance.client
-          .from('tenants')
-          .select()
-          .eq('business_id', businessId)
-          .order('name');
-
-      final rows = List<Map<String, dynamic>>.from(
-        (raw as List).map((e) => Map<String, dynamic>.from(e as Map)),
-      );
-
-      users = rows
-          .where((r) => r['deleted_at'] == null)
-          .map(_tenantFromSupabaseRow)
-          .toList();
-
-      if (users.isEmpty) {
-        final rawJunction = await Supabase.instance.client
-            .from('tenant_businesses')
-            .select('tenants(*)')
-            .eq('business_id', businessId);
-
-        final seen = <String>{};
-        for (final row in rawJunction as List) {
-          final m = Map<String, dynamic>.from(row as Map);
-          final nested = m['tenants'];
-          if (nested is! Map) continue;
-          final t = _tenantFromSupabaseRow(
-            Map<String, dynamic>.from(nested),
-          );
-          if (t.deletedAt != null) continue;
-          if (seen.add(t.id)) users.add(t);
-        }
+      final businessUuid = await _resolveBusinessUuid(businessId);
+      if (businessUuid == null || businessUuid.isEmpty) {
+        debugPrint('loadTenants: could not resolve business id "$businessId"');
+        users = [];
+      } else {
+        users = await _fetchTenantsFromSupabase(businessUuid);
+        debugPrint(
+          'loadTenants: businessUuid=$businessUuid count=${users.length}',
+        );
       }
     } catch (e, s) {
       debugPrint('loadTenants Supabase: $e\n$s');
-      try {
-        users = await ProxyService.strategy.tenants(businessId: businessId);
-      } catch (_) {
-        users = [];
-      }
+      users = [];
     }
 
-    final uniqueUserIds = <String>{};
-    final uniqueUsers = <Tenant>[];
-
-    for (final user in users) {
-      if (!uniqueUserIds.contains(user.id)) {
-        uniqueUserIds.add(user.id);
-        uniqueUsers.add(user);
-      } else {
-        try {
-          await ProxyService.strategy
-              .flipperDelete(id: user.id, endPoint: 'tenant');
-        } catch (_) {
-          // ignore duplicate cleanup failures
-        }
-      }
-    }
-
-    _tenants = [...uniqueUsers];
+    _tenants = _dedupeTenantsForDisplay(users);
     notifyListeners();
+  }
+
+  /// One row per login identity in the UI (same [Tenant.userId] or same email).
+  ///
+  /// Prefers a row with [Tenant.businessId] set, then latest [Tenant.lastTouched].
+  static List<Tenant> _dedupeTenantsForDisplay(List<Tenant> users) {
+    int score(Tenant t) {
+      var s = 0;
+      if (t.businessId != null && t.businessId!.isNotEmpty) s += 100;
+      if (t.lastTouched != null) s += 10;
+      return s;
+    }
+
+    String identityKey(Tenant t) {
+      final uid = t.userId?.trim();
+      if (uid != null && uid.isNotEmpty) return 'uid:$uid';
+      final email = t.email?.trim().toLowerCase();
+      if (email != null && email.isNotEmpty) return 'email:$email';
+      final phone = t.phoneNumber?.trim();
+      if (phone != null && phone.isNotEmpty) return 'phone:$phone';
+      return 'id:${t.id}';
+    }
+
+    final bestByIdentity = <String, Tenant>{};
+    for (final user in users) {
+      final key = identityKey(user);
+      final existing = bestByIdentity[key];
+      if (existing == null) {
+        bestByIdentity[key] = user;
+        continue;
+      }
+      if (score(user) > score(existing)) {
+        bestByIdentity[key] = user;
+      } else if (score(user) == score(existing) &&
+          user.id.compareTo(existing.id) < 0) {
+        bestByIdentity[key] = user;
+      }
+    }
+
+    return bestByIdentity.values.toList()
+      ..sort(
+        (a, b) => (a.name ?? '').toLowerCase().compareTo(
+              (b.name ?? '').toLowerCase(),
+            ),
+      );
   }
 
   static Tenant _tenantFromSupabaseRow(Map<String, dynamic> r) {
