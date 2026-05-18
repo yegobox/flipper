@@ -14,7 +14,9 @@ import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -24,6 +26,7 @@ import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -33,8 +36,19 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
+import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
+
+/// Compact label for correlating QuickSellingView with [pendingTransactionStream] logs.
+String _qsvPendingLabel(AsyncValue<ITransaction> v) {
+  if (v.isLoading) return 'loading';
+  if (v.hasError) return 'error:${v.error}';
+  if (!v.hasValue || v.value == null) return 'noValue';
+  final t = v.value!;
+  return 'id=${t.id} status=${t.status} invoiceNo=${t.invoiceNumber}';
+}
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 
 /// Compact label for correlating QuickSellingView with [pendingTransactionStream] logs.
@@ -167,13 +181,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// **Note:** [highestCounterProvider] is the next invoice sequence, not the
   /// Ditto transaction `_id`. The **Txn ID** label is the live pending cart from
   /// [pendingTransactionStreamProvider].
+  /// Invoice number + current pending cart transaction id (mobile / desktop chip).
+  ///
+  /// **Note:** [highestCounterProvider] is the next invoice sequence, not the
+  /// Ditto transaction `_id`. The **Txn ID** label is the live pending cart from
+  /// [pendingTransactionStreamProvider].
   Widget _buildInvoiceNumberRow({required String branchId}) {
     final isExpense = ProxyService.box.isOrdering() ?? false;
     final pendingTxn = ref
         .watch(pendingTransactionStreamProvider(isExpense: isExpense))
         .value;
     final txnId = pendingTxn?.id;
+    final isExpense = ProxyService.box.isOrdering() ?? false;
+    final pendingTxn = ref
+        .watch(pendingTransactionStreamProvider(isExpense: isExpense))
+        .value;
+    final txnId = pendingTxn?.id;
     final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
+    final body = Theme.of(context).textTheme.bodyMedium;
+    final bodyBold = body?.copyWith(fontWeight: FontWeight.bold);
+
     final body = Theme.of(context).textTheme.bodyMedium;
     final bodyBold = body?.copyWith(fontWeight: FontWeight.bold);
 
@@ -207,9 +234,37 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           const SizedBox(width: 12),
         ],
         Text('Invoice No: ', style: body),
+        if (txnId != null && txnId.isNotEmpty) ...[
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              await Clipboard.setData(ClipboardData(text: txnId));
+              if (!mounted) return;
+              showSuccessNotification(
+                context,
+                'Transaction ID copied to clipboard',
+                duration: const Duration(seconds: 2),
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Txn ID: ', style: body),
+                Text(
+                  txnId,
+                  key: const Key('pending-transaction-id-text'),
+                  style: bodyBold,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+        Text('Invoice No: ', style: body),
         Text(
           '$highestInvoiceNumber',
           key: const Key('invoice-number-text'),
+          style: bodyBold,
           style: bodyBold,
         ),
       ],
@@ -249,16 +304,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildCompactAmountSummary(alreadyPaid),
+                    if (branchId != null) ...[
+                      _checkoutToolbarDivider(),
+                      _buildTopBarInvoiceChip(branchId: branchId),
+                    ],
                     if (showSaveTicket) ...[
                       _checkoutToolbarDivider(),
                       _buildTopBarSaveTicketButton(
                         transaction: transaction,
                         model: model,
                       ),
-                    ],
-                    if (branchId != null) ...[
-                      _checkoutToolbarDivider(),
-                      _buildTopBarInvoiceChip(branchId: branchId),
                     ],
                   ],
                 ),
@@ -301,31 +356,44 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required ITransaction transaction,
     required CoreViewModel model,
   }) {
+    const accent = PosLayoutBreakpoints.posAccentBlue;
+
     return Tooltip(
       message: 'Park this sale as a ticket',
-      child: OutlinedButton.icon(
-        onPressed: () => _showParkDialog(transaction, model),
-        icon: Icon(
-          Icons.save_outlined,
-          size: 18,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        label: Text(
-          'Save ticket',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showParkDialog(transaction, model),
+          borderRadius: BorderRadius.circular(8),
+          hoverColor: accent.withValues(alpha: 0.08),
+          splashColor: accent.withValues(alpha: 0.14),
+          highlightColor: accent.withValues(alpha: 0.06),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(FluentIcons.bookmark_16_filled, size: 15, color: accent),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Save ticket',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: accent,
+                      letterSpacing: -0.1,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Theme.of(context).colorScheme.onSurface,
-          side: const BorderSide(color: Color(0xFFE5E7EB)),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
@@ -395,12 +463,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     // Initial pre-fill for resumed transactions if they are already available
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final isExpense = ProxyService.box.isOrdering() ?? false;
+      // Warm pending cart so the first tap does not wait on Ditto txn resolution.
+      ref.read(pendingTransactionStreamProvider(isExpense: isExpense).future);
       final transaction = ref
-          .read(
-            pendingTransactionStreamProvider(
-              isExpense: ProxyService.box.isOrdering() ?? false,
-            ),
-          )
+          .read(pendingTransactionStreamProvider(isExpense: isExpense))
           .value;
       if (transaction != null) {
         _prefillCustomerDetails(transaction);
@@ -433,8 +500,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// while pay is loading or [startCompleteTransactionFlow] is active (same
   /// semantics as checkout via [CheckoutController]).
   bool _skipLiveCustomerCapellaPersistDuringSaleCompletion() {
-    final payBusy =
-        ref.read(payButtonStateProvider).values.any((loading) => loading);
+    final payBusy = ref
+        .read(payButtonStateProvider)
+        .values
+        .any((loading) => loading);
     final completing =
         ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
     return payBusy || completing;
@@ -615,6 +684,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     resetDigitalReceiptToggle(ref);
 
+    resetDigitalReceiptToggle(ref);
+
     if (!mounted) {
       return;
     }
@@ -622,6 +693,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ref
         .read(optimisticCartProvider.notifier)
         .clearForTransaction(transaction.id);
+    clearCachedPendingCartTransactionWidget(
+      ref,
+      isExpense: ProxyService.box.isOrdering() ?? false,
+    );
 
     // Clear stale cart items for the completed transaction.
     ref.invalidate(
@@ -657,6 +732,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering() ?? false;
+    // Cache sync lives on [CheckOut]; reconciliation is listen-only (no rebuild).
+    ref.listen(posCartStreamReconciliationProvider, (_, __) {});
 
     // Listen for customer phone number changes from the provider and update the controller
     ref.listen<String?>(customerPhoneNumberProvider, (previous, next) {
@@ -676,10 +753,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           'prev=${previous == null ? 'null' : _qsvPendingLabel(previous)} '
           'next=${_qsvPendingLabel(next)}',
         );
+        tv_talk.talker.info(
+          'QuickSellingView.pendingTxn ref.listen '
+          'prev=${previous == null ? 'null' : _qsvPendingLabel(previous)} '
+          'next=${_qsvPendingLabel(next)}',
+        );
         if (next.hasValue && next.value != null) {
           final isNewTransaction = previous?.value?.id != next.value!.id;
           _prefillCustomerDetails(next.value!);
           if (isNewTransaction) {
+            resetDigitalReceiptToggle(ref);
             resetDigitalReceiptToggle(ref);
             _updateReceivedAmountIfNeeded(next.value!);
           }
@@ -687,57 +770,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       },
     );
 
-    // Also listen to items stream as it affects grandTotal and thus totalAfterDiscountAndShipping
-    final transactionId = ref
-        .watch(
-          pendingTransactionStreamProvider(
-            isExpense: ProxyService.box.isOrdering() ?? false,
-          ),
-        )
-        .value
-        ?.id;
-    if (transactionId != null) {
-      ref.listen(
-        transactionItemsStreamProvider(
-          transactionId: transactionId,
-          branchId: ProxyService.box.getBranchId() ?? '0',
-        ),
-        (previous, next) {
-          next.whenData((items) {
-            tv_talk.talker.info(
-              'QuickSellingView.txItemsStream '
-              'streamArgTxnId=$transactionId branch=${ProxyService.box.getBranchId()} '
-              'itemCount=${items.length} '
-              'firstItemTxnId=${items.isEmpty ? 'n/a' : items.first.transactionId}',
-            );
-            ref
-                .read(optimisticCartProvider.notifier)
-                .onStreamEmitted(transactionId: transactionId, items: items);
-            final transaction = ref
-                .read(
-                  pendingTransactionStreamProvider(
-                    isExpense: ProxyService.box.isOrdering() ?? false,
-                  ),
-                )
-                .value;
-            tv_talk.talker.info(
-              'QuickSellingView.txItemsStream after read pending '
-              'readPendingId=${transaction?.id} readPendingStatus=${transaction?.status} '
-              'streamArgTxnId=$transactionId match=${transaction?.id == transactionId}',
-            );
-            if (transaction != null) {
-              final optimistic = ref.read(optimisticCartProvider);
-              final merged = mergeTransactionItemsWithOptimisticCart(
-                streamItems: items,
-                optimistic: optimistic,
-                transactionId: transactionId,
-              );
-              _updateReceivedAmountIfNeeded(transaction, items: merged);
-            }
-          });
-        },
-      );
-    }
+    // Payment totals track [posCartDisplayItemsProvider] via [internalTransactionItems].
+    ref.listen(posCartDisplayItemsProvider, (previous, next) {
+      if (previous == next) return;
+      final transaction = ref
+          .read(
+            pendingTransactionStreamProvider(
+              isExpense: ProxyService.box.isOrdering() ?? false,
+            ),
+          )
+          .value;
+      if (transaction != null) {
+        _updateReceivedAmountIfNeeded(transaction, items: next);
+      }
+    });
 
     // Check for branch changes and refresh transaction if needed
     final currentBranchId = ProxyService.box.getBranchId();
@@ -770,16 +816,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         isExpense: ProxyService.box.isOrdering() ?? false,
       ),
     );
-    final readPending = ref.read(
-      pendingTransactionStreamProvider(
-        isExpense: ProxyService.box.isOrdering() ?? false,
-      ),
-    );
-    tv_talk.talker.debug(
-      'QuickSellingView.build pending '
-      'watch=${_qsvPendingLabel(transactionAsyncValue)} '
-      'read=${_qsvPendingLabel(readPending)}',
-    );
+    if (kDebugMode) {
+      final readPending = ref.read(
+        pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        ),
+      );
+      tv_talk.talker.debug(
+        'QuickSellingView.build pending '
+        'watch=${_qsvPendingLabel(transactionAsyncValue)} '
+        'read=${_qsvPendingLabel(readPending)}',
+      );
+    }
 
     // Handle transaction async value error state early
     if (transactionAsyncValue.hasError) {
@@ -831,80 +879,31 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       );
     }
 
+    final pendingTxnId = transactionAsyncValue.value?.id;
+    if (pendingTxnId != null &&
+        pendingTxnId.isNotEmpty &&
+        ref.read(posCartDisplayItemsProvider).isNotEmpty &&
+        _lastPaymentInitTransactionId != pendingTxnId) {
+      _lastPaymentInitTransactionId = pendingTxnId;
+      final txn = transactionAsyncValue.value!;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final nonCreditPaid = await fetchNonCreditPaid(txn.id);
+        if (!mounted) return;
+        _cachedNonCreditPaid = nonCreditPaid;
+        standardizedPaymentInitialization(
+          ref: ref,
+          transaction: txn,
+          total: _calculateTotal(),
+          overrideAlreadyPaid: nonCreditPaid,
+        );
+      });
+    }
+
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         try {
-          if (transactionAsyncValue.hasValue &&
-              transactionAsyncValue.value != null &&
-              transactionAsyncValue.value!.id.isNotEmpty) {
-            final transactionId = transactionAsyncValue.value!.id;
-            tv_talk.talker.debug(
-              'QuickSellingView.ViewModelBuilder bind '
-              'transactionId=$transactionId '
-              'invoiceNo=${transactionAsyncValue.value!.invoiceNumber}',
-            );
-            final transactionItemsAsync = ref.watch(
-              transactionItemsStreamProvider(
-                transactionId: transactionId,
-                branchId: ProxyService.box.getBranchId() ?? '0',
-              ),
-            );
-            final optimisticCart = ref.watch(optimisticCartProvider);
-
-            // Properly handle AsyncValue states instead of accessing .value directly
-            internalTransactionItems = transactionItemsAsync.when(
-              data: (items) {
-                final merged =
-                    mergeTransactionItemsWithOptimisticCart(
-                          streamItems: items,
-                          optimistic: optimisticCart,
-                          transactionId: transactionId,
-                        )
-                        .where(
-                          (item) =>
-                              !_optimisticallyDeletedItemIds.contains(item.id),
-                        )
-                        .toList();
-                if (merged.isNotEmpty) {
-                  tv_talk.talker.debug(
-                    'QuickSellingView.internalItems mergedCount=${merged.length} '
-                    'forPendingTxnId=$transactionId '
-                    'firstMergedTxnId=${merged.first.transactionId}',
-                  );
-                }
-                return merged;
-              },
-              loading: () => [],
-              error: (err, stack) {
-                talker.error('Error loading transaction items', err, stack);
-                return [];
-              },
-            );
-
-            // Initialize payment fields once both transaction and items are ready.
-            if (transactionItemsAsync.hasValue &&
-                internalTransactionItems.isNotEmpty &&
-                _lastPaymentInitTransactionId != transactionId) {
-              _lastPaymentInitTransactionId = transactionId;
-              final txn = transactionAsyncValue.value!;
-              WidgetsBinding.instance.addPostFrameCallback((_) async {
-                if (!mounted) return;
-                final nonCreditPaid = await fetchNonCreditPaid(txn.id);
-                if (!mounted) return;
-                _cachedNonCreditPaid = nonCreditPaid;
-                standardizedPaymentInitialization(
-                  ref: ref,
-                  transaction: txn,
-                  total: _calculateTotal(),
-                  overrideAlreadyPaid: nonCreditPaid,
-                );
-              });
-            }
-          } else {
-            internalTransactionItems = [];
-          }
-
           final alreadyPaidVal =
               transactionAsyncValue.value?.cashReceived ?? 0.0;
           return context.isSmallDevice
@@ -1254,83 +1253,62 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildItemsList(AsyncValue<ITransaction> transactionAsyncValue) {
-    final transactionItemsAsync = ref.watch(
-      transactionItemsStreamProvider(
-        transactionId: transactionAsyncValue.value?.id ?? "",
-        branchId: ProxyService.box.getBranchId()!,
-      ),
-    );
-    final optimisticCart = ref.watch(optimisticCartProvider);
-    final transactionId = transactionAsyncValue.value?.id ?? '';
-    return transactionItemsAsync.when(
-      data: (rawItems) {
-        final items =
-            mergeTransactionItemsWithOptimisticCart(
-                  streamItems: rawItems,
-                  optimistic: optimisticCart,
-                  transactionId: transactionId,
-                )
-                .where(
-                  (item) => !_optimisticallyDeletedItemIds.contains(item.id),
-                )
-                .toList();
-        if (items.isEmpty) {
-          return SliverToBoxAdapter(
-            child: _buildEmptyStateCard(
-              'No items added',
-              'Tap the + button to add your first item',
-              Icons.add_shopping_cart_outlined,
-            ),
-          );
-        }
-        return SliverToBoxAdapter(
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${items.length} item${items.length > 1 ? 's' : ''}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed:
-                          (transactionAsyncValue.value?.cashReceived ?? 0) > 0
-                          ? null
-                          : () => _deleteAllItems(transactionAsyncValue),
-                      icon: Icon(Icons.delete_sweep, size: 18),
-                      label: Text('Delete All'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        disabledForegroundColor: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              ...items
-                  .map(
-                    (item) => _buildModernItemCard(item, transactionAsyncValue),
-                  )
-                  .toList(),
-            ],
-          ),
-        );
-      },
-      loading: () => SliverToBoxAdapter(
-        child: Container(
-          height: 100,
-          child: Center(child: CircularProgressIndicator()),
+    final items = ref
+        .watch(posCartDisplayItemsProvider)
+        .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
+        .toList();
+
+    if (items.isEmpty) {
+      return SliverToBoxAdapter(
+        child: _buildEmptyStateCard(
+          'No items added',
+          'Tap the + button to add your first item',
+          Icons.add_shopping_cart_outlined,
         ),
-      ),
-      error: (error, stack) => SliverToBoxAdapter(
-        child: _buildErrorCard('Failed to load items', error.toString()),
+      );
+    }
+    return _buildItemsListSliver(items, transactionAsyncValue);
+  }
+
+  SliverToBoxAdapter _buildItemsListSliver(
+    List<TransactionItem> items,
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) {
+    return SliverToBoxAdapter(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${items.length} item${items.length > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed:
+                      (transactionAsyncValue.value?.cashReceived ?? 0) > 0
+                      ? null
+                      : () => _deleteAllItems(transactionAsyncValue),
+                  icon: const Icon(Icons.delete_sweep, size: 18),
+                  label: const Text('Delete All'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    disabledForegroundColor: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...items
+              .map((item) => _buildModernItemCard(item, transactionAsyncValue))
+              .toList(),
+        ],
       ),
     );
   }
@@ -1683,6 +1661,38 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                 );
                                 return transactionAsyncValue.when(
                                   data: (ITransaction transaction) async {
+                                    await ProxyService.box.writeBool(
+                                      key: 'transactionCompleting',
+                                      value: true,
+                                    );
+                                    try {
+                                      await startCompleteTransactionFlow(
+                                        immediateCompletion:
+                                            immediateCompleteTransaction,
+                                        completeTransaction: () async {
+                                          await _onQuickSellComplete(
+                                            transaction,
+                                          );
+                                        },
+                                        transactionId: transaction.id,
+                                        transactionHint: transaction,
+                                        transactionItemsHint:
+                                            _transactionItemsHintForCompletion(
+                                              transaction.id,
+                                            ),
+                                        paymentMethods: ref.watch(
+                                          paymentMethodsProvider,
+                                        ),
+                                        onPaymentConfirmed: onPaymentConfirmed,
+                                        onPaymentFailed: onPaymentFailed,
+                                      );
+                                    } catch (e, s) {
+                                      await ProxyService.box.writeBool(
+                                        key: 'transactionCompleting',
+                                        value: false,
+                                      );
+                                      rethrow;
+                                    }
                                     await ProxyService.box.writeBool(
                                       key: 'transactionCompleting',
                                       value: true,
@@ -2108,8 +2118,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         .asData
                         ?.value;
               unawaited(() async {
-                final loadingNotifier =
-                    ref.read(payButtonStateProvider.notifier);
+                final loadingNotifier = ref.read(
+                  payButtonStateProvider.notifier,
+                );
                 loadingNotifier.stopLoading();
                 loadingNotifier.startLoading(ButtonType.pay);
                 await ProxyService.box.writeBool(
@@ -2170,6 +2181,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           children: [
             // Customer Information Section (only shown when not ordering)
             if (!isOrdering) ...[
+              _buildDigitalReceiptToggle(),
               _buildDigitalReceiptToggle(),
               _buildReceivedAmountField(
                 transactionId: transactionId,
@@ -2282,6 +2294,47 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
         return null;
       },
+    );
+  }
+
+  Widget _buildDigitalReceiptToggle() {
+    final smsEnabledAsync = ref.watch(branchSmsNotificationsEnabledProvider);
+    return smsEnabledAsync.when(
+      data: (smsEnabled) {
+        if (!smsEnabled) return const SizedBox.shrink();
+        final useDigital = ref.watch(digitalReceiptToggleProvider);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: SwitchListTile.adaptive(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              title: const Text(
+                'Digital receipt',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              subtitle: const Text(
+                'Send receipt by SMS instead of opening a PDF',
+                style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              ),
+              value: useDigital,
+              activeTrackColor: PosLayoutBreakpoints.posAccentBlue,
+              onChanged: (value) {
+                ref.read(digitalReceiptToggleProvider.notifier).state = value;
+              },
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -2459,6 +2512,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
               return;
             }
+            if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
+              return;
+            }
             final transactionAsync = ref.read(
               pendingTransactionStreamProvider(
                 isExpense: ProxyService.box.isOrdering() ?? false,
@@ -2574,6 +2630,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   // new transaction by only updating when there is an existing pending
                   // transaction instance available from the provider.
                   try {
+                    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
+                      return;
+                    }
                     if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
                       return;
                     }

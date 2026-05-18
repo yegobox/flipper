@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:amplify_flutter/amplify_flutter.dart';
@@ -26,9 +27,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
-import 'package:flipper_dashboard/transaction_item_adder.dart';
+import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -213,33 +214,32 @@ class _RowItemState extends ConsumerState<RowItem>
 
   @override
   Widget build(BuildContext context) {
-    final expensePendingTxn = pendingTransactionStreamProvider(
-      isExpense: widget.isOrdering,
+    final txnIdForCart = ref.watch(
+      posCartPendingTransactionIdProvider(widget.isOrdering),
     );
-    final pendingTxnForListen = ref.watch(expensePendingTxn);
-    ref.listen(expensePendingTxn, (previous, next) {
-      final txn = next.asData?.value;
-      if (txn == null) return;
-      final id = txn.id;
-      if (id.isEmpty) return;
-      if (_lastObservedPendingTxnId == id) return;
+    ref.listen<String?>(posCartPendingTransactionIdProvider(widget.isOrdering), (
+      previous,
+      next,
+    ) {
+      if (next == null || next.isEmpty) return;
+      if (_lastObservedPendingTxnId == next) return;
       final hadTxn =
           _lastObservedPendingTxnId != null &&
           _lastObservedPendingTxnId!.isNotEmpty;
-      _lastObservedPendingTxnId = id;
+      _lastObservedPendingTxnId = next;
       if (!hadTxn || !mounted) return;
       if (_cartOptimisticBump == 0) return;
       setState(() => _cartOptimisticBump = 0);
     });
-    final txnForListen = pendingTxnForListen.asData?.value;
+    final txnForListen = (txnIdForCart != null && txnIdForCart.isNotEmpty)
+        ? txnIdForCart
+        : null;
     final variantIdForListen = widget.variant?.id;
-    if (txnForListen != null &&
-        txnForListen.id.isNotEmpty &&
-        variantIdForListen != null) {
+    if (txnForListen != null && variantIdForListen != null) {
       final branchId = ProxyService.box.branchIdString() ?? '0';
       ref.listen<int>(
         pendingCartQtyByVariantIdProvider((
-          transactionId: txnForListen.id,
+          transactionId: txnForListen,
           branchId: branchId,
         )).select((map) => map[variantIdForListen] ?? 0),
         (previous, next) {
@@ -322,7 +322,7 @@ class _RowItemState extends ConsumerState<RowItem>
                     ? flipperWatch("onAddingItemToQuickSell")
                     : null;
                 w?.start();
-                await _onAddToCartWithOptimistic(model);
+                _onAddToCartWithOptimistic();
                 w?.log("Item Added to Quick Sell");
               },
               onLongPress: () {
@@ -880,18 +880,17 @@ class _RowItemState extends ConsumerState<RowItem>
 
     return Consumer(
       builder: (context, ref, _) {
-        final txnAsync = ref.watch(
-          pendingTransactionStreamProvider(isExpense: widget.isOrdering),
+        final txnId = ref.watch(
+          posCartPendingTransactionIdProvider(widget.isOrdering),
         );
-        final txn = txnAsync.asData?.value;
-        if (txn == null || txn.id.isEmpty) {
+        if (txnId == null || txnId.isEmpty) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
         final branchId = ProxyService.box.branchIdString() ?? '0';
         final streamTotalQty = ref.watch(
           pendingCartQtyByVariantIdProvider((
-            transactionId: txn.id,
+            transactionId: txnId,
             branchId: branchId,
           )).select((map) => map[v.id] ?? 0),
         );
@@ -917,7 +916,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 ref
                     .read(
                       transactionItemsStreamProvider(
-                        transactionId: txn.id,
+                        transactionId: txnId,
                         branchId: branchId,
                       ),
                     )
@@ -927,12 +926,9 @@ class _RowItemState extends ConsumerState<RowItem>
             final matching = items
                 .where((it) => it.active != false && it.variantId == v.id)
                 .toList();
-            await _decrementOne(transactionId: txn.id, matchingItems: matching);
+            await _decrementOne(transactionId: txnId, matchingItems: matching);
           },
-          onIncrement: () async {
-            final core = CoreViewModel();
-            await _onAddToCartWithOptimistic(core);
-          },
+          onIncrement: _onAddToCartWithOptimistic,
         );
       },
     );
@@ -943,10 +939,7 @@ class _RowItemState extends ConsumerState<RowItem>
       width: 38,
       height: 32,
       child: OutlinedButton(
-        onPressed: () async {
-          final core = CoreViewModel();
-          await _onAddToCartWithOptimistic(core);
-        },
+        onPressed: _onAddToCartWithOptimistic,
         style: OutlinedButton.styleFrom(
           padding: EdgeInsets.zero,
           side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.22)),
@@ -966,7 +959,7 @@ class _RowItemState extends ConsumerState<RowItem>
     required num qty,
     required bool decrementEnabled,
     required Future<void> Function() onDecrement,
-    required Future<void> Function() onIncrement,
+    required VoidCallback onIncrement,
   }) {
     return Container(
       height: 32,
@@ -1006,7 +999,7 @@ class _RowItemState extends ConsumerState<RowItem>
             height: 32,
             child: IconButton(
               padding: EdgeInsets.zero,
-              onPressed: () async => onIncrement(),
+              onPressed: onIncrement,
               icon: const Icon(Icons.add, size: 18),
               color: colorScheme.onSurface,
               tooltip: 'Increase quantity',
@@ -1259,61 +1252,18 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
-  /// Bumps cart UI immediately, then adds the line; rolls back bump on failure or throw.
-  Future<void> _onAddToCartWithOptimistic(CoreViewModel model) async {
-    final hasVariant = widget.variant != null;
-    if (hasVariant) {
-      setState(() => _cartOptimisticBump++);
-    }
-    try {
-      final ok = await onTapItem(model: model, isOrdering: widget.isOrdering);
-      if (hasVariant && !ok && mounted) {
-        setState(
-          () => _cartOptimisticBump = (_cartOptimisticBump - 1).clamp(0, 999),
-        );
-      }
-    } catch (_) {
-      if (hasVariant && mounted) {
-        setState(
-          () => _cartOptimisticBump = (_cartOptimisticBump - 1).clamp(0, 999),
-        );
-      }
-      rethrow;
-    }
-  }
-
-  Future<bool> onTapItem({
-    required CoreViewModel model,
-    required bool isOrdering,
-  }) async {
-    final flipperWatch? w = kDebugMode
-        ? flipperWatch("onAddingItemToQuickSell")
-        : null;
-    w?.start();
-
-    if (widget.variant != null) {
-      // Debug: Log ttCatCd before adding to transaction
-      talker.warning(
-        "DEBUG: onTapItem - variant.ttCatCd before adding: ${widget.variant!.ttCatCd}",
-      );
-
-      // Use the shared TransactionItemAdder
-      final itemAdder = TransactionItemAdder(context, ref);
-      final ok = await itemAdder.addItemToTransaction(
-        variant: widget.variant!,
-        isOrdering: isOrdering,
-        productHint: widget.product,
-        isCompositeProduct: widget.isComposite,
-      );
-      w?.log("Item Added to Quick Sell");
-      return ok;
-    } else if (widget.product != null) {
-      // _routerService.navigateTo(SellRoute(product: widget.product!));
-      throw Exception("Product navigation not implemented");
-    }
-
-    w?.log("Item Added to Quick Sell");
-    return false;
+  /// One hop: optimistic cart + background Ditto ([posCartAddServiceProvider]).
+  void _onAddToCartWithOptimistic() {
+    final v = widget.variant;
+    if (v == null) return;
+    setState(() => _cartOptimisticBump++);
+    ref.read(posCartAddServiceProvider).tapAdd(
+      context: context,
+      variant: v,
+      isOrdering: widget.isOrdering,
+      product: widget.product,
+      isComposite: widget.isComposite,
+    );
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {

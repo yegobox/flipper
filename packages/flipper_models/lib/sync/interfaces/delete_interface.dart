@@ -8,4 +8,7 @@ abstract class DeleteInterface {
   });
 
   Future<void> deleteTransactionItemAndResequence({required String id});
+
+  /// Removes every line on [transactionId] and zeros the transaction subtotal.
+  Future<void> deleteAllTransactionItems({required String transactionId});
 }

@@ -5,6 +5,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'optimistic_cart_provider.g.dart';
 
 /// Stable client-only ids so the cart table can key rows before Ditto persists.
+/// Placeholder txn id so grid taps paint the cart before Ditto returns a pending sale.
+abstract final class OptimisticCartBootstrap {
+  static const String txnId = '__pos_pending_bootstrap__';
+
+  static bool isBootstrap(String? id) => id == txnId;
+}
+
 abstract final class OptimisticCartIds {
   static const String prefix = 'optimistic:';
 
@@ -66,13 +73,31 @@ class OptimisticCart extends _$OptimisticCart {
   OptimisticCartState build() => const OptimisticCartState();
 
   void _ensureTransaction(String transactionId) {
-    if (state.activeTransactionId != transactionId) {
-      state = OptimisticCartState(
-        activeTransactionId: transactionId,
-        pendingQtyByVariantId: {},
-        lastStreamQtySumByVariantId: {},
-        variantSnapshotByVariantId: {},
-      );
+    final current = state.activeTransactionId;
+    if (current == transactionId) return;
+    if (current == null ||
+        current.isEmpty ||
+        OptimisticCartBootstrap.isBootstrap(current)) {
+      state = state.copyWith(activeTransactionId: transactionId);
+      return;
+    }
+    state = OptimisticCartState(
+      activeTransactionId: transactionId,
+      pendingQtyByVariantId: {},
+      lastStreamQtySumByVariantId: {},
+      variantSnapshotByVariantId: {},
+    );
+  }
+
+  /// Replaces [OptimisticCartBootstrap.txnId] when the real pending sale is known.
+  void bindPendingTransaction(String transactionId) {
+    if (transactionId.isEmpty) return;
+    final current = state.activeTransactionId;
+    if (current == transactionId) return;
+    if (current == null ||
+        current.isEmpty ||
+        OptimisticCartBootstrap.isBootstrap(current)) {
+      state = state.copyWith(activeTransactionId: transactionId);
     }
   }
 
@@ -198,6 +223,27 @@ class OptimisticCart extends _$OptimisticCart {
     }
     return out;
   }
+}
+
+/// Pending cart transaction id for merging stream rows with optimistic ghosts.
+String cartTransactionIdForMerge({
+  required String? pendingTransactionId,
+  required OptimisticCartState optimistic,
+}) {
+  return cartTransactionIdForMergeIds(
+    pendingTransactionId: pendingTransactionId,
+    optimisticTransactionId: optimistic.activeTransactionId,
+  );
+}
+
+String cartTransactionIdForMergeIds({
+  required String? pendingTransactionId,
+  required String? optimisticTransactionId,
+}) {
+  if (pendingTransactionId != null && pendingTransactionId.isNotEmpty) {
+    return pendingTransactionId;
+  }
+  return optimisticTransactionId ?? '';
 }
 
 /// Pure merge used by the checkout UI: persisted rows + unresolved optimistic qty.

@@ -28,6 +28,32 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
     );
   }
 
+  Future<void> deleteAllTransactionItems({required String transactionId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for deleteAllTransactionItems');
+      return;
+    }
+
+    try {
+      await ditto.store.execute(
+        'DELETE FROM transaction_items WHERE transactionId = :tid',
+        arguments: {'tid': transactionId},
+      );
+
+      final now = DateTime.now().toIso8601String();
+      await ditto.store.execute(
+        'UPDATE transactions SET subTotal = 0, updatedAt = :ua, lastTouched = :lt '
+        'WHERE _id = :tid OR id = :tid',
+        arguments: {'ua': now, 'lt': now, 'tid': transactionId},
+      );
+      talker.info('Deleted all items for transaction $transactionId');
+    } catch (e) {
+      talker.error('Error deleting all transaction items: $e');
+      rethrow;
+    }
+  }
+
   @override
   Future<void> deleteItemFromCart({
     required TransactionItem transactionItemId,
