@@ -23,8 +23,35 @@ class FlipperBaseModel extends ReactiveViewModel {
     notifyListeners();
   }
 
+  /// Whether this tenant is an Agent with a login user (POS sale attribution).
+  static bool isAgentTenantForSale(Tenant t) {
+    final type = (t.type ?? '').trim().toLowerCase();
+    final uid = (t.userId ?? '').trim();
+    return type == 'agent' && uid.isNotEmpty;
+  }
+
+  /// Agent tenants for [businessId] via Supabase — same pipeline as [loadTenants].
+  static Future<List<Tenant>> fetchAgentTenantsFromSupabase({
+    String? businessId,
+  }) async {
+    final id = businessId ?? ProxyService.box.getBusinessId();
+    if (id == null || id.isEmpty) return const [];
+
+    try {
+      final businessUuid = await resolveBusinessUuidForTenants(id);
+      if (businessUuid == null || businessUuid.isEmpty) return const [];
+
+      final users = await fetchTenantsFromSupabase(businessUuid);
+      final deduped = dedupeTenantsForDisplay(users);
+      return deduped.where(isAgentTenantForSale).toList();
+    } catch (e, s) {
+      debugPrint('fetchAgentTenantsFromSupabase: $e\n$s');
+      return const [];
+    }
+  }
+
   /// Resolves [businessId] from box to the businesses.id UUID used in Supabase.
-  static Future<String?> _resolveBusinessUuid(String businessId) async {
+  static Future<String?> resolveBusinessUuidForTenants(String businessId) async {
     try {
       final row = await Supabase.instance.client
           .from('businesses')
@@ -41,7 +68,7 @@ class FlipperBaseModel extends ReactiveViewModel {
   /// Loads all tenants for a business from Supabase (not Brick).
   ///
   /// Many legacy rows have `tenants.business_id` null and are linked via `pins`.
-  static Future<List<Tenant>> _fetchTenantsFromSupabase(
+  static Future<List<Tenant>> fetchTenantsFromSupabase(
     String businessUuid,
   ) async {
     final client = Supabase.instance.client;
@@ -55,7 +82,7 @@ class FlipperBaseModel extends ReactiveViewModel {
         if (row['business_id'] == null) {
           row['business_id'] = businessUuid;
         }
-        final tenant = _tenantFromSupabaseRow(row);
+        final tenant = tenantFromSupabaseRow(row);
         byTenantId.putIfAbsent(tenant.id, () => tenant);
       }
     }
@@ -120,12 +147,12 @@ class FlipperBaseModel extends ReactiveViewModel {
 
     List<Tenant> users;
     try {
-      final businessUuid = await _resolveBusinessUuid(businessId);
+      final businessUuid = await resolveBusinessUuidForTenants(businessId);
       if (businessUuid == null || businessUuid.isEmpty) {
         debugPrint('loadTenants: could not resolve business id "$businessId"');
         users = [];
       } else {
-        users = await _fetchTenantsFromSupabase(businessUuid);
+        users = await fetchTenantsFromSupabase(businessUuid);
         debugPrint(
           'loadTenants: businessUuid=$businessUuid count=${users.length}',
         );
@@ -135,14 +162,14 @@ class FlipperBaseModel extends ReactiveViewModel {
       users = [];
     }
 
-    _tenants = _dedupeTenantsForDisplay(users);
+    _tenants = dedupeTenantsForDisplay(users);
     notifyListeners();
   }
 
   /// One row per login identity in the UI (same [Tenant.userId] or same email).
   ///
   /// Prefers a row with [Tenant.businessId] set, then latest [Tenant.lastTouched].
-  static List<Tenant> _dedupeTenantsForDisplay(List<Tenant> users) {
+  static List<Tenant> dedupeTenantsForDisplay(List<Tenant> users) {
     int score(Tenant t) {
       var s = 0;
       if (t.businessId != null && t.businessId!.isNotEmpty) s += 100;
@@ -184,7 +211,7 @@ class FlipperBaseModel extends ReactiveViewModel {
       );
   }
 
-  static Tenant _tenantFromSupabaseRow(Map<String, dynamic> r) {
+  static Tenant tenantFromSupabaseRow(Map<String, dynamic> r) {
     String sid(Object? v) => v?.toString() ?? '';
 
     final pinRaw = r['pin'];

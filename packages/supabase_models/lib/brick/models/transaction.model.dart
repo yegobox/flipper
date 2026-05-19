@@ -146,6 +146,25 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   String? customerPhone;
   String? agentId;
+
+  /// Agent tenant user credited for commission (not the cashier session user).
+  @Sqlite(name: 'attributed_agent_user_id')
+  @Supabase(name: 'attributed_agent_user_id')
+  String? attributedAgentUserId;
+
+  /// `fixed` or `percent`.
+  @Sqlite(name: 'agent_commission_type')
+  @Supabase(name: 'agent_commission_type')
+  String? agentCommissionType;
+
+  @Sqlite(name: 'agent_commission_value')
+  @Supabase(name: 'agent_commission_value')
+  num? agentCommissionValue;
+
+  @Sqlite(name: 'agent_commission_amount')
+  @Supabase(name: 'agent_commission_amount')
+  num? agentCommissionAmount;
+
   @Sqlite(name: 'cashier_name')
   @Supabase(name: 'cashier_name')
   String? cashierName;
@@ -224,6 +243,10 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.payments,
     this.customerPhone,
     required this.agentId,
+    this.attributedAgentUserId,
+    this.agentCommissionType,
+    this.agentCommissionValue,
+    this.agentCommissionAmount,
     this.cashierName,
     this.deviceId,
     this.dataSource,
@@ -313,6 +336,10 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     List<TransactionPaymentRecord>? payments,
     String? customerPhone,
     String? agentId,
+    String? attributedAgentUserId,
+    String? agentCommissionType,
+    num? agentCommissionValue,
+    num? agentCommissionAmount,
     String? cashierName,
     String? deviceId,
     Strategy? dataSource,
@@ -382,6 +409,14 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       customerPhone: customerPhone ?? this.customerPhone,
       ticketName: ticketName ?? this.ticketName,
       agentId: agentId ?? this.agentId,
+      attributedAgentUserId:
+          attributedAgentUserId ?? this.attributedAgentUserId,
+      agentCommissionType:
+          agentCommissionType ?? this.agentCommissionType,
+      agentCommissionValue:
+          agentCommissionValue ?? this.agentCommissionValue,
+      agentCommissionAmount:
+          agentCommissionAmount ?? this.agentCommissionAmount,
       cashierName: cashierName ?? this.cashierName,
       deviceId: deviceId ?? this.deviceId,
       dataSource: dataSource ?? this.dataSource,

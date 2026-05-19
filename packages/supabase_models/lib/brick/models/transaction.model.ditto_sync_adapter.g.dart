@@ -167,6 +167,10 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "discountAmount": model.discountAmount,
       "customerPhone": model.customerPhone,
       "agentId": model.agentId,
+      "attributedAgentUserId": model.attributedAgentUserId,
+      "agentCommissionType": model.agentCommissionType,
+      "agentCommissionValue": model.agentCommissionValue,
+      "agentCommissionAmount": model.agentCommissionAmount,
       "cashierName": model.cashierName,
       "deviceId": model.deviceId,
     };
@@ -266,6 +270,10 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       payments: null, // Excluded from Ditto sync
       customerPhone: document["customerPhone"],
       agentId: document["agentId"],
+      attributedAgentUserId: document["attributedAgentUserId"],
+      agentCommissionType: document["agentCommissionType"],
+      agentCommissionValue: document["agentCommissionValue"],
+      agentCommissionAmount: document["agentCommissionAmount"],
       cashierName: document["cashierName"],
       deviceId: document["deviceId"],
       dataSource: null, // Excluded from Ditto sync

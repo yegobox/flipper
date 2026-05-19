@@ -38,6 +38,7 @@ import 'package:flipper_models/sync/mixins/discount_mixin.dart';
 import 'package:flipper_models/sync/mixins/core_personal_goals_stub_mixin.dart';
 import 'package:flipper_models/sync/mixins/settings_mixin.dart';
 import 'package:flipper_models/sync/mixins/getter_operations_mixin.dart';
+import 'package:flipper_models/helpers/tenant_supabase_queries.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -236,28 +237,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Stream<Tenant?> authState({required String branchId}) async* {
-    final userId = ProxyService.box.getUserId();
-
-    if (userId == null) {
-      // Handle the case where userId == null, perhaps throw an exception or return an error Stream
-      throw Exception('User ID == nil');
-    }
-
-    final controller = StreamController<Tenant?>();
-
-    repository
-        .subscribe<Tenant>(
-          query: brick.Query(where: [brick.Where('userId').isExactly(userId)]),
-        )
-        .listen((tenants) {
-          controller.add(tenants.isEmpty ? null : tenants.first);
-        });
-
-    await for (var tenant in controller.stream) {
-      yield tenant;
-    }
-    // Close the StreamController after the stream is finishe
-    controller.close();
+    throw UnimplementedError();
   }
 
   @override
@@ -954,16 +934,9 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Stream<Tenant?> getDefaultTenant({required String businessId}) {
-    final query = brick.Query(
-      where: [brick.Where('businessId').isExactly(businessId)],
+    return Stream.fromFuture(
+      TenantSupabaseQueries.defaultForBusiness(businessId),
     );
-    // Return the stream directly instead of storing in variable
-    return repository
-        .subscribe<Tenant>(
-          query: query,
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        )
-        .map((tenants) => tenants.firstOrNull);
   }
 
   @override
@@ -1255,18 +1228,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
-    if (userId != null) {
-      return (await repository.get<Tenant>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]),
-        policy: OfflineFirstGetPolicy.localOnly,
-      )).firstOrNull;
-    } else if (pin != null) {
-      return (await repository.get<Tenant>(
-        query: brick.Query(where: [brick.Where('pin').isExactly(pin)]),
-        policy: OfflineFirstGetPolicy.localOnly,
-      )).firstOrNull;
-    }
-    throw Exception("UserId or Pin is required");
+    return TenantSupabaseQueries.getTenant(userId: userId, pin: pin);
   }
 
   @override

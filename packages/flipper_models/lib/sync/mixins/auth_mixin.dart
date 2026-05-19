@@ -28,6 +28,7 @@ import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -338,6 +339,117 @@ mixin AuthMixin implements AuthInterface {
     );
   }
 
+  /// Loads the same payload as POST `/v2/api/user` when we already know [userId].
+  Future<Map<String, dynamic>?> _fetchUserWithNestedData(String userId) async {
+    try {
+      final raw = await Supabase.instance.client.rpc(
+        'get_user_with_nested_data',
+        params: {'p_user_id': userId},
+      );
+      if (raw is String && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          return Map<String, dynamic>.from(decoded);
+        }
+      }
+      if (raw is Map) {
+        return Map<String, dynamic>.from(raw);
+      }
+    } catch (e, s) {
+      talker.warning('get_user_with_nested_data($userId): $e\n$s');
+    }
+    return null;
+  }
+
+  /// Persists `/v2/api/user` top-level `id` (not `businesses[].user_id`).
+  Future<void> _persistApiUserId(String apiUserId) async {
+    final id = apiUserId.trim();
+    if (id.isEmpty) return;
+    await ProxyService.box.writeString(key: 'userIdString', value: id);
+    await ProxyService.box.writeString(key: 'userId', value: id);
+  }
+
+  /// Pins can carry a stale [Pin.userId]; [sendLoginRequest] returns the canonical
+  /// `public.users.id` from `/v2/api/user`. Realign local Brick pin rows.
+  Future<void> _realignPinUserId({
+    required String phoneNumber,
+    required String canonicalUserId,
+    int? pinCode,
+  }) async {
+    try {
+      final localPin = await ProxyService.strategy.getPinLocal(
+        phoneNumber: phoneNumber,
+        alwaysHydrate: false,
+      );
+      if (localPin == null) return;
+      if (localPin.userId == canonicalUserId) return;
+
+      talker.warning(
+        'Realigning PIN userId ${localPin.userId} -> $canonicalUserId '
+        'for $phoneNumber',
+      );
+      localPin.userId = canonicalUserId;
+      await ProxyService.strategy.savePin(pin: localPin);
+    } catch (e, s) {
+      talker.warning('Could not realign PIN userId: $e\n$s');
+    }
+  }
+
+  Future<IUser> _authenticateUserOnline(
+    String phoneNumber,
+    Pin pin,
+    HttpClientInterface flipperHttpClient,
+  ) async {
+    talker.debug('Online auth: refreshing identity from /v2/api/user');
+    final http.Response response = await sendLoginRequest(
+      phoneNumber,
+      flipperHttpClient,
+      apihub,
+      expectedPinUserId: pin.userId,
+      pinLookupPhone: pin.phoneNumber,
+    );
+
+    if (response.statusCode != 200 || response.body.isEmpty) {
+      await _handleLoginError(response);
+      throw Exception('Error during login');
+    }
+
+    final IUser user = IUser.fromJson(json.decode(response.body));
+    talker.debug(
+      'Online auth: API user id=${user.id} (pin.userId=${pin.userId})',
+    );
+
+    await _realignPinUserId(
+      phoneNumber: phoneNumber,
+      canonicalUserId: user.id,
+      pinCode: pin.pin,
+    );
+
+    if (user.pin != null) {
+      try {
+        unawaited(
+          _patchPin(
+            user.pin!,
+            flipperHttpClient,
+            apihub,
+            ownerName: pin.ownerName ?? 'Default Tenant',
+          ),
+        );
+      } catch (e) {
+        talker.warning('Failed to patch PIN, but continuing login: $e');
+      }
+    }
+
+    await _persistApiUserId(user.id);
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || currentUser.uid != user.uid) {
+      await firebaseLogin(token: user.uid);
+    }
+
+    return user;
+  }
+
   Future<IUser> _authenticateUser(
     String phoneNumber,
     Pin pin,
@@ -346,8 +458,29 @@ mixin AuthMixin implements AuthInterface {
     bool freshUser = false,
     required bool isInSignUpProgress,
   }) async {
-    final userId = pin.userId ?? ProxyService.box.getUserId();
-    final userAccess = await ProxyService.ditto.getUserAccess(userId!);
+    final isOnline = await ProxyService.status.isInternetAvailable();
+
+    // When online, always use /v2/api/user so box + Ditto get `response.id`
+    // (not business.user_id or a stale pin.userId).
+    if (isOnline && !forceOffline) {
+      offlineLogin = false;
+      return _authenticateUserOnline(phoneNumber, pin, flipperHttpClient);
+    }
+
+    final accessUserId = ProxyService.box.getUserId() ?? pin.userId;
+    if (accessUserId == null || accessUserId.isEmpty) {
+      throw Exception('Cannot authenticate offline without a saved user id');
+    }
+
+    var userAccess = await ProxyService.ditto.getUserAccess(accessUserId);
+    if (userAccess == null &&
+        pin.userId != null &&
+        pin.userId != accessUserId) {
+      userAccess = await ProxyService.ditto.getUserAccess(pin.userId!);
+    }
+
+    final canonicalUserId = userAccess?['id']?.toString() ?? accessUserId;
+
     List<Business> businessesE = [];
     List<Branch> branchesE = [];
 
@@ -368,96 +501,31 @@ mixin AuthMixin implements AuthInterface {
 
     final bool shouldEnableOfflineLogin =
         forceOffline ||
-        (businessesE.isNotEmpty &&
-            branchesE.isNotEmpty &&
-            !(await ProxyService.status.isInternetAvailable()));
+        (businessesE.isNotEmpty && branchesE.isNotEmpty && !isOnline);
 
-    talker.debug("Offline login decision factors:");
-    talker.debug("- forceOffline: $forceOffline");
-    talker.debug("- businessesE not empty: ${businessesE.isNotEmpty}");
-    talker.debug("- branchesE not empty: ${branchesE.isNotEmpty}");
-    talker.debug("- kDebugMode: ${foundation.kDebugMode}");
-    talker.debug(
-      "- Internet available: ${await ProxyService.status.isInternetAvailable()}",
-    );
-    talker.debug("Final shouldEnableOfflineLogin: $shouldEnableOfflineLogin");
+    talker.debug('Offline login decision factors:');
+    talker.debug('- forceOffline: $forceOffline');
+    talker.debug('- businessesE not empty: ${businessesE.isNotEmpty}');
+    talker.debug('- branchesE not empty: ${branchesE.isNotEmpty}');
+    talker.debug('- Internet available: $isOnline');
+    talker.debug('Final shouldEnableOfflineLogin: $shouldEnableOfflineLogin');
 
     if (shouldEnableOfflineLogin) {
       offlineLogin = true;
-      final offlineUser = _createOfflineUser(
+      return _createOfflineUser(
         phoneNumber,
         pin,
         businessesE,
         branchesE,
+        canonicalUserId: canonicalUserId,
       );
-
-      return offlineUser;
     }
 
-    // Check if we already have a valid Firebase user and token
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final existingToken = await ProxyService.box.getBearerToken();
-    final existingUserId = ProxyService.box.getUserId();
-
-    // If we have a valid token and the user ID matches the pin's user ID,
-    // we can skip the sendLoginRequest call
-    if (currentUser != null &&
-        existingToken != null &&
-        existingUserId != null &&
-        existingUserId.toString() == pin.userId.toString() &&
-        !isInSignUpProgress) {
-      talker.debug("Using existing Firebase authentication");
-
-      // Create a user object from existing data
-      final user = IUser(
-        token: ProxyService.box.getBearerToken(),
-        id: existingUserId,
-        uid: currentUser.uid,
-        phoneNumber: phoneNumber,
-      );
-
-      return user;
+    if (isOnline) {
+      return _authenticateUserOnline(phoneNumber, pin, flipperHttpClient);
     }
 
-    // Otherwise, proceed with normal authentication flow
-    talker.debug("Performing full authentication flow");
-    final http.Response response = await sendLoginRequest(
-      phoneNumber,
-      flipperHttpClient,
-      apihub,
-    );
-
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      // Parse the user from the response
-      final IUser user = IUser.fromJson(json.decode(response.body));
-
-      // Make PIN patching non-blocking for the login flow
-      try {
-        final ownerName = 'Default Tenant';
-        unawaited(
-          _patchPin(user.pin!, flipperHttpClient, apihub, ownerName: ownerName),
-        );
-      } catch (e) {
-        // Log the error but don't block login
-        talker.warning("Failed to patch PIN, but continuing login: $e");
-        // This ensures offline login still works even if PIN patching fails
-      }
-
-      ProxyService.box.writeString(key: 'userId', value: user.id);
-
-      // Initialize Ditto with the authenticated user ID using shared helper
-      await _initializeDitto(user.id);
-
-      // Only perform Firebase login if not already logged in
-      if (currentUser == null || currentUser.uid != user.uid) {
-        await firebaseLogin(token: user.uid);
-      }
-
-      return user;
-    } else {
-      await _handleLoginError(response);
-      throw Exception("Error during login");
-    }
+    throw Exception('Login requires an internet connection');
   }
 
   @override
@@ -508,7 +576,7 @@ mixin AuthMixin implements AuthInterface {
 
         // Also set business preferences
         try {
-          final businesses = await this.businesses(userId: pin.userId!);
+          final businesses = await this.businesses(userId: user.id);
           Business? selectedBusiness;
 
           // Find the matching business or use the first one if none matches
@@ -668,26 +736,35 @@ mixin AuthMixin implements AuthInterface {
     HttpClientInterface flipperHttpClient,
     String apihub, {
     String? uid,
+    String? expectedPinUserId,
+    String? pinLookupPhone,
   }) async {
     uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
 
+    var lookupPhone = phoneNumber.trim();
+    if (pinLookupPhone != null && pinLookupPhone.trim().isNotEmpty) {
+      lookupPhone = pinLookupPhone.trim();
+    }
+
     // get userId of the user that is trying to log in
     final savedLocalPinForThis = await ProxyService.strategy.getPinLocal(
-      phoneNumber: phoneNumber,
+      phoneNumber: lookupPhone,
       alwaysHydrate: false,
     );
     uid ??= savedLocalPinForThis?.uid;
+    final pinUserId = expectedPinUserId ?? savedLocalPinForThis?.userId;
 
     // If local data is not sufficient, proceed with the actual API call
     try {
-      talker.debug("Sending login request to API for phone: $phoneNumber");
+      talker.debug("Sending login request to API for phone: $lookupPhone");
+      var apiPhone = lookupPhone;
       // Only add '+' prefix if it's a phone number (not email) and doesn't start with '+'
-      if (!phoneNumber.startsWith('+') && !phoneNumber.contains('@')) {
-        phoneNumber = '+$phoneNumber';
+      if (!apiPhone.startsWith('+') && !apiPhone.contains('@')) {
+        apiPhone = '+$apiPhone';
       }
       final response = await flipperHttpClient.post(
         Uri.parse(apihub + '/v2/api/user'),
-        body: jsonEncode(<String, String?>{'phoneNumber': phoneNumber}),
+        body: jsonEncode(<String, String?>{'phoneNumber': apiPhone}),
       );
 
       // Check for 401 Unauthorized response
@@ -713,7 +790,26 @@ mixin AuthMixin implements AuthInterface {
         throw Exception("Empty response from server");
       }
 
-      final responseBody = jsonDecode(response.body);
+      var responseBody = Map<String, dynamic>.from(
+        jsonDecode(response.body) as Map,
+      );
+
+      // Duplicate public.users rows (e.g. murag.richard+agent2 vs murag.richardagent2):
+      // trust pins.user_id when API returns a different id.
+      if (pinUserId != null &&
+          pinUserId.isNotEmpty &&
+          responseBody['id']?.toString() != pinUserId) {
+        talker.warning(
+          'POST /v2/api/user returned id=${responseBody['id']} but '
+          'pins.user_id=$pinUserId — using PIN user for session',
+        );
+        final corrected = await _fetchUserWithNestedData(pinUserId);
+        if (corrected != null) {
+          responseBody = corrected;
+        } else {
+          responseBody['id'] = pinUserId;
+        }
+      }
 
       // Check if this is an error response
       if (responseBody.containsKey('details') &&
@@ -731,16 +827,9 @@ mixin AuthMixin implements AuthInterface {
       talker.warning("$responseBody");
       // Handle userId which could now be a string or int
       if (responseBody['id'] is String) {
-        // Store the original string ID for reference
-        ProxyService.box.writeString(
-          key: 'userIdString',
-          value: responseBody['id'],
-        );
-        // Convert string ID to integer for backward compatibility
-        final String userId = responseBody['id'];
-        ProxyService.box.writeString(key: 'userId', value: userId);
+        await _persistApiUserId(responseBody['id'] as String);
       } else if (responseBody['id'] != null) {
-        ProxyService.box.writeString(key: 'userId', value: responseBody['id']);
+        await _persistApiUserId(responseBody['id'].toString());
       } else {
         talker.error("Missing ID in response: ${responseBody}");
         throw Exception("Missing user ID in server response");
@@ -789,12 +878,16 @@ mixin AuthMixin implements AuthInterface {
         }
       }
 
-      ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-      await _initializeDitto(responseBody['id']);
+      ProxyService.box.writeString(key: 'userPhone', value: lookupPhone);
+      await _initializeDitto(responseBody['id'].toString());
       // Save user access to Ditto for cross-device synchronization
       await ProxyService.ditto.saveUserAccess(responseBody);
 
-      return response;
+      return http.Response(
+        jsonEncode(responseBody),
+        response.statusCode,
+        headers: response.headers,
+      );
     } catch (e, s) {
       // If it's already a SessionException, rethrow it
       if (e is SessionException) {
@@ -871,15 +964,17 @@ mixin AuthMixin implements AuthInterface {
     String phoneNumber,
     Pin pin,
     List<Business> businesses,
-    List<Branch> branches,
-  ) {
-    // For businessId, convert to int if it's a string for backward compatibility
+    List<Branch> branches, {
+    String? canonicalUserId,
+  }) {
+    final resolvedId =
+        canonicalUserId ?? ProxyService.box.getUserId() ?? pin.userId ?? '';
 
     return IUser(
       token: ProxyService.box.getBearerToken() ?? "",
       uid: pin.uid,
       phoneNumber: pin.phoneNumber!,
-      id: pin.userId!,
+      id: resolvedId,
       businesses: _convertBusinesses(businesses),
     );
   }

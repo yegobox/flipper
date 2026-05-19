@@ -1,4 +1,3 @@
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -6,11 +5,42 @@ const String kCommissionOnlySessionKey = 'commissionOnlySession';
 
 /// Persists whether the current session is commission-only (restricted agent login).
 Future<void> setCommissionOnlySession(bool value) async {
-  await ProxyService.box.writeBool(key: kCommissionOnlySessionKey, value: value);
+  await ProxyService.box.writeBool(
+    key: kCommissionOnlySessionKey,
+    value: value,
+  );
 }
 
 bool isCommissionOnlySession() {
   return ProxyService.box.readBool(key: kCommissionOnlySessionKey) ?? false;
+}
+
+/// Login identity from box (prefers API `userIdString`) or Ditto user_access `id`.
+Future<String?> resolveSessionUserId({String? userId}) async {
+  if (userId != null && userId.trim().isNotEmpty) {
+    return userId.trim();
+  }
+
+  final fromBox = ProxyService.box.getUserId();
+  if (fromBox == null || fromBox.isEmpty) {
+    return null;
+  }
+
+  if (!ProxyService.ditto.isReady()) {
+    return fromBox;
+  }
+
+  try {
+    final access = await ProxyService.ditto.getUserAccess(fromBox);
+    final accessId = access?['id']?.toString().trim();
+    if (accessId != null && accessId.isNotEmpty) {
+      return accessId;
+    }
+  } catch (_) {
+    // Use box value when Ditto is unavailable.
+  }
+
+  return fromBox;
 }
 
 /// True when the user is an Agent for [businessId] without full business login.
@@ -18,7 +48,7 @@ Future<bool> resolveCommissionOnlyLogin({
   String? userId,
   String? businessId,
 }) async {
-  final uid = userId ?? ProxyService.box.getUserId();
+  final uid = await resolveSessionUserId(userId: userId);
   final bid = businessId ?? ProxyService.box.getBusinessId();
   if (uid == null || uid.isEmpty || bid == null || bid.isEmpty) {
     return false;

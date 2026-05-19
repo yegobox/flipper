@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:flipper_dashboard/utils/sale_agent_completion.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -760,6 +761,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       paymentMethods: paymentLines,
       saleTotal: finalSubTotal,
       shouldBeLoan: derived.shouldBeLoan,
+    );
+
+    await finalizeAgentCommissionForSaleCompletion(
+      transaction: transaction,
+      finalSubTotal: finalSubTotal,
     );
 
     final markSw = Stopwatch()..start();

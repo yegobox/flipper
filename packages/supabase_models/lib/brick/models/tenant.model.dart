@@ -1,13 +1,13 @@
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
+// import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
-@ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'tenants'),
-)
-class Tenant extends OfflineFirstWithSupabaseModel {
-  @Supabase(unique: true)
+// @ConnectOfflineFirstWithSupabase(
+//   supabaseConfig: SupabaseSerializable(tableName: 'tenants'),
+// )
+class Tenant extends OfflineFirstModel {
   @Sqlite(index: true, unique: true)
   final String id;
 

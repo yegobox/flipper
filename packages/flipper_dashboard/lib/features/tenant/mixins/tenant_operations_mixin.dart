@@ -292,11 +292,14 @@ class TenantOperationsMixin {
         );
       } on PostgrestException catch (e, s) {
         talker.error(s);
+        final base = e.message.isNotEmpty
+            ? e.message
+            : 'Failed to save permissions (Supabase error).';
         _fail(
           context,
-          e.message.isNotEmpty
-              ? e.message
-              : 'Failed to save permissions (Supabase error).',
+          '$base '
+          'The login account may already exist without a tenant for this business — '
+          'open User Management and add this user again to finish setup.',
           e,
         );
       } on _CreateAgentMigrationRequired catch (e) {

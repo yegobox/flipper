@@ -4,6 +4,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_models/helpers/tenant_supabase_queries.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/db_model_export.dart' hide BusinessType;
 import 'package:supabase_models/brick/repository.dart';
@@ -36,12 +37,7 @@ mixin BusinessMixin implements BusinessInterface {
       return [];
     }
 
-    final tenants = await repository.get<Tenant>(
-      policy: fetchOnline
-          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-          : OfflineFirstGetPolicy.localOnly,
-      query: Query(where: [Where('userId').isExactly(userId)]),
-    );
+    final tenants = await TenantSupabaseQueries.listByUserId(userId);
 
     if (tenants.isEmpty) {
       return [];

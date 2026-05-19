@@ -7,13 +7,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 mixin SystemMixin implements SystemInterface {
   @override
   Future<void> configureTheBox(String userPhone, IUser user) async {
-    await ProxyService.box.writeString(key: 'userId', value: user.id);
+    final id = user.id.trim();
+    await ProxyService.box.writeString(key: 'userIdString', value: id);
+    await ProxyService.box.writeString(key: 'userId', value: id);
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
   }
 
   @override
   Future<void> saveNeccessaryData(IUser user) async {
-    await ProxyService.box.writeString(key: 'userId', value: user.id);
+    final id = user.id.trim();
+    await ProxyService.box.writeString(key: 'userIdString', value: id);
+    await ProxyService.box.writeString(key: 'userId', value: id);
     await ProxyService.box.writeString(key: 'token', value: user.token ?? "");
   }
 

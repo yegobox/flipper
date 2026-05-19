@@ -54,6 +54,13 @@ bool _dittoRowStatusIsPending(Map<String, dynamic> data) {
   return false;
 }
 
+/// Prefer explicit `id` (UUID) over Ditto's auto-generated `_id`.
+String? _dittoDocumentId(Map<String, dynamic> data) {
+  final id = data['id']?.toString();
+  if (id != null && id.isNotEmpty) return id;
+  return data['_id']?.toString();
+}
+
 mixin CapellaTransactionMixin implements TransactionInterface {
   Repository get repository;
   Talker get talker;
@@ -371,8 +378,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
 
     return ITransaction(
-      agentId: ProxyService.box.getUserId()!,
-      id: data['_id'] ?? data['id'],
+      agentId: (data['agentId'] as String?) ?? ProxyService.box.getUserId()!,
+      attributedAgentUserId: data['attributedAgentUserId'] as String?,
+      agentCommissionType: data['agentCommissionType'] as String?,
+      agentCommissionValue: parseDouble(data['agentCommissionValue']),
+      agentCommissionAmount: parseDouble(data['agentCommissionAmount']),
+      id: _dittoDocumentId(data),
       reference: data['reference'],
       categoryId: data['categoryId'],
       transactionNumber: data['transactionNumber'],
@@ -454,6 +465,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     List<String>? receiptNumber,
     String? customerId,
     String? agentId,
+    String? attributedAgentUserId,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -562,6 +574,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         if (agentId != null) {
           whereClauses.add('agentId = :agentId');
           arguments['agentId'] = agentId;
+        }
+
+        // Sale agent attribution (commission reporting)
+        if (attributedAgentUserId != null) {
+          whereClauses.add('attributedAgentUserId = :attributedAgentUserId');
+          arguments['attributedAgentUserId'] = attributedAgentUserId;
         }
 
         // Receipt number filter - check both invoiceNumber OR receiptNumber
@@ -958,7 +976,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             'supplyPriceAtSale': unitSupply,
             'supplyPrice': unitSupply,
             'updatedAt': DateTime.now().toIso8601String(),
-            'id': existingItemData['_id'] ?? existingItemData['id'],
+            'id': _dittoDocumentId(existingItemData),
           },
         );
 
@@ -973,7 +991,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         final lineSupplyAmt = unitSupply * qty;
 
         final newItem = TransactionItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate ID
           name: variation.name,
           transactionId: pendingTransaction.id,
           variantId: variation.id,
@@ -1381,6 +1398,15 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
     }
 
+    void addFieldUpdate(String field, dynamic value) {
+      updates.add('$field = :$field');
+      if (value is DateTime) {
+        arguments[field] = value.toIso8601String();
+      } else {
+        arguments[field] = value;
+      }
+    }
+
     // Only persist status when the caller passes [status] explicitly. Using
     // `transaction?.status` here caused regressions: a stale in-memory
     // [ITransaction] (e.g. from a provider or an unawaited callback) could
@@ -1393,6 +1419,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       addUpdate('status', status);
     }
     addUpdate('subTotal', subTotal ?? transaction?.subTotal);
+    addUpdate('taxAmount', transaction?.taxAmount);
     addUpdate('cashierName', cashierName);
     final resolvedUpdatedAt =
         updatedAt ?? transaction?.updatedAt ?? DateTime.now();
@@ -1418,6 +1445,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // Crucial for resumption: update agentId if transaction object is provided
     if (transaction != null) {
       addUpdate('agentId', transaction.agentId);
+      addFieldUpdate(
+        'attributedAgentUserId',
+        transaction.attributedAgentUserId,
+      );
+      addFieldUpdate('agentCommissionType', transaction.agentCommissionType);
+      addFieldUpdate('agentCommissionValue', transaction.agentCommissionValue);
+      addFieldUpdate(
+        'agentCommissionAmount',
+        transaction.agentCommissionAmount,
+      );
     }
 
     if (receiptType != null) addUpdate('receiptType', receiptType);
@@ -2080,6 +2117,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   Map<String, dynamic> _transactionToMap(ITransaction transaction) {
     return {
+      '_id': transaction.id,
       'id': transaction.id,
       'reference': transaction.reference,
       'categoryId': transaction.categoryId,

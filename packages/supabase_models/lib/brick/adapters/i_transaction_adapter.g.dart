@@ -173,6 +173,18 @@ Future<ITransaction> _$ITransactionFromSupabase(
         ? null
         : data['customer_phone'] as String?,
     agentId: data['agent_id'] == null ? null : data['agent_id'] as String?,
+    attributedAgentUserId: data['attributed_agent_user_id'] == null
+        ? null
+        : data['attributed_agent_user_id'] as String?,
+    agentCommissionType: data['agent_commission_type'] == null
+        ? null
+        : data['agent_commission_type'] as String?,
+    agentCommissionValue: data['agent_commission_value'] == null
+        ? null
+        : data['agent_commission_value'] as num?,
+    agentCommissionAmount: data['agent_commission_amount'] == null
+        ? null
+        : data['agent_commission_amount'] as num?,
     cashierName: data['cashier_name'] == null
         ? null
         : data['cashier_name'] as String?,
@@ -246,6 +258,10 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'discount_amount': instance.discountAmount,
     'customer_phone': instance.customerPhone,
     'agent_id': instance.agentId,
+    'attributed_agent_user_id': instance.attributedAgentUserId,
+    'agent_commission_type': instance.agentCommissionType,
+    'agent_commission_value': instance.agentCommissionValue,
+    'agent_commission_amount': instance.agentCommissionAmount,
     'cashier_name': instance.cashierName,
     'device_id': instance.deviceId,
   };
@@ -457,6 +473,18 @@ Future<ITransaction> _$ITransactionFromSqlite(
         ? null
         : data['customer_phone'] as String?,
     agentId: data['agent_id'] == null ? null : data['agent_id'] as String?,
+    attributedAgentUserId: data['attributed_agent_user_id'] == null
+        ? null
+        : data['attributed_agent_user_id'] as String?,
+    agentCommissionType: data['agent_commission_type'] == null
+        ? null
+        : data['agent_commission_type'] as String?,
+    agentCommissionValue: data['agent_commission_value'] == null
+        ? null
+        : data['agent_commission_value'] as num?,
+    agentCommissionAmount: data['agent_commission_amount'] == null
+        ? null
+        : data['agent_commission_amount'] as num?,
     cashierName: data['cashier_name'] == null
         ? null
         : data['cashier_name'] as String?,
@@ -546,6 +574,10 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'discount_amount': instance.discountAmount,
     'customer_phone': instance.customerPhone,
     'agent_id': instance.agentId,
+    'attributed_agent_user_id': instance.attributedAgentUserId,
+    'agent_commission_type': instance.agentCommissionType,
+    'agent_commission_value': instance.agentCommissionValue,
+    'agent_commission_amount': instance.agentCommissionAmount,
     'cashier_name': instance.cashierName,
     'device_id': instance.deviceId,
   };
@@ -797,6 +829,22 @@ class ITransactionAdapter
     'agentId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'agent_id',
+    ),
+    'attributedAgentUserId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'attributed_agent_user_id',
+    ),
+    'agentCommissionType': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_type',
+    ),
+    'agentCommissionValue': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_value',
+    ),
+    'agentCommissionAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_amount',
     ),
     'cashierName': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -1184,6 +1232,30 @@ class ITransactionAdapter
       columnName: 'agent_id',
       iterable: false,
       type: String,
+    ),
+    'attributedAgentUserId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'attributed_agent_user_id',
+      iterable: false,
+      type: String,
+    ),
+    'agentCommissionType': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_type',
+      iterable: false,
+      type: String,
+    ),
+    'agentCommissionValue': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_value',
+      iterable: false,
+      type: num,
+    ),
+    'agentCommissionAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_amount',
+      iterable: false,
+      type: num,
     ),
     'cashierName': const RuntimeSqliteColumnDefinition(
       association: false,

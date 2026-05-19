@@ -26,6 +26,7 @@ abstract class TransactionInterface {
     List<String>? receiptNumber,
     String? customerId,
     String? agentId,
+    String? attributedAgentUserId,
   });
 
   /// Merge `from` into `to`:

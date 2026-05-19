@@ -376,9 +376,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         await locator<AppService>().setDefaultBranch(branches.first);
         // Small delay to allow Hive writes to complete
         await Future.delayed(const Duration(milliseconds: 100));
+        await _completeAuthenticationFlow();
         _invalidateProviders();
-        _completeAuthenticationFlow();
       } else {
+        await _completeAuthenticationFlow();
         // If multiple branches, show branch selection
         setState(() {
           _isSelectingBranch = true;
@@ -483,7 +484,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       }
     }
   }
-
+  
   // Consolidating logic into AppService
 
   Future<void> _completeAuthenticationFlow() async {

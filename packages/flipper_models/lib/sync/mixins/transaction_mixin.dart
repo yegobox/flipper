@@ -83,6 +83,7 @@ mixin TransactionMixin implements TransactionInterface {
     List<String>? receiptNumber,
     String? customerId,
     String? agentId,
+    String? attributedAgentUserId,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -148,6 +149,9 @@ mixin TransactionMixin implements TransactionInterface {
         if (filterType != null) Where('type').isExactly(filterType.name),
         if (transactionType != null)
           Where('transactionType').isExactly(transactionType),
+        if (agentId != null) Where('agentId').isExactly(agentId),
+        if (attributedAgentUserId != null)
+          Where('attributedAgentUserId').isExactly(attributedAgentUserId),
       ],
     ];
 
@@ -172,6 +176,32 @@ mixin TransactionMixin implements TransactionInterface {
         Where(
           'lastTouched',
         ).isGreaterThanOrEqualTo(localStartDate.toIso8601String()),
+      );
+      conditions.add(
+        Where(
+          'lastTouched',
+        ).isLessThanOrEqualTo(localEndDate.toIso8601String()),
+      );
+    } else if (startDate != null) {
+      final localStartDate = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+      conditions.add(
+        Where(
+          'lastTouched',
+        ).isGreaterThanOrEqualTo(localStartDate.toIso8601String()),
+      );
+    } else if (endDate != null) {
+      final localEndDate = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+        999,
       );
       conditions.add(
         Where(
