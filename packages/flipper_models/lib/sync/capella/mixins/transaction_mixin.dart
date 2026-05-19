@@ -7,6 +7,7 @@ import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart'
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/transaction_query_helpers.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -466,6 +467,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     String? customerId,
     String? agentId,
     String? attributedAgentUserId,
+    bool filterPeriodByCreatedAt = false,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -483,14 +485,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return [];
       }
 
-      final preparedTx = prepareDqlSyncSubscription(
-        "SELECT * FROM transactions WHERE branchId = :branchId",
-        {'branchId': branchId},
+      final syncSubscription = capellaTransactionsSyncSubscription(
+        branchId: branchId,
+        attributedAgentUserId: attributedAgentUserId,
       );
-      ditto.sync.registerSubscription(
-        preparedTx.dql,
-        arguments: preparedTx.arguments,
-      );
+      if (syncSubscription != null) {
+        ditto.sync.registerSubscription(
+          syncSubscription.dql,
+          arguments: syncSubscription.arguments,
+        );
+      }
 
       // Build SQL WHERE clause conditions
       final List<String> whereClauses = [];
@@ -608,6 +612,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         }
 
         // Date filtering
+        final periodField = transactionsPeriodDateField(
+          filterPeriodByCreatedAt: filterPeriodByCreatedAt,
+        );
         if (startDate != null && endDate != null) {
           final localStartDate = DateTime(
             startDate.year,
@@ -624,7 +631,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             999,
           );
           whereClauses.add(
-            'lastTouched >= :startDate AND lastTouched <= :endDate',
+            '$periodField >= :startDate AND $periodField <= :endDate',
           );
           arguments['startDate'] = localStartDate.toIso8601String();
           arguments['endDate'] = localEndDate.toIso8601String();
@@ -634,7 +641,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             startDate.month,
             startDate.day,
           );
-          whereClauses.add('lastTouched >= :startDate');
+          whereClauses.add('$periodField >= :startDate');
           arguments['startDate'] = localStartDate.toIso8601String();
         } else if (endDate != null) {
           final localEndDate = DateTime(
@@ -646,7 +653,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             59,
             999,
           );
-          whereClauses.add('lastTouched <= :endDate');
+          whereClauses.add('$periodField <= :endDate');
           arguments['endDate'] = localEndDate.toIso8601String();
         }
       }

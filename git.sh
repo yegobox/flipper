@@ -4,6 +4,7 @@ cd ./open-sources &&  cd flutter.widgets &&  git checkout main  && git add . && 
 cd .. && cd qr.flutter &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd receipt &&  git checkout sql  && git add .   && git commit -am "clean-up" && git push origin sql
 cd .. && cd looma &&  git checkout main  && git add .   && git commit -am "clean-up" && git push origin main
+cd .. && cd data-connector &&  git checkout main  && git add .   && git commit -am "clean-up" && git push origin main
 # cd .. && cd kds &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 
 # cd .. && cd flutter_list_drag_and_drop && git stash &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main

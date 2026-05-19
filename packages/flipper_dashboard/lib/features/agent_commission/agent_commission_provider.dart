@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/agent_commission/models/agent_commission_sale.dart';
 import 'package:flipper_dashboard/utils/sale_agent_commission.dart';
+import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
@@ -65,14 +66,15 @@ void _logTxnSample(String label, List<ITransaction> txns, {int max = 5}) {
 Future<AgentCommissionSummary> fetchAgentCommissionSummary({
   required AgentCommissionPeriod period,
 }) async {
-  final userId = ProxyService.box.getUserId();
+  final userId = await resolveSessionUserId();
   final businessId = ProxyService.box.getBusinessId();
-  final branchId = ProxyService.box.getBranchId();
+  final sessionBranchId = ProxyService.box.getBranchId();
   final periodStart = _periodStart(period);
 
   talker.info(
     '$_logTag fetch start period=$period periodStart=${periodStart?.toIso8601String() ?? 'all'} '
-    'userId=$userId businessId=$businessId branchId=$branchId',
+    'userId=$userId businessId=$businessId sessionBranchId=$sessionBranchId '
+    '(commission query ignores session branch — all attributed sales)',
   );
 
   if (userId == null || userId.isEmpty) {
@@ -141,15 +143,15 @@ Future<AgentCommissionSummary> fetchAgentCommissionSummary({
 
     talker.info(
       '$_logTag querying Ditto transactions status=$COMPLETE '
-      'branchId=$branchId attributedAgentUserId=$userId '
+      'attributedAgentUserId=$userId '
       'startDate=${periodStart?.toIso8601String() ?? 'none'}',
     );
 
     final transactions = await capella.transactions(
       status: COMPLETE,
-      branchId: branchId,
       attributedAgentUserId: userId,
       startDate: periodStart,
+      filterPeriodByCreatedAt: true,
     );
 
     talker.info(
@@ -172,7 +174,7 @@ Future<AgentCommissionSummary> fetchAgentCommissionSummary({
       talker.warning(
         '$_logTag no transactions — check: (1) sales completed in Ditto, '
         '(2) attributedAgentUserId on txn matches userId=$userId, '
-        '(3) branchId=$branchId, (4) lastTouched within period '
+        '(3) createdAt within period '
         '${periodStart?.toIso8601String() ?? 'all time'}',
       );
     } else if (withCommission.isEmpty) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
+import 'package:flipper_models/sync/transaction_query_helpers.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
@@ -84,6 +85,7 @@ mixin TransactionMixin implements TransactionInterface {
     String? customerId,
     String? agentId,
     String? attributedAgentUserId,
+    bool filterPeriodByCreatedAt = false,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -155,6 +157,9 @@ mixin TransactionMixin implements TransactionInterface {
       ],
     ];
 
+    final periodField = transactionsPeriodDateField(
+      filterPeriodByCreatedAt: filterPeriodByCreatedAt,
+    );
     if (startDate != null && endDate != null) {
       // Use local timezone for precise date matching
       final localStartDate = DateTime(
@@ -174,13 +179,11 @@ mixin TransactionMixin implements TransactionInterface {
 
       conditions.add(
         Where(
-          'lastTouched',
+          periodField,
         ).isGreaterThanOrEqualTo(localStartDate.toIso8601String()),
       );
       conditions.add(
-        Where(
-          'lastTouched',
-        ).isLessThanOrEqualTo(localEndDate.toIso8601String()),
+        Where(periodField).isLessThanOrEqualTo(localEndDate.toIso8601String()),
       );
     } else if (startDate != null) {
       final localStartDate = DateTime(
@@ -190,7 +193,7 @@ mixin TransactionMixin implements TransactionInterface {
       );
       conditions.add(
         Where(
-          'lastTouched',
+          periodField,
         ).isGreaterThanOrEqualTo(localStartDate.toIso8601String()),
       );
     } else if (endDate != null) {
@@ -204,9 +207,7 @@ mixin TransactionMixin implements TransactionInterface {
         999,
       );
       conditions.add(
-        Where(
-          'lastTouched',
-        ).isLessThanOrEqualTo(localEndDate.toIso8601String()),
+        Where(periodField).isLessThanOrEqualTo(localEndDate.toIso8601String()),
       );
     }
 
