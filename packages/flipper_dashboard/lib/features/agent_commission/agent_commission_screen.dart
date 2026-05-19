@@ -26,9 +26,12 @@ class AgentCommissionScreen extends ConsumerWidget {
     final period = ref.watch(agentCommissionPeriodProvider);
     final summaryAsync = ref.watch(agentCommissionSummaryProvider);
 
-    return Scaffold(
-      backgroundColor: _kPageBg,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: _kPageBg,
+        appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.white,
@@ -62,8 +65,8 @@ class AgentCommissionScreen extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-      body: summaryAsync.when(
+        ),
+        body: summaryAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _ErrorBody(
           message: 'Could not load commission data.',
@@ -133,6 +136,7 @@ class AgentCommissionScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
         ),
       ),
     );
