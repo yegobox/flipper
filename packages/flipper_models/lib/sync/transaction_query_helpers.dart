@@ -27,3 +27,17 @@ DqlSyncPrepared? capellaTransactionsSyncSubscription({
 /// Date column for period filters in transaction list queries.
 String transactionsPeriodDateField({bool filterPeriodByCreatedAt = false}) =>
     filterPeriodByCreatedAt ? 'createdAt' : 'lastTouched';
+
+/// Whether [CapellaTransactionMixin.transactions] should wait and re-query
+/// after replication (new device / cold start), mirroring [CapellaVariantMixin].
+bool transactionsShouldWaitForRemoteSync({
+  required bool fetchRemote,
+  String? id,
+  List<String>? receiptNumber,
+  String? attributedAgentUserId,
+}) {
+  if (!fetchRemote) return false;
+  if (id != null) return false;
+  if (receiptNumber != null && receiptNumber.isNotEmpty) return false;
+  return attributedAgentUserId != null && attributedAgentUserId.isNotEmpty;
+}

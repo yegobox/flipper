@@ -152,6 +152,7 @@ Future<AgentCommissionSummary> fetchAgentCommissionSummary({
       attributedAgentUserId: userId,
       startDate: periodStart,
       filterPeriodByCreatedAt: true,
+      fetchRemote: true,
     );
 
     talker.info(

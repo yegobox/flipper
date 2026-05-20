@@ -49,6 +49,47 @@ void main() {
     });
   });
 
+  group('transactionsShouldWaitForRemoteSync', () {
+    test('commission fetchRemote waits when list may be syncing', () {
+      expect(
+        transactionsShouldWaitForRemoteSync(
+          fetchRemote: true,
+          attributedAgentUserId: 'agent-1',
+        ),
+        isTrue,
+      );
+    });
+
+    test('does not wait without fetchRemote', () {
+      expect(
+        transactionsShouldWaitForRemoteSync(
+          fetchRemote: false,
+          attributedAgentUserId: 'agent-1',
+        ),
+        isFalse,
+      );
+    });
+
+    test('does not wait for single-id or receipt lookups', () {
+      expect(
+        transactionsShouldWaitForRemoteSync(
+          fetchRemote: true,
+          id: 'tx-1',
+          attributedAgentUserId: 'agent-1',
+        ),
+        isFalse,
+      );
+      expect(
+        transactionsShouldWaitForRemoteSync(
+          fetchRemote: true,
+          receiptNumber: ['123'],
+          attributedAgentUserId: 'agent-1',
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('transactionsPeriodDateField', () {
     test('default preserves lastTouched for existing callers', () {
       expect(transactionsPeriodDateField(), 'lastTouched');

@@ -485,15 +485,45 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return [];
       }
 
-      final syncSubscription = capellaTransactionsSyncSubscription(
-        branchId: branchId,
-        attributedAgentUserId: attributedAgentUserId,
-      );
-      if (syncSubscription != null) {
-        ditto.sync.registerSubscription(
-          syncSubscription.dql,
-          arguments: syncSubscription.arguments,
+      Future<void> registerBroadTransactionsSubscription() async {
+        final prepared = capellaTransactionsSyncSubscription(
+          branchId: branchId,
+          attributedAgentUserId: attributedAgentUserId,
         );
+        if (prepared == null) return;
+        try {
+          await ditto.sync.registerSubscription(
+            prepared.dql,
+            arguments: prepared.arguments,
+          );
+          talker.debug(
+            'transactions: registered broad sync subscription '
+            '(agent=${attributedAgentUserId != null && attributedAgentUserId.isNotEmpty}, '
+            'branch=${branchId != null && branchId.isNotEmpty})',
+          );
+        } catch (e, st) {
+          talker.warning(
+            'transactions: registerSubscription failed: $e\n'
+            '${describeDqlSyncSubscriptionAttempt(prepared.dql, prepared.arguments)}\n'
+            '$st',
+          );
+        }
+      }
+
+      if (fetchRemote) {
+        // Local-first query; pull remote rows on new devices (commission / refresh).
+        unawaited(registerBroadTransactionsSubscription());
+      } else {
+        final syncSubscription = capellaTransactionsSyncSubscription(
+          branchId: branchId,
+          attributedAgentUserId: attributedAgentUserId,
+        );
+        if (syncSubscription != null) {
+          ditto.sync.registerSubscription(
+            syncSubscription.dql,
+            arguments: syncSubscription.arguments,
+          );
+        }
       }
 
       // Build SQL WHERE clause conditions
@@ -665,22 +695,45 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       talker.info('Capella Ditto Query (transactions): $query');
       talker.info('Capella Ditto Arguments: $arguments');
 
-      // Execute the query
-      final queryResult = await ditto.store.execute(
-        query,
-        arguments: arguments,
-      );
-
-      // Convert results to ITransaction list
-      final transactions = <ITransaction>[];
-      for (final item in queryResult.items) {
-        try {
-          final transactionData = Map<String, dynamic>.from(item.value);
-          final transaction = _convertFromDittoDocument(transactionData);
-          transactions.add(transaction);
-        } catch (e) {
-          talker.error('Error converting transaction: $e');
+      Future<List<ITransaction>> runExecute() async {
+        final queryResult = await ditto.store.execute(
+          query,
+          arguments: arguments,
+        );
+        final list = <ITransaction>[];
+        for (final item in queryResult.items) {
+          try {
+            final transactionData = Map<String, dynamic>.from(item.value);
+            list.add(_convertFromDittoDocument(transactionData));
+          } catch (e) {
+            talker.error('Error converting transaction: $e');
+          }
         }
+        return list;
+      }
+
+      var transactions = await runExecute();
+
+      final shouldWaitForRemote = transactionsShouldWaitForRemoteSync(
+        fetchRemote: fetchRemote,
+        id: id,
+        receiptNumber: receiptNumber,
+        attributedAgentUserId: attributedAgentUserId,
+      );
+      if (transactions.isEmpty && shouldWaitForRemote) {
+        talker.info(
+          'transactions: empty on first fetch with fetchRemote — '
+          'waiting for Ditto replication (600ms)',
+        );
+        await Future.delayed(const Duration(milliseconds: 600));
+        transactions = await runExecute();
+      }
+      if (transactions.isEmpty && shouldWaitForRemote) {
+        talker.info(
+          'transactions: still empty — waiting for Ditto replication (1200ms)',
+        );
+        await Future.delayed(const Duration(milliseconds: 1200));
+        transactions = await runExecute();
       }
 
       talker.info(

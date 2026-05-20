@@ -379,8 +379,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         await _completeAuthenticationFlow();
         _invalidateProviders();
       } else {
-        await _completeAuthenticationFlow();
-        // If multiple branches, show branch selection
+        // Multiple branches: stay on this screen until the user picks one.
+        // _completeAuthenticationFlow runs from _handleBranchSelection only.
         setState(() {
           _isSelectingBranch = true;
         });
@@ -467,7 +467,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       // Final delay before navigation
       await Future.delayed(const Duration(milliseconds: 100));
 
-      _completeAuthenticationFlow();
+      await _completeAuthenticationFlow();
     } catch (e) {
       talker.error('Error handling branch selection: $e');
       if (!mounted) return;
@@ -489,10 +489,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _completeAuthenticationFlow() async {
     final selectedBusinessId = ref.read(selectedBusinessIdProvider);
-    final commissionOnly = await resolveCommissionOnlyLogin(
+    final commissionOnly = await refreshCommissionOnlySession(
       businessId: selectedBusinessId,
     );
-    await setCommissionOnlySession(commissionOnly);
 
     PosthogService.instance.capture(
       'login_success',

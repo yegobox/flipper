@@ -43,6 +43,19 @@ Future<String?> resolveSessionUserId({String? userId}) async {
   return fromBox;
 }
 
+/// Resolves commission-only status, persists it, and returns the result.
+Future<bool> refreshCommissionOnlySession({
+  String? userId,
+  String? businessId,
+}) async {
+  final commissionOnly = await resolveCommissionOnlyLogin(
+    userId: userId,
+    businessId: businessId,
+  );
+  await setCommissionOnlySession(commissionOnly);
+  return commissionOnly;
+}
+
 /// True when the user is an Agent for [businessId] without full business login.
 Future<bool> resolveCommissionOnlyLogin({
   String? userId,
