@@ -94,7 +94,7 @@ mixin BusinessMixin implements BusinessInterface {
     );
     final result = await repository.get<Business>(
       query: query,
-      policy: OfflineFirstGetPolicy.localOnly,
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
     );
     return result.firstOrNull;
   }

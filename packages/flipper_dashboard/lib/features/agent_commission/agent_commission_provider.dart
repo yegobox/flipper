@@ -119,9 +119,9 @@ Future<AgentCommissionSummary> fetchAgentCommissionSummary({
       );
       if (businessUuid != null && businessUuid.isNotEmpty) {
         try {
-          final business = await capella.getBusiness(businessId: businessUuid);
+          final business = await ProxyService.strategy.getBusiness(businessId: businessUuid);
           businessName = business?.name;
-          talker.info('$_logTag business name from capella: $businessName');
+          talker.info('$_logTag business name from default strategy: $businessName');
         } catch (e) {
           talker.warning('$_logTag capella.getBusiness failed: $e');
           final bizRow = await Supabase.instance.client
