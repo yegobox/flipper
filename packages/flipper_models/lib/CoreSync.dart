@@ -3063,9 +3063,51 @@ class CoreSync extends AiStrategyImpl
         final bhfId = await ProxyService.box.bhfId();
 
         talker.warning("ItemClass${itemClasses[item.barCode] ?? "5020230602"}");
-        // is this exist using name
+
+        // Re-import same barcode: update local stock and set absolute qty in RRA (no stock-in add).
+        final barCodeKey = item.barCode ?? '';
+        if (barCodeKey.isNotEmpty) {
+          final existingByBcd = await getVariant(bcd: barCodeKey);
+          if (existingByBcd != null) {
+            final variant = existingByBcd;
+            variant.name = item.name;
+            variant.itemNm = item.name;
+            variant.itemClsCd =
+                itemClasses[item.barCode] ?? variant.itemClsCd ?? "5020230602";
+            variant.itemTyCd =
+                itemTypes[item.barCode] ?? variant.itemTyCd ?? "2";
+            variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
+            if (item.retailPrice != null) {
+              variant.retailPrice = item.retailPrice;
+              variant.prc = item.retailPrice;
+              variant.dftPrc = item.retailPrice;
+            }
+            if (item.supplyPrice != null) {
+              variant.supplyPrice = item.supplyPrice;
+              variant.splyAmt = item.supplyPrice;
+            }
+            final stock = await getStockById(id: variant.stock!.id);
+            final qty = _bulkItemQuantity(item, quantitis);
+            stock.currentStock = qty;
+            stock.rsdQty = qty;
+            stock.initialStock = qty;
+            stock.value = qty * variant.retailPrice!;
+            await repository.upsert(stock);
+            variant.stock = stock;
+            await ProxyService.strategy.addVariant(
+              variations: [variant],
+              branchId: branchId,
+              skipRRaCall: false,
+            );
+            return;
+          }
+        }
+
+        // Explicit bcdU column links to an existing catalog row by name.
         Variant? variant = await getVariant(name: item.name);
-        if (variant != null && item.bcdU != null) {
+        if (variant != null &&
+            item.bcdU != null &&
+            item.bcdU!.trim().isNotEmpty) {
           variant.bcd = item.bcdU;
           variant.name = item.name;
           variant.color = randomizeColor();

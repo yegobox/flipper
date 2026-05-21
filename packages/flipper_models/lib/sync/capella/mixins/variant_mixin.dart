@@ -970,8 +970,9 @@ mixin CapellaVariantMixin implements VariantInterface {
             final stockQty = variantToSave.stock?.currentStock ?? 0;
             final supplyUnit = variantToSave.supplyPrice ?? 0;
             final retailUnit = variantToSave.retailPrice ?? 0;
+            final alreadyInRra = variantToSave.ebmSynced == true;
 
-            if (variantToSave.itemTyCd != "3") {
+            if (variantToSave.itemTyCd != "3" && !alreadyInRra) {
               await ProxyService.tax.saveStockItems(
                 updateMaster: false,
                 items: [
@@ -996,8 +997,13 @@ mixin CapellaVariantMixin implements VariantInterface {
               await ProxyService.tax.saveStockMaster(
                 variant: variantToSave,
                 URI: serverUrl,
-                stockMasterQty: variantToSave.stock?.currentStock?.toDouble(),
+                stockMasterQty: stockQty,
               );
+            }
+
+            if (!alreadyInRra) {
+              variantToSave.ebmSynced = true;
+              await repository.upsert<Variant>(variantToSave);
             }
           }
         } catch (e, stackTrace) {

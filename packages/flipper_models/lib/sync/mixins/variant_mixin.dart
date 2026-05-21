@@ -368,8 +368,10 @@ mixin VariantMixin implements VariantInterface {
           final supplyUnit = variantToSave.supplyPrice ?? 0;
           final retailUnit = variantToSave.retailPrice ?? 0;
 
-          // Skip stock reporting for services (itemTyCd: "3")
-          if (variantToSave.itemTyCd != "3") {
+          // Stock-in (sar 06) adds qty in RRA; only for first registration.
+          // Re-saves must use stock master only or qty is doubled in RRA reports.
+          final alreadyInRra = variantToSave.ebmSynced == true;
+          if (variantToSave.itemTyCd != "3" && !alreadyInRra) {
             await ProxyService.tax.saveStockItems(
               updateMaster: false,
               items: [
@@ -389,13 +391,17 @@ mixin VariantMixin implements VariantInterface {
             );
           }
 
-          // Skip stock master reporting for services (itemTyCd: "3")
           if (variantToSave.itemTyCd != "3") {
             await ProxyService.tax.saveStockMaster(
               variant: variantToSave,
               URI: serverUrl,
               stockMasterQty: stockQty,
             );
+          }
+
+          if (!alreadyInRra) {
+            variantToSave.ebmSynced = true;
+            await repository.upsert<Variant>(variantToSave);
           }
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
