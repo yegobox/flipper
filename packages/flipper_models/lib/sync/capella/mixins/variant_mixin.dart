@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
@@ -165,8 +166,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Exact barcode match (scan / POS). Avoids "123" matching "123456789".
       if (bcd != null && bcd.trim().isNotEmpty) {
-        query +=
-            " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
+        query += " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
         arguments['bcdExact'] = bcd.trim().toLowerCase();
         talker.info('Added exact barcode filter');
       }
@@ -225,34 +225,12 @@ mixin CapellaVariantMixin implements VariantInterface {
       List<dynamic> items = [];
       int? totalCount;
 
-      Future<void> registerBroadBranchSubscription() async {
-        const broadVariantsSql =
-            'SELECT * FROM variants WHERE branchId = :branchId';
-        try {
-          final preparedBroad = prepareDqlSyncSubscription(broadVariantsSql, {
-            'branchId': branchId,
-          });
-          await ditto.sync.registerSubscription(
-            preparedBroad.dql,
-            arguments: preparedBroad.arguments,
-          );
-          talker.debug(
-            'variants: registered broad branch subscription for sync',
-          );
-        } catch (e, st) {
-          talker.warning(
-            'variants: broad registerSubscription failed: $e\n'
-            '${describeDqlSyncSubscriptionAttempt(broadVariantsSql, {'branchId': branchId})}\n'
-            '$st',
-          );
-        }
-      }
-
-      if (fetchRemote) {
-        // Keep listing/searching local-first; explicit refresh/cold-start paths
-        // can still ask Ditto to pull remote data without blocking the query.
-        unawaited(registerBroadBranchSubscription());
-      }
+      // Pull from Ditto cloud (e.g. data-connector bulk writes) before local query.
+      await ensureBranchCatalogCloudSubscriptions(
+        ditto: ditto,
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId(),
+      );
 
       // Replication: broad branch subscription only. Filtered SELECT (search,
       // taxes, pagination) runs via execute below; Ditto 5 can reject complex
@@ -276,12 +254,16 @@ mixin CapellaVariantMixin implements VariantInterface {
           variantId == null &&
           bcd == null;
       if (items.isEmpty && shouldWaitForRemote) {
-        await Future.delayed(const Duration(milliseconds: 600));
-        items = await runExecute();
-      }
-      if (items.isEmpty && shouldWaitForRemote) {
-        await Future.delayed(const Duration(milliseconds: 1200));
-        items = await runExecute();
+        const delays = <Duration>[
+          Duration(milliseconds: 2000),
+          Duration(milliseconds: 3500),
+          Duration(milliseconds: 5000),
+        ];
+        for (final d in delays) {
+          await Future.delayed(d);
+          items = await runExecute();
+          if (items.isNotEmpty) break;
+        }
       }
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -344,8 +326,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           }
 
           if (bcd != null && bcd.trim().isNotEmpty) {
-            countQuery +=
-                " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
+            countQuery += " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
           }
 
           if (name != null && name.isNotEmpty) {

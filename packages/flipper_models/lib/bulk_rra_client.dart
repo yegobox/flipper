@@ -42,9 +42,7 @@ class BulkRraClient {
     );
 
     if (response.statusCode != 202) {
-      talker.error(
-        'bulk-add failed ${response.statusCode}: ${response.body}',
-      );
+      talker.error('bulk-add failed ${response.statusCode}: ${response.body}');
       throw Exception(
         'Bulk RRA submit failed (${response.statusCode}): ${response.body}',
       );
@@ -67,6 +65,7 @@ class BulkRraClient {
       );
     }
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final job = decoded['job'] as Map<String, dynamic>?;
     return BulkRraJobStatus(
       jobId: decoded['jobId'] as String? ?? jobId,
       status: decoded['status'] as String? ?? 'unknown',
@@ -75,20 +74,37 @@ class BulkRraClient {
       processing: decoded['processing'] as int? ?? 0,
       success: decoded['success'] as int? ?? 0,
       failed: decoded['failed'] as int? ?? 0,
+      taxServerUrl: job?['taxServerUrl'] as String?,
     );
   }
 
-  Future<List<Map<String, dynamic>>> listFailedItems(String jobId) async {
+  Future<List<Map<String, dynamic>>> listJobItems(
+    String jobId, {
+    String? status,
+  }) async {
+    final statusParam =
+        status != null && status.isNotEmpty ? '&status=$status' : '';
     final uri = Uri.parse(
-      '${_base}rra/jobs/$jobId/items?limit=1000&status=failed',
+      '${_base}rra/jobs/$jobId/items?limit=1000$statusParam',
     );
     final response = await _http.get(uri);
     if (response.statusCode != 200) {
+      talker.warning(
+        'listJobItems failed ${response.statusCode}: ${response.body}',
+      );
       return [];
     }
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     final items = decoded['items'] as List<dynamic>? ?? [];
     return items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> listFailedItems(String jobId) async {
+    return listJobItems(jobId, status: 'failed');
+  }
+
+  Future<List<Map<String, dynamic>>> listSuccessItems(String jobId) async {
+    return listJobItems(jobId, status: 'success');
   }
 }
 
@@ -113,6 +129,7 @@ class BulkRraJobStatus {
     required this.processing,
     required this.success,
     required this.failed,
+    this.taxServerUrl,
   });
 
   final String jobId;
@@ -122,37 +139,69 @@ class BulkRraJobStatus {
   final int processing;
   final int success;
   final int failed;
+  final String? taxServerUrl;
 
   int get completed => success + failed;
 
   bool get isTerminal {
-    if (status == 'completed' || status == 'failed') {
-      return true;
+    if (queued > 0 || processing > 0) {
+      return false;
+    }
+    if (status == 'failed' ||
+        status == 'completed' ||
+        status == 'completed_with_errors') {
+      return accepted == 0 || completed >= accepted;
     }
     return accepted > 0 && completed >= accepted;
   }
+
+  bool get usedLocalhostTaxUrl {
+    final url = taxServerUrl?.toLowerCase() ?? '';
+    return url.contains('localhost') || url.contains('127.0.0.1');
+  }
 }
 
-/// Resolves data-connector base URL for bulk RRA (not upstream tax server).
-Future<String> resolveDataConnectorBaseUrl({
-  String? taxServerUrl,
-  String? serverUrl,
-}) async {
-  final candidates = <String?>[
-    serverUrl,
-    taxServerUrl,
+/// Result shown in the bulk modal after save (server or legacy path).
+class BulkSaveResult {
+  BulkSaveResult({
+    required this.success,
+    required this.message,
+    required this.total,
+    required this.succeeded,
+    required this.failed,
+    this.jobId,
+    this.rraSkipped = false,
+  });
+
+  final bool success;
+  final String message;
+  final int total;
+  final int succeeded;
+  final int failed;
+  final String? jobId;
+
+  /// True when catalog was written but RRA was not called (tax disabled).
+  final bool rraSkipped;
+}
+
+/// Resolves data-connector base URL. Must NOT use the RRA/tax server URL.
+Future<String> resolveDataConnectorBaseUrl({String? serverUrl}) async {
+  final candidates = <String>[
+    if (serverUrl != null && serverUrl.trim().isNotEmpty) serverUrl.trim(),
     'http://127.0.0.1:8084',
     'http://localhost:8084',
   ];
   for (final raw in candidates) {
-    if (raw == null || raw.trim().isEmpty) continue;
-    final trimmed = raw.trim();
-    if (trimmed.contains(':8084') ||
-        trimmed.contains('data-connector') ||
-        trimmed.endsWith('/rra/') ||
-        trimmed.endsWith('/rra')) {
-      return trimmed.endsWith('/') ? trimmed : '$trimmed/';
+    final uri = Uri.tryParse(raw);
+    if (uri == null) continue;
+    final isConnector = uri.port == 8084 || raw.contains('data-connector');
+    if (isConnector) {
+      talker.info('Bulk RRA using data-connector at $raw');
+      return raw.endsWith('/') ? raw : '$raw/';
     }
   }
+  talker.warning(
+    'No data-connector URL in settings; defaulting to http://127.0.0.1:8084/',
+  );
   return 'http://127.0.0.1:8084/';
 }

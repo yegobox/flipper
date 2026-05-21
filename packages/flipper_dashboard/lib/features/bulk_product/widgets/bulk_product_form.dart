@@ -64,16 +64,40 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
                 });
                 try {
                   if (model.excelData != null) {
-                    await model.saveAllWithProgress();
-                    // Handle completion
-                    final combinedNotifier = ref.read(refreshProvider);
-                    combinedNotifier.performActions(
-                      productName: "",
-                      scanMode: true,
+                    final result = await model.saveAllWithProgress();
+                    if (!mounted) return;
+                    await showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: Text(
+                          result.success
+                              ? 'Bulk save complete'
+                              : 'Bulk save failed',
+                        ),
+                        content: SingleChildScrollView(
+                          child: Text(result.message),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
                     );
-                    // Close the modal after successful save
-                    if (mounted) {
+                    if (!mounted) return;
+                    if (result.success) {
+                      final combinedNotifier = ref.read(refreshProvider);
+                      combinedNotifier.performActions(
+                        productName: '',
+                        scanMode: true,
+                      );
                       Navigator.of(context).pop();
+                    } else {
+                      setState(() {
+                        _errorMessage = result.message;
+                      });
                     }
                   } else {
                     setState(() {

@@ -1,7 +1,10 @@
 // bulk_add_product_viewmodel.dart
 
 import 'dart:io';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/bulk_rra_client.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
@@ -337,14 +340,22 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> saveAllWithProgress() async {
+  Future<BulkSaveResult> saveAllWithProgress() async {
     _isSaving = true;
     notifyListeners();
     try {
       if (_useServerBulkRra) {
-        await _saveViaDataConnector();
+        return await _saveViaDataConnector();
       } else {
         await _saveLegacy();
+        final n = _excelData?.length ?? 0;
+        return BulkSaveResult(
+          success: true,
+          message: 'Saved $n products locally and synced to RRA on device.',
+          total: n,
+          succeeded: n,
+          failed: 0,
+        );
       }
     } catch (e) {
       talker.error('Fatal error during bulk save: $e');
@@ -409,7 +420,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _saveViaDataConnector() async {
+  Future<BulkSaveResult> _saveViaDataConnector() async {
     if (_excelData == null || _excelData!.isEmpty) {
       throw Exception('No data to save');
     }
@@ -423,13 +434,17 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
 
     final isVatEnabled = ebm?.vatEnabled ?? false;
-    final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
-      businessId: businessId,
-      branchId: branchId,
-    );
+    final taxServerUrl = _resolveBulkRraTaxServerUrl(ebm);
+    final isTaxEnabled = _shouldCallRraOnServerBulk(ebm, taxServerUrl);
+    if (isTaxEnabled && taxServerUrl != null) {
+      talker.info('Bulk RRA will call tax server at $taxServerUrl');
+    } else if ((ebm?.vatEnabled ?? false) && taxServerUrl == null) {
+      talker.warning(
+        'Bulk RRA: VAT enabled but no tax server URL (set remoteServerUrl on mobile)',
+      );
+    }
 
     final connectorBase = await resolveDataConnectorBaseUrl(
-      taxServerUrl: ebm?.taxServerUrl,
       serverUrl: await ProxyService.box.getServerUrl(),
     );
     final client = BulkRraClient(baseUrl: connectorBase);
@@ -455,7 +470,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       branchId: branchId,
       businessId: businessId,
       rows: rows,
-      taxServerUrl: ebm?.taxServerUrl,
+      taxServerUrl: taxServerUrl,
       isTaxEnabled: isTaxEnabled,
     );
 
@@ -463,12 +478,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
     const maxPolls = 600;
     BulkRraJobStatus? status;
     for (var i = 0; i < maxPolls; i++) {
-      await Future.delayed(pollInterval);
+      if (i > 0) {
+        await Future.delayed(pollInterval);
+      }
       status = await client.pollJob(accepted.jobId);
       final done = status.completed;
       _progressNotifier.value = ProgressData(
         progress:
-            'RRA: ${status.success} succeeded, ${status.failed} failed (${status.status})',
+            'Server: ${status.success} ok, ${status.failed} failed (${status.status})',
         currentItem: done,
         totalItems: status.accepted,
       );
@@ -478,30 +495,94 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
 
     status ??= await client.pollJob(accepted.jobId);
-    if (status.failed > 0) {
-      final failed = await client.listFailedItems(accepted.jobId);
-      failed.sort(
+    final total = status.accepted;
+    final succeeded = status.success;
+    final failed = status.failed;
+
+    if (succeeded + failed < total) {
+      throw Exception(
+        'Bulk job ended incomplete: $succeeded succeeded, $failed failed, '
+        '$total expected. Check data-connector is running on port 8084.',
+      );
+    }
+
+    if (status.status == 'completed_with_errors' || status.status == 'failed') {
+      if (succeeded == 0) {
+        final failedItems = await client.listFailedItems(accepted.jobId);
+        final first = failedItems.isNotEmpty ? failedItems.first : null;
+        return BulkSaveResult(
+          success: false,
+          message:
+              'All $total products failed. '
+              '${first?['resultMsg'] ?? status.status}',
+          total: total,
+          succeeded: 0,
+          failed: failed,
+          jobId: accepted.jobId,
+        );
+      }
+    }
+
+    if (failed > 0) {
+      final failedItems = await client.listFailedItems(accepted.jobId);
+      failedItems.sort(
         (a, b) => (a['index'] as int? ?? 0).compareTo(b['index'] as int? ?? 0),
       );
-      for (final item in failed.take(3)) {
+      for (final item in failedItems.take(3)) {
         talker.error(
           'Bulk RRA failed row ${item['index']}: ${item['resultMsg'] ?? item['status']}',
         );
       }
-      final first = failed.first;
+      final first = failedItems.first;
       final idx = first['index'];
       final variant = first['variant'] as Map<String, dynamic>?;
       final name = variant?['name'] ?? variant?['itemNm'] ?? 'unknown';
-      throw Exception(
-        'Bulk RRA failed ($status.failed rows). '
-        'First failure at index $idx ($name): ${first['resultMsg'] ?? first['status']}',
+      return BulkSaveResult(
+        success: false,
+        message:
+            '$failed of $total failed at RRA. '
+            'First error (row $idx, $name): '
+            '${first['resultMsg'] ?? first['status']}',
+        total: total,
+        succeeded: succeeded,
+        failed: failed,
+        jobId: accepted.jobId,
       );
     }
 
+    if (!isTaxEnabled) {
+      return BulkSaveResult(
+        success: true,
+        rraSkipped: true,
+        message:
+            'Saved $succeeded products to Ditto on data-connector (job '
+            '${accepted.jobId}), but RRA was not called because tax is disabled '
+            'for this branch. Wait for Ditto sync or restart Flipper to see them '
+            'in the app.',
+        total: total,
+        succeeded: succeeded,
+        failed: 0,
+        jobId: accepted.jobId,
+      );
+    }
+
+    await _refreshVariantsFromDittoCloud(branchId);
+
     _progressNotifier.value = ProgressData(
-      progress: 'Refreshing catalog…',
-      currentItem: status.accepted,
-      totalItems: status.accepted,
+      progress: 'Done — $succeeded products added',
+      currentItem: total,
+      totalItems: total,
+    );
+
+    return BulkSaveResult(
+      success: true,
+      message:
+          'Added $succeeded products. Catalog is in Ditto cloud (see Ditto Portal). '
+          'Open your product list to load them on this device.',
+      total: total,
+      succeeded: succeeded,
+      failed: 0,
+      jobId: accepted.jobId,
     );
   }
 
@@ -560,8 +641,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
         'itemClsCd': itemClsCd,
         'itemTyCd': itemTyCd,
         'orgnNatCd': 'RW',
+        'pkg': 1,
         'pkgUnitCd': 'CT',
-        'qtyUnitCd': 'BJ',
+        'qtyUnitCd': 'U',
       };
 
       rows.add({
@@ -675,6 +757,83 @@ class BulkAddProductViewModel extends ChangeNotifier {
     await file.writeAsBytes(bytes, flush: true);
 
     await OpenFilex.open(path);
+  }
+
+  /// Same URL resolution as [variant_mixin] / legacy bulk: mobile uses [Ebm.remoteServerUrl].
+  String? _resolveBulkRraTaxServerUrl(brick.Ebm? ebm) {
+    if (ebm == null) return null;
+    var url = ebm.taxServerUrl;
+    if (Platform.isAndroid || Platform.isIOS) {
+      url = ebm.remoteServerUrl ?? url;
+    }
+    final trimmed = url?.trim();
+    return (trimmed != null && trimmed.isNotEmpty) ? trimmed : null;
+  }
+
+  /// Register Ditto cloud subscriptions and re-query (Capella [variants] path).
+  Future<void> _refreshVariantsFromDittoCloud(String branchId) async {
+    try {
+      _progressNotifier.value = ProgressData(
+        progress: 'Syncing from Ditto cloud…',
+        currentItem: 0,
+        totalItems: _excelData?.length ?? 0,
+      );
+
+      final ditto = DittoService.instance.dittoInstance;
+      if (ditto != null) {
+        await ensureBranchCatalogCloudSubscriptions(
+          ditto: ditto,
+          branchId: branchId,
+          businessId: ProxyService.box.getBusinessId(),
+        );
+        final names = _excelData
+                ?.map((r) => (r['Name'] ?? '').toString().trim())
+                .where((n) => n.isNotEmpty)
+                .toList() ??
+            [];
+        if (names.isNotEmpty) {
+          final landed = await waitForVariantNamesInDitto(
+            ditto: ditto,
+            branchId: branchId,
+            names: names,
+          );
+          talker.info(
+            'Post bulk Ditto name poll: landed=$landed names=$names',
+          );
+        }
+      }
+
+      final capella = ProxyService.getStrategy(Strategy.capella);
+      final paged = await capella.variants(
+        branchId: branchId,
+        fetchRemote: true,
+        page: 0,
+        itemsPerPage: 200,
+      );
+      final visibleNames = paged.variants.map((v) => v.name).toSet();
+      talker.info(
+        'Post bulk Ditto cloud refresh: ${paged.variants.length} variants '
+        'visible on device (totalCount=${paged.totalCount})',
+      );
+      if (_excelData != null) {
+        for (final row in _excelData!) {
+          final name = (row['Name'] ?? '').toString().trim();
+          if (name.isEmpty) continue;
+          talker.info(
+            'Post bulk visibility "$name": ${visibleNames.contains(name)}',
+          );
+        }
+      }
+    } catch (e, st) {
+      talker.warning('Post bulk Ditto cloud refresh failed: $e', e, st);
+    }
+  }
+
+  /// Server bulk calls RRA when VAT is on and EBM has a tax URL (localhost:8080/rra1/ is the local proxy).
+  bool _shouldCallRraOnServerBulk(brick.Ebm? ebm, String? taxServerUrl) {
+    return (ebm?.vatEnabled ?? false) &&
+        taxServerUrl != null &&
+        taxServerUrl.isNotEmpty;
   }
 }
 
