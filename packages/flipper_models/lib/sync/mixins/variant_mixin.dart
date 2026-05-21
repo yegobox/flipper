@@ -352,17 +352,23 @@ mixin VariantMixin implements VariantInterface {
           }
 
           // save items
-          await ProxyService.tax.saveItem(
+          final saveResp = await ProxyService.tax.saveItem(
             variation: variantToSave,
             URI: serverUrl,
           );
+          if (saveResp.resultCd != '000') {
+            throw Exception(
+              'RRA saveItems failed for ${variantToSave.name}: '
+              '${saveResp.resultMsg} (${saveResp.resultCd})',
+            );
+          }
 
-          // save io
-          final sar = await ProxyService.strategy.getSar(
+          // save io — ensure SAR exists (first bulk row used to fail when SAR doc missing)
+          var sar = await ProxyService.strategy.getSar(
             branchId: ProxyService.box.getBranchId()!,
           );
-
-          sar!.sarNo = sar.sarNo + 1;
+          sar ??= Sar(sarNo: 0, branchId: branchId);
+          sar.sarNo = sar.sarNo + 1;
           await repository.upsert<Sar>(sar);
 
           final supplyUnit = variantToSave.supplyPrice ?? 0;

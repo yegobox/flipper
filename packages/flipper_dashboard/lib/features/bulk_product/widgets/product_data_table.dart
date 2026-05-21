@@ -300,11 +300,12 @@ class ProductDataGridSource extends DataGridSource {
         );
       }
       if (!model.quantityControllers.containsKey(barCode)) {
+        final qtyText = product['Quantity']?.toString().trim();
         model.quantityControllers[barCode] = TextEditingController(
-          text: product['Quantity'] ?? '0',
+          text: (qtyText != null && qtyText.isNotEmpty) ? qtyText : '1',
         );
       }
-      model.selectedProductTypes[barCode] ??= '1';
+      model.selectedProductTypes[barCode] ??= '2';
       model.selectedTaxTypes[barCode] ??= 'B';
       model.selectedItemClasses[barCode] ??= '5020230602';
 

@@ -85,7 +85,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
         _quantityControllers[barCode] ??= TextEditingController(
           text: _resolveQuantityText(barCode, product),
         );
-        _selectedProductTypes[barCode] ??= '1';
+        _selectedProductTypes[barCode] ??= '2';
         _selectedTaxTypes[barCode] ??= 'B';
         _selectedItemClasses[barCode] ??= '5020230602';
       }
@@ -95,14 +95,27 @@ class BulkAddProductViewModel extends ChangeNotifier {
   /// Resolves stock quantity from the grid controller, then Excel row, then 1.
   String _resolveQuantityText(String barCode, Map<String, dynamic> product) {
     final fromController = _quantityControllers[barCode]?.text.trim();
-    if (fromController != null && fromController.isNotEmpty) {
+    if (fromController != null &&
+        fromController.isNotEmpty &&
+        fromController != '0') {
       return fromController;
     }
     final fromExcel = product['Quantity']?.toString().trim();
-    if (fromExcel != null && fromExcel.isNotEmpty) {
+    if (fromExcel != null && fromExcel.isNotEmpty && fromExcel != '0') {
       return fromExcel;
     }
     return '1';
+  }
+
+  void _clearRowState() {
+    disposeControllers();
+    _controllers.clear();
+    _supplyPriceControllers.clear();
+    _quantityControllers.clear();
+    _selectedProductTypes.clear();
+    _selectedTaxTypes.clear();
+    _selectedItemClasses.clear();
+    _selectedCategories.clear();
   }
 
   Map<String, String> _buildQuantitiesMap() {
@@ -148,6 +161,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       }
 
       if (_selectedFile != null) {
+        _clearRowState();
         _excelData = null;
         _isLoading = false;
         notifyListeners();
@@ -234,6 +248,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
           }
         }
 
+        _clearRowState();
         _excelData = data;
         _isLoading = false;
         notifyListeners();
@@ -267,43 +282,43 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> saveAll() async {
-    // Convert each row from the table to an Item model
-    String orgnNatCd = "RW"; // Define the variable
-    List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
+  Future<List<brick.Variant>> _buildVariantsForLegacySave() async {
+    final branchId = ProxyService.box.getBranchId()!;
+    final items = <brick.Variant>[];
+    for (final product in _excelData!) {
       String barCode = product['BarCode'] ?? '';
       String finalCategoryId = _selectedCategories[barCode] ?? '';
       if (finalCategoryId.isEmpty) {
-        final category = await ProxyService.strategy
-            .ensureUncategorizedCategory(
-              branchId: ProxyService.box.getBranchId()!,
-            );
+        final category = await ProxyService.strategy.ensureUncategorizedCategory(
+          branchId: branchId,
+        );
         finalCategoryId = category.id;
       }
-
-      return brick.Variant(
-        branchId: ProxyService.box.getBranchId()!,
-        itemCd: (await ProxyService.strategy.itemCode(
-          countryCode: orgnNatCd,
-          productType: "2",
-          packagingUnit: "CT",
-          quantityUnit: "BJ",
-          branchId: ProxyService.box.getBranchId()!,
-        )),
-        bcdU: product['bcdU'] ?? '',
-        barCode: barCode,
-        name: product['Name'] ?? '',
-        category: finalCategoryId.isNotEmpty
-            ? finalCategoryId
-            : (product['Category'] ?? ''),
-        retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
-        supplyPrice: double.tryParse(product['SupplyPrice'] ?? '0') ?? 0,
-        quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
-        categoryId: finalCategoryId,
+      final qtyText = _resolveQuantityText(barCode, product);
+      items.add(
+        brick.Variant(
+          branchId: branchId,
+          bcdU: product['bcdU'] ?? '',
+          barCode: barCode,
+          name: product['Name'] ?? '',
+          category: finalCategoryId.isNotEmpty
+              ? finalCategoryId
+              : (product['Category'] ?? ''),
+          retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+          supplyPrice:
+              double.tryParse(product['SupplyPrice'] ?? '0') ??
+              double.tryParse(product['Price'] ?? '0') ??
+              0,
+          quantity: double.tryParse(qtyText) ?? 1,
+          categoryId: finalCategoryId,
+        ),
       );
-    }).toList();
+    }
+    return items;
+  }
 
-    List<brick.Variant> items = await Future.wait(itemFutures);
+  Future<void> saveAll() async {
+    final items = await _buildVariantsForLegacySave();
 
     // Process each item
     for (var item in items) {
@@ -341,42 +356,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   Future<void> _saveLegacy() async {
-    String orgnNatCd = "RW";
-    List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
-      String barCode = product['BarCode'] ?? '';
-      String finalCategoryId = _selectedCategories[barCode] ?? '';
-      if (finalCategoryId.isEmpty) {
-        final category = await ProxyService.strategy.ensureUncategorizedCategory(
-          branchId: ProxyService.box.getBranchId()!,
-        );
-        finalCategoryId = category.id;
-      }
-
-      return brick.Variant(
-        branchId: ProxyService.box.getBranchId()!,
-        itemCd: (await ProxyService.strategy.itemCode(
-          countryCode: orgnNatCd,
-          productType: "2",
-          packagingUnit: "CT",
-          quantityUnit: "BJ",
-          branchId: ProxyService.box.getBranchId()!,
-        )),
-        bcdU: product['bcdU'] ?? '',
-        barCode: barCode,
-        name: product['Name'] ?? '',
-        category: finalCategoryId.isNotEmpty
-            ? finalCategoryId
-            : (product['Category'] ?? ''),
-        retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
-        supplyPrice:
-            double.tryParse(product['SupplyPrice'] ?? '0') ??
-            double.tryParse(product['Price'] ?? '0') ??
-            0,
-        quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
-        categoryId: finalCategoryId,
-      );
-    }).toList();
-    List<brick.Variant> items = await Future.wait(itemFutures);
+    final items = await _buildVariantsForLegacySave();
 
     final totalItems = items.length;
     final ebm = await ProxyService.strategy.ebm(
@@ -413,29 +393,16 @@ class BulkAddProductViewModel extends ChangeNotifier {
           _selectedItemClasses[barCode] = '5020230602';
         }
         if (!_selectedProductTypes.containsKey(barCode)) {
-          _selectedProductTypes[barCode] = '1';
+          _selectedProductTypes[barCode] = '2';
         }
 
-        try {
-          await ProxyService.strategy.processItem(
-            item: items[i],
-            quantitis: _buildQuantitiesMap(),
-            taxTypes: _selectedTaxTypes,
-            itemClasses: _selectedItemClasses,
-            itemTypes: _selectedProductTypes,
-          );
-        } catch (processError) {
-          talker.error(
-            'Error processing item ${items[i].name}: $processError',
-          );
-          _progressNotifier.value = ProgressData(
-            progress:
-                'Error: ${processError.toString().substring(0, processError.toString().length > 50 ? 50 : processError.toString().length)}...',
-            currentItem: i + 1,
-            totalItems: totalItems,
-          );
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
+        await ProxyService.strategy.processItem(
+          item: items[i],
+          quantitis: _buildQuantitiesMap(),
+          taxTypes: _selectedTaxTypes,
+          itemClasses: _selectedItemClasses,
+          itemTypes: _selectedProductTypes,
+        );
       } catch (e) {
         talker.error('General error: $e');
       }
@@ -513,11 +480,22 @@ class BulkAddProductViewModel extends ChangeNotifier {
     status ??= await client.pollJob(accepted.jobId);
     if (status.failed > 0) {
       final failed = await client.listFailedItems(accepted.jobId);
+      failed.sort(
+        (a, b) => (a['index'] as int? ?? 0).compareTo(b['index'] as int? ?? 0),
+      );
       for (final item in failed.take(3)) {
         talker.error(
-          'Bulk RRA failed row: ${item['resultMsg'] ?? item['status']}',
+          'Bulk RRA failed row ${item['index']}: ${item['resultMsg'] ?? item['status']}',
         );
       }
+      final first = failed.first;
+      final idx = first['index'];
+      final variant = first['variant'] as Map<String, dynamic>?;
+      final name = variant?['name'] ?? variant?['itemNm'] ?? 'unknown';
+      throw Exception(
+        'Bulk RRA failed ($status.failed rows). '
+        'First failure at index $idx ($name): ${first['resultMsg'] ?? first['status']}',
+      );
     }
 
     _progressNotifier.value = ProgressData(

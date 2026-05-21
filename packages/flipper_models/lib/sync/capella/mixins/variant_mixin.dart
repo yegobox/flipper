@@ -952,59 +952,63 @@ mixin CapellaVariantMixin implements VariantInterface {
           // if (isMobileDevice) { ... } // Assuming serverUrl handling is standard
 
           // save items
-          await ProxyService.tax.saveItem(
+          final saveResp = await ProxyService.tax.saveItem(
             variation: variantToSave,
             URI: serverUrl,
           );
+          if (saveResp.resultCd != '000') {
+            throw Exception(
+              'RRA saveItems failed for ${variantToSave.name}: '
+              '${saveResp.resultMsg} (${saveResp.resultCd})',
+            );
+          }
 
-          // save io (SAR)
-          final sar = await ProxyService.strategy.getSar(
+          // save io (SAR) — create SAR if missing so first row is not skipped
+          var sar = await ProxyService.strategy.getSar(
             branchId: ProxyService.box.getBranchId()!,
           );
+          sar ??= Sar(sarNo: 0, branchId: branchId);
+          sar.sarNo = sar.sarNo + 1;
+          await repository.upsert<Sar>(sar);
 
-          if (sar != null) {
-            sar.sarNo = sar.sarNo + 1;
-            await repository.upsert<Sar>(sar);
+          // Skip stock reporting for services (itemTyCd: "3")
+          final stockQty = variantToSave.stock?.currentStock ?? 0;
+          final supplyUnit = variantToSave.supplyPrice ?? 0;
+          final retailUnit = variantToSave.retailPrice ?? 0;
+          final alreadyInRra = variantToSave.ebmSynced == true;
 
-            // Skip stock reporting for services (itemTyCd: "3")
-            final stockQty = variantToSave.stock?.currentStock ?? 0;
-            final supplyUnit = variantToSave.supplyPrice ?? 0;
-            final retailUnit = variantToSave.retailPrice ?? 0;
-            final alreadyInRra = variantToSave.ebmSynced == true;
+          if (variantToSave.itemTyCd != "3" && !alreadyInRra) {
+            await ProxyService.tax.saveStockItems(
+              updateMaster: false,
+              items: [
+                TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
+              ],
+              tinNumber: ebm.tinNumber.toString(),
+              bhFId: ebm.bhfId,
+              totalSupplyPrice: supplyUnit * stockQty,
+              totalvat: 0,
+              totalAmount: retailUnit * stockQty,
+              sarTyCd: "06",
+              sarNo: sar.sarNo.toString(),
+              invoiceNumber: sar.sarNo,
+              remark: "Stock In from adding new item",
+              ocrnDt: DateTime.now().toUtc(),
+              URI: serverUrl,
+            );
+          }
 
-            if (variantToSave.itemTyCd != "3" && !alreadyInRra) {
-              await ProxyService.tax.saveStockItems(
-                updateMaster: false,
-                items: [
-                  TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
-                ],
-                tinNumber: ebm.tinNumber.toString(),
-                bhFId: ebm.bhfId,
-                totalSupplyPrice: supplyUnit * stockQty,
-                totalvat: 0,
-                totalAmount: retailUnit * stockQty,
-                sarTyCd: "06",
-                sarNo: sar.sarNo.toString(),
-                invoiceNumber: sar.sarNo,
-                remark: "Stock In from adding new item",
-                ocrnDt: DateTime.now().toUtc(),
-                URI: serverUrl,
-              );
-            }
+          // Skip stock master reporting for services (itemTyCd: "3")
+          if (variantToSave.itemTyCd != "3") {
+            await ProxyService.tax.saveStockMaster(
+              variant: variantToSave,
+              URI: serverUrl,
+              stockMasterQty: stockQty,
+            );
+          }
 
-            // Skip stock master reporting for services (itemTyCd: "3")
-            if (variantToSave.itemTyCd != "3") {
-              await ProxyService.tax.saveStockMaster(
-                variant: variantToSave,
-                URI: serverUrl,
-                stockMasterQty: stockQty,
-              );
-            }
-
-            if (!alreadyInRra) {
-              variantToSave.ebmSynced = true;
-              await repository.upsert<Variant>(variantToSave);
-            }
+          if (!alreadyInRra) {
+            variantToSave.ebmSynced = true;
+            await repository.upsert<Variant>(variantToSave);
           }
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);

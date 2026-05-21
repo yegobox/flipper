@@ -308,11 +308,28 @@ mixin CapellaProductMixin implements ProductInterface {
           query: brick.Query(where: queryConditions),
         );
 
-        // If a variant with the same product and barcode exists, return the product
         if (existingVariants.isNotEmpty) {
+          final existing = existingVariants.first;
           talker.info(
-            'Variant already exists with ID: ${existingVariants.first.id}',
+            'Variant already exists with ID: ${existing.id}; ebmSynced=${existing.ebmSynced}',
           );
+          if (!skipRRaCall && existing.ebmSynced != true) {
+            var toSync = existing;
+            if (toSync.stock != null && qty > 0) {
+              final s = toSync.stock!;
+              toSync.stock = s.copyWith(
+                currentStock: qty,
+                rsdQty: qty,
+                initialStock: qty,
+                value: qty * (retailPrice > 0 ? retailPrice : supplyPrice),
+              );
+            }
+            await ProxyService.strategy.addVariant(
+              variations: [toSync],
+              branchId: branchId,
+              skipRRaCall: false,
+            );
+          }
           return createdProduct;
         }
 
