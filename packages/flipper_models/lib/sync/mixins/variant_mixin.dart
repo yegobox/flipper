@@ -343,8 +343,19 @@ mixin VariantMixin implements VariantInterface {
             serverUrl = ebm.remoteServerUrl ?? serverUrl;
           }
 
+          final stockQty = variantToSave.stock?.currentStock ?? 0;
+          if (stockQty > 0) {
+            variantToSave = variantToSave.copyWith(
+              qty: stockQty,
+              rsdQty: stockQty,
+            );
+          }
+
           // save items
-          await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
+          await ProxyService.tax.saveItem(
+            variation: variantToSave,
+            URI: serverUrl,
+          );
 
           // save io
           final sar = await ProxyService.strategy.getSar(
@@ -353,6 +364,9 @@ mixin VariantMixin implements VariantInterface {
 
           sar!.sarNo = sar.sarNo + 1;
           await repository.upsert<Sar>(sar);
+
+          final supplyUnit = variantToSave.supplyPrice ?? 0;
+          final retailUnit = variantToSave.retailPrice ?? 0;
 
           // Skip stock reporting for services (itemTyCd: "3")
           if (variantToSave.itemTyCd != "3") {
@@ -363,9 +377,9 @@ mixin VariantMixin implements VariantInterface {
               ],
               tinNumber: ebm.tinNumber.toString(),
               bhFId: ebm.bhfId,
-              totalSupplyPrice: variantToSave.supplyPrice ?? 0,
+              totalSupplyPrice: supplyUnit * stockQty,
               totalvat: 0,
-              totalAmount: variantToSave.retailPrice ?? 0,
+              totalAmount: retailUnit * stockQty,
               sarTyCd: "06",
               sarNo: sar.sarNo.toString(),
               invoiceNumber: sar.sarNo,
@@ -378,9 +392,9 @@ mixin VariantMixin implements VariantInterface {
           // Skip stock master reporting for services (itemTyCd: "3")
           if (variantToSave.itemTyCd != "3") {
             await ProxyService.tax.saveStockMaster(
-              variant: variant,
+              variant: variantToSave,
               URI: serverUrl,
-              stockMasterQty: variantToSave.stock?.currentStock!,
+              stockMasterQty: stockQty,
             );
           }
         } catch (e, stackTrace) {

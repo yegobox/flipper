@@ -304,6 +304,9 @@ class ProductDataGridSource extends DataGridSource {
           text: product['Quantity'] ?? '0',
         );
       }
+      model.selectedProductTypes[barCode] ??= '1';
+      model.selectedTaxTypes[barCode] ??= 'B';
+      model.selectedItemClasses[barCode] ??= '5020230602';
 
       return DataGridRow(
         cells: [

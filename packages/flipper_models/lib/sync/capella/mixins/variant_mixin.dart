@@ -967,6 +967,10 @@ mixin CapellaVariantMixin implements VariantInterface {
             await repository.upsert<Sar>(sar);
 
             // Skip stock reporting for services (itemTyCd: "3")
+            final stockQty = variantToSave.stock?.currentStock ?? 0;
+            final supplyUnit = variantToSave.supplyPrice ?? 0;
+            final retailUnit = variantToSave.retailPrice ?? 0;
+
             if (variantToSave.itemTyCd != "3") {
               await ProxyService.tax.saveStockItems(
                 updateMaster: false,
@@ -975,9 +979,9 @@ mixin CapellaVariantMixin implements VariantInterface {
                 ],
                 tinNumber: ebm.tinNumber.toString(),
                 bhFId: ebm.bhfId,
-                totalSupplyPrice: variantToSave.supplyPrice ?? 0,
+                totalSupplyPrice: supplyUnit * stockQty,
                 totalvat: 0,
-                totalAmount: variantToSave.retailPrice ?? 0,
+                totalAmount: retailUnit * stockQty,
                 sarTyCd: "06",
                 sarNo: sar.sarNo.toString(),
                 invoiceNumber: sar.sarNo,

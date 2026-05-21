@@ -1095,7 +1095,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       itemStdNm: item.name,
       orgnNatCd: item.orgnNatCd ?? "RW",
       pkgUnitCd: item.pkgUnitCd,
-      splyAmt: (item.price * quantity).toDouble().roundToTwoDecimalPlaces(),
+      splyAmt: ((item.supplyPrice ?? item.price) * quantity)
+          .toDouble()
+          .roundToTwoDecimalPlaces(),
       price: item.price,
       bhfId: item.bhfId ?? bhfId,
       // removed this as in richard example it was not there.

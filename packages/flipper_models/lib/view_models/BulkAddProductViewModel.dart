@@ -1,6 +1,8 @@
 // bulk_add_product_viewmodel.dart
 
 import 'dart:io';
+import 'package:flipper_models/bulk_rra_client.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +27,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   final Map<String, String> _selectedCategories = {};
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _useServerBulkRra = false;
   final ValueNotifier<ProgressData> _progressNotifier =
       ValueNotifier<ProgressData>(
         ProgressData(progress: '', currentItem: 0, totalItems: 0),
@@ -43,7 +46,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
       _quantityControllers;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+  bool get useServerBulkRra => _useServerBulkRra;
   ValueNotifier<ProgressData> get progressNotifier => _progressNotifier;
+
+  void setUseServerBulkRra(bool value) {
+    if (_useServerBulkRra == value) return;
+    _useServerBulkRra = value;
+    notifyListeners();
+  }
 
   BulkAddProductViewModel();
 
@@ -69,7 +79,41 @@ class BulkAddProductViewModel extends ChangeNotifier {
           );
         }
       }
+      for (var product in _excelData!) {
+        final barCode = product['BarCode'] ?? '';
+        if (barCode.isEmpty) continue;
+        _quantityControllers[barCode] ??= TextEditingController(
+          text: _resolveQuantityText(barCode, product),
+        );
+        _selectedProductTypes[barCode] ??= '1';
+        _selectedTaxTypes[barCode] ??= 'B';
+        _selectedItemClasses[barCode] ??= '5020230602';
+      }
     }
+  }
+
+  /// Resolves stock quantity from the grid controller, then Excel row, then 1.
+  String _resolveQuantityText(String barCode, Map<String, dynamic> product) {
+    final fromController = _quantityControllers[barCode]?.text.trim();
+    if (fromController != null && fromController.isNotEmpty) {
+      return fromController;
+    }
+    final fromExcel = product['Quantity']?.toString().trim();
+    if (fromExcel != null && fromExcel.isNotEmpty) {
+      return fromExcel;
+    }
+    return '1';
+  }
+
+  Map<String, String> _buildQuantitiesMap() {
+    final map = <String, String>{};
+    if (_excelData == null) return map;
+    for (final product in _excelData!) {
+      final barCode = product['BarCode'] ?? '';
+      if (barCode.isEmpty) continue;
+      map[barCode] = _resolveQuantityText(barCode, product);
+    }
+    return map;
   }
 
   void disposeControllers() {
@@ -266,9 +310,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       try {
         await ProxyService.strategy.processItem(
           item: item,
-          quantitis: _quantityControllers.map(
-            (barCode, controller) => MapEntry(barCode, controller.text),
-          ),
+          quantitis: _buildQuantitiesMap(),
           taxTypes: _selectedTaxTypes,
           itemClasses: _selectedItemClasses,
           itemTypes: _selectedProductTypes,
@@ -284,129 +326,277 @@ class BulkAddProductViewModel extends ChangeNotifier {
     _isSaving = true;
     notifyListeners();
     try {
-      String orgnNatCd = "RW"; // Define the variable
-      List<Future<brick.Variant>> itemFutures = _excelData!.map((
-        product,
-      ) async {
-        String barCode = product['BarCode'] ?? '';
-        String finalCategoryId = _selectedCategories[barCode] ?? '';
-        if (finalCategoryId.isEmpty) {
-          final category = await ProxyService.strategy
-              .ensureUncategorizedCategory(
-                branchId: ProxyService.box.getBranchId()!,
-              );
-          finalCategoryId = category.id;
-        }
-
-        return brick.Variant(
-          branchId: ProxyService.box.getBranchId()!,
-          itemCd: (await ProxyService.strategy.itemCode(
-            countryCode: orgnNatCd,
-            productType: "2",
-            packagingUnit: "CT",
-            quantityUnit: "BJ",
-            branchId: ProxyService.box.getBranchId()!,
-          )),
-          bcdU: product['bcdU'] ?? '',
-          barCode: barCode,
-          name: product['Name'] ?? '',
-          category: finalCategoryId.isNotEmpty
-              ? finalCategoryId
-              : (product['Category'] ?? ''),
-          retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
-          supplyPrice:
-              double.tryParse(product['SupplyPrice'] ?? '0') ??
-              double.tryParse(product['Price'] ?? '0') ??
-              0,
-          quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
-          categoryId: finalCategoryId,
-        );
-      }).toList();
-      List<brick.Variant> items = await Future.wait(itemFutures);
-
-      final totalItems = items.length;
-
-      // Cache EBM/VAT status outside the loop
-      final ebm = await ProxyService.strategy.ebm(
-        branchId: ProxyService.box.getBranchId()!,
-      );
-      final isVatEnabled = ebm?.vatEnabled ?? false;
-
-      for (var i = 0; i < items.length; i++) {
-        try {
-          _progressNotifier.value = ProgressData(
-            progress: 'Processing ${items[i].name}',
-            currentItem: i + 1,
-            totalItems: totalItems,
-          );
-
-          // Ensure we have valid values for required fields
-          String barCode = items[i].barCode ?? '';
-          if (barCode.isEmpty) {
-            barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}';
-            items[i].barCode = barCode;
-          }
-
-          // Make sure we have a valid name
-          if (items[i].name.isEmpty) {
-            items[i].name = 'Unnamed Product';
-          }
-
-          // Set itemNm to the same as name if it's null
-          items[i].itemNm = items[i].name;
-
-          // Ensure we have valid maps with the barcode as key
-          if (!_quantityControllers.containsKey(barCode)) {
-            _quantityControllers[barCode] = TextEditingController(text: '0');
-          }
-          if (!_selectedTaxTypes.containsKey(barCode)) {
-            _selectedTaxTypes[barCode] = isVatEnabled ? 'B' : 'D';
-          }
-          if (!_selectedItemClasses.containsKey(barCode)) {
-            _selectedItemClasses[barCode] =
-                '5020230602'; // Default item class code (finished product)
-          }
-          if (!_selectedProductTypes.containsKey(barCode)) {
-            _selectedProductTypes[barCode] =
-                '2'; // Default: 2 = Finished Product, 1 = Raw Material, 3 = Service
-          }
-
-          try {
-            await ProxyService.strategy.processItem(
-              item: items[i],
-              quantitis: _quantityControllers.map(
-                (barCode, controller) => MapEntry(barCode, controller.text),
-              ),
-              taxTypes: _selectedTaxTypes,
-              itemClasses: _selectedItemClasses,
-              itemTypes: _selectedProductTypes,
-            );
-          } catch (processError) {
-            // Log the error but continue processing other items
-            talker.error(
-              'Error processing item ${items[i].name}: $processError',
-            );
-            // Update progress to show the error
-            _progressNotifier.value = ProgressData(
-              progress:
-                  'Error: ${processError.toString().substring(0, processError.toString().length > 50 ? 50 : processError.toString().length)}...',
-              currentItem: i + 1,
-              totalItems: totalItems,
-            );
-            // Wait a moment so the user can see the error
-            await Future.delayed(Duration(milliseconds: 500));
-          }
-        } catch (e) {
-          talker.error('General error: $e');
-          // Don't rethrow, just log and continue with the next item
-        }
+      if (_useServerBulkRra) {
+        await _saveViaDataConnector();
+      } else {
+        await _saveLegacy();
       }
     } catch (e) {
       talker.error('Fatal error during bulk save: $e');
+      rethrow;
     } finally {
       _isSaving = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _saveLegacy() async {
+    String orgnNatCd = "RW";
+    List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
+      String barCode = product['BarCode'] ?? '';
+      String finalCategoryId = _selectedCategories[barCode] ?? '';
+      if (finalCategoryId.isEmpty) {
+        final category = await ProxyService.strategy.ensureUncategorizedCategory(
+          branchId: ProxyService.box.getBranchId()!,
+        );
+        finalCategoryId = category.id;
+      }
+
+      return brick.Variant(
+        branchId: ProxyService.box.getBranchId()!,
+        itemCd: (await ProxyService.strategy.itemCode(
+          countryCode: orgnNatCd,
+          productType: "2",
+          packagingUnit: "CT",
+          quantityUnit: "BJ",
+          branchId: ProxyService.box.getBranchId()!,
+        )),
+        bcdU: product['bcdU'] ?? '',
+        barCode: barCode,
+        name: product['Name'] ?? '',
+        category: finalCategoryId.isNotEmpty
+            ? finalCategoryId
+            : (product['Category'] ?? ''),
+        retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+        supplyPrice:
+            double.tryParse(product['SupplyPrice'] ?? '0') ??
+            double.tryParse(product['Price'] ?? '0') ??
+            0,
+        quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
+        categoryId: finalCategoryId,
+      );
+    }).toList();
+    List<brick.Variant> items = await Future.wait(itemFutures);
+
+    final totalItems = items.length;
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
+    final isVatEnabled = ebm?.vatEnabled ?? false;
+
+    for (var i = 0; i < items.length; i++) {
+      try {
+        _progressNotifier.value = ProgressData(
+          progress: 'Processing ${items[i].name}',
+          currentItem: i + 1,
+          totalItems: totalItems,
+        );
+
+        String barCode = items[i].barCode ?? '';
+        if (barCode.isEmpty) {
+          barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}';
+          items[i].barCode = barCode;
+        }
+
+        if (items[i].name.isEmpty) {
+          items[i].name = 'Unnamed Product';
+        }
+        items[i].itemNm = items[i].name;
+
+        if (!_quantityControllers.containsKey(barCode)) {
+          _quantityControllers[barCode] = TextEditingController(text: '0');
+        }
+        if (!_selectedTaxTypes.containsKey(barCode)) {
+          _selectedTaxTypes[barCode] = isVatEnabled ? 'B' : 'D';
+        }
+        if (!_selectedItemClasses.containsKey(barCode)) {
+          _selectedItemClasses[barCode] = '5020230602';
+        }
+        if (!_selectedProductTypes.containsKey(barCode)) {
+          _selectedProductTypes[barCode] = '1';
+        }
+
+        try {
+          await ProxyService.strategy.processItem(
+            item: items[i],
+            quantitis: _buildQuantitiesMap(),
+            taxTypes: _selectedTaxTypes,
+            itemClasses: _selectedItemClasses,
+            itemTypes: _selectedProductTypes,
+          );
+        } catch (processError) {
+          talker.error(
+            'Error processing item ${items[i].name}: $processError',
+          );
+          _progressNotifier.value = ProgressData(
+            progress:
+                'Error: ${processError.toString().substring(0, processError.toString().length > 50 ? 50 : processError.toString().length)}...',
+            currentItem: i + 1,
+            totalItems: totalItems,
+          );
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+      } catch (e) {
+        talker.error('General error: $e');
+      }
+    }
+  }
+
+  Future<void> _saveViaDataConnector() async {
+    if (_excelData == null || _excelData!.isEmpty) {
+      throw Exception('No data to save');
+    }
+
+    final branchId = ProxyService.box.getBranchId()!;
+    final businessId = ProxyService.box.getBusinessId()!;
+    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    final tin = await effectiveTin(branchId: branchId);
+    if (tin == null) {
+      throw Exception('TIN is required for bulk RRA');
+    }
+
+    final isVatEnabled = ebm?.vatEnabled ?? false;
+    final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
+      businessId: businessId,
+      branchId: branchId,
+    );
+
+    final connectorBase = await resolveDataConnectorBaseUrl(
+      taxServerUrl: ebm?.taxServerUrl,
+      serverUrl: await ProxyService.box.getServerUrl(),
+    );
+    final client = BulkRraClient(baseUrl: connectorBase);
+
+    final bhfId = ebm?.bhfId ?? (await ProxyService.box.bhfId()) ?? '00';
+    final rows = await _buildBulkSubmitRows(
+      branchId: branchId,
+      businessId: businessId,
+      tin: tin,
+      bhfId: bhfId,
+      isVatEnabled: isVatEnabled,
+    );
+
+    _progressNotifier.value = ProgressData(
+      progress: 'Submitting ${rows.length} products to server…',
+      currentItem: 0,
+      totalItems: rows.length,
+    );
+
+    final accepted = await client.submitBulkAdd(
+      tinNumber: tin.toString(),
+      bhfId: bhfId,
+      branchId: branchId,
+      businessId: businessId,
+      rows: rows,
+      taxServerUrl: ebm?.taxServerUrl,
+      isTaxEnabled: isTaxEnabled,
+    );
+
+    const pollInterval = Duration(seconds: 2);
+    const maxPolls = 600;
+    BulkRraJobStatus? status;
+    for (var i = 0; i < maxPolls; i++) {
+      await Future.delayed(pollInterval);
+      status = await client.pollJob(accepted.jobId);
+      final done = status.completed;
+      _progressNotifier.value = ProgressData(
+        progress:
+            'RRA: ${status.success} succeeded, ${status.failed} failed (${status.status})',
+        currentItem: done,
+        totalItems: status.accepted,
+      );
+      if (status.isTerminal) {
+        break;
+      }
+    }
+
+    status ??= await client.pollJob(accepted.jobId);
+    if (status.failed > 0) {
+      final failed = await client.listFailedItems(accepted.jobId);
+      for (final item in failed.take(3)) {
+        talker.error(
+          'Bulk RRA failed row: ${item['resultMsg'] ?? item['status']}',
+        );
+      }
+    }
+
+    _progressNotifier.value = ProgressData(
+      progress: 'Refreshing catalog…',
+      currentItem: status.accepted,
+      totalItems: status.accepted,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _buildBulkSubmitRows({
+    required String branchId,
+    required String businessId,
+    required int tin,
+    required String bhfId,
+    required bool isVatEnabled,
+  }) async {
+    final rows = <Map<String, dynamic>>[];
+    for (final product in _excelData!) {
+      String barCode = product['BarCode'] ?? '';
+      if (barCode.isEmpty) {
+        barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}';
+      }
+      String name = product['Name'] ?? '';
+      if (name.isEmpty) {
+        name = 'Unnamed Product';
+      }
+
+      String finalCategoryId = _selectedCategories[barCode] ?? '';
+      if (finalCategoryId.isEmpty) {
+        final category = await ProxyService.strategy.ensureUncategorizedCategory(
+          branchId: branchId,
+        );
+        finalCategoryId = category.id;
+      }
+
+      final qty = _resolveQuantityText(barCode, product);
+      final taxTyCd =
+          _selectedTaxTypes[barCode] ?? (isVatEnabled ? 'B' : 'D');
+      final itemClsCd = _selectedItemClasses[barCode] ?? '5020230602';
+      final itemTyCd = _selectedProductTypes[barCode] ?? '2';
+      final retailPrice =
+          double.tryParse(product['Price'] ?? '0') ?? 0;
+      final supplyPrice =
+          double.tryParse(product['SupplyPrice'] ?? '0') ??
+          retailPrice;
+
+      final variant = <String, dynamic>{
+        'branchId': branchId,
+        'businessId': businessId,
+        'barCode': barCode,
+        'name': name,
+        'itemNm': name,
+        'bcdU': product['bcdU'] ?? '',
+        'retailPrice': retailPrice,
+        'prc': retailPrice,
+        'supplyPrice': supplyPrice,
+        'categoryId': finalCategoryId,
+        'category': finalCategoryId,
+        'tin': tin,
+        'bhfId': bhfId,
+        'taxTyCd': taxTyCd,
+        'itemClsCd': itemClsCd,
+        'itemTyCd': itemTyCd,
+        'orgnNatCd': 'RW',
+        'pkgUnitCd': 'CT',
+        'qtyUnitCd': 'BJ',
+      };
+
+      rows.add({
+        'variant': variant,
+        'quantity': qty,
+        'taxTyCd': taxTyCd,
+        'itemClsCd': itemClsCd,
+        'itemTyCd': itemTyCd,
+        'bcdU': product['bcdU'] ?? '',
+        'categoryId': finalCategoryId,
+      });
+    }
+    return rows;
   }
 
   void updateProductType(String barCode, String? newValue) {

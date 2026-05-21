@@ -38,13 +38,27 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
           onDownloadTemplate: model.downloadTemplate,
         ),
         const SizedBox(height: 16),
+        if (model.excelData != null)
+          SwitchListTile(
+            title: const Text('Register via server (RRA first)'),
+            subtitle: const Text(
+              'Catalog is created in Ditto only after RRA succeeds. '
+              'Turn off to use the previous on-device flow.',
+            ),
+            value: model.useServerBulkRra,
+            onChanged: model.isSaving
+                ? null
+                : (value) => model.setUseServerBulkRra(value),
+          ),
         if (model.selectedFile != null)
           Align(
             alignment: Alignment.centerRight,
             child: FlipperButton(
               textColor: Colors.white,
               color: Colors.blue,
-              onPressed: () async {
+              onPressed: model.isSaving
+                  ? null
+                  : () async {
                 setState(() {
                   _errorMessage = null;
                 });

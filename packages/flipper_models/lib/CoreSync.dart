@@ -3034,13 +3034,15 @@ class CoreSync extends AiStrategyImpl
           }
 
           Stock? stock = await getStockById(id: variant.stock!.id);
-          stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
-          stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
-          stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
-          stock.value = stock.currentStock! * variant.retailPrice!;
+          final qty = _bulkItemQuantity(item, quantitis);
+          stock.currentStock = qty;
+          stock.rsdQty = qty;
+          stock.initialStock = qty;
+          stock.value = qty * variant.retailPrice!;
 
           // Update stock first
           await repository.upsert(stock);
+          variant.stock = stock;
 
           // Use ProxyService.strategy.addVariant for consistency with DesktopProductAdd
           await ProxyService.strategy.addVariant(
@@ -3091,13 +3093,15 @@ class CoreSync extends AiStrategyImpl
 
           // Get stock
           Stock? stock = await getStockById(id: variant.stock!.id);
-          stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
-          stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
-          stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
-          stock.value = stock.currentStock! * variant.retailPrice!;
+          final qty = _bulkItemQuantity(item, quantitis);
+          stock.currentStock = qty;
+          stock.rsdQty = qty;
+          stock.initialStock = qty;
+          stock.value = qty * variant.retailPrice!;
 
           // Update stock first
           await repository.upsert(stock);
+          variant.stock = stock;
 
           // Use ProxyService.strategy.addVariant for consistency
           await ProxyService.strategy.addVariant(
@@ -3127,7 +3131,7 @@ class CoreSync extends AiStrategyImpl
             invcFcurExcrt: item.invcFcurExcrt,
             exptNatCd: item.exptNatCd,
             pkg: item.pkg ?? 1,
-            qty: double.parse(quantitis[item.barCode] ?? "1"),
+            qty: _bulkItemQuantity(item, quantitis),
             qtyUnitCd: item.qtyUnitCd,
             pkgUnitCd: "BJ",
             dclNo: item.dclNo,
@@ -3180,6 +3184,19 @@ class CoreSync extends AiStrategyImpl
       print(s);
       rethrow;
     }
+  }
+
+  double _bulkItemQuantity(Variant item, Map<String, String> quantitis) {
+    final key = item.barCode ?? '';
+    final raw = quantitis[key] ??
+        (item.quantity != null && item.quantity! > 0
+            ? item.quantity.toString()
+            : null);
+    if (raw == null || raw.trim().isEmpty) {
+      return 1;
+    }
+    final parsed = double.tryParse(raw.trim());
+    return parsed != null && parsed > 0 ? parsed : 1;
   }
 
   String randomizeColor() {

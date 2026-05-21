@@ -904,4 +904,5 @@ class App {}
 // https://pub.dev/packages/flutter_face_liveness
 // Ctrl+Shift+T (Windows/Linux)
 // Cmd+Shift+T (macOS)
-
+// ./scripts/add-nginx-site.sh rows.yegobox.com 8087
+// DRY_RUN=1 ./scripts/add-nginx-site.sh rows.yegobox.com 8087
