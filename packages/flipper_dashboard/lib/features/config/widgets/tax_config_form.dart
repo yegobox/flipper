@@ -19,6 +19,7 @@ class TaxConfigForm extends ConsumerStatefulWidget {
 class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
   final _formKey = GlobalKey<FormState>();
   final _serverUrlController = TextEditingController();
+  final _dataConnectorUrlController = TextEditingController();
   final _branchController = TextEditingController();
   final _mrcController = TextEditingController();
   bool _vatEnabled = false;
@@ -36,6 +37,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
         await ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
 
     _serverUrlController.text = serverUrl ?? "";
+    _dataConnectorUrlController.text = ebm?.dataConnectorUrl?.trim() ?? '';
 
     final bhFId = ebm?.bhfId ?? (await ProxyService.box.bhfId()) ?? "";
     _branchController.text = bhFId;
@@ -56,6 +58,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
   @override
   void dispose() {
     _serverUrlController.dispose();
+    _dataConnectorUrlController.dispose();
     _branchController.dispose();
     _mrcController.dispose();
     super.dispose();
@@ -134,6 +137,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                   TextFormField(
                     controller: _serverUrlController,
                     decoration: InputDecoration(
+                      labelText: 'EBM / Tax server URL',
                       hintText: 'Enter EBM URL',
                       filled: true,
                       fillColor: Colors.grey[200],
@@ -149,6 +153,29 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                           vertical: 16, horizontal: 16),
                     ),
                     validator: _validateUrl,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _dataConnectorUrlController,
+                    decoration: InputDecoration(
+                      labelText: 'Data connector URL',
+                      hintText: 'http://127.0.0.1:8084',
+                      helperText:
+                          'Bulk product RRA uses this service; RRA tax URL is configured on data-connector.',
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 16),
+                    ),
+                    validator: _validateOptionalUrl,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -239,6 +266,17 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     return null;
   }
 
+  String? _validateOptionalUrl(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    final uri = Uri.tryParse(value.trim());
+    if (uri == null || !uri.hasScheme) {
+      return 'Please enter a valid URL with a scheme (e.g., http:// or https://)';
+    }
+    return null;
+  }
+
   String? _validateBhfid(String? value) {
     if (value == null || value.isEmpty) {
       return 'Branch ID is required';
@@ -272,18 +310,25 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
       }
 
       // Save EBM configuration
+      final dataConnectorUrl = _dataConnectorUrlController.text.trim();
       await ProxyService.strategy.saveEbm(
           branchId: ProxyService.box.getBranchId()!,
           severUrl: _serverUrlController.text,
           bhFId: _branchController.text,
           vatEnabled: _vatEnabled,
-          mrc: newMrc);
+          mrc: newMrc,
+          dataConnectorUrl:
+              dataConnectorUrl.isEmpty ? null : dataConnectorUrl);
 
       // Save to local storage
       await Future.wait([
         ProxyService.box.writeString(
           key: "getServerUrl",
           value: _serverUrlController.text,
+        ),
+        ProxyService.box.writeString(
+          key: "dataConnectorUrl",
+          value: dataConnectorUrl,
         ),
         ProxyService.box.writeString(
           key: "bhfId",

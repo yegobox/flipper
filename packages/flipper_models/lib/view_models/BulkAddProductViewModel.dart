@@ -292,9 +292,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
       String barCode = product['BarCode'] ?? '';
       String finalCategoryId = _selectedCategories[barCode] ?? '';
       if (finalCategoryId.isEmpty) {
-        final category = await ProxyService.strategy.ensureUncategorizedCategory(
-          branchId: branchId,
-        );
+        final category = await ProxyService.strategy
+            .ensureUncategorizedCategory(branchId: branchId);
         finalCategoryId = category.id;
       }
       final qtyText = _resolveQuantityText(barCode, product);
@@ -434,18 +433,18 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
 
     final isVatEnabled = ebm?.vatEnabled ?? false;
-    final taxServerUrl = _resolveBulkRraTaxServerUrl(ebm);
-    final isTaxEnabled = _shouldCallRraOnServerBulk(ebm, taxServerUrl);
-    if (isTaxEnabled && taxServerUrl != null) {
-      talker.info('Bulk RRA will call tax server at $taxServerUrl');
-    } else if ((ebm?.vatEnabled ?? false) && taxServerUrl == null) {
+    final isTaxEnabled = isVatEnabled;
+    final dataConnectorUrl = _resolveDataConnectorUrl(ebm);
+    if (dataConnectorUrl == null) {
       talker.warning(
-        'Bulk RRA: VAT enabled but no tax server URL (set remoteServerUrl on mobile)',
+        'Bulk RRA: no data-connector URL on EBM; using default http://127.0.0.1:8084/',
       );
+    } else {
+      talker.info('Bulk RRA using data-connector at $dataConnectorUrl');
     }
 
     final connectorBase = await resolveDataConnectorBaseUrl(
-      serverUrl: await ProxyService.box.getServerUrl(),
+      dataConnectorUrl: dataConnectorUrl,
     );
     final client = BulkRraClient(baseUrl: connectorBase);
 
@@ -470,7 +469,6 @@ class BulkAddProductViewModel extends ChangeNotifier {
       branchId: branchId,
       businessId: businessId,
       rows: rows,
-      taxServerUrl: taxServerUrl,
       isTaxEnabled: isTaxEnabled,
     );
 
@@ -606,22 +604,18 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
       String finalCategoryId = _selectedCategories[barCode] ?? '';
       if (finalCategoryId.isEmpty) {
-        final category = await ProxyService.strategy.ensureUncategorizedCategory(
-          branchId: branchId,
-        );
+        final category = await ProxyService.strategy
+            .ensureUncategorizedCategory(branchId: branchId);
         finalCategoryId = category.id;
       }
 
       final qty = _resolveQuantityText(barCode, product);
-      final taxTyCd =
-          _selectedTaxTypes[barCode] ?? (isVatEnabled ? 'B' : 'D');
+      final taxTyCd = _selectedTaxTypes[barCode] ?? (isVatEnabled ? 'B' : 'D');
       final itemClsCd = _selectedItemClasses[barCode] ?? '5020230602';
       final itemTyCd = _selectedProductTypes[barCode] ?? '2';
-      final retailPrice =
-          double.tryParse(product['Price'] ?? '0') ?? 0;
+      final retailPrice = double.tryParse(product['Price'] ?? '0') ?? 0;
       final supplyPrice =
-          double.tryParse(product['SupplyPrice'] ?? '0') ??
-          retailPrice;
+          double.tryParse(product['SupplyPrice'] ?? '0') ?? retailPrice;
 
       final variant = <String, dynamic>{
         'branchId': branchId,
@@ -759,14 +753,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
     await OpenFilex.open(path);
   }
 
-  /// Same URL resolution as [variant_mixin] / legacy bulk: mobile uses [Ebm.remoteServerUrl].
-  String? _resolveBulkRraTaxServerUrl(brick.Ebm? ebm) {
-    if (ebm == null) return null;
-    var url = ebm.taxServerUrl;
-    if (Platform.isAndroid || Platform.isIOS) {
-      url = ebm.remoteServerUrl ?? url;
-    }
-    final trimmed = url?.trim();
+  String? _resolveDataConnectorUrl(brick.Ebm? ebm) {
+    final trimmed = ebm?.dataConnectorUrl?.trim();
     return (trimmed != null && trimmed.isNotEmpty) ? trimmed : null;
   }
 
@@ -786,7 +774,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
           branchId: branchId,
           businessId: ProxyService.box.getBusinessId(),
         );
-        final names = _excelData
+        final names =
+            _excelData
                 ?.map((r) => (r['Name'] ?? '').toString().trim())
                 .where((n) => n.isNotEmpty)
                 .toList() ??
@@ -797,9 +786,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
             branchId: branchId,
             names: names,
           );
-          talker.info(
-            'Post bulk Ditto name poll: landed=$landed names=$names',
-          );
+          talker.info('Post bulk Ditto name poll: landed=$landed names=$names');
         }
       }
 
@@ -827,13 +814,6 @@ class BulkAddProductViewModel extends ChangeNotifier {
     } catch (e, st) {
       talker.warning('Post bulk Ditto cloud refresh failed: $e', e, st);
     }
-  }
-
-  /// Server bulk calls RRA when VAT is on and EBM has a tax URL (localhost:8080/rra1/ is the local proxy).
-  bool _shouldCallRraOnServerBulk(brick.Ebm? ebm, String? taxServerUrl) {
-    return (ebm?.vatEnabled ?? false) &&
-        taxServerUrl != null &&
-        taxServerUrl.isNotEmpty;
   }
 }
 

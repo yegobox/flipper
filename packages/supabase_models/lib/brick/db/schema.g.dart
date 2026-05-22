@@ -1,28 +1,15 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260423201159.migration.dart';
-part '20260425064844.migration.dart';
-part '20260509120000.migration.dart';
-part '20260514063731.migration.dart';
-part '20260518153556.migration.dart';
-part '20260518182003.migration.dart';
-part '20260519120000.migration.dart';
+part '20260522081221.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260423201159(),
-  const Migration20260425064844(),
-  const Migration20260509120000(),
-  const Migration20260514063731(),
-  const Migration20260518153556(),
-  const Migration20260518182003(),
-  const Migration20260519120000(),
-};
+  const Migration20260522081221(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260519120000,
+  0,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -661,6 +648,7 @@ final schema = Schema(
         SchemaColumn('vat_enabled', Column.boolean),
         SchemaColumn('mrc', Column.varchar),
         SchemaColumn('remote_server_url', Column.varchar),
+        SchemaColumn('data_connector_url', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

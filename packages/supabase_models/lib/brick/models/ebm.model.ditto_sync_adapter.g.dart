@@ -117,6 +117,7 @@ class EbmDittoAdapter extends DittoSyncAdapter<Ebm> {
       "vatEnabled": model.vatEnabled,
       "mrc": model.mrc,
       "remoteServerUrl": model.remoteServerUrl,
+      "dataConnectorUrl": model.dataConnectorUrl,
     };
   }
 
@@ -160,6 +161,7 @@ class EbmDittoAdapter extends DittoSyncAdapter<Ebm> {
       vatEnabled: document["vatEnabled"],
       mrc: document["mrc"],
       remoteServerUrl: document["remoteServerUrl"],
+      dataConnectorUrl: document["dataConnectorUrl"],
     );
   }
 

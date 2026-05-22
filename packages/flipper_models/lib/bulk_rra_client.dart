@@ -184,24 +184,17 @@ class BulkSaveResult {
   final bool rraSkipped;
 }
 
-/// Resolves data-connector base URL. Must NOT use the RRA/tax server URL.
-Future<String> resolveDataConnectorBaseUrl({String? serverUrl}) async {
-  final candidates = <String>[
-    if (serverUrl != null && serverUrl.trim().isNotEmpty) serverUrl.trim(),
-    'http://127.0.0.1:8084',
-    'http://localhost:8084',
-  ];
-  for (final raw in candidates) {
-    final uri = Uri.tryParse(raw);
-    if (uri == null) continue;
-    final isConnector = uri.port == 8084 || raw.contains('data-connector');
-    if (isConnector) {
-      talker.info('Bulk RRA using data-connector at $raw');
-      return raw.endsWith('/') ? raw : '$raw/';
-    }
+/// Resolves data-connector base URL from [Ebm.dataConnectorUrl] (not the RRA tax URL).
+Future<String> resolveDataConnectorBaseUrl({String? dataConnectorUrl}) async {
+  final configured = dataConnectorUrl?.trim();
+  if (configured != null && configured.isNotEmpty) {
+    final normalized =
+        configured.endsWith('/') ? configured : '$configured/';
+    talker.info('Bulk RRA using data-connector at $normalized');
+    return normalized;
   }
   talker.warning(
-    'No data-connector URL in settings; defaulting to http://127.0.0.1:8084/',
+    'No data-connector URL configured on EBM; defaulting to http://127.0.0.1:8084/',
   );
   return 'http://127.0.0.1:8084/';
 }
