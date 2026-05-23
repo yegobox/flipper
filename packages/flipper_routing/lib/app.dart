@@ -907,4 +907,3 @@ class App {}
 // ./scripts/add-nginx-site.sh rows.yegobox.com 8087
 // DRY_RUN=1 ./scripts/add-nginx-site.sh rows.yegobox.com 8087
 // git merge -X ours origin/main
-// git pull -X ours origin main
