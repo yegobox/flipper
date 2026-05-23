@@ -9,5 +9,6 @@ abstract class EbmInterface {
     required String bhFId,
     bool vatEnabled = false,
     required String mrc,
+    String? dataConnectorUrl,
   });
 }

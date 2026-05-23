@@ -6,13 +6,17 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class FileUploadSection extends StatefulWidget {
   final PlatformFile? selectedFile;
+  final int? itemCount;
   final Future<void> Function({String? filePath}) onSelectFile;
+  final VoidCallback? onClearFile;
   final VoidCallback onDownloadTemplate;
 
   const FileUploadSection({
     super.key,
     required this.selectedFile,
+    this.itemCount,
     required this.onSelectFile,
+    this.onClearFile,
     required this.onDownloadTemplate,
   });
 
@@ -36,33 +40,30 @@ class _FileUploadSectionState extends State<FileUploadSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildDropzone(),
-          const SizedBox(height: 16),
+          widget.selectedFile == null
+              ? _buildEmptyDropzone()
+              : _buildCompactSelectedRow(),
+          const SizedBox(height: 12),
           _buildActionRow(),
         ],
       ),
     );
   }
 
-  Widget _buildDropzone() {
+  Widget _buildEmptyDropzone() {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      height: 200,
+      height: 140,
       decoration: BoxDecoration(
         color: _isDragging
-            ? Colors.blue.withOpacity(0.05)
-            : widget.selectedFile != null
-            ? Colors.green.withOpacity(0.02)
-            : Colors.grey.withOpacity(0.02),
+            ? Colors.blue.withValues(alpha: 0.05)
+            : Colors.grey.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _isDragging
               ? Colors.blue
-              : widget.selectedFile != null
-              ? Colors.green.withOpacity(0.3)
-              : Colors.grey.withOpacity(0.3),
+              : Colors.grey.withValues(alpha: 0.3),
           width: 2,
-          style: BorderStyle.solid,
         ),
       ),
       child: Material(
@@ -74,30 +75,93 @@ class _FileUploadSectionState extends State<FileUploadSection> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                widget.selectedFile != null
-                    ? FluentIcons.checkmark_circle_24_regular
-                    : FluentIcons.document_add_24_regular,
-                size: 48,
-                color: widget.selectedFile != null ? Colors.green : Colors.blue,
+                FluentIcons.document_add_24_regular,
+                size: 40,
+                color: Colors.blue,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
-                widget.selectedFile == null
-                    ? 'Drop your Excel file here'
-                    : widget.selectedFile!.name,
+                'Drop your Excel file here',
                 style: GoogleFonts.outfit(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                widget.selectedFile == null
-                    ? 'or click to browse your files'
-                    : 'File selected successfully',
-                style: GoogleFonts.outfit(fontSize: 14, color: Colors.black54),
+                'or click to browse your files',
+                style: GoogleFonts.outfit(fontSize: 13, color: Colors.black54),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactSelectedRow() {
+    final count = widget.itemCount;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: _isDragging
+            ? Colors.blue.withValues(alpha: 0.05)
+            : Colors.green.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isDragging
+              ? Colors.blue
+              : Colors.green.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => widget.onSelectFile(),
+          borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              const Icon(
+                FluentIcons.checkmark_circle_24_regular,
+                color: Colors.green,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.selectedFile!.name,
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (count != null)
+                      Text(
+                        '$count products loaded',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () => widget.onSelectFile(),
+                child: const Text('Change'),
+              ),
+              if (widget.onClearFile != null)
+                TextButton(
+                  onPressed: widget.onClearFile,
+                  child: const Text('Remove'),
+                ),
             ],
           ),
         ),

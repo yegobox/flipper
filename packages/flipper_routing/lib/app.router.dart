@@ -420,6 +420,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    AgentCommissionRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.AgentCommissionScreen(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     DrawerScreenRoute.name: (routeData) {
       final args = routeData.argsAs<DrawerScreenArgs>();
       return _i4.CustomPage<dynamic>(
@@ -761,6 +769,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           TenantManagementRoute.name,
           path: '/tenant-management',
+        ),
+        _i4.RouteConfig(
+          AgentCommissionRoute.name,
+          path: '/agent-commission',
         ),
         _i4.RouteConfig(
           SocialHomeViewRoute.name,
@@ -1869,6 +1881,18 @@ class TenantManagementRoute extends _i4.PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [_i1.AgentCommissionScreen]
+class AgentCommissionRoute extends _i4.PageRouteInfo<void> {
+  const AgentCommissionRoute()
+      : super(
+          AgentCommissionRoute.name,
+          path: '/agent-commission',
+        );
+
+  static const String name = 'AgentCommissionScreen';
+}
+
+/// generated route for
 /// [_i1.SocialHomeView]
 class SocialHomeViewRoute extends _i4.PageRouteInfo<void> {
   const SocialHomeViewRoute()
@@ -2864,6 +2888,14 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
+  Future<dynamic> navigateToAgentCommission(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const AgentCommissionRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> navigateToSocialHomeView(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
@@ -3569,6 +3601,14 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const TenantManagementRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAgentCommission(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const AgentCommissionRoute(),
       onFailure: onFailure,
     );
   }

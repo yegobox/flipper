@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
+import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:flipper_services/app_service.dart';
@@ -375,10 +376,11 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         await locator<AppService>().setDefaultBranch(branches.first);
         // Small delay to allow Hive writes to complete
         await Future.delayed(const Duration(milliseconds: 100));
+        await _completeAuthenticationFlow();
         _invalidateProviders();
-        _completeAuthenticationFlow();
       } else {
-        // If multiple branches, show branch selection
+        // Multiple branches: stay on this screen until the user picks one.
+        // _completeAuthenticationFlow runs from _handleBranchSelection only.
         setState(() {
           _isSelectingBranch = true;
         });
@@ -465,7 +467,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       // Final delay before navigation
       await Future.delayed(const Duration(milliseconds: 100));
 
-      _completeAuthenticationFlow();
+      await _completeAuthenticationFlow();
     } catch (e) {
       talker.error('Error handling branch selection: $e');
       if (!mounted) return;
@@ -482,20 +484,29 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       }
     }
   }
-
+  
   // Consolidating logic into AppService
 
-  void _completeAuthenticationFlow() {
+  Future<void> _completeAuthenticationFlow() async {
     final selectedBusinessId = ref.read(selectedBusinessIdProvider);
+    final commissionOnly = await refreshCommissionOnlySession(
+      businessId: selectedBusinessId,
+    );
+
     PosthogService.instance.capture(
       'login_success',
       properties: {
         'source': 'login_choices',
         if (selectedBusinessId != null) 'business_id': selectedBusinessId,
+        'commission_only': commissionOnly,
       },
     );
 
-    _routerService.navigateTo(FlipperAppRoute());
+    if (commissionOnly) {
+      _routerService.navigateTo(const AgentCommissionRoute());
+    } else {
+      _routerService.navigateTo(FlipperAppRoute());
+    }
 
     // Clear the navigation flag after a delay
     _navigationTimer?.cancel();

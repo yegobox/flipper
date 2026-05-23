@@ -9,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -18,9 +19,12 @@ import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
+import 'package:flipper_dashboard/providers/business_agents_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_dashboard/features/sale_agent/sale_agent_assignment_sheet.dart';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
+import 'package:flipper_dashboard/utils/sale_agent_commission.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class CustomDropdownButton extends StatefulWidget {
@@ -467,6 +471,7 @@ class _SearchInputWithDropdownState
                   label: 'Sale Type',
                   icon: FluentIcons.call_outbound_20_regular,
                 ),
+                _buildAgentSuffixControl(transaction),
                 if (attachedCustomer != null)
                   IconButton(
                     padding: EdgeInsets.zero,
@@ -515,6 +520,115 @@ class _SearchInputWithDropdownState
           ),
           filled: true,
           fillColor: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAgentSuffixControl(ITransaction? transaction) {
+    final uid = transaction?.attributedAgentUserId;
+    final hasAgent = uid != null && uid.isNotEmpty;
+
+    if (!hasAgent) {
+      return IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
+        tooltip: 'Assign agent',
+        onPressed: transaction == null
+            ? null
+            : () => showSaleAgentAssignmentSheet(
+                  context: context,
+                  ref: ref,
+                  transaction: transaction,
+                ),
+        icon: Icon(
+          Icons.support_agent,
+          color: PosLayoutBreakpoints.posAccentBlue,
+        ),
+      );
+    }
+
+    final nameAsync = ref.watch(attributedAgentNameProvider(uid));
+    final label = nameAsync.maybeWhen(
+      data: (n) => n ?? 'Agent',
+      orElse: () => 'Agent',
+    );
+    final commissionLabel = formatSaleAgentCommissionLabel(
+      commissionType: transaction?.agentCommissionType,
+      commissionValue: transaction?.agentCommissionValue,
+      resolvedAmount: transaction?.agentCommissionAmount,
+    );
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 2),
+      child: Material(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => showSaleAgentAssignmentSheet(
+            context: context,
+            ref: ref,
+            transaction: transaction!,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.support_agent,
+                  size: 18,
+                  color: PosLayoutBreakpoints.posAccentBlue,
+                ),
+                const SizedBox(width: 4),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1E40AF),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (commissionLabel.isNotEmpty)
+                        Text(
+                          commissionLabel,
+                          style: GoogleFonts.outfit(
+                            fontSize: 10,
+                            color: const Color(0xFF3B82F6),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 2),
+                GestureDetector(
+                  onTap: () async {
+                    await persistSaleAgentAttribution(
+                      ref,
+                      transaction!,
+                      clear: true,
+                    );
+                  },
+                  child: const Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

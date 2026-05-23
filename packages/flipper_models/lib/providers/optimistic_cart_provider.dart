@@ -33,12 +33,15 @@ class OptimisticCartState {
   final Map<String, double> lastStreamQtySumByVariantId;
   /// Snapshot from the last tap, used to render ghost rows.
   final Map<String, Variant> variantSnapshotByVariantId;
+  /// Ignore stream reconciliation briefly after a tap so ghosts are not cleared early.
+  final DateTime? reconcileAfter;
 
   const OptimisticCartState({
     this.activeTransactionId,
     this.pendingQtyByVariantId = const {},
     this.lastStreamQtySumByVariantId = const {},
     this.variantSnapshotByVariantId = const {},
+    this.reconcileAfter,
   });
 
   OptimisticCartState copyWith({
@@ -46,6 +49,8 @@ class OptimisticCartState {
     Map<String, double>? pendingQtyByVariantId,
     Map<String, double>? lastStreamQtySumByVariantId,
     Map<String, Variant>? variantSnapshotByVariantId,
+    DateTime? reconcileAfter,
+    bool clearReconcileAfter = false,
     bool clearTransaction = false,
   }) {
     return OptimisticCartState(
@@ -58,12 +63,27 @@ class OptimisticCartState {
           lastStreamQtySumByVariantId ?? this.lastStreamQtySumByVariantId,
       variantSnapshotByVariantId:
           variantSnapshotByVariantId ?? this.variantSnapshotByVariantId,
+      reconcileAfter: clearReconcileAfter
+          ? null
+          : (reconcileAfter ?? this.reconcileAfter),
     );
   }
 
   bool hasPendingFor(String transactionId) {
-    if (activeTransactionId != transactionId) return false;
+    if (!_appliesToTransaction(transactionId)) return false;
     return pendingQtyByVariantId.values.any((q) => q > 0);
+  }
+
+  /// True when [pendingQtyByVariantId] should merge into [transactionId]'s cart.
+  bool _appliesToTransaction(String transactionId) {
+    if (transactionId.isEmpty) return false;
+    final active = activeTransactionId;
+    if (active == null || active.isEmpty) return false;
+    if (active == transactionId) return true;
+    // Bootstrap ghosts apply to the real pending sale until bind runs.
+    return OptimisticCartBootstrap.isBootstrap(active) &&
+        !OptimisticCartBootstrap.isBootstrap(transactionId) &&
+        pendingQtyByVariantId.isNotEmpty;
   }
 }
 
@@ -86,6 +106,7 @@ class OptimisticCart extends _$OptimisticCart {
       pendingQtyByVariantId: {},
       lastStreamQtySumByVariantId: {},
       variantSnapshotByVariantId: {},
+      reconcileAfter: null,
     );
   }
 
@@ -113,6 +134,7 @@ class OptimisticCart extends _$OptimisticCart {
     state = state.copyWith(
       pendingQtyByVariantId: nextPending,
       variantSnapshotByVariantId: nextSnap,
+      reconcileAfter: DateTime.now().add(const Duration(milliseconds: 120)),
     );
   }
 
@@ -145,9 +167,17 @@ class OptimisticCart extends _$OptimisticCart {
     required List<TransactionItem> items,
   }) {
     if (transactionId.isEmpty) return;
-    if (state.activeTransactionId != null &&
-        state.activeTransactionId != transactionId) {
+    final grace = state.reconcileAfter;
+    if (grace != null && DateTime.now().isBefore(grace)) {
       return;
+    }
+    final active = state.activeTransactionId;
+    if (active != null && active != transactionId) {
+      if (OptimisticCartBootstrap.isBootstrap(active)) {
+        bindPendingTransaction(transactionId);
+      } else {
+        return;
+      }
     }
 
     final streamSum = _sumQtyByVariant(items);
@@ -188,6 +218,7 @@ class OptimisticCart extends _$OptimisticCart {
       pendingQtyByVariantId: nextPending,
       lastStreamQtySumByVariantId: nextLast,
       variantSnapshotByVariantId: nextSnaps,
+      clearReconcileAfter: true,
     );
   }
 
@@ -239,7 +270,14 @@ String cartTransactionIdForMerge({
 String cartTransactionIdForMergeIds({
   required String? pendingTransactionId,
   required String? optimisticTransactionId,
+  bool preferBootstrapWhilePending = false,
 }) {
+  if (preferBootstrapWhilePending &&
+      OptimisticCartBootstrap.isBootstrap(optimisticTransactionId) &&
+      optimisticTransactionId != null &&
+      optimisticTransactionId.isNotEmpty) {
+    return optimisticTransactionId;
+  }
   if (pendingTransactionId != null && pendingTransactionId.isNotEmpty) {
     return pendingTransactionId;
   }
@@ -252,7 +290,7 @@ List<TransactionItem> mergeTransactionItemsWithOptimisticCart({
   required OptimisticCartState optimistic,
   required String transactionId,
 }) {
-  if (optimistic.activeTransactionId != transactionId) {
+  if (!optimistic._appliesToTransaction(transactionId)) {
     return _sortNewestFirst(streamItems);
   }
 

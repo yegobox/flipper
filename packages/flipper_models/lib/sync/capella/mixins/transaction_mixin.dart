@@ -7,6 +7,7 @@ import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart'
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/transaction_query_helpers.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -52,6 +53,13 @@ bool _dittoRowStatusIsPending(Map<String, dynamic> data) {
   if (s == null) return false;
   if (s is String) return s == PENDING;
   return false;
+}
+
+/// Prefer explicit `id` (UUID) over Ditto's auto-generated `_id`.
+String? _dittoDocumentId(Map<String, dynamic> data) {
+  final id = data['id']?.toString();
+  if (id != null && id.isNotEmpty) return id;
+  return data['_id']?.toString();
 }
 
 mixin CapellaTransactionMixin implements TransactionInterface {
@@ -371,8 +379,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
 
     return ITransaction(
-      agentId: ProxyService.box.getUserId()!,
-      id: data['_id'] ?? data['id'],
+      agentId: (data['agentId'] as String?) ?? ProxyService.box.getUserId()!,
+      attributedAgentUserId: data['attributedAgentUserId'] as String?,
+      agentCommissionType: data['agentCommissionType'] as String?,
+      agentCommissionValue: parseDouble(data['agentCommissionValue']),
+      agentCommissionAmount: parseDouble(data['agentCommissionAmount']),
+      id: _dittoDocumentId(data),
       reference: data['reference'],
       categoryId: data['categoryId'],
       transactionNumber: data['transactionNumber'],
@@ -454,6 +466,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     List<String>? receiptNumber,
     String? customerId,
     String? agentId,
+    String? attributedAgentUserId,
+    bool filterPeriodByCreatedAt = false,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -471,14 +485,46 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return [];
       }
 
-      final preparedTx = prepareDqlSyncSubscription(
-        "SELECT * FROM transactions WHERE branchId = :branchId",
-        {'branchId': branchId},
-      );
-      ditto.sync.registerSubscription(
-        preparedTx.dql,
-        arguments: preparedTx.arguments,
-      );
+      Future<void> registerBroadTransactionsSubscription() async {
+        final prepared = capellaTransactionsSyncSubscription(
+          branchId: branchId,
+          attributedAgentUserId: attributedAgentUserId,
+        );
+        if (prepared == null) return;
+        try {
+          await ditto.sync.registerSubscription(
+            prepared.dql,
+            arguments: prepared.arguments,
+          );
+          talker.debug(
+            'transactions: registered broad sync subscription '
+            '(agent=${attributedAgentUserId != null && attributedAgentUserId.isNotEmpty}, '
+            'branch=${branchId != null && branchId.isNotEmpty})',
+          );
+        } catch (e, st) {
+          talker.warning(
+            'transactions: registerSubscription failed: $e\n'
+            '${describeDqlSyncSubscriptionAttempt(prepared.dql, prepared.arguments)}\n'
+            '$st',
+          );
+        }
+      }
+
+      if (fetchRemote) {
+        // Local-first query; pull remote rows on new devices (commission / refresh).
+        unawaited(registerBroadTransactionsSubscription());
+      } else {
+        final syncSubscription = capellaTransactionsSyncSubscription(
+          branchId: branchId,
+          attributedAgentUserId: attributedAgentUserId,
+        );
+        if (syncSubscription != null) {
+          ditto.sync.registerSubscription(
+            syncSubscription.dql,
+            arguments: syncSubscription.arguments,
+          );
+        }
+      }
 
       // Build SQL WHERE clause conditions
       final List<String> whereClauses = [];
@@ -564,6 +610,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           arguments['agentId'] = agentId;
         }
 
+        // Sale agent attribution (commission reporting)
+        if (attributedAgentUserId != null) {
+          whereClauses.add('attributedAgentUserId = :attributedAgentUserId');
+          arguments['attributedAgentUserId'] = attributedAgentUserId;
+        }
+
         // Receipt number filter - check both invoiceNumber OR receiptNumber
         if (receiptNumber != null && receiptNumber.isNotEmpty) {
           final receiptPlaceholders = receiptNumber
@@ -590,6 +642,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         }
 
         // Date filtering
+        final periodField = transactionsPeriodDateField(
+          filterPeriodByCreatedAt: filterPeriodByCreatedAt,
+        );
         if (startDate != null && endDate != null) {
           final localStartDate = DateTime(
             startDate.year,
@@ -606,7 +661,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             999,
           );
           whereClauses.add(
-            'lastTouched >= :startDate AND lastTouched <= :endDate',
+            '$periodField >= :startDate AND $periodField <= :endDate',
           );
           arguments['startDate'] = localStartDate.toIso8601String();
           arguments['endDate'] = localEndDate.toIso8601String();
@@ -616,7 +671,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             startDate.month,
             startDate.day,
           );
-          whereClauses.add('lastTouched >= :startDate');
+          whereClauses.add('$periodField >= :startDate');
           arguments['startDate'] = localStartDate.toIso8601String();
         } else if (endDate != null) {
           final localEndDate = DateTime(
@@ -628,7 +683,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             59,
             999,
           );
-          whereClauses.add('lastTouched <= :endDate');
+          whereClauses.add('$periodField <= :endDate');
           arguments['endDate'] = localEndDate.toIso8601String();
         }
       }
@@ -640,22 +695,45 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       talker.info('Capella Ditto Query (transactions): $query');
       talker.info('Capella Ditto Arguments: $arguments');
 
-      // Execute the query
-      final queryResult = await ditto.store.execute(
-        query,
-        arguments: arguments,
-      );
-
-      // Convert results to ITransaction list
-      final transactions = <ITransaction>[];
-      for (final item in queryResult.items) {
-        try {
-          final transactionData = Map<String, dynamic>.from(item.value);
-          final transaction = _convertFromDittoDocument(transactionData);
-          transactions.add(transaction);
-        } catch (e) {
-          talker.error('Error converting transaction: $e');
+      Future<List<ITransaction>> runExecute() async {
+        final queryResult = await ditto.store.execute(
+          query,
+          arguments: arguments,
+        );
+        final list = <ITransaction>[];
+        for (final item in queryResult.items) {
+          try {
+            final transactionData = Map<String, dynamic>.from(item.value);
+            list.add(_convertFromDittoDocument(transactionData));
+          } catch (e) {
+            talker.error('Error converting transaction: $e');
+          }
         }
+        return list;
+      }
+
+      var transactions = await runExecute();
+
+      final shouldWaitForRemote = transactionsShouldWaitForRemoteSync(
+        fetchRemote: fetchRemote,
+        id: id,
+        receiptNumber: receiptNumber,
+        attributedAgentUserId: attributedAgentUserId,
+      );
+      if (transactions.isEmpty && shouldWaitForRemote) {
+        talker.info(
+          'transactions: empty on first fetch with fetchRemote — '
+          'waiting for Ditto replication (600ms)',
+        );
+        await Future.delayed(const Duration(milliseconds: 600));
+        transactions = await runExecute();
+      }
+      if (transactions.isEmpty && shouldWaitForRemote) {
+        talker.info(
+          'transactions: still empty — waiting for Ditto replication (1200ms)',
+        );
+        await Future.delayed(const Duration(milliseconds: 1200));
+        transactions = await runExecute();
       }
 
       talker.info(
@@ -958,7 +1036,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             'supplyPriceAtSale': unitSupply,
             'supplyPrice': unitSupply,
             'updatedAt': DateTime.now().toIso8601String(),
-            'id': existingItemData['_id'] ?? existingItemData['id'],
+            'id': _dittoDocumentId(existingItemData),
           },
         );
 
@@ -973,7 +1051,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         final lineSupplyAmt = unitSupply * qty;
 
         final newItem = TransactionItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate ID
           name: variation.name,
           transactionId: pendingTransaction.id,
           variantId: variation.id,
@@ -1381,6 +1458,15 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
     }
 
+    void addFieldUpdate(String field, dynamic value) {
+      updates.add('$field = :$field');
+      if (value is DateTime) {
+        arguments[field] = value.toIso8601String();
+      } else {
+        arguments[field] = value;
+      }
+    }
+
     // Only persist status when the caller passes [status] explicitly. Using
     // `transaction?.status` here caused regressions: a stale in-memory
     // [ITransaction] (e.g. from a provider or an unawaited callback) could
@@ -1393,6 +1479,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       addUpdate('status', status);
     }
     addUpdate('subTotal', subTotal ?? transaction?.subTotal);
+    addUpdate('taxAmount', transaction?.taxAmount);
     addUpdate('cashierName', cashierName);
     final resolvedUpdatedAt =
         updatedAt ?? transaction?.updatedAt ?? DateTime.now();
@@ -1418,6 +1505,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // Crucial for resumption: update agentId if transaction object is provided
     if (transaction != null) {
       addUpdate('agentId', transaction.agentId);
+      addFieldUpdate(
+        'attributedAgentUserId',
+        transaction.attributedAgentUserId,
+      );
+      addFieldUpdate('agentCommissionType', transaction.agentCommissionType);
+      addFieldUpdate('agentCommissionValue', transaction.agentCommissionValue);
+      addFieldUpdate(
+        'agentCommissionAmount',
+        transaction.agentCommissionAmount,
+      );
     }
 
     if (receiptType != null) addUpdate('receiptType', receiptType);
@@ -2080,6 +2177,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   Map<String, dynamic> _transactionToMap(ITransaction transaction) {
     return {
+      '_id': transaction.id,
       'id': transaction.id,
       'reference': transaction.reference,
       'categoryId': transaction.categoryId,

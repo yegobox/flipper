@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helpers/tenant_supabase_queries.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
 import 'package:flutter/foundation.dart' as foundation;
@@ -180,18 +181,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
 
   @override
   FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
-    if (userId != null) {
-      return (await repository.get<Tenant>(
-        query: Query(where: [Where('userId').isExactly(userId)]),
-      ))
-          .firstOrNull;
-    } else if (pin != null) {
-      return (await repository.get<Tenant>(
-        query: Query(where: [Where('pin').isExactly(pin)]),
-      ))
-          .firstOrNull;
-    }
-    throw Exception("UserId or Pin is required");
+    return TenantSupabaseQueries.getTenant(userId: userId, pin: pin);
   }
 
   @override

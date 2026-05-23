@@ -44,7 +44,9 @@ class SharedPreferenceStorage implements LocalStorage {
     'pmtTyCd',
     'businessId',
     'userId',
+    'userIdString',
     'userPhone',
+    'commissionOnlySession',
     'getCashReceived',
     'getReceiptFileName',
     'needLinkPhoneNumber',
@@ -173,10 +175,9 @@ class SharedPreferenceStorage implements LocalStorage {
       _cache = Map<String, dynamic>.from(legacy)..addAll(dittoMap);
     }
 
-    // Ditto 5: merged snapshot can briefly win for branch/business/user even when
-    // the in-memory cache was just updated (e.g. LoginChoices setDefaultBranch).
-    // Prefer non-empty legacy values so Capella queries never see an empty branchId.
-    _preferLegacySessionContext(_cache, legacy);
+    // Ditto merge can reintroduce a previous user's id from flipper_local_prefs.
+    // Restore in-memory session identity (API user id + branch/business picks).
+    _restoreSessionIdentity(_cache, legacy, dittoMap);
 
     await _writeDittoPayload();
     await _savePreferences();
@@ -186,15 +187,35 @@ class SharedPreferenceStorage implements LocalStorage {
     'branchId',
     'businessId',
     'userId',
+    'userIdString',
   };
 
-  void _preferLegacySessionContext(
+  String? _nonEmptySessionString(dynamic value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// Keeps [userId] aligned with `/v2/api/user` `id` after Ditto pref merges.
+  void _restoreSessionIdentity(
     Map<String, dynamic> merged,
     Map<String, dynamic> legacy,
+    Map<String, dynamic> dittoMap,
   ) {
+    final apiUserId = _nonEmptySessionString(legacy['userIdString']) ??
+        _nonEmptySessionString(legacy['userId']) ??
+        _nonEmptySessionString(dittoMap['userIdString']) ??
+        _nonEmptySessionString(dittoMap['userId']);
+
+    if (apiUserId != null) {
+      merged['userId'] = apiUserId;
+      merged['userIdString'] = apiUserId;
+    }
+
     for (final k in _sessionContextKeys) {
-      final leg = legacy[k];
-      if (leg is String && leg.isNotEmpty) {
+      if (k == 'userId' || k == 'userIdString') continue;
+      final leg = _nonEmptySessionString(legacy[k]);
+      if (leg != null) {
         merged[k] = leg;
       }
     }
@@ -444,6 +465,13 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? getUserId() {
+    // userIdString is written from /v2/api/user `id` and is not overwritten by
+    // stale pin rows or Ditto merge as often as `userId`.
+    final canonical = _nonEmptySessionString(_cache['userIdString']) ??
+        _nonEmptySessionString(_cache['userId']);
+    if (canonical != null) {
+      return canonical;
+    }
     final value = _cache['userId'];
     if (value is String) {
       return value;

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_models/services/internet_connection_service.dart';
@@ -216,38 +217,27 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   void _handleActiveSubscription() async {
     talker.info('Payment verification successful: Subscription is active');
 
-    // Check if we should navigate to personal app for individual businesses
-    final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
-
-    if (shouldGoToPersonal) {
-      talker.info('Navigating to personal app for individual business');
-      _routerService.navigateTo(PersonalHomeRoute());
-      _isInitialStartup = false;
-      return;
-    }
-
-    // If we were on a payment screen, navigate back to the main app
     if (_isOnPaymentScreen) {
       talker.info(
         'Returning to main app after successful payment verification',
       );
       _clearPaymentScreenFlag();
-      _routerService.navigateTo(FlipperAppRoute());
-    } else {
-      // First time startup with active subscription
-      _routerService.navigateTo(FlipperAppRoute());
-      talker.warning("StartupViewModel Below navigateTo(FlipperAppRoute)");
     }
-    _isInitialStartup = false;
+
+    await _navigateToAuthenticatedHome();
   }
 
-  void _handleNoPlan() {
+  void _handleNoPlan() async {
+    if (await _navigateCommissionOnlyIfNeeded()) return;
+
     talker.warning('No payment plan found, directing to payment plan screen');
     _setOnPaymentScreen();
     _routerService.navigateTo(PaymentPlanUIRoute());
   }
 
-  void _handleInactivePlan(PaymentVerificationResponse response) {
+  void _handleInactivePlan(PaymentVerificationResponse response) async {
+    if (await _navigateCommissionOnlyIfNeeded()) return;
+
     talker.error(
       'Payment plan exists but is not active: ${response.errorMessage}',
     );
@@ -257,6 +247,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   void _handleVerificationError(PaymentVerificationResponse response) async {
     talker.error('Error during payment verification: ${response.errorMessage}');
+
+    if (await _navigateCommissionOnlyIfNeeded()) return;
 
     // Check if we should navigate to personal app for individual businesses
     final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
@@ -282,8 +274,42 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.warning(
         "Proceeding to main app despite payment verification error",
       );
-      _routerService.navigateTo(FlipperAppRoute());
+      await _navigateToAuthenticatedHome(skipPersonalCheck: true);
     }
+  }
+
+  /// Routes commission-only agents to [AgentCommissionRoute]; returns true if navigated.
+  Future<bool> _navigateCommissionOnlyIfNeeded() async {
+    final commissionOnly = await refreshCommissionOnlySession();
+    if (!commissionOnly) return false;
+
+    talker.info(
+      'Navigating to agent commission screen for commission-only session',
+    );
+    _routerService.navigateTo(const AgentCommissionRoute());
+    _isInitialStartup = false;
+    return true;
+  }
+
+  /// Post-auth destination when business and branch are already persisted (app reopen).
+  Future<void> _navigateToAuthenticatedHome({
+    bool skipPersonalCheck = false,
+  }) async {
+    if (!skipPersonalCheck) {
+      final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
+      if (shouldGoToPersonal) {
+        talker.info('Navigating to personal app for individual business');
+        _routerService.navigateTo(PersonalHomeRoute());
+        _isInitialStartup = false;
+        return;
+      }
+    }
+
+    if (await _navigateCommissionOnlyIfNeeded()) return;
+
+    _routerService.navigateTo(FlipperAppRoute());
+    talker.warning("StartupViewModel navigateTo(FlipperAppRoute)");
+    _isInitialStartup = false;
   }
 
   void _setOnPaymentScreen() {

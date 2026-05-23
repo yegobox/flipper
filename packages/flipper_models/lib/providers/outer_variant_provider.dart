@@ -203,7 +203,7 @@ class OuterVariants extends _$OuterVariants {
 
   /// Method to force a full refresh of variants (e.g., after adding new products).
   Future<void> refresh() async {
-    final paged = await _fetchVariants(branchId, 0, '', fetchRemote: true);
+    final paged = await _fetchVariantsWithColdStartGrace(branchId);
     _currentSearch = '';
     _totalCount = paged.totalCount;
     _pageCache.clear();

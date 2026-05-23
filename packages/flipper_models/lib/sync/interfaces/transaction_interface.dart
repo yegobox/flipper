@@ -26,6 +26,10 @@ abstract class TransactionInterface {
     List<String>? receiptNumber,
     String? customerId,
     String? agentId,
+    String? attributedAgentUserId,
+    /// When true with [startDate]/[endDate], filters on [createdAt] instead of
+    /// [lastTouched] (used for agent commission reporting).
+    bool filterPeriodByCreatedAt = false,
   });
 
   /// Merge `from` into `to`:

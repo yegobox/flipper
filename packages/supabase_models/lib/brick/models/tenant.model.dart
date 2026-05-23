@@ -1,13 +1,13 @@
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
+// import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
-@ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'tenants'),
-)
-class Tenant extends OfflineFirstWithSupabaseModel {
-  @Supabase(unique: true)
+// @ConnectOfflineFirstWithSupabase(
+//   supabaseConfig: SupabaseSerializable(tableName: 'tenants'),
+// )
+class Tenant extends OfflineFirstModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
@@ -33,6 +33,12 @@ class Tenant extends OfflineFirstWithSupabaseModel {
   ///but used in ui to achieve some functionality
 
   String? type;
+
+  /// When false for Agent tenants, login is commission-only. Full dashboard when true.
+  @Supabase(name: 'allow_business_login')
+  @Sqlite(name: 'allow_business_login')
+  bool allowBusinessLogin;
+
   Tenant({
     String? id,
     this.name,
@@ -48,5 +54,6 @@ class Tenant extends OfflineFirstWithSupabaseModel {
     this.isDefault,
     this.sessionActive,
     this.type = "Agent",
+    this.allowBusinessLogin = false,
   }) : id = id ?? const Uuid().v4();
 }

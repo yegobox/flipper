@@ -11,7 +11,71 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+class _CreateAgentMigrationRequired implements Exception {
+  _CreateAgentMigrationRequired(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class TenantOperationsMixin {
+  static bool _isCreateAgentSchemaMismatch(PostgrestException e) {
+    return e.code == 'PGRST202' &&
+        (e.message.contains('create_agent') ||
+            e.message.contains('schema cache'));
+  }
+
+  static Future<dynamic> _invokeCreateAgent(
+    SupabaseClient client, {
+    required String userId,
+    required String name,
+    required String email,
+    required String businessId,
+    required String branchId,
+    required List<Map<String, String>> accesses,
+    required String userType,
+    required bool allowBusinessLogin,
+  }) async {
+    final baseParams = <String, dynamic>{
+      'p_user_id': userId,
+      'p_name': name,
+      'p_email': email,
+      'p_business_id': businessId,
+      'p_branch_id': branchId,
+      'p_accesses': accesses,
+      'p_user_type': userType,
+    };
+
+    final withLoginFlag = {
+      ...baseParams,
+      'p_allow_business_login': allowBusinessLogin,
+    };
+    talker.info('create_agent params: $withLoginFlag');
+
+    try {
+      return await client.rpc('create_agent', params: withLoginFlag);
+    } on PostgrestException catch (e) {
+      if (!_isCreateAgentSchemaMismatch(e)) rethrow;
+
+      talker.warning(
+        'create_agent missing p_allow_business_login — apply migration '
+        '20260518120000_agent_allow_business_login.sql',
+      );
+
+      if (userType == 'Agent' && !allowBusinessLogin) {
+        throw _CreateAgentMigrationRequired(
+          'Commission-only agents need a database update. '
+          'Apply migration supabase/migrations/20260518120000_agent_allow_business_login.sql '
+          '(e.g. supabase db push), or turn on "Allow login on this business" and try again.',
+        );
+      }
+
+      talker.info('create_agent legacy params: $baseParams');
+      return await client.rpc('create_agent', params: baseParams);
+    }
+  }
+
   // Helper function to display error messages
   static void _showError(BuildContext context, String message) {
     showCustomSnackBarUtil(context, message, backgroundColor: Colors.red[600]);
@@ -55,6 +119,7 @@ class TenantOperationsMixin {
     required Map<String, bool> activeFeatures,
     Map<String, String>? permissionsBaseline,
     Map<String, bool>? activeFeaturesBaseline,
+    bool allowBusinessLogin = false,
   }) async {
     try {
       Branch? branch;
@@ -212,29 +277,33 @@ class TenantOperationsMixin {
       // Call the create_agent RPC function
       dynamic data;
       try {
-        final rpcParams = {
-          'p_user_id': userIdFromApi,
-          'p_name': name,
-          'p_email': phoneNumber,
-          'p_business_id': businessIdFromBox,
-          'p_branch_id': branch.id,
-          'p_accesses': accessPermissions,
-          'p_user_type': userType,
-        };
-        talker.info('create_agent params: $rpcParams');
-        data = await supabaseClient.rpc(
-          'create_agent',
-          params: rpcParams,
+        final allowLogin =
+            userType == 'Agent' ? allowBusinessLogin : true;
+        data = await _invokeCreateAgent(
+          supabaseClient,
+          userId: userIdFromApi,
+          name: name,
+          email: phoneNumber,
+          businessId: businessIdFromBox,
+          branchId: branch.id,
+          accesses: accessPermissions,
+          userType: userType,
+          allowBusinessLogin: allowLogin,
         );
       } on PostgrestException catch (e, s) {
         talker.error(s);
+        final base = e.message.isNotEmpty
+            ? e.message
+            : 'Failed to save permissions (Supabase error).';
         _fail(
           context,
-          e.message.isNotEmpty
-              ? e.message
-              : 'Failed to save permissions (Supabase error).',
+          '$base '
+          'The login account may already exist without a tenant for this business — '
+          'open User Management and add this user again to finish setup.',
           e,
         );
+      } on _CreateAgentMigrationRequired catch (e) {
+        _fail(context, e.message, e);
       } catch (e, s) {
         talker.error(s);
         _fail(context, 'Failed to save permissions: $e', e);

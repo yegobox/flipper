@@ -9,6 +9,13 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
 
+/// Prefer explicit `id` (UUID) over Ditto's auto-generated `_id`.
+String? _dittoDocumentId(Map<String, dynamic> data) {
+  final id = data['id']?.toString();
+  if (id != null && id.isNotEmpty) return id;
+  return data['_id']?.toString();
+}
+
 mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
   Talker get talker;
@@ -264,7 +271,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     }
 
     return TransactionItem(
-      id: data['_id'] ?? data['id'],
+      id: _dittoDocumentId(data),
       name: data['name'] ?? '',
       transactionId: data['transactionId'],
       variantId: data['variantId'],

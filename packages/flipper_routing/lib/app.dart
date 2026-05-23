@@ -47,6 +47,7 @@ import 'all_routes.dart';
     CustomRoute(page: BackUp),
     CustomRoute(page: LoginChoices),
     CustomRoute(page: TenantManagement),
+    CustomRoute(page: AgentCommissionScreen),
     CustomRoute(page: DrawerScreen),
     CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),
@@ -145,7 +146,8 @@ class App {}
 /// rm -rf open-sources/generator
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 /// rm -rf path/to/submodule
-/// git submodule add https://github.com/yegobox/looma.git
+/// git submodule add https://github.com/yegobox/data-connector.git
+/// git submodule  add https://github.com/yegobox/data-connector.git open-sources/data-connector
 /// find ./ -name pubspec.lock -type f -delete && find ./ -name pubspec_overrides.yaml -type f -delete && find ./ -name dependencies.txt -type f -delete
 /// find ./ -name pubspec_overrides.yaml -type f -delete
 /// find ./ -name dependencies.txt -type f -delete
@@ -902,4 +904,5 @@ class App {}
 // https://pub.dev/packages/flutter_face_liveness
 // Ctrl+Shift+T (Windows/Linux)
 // Cmd+Shift+T (macOS)
-
+// ./scripts/add-nginx-site.sh rows.yegobox.com 8087
+// DRY_RUN=1 ./scripts/add-nginx-site.sh rows.yegobox.com 8087

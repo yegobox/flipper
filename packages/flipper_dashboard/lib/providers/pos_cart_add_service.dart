@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -30,6 +31,7 @@ class PosCartAddService {
     if (variant.id.isEmpty) return;
 
     final isExpense = isOrdering;
+    warmPosCartPendingTransactionCache(ref, isExpense: isExpense);
     final resolvedTxnId =
         readPosCartTransactionIdFast(ref, isExpense: isExpense);
     final optimismTxnId = (resolvedTxnId != null && resolvedTxnId.isNotEmpty)
@@ -39,12 +41,27 @@ class PosCartAddService {
     ref.read(optimisticOrderCountProvider.notifier).increment();
 
     var cartOptimismApplied = false;
-    if (!isOrdering && !isComposite) {
+    if (!isOrdering) {
       ref.read(optimisticCartProvider.notifier).addPendingLine(
             transactionId: optimismTxnId,
             variant: variant,
           );
       cartOptimismApplied = true;
+      bumpPosCartDisplayEpoch(ref);
+      ref.invalidate(posCartDisplayItemsProvider);
+      if (OptimisticCartBootstrap.isBootstrap(optimismTxnId)) {
+        final realId =
+            readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id ??
+            ref
+                .read(pendingTransactionStreamProvider(isExpense: isExpense))
+                .value
+                ?.id;
+        if (realId != null && realId.isNotEmpty) {
+          ref
+              .read(optimisticCartProvider.notifier)
+              .bindPendingTransaction(realId);
+        }
+      }
     }
 
     unawaited(
@@ -91,7 +108,8 @@ class PosCartAddService {
     final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
 
     try {
-      final txn = await resolvePendingTransactionForPersist(
+      var txn = readCachedPendingCartTransaction(ref, isExpense: isOrdering);
+      txn ??= await resolvePendingTransactionForPersist(
         ref: ref,
         pendingProv: pendingProv,
         isOrdering: isOrdering,
@@ -112,11 +130,13 @@ class PosCartAddService {
         return;
       }
 
-      if (!cartOptimismApplied && !isOrdering && !isComposite) {
+      if (!cartOptimismApplied && !isOrdering) {
         ref
             .read(optimisticCartProvider.notifier)
             .addPendingLine(transactionId: txn.id, variant: variant);
         cartOptimismApplied = true;
+        bumpPosCartDisplayEpoch(ref);
+        ref.invalidate(posCartDisplayItemsProvider);
       }
 
       await persistItemToTransaction(

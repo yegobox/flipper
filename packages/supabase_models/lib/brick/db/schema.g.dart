@@ -1,22 +1,15 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260514063731.migration.dart';
-part '20260423201159.migration.dart';
-part '20260425064844.migration.dart';
-part '20260509120000.migration.dart';
+part '20260522081221.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260514063731(),
-  const Migration20260423201159(),
-  const Migration20260425064844(),
-  const Migration20260509120000(),
-};
+  const Migration20260522081221(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260509120000,
+  0,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -655,6 +648,7 @@ final schema = Schema(
         SchemaColumn('vat_enabled', Column.boolean),
         SchemaColumn('mrc', Column.varchar),
         SchemaColumn('remote_server_url', Column.varchar),
+        SchemaColumn('data_connector_url', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1414,35 +1408,6 @@ final schema = Schema(
       },
     ),
     SchemaTable(
-      'Tenant',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('name', Column.varchar),
-        SchemaColumn('phone_number', Column.varchar),
-        SchemaColumn('email', Column.varchar),
-        SchemaColumn('nfc_enabled', Column.boolean),
-        SchemaColumn('business_id', Column.varchar),
-        SchemaColumn('user_id', Column.varchar),
-        SchemaColumn('image_url', Column.varchar),
-        SchemaColumn('last_touched', Column.datetime),
-        SchemaColumn('deleted_at', Column.datetime),
-        SchemaColumn('pin', Column.integer),
-        SchemaColumn('is_default', Column.boolean),
-        SchemaColumn('session_active', Column.boolean),
-        SchemaColumn('type', Column.varchar),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
       'Token',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -1605,6 +1570,10 @@ final schema = Schema(
         SchemaColumn('discount_amount', Column.num),
         SchemaColumn('customer_phone', Column.varchar),
         SchemaColumn('agent_id', Column.varchar),
+        SchemaColumn('attributed_agent_user_id', Column.varchar),
+        SchemaColumn('agent_commission_type', Column.varchar),
+        SchemaColumn('agent_commission_value', Column.num),
+        SchemaColumn('agent_commission_amount', Column.num),
         SchemaColumn('cashier_name', Column.varchar),
         SchemaColumn('device_id', Column.varchar),
       },

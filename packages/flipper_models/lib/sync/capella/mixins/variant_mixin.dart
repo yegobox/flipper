@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
@@ -165,8 +166,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Exact barcode match (scan / POS). Avoids "123" matching "123456789".
       if (bcd != null && bcd.trim().isNotEmpty) {
-        query +=
-            " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
+        query += " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
         arguments['bcdExact'] = bcd.trim().toLowerCase();
         talker.info('Added exact barcode filter');
       }
@@ -225,34 +225,12 @@ mixin CapellaVariantMixin implements VariantInterface {
       List<dynamic> items = [];
       int? totalCount;
 
-      Future<void> registerBroadBranchSubscription() async {
-        const broadVariantsSql =
-            'SELECT * FROM variants WHERE branchId = :branchId';
-        try {
-          final preparedBroad = prepareDqlSyncSubscription(broadVariantsSql, {
-            'branchId': branchId,
-          });
-          await ditto.sync.registerSubscription(
-            preparedBroad.dql,
-            arguments: preparedBroad.arguments,
-          );
-          talker.debug(
-            'variants: registered broad branch subscription for sync',
-          );
-        } catch (e, st) {
-          talker.warning(
-            'variants: broad registerSubscription failed: $e\n'
-            '${describeDqlSyncSubscriptionAttempt(broadVariantsSql, {'branchId': branchId})}\n'
-            '$st',
-          );
-        }
-      }
-
-      if (fetchRemote) {
-        // Keep listing/searching local-first; explicit refresh/cold-start paths
-        // can still ask Ditto to pull remote data without blocking the query.
-        unawaited(registerBroadBranchSubscription());
-      }
+      // Pull from Ditto cloud (e.g. data-connector bulk writes) before local query.
+      await ensureBranchCatalogCloudSubscriptions(
+        ditto: ditto,
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId(),
+      );
 
       // Replication: broad branch subscription only. Filtered SELECT (search,
       // taxes, pagination) runs via execute below; Ditto 5 can reject complex
@@ -276,12 +254,16 @@ mixin CapellaVariantMixin implements VariantInterface {
           variantId == null &&
           bcd == null;
       if (items.isEmpty && shouldWaitForRemote) {
-        await Future.delayed(const Duration(milliseconds: 600));
-        items = await runExecute();
-      }
-      if (items.isEmpty && shouldWaitForRemote) {
-        await Future.delayed(const Duration(milliseconds: 1200));
-        items = await runExecute();
+        const delays = <Duration>[
+          Duration(milliseconds: 2000),
+          Duration(milliseconds: 3500),
+          Duration(milliseconds: 5000),
+        ];
+        for (final d in delays) {
+          await Future.delayed(d);
+          items = await runExecute();
+          if (items.isNotEmpty) break;
+        }
       }
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -344,8 +326,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           }
 
           if (bcd != null && bcd.trim().isNotEmpty) {
-            countQuery +=
-                " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
+            countQuery += " AND LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
           }
 
           if (name != null && name.isNotEmpty) {
@@ -952,49 +933,63 @@ mixin CapellaVariantMixin implements VariantInterface {
           // if (isMobileDevice) { ... } // Assuming serverUrl handling is standard
 
           // save items
-          await ProxyService.tax.saveItem(
+          final saveResp = await ProxyService.tax.saveItem(
             variation: variantToSave,
             URI: serverUrl,
           );
+          if (saveResp.resultCd != '000') {
+            throw Exception(
+              'RRA saveItems failed for ${variantToSave.name}: '
+              '${saveResp.resultMsg} (${saveResp.resultCd})',
+            );
+          }
 
-          // save io (SAR)
-          final sar = await ProxyService.strategy.getSar(
+          // save io (SAR) — create SAR if missing so first row is not skipped
+          var sar = await ProxyService.strategy.getSar(
             branchId: ProxyService.box.getBranchId()!,
           );
+          sar ??= Sar(sarNo: 0, branchId: branchId);
+          sar.sarNo = sar.sarNo + 1;
+          await repository.upsert<Sar>(sar);
 
-          if (sar != null) {
-            sar.sarNo = sar.sarNo + 1;
-            await repository.upsert<Sar>(sar);
+          // Skip stock reporting for services (itemTyCd: "3")
+          final stockQty = variantToSave.stock?.currentStock ?? 0;
+          final supplyUnit = variantToSave.supplyPrice ?? 0;
+          final retailUnit = variantToSave.retailPrice ?? 0;
+          final alreadyInRra = variantToSave.ebmSynced == true;
 
-            // Skip stock reporting for services (itemTyCd: "3")
-            if (variantToSave.itemTyCd != "3") {
-              await ProxyService.tax.saveStockItems(
-                updateMaster: false,
-                items: [
-                  TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
-                ],
-                tinNumber: ebm.tinNumber.toString(),
-                bhFId: ebm.bhfId,
-                totalSupplyPrice: variantToSave.supplyPrice ?? 0,
-                totalvat: 0,
-                totalAmount: variantToSave.retailPrice ?? 0,
-                sarTyCd: "06",
-                sarNo: sar.sarNo.toString(),
-                invoiceNumber: sar.sarNo,
-                remark: "Stock In from adding new item",
-                ocrnDt: DateTime.now().toUtc(),
-                URI: serverUrl,
-              );
-            }
+          if (variantToSave.itemTyCd != "3" && !alreadyInRra) {
+            await ProxyService.tax.saveStockItems(
+              updateMaster: false,
+              items: [
+                TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
+              ],
+              tinNumber: ebm.tinNumber.toString(),
+              bhFId: ebm.bhfId,
+              totalSupplyPrice: supplyUnit * stockQty,
+              totalvat: 0,
+              totalAmount: retailUnit * stockQty,
+              sarTyCd: "06",
+              sarNo: sar.sarNo.toString(),
+              invoiceNumber: sar.sarNo,
+              remark: "Stock In from adding new item",
+              ocrnDt: DateTime.now().toUtc(),
+              URI: serverUrl,
+            );
+          }
 
-            // Skip stock master reporting for services (itemTyCd: "3")
-            if (variantToSave.itemTyCd != "3") {
-              await ProxyService.tax.saveStockMaster(
-                variant: variantToSave,
-                URI: serverUrl,
-                stockMasterQty: variantToSave.stock?.currentStock?.toDouble(),
-              );
-            }
+          // Skip stock master reporting for services (itemTyCd: "3")
+          if (variantToSave.itemTyCd != "3") {
+            await ProxyService.tax.saveStockMaster(
+              variant: variantToSave,
+              URI: serverUrl,
+              stockMasterQty: stockQty,
+            );
+          }
+
+          if (!alreadyInRra) {
+            variantToSave.ebmSynced = true;
+            await repository.upsert<Variant>(variantToSave);
           }
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);

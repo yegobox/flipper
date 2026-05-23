@@ -1,6 +1,8 @@
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helpers/agent_session_helper.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -56,6 +58,9 @@ bool featureAccess(
     final now = DateTime.now();
 
     talker.info("User wants to access!: $featureName");
+    if (isCommissionOnlySession()) {
+      return featureName == AppFeature.Commission;
+    }
     if (kDebugMode) {
       return true;
     }

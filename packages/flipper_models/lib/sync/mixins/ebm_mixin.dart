@@ -22,6 +22,7 @@ mixin EbmMixin implements EbmInterface {
     required String mrc,
     required String bhFId,
     bool vatEnabled = false,
+    String? dataConnectorUrl,
   }) async {
     try {
       final business = await ProxyService.strategy
@@ -63,12 +64,16 @@ mixin EbmMixin implements EbmInterface {
             businessId: business.id,
             branchId: branchId,
             vatEnabled: vatEnabled,
+            dataConnectorUrl: dataConnectorUrl,
           );
 
       if (existingEbm != null) {
         updatedEbm.taxServerUrl = severUrl;
         updatedEbm.vatEnabled = vatEnabled;
         updatedEbm.mrc = mrc;
+        updatedEbm.dataConnectorUrl = dataConnectorUrl;
+      } else if (dataConnectorUrl != null) {
+        updatedEbm.dataConnectorUrl = dataConnectorUrl;
       }
 
       await repository.upsert(updatedEbm);
@@ -85,6 +90,7 @@ mixin EbmMixin implements EbmInterface {
         'branch_id': updatedEbm.branchId,
         'vat_enabled': updatedEbm.vatEnabled,
         'mrc': updatedEbm.mrc,
+        'data_connector_url': updatedEbm.dataConnectorUrl,
       });
     } catch (e) {
       talker.error('Error saving EBM: $e');
@@ -161,6 +167,10 @@ mixin EbmMixin implements EbmInterface {
                   branchId,
               vatEnabled: ebmData['vatEnabled'] as bool? ??
                   ebmData['vat_enabled'] as bool?,
+              remoteServerUrl: ebmData['remoteServerUrl'] as String? ??
+                  ebmData['remote_server_url'] as String?,
+              dataConnectorUrl: ebmData['dataConnectorUrl'] as String? ??
+                  ebmData['data_connector_url'] as String?,
             );
 
             // Save to local repository to ensure offline availability

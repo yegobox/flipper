@@ -323,7 +323,7 @@ class _RowItemState extends ConsumerState<RowItem>
                     : null;
                 w?.start();
                 _onAddToCartWithOptimistic();
-                w?.log("Item Added to Quick Sell");
+                w?.log('Item Added to Quick Sell');
               },
               onLongPress: () {
                 if (itemId != null && !widget.isOrdering) {
@@ -1256,7 +1256,6 @@ class _RowItemState extends ConsumerState<RowItem>
   void _onAddToCartWithOptimistic() {
     final v = widget.variant;
     if (v == null) return;
-    setState(() => _cartOptimisticBump++);
     ref.read(posCartAddServiceProvider).tapAdd(
       context: context,
       variant: v,
@@ -1264,6 +1263,7 @@ class _RowItemState extends ConsumerState<RowItem>
       product: widget.product,
       isComposite: widget.isComposite,
     );
+    if (mounted) setState(() => _cartOptimisticBump++);
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {

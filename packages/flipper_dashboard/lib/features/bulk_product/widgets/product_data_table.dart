@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_dashboard/features/bulk_product/widgets/product_field_widgets.dart';
@@ -19,291 +20,159 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
   @override
   void initState() {
     super.initState();
-    _dataSource = ProductDataGridSource(model: widget.model);
+    _dataSource = _newSource();
+  }
+
+  ProductDataGridSource _newSource() {
+    return ProductDataGridSource(
+      model: widget.model,
+      onDeleteRow: _onDeleteRow,
+    );
+  }
+
+  void _onDeleteRow(int index) {
+    widget.model.removeRowAt(index);
+    setState(() {
+      _dataSource = _newSource();
+    });
   }
 
   @override
   void didUpdateWidget(ProductDataTable oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.model != widget.model ||
-        oldWidget.model.excelData != widget.model.excelData) {
-      _dataSource = ProductDataGridSource(model: widget.model);
+    final oldLen = oldWidget.model.excelData?.length;
+    final newLen = widget.model.excelData?.length;
+    if (oldWidget.model != widget.model || oldLen != newLen) {
+      _dataSource = _newSource();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Initialize controllers if not already done
     widget.model.initializeControllers();
 
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          // Limit height to 600 or content height, whatever is smaller, or just content height
-          // but let's make it more production-ready by using a max height.
-          constraints: BoxConstraints(
-            maxHeight: 600,
-            minHeight: 110, // Header + at least one row
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SfDataGrid(
-              source: _dataSource,
-              columnWidthMode: ColumnWidthMode.fill,
-              rowHeight: 60,
-              headerRowHeight: 50,
-              gridLinesVisibility: GridLinesVisibility.horizontal,
-              headerGridLinesVisibility: GridLinesVisibility.horizontal,
-              columns: [
-                GridColumn(
-                  columnName: 'BarCode',
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'BarCode',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'Name',
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Name',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'Category',
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Category',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'Price',
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Price',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'SupplyPrice',
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Supply Price',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'Quantity',
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Quantity',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'ItemClass',
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Item Class',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'TaxType',
-                  columnWidthMode: ColumnWidthMode.auto,
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Tax',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'ProductType',
-                  label: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Type',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-          ),
-        ),
-        if (widget.model.isSaving)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Center(
-                child: ValueListenableBuilder(
-                  valueListenable: widget.model.progressNotifier,
-                  builder: (context, progressData, child) {
-                    double progressPercentage = 0.0;
-                    if (progressData.totalItems > 0) {
-                      progressPercentage =
-                          (progressData.currentItem / progressData.totalItems) *
-                          100;
-                    }
-                    final bool isComplete =
-                        progressData.currentItem == progressData.totalItems;
-
-                    return Container(
-                      width: 280,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'Saving Inventory',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SizedBox(
-                                height: 70,
-                                width: 70,
-                                child: CircularProgressIndicator(
-                                  value: progressData.totalItems > 0
-                                      ? progressData.currentItem /
-                                            progressData.totalItems
-                                      : 0.0,
-                                  strokeWidth: 6,
-                                  backgroundColor: Colors.grey[100],
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    isComplete ? Colors.green : Colors.blue,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                '${progressPercentage.toStringAsFixed(0)}%',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            progressData.progress,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.black87,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${progressData.currentItem} of ${progressData.totalItems} processed',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SfDataGrid(
+                source: _dataSource,
+                columnWidthMode: ColumnWidthMode.fill,
+                rowHeight: 60,
+                headerRowHeight: 50,
+                gridLinesVisibility: GridLinesVisibility.horizontal,
+                headerGridLinesVisibility: GridLinesVisibility.horizontal,
+                columns: [
+                  GridColumn(
+                    columnName: 'BarCode',
+                    label: _headerLabel('BarCode'),
+                  ),
+                  GridColumn(
+                    columnName: 'Name',
+                    label: _headerLabel('Name'),
+                  ),
+                  GridColumn(
+                    columnName: 'Category',
+                    label: _headerLabel('Category'),
+                  ),
+                  GridColumn(
+                    columnName: 'Price',
+                    label: _headerLabel('Price'),
+                  ),
+                  GridColumn(
+                    columnName: 'SupplyPrice',
+                    label: _headerLabel('Supply Price'),
+                  ),
+                  GridColumn(
+                    columnName: 'Quantity',
+                    label: _headerLabel('Quantity'),
+                  ),
+                  GridColumn(
+                    columnName: 'ItemClass',
+                    label: _headerLabel('Item Class'),
+                  ),
+                  GridColumn(
+                    columnName: 'TaxType',
+                    columnWidthMode: ColumnWidthMode.auto,
+                    label: _headerLabel('Tax'),
+                  ),
+                  GridColumn(
+                    columnName: 'ProductType',
+                    label: _headerLabel('Type'),
+                  ),
+                  GridColumn(
+                    columnName: 'Actions',
+                    width: 56,
+                    columnWidthMode: ColumnWidthMode.none,
+                    label: _headerLabel(''),
+                  ),
+                ],
               ),
             ),
           ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            'Showing ${widget.model.rowCount} rows',
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _headerLabel(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
 
 class ProductDataGridSource extends DataGridSource {
   final BulkAddProductViewModel model;
+  final void Function(int index) onDeleteRow;
   List<DataGridRow> _rows = [];
 
-  ProductDataGridSource({required this.model}) {
+  ProductDataGridSource({
+    required this.model,
+    required this.onDeleteRow,
+  }) {
     _buildRows();
   }
 
   void _buildRows() {
-    _rows = model.excelData!.map<DataGridRow>((product) {
-      String barCode = product['BarCode'] ?? '';
-
-      // Set up controllers if they don't exist
-      if (!model.controllers.containsKey(barCode)) {
-        model.controllers[barCode] = TextEditingController(
-          text: product['Price'],
-        );
-      }
-      if (!model.supplyPriceControllers.containsKey(barCode)) {
-        model.supplyPriceControllers[barCode] = TextEditingController(
-          text: product['SupplyPrice'] ?? product['Price'] ?? '0',
-        );
-      }
-      if (!model.quantityControllers.containsKey(barCode)) {
-        model.quantityControllers[barCode] = TextEditingController(
-          text: product['Quantity'] ?? '0',
-        );
-      }
+    final data = model.excelData;
+    if (data == null) {
+      _rows = [];
+      return;
+    }
+    _rows = data.asMap().entries.map<DataGridRow>((entry) {
+      final product = entry.value;
+      final barCode = product['BarCode'] ?? '';
+      model.selectedProductTypes[barCode] ??= '2';
+      model.selectedTaxTypes[barCode] ??= 'B';
+      model.selectedItemClasses[barCode] ??= '5020230602';
 
       return DataGridRow(
         cells: [
@@ -340,6 +209,7 @@ class ProductDataGridSource extends DataGridSource {
             columnName: 'ProductType',
             value: model.selectedProductTypes[barCode],
           ),
+          DataGridCell<int>(columnName: 'Actions', value: entry.key),
         ],
       );
     }).toList();
@@ -350,28 +220,14 @@ class ProductDataGridSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final String barCode = row.getCells()[0].value.toString();
+    final cells = row.getCells();
+    final barCode = cells[0].value.toString();
+    final rowIndex = cells.last.value as int;
 
     return DataGridRowAdapter(
       cells: [
-        Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            barCode,
-            style: const TextStyle(fontSize: 13),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            row.getCells()[1].value.toString(),
-            style: const TextStyle(fontSize: 13),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+        _textCell(barCode),
+        _textCell(cells[1].value.toString()),
         Container(
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -380,35 +236,16 @@ class ProductDataGridSource extends DataGridSource {
             selectedValue: model.selectedCategories[barCode],
           ),
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-          child: PriceQuantityField(
-            controller: model.controllers[barCode]!,
-            onChanged: (value) {
-              model.updatePrice(barCode, value);
-            },
-          ),
+        _editablePrice(barCode, model.controllers[barCode], model.updatePrice),
+        _editablePrice(
+          barCode,
+          model.supplyPriceControllers[barCode],
+          model.updateSupplyPrice,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-          child: PriceQuantityField(
-            controller: model.supplyPriceControllers[barCode]!,
-            onChanged: (value) {
-              model.updateSupplyPrice(barCode, value);
-            },
-          ),
-        ),
-        Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-          child: PriceQuantityField(
-            controller: model.quantityControllers[barCode]!,
-            onChanged: (value) {
-              model.updateQuantity(barCode, value);
-            },
-          ),
+        _editablePrice(
+          barCode,
+          model.quantityControllers[barCode],
+          model.updateQuantity,
         ),
         Container(
           alignment: Alignment.centerLeft,
@@ -434,7 +271,45 @@ class ProductDataGridSource extends DataGridSource {
             selectedValue: model.selectedProductTypes[barCode],
           ),
         ),
+        Container(
+          alignment: Alignment.center,
+          child: IconButton(
+            tooltip: 'Remove row',
+            icon: const Icon(FluentIcons.delete_24_regular, size: 20),
+            onPressed: () => onDeleteRow(rowIndex),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _textCell(String text) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 13),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _editablePrice(
+    String barCode,
+    TextEditingController? controller,
+    void Function(String, String) onChanged,
+  ) {
+    if (controller == null) {
+      return _textCell('');
+    }
+    return Container(
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: PriceQuantityField(
+        controller: controller,
+        onChanged: (value) => onChanged(barCode, value),
+      ),
     );
   }
 }

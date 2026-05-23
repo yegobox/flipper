@@ -343,19 +343,41 @@ mixin VariantMixin implements VariantInterface {
             serverUrl = ebm.remoteServerUrl ?? serverUrl;
           }
 
-          // save items
-          await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
+          final stockQty = variantToSave.stock?.currentStock ?? 0;
+          if (stockQty > 0) {
+            variantToSave = variantToSave.copyWith(
+              qty: stockQty,
+              rsdQty: stockQty,
+            );
+          }
 
-          // save io
-          final sar = await ProxyService.strategy.getSar(
+          // save items
+          final saveResp = await ProxyService.tax.saveItem(
+            variation: variantToSave,
+            URI: serverUrl,
+          );
+          if (saveResp.resultCd != '000') {
+            throw Exception(
+              'RRA saveItems failed for ${variantToSave.name}: '
+              '${saveResp.resultMsg} (${saveResp.resultCd})',
+            );
+          }
+
+          // save io — ensure SAR exists (first bulk row used to fail when SAR doc missing)
+          var sar = await ProxyService.strategy.getSar(
             branchId: ProxyService.box.getBranchId()!,
           );
-
-          sar!.sarNo = sar.sarNo + 1;
+          sar ??= Sar(sarNo: 0, branchId: branchId);
+          sar.sarNo = sar.sarNo + 1;
           await repository.upsert<Sar>(sar);
 
-          // Skip stock reporting for services (itemTyCd: "3")
-          if (variantToSave.itemTyCd != "3") {
+          final supplyUnit = variantToSave.supplyPrice ?? 0;
+          final retailUnit = variantToSave.retailPrice ?? 0;
+
+          // Stock-in (sar 06) adds qty in RRA; only for first registration.
+          // Re-saves must use stock master only or qty is doubled in RRA reports.
+          final alreadyInRra = variantToSave.ebmSynced == true;
+          if (variantToSave.itemTyCd != "3" && !alreadyInRra) {
             await ProxyService.tax.saveStockItems(
               updateMaster: false,
               items: [
@@ -363,9 +385,9 @@ mixin VariantMixin implements VariantInterface {
               ],
               tinNumber: ebm.tinNumber.toString(),
               bhFId: ebm.bhfId,
-              totalSupplyPrice: variantToSave.supplyPrice ?? 0,
+              totalSupplyPrice: supplyUnit * stockQty,
               totalvat: 0,
-              totalAmount: variantToSave.retailPrice ?? 0,
+              totalAmount: retailUnit * stockQty,
               sarTyCd: "06",
               sarNo: sar.sarNo.toString(),
               invoiceNumber: sar.sarNo,
@@ -375,13 +397,17 @@ mixin VariantMixin implements VariantInterface {
             );
           }
 
-          // Skip stock master reporting for services (itemTyCd: "3")
           if (variantToSave.itemTyCd != "3") {
             await ProxyService.tax.saveStockMaster(
-              variant: variant,
+              variant: variantToSave,
               URI: serverUrl,
-              stockMasterQty: variantToSave.stock?.currentStock!,
+              stockMasterQty: stockQty,
             );
+          }
+
+          if (!alreadyInRra) {
+            variantToSave.ebmSynced = true;
+            await repository.upsert<Variant>(variantToSave);
           }
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);

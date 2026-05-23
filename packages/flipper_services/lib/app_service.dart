@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -336,6 +337,18 @@ class AppService with ListenableServiceMixin {
       if (dittoAvailable && !ProxyService.ditto.isReady()) {
         print("⚠️ Bridging DittoSingleton → DittoService manually");
         ProxyService.ditto.setDitto(DittoSingleton.instance.ditto!);
+      }
+
+      final branchId = ProxyService.box.getBranchId();
+      final ditto = DittoSingleton.instance.ditto;
+      if (branchId != null && ditto != null) {
+        unawaited(
+          ensureBranchCatalogCloudSubscriptions(
+            ditto: ditto,
+            branchId: branchId,
+            businessId: ProxyService.box.getBusinessId(),
+          ),
+        );
       }
     } catch (e) {
       print("⚠️ Ditto initialization failed (app will continue offline): $e");

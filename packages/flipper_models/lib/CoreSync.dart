@@ -38,6 +38,7 @@ import 'package:flipper_models/sync/mixins/discount_mixin.dart';
 import 'package:flipper_models/sync/mixins/core_personal_goals_stub_mixin.dart';
 import 'package:flipper_models/sync/mixins/settings_mixin.dart';
 import 'package:flipper_models/sync/mixins/getter_operations_mixin.dart';
+import 'package:flipper_models/helpers/tenant_supabase_queries.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -236,28 +237,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Stream<Tenant?> authState({required String branchId}) async* {
-    final userId = ProxyService.box.getUserId();
-
-    if (userId == null) {
-      // Handle the case where userId == null, perhaps throw an exception or return an error Stream
-      throw Exception('User ID == nil');
-    }
-
-    final controller = StreamController<Tenant?>();
-
-    repository
-        .subscribe<Tenant>(
-          query: brick.Query(where: [brick.Where('userId').isExactly(userId)]),
-        )
-        .listen((tenants) {
-          controller.add(tenants.isEmpty ? null : tenants.first);
-        });
-
-    await for (var tenant in controller.stream) {
-      yield tenant;
-    }
-    // Close the StreamController after the stream is finishe
-    controller.close();
+    throw UnimplementedError();
   }
 
   @override
@@ -954,16 +934,9 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Stream<Tenant?> getDefaultTenant({required String businessId}) {
-    final query = brick.Query(
-      where: [brick.Where('businessId').isExactly(businessId)],
+    return Stream.fromFuture(
+      TenantSupabaseQueries.defaultForBusiness(businessId),
     );
-    // Return the stream directly instead of storing in variable
-    return repository
-        .subscribe<Tenant>(
-          query: query,
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        )
-        .map((tenants) => tenants.firstOrNull);
   }
 
   @override
@@ -1255,18 +1228,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
-    if (userId != null) {
-      return (await repository.get<Tenant>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]),
-        policy: OfflineFirstGetPolicy.localOnly,
-      )).firstOrNull;
-    } else if (pin != null) {
-      return (await repository.get<Tenant>(
-        query: brick.Query(where: [brick.Where('pin').isExactly(pin)]),
-        policy: OfflineFirstGetPolicy.localOnly,
-      )).firstOrNull;
-    }
-    throw Exception("UserId or Pin is required");
+    return TenantSupabaseQueries.getTenant(userId: userId, pin: pin);
   }
 
   @override
@@ -3072,13 +3034,15 @@ class CoreSync extends AiStrategyImpl
           }
 
           Stock? stock = await getStockById(id: variant.stock!.id);
-          stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
-          stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
-          stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
-          stock.value = stock.currentStock! * variant.retailPrice!;
+          final qty = _bulkItemQuantity(item, quantitis);
+          stock.currentStock = qty;
+          stock.rsdQty = qty;
+          stock.initialStock = qty;
+          stock.value = qty * variant.retailPrice!;
 
           // Update stock first
           await repository.upsert(stock);
+          variant.stock = stock;
 
           // Use ProxyService.strategy.addVariant for consistency with DesktopProductAdd
           await ProxyService.strategy.addVariant(
@@ -3099,9 +3063,51 @@ class CoreSync extends AiStrategyImpl
         final bhfId = await ProxyService.box.bhfId();
 
         talker.warning("ItemClass${itemClasses[item.barCode] ?? "5020230602"}");
-        // is this exist using name
+
+        // Re-import same barcode: update local stock and set absolute qty in RRA (no stock-in add).
+        final barCodeKey = item.barCode ?? '';
+        if (barCodeKey.isNotEmpty) {
+          final existingByBcd = await getVariant(bcd: barCodeKey);
+          if (existingByBcd != null) {
+            final variant = existingByBcd;
+            variant.name = item.name;
+            variant.itemNm = item.name;
+            variant.itemClsCd =
+                itemClasses[item.barCode] ?? variant.itemClsCd ?? "5020230602";
+            variant.itemTyCd =
+                itemTypes[item.barCode] ?? variant.itemTyCd ?? "2";
+            variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
+            if (item.retailPrice != null) {
+              variant.retailPrice = item.retailPrice;
+              variant.prc = item.retailPrice;
+              variant.dftPrc = item.retailPrice;
+            }
+            if (item.supplyPrice != null) {
+              variant.supplyPrice = item.supplyPrice;
+              variant.splyAmt = item.supplyPrice;
+            }
+            final stock = await getStockById(id: variant.stock!.id);
+            final qty = _bulkItemQuantity(item, quantitis);
+            stock.currentStock = qty;
+            stock.rsdQty = qty;
+            stock.initialStock = qty;
+            stock.value = qty * variant.retailPrice!;
+            await repository.upsert(stock);
+            variant.stock = stock;
+            await ProxyService.strategy.addVariant(
+              variations: [variant],
+              branchId: branchId,
+              skipRRaCall: false,
+            );
+            return;
+          }
+        }
+
+        // Explicit bcdU column links to an existing catalog row by name.
         Variant? variant = await getVariant(name: item.name);
-        if (variant != null && item.bcdU != null) {
+        if (variant != null &&
+            item.bcdU != null &&
+            item.bcdU!.trim().isNotEmpty) {
           variant.bcd = item.bcdU;
           variant.name = item.name;
           variant.color = randomizeColor();
@@ -3129,13 +3135,15 @@ class CoreSync extends AiStrategyImpl
 
           // Get stock
           Stock? stock = await getStockById(id: variant.stock!.id);
-          stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
-          stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
-          stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
-          stock.value = stock.currentStock! * variant.retailPrice!;
+          final qty = _bulkItemQuantity(item, quantitis);
+          stock.currentStock = qty;
+          stock.rsdQty = qty;
+          stock.initialStock = qty;
+          stock.value = qty * variant.retailPrice!;
 
           // Update stock first
           await repository.upsert(stock);
+          variant.stock = stock;
 
           // Use ProxyService.strategy.addVariant for consistency
           await ProxyService.strategy.addVariant(
@@ -3165,7 +3173,7 @@ class CoreSync extends AiStrategyImpl
             invcFcurExcrt: item.invcFcurExcrt,
             exptNatCd: item.exptNatCd,
             pkg: item.pkg ?? 1,
-            qty: double.parse(quantitis[item.barCode] ?? "1"),
+            qty: _bulkItemQuantity(item, quantitis),
             qtyUnitCd: item.qtyUnitCd,
             pkgUnitCd: "BJ",
             dclNo: item.dclNo,
@@ -3218,6 +3226,19 @@ class CoreSync extends AiStrategyImpl
       print(s);
       rethrow;
     }
+  }
+
+  double _bulkItemQuantity(Variant item, Map<String, String> quantitis) {
+    final key = item.barCode ?? '';
+    final raw = quantitis[key] ??
+        (item.quantity != null && item.quantity! > 0
+            ? item.quantity.toString()
+            : null);
+    if (raw == null || raw.trim().isEmpty) {
+      return 1;
+    }
+    final parsed = double.tryParse(raw.trim());
+    return parsed != null && parsed > 0 ? parsed : 1;
   }
 
   String randomizeColor() {

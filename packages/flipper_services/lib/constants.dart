@@ -95,6 +95,8 @@ class AppFeature {
   static const String CustomAmount = "Custom Amount";
   static const String Driver = "Driver";
   static const String Stock = "Stock";
+  /// Agent commission-only login; not shown in User Management permission matrix.
+  static const String Commission = "Commission";
 }
 
 class AccessLevel {

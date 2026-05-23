@@ -1,4 +1,3 @@
-import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,14 +16,8 @@ Future<List<Branch>> branches(Ref ref, {String? businessId}) async {
     return []; // Return empty list if Ditto not ready yet
   }
 
-  // this refresh the user access from time to time to have fresh business and branches a user
-  // is allowed to access
-  ProxyService.strategy.sendLoginRequest(
-    ProxyService.box.getUserPhone()!.replaceAll("+", ""),
-    ProxyService.http,
-    AppSecrets.apihubProdDomain,
-  );
-
+  // Read branches from Ditto user_access (populated at login). Permission
+  // refreshes use use_access_permissions_realtime / explicit sendLoginRequest.
   final userAccess = await ProxyService.ditto.getUserAccess(userId);
   if (userAccess != null && userAccess.containsKey('businesses')) {
     final List<dynamic> businessesJson = userAccess['businesses'];

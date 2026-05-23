@@ -44,6 +44,7 @@ export 'package:flipper_dashboard/switch_branch_view.dart';
 export 'package:flipper_dashboard/transactions_details.dart';
 export 'package:flipper_dashboard/drawer.dart';
 export 'package:flipper_dashboard/TenantManagement.dart';
+export 'package:flipper_dashboard/features/agent_commission/agent_commission_screen.dart';
 export 'package:flipper_dashboard/add_to_favorites.dart';
 export 'package:flipper_dashboard/cashbook.dart';
 export 'package:flipper_dashboard/orders.dart';

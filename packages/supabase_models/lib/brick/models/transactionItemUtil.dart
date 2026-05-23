@@ -29,7 +29,7 @@ class TransactionItemUtil {
       productId: variantToSave.productId,
       variantId: variantToSave.id,
       retailPrice: variantToSave.retailPrice ?? 0,
-      supplyPrice: variantToSave.supplyPrice,
+      supplyPrice: variantToSave.supplyPrice ?? variantToSave.splyAmt,
       categoryId: variantToSave.categoryId,
       categoryName: variantToSave.categoryName,
       sku: variantToSave.sku,

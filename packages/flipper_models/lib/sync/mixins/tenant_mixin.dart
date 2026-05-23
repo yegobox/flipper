@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helpers/tenant_supabase_queries.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_services/proxy.dart';
@@ -20,18 +21,16 @@ mixin TenantMixin implements TenantInterface {
     return (await repository.get<Business>(
       policy: OfflineFirstGetPolicy.localOnly,
       query: Query(
-        where: [
-          Where('id').isExactly(ProxyService.box.getBusinessId()),
-        ],
+        where: [Where('id').isExactly(ProxyService.box.getBusinessId())],
       ),
-    ))
-        .firstOrNull;
+    )).firstOrNull;
   }
 
   @override
   Stream<Tenant?> getDefaultTenant({required String businessId}) {
-    // Add default tenant retrieval logic here
-    throw UnimplementedError();
+    return Stream.fromFuture(
+      TenantSupabaseQueries.defaultForBusiness(businessId),
+    );
   }
 
   @override
@@ -43,11 +42,8 @@ mixin TenantMixin implements TenantInterface {
   Future<User?> authUser({required String uuid}) async {
     return (await repository.get<User>(
       policy: OfflineFirstGetPolicy.awaitRemote,
-      query: Query(
-        where: [Where('uuid').isExactly(uuid)],
-      ),
-    ))
-        .firstOrNull;
+      query: Query(where: [Where('uuid').isExactly(uuid)]),
+    )).firstOrNull;
   }
 
   @override
@@ -68,8 +64,10 @@ mixin TenantMixin implements TenantInterface {
       "defaultApp": defaultApp,
     });
 
-    final http.Response response = await flipperHttpClient
-        .post(Uri.parse("$apihub/v2/api/pin"), body: data);
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/pin"),
+      body: data,
+    );
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw InternalServerError(term: "internal server error");
@@ -77,106 +75,47 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  Future<Tenant?> tenant(
-      {String? businessId,
-      String? userId,
-      String? tenantId,
-      required bool fetchRemote}) async {
-    final policy = fetchRemote
-        ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-        : OfflineFirstGetPolicy.localOnly;
-
-    // await loadSupabase();
+  Future<Tenant?> tenant({
+    String? businessId,
+    String? userId,
+    String? tenantId,
+    required bool fetchRemote,
+  }) async {
     if (businessId != null) {
-      return (await repository.get<Tenant>(
-              policy: policy,
-              query: Query(where: [Where('businessId').isExactly(businessId)])))
-          .firstOrNull;
-    } else if (userId != null) {
-      return (await repository.get<Tenant>(
-              policy: policy,
-              query: Query(where: [
-                Where('userId').isExactly(userId),
-                Where('pin').isExactly(userId),
-              ])))
-          .firstOrNull;
-    } else if (tenantId != null) {
-      final response = await repository.get<Tenant>(
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-          query: Query(where: [Where('id').isExactly(tenantId)]));
-      return response.firstOrNull;
+      return TenantSupabaseQueries.firstForBusiness(businessId);
+    }
+    if (userId != null) {
+      return TenantSupabaseQueries.byUserIdOrPin(userId);
+    }
+    if (tenantId != null) {
+      return TenantSupabaseQueries.byId(tenantId);
     }
     return null;
   }
 
   @override
   Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) async {
-    final query = Query(where: [
-      Where('businessId').isExactly(businessId),
-      if (excludeUserId != null) Where('userId').isNot(excludeUserId),
-    ]);
-    try {
-      return await repository.get<Tenant>(
-        policy: OfflineFirstGetPolicy.awaitRemote,
-        query: query,
-      );
-    } catch (_) {
-      return repository.get<Tenant>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: query,
-      );
-    }
+    return TenantSupabaseQueries.listForBusiness(
+      businessId,
+      excludeUserId: excludeUserId?.toString(),
+    );
   }
 
   @override
-  Future<void> updateTenant(
-      {String? tenantId,
-      String? name,
-      String? phoneNumber,
-      String? email,
-      String? userId,
-      String? businessId,
-      String? type,
-      String? id,
-      int? pin,
-      bool? sessionActive,
-      String? branchId}) async {
-    final tenant = (await repository.get<Tenant>(
-            query: Query(where: [
-      Where('userId').isExactly(userId),
-    ])))
-        .firstOrNull;
-
-    repository.upsert<Tenant>(Tenant(
-      id: tenant?.id ?? tenantId,
-      name: name ?? tenant?.name,
-      userId: userId ?? tenant?.userId,
-      phoneNumber: phoneNumber ?? tenant?.phoneNumber,
-      email: email ?? tenant?.email,
-      type: type ?? tenant?.type ?? "Agent",
-      pin: pin ?? tenant?.pin,
-      sessionActive: sessionActive ?? tenant?.sessionActive,
-    ));
-  }
+  Future<void> updateTenant({
+    String? tenantId,
+    String? name,
+    String? phoneNumber,
+    String? email,
+    String? userId,
+    String? businessId,
+    String? type,
+    String? id,
+    int? pin,
+    bool? sessionActive,
+    String? branchId,
+  }) async {}
 
   @override
-  Future<void> deleteTenantsWithNullPin({String? businessId}) async {
-    // Fetch tenants scoped by businessId if provided, otherwise all tenants.
-    final query = Query(where: [
-      if (businessId != null) Where('businessId').isExactly(businessId),
-    ]);
-
-    final tenants = await repository.get<Tenant>(query: query);
-
-    for (final tenant in tenants) {
-      try {
-        if (tenant.pin == null) {
-          await repository.delete<Tenant>(tenant);
-        }
-      } catch (e) {
-        // Swallow errors for now but continue deleting others. Caller can
-        // rely on logs or higher-level handling if necessary.
-      }
-    }
-  }
+  Future<void> deleteTenantsWithNullPin({String? businessId}) async {}
 }
