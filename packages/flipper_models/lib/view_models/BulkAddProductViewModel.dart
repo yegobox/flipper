@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/bulk_add_constants.dart';
 import 'package:flipper_models/bulk_rra_client.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -18,6 +19,21 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:supabase_models/brick/models/all_models.dart';
 
+/// Lightweight validation after Excel parse (and after row deletes).
+class BulkImportValidation {
+  BulkImportValidation({
+    this.missingNameCount = 0,
+    this.duplicateBarCodeCount = 0,
+    this.duplicateBarCodes = const [],
+  });
+
+  final int missingNameCount;
+  final int duplicateBarCodeCount;
+  final List<String> duplicateBarCodes;
+
+  bool get hasIssues => missingNameCount > 0 || duplicateBarCodeCount > 0;
+}
+
 class BulkAddProductViewModel extends ChangeNotifier {
   PlatformFile? _selectedFile;
   List<Map<String, dynamic>>? _excelData;
@@ -31,6 +47,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _useServerBulkRra = false;
+  BulkImportValidation? _importValidation;
   final ValueNotifier<ProgressData> _progressNotifier =
       ValueNotifier<ProgressData>(
         ProgressData(progress: '', currentItem: 0, totalItems: 0),
@@ -50,6 +67,11 @@ class BulkAddProductViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   bool get useServerBulkRra => _useServerBulkRra;
+  BulkImportValidation? get importValidation => _importValidation;
+  int get rowCount => _excelData?.length ?? 0;
+  bool get exceedsEditableLimit => rowCount > kBulkEditableRowLimit;
+  bool get canSave =>
+      rowCount > 0 && !_isLoading && !_isSaving && _excelData != null;
   ValueNotifier<ProgressData> get progressNotifier => _progressNotifier;
 
   void setUseServerBulkRra(bool value) {
@@ -60,38 +82,104 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
   BulkAddProductViewModel();
 
+  @visibleForTesting
+  void setExcelDataForTesting(List<Map<String, dynamic>> data) {
+    _clearRowState();
+    _excelData = List<Map<String, dynamic>>.from(data);
+    _runValidationScan();
+    notifyListeners();
+  }
+
   void updateQuantity(String barCode, String value) {
     final product = _excelData!.firstWhere((p) => p['BarCode'] == barCode);
     product['Quantity'] = value;
     notifyListeners();
   }
 
+  /// Removes a row before save. [index] is the index in [excelData].
+  void removeRowAt(int index) {
+    if (_excelData == null || index < 0 || index >= _excelData!.length) {
+      return;
+    }
+    final barCode = (_excelData![index]['BarCode'] ?? '').toString();
+    _excelData!.removeAt(index);
+    _disposeRowMaps(barCode);
+    _runValidationScan();
+    notifyListeners();
+  }
+
+  void _disposeRowMaps(String barCode) {
+    if (barCode.isEmpty) return;
+    _controllers.remove(barCode)?.dispose();
+    _supplyPriceControllers.remove(barCode)?.dispose();
+    _quantityControllers.remove(barCode)?.dispose();
+    _selectedProductTypes.remove(barCode);
+    _selectedTaxTypes.remove(barCode);
+    _selectedItemClasses.remove(barCode);
+    _selectedCategories.remove(barCode);
+  }
+
+  void clearSelectedFile() {
+    _selectedFile = null;
+    _excelData = null;
+    _importValidation = null;
+    _clearRowState();
+    notifyListeners();
+  }
+
+  void _runValidationScan() {
+    if (_excelData == null || _excelData!.isEmpty) {
+      _importValidation = null;
+      return;
+    }
+    var missingNames = 0;
+    final seenBarcodes = <String, int>{};
+    final duplicates = <String>[];
+    for (final row in _excelData!) {
+      final name = (row['Name'] ?? '').toString().trim();
+      if (name.isEmpty) missingNames++;
+      final bc = (row['BarCode'] ?? '').toString().trim();
+      if (bc.isNotEmpty) {
+        seenBarcodes[bc] = (seenBarcodes[bc] ?? 0) + 1;
+      }
+    }
+    for (final e in seenBarcodes.entries) {
+      if (e.value > 1) duplicates.add(e.key);
+    }
+    _importValidation = BulkImportValidation(
+      missingNameCount: missingNames,
+      duplicateBarCodeCount: duplicates.length,
+      duplicateBarCodes: duplicates.take(5).toList(),
+    );
+  }
+
   void initializeControllers() {
-    if (_excelData != null) {
-      if (_controllers.isEmpty) {
-        for (var product in _excelData!) {
-          String barCode = product['BarCode'] ?? '';
-          _controllers[barCode] = TextEditingController(text: product['Price']);
-        }
-      }
-      if (_supplyPriceControllers.isEmpty) {
-        for (var product in _excelData!) {
-          String barCode = product['BarCode'] ?? '';
-          _supplyPriceControllers[barCode] = TextEditingController(
-            text: product['SupplyPrice'] ?? product['Price'] ?? '0',
-          );
-        }
-      }
+    if (_excelData == null || exceedsEditableLimit) {
+      return;
+    }
+    if (_controllers.isEmpty) {
       for (var product in _excelData!) {
-        final barCode = product['BarCode'] ?? '';
-        if (barCode.isEmpty) continue;
-        _quantityControllers[barCode] ??= TextEditingController(
-          text: _resolveQuantityText(barCode, product),
-        );
-        _selectedProductTypes[barCode] ??= '2';
-        _selectedTaxTypes[barCode] ??= 'B';
-        _selectedItemClasses[barCode] ??= '5020230602';
+        String barCode = product['BarCode'] ?? '';
+        _controllers[barCode] = TextEditingController(text: product['Price']);
       }
+    }
+    if (_supplyPriceControllers.isEmpty) {
+      for (var product in _excelData!) {
+        String barCode = product['BarCode'] ?? '';
+        _supplyPriceControllers[barCode] = TextEditingController(
+          text: product['SupplyPrice'] ?? product['Price'] ?? '0',
+        );
+      }
+    }
+    for (var product in _excelData!) {
+      final barCode = product['BarCode'] ?? '';
+      if (barCode.isEmpty) continue;
+      _quantityControllers[barCode] ??= TextEditingController(
+        text: _resolveQuantityText(barCode, product),
+      );
+      _selectedProductTypes[barCode] ??= '2';
+      _selectedTaxTypes[barCode] ??= 'B';
+      _selectedItemClasses[barCode] ??= '5020230602';
     }
   }
 
@@ -253,6 +341,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
         _clearRowState();
         _excelData = data;
+        _runValidationScan();
         _isLoading = false;
         notifyListeners();
       }

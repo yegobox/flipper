@@ -1,0 +1,130 @@
+import 'package:flutter/material.dart';
+import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
+import 'package:flipper_ui/flipper_ui.dart';
+import 'package:supabase_models/brick/models/ProgressData.dart';
+
+class BulkActionBar extends StatelessWidget {
+  final BulkAddProductViewModel model;
+  final String? errorMessage;
+  final VoidCallback onSave;
+
+  const BulkActionBar({
+    super.key,
+    required this.model,
+    this.errorMessage,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final rowCount = model.rowCount;
+    final isParsing =
+        model.selectedFile != null && model.excelData == null && model.isLoading;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (rowCount > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8, right: 12),
+                child: Chip(
+                  label: Text(
+                    '$rowCount product${rowCount == 1 ? '' : 's'}',
+                  ),
+                ),
+              ),
+            Expanded(
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Register via server (RRA first)'),
+                subtitle: const Text(
+                  'Catalog is created in Ditto only after RRA succeeds. '
+                  'Turn off to use the previous on-device flow.',
+                ),
+                value: model.useServerBulkRra,
+                onChanged: model.isSaving || model.isLoading
+                    ? null
+                    : (value) => model.setUseServerBulkRra(value),
+              ),
+            ),
+            const SizedBox(width: 12),
+            FlipperButton(
+              textColor: Colors.white,
+              color: Colors.blue,
+              onPressed: model.canSave && !isParsing ? onSave : null,
+              text: 'Save All',
+            ),
+          ],
+        ),
+        if (isParsing) ...[
+          const SizedBox(height: 8),
+          const LinearProgressIndicator(),
+          const SizedBox(height: 4),
+          const Text(
+            'Parsing spreadsheet…',
+            style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+          ),
+        ],
+        if (model.isSaving)
+          ValueListenableBuilder<ProgressData>(
+            valueListenable: model.progressNotifier,
+            builder: (context, progress, _) {
+              final total = progress.totalItems;
+              final current = progress.currentItem;
+              final value = total > 0 ? current / total : null;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(value: value),
+                  const SizedBox(height: 4),
+                  Text(
+                    progress.progress.isNotEmpty
+                        ? progress.progress
+                        : 'Saving…',
+                    style: const TextStyle(fontSize: 12),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (total > 0)
+                    Text(
+                      '$current of $total',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                ],
+              );
+            },
+          ),
+        if (model.importValidation != null &&
+            model.importValidation!.hasIssues) ...[
+          const SizedBox(height: 8),
+          Text(
+            _validationText(model.importValidation!),
+            style: TextStyle(fontSize: 12, color: Colors.orange.shade900),
+          ),
+        ],
+        if (errorMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            errorMessage!,
+            style: const TextStyle(color: Colors.red),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _validationText(BulkImportValidation v) {
+    final parts = <String>[];
+    if (v.missingNameCount > 0) {
+      parts.add('${v.missingNameCount} row(s) missing name');
+    }
+    if (v.duplicateBarCodeCount > 0) {
+      parts.add('${v.duplicateBarCodeCount} duplicate barcode(s)');
+    }
+    return parts.join(' · ');
+  }
+}
