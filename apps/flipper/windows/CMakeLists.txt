@@ -2,6 +2,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(flipper LANGUAGES CXX)
 
+# MSVC 18.6+ (STL1011): plugins using /await + <experimental/coroutine> fail to compile.
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS")
+
 # The target_link_libraries call can stay the same since it will use
 # whichever sqlite3 target exists
 
