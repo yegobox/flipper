@@ -19,6 +19,9 @@ class BulkLargeFileSummary extends StatelessWidget {
     final data = model.excelData!;
     final previewCount = data.length.clamp(0, kBulkLargeFilePreviewLimit);
     final validation = model.importValidation;
+    final estimate = model.estimatedRowCount;
+    final partial = model.isLoadingFullParse && estimate != null;
+    final titleCount = partial ? '~$estimate' : '${data.length}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -30,18 +33,24 @@ class BulkLargeFileSummary extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Large import (${data.length} products)',
+                  partial
+                      ? 'Large import (~$estimate products, loading full file…) '
+                          '— Save stays disabled until loading finishes.'
+                      : 'Large import ($titleCount products)',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Per-row editing is disabled for large files. Edit the Excel '
-                  'file and re-upload to change values. You can still remove '
-                  'rows below — removed rows will not be submitted.',
-                  style: TextStyle(fontSize: 13, color: Colors.black87),
+                Text(
+                  partial
+                      ? 'Showing a quick preview while all rows load. Row '
+                          'removal is disabled until the full file is ready.'
+                      : 'You can remove rows from the preview below. When the full '
+                          'file is ready, you will get the same editable grid as '
+                          'small imports, 20 products per page.',
+                  style: const TextStyle(fontSize: 13, color: Colors.black87),
                 ),
                 if (validation != null && validation.hasIssues) ...[
                   const SizedBox(height: 12),
@@ -66,10 +75,12 @@ class BulkLargeFileSummary extends StatelessWidget {
                     horizontal: 12,
                     vertical: 10,
                   ),
-                  child: Row(
+                      child: Row(
                     children: [
                       Text(
-                        'Preview (first $previewCount of ${data.length})',
+                        partial
+                            ? 'Preview (first $previewCount of ~$estimate)'
+                            : 'Preview (first $previewCount of ${data.length})',
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -99,12 +110,16 @@ class BulkLargeFileSummary extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         trailing: IconButton(
-                          tooltip: 'Remove row',
+                          tooltip: partial
+                              ? 'Available after the full file loads'
+                              : 'Remove row',
                           icon: const Icon(
                             FluentIcons.delete_24_regular,
                             size: 20,
                           ),
-                          onPressed: () => onDeleteRow(index),
+                          onPressed: partial || !model.isParseComplete
+                              ? null
+                              : () => onDeleteRow(index),
                         ),
                       );
                     },

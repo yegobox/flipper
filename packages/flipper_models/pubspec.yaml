@@ -71,6 +71,12 @@ dependencies:
   faker: ^2.2.0
   flipper_personal: any
   flipper_web: any
+  excel_plus: ^0.0.3
+  excel:
+    git:
+      url: https://github.com/justkawal/excel.git
+      ref: 751dfc597c893a0b34eccfe6921f126e03a5c683
+  xml: ^6.6.0
   
 
 dependency_overrides:
@@ -82,8 +88,11 @@ dependency_overrides:
   sqlite3: ^3.3.1
   stacked_services: ^1.6.0
   device_info_plus: ^12.3.0
-  archive: any
-  excel: ^4.0.6
+  archive: ^4.0.9
+  excel:
+    git:
+      url: https://github.com/justkawal/excel.git
+      ref: 751dfc597c893a0b34eccfe6921f126e03a5c683
   mime: ^2.0.0
   cbor: ^6.3.7
   

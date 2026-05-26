@@ -14,8 +14,9 @@ import 'package:flutter/foundation.dart' show compute, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flipper_models/utils/bulk_excel_parser.dart';
+import 'package:flipper_models/utils/bulk_xlsx_preview_reader.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:excel/excel.dart' as excel_pkg;
+import 'package:excel_plus/excel_plus.dart' as xlsx;
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
@@ -49,8 +50,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSaving = false;
   String? _parseError;
+  bool _isLoadingFullParse = false;
+  bool _isParseComplete = true;
+  int? _estimatedRowCount;
   bool _useServerBulkRra = false;
   BulkImportValidation? _importValidation;
+  /// Monotonic id source for stable per-row keys (survives row order changes).
+  int _bulkUidCounter = 0;
+  int _largeImportPageIndex = 0;
   final ValueNotifier<ProgressData> _progressNotifier =
       ValueNotifier<ProgressData>(
         ProgressData(progress: '', currentItem: 0, totalItems: 0),
@@ -73,9 +80,84 @@ class BulkAddProductViewModel extends ChangeNotifier {
   bool get useServerBulkRra => _useServerBulkRra;
   BulkImportValidation? get importValidation => _importValidation;
   int get rowCount => _excelData?.length ?? 0;
-  bool get exceedsEditableLimit => rowCount > kBulkEditableRowLimit;
+  int? get estimatedRowCount => _estimatedRowCount;
+
+  static const String _kBulkRowUidField = '_bulkRowUid';
+
+  /// 0-based page for large imports ([kBulkLargeEditPageSize] rows per page).
+  int get largeImportPageIndex => _largeImportPageIndex;
+
+  int get largeImportPageCount {
+    if (_excelData == null || _excelData!.isEmpty) return 1;
+    return (_excelData!.length + kBulkLargeEditPageSize - 1) ~/
+        kBulkLargeEditPageSize;
+  }
+
+  /// Rows rendered in the grid (full list for small imports, one page for large).
+  List<Map<String, dynamic>> get rowsVisibleInGrid {
+    final data = _excelData;
+    if (data == null) return const [];
+    if (!exceedsEditableLimit) return data;
+    final start = _largeImportPageIndex * kBulkLargeEditPageSize;
+    if (start >= data.length) return const [];
+    final end = (start + kBulkLargeEditPageSize) > data.length
+        ? data.length
+        : start + kBulkLargeEditPageSize;
+    return data.sublist(start, end);
+  }
+
+  /// Maps a grid row index (within [rowsVisibleInGrid]) to [excelData] index.
+  int gridLocalToAbsoluteIndex(int localIndex) {
+    if (!exceedsEditableLimit) return localIndex;
+    return _largeImportPageIndex * kBulkLargeEditPageSize + localIndex;
+  }
+
+  void setLargeImportPage(int page) {
+    if (_excelData == null || !exceedsEditableLimit) return;
+    final maxP = largeImportPageCount - 1;
+    final p = page.clamp(0, maxP);
+    if (p == _largeImportPageIndex) return;
+    _largeImportPageIndex = p;
+    initializeControllers();
+    notifyListeners();
+  }
+
+  void nextLargeImportPage() => setLargeImportPage(_largeImportPageIndex + 1);
+
+  void prevLargeImportPage() => setLargeImportPage(_largeImportPageIndex - 1);
+
+  /// Prefer estimated total while the full workbook is still loading for huge xlsx imports.
+  bool get exceedsEditableLimit {
+    final est = _estimatedRowCount;
+    if (_isLoadingFullParse &&
+        est != null &&
+        est > kBulkEditableRowLimit) {
+      return true;
+    }
+    return rowCount > kBulkEditableRowLimit;
+  }
+
+  bool get isLoadingFullParse => _isLoadingFullParse;
+  bool get isParseComplete => _isParseComplete;
+
   bool get canSave =>
-      rowCount > 0 && !_isLoading && !_isSaving && _excelData != null;
+      rowCount > 0 &&
+      !_isLoading &&
+      !_isSaving &&
+      !_isLoadingFullParse &&
+      _isParseComplete &&
+      _excelData != null;
+
+  /// Shown beside the selected file name (estimate while full parse runs on large imports).
+  int? get uploadedProductCountForUi {
+    if (_excelData == null) return null;
+    if (_isLoadingFullParse &&
+        _estimatedRowCount != null &&
+        exceedsEditableLimit) {
+      return _estimatedRowCount;
+    }
+    return rowCount;
+  }
   ValueNotifier<ProgressData> get progressNotifier => _progressNotifier;
 
   void setUseServerBulkRra(bool value) {
@@ -90,13 +172,18 @@ class BulkAddProductViewModel extends ChangeNotifier {
   void setExcelDataForTesting(List<Map<String, dynamic>> data) {
     _clearRowState();
     _excelData = List<Map<String, dynamic>>.from(data);
+    _estimatedRowCount = data.length;
+    _isLoadingFullParse = false;
+    _isParseComplete = true;
+    _largeImportPageIndex = 0;
+    _ensureBulkUidsForAllRows();
     _runValidationScan();
     notifyListeners();
   }
 
-  void updateQuantity(String barCode, String value) {
-    final product = _excelData!.firstWhere((p) => p['BarCode'] == barCode);
-    product['Quantity'] = value;
+  void updateQuantity(String rowUid, String value) {
+    final row = _rowForBulkUid(rowUid);
+    row['Quantity'] = value;
     notifyListeners();
   }
 
@@ -105,22 +192,26 @@ class BulkAddProductViewModel extends ChangeNotifier {
     if (_excelData == null || index < 0 || index >= _excelData!.length) {
       return;
     }
-    final barCode = (_excelData![index]['BarCode'] ?? '').toString();
+    final row = _excelData![index];
+    final uid = _bulkUidOf(row);
     _excelData!.removeAt(index);
-    _disposeRowMaps(barCode);
+    _disposePersistedStateForUid(uid);
     _runValidationScan();
+    final newPageCount = largeImportPageCount;
+    if (_largeImportPageIndex >= newPageCount) {
+      _largeImportPageIndex = newPageCount - 1 < 0 ? 0 : newPageCount - 1;
+    }
+    if (_excelData!.isNotEmpty) {
+      initializeControllers();
+    }
     notifyListeners();
   }
 
-  void _disposeRowMaps(String barCode) {
-    if (barCode.isEmpty) return;
-    _controllers.remove(barCode)?.dispose();
-    _supplyPriceControllers.remove(barCode)?.dispose();
-    _quantityControllers.remove(barCode)?.dispose();
-    _selectedProductTypes.remove(barCode);
-    _selectedTaxTypes.remove(barCode);
-    _selectedItemClasses.remove(barCode);
-    _selectedCategories.remove(barCode);
+  void _disposePersistedStateForUid(String uid) {
+    _selectedProductTypes.remove(uid);
+    _selectedTaxTypes.remove(uid);
+    _selectedItemClasses.remove(uid);
+    _selectedCategories.remove(uid);
   }
 
   void clearSelectedFile() {
@@ -128,6 +219,10 @@ class BulkAddProductViewModel extends ChangeNotifier {
     _excelData = null;
     _parseError = null;
     _importValidation = null;
+    _isLoadingFullParse = false;
+    _isParseComplete = true;
+    _estimatedRowCount = null;
+    _largeImportPageIndex = 0;
     _clearRowState();
     notifyListeners();
   }
@@ -159,38 +254,107 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   void initializeControllers() {
-    if (_excelData == null || exceedsEditableLimit) {
+    if (_excelData == null || _excelData!.isEmpty) {
       return;
     }
-    if (_controllers.isEmpty) {
-      for (var product in _excelData!) {
-        String barCode = product['BarCode'] ?? '';
-        _controllers[barCode] = TextEditingController(text: product['Price']);
-      }
-    }
-    if (_supplyPriceControllers.isEmpty) {
-      for (var product in _excelData!) {
-        String barCode = product['BarCode'] ?? '';
-        _supplyPriceControllers[barCode] = TextEditingController(
-          text: product['SupplyPrice'] ?? product['Price'] ?? '0',
-        );
-      }
-    }
-    for (var product in _excelData!) {
-      final barCode = product['BarCode'] ?? '';
-      if (barCode.isEmpty) continue;
-      _quantityControllers[barCode] ??= TextEditingController(
-        text: _resolveQuantityText(barCode, product),
-      );
-      _selectedProductTypes[barCode] ??= '2';
-      _selectedTaxTypes[barCode] ??= 'B';
-      _selectedItemClasses[barCode] ??= '5020230602';
+    disposeFieldControllersOnly();
+    if (exceedsEditableLimit) {
+      _fillControllersForLargeImportPage();
+    } else {
+      _fillControllersForSmallImport();
     }
   }
 
+  void disposeFieldControllersOnly() {
+    _controllers.forEach((_, c) => c.dispose());
+    _supplyPriceControllers.forEach((_, c) => c.dispose());
+    _quantityControllers.forEach((_, c) => c.dispose());
+    _controllers.clear();
+    _supplyPriceControllers.clear();
+    _quantityControllers.clear();
+  }
+
+  void _fillControllersForSmallImport() {
+    for (final product in _excelData!) {
+      final uid = _bulkUidOf(product);
+      final priceText = _excelCellString(product['Price']);
+      _controllers[uid] = TextEditingController(text: priceText);
+      _supplyPriceControllers[uid] = TextEditingController(
+        text:
+            _excelCellString(product['SupplyPrice']).isNotEmpty
+                ? _excelCellString(product['SupplyPrice'])
+                : (priceText.isNotEmpty ? priceText : '0'),
+      );
+      _quantityControllers[uid] = TextEditingController(
+        text: _resolveQuantityText(uid, product),
+      );
+      _selectedProductTypes[uid] ??= '2';
+      _selectedTaxTypes[uid] ??= 'B';
+      _selectedItemClasses[uid] ??= '5020230602';
+    }
+  }
+
+  void _fillControllersForLargeImportPage() {
+    final slice = rowsVisibleInGrid;
+    for (final product in slice) {
+      final uid = _bulkUidOf(product);
+      final priceText = _excelCellString(product['Price']);
+      _controllers[uid] = TextEditingController(text: priceText);
+      _supplyPriceControllers[uid] = TextEditingController(
+        text:
+            _excelCellString(product['SupplyPrice']).isNotEmpty
+                ? _excelCellString(product['SupplyPrice'])
+                : (priceText.isNotEmpty ? priceText : '0'),
+      );
+      _quantityControllers[uid] = TextEditingController(
+        text: _resolveQuantityText(uid, product),
+      );
+      _selectedProductTypes[uid] ??= '2';
+      _selectedTaxTypes[uid] ??= 'B';
+      _selectedItemClasses[uid] ??= '5020230602';
+    }
+  }
+
+  String _excelCellString(Object? v) => v?.toString() ?? '';
+
+  void _ensureBulkUidsForAllRows() {
+    if (_excelData == null) return;
+    for (final row in _excelData!) {
+      _ensureBulkUid(row);
+    }
+  }
+
+  /// Stable id for UI maps and pagination; do not send this field to APIs.
+  String _ensureBulkUid(Map<String, dynamic> row) {
+    final existing = row[_kBulkRowUidField];
+    if (existing is String && existing.isNotEmpty) {
+      return existing;
+    }
+    final uid =
+        'bulk_${_bulkUidCounter++}_${DateTime.now().microsecondsSinceEpoch}';
+    row[_kBulkRowUidField] = uid;
+    return uid;
+  }
+
+  String _bulkUidOf(Map<String, dynamic> row) => _ensureBulkUid(row);
+
+  /// Stable key for grid widgets / selection maps (see [_kBulkRowUidField] on each row).
+  String bulkRowUidForRow(Map<String, dynamic> row) => _bulkUidOf(row);
+
+  Map<String, dynamic> _rowForBulkUid(String rowUid) {
+    if (_excelData == null) {
+      throw StateError('No Excel data');
+    }
+    for (final r in _excelData!) {
+      final u = r[_kBulkRowUidField];
+      if (u is String && u == rowUid) return r;
+    }
+    throw StateError('Bulk import row not found for id $rowUid');
+  }
+
   /// Resolves stock quantity from the grid controller, then Excel row, then 1.
-  String _resolveQuantityText(String barCode, Map<String, dynamic> product) {
-    final fromController = _quantityControllers[barCode]?.text.trim();
+  String _resolveQuantityText(String rowUid, Map<String, dynamic> product) {
+    final fromController = _quantityControllers[rowUid]?.text.trim();
     if (fromController != null &&
         fromController.isNotEmpty &&
         fromController != '0') {
@@ -204,6 +368,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   void _clearRowState() {
+    _largeImportPageIndex = 0;
     disposeControllers();
     _controllers.clear();
     _supplyPriceControllers.clear();
@@ -219,8 +384,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
     if (_excelData == null) return map;
     for (final product in _excelData!) {
       final barCode = product['BarCode'] ?? '';
-      if (barCode.isEmpty) continue;
-      map[barCode] = _resolveQuantityText(barCode, product);
+      if (barCode.toString().trim().isEmpty) continue;
+      final uid = _bulkUidOf(product);
+      map[barCode.toString()] = _resolveQuantityText(uid, product);
     }
     return map;
   }
@@ -297,20 +463,45 @@ class BulkAddProductViewModel extends ChangeNotifier {
     );
   }
 
-  Future<BulkExcelParseResult> _parseExcelBytes(Uint8List bytes) async {
-    if (bytes.length >= kBulkExcelIsolateParseMinBytes) {
-      return compute(parseBulkExcelInIsolate, bytes);
+  Future<BulkExcelParseResult> _parseExcelBytes(BulkExcelIsolateArgs args) async {
+    if (args.bytes.length >= kBulkExcelIsolateParseMinBytes) {
+      return compute(parseBulkExcelInIsolate, args);
     }
-    return parseBulkExcelInIsolate(bytes);
+    return parseBulkExcelInIsolate(args);
+  }
+
+  Future<BulkXlsxPreviewResult> _readXlsxPreview(Uint8List bytes) async {
+    if (bytes.length >= kBulkExcelIsolateParseMinBytes) {
+      return compute(readBulkXlsxPreviewIsolate, bytes);
+    }
+    return readBulkXlsxPreviewIsolate(bytes);
+  }
+
+  void _applyParsedExcel(BulkExcelParseResult parsed) {
+    _clearRowState();
+    _excelData = parsed.rows;
+    _estimatedRowCount = parsed.rows.length;
+    _largeImportPageIndex = 0;
+    _ensureBulkUidsForAllRows();
+    _runValidationScan();
+    initializeControllers();
+    _isLoadingFullParse = false;
+    _isParseComplete = true;
+    _isLoading = false;
+    notifyListeners();
   }
 
   Future<void> parseExcelData() async {
     _isLoading = true;
     _parseError = null;
+    _isParseComplete = false;
+    _isLoadingFullParse = false;
+    _estimatedRowCount = null;
     notifyListeners();
     try {
       if (_selectedFile == null) {
         _isLoading = false;
+        _isParseComplete = true;
         notifyListeners();
         return;
       }
@@ -325,45 +516,87 @@ class BulkAddProductViewModel extends ChangeNotifier {
       }
 
       final bytes = await _readSelectedFileBytes();
-      final parsed = await _parseExcelBytes(bytes);
-      _clearRowState();
-      _excelData = parsed.rows;
-      _runValidationScan();
-      initializeControllers();
-      _isLoading = false;
-      notifyListeners();
+
+      if (!BulkXlsxPreviewReader.isZipXlsx(bytes)) {
+        final parsed = await _parseExcelBytes(BulkExcelIsolateArgs(bytes));
+        _applyParsedExcel(parsed);
+        return;
+      }
+
+      final preview = await _readXlsxPreview(bytes);
+      _estimatedRowCount = preview.estimatedDataRows;
+
+      final large = preview.estimatedDataRows > kBulkEditableRowLimit;
+      if (large) {
+        _clearRowState();
+        _excelData = preview.previewRows
+            .map((m) => Map<String, dynamic>.from(m))
+            .toList();
+        _importValidation = null;
+        _isLoadingFullParse = true;
+        _isLoading = false;
+        notifyListeners();
+      }
+
+      try {
+        final parsed = await _parseExcelBytes(
+          BulkExcelIsolateArgs(
+            bytes,
+            preferredSheetName: preview.sheetName,
+          ),
+        );
+        _applyParsedExcel(parsed);
+      } on BulkExcelParseException catch (e) {
+        talker.warning('Bulk Excel full parse: ${e.message}');
+        _parseError = e.message;
+        _excelData = null;
+        _importValidation = null;
+        _estimatedRowCount = null;
+        _isLoadingFullParse = false;
+        _isParseComplete = true;
+        _isLoading = false;
+        notifyListeners();
+      }
     } on BulkExcelParseException catch (e) {
       talker.warning('Bulk Excel parse: ${e.message}');
       _parseError = e.message;
       _excelData = null;
+      _importValidation = null;
+      _estimatedRowCount = null;
+      _isLoadingFullParse = false;
+      _isParseComplete = true;
       _isLoading = false;
       notifyListeners();
     } catch (e, s) {
       talker.error('Error parsing Excel data: $e', s);
       _parseError = 'Could not parse spreadsheet: $e';
       _excelData = null;
+      _importValidation = null;
+      _estimatedRowCount = null;
+      _isLoadingFullParse = false;
+      _isParseComplete = true;
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  void updatePrice(String barCode, String newPrice) {
-    final index = _excelData!.indexWhere(
-      (product) => product['BarCode'] == barCode,
-    );
-    if (index != -1) {
-      _excelData![index]['Price'] = newPrice;
+  void updatePrice(String rowUid, String newPrice) {
+    try {
+      final row = _rowForBulkUid(rowUid);
+      row['Price'] = newPrice;
       notifyListeners();
+    } catch (_) {
+      // Ignore unknown row (e.g. stale widget after file change).
     }
   }
 
-  void updateSupplyPrice(String barCode, String newPrice) {
-    final index = _excelData!.indexWhere(
-      (product) => product['BarCode'] == barCode,
-    );
-    if (index != -1) {
-      _excelData![index]['SupplyPrice'] = newPrice;
+  void updateSupplyPrice(String rowUid, String newPrice) {
+    try {
+      final row = _rowForBulkUid(rowUid);
+      row['SupplyPrice'] = newPrice;
       notifyListeners();
+    } catch (_) {
+      // Ignore unknown row.
     }
   }
 
@@ -372,13 +605,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
     final items = <brick.Variant>[];
     for (final product in _excelData!) {
       String barCode = product['BarCode'] ?? '';
-      String finalCategoryId = _selectedCategories[barCode] ?? '';
+      final rowUid = _bulkUidOf(product);
+      String finalCategoryId = _selectedCategories[rowUid] ?? '';
       if (finalCategoryId.isEmpty) {
         final category = await ProxyService.strategy
             .ensureUncategorizedCategory(branchId: branchId);
         finalCategoryId = category.id;
       }
-      final qtyText = _resolveQuantityText(barCode, product);
+      final qtyText = _resolveQuantityText(rowUid, product);
       items.add(
         brick.Variant(
           branchId: branchId,
@@ -401,18 +635,61 @@ class BulkAddProductViewModel extends ChangeNotifier {
     return items;
   }
 
+  /// [processItem] maps are keyed by [Variant.barCode], while the grid stores
+  /// selections under each row's bulk uid — bridge them before save.
+  (
+    Map<String, String>,
+    Map<String, String>,
+    Map<String, String>,
+  ) _selectionMapsKeyedByBarcode(
+    List<brick.Variant> items, {
+    required bool isVatEnabled,
+  }) {
+    final taxTypesByBarcode = <String, String>{};
+    final itemClassesByBarcode = <String, String>{};
+    final itemTypesByBarcode = <String, String>{};
+    for (var i = 0; i < items.length; i++) {
+      final rowUid = _bulkUidOf(_excelData![i]);
+      String barCode = items[i].barCode?.toString() ?? '';
+      if (barCode.isEmpty) {
+        barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}_$i';
+        items[i].barCode = barCode;
+      }
+      taxTypesByBarcode[barCode] =
+          _selectedTaxTypes[rowUid] ?? (isVatEnabled ? 'B' : 'D');
+      itemClassesByBarcode[barCode] =
+          _selectedItemClasses[rowUid] ?? '5020230602';
+      itemTypesByBarcode[barCode] =
+          _selectedProductTypes[rowUid] ?? '2';
+    }
+    return (
+      taxTypesByBarcode,
+      itemClassesByBarcode,
+      itemTypesByBarcode,
+    );
+  }
+
   Future<void> saveAll() async {
     final items = await _buildVariantsForLegacySave();
 
-    // Process each item
-    for (var item in items) {
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
+    final isVatEnabled = ebm?.vatEnabled ?? false;
+
+    final maps = _selectionMapsKeyedByBarcode(
+      items,
+      isVatEnabled: isVatEnabled,
+    );
+
+    for (final item in items) {
       try {
         await ProxyService.strategy.processItem(
           item: item,
           quantitis: _buildQuantitiesMap(),
-          taxTypes: _selectedTaxTypes,
-          itemClasses: _selectedItemClasses,
-          itemTypes: _selectedProductTypes,
+          taxTypes: maps.$1,
+          itemClasses: maps.$2,
+          itemTypes: maps.$3,
         );
       } catch (e) {
         talker.error(e);
@@ -456,6 +733,11 @@ class BulkAddProductViewModel extends ChangeNotifier {
     );
     final isVatEnabled = ebm?.vatEnabled ?? false;
 
+    final maps = _selectionMapsKeyedByBarcode(
+      items,
+      isVatEnabled: isVatEnabled,
+    );
+
     for (var i = 0; i < items.length; i++) {
       try {
         _progressNotifier.value = ProgressData(
@@ -464,36 +746,17 @@ class BulkAddProductViewModel extends ChangeNotifier {
           totalItems: totalItems,
         );
 
-        String barCode = items[i].barCode ?? '';
-        if (barCode.isEmpty) {
-          barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}';
-          items[i].barCode = barCode;
-        }
-
         if (items[i].name.isEmpty) {
           items[i].name = 'Unnamed Product';
         }
         items[i].itemNm = items[i].name;
 
-        if (!_quantityControllers.containsKey(barCode)) {
-          _quantityControllers[barCode] = TextEditingController(text: '0');
-        }
-        if (!_selectedTaxTypes.containsKey(barCode)) {
-          _selectedTaxTypes[barCode] = isVatEnabled ? 'B' : 'D';
-        }
-        if (!_selectedItemClasses.containsKey(barCode)) {
-          _selectedItemClasses[barCode] = '5020230602';
-        }
-        if (!_selectedProductTypes.containsKey(barCode)) {
-          _selectedProductTypes[barCode] = '2';
-        }
-
         await ProxyService.strategy.processItem(
           item: items[i],
           quantitis: _buildQuantitiesMap(),
-          taxTypes: _selectedTaxTypes,
-          itemClasses: _selectedItemClasses,
-          itemTypes: _selectedProductTypes,
+          taxTypes: maps.$1,
+          itemClasses: maps.$2,
+          itemTypes: maps.$3,
         );
       } catch (e) {
         talker.error('General error: $e');
@@ -684,17 +947,18 @@ class BulkAddProductViewModel extends ChangeNotifier {
         name = 'Unnamed Product';
       }
 
-      String finalCategoryId = _selectedCategories[barCode] ?? '';
+      final rowUid = _bulkUidOf(product);
+      String finalCategoryId = _selectedCategories[rowUid] ?? '';
       if (finalCategoryId.isEmpty) {
         final category = await ProxyService.strategy
             .ensureUncategorizedCategory(branchId: branchId);
         finalCategoryId = category.id;
       }
 
-      final qty = _resolveQuantityText(barCode, product);
-      final taxTyCd = _selectedTaxTypes[barCode] ?? (isVatEnabled ? 'B' : 'D');
-      final itemClsCd = _selectedItemClasses[barCode] ?? '5020230602';
-      final itemTyCd = _selectedProductTypes[barCode] ?? '2';
+      final qty = _resolveQuantityText(rowUid, product);
+      final taxTyCd = _selectedTaxTypes[rowUid] ?? (isVatEnabled ? 'B' : 'D');
+      final itemClsCd = _selectedItemClasses[rowUid] ?? '5020230602';
+      final itemTyCd = _selectedProductTypes[rowUid] ?? '2';
       final retailPrice = double.tryParse(product['Price'] ?? '0') ?? 0;
       final supplyPrice =
           double.tryParse(product['SupplyPrice'] ?? '0') ?? retailPrice;
@@ -735,41 +999,43 @@ class BulkAddProductViewModel extends ChangeNotifier {
     return rows;
   }
 
-  void updateProductType(String barCode, String? newValue) {
+  void updateProductType(String rowUid, String? newValue) {
     if (newValue == null) return;
     if (_excelData == null) {
       throw Exception('Excel data is not loaded');
     }
 
-    final rowIndex = _excelData!.indexWhere((row) => row['BarCode'] == barCode);
+    final rowIndex = _excelData!.indexWhere(
+      (row) => row[_kBulkRowUidField] == rowUid,
+    );
     if (rowIndex == -1) {
-      throw Exception('Row not found for barCode: $barCode');
+      throw Exception('Row not found for bulk id: $rowUid');
     }
-    _selectedProductTypes[barCode] = newValue;
+    _selectedProductTypes[rowUid] = newValue;
     _excelData![rowIndex]['ProductType'] = newValue;
     notifyListeners();
   }
 
-  void updateTaxType(String barCode, String? newValue) {
+  void updateTaxType(String rowUid, String? newValue) {
     if (newValue == null) return;
 
     if (_excelData != null) {
       final rowIndex = _excelData!.indexWhere(
-        (row) => row['BarCode'] == barCode,
+        (row) => row[_kBulkRowUidField] == rowUid,
       );
       if (rowIndex != -1) {
-        _selectedTaxTypes[barCode] = newValue;
+        _selectedTaxTypes[rowUid] = newValue;
         _excelData![rowIndex]['TaxType'] = newValue;
         notifyListeners();
       } else {
-        talker.error('Row not found for barCode: $barCode');
+        talker.error('Row not found for bulk id: $rowUid');
       }
     } else {
       talker.error('Excel data is null');
     }
   }
 
-  void updateItemClass(String barCode, String? newValue) {
+  void updateItemClass(String rowUid, String? newValue) {
     if (newValue != null) {
       // Extract just the code from the format "Name Code"
       // Example: "Finished Product 5020230602" -> "5020230602"
@@ -785,29 +1051,29 @@ class BulkAddProductViewModel extends ChangeNotifier {
         itemClassCode = '5020230602'; // Default to finished product
       }
 
-      _selectedItemClasses[barCode] = itemClassCode;
+      _selectedItemClasses[rowUid] = itemClassCode;
       notifyListeners();
     }
   }
 
-  void updateCategory(String barCode, String? newValue) {
+  void updateCategory(String rowUid, String? newValue) {
     if (newValue != null) {
-      _selectedCategories[barCode] = newValue;
+      _selectedCategories[rowUid] = newValue;
       notifyListeners();
     }
   }
 
   Future<void> downloadTemplate() async {
-    final workbook = excel_pkg.Excel.createExcel();
+    final workbook = xlsx.Excel.createExcel();
     final defaultSheet = workbook.getDefaultSheet()!;
     final sheet = workbook.tables[defaultSheet]!;
 
     for (var c = 0; c < kBulkProductTemplateHeaders.length; c++) {
       sheet
           .cell(
-            excel_pkg.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0),
+            xlsx.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0),
           )
-          .value = excel_pkg.TextCellValue(kBulkProductTemplateHeaders[c]);
+          .value = xlsx.TextCellValue(kBulkProductTemplateHeaders[c]);
     }
 
     const sampleRow = [
@@ -822,9 +1088,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
     for (var c = 0; c < sampleRow.length; c++) {
       sheet
           .cell(
-            excel_pkg.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 1),
+            xlsx.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 1),
           )
-          .value = excel_pkg.TextCellValue(sampleRow[c]);
+          .value = xlsx.TextCellValue(sampleRow[c]);
     }
 
     final encoded = workbook.encode();

@@ -91,7 +91,7 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
             children: [
               FileUploadSection(
                 selectedFile: model.selectedFile,
-                itemCount: model.excelData?.length,
+                itemCount: model.uploadedProductCountForUi,
                 onSelectFile: _handleSelectFile,
                 onClearFile: model.clearSelectedFile,
                 onDownloadTemplate: model.downloadTemplate,
@@ -115,15 +115,18 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
   Widget _buildBody(BulkAddProductViewModel model) {
     if (model.isLoading &&
         model.selectedFile != null &&
-        model.excelData == null) {
-      return const Center(
+        model.excelData == null &&
+        !model.isLoadingFullParse) {
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
             Text(
-              'Parsing spreadsheet…',
+              model.estimatedRowCount != null
+                  ? 'Loading full spreadsheet (~${model.estimatedRowCount} rows)…'
+                  : 'Parsing spreadsheet…',
               style: TextStyle(
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
@@ -173,13 +176,18 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
       );
     }
 
-    if (model.exceedsEditableLimit) {
+    if (model.exceedsEditableLimit && model.isLoadingFullParse) {
       return BulkLargeFileSummary(
         model: model,
         onDeleteRow: (index) => model.removeRowAt(index),
       );
     }
 
-    return ProductDataTable(key: ValueKey(model.rowCount), model: model);
+    return ProductDataTable(
+      key: ValueKey(
+        '${model.rowCount}_${model.largeImportPageIndex}_${model.exceedsEditableLimit}_${model.selectedFile?.path ?? model.selectedFile?.name}',
+      ),
+      model: model,
+    );
   }
 }

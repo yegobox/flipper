@@ -17,9 +17,12 @@ class BulkActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rowCount = model.rowCount;
-    final isParsing =
-        model.selectedFile != null && model.excelData == null && model.isLoading;
+    final displayCount = model.uploadedProductCountForUi ?? model.rowCount;
+    final isPrimaryParsing = model.selectedFile != null &&
+        model.excelData == null &&
+        model.isLoading &&
+        !model.isLoadingFullParse;
+    final isSecondaryParsing = model.isLoadingFullParse;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -27,12 +30,12 @@ class BulkActionBar extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (rowCount > 0)
+            if (displayCount > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 8, right: 12),
                 child: Chip(
                   label: Text(
-                    '$rowCount product${rowCount == 1 ? '' : 's'}',
+                    '$displayCount product${displayCount == 1 ? '' : 's'}',
                   ),
                 ),
               ),
@@ -45,7 +48,9 @@ class BulkActionBar extends StatelessWidget {
                   'Turn off to use the previous on-device flow.',
                 ),
                 value: model.useServerBulkRra,
-                onChanged: model.isSaving || model.isLoading
+                onChanged: model.isSaving ||
+                        model.isLoading ||
+                        model.isLoadingFullParse
                     ? null
                     : (value) => model.setUseServerBulkRra(value),
               ),
@@ -54,18 +59,22 @@ class BulkActionBar extends StatelessWidget {
             FlipperButton(
               textColor: Colors.white,
               color: Colors.blue,
-              onPressed: model.canSave && !isParsing ? onSave : null,
+              onPressed: model.canSave && !isPrimaryParsing && !isSecondaryParsing
+                  ? onSave
+                  : null,
               text: 'Save All',
             ),
           ],
         ),
-        if (isParsing) ...[
+        if (isPrimaryParsing || isSecondaryParsing) ...[
           const SizedBox(height: 8),
           const LinearProgressIndicator(),
           const SizedBox(height: 4),
-          const Text(
-            'Parsing spreadsheet…',
-            style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+          Text(
+            isSecondaryParsing
+                ? 'Loading all rows from spreadsheet (save disabled until done)…'
+                : 'Parsing spreadsheet…',
+            style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
           ),
         ],
         if (model.isSaving)

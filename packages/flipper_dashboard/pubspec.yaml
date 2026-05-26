@@ -84,12 +84,12 @@ dependencies:
   # Meaning I am using this package for now to speed up the process of development
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
-  # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
-  syncfusion_flutter_datagrid: ^29.2.11
-  syncfusion_flutter_xlsio: ^29.2.11
-  syncfusion_flutter_datagrid_export: ^29.2.11
-  syncfusion_flutter_core: ^29.2.11
-  syncfusion_officechart: ^29.2.11
+  # Syncfusion 33.x aligns with archive ^4 (required by excel from git / excel_plus).
+  syncfusion_flutter_datagrid: ^33.2.7
+  syncfusion_flutter_xlsio: ^33.2.7
+  syncfusion_flutter_datagrid_export: ^33.2.7
+  syncfusion_flutter_core: ^33.2.7
+  syncfusion_officechart: ^33.2.7
 
   flex_color_picker: ^3.7.1
   sizer: ^2.0.15
@@ -108,7 +108,10 @@ dependencies:
   flipper_rw:
     path: ../../apps/flipper
   flipper_mocks: any
-  excel: ^4.0.6
+  excel:
+    git:
+      url: https://github.com/justkawal/excel.git
+      ref: 751dfc597c893a0b34eccfe6921f126e03a5c683
   supabase_models: any
   supabase_flutter: ^2.12.0
   uuid: ^4.5.1

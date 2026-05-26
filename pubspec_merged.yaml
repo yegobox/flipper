@@ -114,11 +114,11 @@ dependencies:
   # Meaning I am using this package for now to speed up the process of development
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
-  # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
-  syncfusion_flutter_datagrid: ^29.2.11
-  syncfusion_flutter_xlsio: ^29.2.11
-  syncfusion_flutter_datagrid_export: ^29.2.11
-  syncfusion_flutter_core: ^29.2.11
+  # Syncfusion 33.x aligns with archive ^4 (excel from git / excel_plus).
+  syncfusion_flutter_datagrid: ^33.2.7
+  syncfusion_flutter_xlsio: ^33.2.7
+  syncfusion_flutter_datagrid_export: ^33.2.7
+  syncfusion_flutter_core: ^33.2.7
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12
   talker_flutter: ^4.1.5
@@ -212,7 +212,7 @@ dependencies:
   printing: ^5.13.3
   ffi: ">=2.0.0 <3.0.0"
   web: ^1.1.0
-  archive: ^3.6.1
+  archive: ^4.0.9
   bidi: ^2.0.10
   crypto: ^3.0.7
   path_parsing: ">=0.2.0 <2.0.0"
@@ -220,8 +220,8 @@ dependencies:
   xml: ">=6.3.0 <7.0.0"
   flutter_list_drag_and_drop: ^0.1.8
   dotted_line: ^3.2.2
-  syncfusion_flutter_pdf: ^29.2.11
-  syncfusion_flutter_barcodes: ^29.2.11
+  syncfusion_flutter_pdf: ^33.2.7
+  syncfusion_flutter_barcodes: ^33.2.7
   win32: ^5.14.0
   qr: ^3.0.2
   dart_console: ^4.1.2
@@ -241,7 +241,7 @@ dependencies:
   wolt_modal_sheet: 0.11.0
   flipper_scanner: any
   flipper_mfa: any
-  syncfusion_officechart: ^29.2.11
+  syncfusion_officechart: ^33.2.7
   flex_color_picker: ^3.7.1
   flutter_side_menu: ^0.5.3
   shimmer: ^3.0.0
@@ -250,7 +250,10 @@ dependencies:
   lottie: ^3.1.2
   flipper_rw: any
   flipper_mocks: any
-  excel: ^4.0.6
+  excel:
+    git:
+      url: https://github.com/justkawal/excel.git
+      ref: 751dfc597c893a0b34eccfe6921f126e03a5c683
   supabase_models: any
   supabase_flutter: ^2.12.0
   fl_chart: ^1.1.1
