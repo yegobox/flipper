@@ -1,0 +1,14 @@
+---
+description: Flipper Flutter monorepo (see parent yego-project AGENTS.md)
+globs: "**/*"
+alwaysApply: true
+---
+
+# Flipper
+
+Part of **yego-project** workspace. Full context: `../../AGENTS.md` at workspace root.
+
+- Melos monorepo; `secrets.dart` not in git
+- Brick + Ditto sync: `docs/ditto_sync.md`
+- Bulk RRA: prefer data-connector when “Register via server (RRA first)” toggle is on
+- Reports pagination: repo root `QUICK_REFERENCE.md` (parent workspace)
