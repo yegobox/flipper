@@ -19,12 +19,25 @@ class BulkProductForm extends ConsumerStatefulWidget {
 class BulkProductFormState extends ConsumerState<BulkProductForm> {
   String? _errorMessage;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(bulkAddProductViewModelProvider).initializeControllers();
+  Future<void> _handleSelectFile({String? filePath}) async {
+    final model = ref.read(bulkAddProductViewModelProvider);
+    setState(() {
+      _errorMessage = null;
     });
+    try {
+      await model.selectFile(filePath: filePath);
+      if (!mounted) return;
+      if (model.parseError != null) {
+        setState(() {
+          _errorMessage = model.parseError;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   Future<void> _handleSave(BulkAddProductViewModel model) async {
@@ -79,7 +92,7 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
               FileUploadSection(
                 selectedFile: model.selectedFile,
                 itemCount: model.excelData?.length,
-                onSelectFile: model.selectFile,
+                onSelectFile: _handleSelectFile,
                 onClearFile: model.clearSelectedFile,
                 onDownloadTemplate: model.downloadTemplate,
               ),
@@ -103,14 +116,43 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
     if (model.isLoading &&
         model.selectedFile != null &&
         model.excelData == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Parsing spreadsheet…',
+              style: TextStyle(
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (model.parseError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            model.parseError!,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.red.shade700),
+          ),
+        ),
+      );
     }
 
     if (model.excelData == null) {
       return Center(
         child: Text(
           model.selectedFile != null
-              ? 'Parsing spreadsheet…'
+              ? 'Could not load spreadsheet. Use Change to pick another file.'
               : 'Upload an Excel file to preview products',
           style: const TextStyle(
             fontSize: 14,

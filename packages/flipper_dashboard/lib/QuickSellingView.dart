@@ -1914,8 +1914,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         // height for toolbar + cart card (header, list, grand total) and form,
         // causing bottom overflow. One vertical scroll matches unbounded-height
         // behavior above.
-        const sharedViewScrollHeightThreshold = 560.0;
-        if (constraints.maxHeight < sharedViewScrollHeightThreshold) {
+        if (PosLayoutBreakpoints.useSingleScrollCheckoutPane(
+          constraints.maxHeight,
+        )) {
           if (isOrdering) {
             return SizedBox(
               width: constraints.maxWidth,
@@ -1977,11 +1978,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           );
         }
 
+        final flex = PosLayoutBreakpoints.checkoutFlexForPaneHeight(
+          constraints.maxHeight,
+        );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 3,
+              flex: flex.items,
               child: Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: _buildSharedViewItemsPane(
@@ -1994,7 +1998,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: flex.form,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(2.0),
                 child: pinnedBottomColumn,

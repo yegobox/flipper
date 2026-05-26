@@ -1,6 +1,7 @@
 // bulk_add_product_viewmodel.dart
 
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/bulk_add_constants.dart';
 import 'package:flipper_models/bulk_rra_client.dart';
@@ -9,11 +10,12 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' show compute, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:excel/excel.dart' as excel_pkg;
+import 'package:flipper_models/utils/bulk_excel_parser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column;
+import 'package:excel/excel.dart' as excel_pkg;
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
@@ -46,6 +48,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   final Map<String, String> _selectedCategories = {};
   bool _isLoading = false;
   bool _isSaving = false;
+  String? _parseError;
   bool _useServerBulkRra = false;
   BulkImportValidation? _importValidation;
   final ValueNotifier<ProgressData> _progressNotifier =
@@ -66,6 +69,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       _quantityControllers;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+  String? get parseError => _parseError;
   bool get useServerBulkRra => _useServerBulkRra;
   BulkImportValidation? get importValidation => _importValidation;
   int get rowCount => _excelData?.length ?? 0;
@@ -122,6 +126,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   void clearSelectedFile() {
     _selectedFile = null;
     _excelData = null;
+    _parseError = null;
     _importValidation = null;
     _clearRowState();
     notifyListeners();
@@ -227,16 +232,17 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   Future<void> selectFile({String? filePath}) async {
-    _isLoading = true;
-    notifyListeners();
     try {
+      _parseError = null;
       FilePickerResult? result;
 
       if (filePath != null) {
-        // File path is provided via drag and drop
+        if (!BulkExcelParser.isSupportedExtension(filePath)) {
+          throw Exception(BulkExcelParser.unsupportedFormatHelp(filePath));
+        }
         final file = File(filePath);
         _selectedFile = PlatformFile(
-          name: file.path.split('/').last,
+          name: file.path.split(Platform.pathSeparator).last,
           path: file.path,
           size: await file.length(),
         );
@@ -244,113 +250,100 @@ class BulkAddProductViewModel extends ChangeNotifier {
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['xlsx', 'xls'],
+          // Desktop: read from path only (faster than loading bytes in picker).
+          withData: kIsWeb,
         );
 
         if (result != null && result.files.isNotEmpty) {
-          _selectedFile = result.files.first;
+          final picked = result.files.first;
+          final name = picked.name.isNotEmpty
+              ? picked.name
+              : (picked.path ?? '');
+          if (name.isNotEmpty && !BulkExcelParser.isSupportedExtension(name)) {
+            throw Exception(BulkExcelParser.unsupportedFormatHelp(name));
+          }
+          _selectedFile = picked;
         }
       }
 
       if (_selectedFile != null) {
         _clearRowState();
         _excelData = null;
-        _isLoading = false;
-        notifyListeners();
-        parseExcelData();
-      } else {
-        _isLoading = false;
-        notifyListeners();
+        await parseExcelData();
       }
     } catch (e) {
-      print('Error selecting file: $e');
+      talker.warning('Error selecting file: $e');
       _isLoading = false;
       notifyListeners();
+      if (e is Exception) rethrow;
       throw Exception('Error selecting file: $e');
     }
   }
 
+  Future<Uint8List> _readSelectedFileBytes() async {
+    final file = _selectedFile!;
+    if (file.path != null) {
+      final disk = File(file.path!);
+      if (await disk.exists()) {
+        final bytes = await disk.readAsBytes();
+        if (bytes.isNotEmpty) return bytes;
+      }
+    }
+    if (file.bytes != null && file.bytes!.isNotEmpty) {
+      return file.bytes!;
+    }
+    throw BulkExcelParseException(
+      'Could not read the file. Try selecting it again, or save a copy as .xlsx.',
+    );
+  }
+
+  Future<BulkExcelParseResult> _parseExcelBytes(Uint8List bytes) async {
+    if (bytes.length >= kBulkExcelIsolateParseMinBytes) {
+      return compute(parseBulkExcelInIsolate, bytes);
+    }
+    return parseBulkExcelInIsolate(bytes);
+  }
+
   Future<void> parseExcelData() async {
     _isLoading = true;
+    _parseError = null;
     notifyListeners();
     try {
-      if (_selectedFile != null) {
-        late excel_pkg.Excel excel;
-
-        if (_selectedFile!.bytes != null) {
-          excel = excel_pkg.Excel.decodeBytes(_selectedFile!.bytes!);
-        } else if (_selectedFile!.path != null) {
-          final file = File(_selectedFile!.path!);
-          final bytes = await file.readAsBytes();
-          excel = excel_pkg.Excel.decodeBytes(bytes);
-        } else {
-          throw Exception('Unable to read file contents');
-        }
-
-        final sheet = excel.tables[excel.tables.keys.first];
-        if (sheet == null) {
-          throw Exception('No sheet found in the Excel file');
-        }
-
-        List<Map<String, dynamic>> data = [];
-        List<String> headers = [
-          'BarCode',
-          'Name',
-          'Category',
-          'Price',
-          'SupplyPrice',
-          'Quantity',
-          'bcdU',
-        ];
-
-        // Find header row
-        int headerRowIndex = sheet.rows.indexWhere(
-          (row) => row.any((cell) => headers.contains(cell?.value?.toString())),
-        );
-
-        if (headerRowIndex == -1) {
-          throw Exception('Required headers not found in the Excel file');
-        }
-
-        // Map column indices to headers
-        Map<String, int> headerIndices = {};
-        for (int i = 0; i < sheet.rows[headerRowIndex].length; i++) {
-          String? cellValue = sheet.rows[headerRowIndex][i]?.value?.toString();
-          if (cellValue != null && headers.contains(cellValue)) {
-            headerIndices[cellValue] = i;
-          }
-        }
-
-        // Parse data rows
-        for (int i = headerRowIndex + 1; i < sheet.rows.length; i++) {
-          Map<String, dynamic> rowData = {};
-          bool hasNonEmptyValue = false;
-          for (String header in headers) {
-            int? columnIndex = headerIndices[header];
-            if (columnIndex != null) {
-              String? cellValue = sheet.rows[i][columnIndex]?.value?.toString();
-              if (cellValue != null && cellValue.isNotEmpty) {
-                hasNonEmptyValue = true;
-              }
-              rowData[header] = cellValue ?? '';
-            }
-          }
-          if (hasNonEmptyValue) {
-            data.add(rowData);
-          }
-        }
-
-        _clearRowState();
-        _excelData = data;
-        _runValidationScan();
+      if (_selectedFile == null) {
         _isLoading = false;
         notifyListeners();
+        return;
       }
-    } catch (e, s) {
-      print('Error parsing Excel data: $e');
-      print('Error parsing Excel data: $s');
+
+      final name = _selectedFile!.name.isNotEmpty
+          ? _selectedFile!.name
+          : (_selectedFile!.path ?? '');
+      if (name.isNotEmpty && !BulkExcelParser.isSupportedExtension(name)) {
+        throw BulkExcelParseException(
+          BulkExcelParser.unsupportedFormatHelp(name),
+        );
+      }
+
+      final bytes = await _readSelectedFileBytes();
+      final parsed = await _parseExcelBytes(bytes);
+      _clearRowState();
+      _excelData = parsed.rows;
+      _runValidationScan();
+      initializeControllers();
       _isLoading = false;
       notifyListeners();
-      throw Exception('Error parsing Excel data: $e');
+    } on BulkExcelParseException catch (e) {
+      talker.warning('Bulk Excel parse: ${e.message}');
+      _parseError = e.message;
+      _excelData = null;
+      _isLoading = false;
+      notifyListeners();
+    } catch (e, s) {
+      talker.error('Error parsing Excel data: $e', s);
+      _parseError = 'Could not parse spreadsheet: $e';
+      _excelData = null;
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -805,40 +798,43 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   Future<void> downloadTemplate() async {
-    final Workbook workbook = Workbook();
-    final Worksheet sheet = workbook.worksheets[0];
+    final workbook = excel_pkg.Excel.createExcel();
+    final defaultSheet = workbook.getDefaultSheet()!;
+    final sheet = workbook.tables[defaultSheet]!;
 
-    // Set headers
-    sheet.getRangeByIndex(1, 1).setText('BarCode');
-    sheet.getRangeByIndex(1, 2).setText('Name');
-    sheet.getRangeByIndex(1, 3).setText('Category');
-    sheet.getRangeByIndex(1, 4).setText('Price');
-    sheet.getRangeByIndex(1, 5).setText('SupplyPrice');
-    sheet.getRangeByIndex(1, 6).setText('Quantity');
-    sheet.getRangeByIndex(1, 7).setText('bcdU');
+    for (var c = 0; c < kBulkProductTemplateHeaders.length; c++) {
+      sheet
+          .cell(
+            excel_pkg.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0),
+          )
+          .value = excel_pkg.TextCellValue(kBulkProductTemplateHeaders[c]);
+    }
 
-    // Style headers
-    final Range headerRange = sheet.getRangeByIndex(1, 1, 1, 7);
-    headerRange.cellStyle.bold = true;
-    headerRange.cellStyle.backColor = '#EEEEEE';
+    const sampleRow = [
+      '123456789',
+      'Sample Product',
+      'General',
+      '100',
+      '80',
+      '10',
+      'PCS',
+    ];
+    for (var c = 0; c < sampleRow.length; c++) {
+      sheet
+          .cell(
+            excel_pkg.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 1),
+          )
+          .value = excel_pkg.TextCellValue(sampleRow[c]);
+    }
 
-    // Add sample data
-    sheet.getRangeByIndex(2, 1).setText('123456789');
-    sheet.getRangeByIndex(2, 2).setText('Sample Product');
-    sheet.getRangeByIndex(2, 3).setText('General');
-    sheet.getRangeByIndex(2, 4).setNumber(100.0);
-    sheet.getRangeByIndex(2, 5).setNumber(80.0);
-    sheet.getRangeByIndex(2, 6).setNumber(10.0);
-    sheet.getRangeByIndex(2, 7).setText('PCS');
-
-    final List<int> bytes = workbook.saveAsStream();
-    workbook.dispose();
+    final encoded = workbook.encode();
+    if (encoded == null) {
+      throw Exception('Could not create template file');
+    }
 
     final directory = await getApplicationDocumentsDirectory();
-    final String path = '${directory.path}/bulk_add_products_template.xlsx';
-    final File file = File(path);
-    await file.writeAsBytes(bytes, flush: true);
-
+    final path = '${directory.path}/bulk_add_products_template.xlsx';
+    await File(path).writeAsBytes(encoded, flush: true);
     await OpenFilex.open(path);
   }
 

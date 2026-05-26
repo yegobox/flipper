@@ -49,8 +49,6 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
 
   @override
   Widget build(BuildContext context) {
-    widget.model.initializeControllers();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

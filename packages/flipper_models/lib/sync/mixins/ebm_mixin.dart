@@ -16,7 +16,7 @@ mixin EbmMixin implements EbmInterface {
   Repository get repository;
 
   @override
-  Future<void> saveEbm({
+  Future<bool> saveEbm({
     required String branchId,
     required String severUrl,
     required String mrc,
@@ -92,8 +92,10 @@ mixin EbmMixin implements EbmInterface {
         'mrc': updatedEbm.mrc,
         'data_connector_url': updatedEbm.dataConnectorUrl,
       });
+      return true;
     } catch (e) {
       talker.error('Error saving EBM: $e');
+      return false;
     }
   }
 

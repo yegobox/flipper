@@ -172,5 +172,36 @@ void main() {
         expect(controller.text, equals('123.45'));
       },
     );
+
+    testWidgets('narrow checkout pane uses compact mobile toggle', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1280, 720);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: SizedBox(
+                  width: 480,
+                  child: PaymentMethodsCard(
+                    transactionId: 'test-id',
+                    totalPayable: 1000.0,
+                    isCardView: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('mobile_toggle_button')), findsOneWidget);
+    });
   });
 }

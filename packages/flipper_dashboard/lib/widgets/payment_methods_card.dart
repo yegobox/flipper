@@ -812,12 +812,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     );
   }
 
-  // Helper to determine if we should use mobile layout
-  // Helper to determine if we should use mobile layout
-  bool _isMobile(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    return mediaQuery.size.width < 600;
-  }
+  /// Compact payment UI when the checkout **pane** is narrow (not full window).
+  bool _isCompactPane(double width) =>
+      width < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -834,11 +831,21 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
       }
     });
 
-    return widget.isCardView ? _buildCardView() : _buildListView();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final paneWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final isCompact = _isCompactPane(paneWidth);
+        return widget.isCardView
+            ? _buildCardView(isCompact: isCompact)
+            : _buildListView(isCompact: isCompact);
+      },
+    );
   }
 
-  Widget _buildCardView() {
-    final isMobile = _isMobile(context);
+  Widget _buildCardView({required bool isCompact}) {
+    final isMobile = isCompact;
     final payments = ref.watch(paymentMethodsProvider);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -984,8 +991,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     );
   }
 
-  Widget _buildListView() {
-    final isMobile = _isMobile(context);
+  Widget _buildListView({required bool isCompact}) {
+    final isMobile = isCompact;
     final payments = ref.watch(paymentMethodsProvider);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;

@@ -47,4 +47,53 @@ abstract final class PosLayoutBreakpoints {
 
   static double cartDrawerWidth(double maxWidth) =>
       math.min(440, maxWidth * 0.48).clamp(320.0, 440.0).toDouble();
+
+  /// Below this checkout-pane height, cart + form use one vertical scroll
+  /// ([QuickSellingView._buildSharedView]).
+  static const double sharedViewScrollHeightThreshold = 560;
+
+  /// Above [sharedViewScrollHeightThreshold] but below this, favor cart lines
+  /// over the payment form (5:1 vs 3:2) — typical 720p desktop windows.
+  static const double checkoutShortDesktopMaxHeight = 800;
+
+  /// Flex weights for cart vs form when pane height is tall enough for 3:2.
+  static const int checkoutItemsFormFlexTallItems = 3;
+  static const int checkoutItemsFormFlexTallForm = 2;
+
+  /// Flex weights for short desktop panes (more room for line items / expand).
+  static const int checkoutItemsFormFlexShortItems = 5;
+  static const int checkoutItemsFormFlexShortForm = 1;
+
+  /// List viewport height under which expanded row fields stack vertically.
+  static const double expandedCartRowCompactHeight = 380;
+
+  /// Narrow cart column: stack expanded qty/price fields vertically.
+  static const double expandedCartRowCompactWidth = 360;
+
+  /// Approximate [PayableView] footer + padding in checkout column (layout math).
+  static const double payableFooterReservedHeight = 138;
+
+  /// Checkout bar uses stacked Tickets/Pay below this **pane** width.
+  static const double payableVerticalBarMaxWidth = 560;
+
+  /// Stacked bar when landscape and pane height is below this.
+  static const double payableVerticalBarMaxLandscapeHeight = 600;
+
+  /// True when the checkout pane should use a single vertical scroll.
+  static bool useSingleScrollCheckoutPane(double maxHeight) =>
+      maxHeight < sharedViewScrollHeightThreshold;
+
+  /// Cart vs payment-form flex for a bounded checkout pane height.
+  static ({int items, int form}) checkoutFlexForPaneHeight(double maxHeight) {
+    if (maxHeight < checkoutShortDesktopMaxHeight) {
+      return (
+        items: checkoutItemsFormFlexShortItems,
+        form: checkoutItemsFormFlexShortForm,
+      );
+    }
+    return (
+      items: checkoutItemsFormFlexTallItems,
+      form: checkoutItemsFormFlexTallForm,
+    );
+  }
 }
