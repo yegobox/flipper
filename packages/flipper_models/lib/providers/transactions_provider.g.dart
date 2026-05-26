@@ -1016,7 +1016,7 @@ final class PendingTransactionStreamProvider
 }
 
 String _$pendingTransactionStreamHash() =>
-    r'f72ebeca6a2e570a8c7922344f50198c13a4faef';
+    r'a51674b9bf99fdf1099f32966f04879c3af0957f';
 
 final class PendingTransactionStreamFamily extends $Family
     with
@@ -1100,7 +1100,7 @@ final class TransactionByIdProvider
   }
 }
 
-String _$transactionByIdHash() => r'4f98047ec2606f7a5a46119389e9fb67168def1f';
+String _$transactionByIdHash() => r'124d18cb457c1e0e1b9fb2f9e3c2eb1624290c4f';
 
 final class TransactionByIdFamily extends $Family
     with $FunctionalFamilyOverride<Stream<ITransaction?>, String> {

@@ -988,65 +988,41 @@ class BulkAddProductViewModel extends ChangeNotifier {
       throw Exception('No rows to submit');
     }
 
-    final jobIds = <String>[];
-    final batchFirstRowIndex = <int>[];
-    var totalAccepted = 0;
-    var totalSuccess = 0;
-    var totalFailed = 0;
-    var cumulativeCompleted = 0;
+    _progressNotifier.value = ProgressData(
+      progress:
+          'Uploading ${rows.length} products to server (one request; import continues if you leave)…',
+      currentItem: 0,
+      totalItems: rows.length,
+    );
 
-    final batchCount = (rows.length + kBulkRraMaxRowsPerRequest - 1) ~/
-        kBulkRraMaxRowsPerRequest;
+    final accepted = await client.submitBulkAdd(
+      tinNumber: tin.toString(),
+      bhfId: bhfId,
+      branchId: branchId,
+      businessId: businessId,
+      rows: rows,
+      isTaxEnabled: isTaxEnabled,
+    );
 
-    for (var b = 0; b < batchCount; b++) {
-      final start = b * kBulkRraMaxRowsPerRequest;
-      final end =
-          (start + kBulkRraMaxRowsPerRequest).clamp(0, rows.length);
-      final chunk = rows.sublist(start, end);
-      batchFirstRowIndex.add(start);
+    _progressNotifier.value = ProgressData(
+      progress:
+          'Queued job ${accepted.jobId} — server processing ${accepted.accepted} rows '
+          '(safe to close app; check Ditto / job when finished)',
+      currentItem: 0,
+      totalItems: rows.length,
+    );
 
-      _progressNotifier.value = ProgressData(
-        progress: batchCount > 1
-            ? 'Submitting batch ${b + 1}/$batchCount (${chunk.length} products of ${rows.length})…'
-            : 'Submitting ${chunk.length} products to server…',
-        currentItem: cumulativeCompleted,
-        totalItems: rows.length,
-      );
+    final status = await _pollBulkRraJobUntilTerminal(
+      client,
+      accepted.jobId,
+      progressBase: 0,
+      overallTotalRows: rows.length,
+    );
 
-      final accepted = await client.submitBulkAdd(
-        tinNumber: tin.toString(),
-        bhfId: bhfId,
-        branchId: branchId,
-        businessId: businessId,
-        rows: chunk,
-        isTaxEnabled: isTaxEnabled,
-      );
-      jobIds.add(accepted.jobId);
-      totalAccepted += accepted.accepted;
-
-      final status = await _pollBulkRraJobUntilTerminal(
-        client,
-        accepted.jobId,
-        progressBase: cumulativeCompleted,
-        overallTotalRows: rows.length,
-      );
-
-      cumulativeCompleted += status.completed;
-      totalSuccess += status.success;
-      totalFailed += status.failed;
-
-      if (status.accepted > 0 &&
-          status.success + status.failed < status.accepted) {
-        throw Exception(
-          'Bulk job ${accepted.jobId} ended incomplete: '
-          '${status.success} succeeded, ${status.failed} failed, '
-          '${status.accepted} expected.',
-        );
-      }
-    }
-
-    final jobIdLabel =
-        jobIds.length == 1 ? jobIds.single : '${jobIds.first} (+${jobIds.length - 1} more)';
+    final jobIdLabel = accepted.jobId;
+    final totalSuccess = status.success;
+    final totalFailed = status.failed;
+    final totalAccepted = status.accepted;
 
     if (totalSuccess + totalFailed < totalAccepted) {
       throw Exception(
@@ -1055,25 +1031,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
       );
     }
 
-    Future<List<Map<String, dynamic>>> allFailedItems() async {
-      final out = <Map<String, dynamic>>[];
-      for (var bi = 0; bi < jobIds.length; bi++) {
-        final items = await client.listFailedItems(jobIds[bi]);
-        final offset = batchFirstRowIndex[bi];
-        for (final raw in items) {
-          final m = Map<String, dynamic>.from(raw);
-          final local = m['index'];
-          if (local is int) {
-            m['index'] = offset + local;
-          }
-          out.add(m);
-        }
-      }
-      return out;
-    }
-
     if (totalSuccess == 0 && totalFailed > 0) {
-      final failedItems = await allFailedItems();
+      final failedItems = await client.listFailedItems(accepted.jobId);
       final first = failedItems.isNotEmpty ? failedItems.first : null;
       return BulkSaveResult(
         success: false,
@@ -1088,7 +1047,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
 
     if (totalFailed > 0) {
-      final failedItems = await allFailedItems();
+      final failedItems = await client.listFailedItems(accepted.jobId);
       failedItems.sort(
         (a, b) => (a['index'] as int? ?? 0).compareTo(b['index'] as int? ?? 0),
       );

@@ -1,7 +1,9 @@
 import 'package:flipper_dashboard/providers/transaction_report_business_cashiers_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
+import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
@@ -145,6 +147,69 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('SALES BY CASHIER'), findsNothing);
+  });
+
+  testWidgets('Date range change masks report body while data reloads', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1400, 900));
+    final txs = [
+      _tx(
+        id: 't1',
+        agentId: 'alice@example.com',
+        receiptNumber: 4312,
+        subTotal: 20,
+        cashReceived: 20,
+      ),
+    ];
+
+    final snap = TransactionReportSnapshot(
+      transactions: txs,
+      paymentSumsByTransactionId: {
+        't1': const TransactionPaymentSums(
+          byHand: 20,
+          credit: 0,
+          hasAnyRecord: true,
+        ),
+      },
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        transactionReportSnapshotProvider(forceRealData: true).overrideWith(
+          (ref) => Stream.value(snap),
+        ),
+        transactionReportSnapshotProvider(forceRealData: false).overrideWith(
+          (ref) => Stream.value(snap),
+        ),
+        transactionItemListProvider.overrideWith((ref) => const Stream.empty()),
+        transactionReportBusinessCashiersProvider.overrideWith(
+          (ref) async => const [],
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(home: Scaffold(body: TransactionList())),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('Preparing your reports...'), findsNothing);
+
+    container.read(dateRangeProvider.notifier).setRange(
+          start: DateTime(2024, 6, 10),
+          end: DateTime(2024, 6, 10, 23, 59, 59),
+        );
+    await tester.pump();
+
+    expect(find.text('Preparing your reports...'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.text('Preparing your reports...'), findsNothing);
   });
 }
 

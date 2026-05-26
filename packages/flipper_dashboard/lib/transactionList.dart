@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/providers/transaction_report_business_cashiers_provider.dart';
@@ -58,6 +60,16 @@ class TransactionListState extends ConsumerState<TransactionList>
   final TextEditingController _searchController = TextEditingController();
   bool _isExporting = false;
 
+  /// After the user changes the global date range, hide KPI/grid staleness until
+  /// fresh stream data resolves (or fallback timer).
+  bool _suppressStaleReportBody = false;
+  bool _sawReloadAfterRangeChange = false;
+  Timer? _staleFallbackTimer;
+  Timer? _staleSafetyTimer;
+
+  static const Duration _staleFallbackDuration = Duration(milliseconds: 400);
+  static const Duration _staleSafetyDuration = Duration(seconds: 15);
+
   @override
   void initState() {
     super.initState();
@@ -68,8 +80,66 @@ class TransactionListState extends ConsumerState<TransactionList>
 
   @override
   void dispose() {
+    _staleFallbackTimer?.cancel();
+    _staleSafetyTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _beginStaleReportHold() {
+    _staleFallbackTimer?.cancel();
+    _staleSafetyTimer?.cancel();
+    setState(() {
+      _suppressStaleReportBody = true;
+      _sawReloadAfterRangeChange = false;
+    });
+    // If the snapshot stream skips [AsyncLoading], avoid a stuck shimmer.
+    _staleFallbackTimer = Timer(_staleFallbackDuration, () {
+      if (!mounted || !_suppressStaleReportBody) return;
+      if (_sawReloadAfterRangeChange) return;
+      setState(() {
+        _suppressStaleReportBody = false;
+      });
+    });
+    _staleSafetyTimer = Timer(_staleSafetyDuration, () {
+      if (!mounted || !_suppressStaleReportBody) return;
+      _staleFallbackTimer?.cancel();
+      setState(() {
+        _suppressStaleReportBody = false;
+        _sawReloadAfterRangeChange = false;
+      });
+    });
+  }
+
+  void _clearStaleReportHoldIfApplicable() {
+    if (!_suppressStaleReportBody || !_sawReloadAfterRangeChange) return;
+    _staleFallbackTimer?.cancel();
+    _staleSafetyTimer?.cancel();
+    setState(() {
+      _suppressStaleReportBody = false;
+      _sawReloadAfterRangeChange = false;
+    });
+  }
+
+  bool _dateRangeChanged(DateRangeModel? prev, DateRangeModel next) {
+    if (prev == null) return false;
+    return prev.startDate != next.startDate || prev.endDate != next.endDate;
+  }
+
+  Widget _buildKpiStalePlaceholder() {
+    return Container(
+      height: 92,
+      alignment: Alignment.center,
+      decoration: _reportChromeCardDecoration(),
+      child: SizedBox(
+        width: 28,
+        height: 28,
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5,
+          color: _kReportPrimary,
+        ),
+      ),
+    );
   }
 
   static final DateFormat _rangeFmt = DateFormat('dd/MM/yyyy');
@@ -82,6 +152,15 @@ class TransactionListState extends ConsumerState<TransactionList>
   // Export using the already-mounted DataView on screen
   Future<void> _exportAllData() async {
     print('🔵 EXPORT BUTTON: _exportAllData called');
+    if (_suppressStaleReportBody) {
+      if (mounted) {
+        showWarningNotification(
+          context,
+          'Please wait for reports to load after the date change.',
+        );
+      }
+      return;
+    }
     final dateRange = ref.read(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
@@ -156,6 +235,36 @@ class TransactionListState extends ConsumerState<TransactionList>
 
   @override
   Widget build(BuildContext context) {
+    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+
+    ref.listen<DateRangeModel>(dateRangeProvider, (previous, next) {
+      if (!_dateRangeChanged(previous, next)) return;
+      _beginStaleReportHold();
+    });
+
+    ref.listen<AsyncValue<TransactionReportSnapshot>>(
+      transactionReportSnapshotProvider(forceRealData: forceRealData),
+      (previous, next) {
+        if (!_suppressStaleReportBody) return;
+
+        switch (next) {
+          case AsyncLoading<Object?>():
+            _sawReloadAfterRangeChange = true;
+          case AsyncError<Object?>():
+            _staleFallbackTimer?.cancel();
+            _staleSafetyTimer?.cancel();
+            setState(() {
+              _suppressStaleReportBody = false;
+              _sawReloadAfterRangeChange = false;
+            });
+          case AsyncData<Object?>():
+            if (_sawReloadAfterRangeChange) {
+              _clearStaleReportHoldIfApplicable();
+            }
+        }
+      },
+    );
+
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
@@ -163,7 +272,6 @@ class TransactionListState extends ConsumerState<TransactionList>
     final showDetailed = ref.watch(toggleBooleanValueProvider);
     final rowsPerPage = ref.watch(rowsPerPageProvider);
     final filters = ref.watch(transactionReportFiltersProvider);
-    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
 
     final baseSnapAsync =
         ref.watch(transactionReportSnapshotProvider(forceRealData: forceRealData));
@@ -171,15 +279,21 @@ class TransactionListState extends ConsumerState<TransactionList>
     final filteredSnapAsync =
         ref.watch(filteredTransactionReportSnapshotProvider(forceRealData));
 
-    final transactions = filteredSnapAsync.asData?.value.transactions;
-    final paymentSumsForGrid =
-        filteredSnapAsync.asData?.value.paymentSumsByTransactionId;
+    final suppressReportBody = _suppressStaleReportBody;
+
+    final transactions = suppressReportBody
+        ? null
+        : filteredSnapAsync.asData?.value.transactions;
+    final paymentSumsForGrid = suppressReportBody
+        ? null
+        : filteredSnapAsync.asData?.value.paymentSumsByTransactionId;
 
     final AsyncValue<List<TransactionItem>> itemsAsync =
         ref.watch(filteredTransactionItemListProvider(forceRealData));
-    final transactionItems = itemsAsync.asData?.value;
+    final transactionItems =
+        suppressReportBody ? null : itemsAsync.asData?.value;
 
-    final AsyncValue<List<dynamic>> dataProvider = switch (showDetailed) {
+    final AsyncValue<List<dynamic>> dataProviderRaw = switch (showDetailed) {
       true => switch (itemsAsync) {
           AsyncData(:final value) =>
             AsyncValue<List<dynamic>>.data(value.cast<dynamic>()),
@@ -197,12 +311,21 @@ class TransactionListState extends ConsumerState<TransactionList>
         }
     };
 
+    final dataProvider =
+        suppressReportBody
+            ? const AsyncValue<List<dynamic>>.loading()
+            : dataProviderRaw;
+
     final cashiersAsync = ref.watch(transactionReportBusinessCashiersProvider);
     final businessCashiers = cashiersAsync.asData?.value ??
         const <TransactionReportCashierProfile>[];
     final cashierDirectory = businessCashiers.isEmpty
         ? null
         : {for (final p in businessCashiers) p.userId: p};
+
+    final baseTransactions = suppressReportBody
+        ? const <ITransaction>[]
+        : baseSnapAsync.asData?.value.transactions;
 
     return _buildReportScaffold(
       context,
@@ -215,10 +338,11 @@ class TransactionListState extends ConsumerState<TransactionList>
       transactionItems,
       paymentSumsForGrid,
       filters: filters,
-      baseTransactions: baseSnapAsync.asData?.value.transactions,
+      baseTransactions: baseTransactions,
       businessCashiers: businessCashiers,
       cashierDirectory: cashierDirectory,
       cashiersLoading: cashiersAsync.isLoading,
+      suppressReportBody: suppressReportBody,
     );
   }
 
@@ -236,7 +360,8 @@ class TransactionListState extends ConsumerState<TransactionList>
     required List<ITransaction>? baseTransactions,
     required List<TransactionReportCashierProfile> businessCashiers,
     required Map<String, TransactionReportCashierProfile>? cashierDirectory,
-    required bool cashiersLoading,}
+    required bool cashiersLoading,
+    required bool suppressReportBody,}
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -260,14 +385,17 @@ class TransactionListState extends ConsumerState<TransactionList>
                 if (!widget.hideHeader) ...[
                   _buildTopHeader(context, startDate, endDate, isDesktop),
                   const SizedBox(height: 16),
-                  TransactionReportKpiStrip(
-                    transactions: transactions ?? const <ITransaction>[],
-                    transactionItems: transactionItems,
-                    paymentSumsByTransactionId: paymentSumsForGrid,
-                    startDate: kpiStart,
-                    endDate: kpiEnd,
-                    showDetailed: showDetailed,
-                  ),
+                  if (suppressReportBody)
+                    _buildKpiStalePlaceholder()
+                  else
+                    TransactionReportKpiStrip(
+                      transactions: transactions ?? const <ITransaction>[],
+                      transactionItems: transactionItems,
+                      paymentSumsByTransactionId: paymentSumsForGrid,
+                      startDate: kpiStart,
+                      endDate: kpiEnd,
+                      showDetailed: showDetailed,
+                    ),
                   const SizedBox(height: 16),
                   Container(
                     decoration: _reportChromeCardDecoration(),
@@ -279,7 +407,9 @@ class TransactionListState extends ConsumerState<TransactionList>
                       showDetailed,
                       isDesktop,
                       filters,
-                      baseTransactions ?? transactions,
+                      baseTransactions ??
+                          transactions ??
+                          const <ITransaction>[],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -291,7 +421,9 @@ class TransactionListState extends ConsumerState<TransactionList>
                     ),
                     child: _buildCashierChipsRow(
                       isDesktop,
-                      baseTransactions ?? transactions,
+                      baseTransactions ??
+                          transactions ??
+                          const <ITransaction>[],
                       filters,
                       businessCashiers: businessCashiers,
                       loading: cashiersLoading,

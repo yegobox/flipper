@@ -10,7 +10,7 @@ import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flipper_dashboard/features/stock_value/stock_value_report_desktop_screen.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
-import 'package:flipper_dashboard/transaction_list_wrapper.dart';
+import 'package:flipper_dashboard/features/transaction_reports/transaction_reports_desktop_screen.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show
@@ -400,21 +400,10 @@ class IconRowState extends ConsumerState<IconRow>
   }
 
   void _showReport(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    showDialog(
-      barrierDismissible: true,
-      context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        clipBehavior: Clip.antiAlias,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: size.height * 0.9,
-            maxWidth: size.width * 0.95,
-          ),
-          child: const TransactionListWrapper(showDetailedReport: true),
-        ),
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const TransactionReportsDesktopScreen(),
+        fullscreenDialog: true,
       ),
     );
   }

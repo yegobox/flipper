@@ -15,7 +15,3 @@ const int kBulkPreviewScanRowLimit = kBulkLargeFilePreviewLimit + 5;
 
 /// When the spreadsheet "Category" cell is empty we assign this bucket (matches template sample row).
 const String kBulkDefaultExcelCategoryName = 'General';
-
-/// Rows per `POST /rra/products/bulk-add` so JSON stays under typical HTTP body limits (~2MB Axum
-/// default, reverse proxies). Flutter submits multiple jobs when the import is larger.
-const int kBulkRraMaxRowsPerRequest = 400;
