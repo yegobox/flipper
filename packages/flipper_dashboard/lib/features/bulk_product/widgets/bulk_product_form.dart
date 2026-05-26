@@ -107,7 +107,7 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
             ],
           ),
         ),
-        if (model.isSaving) BulkSaveOverlay(model: model),
+        if (model.showBlockingSaveOverlay) BulkSaveOverlay(model: model),
       ],
     );
   }

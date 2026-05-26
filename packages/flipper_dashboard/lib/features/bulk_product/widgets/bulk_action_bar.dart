@@ -90,6 +90,11 @@ class BulkActionBar extends StatelessWidget {
                   const SizedBox(height: 8),
                   LinearProgressIndicator(value: value),
                   const SizedBox(height: 4),
+                  if (total > 0)
+                    Text(
+                      '${ProgressData.formatPercent(current, total)} · $current of $total',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                    ),
                   Text(
                     progress.progress.isNotEmpty
                         ? progress.progress
@@ -98,11 +103,6 @@ class BulkActionBar extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (total > 0)
-                    Text(
-                      '$current of $total',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                    ),
                 ],
               );
             },

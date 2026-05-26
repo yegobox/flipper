@@ -53,6 +53,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
   final Map<String, String> _selectedCategories = {};
   bool _isLoading = false;
   bool _isSaving = false;
+  /// When true, [saveAllWithProgress] is still running but the blocking modal was dismissed.
+  bool _blockingSaveOverlayDismissed = false;
   String? _parseError;
   bool _isLoadingFullParse = false;
   bool _isParseComplete = true;
@@ -80,6 +82,11 @@ class BulkAddProductViewModel extends ChangeNotifier {
       _quantityControllers;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+
+  /// Full-screen "Saving products" overlay; hidden after [dismissBlockingSaveOverlay] until save ends.
+  bool get showBlockingSaveOverlay =>
+      _isSaving && !_blockingSaveOverlayDismissed;
+
   String? get parseError => _parseError;
   bool get useServerBulkRra => _useServerBulkRra;
   BulkImportValidation? get importValidation => _importValidation;
@@ -167,6 +174,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
   void setUseServerBulkRra(bool value) {
     if (_useServerBulkRra == value) return;
     _useServerBulkRra = value;
+    notifyListeners();
+  }
+
+  /// Hides the full-screen saving modal; [isSaving] stays true until work finishes. Progress remains
+  /// in [progressNotifier] / the action bar strip.
+  void dismissBlockingSaveOverlay() {
+    if (!_isSaving || _blockingSaveOverlayDismissed) return;
+    _blockingSaveOverlayDismissed = true;
     notifyListeners();
   }
 
@@ -837,6 +852,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
   Future<BulkSaveResult> saveAllWithProgress() async {
     _isSaving = true;
+    _blockingSaveOverlayDismissed = false;
     notifyListeners();
     try {
       if (_useServerBulkRra) {
@@ -857,6 +873,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       rethrow;
     } finally {
       _isSaving = false;
+      _blockingSaveOverlayDismissed = false;
       notifyListeners();
     }
   }
