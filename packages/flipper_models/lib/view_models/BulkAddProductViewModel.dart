@@ -19,6 +19,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:excel_plus/excel_plus.dart' as xlsx;
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:supabase_models/brick/models/all_models.dart';
 
@@ -38,6 +39,9 @@ class BulkImportValidation {
 }
 
 class BulkAddProductViewModel extends ChangeNotifier {
+  /// Serializes bulk category Brick writes so overlapping imports don't interleave SQLite.
+  static final Lock _bulkCategoryBrickWriteLock = Lock();
+
   PlatformFile? _selectedFile;
   List<Map<String, dynamic>>? _excelData;
   Map<String, TextEditingController> _controllers = {};
@@ -600,18 +604,153 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
   }
 
+  static String _bulkCategoryLookupKey(String displayName) =>
+      displayName.trim().toLowerCase();
+
+  Future<Map<String, String>> _loadBulkCategoryLookup(String branchId) async {
+    final map = <String, String>{};
+    void merge(List<Category> list) {
+      for (final c in list) {
+        map.putIfAbsent(
+          _bulkCategoryLookupKey(c.name ?? ''),
+          () => c.id,
+        );
+      }
+    }
+
+    merge(await ProxyService.getStrategy(Strategy.capella).categories(branchId: branchId));
+
+    // Desktop: Capella reads Ditto while addCategory persists to Brick first — merging
+    // cloudSync covers any row not yet mirrored to Ditto (or failed Ditto writes).
+    if (!kIsWeb) {
+      try {
+        merge(
+          await ProxyService.getStrategy(Strategy.cloudSync)
+              .categories(branchId: branchId),
+        );
+      } catch (e, s) {
+        talker.warning('bulk category merge from cloudSync: $e', e, s);
+      }
+    }
+    return map;
+  }
+
+  /// One DB list + one create pass per distinct new name (case-insensitive).
+  bool _looksLikeSqliteWriteContention(Object e) {
+    final s = e.toString().toLowerCase();
+    return s.contains('database is locked') ||
+        s.contains('sqlite_busy') ||
+        (s.contains('busy') &&
+            (s.contains('sqlite') || s.contains('database'))) ||
+        s.contains('code=5'); // SQLITE_BUSY when surfaced in wrappers
+  }
+
+  Future<void> _addCategoryForBulkWithBrickRetry({
+    required String name,
+    required String branchId,
+    required DateTime now,
+  }) async {
+    const maxAttempts = 10;
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await ProxyService.strategy.addCategory(
+          name: name,
+          branchId: branchId,
+          active: true,
+          focused: false,
+          lastTouched: now,
+          createdAt: now,
+          deletedAt: null,
+        );
+        return;
+      } catch (e, s) {
+        final transient = attempt < maxAttempts && _looksLikeSqliteWriteContention(e);
+        if (!transient) {
+          talker.error('bulk addCategory failed for "$name": $e', e, s);
+          rethrow;
+        }
+        var ms = 20 * (1 << (attempt - 1));
+        if (ms < 20) ms = 20;
+        if (ms > 500) ms = 500;
+        talker.warning(
+          'bulk addCategory busy for "$name" (attempt $attempt/$maxAttempts), '
+          '${ms}ms backoff',
+        );
+        await Future<void>.delayed(Duration(milliseconds: ms));
+      }
+    }
+  }
+
+  Future<Map<String, String>> _ensureBulkCategoryLookup(String branchId) async {
+    if (_excelData == null || _excelData!.isEmpty) {
+      return {};
+    }
+
+    final displayByLookupKey = <String, String>{};
+    for (final product in _excelData!) {
+      final rowUid = _bulkUidOf(product);
+      final picked = (_selectedCategories[rowUid] ?? '').trim();
+      if (picked.isNotEmpty) {
+        continue;
+      }
+      final raw = (product['Category'] ?? '').toString().trim();
+      final display =
+          raw.isNotEmpty ? raw : kBulkDefaultExcelCategoryName;
+      final k = _bulkCategoryLookupKey(display);
+      displayByLookupKey.putIfAbsent(k, () => display);
+    }
+
+    var normToId = await _loadBulkCategoryLookup(branchId);
+
+    await _bulkCategoryBrickWriteLock.synchronized(() async {
+      final now = DateTime.now().toUtc();
+      var createdAny = false;
+      for (final entry in displayByLookupKey.entries) {
+        if (normToId.containsKey(entry.key)) continue;
+        await _addCategoryForBulkWithBrickRetry(
+          name: entry.value,
+          branchId: branchId,
+          now: now,
+        );
+        createdAny = true;
+      }
+      if (createdAny) {
+        normToId = await _loadBulkCategoryLookup(branchId);
+      }
+    });
+
+    return normToId;
+  }
+
+  String _bulkCategoryIdForRow(
+    Map<String, dynamic> product,
+    String rowUid,
+    Map<String, String> normToId,
+  ) {
+    final picked = (_selectedCategories[rowUid] ?? '').trim();
+    if (picked.isNotEmpty) return picked;
+
+    final raw = (product['Category'] ?? '').toString().trim();
+    final display =
+        raw.isNotEmpty ? raw : kBulkDefaultExcelCategoryName;
+    final id = normToId[_bulkCategoryLookupKey(display)] ?? '';
+    if (id.isEmpty) {
+      throw Exception(
+        'Could not resolve category "$display". Try saving categories or pick one in the grid.',
+      );
+    }
+    return id;
+  }
+
   Future<List<brick.Variant>> _buildVariantsForLegacySave() async {
     final branchId = ProxyService.box.getBranchId()!;
+    final normToId = await _ensureBulkCategoryLookup(branchId);
     final items = <brick.Variant>[];
     for (final product in _excelData!) {
       String barCode = product['BarCode'] ?? '';
       final rowUid = _bulkUidOf(product);
-      String finalCategoryId = _selectedCategories[rowUid] ?? '';
-      if (finalCategoryId.isEmpty) {
-        final category = await ProxyService.strategy
-            .ensureUncategorizedCategory(branchId: branchId);
-        finalCategoryId = category.id;
-      }
+      final finalCategoryId =
+          _bulkCategoryIdForRow(product, rowUid, normToId);
       final qtyText = _resolveQuantityText(rowUid, product);
       items.add(
         brick.Variant(
@@ -619,9 +758,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
           bcdU: product['bcdU'] ?? '',
           barCode: barCode,
           name: product['Name'] ?? '',
-          category: finalCategoryId.isNotEmpty
-              ? finalCategoryId
-              : (product['Category'] ?? ''),
+          category: finalCategoryId,
           retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
           supplyPrice:
               double.tryParse(product['SupplyPrice'] ?? '0') ??
@@ -724,6 +861,34 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
   }
 
+  Future<BulkRraJobStatus> _pollBulkRraJobUntilTerminal(
+    BulkRraClient client,
+    String jobId, {
+    required int progressBase,
+    required int overallTotalRows,
+  }) async {
+    const pollInterval = Duration(seconds: 2);
+    const maxPolls = 600;
+    BulkRraJobStatus? status;
+    for (var i = 0; i < maxPolls; i++) {
+      if (i > 0) {
+        await Future.delayed(pollInterval);
+      }
+      status = await client.pollJob(jobId);
+      final done = status.completed;
+      _progressNotifier.value = ProgressData(
+        progress:
+            'Server: ${status.success} ok, ${status.failed} failed (${status.status})',
+        currentItem: progressBase + done,
+        totalItems: overallTotalRows,
+      );
+      if (status.isTerminal) {
+        break;
+      }
+    }
+    return status ?? await client.pollJob(jobId);
+  }
+
   Future<void> _saveLegacy() async {
     final items = await _buildVariantsForLegacySave();
 
@@ -802,72 +967,111 @@ class BulkAddProductViewModel extends ChangeNotifier {
       isVatEnabled: isVatEnabled,
     );
 
-    _progressNotifier.value = ProgressData(
-      progress: 'Submitting ${rows.length} products to server…',
-      currentItem: 0,
-      totalItems: rows.length,
-    );
+    if (rows.isEmpty) {
+      throw Exception('No rows to submit');
+    }
 
-    final accepted = await client.submitBulkAdd(
-      tinNumber: tin.toString(),
-      bhfId: bhfId,
-      branchId: branchId,
-      businessId: businessId,
-      rows: rows,
-      isTaxEnabled: isTaxEnabled,
-    );
+    final jobIds = <String>[];
+    final batchFirstRowIndex = <int>[];
+    var totalAccepted = 0;
+    var totalSuccess = 0;
+    var totalFailed = 0;
+    var cumulativeCompleted = 0;
 
-    const pollInterval = Duration(seconds: 2);
-    const maxPolls = 600;
-    BulkRraJobStatus? status;
-    for (var i = 0; i < maxPolls; i++) {
-      if (i > 0) {
-        await Future.delayed(pollInterval);
-      }
-      status = await client.pollJob(accepted.jobId);
-      final done = status.completed;
+    final batchCount = (rows.length + kBulkRraMaxRowsPerRequest - 1) ~/
+        kBulkRraMaxRowsPerRequest;
+
+    for (var b = 0; b < batchCount; b++) {
+      final start = b * kBulkRraMaxRowsPerRequest;
+      final end =
+          (start + kBulkRraMaxRowsPerRequest).clamp(0, rows.length);
+      final chunk = rows.sublist(start, end);
+      batchFirstRowIndex.add(start);
+
       _progressNotifier.value = ProgressData(
-        progress:
-            'Server: ${status.success} ok, ${status.failed} failed (${status.status})',
-        currentItem: done,
-        totalItems: status.accepted,
+        progress: batchCount > 1
+            ? 'Submitting batch ${b + 1}/$batchCount (${chunk.length} products of ${rows.length})…'
+            : 'Submitting ${chunk.length} products to server…',
+        currentItem: cumulativeCompleted,
+        totalItems: rows.length,
       );
-      if (status.isTerminal) {
-        break;
-      }
-    }
 
-    status ??= await client.pollJob(accepted.jobId);
-    final total = status.accepted;
-    final succeeded = status.success;
-    final failed = status.failed;
-
-    if (succeeded + failed < total) {
-      throw Exception(
-        'Bulk job ended incomplete: $succeeded succeeded, $failed failed, '
-        '$total expected. Check data-connector is running on port 8084.',
+      final accepted = await client.submitBulkAdd(
+        tinNumber: tin.toString(),
+        bhfId: bhfId,
+        branchId: branchId,
+        businessId: businessId,
+        rows: chunk,
+        isTaxEnabled: isTaxEnabled,
       );
-    }
+      jobIds.add(accepted.jobId);
+      totalAccepted += accepted.accepted;
 
-    if (status.status == 'completed_with_errors' || status.status == 'failed') {
-      if (succeeded == 0) {
-        final failedItems = await client.listFailedItems(accepted.jobId);
-        final first = failedItems.isNotEmpty ? failedItems.first : null;
-        return BulkSaveResult(
-          success: false,
-          message:
-              'All $total products failed. '
-              '${first?['resultMsg'] ?? status.status}',
-          total: total,
-          succeeded: 0,
-          failed: failed,
-          jobId: accepted.jobId,
+      final status = await _pollBulkRraJobUntilTerminal(
+        client,
+        accepted.jobId,
+        progressBase: cumulativeCompleted,
+        overallTotalRows: rows.length,
+      );
+
+      cumulativeCompleted += status.completed;
+      totalSuccess += status.success;
+      totalFailed += status.failed;
+
+      if (status.accepted > 0 &&
+          status.success + status.failed < status.accepted) {
+        throw Exception(
+          'Bulk job ${accepted.jobId} ended incomplete: '
+          '${status.success} succeeded, ${status.failed} failed, '
+          '${status.accepted} expected.',
         );
       }
     }
 
-    if (failed > 0) {
-      final failedItems = await client.listFailedItems(accepted.jobId);
+    final jobIdLabel =
+        jobIds.length == 1 ? jobIds.single : '${jobIds.first} (+${jobIds.length - 1} more)';
+
+    if (totalSuccess + totalFailed < totalAccepted) {
+      throw Exception(
+        'Bulk job ended incomplete: $totalSuccess succeeded, $totalFailed failed, '
+        '$totalAccepted expected. Check data-connector is running on port 8084.',
+      );
+    }
+
+    Future<List<Map<String, dynamic>>> allFailedItems() async {
+      final out = <Map<String, dynamic>>[];
+      for (var bi = 0; bi < jobIds.length; bi++) {
+        final items = await client.listFailedItems(jobIds[bi]);
+        final offset = batchFirstRowIndex[bi];
+        for (final raw in items) {
+          final m = Map<String, dynamic>.from(raw);
+          final local = m['index'];
+          if (local is int) {
+            m['index'] = offset + local;
+          }
+          out.add(m);
+        }
+      }
+      return out;
+    }
+
+    if (totalSuccess == 0 && totalFailed > 0) {
+      final failedItems = await allFailedItems();
+      final first = failedItems.isNotEmpty ? failedItems.first : null;
+      return BulkSaveResult(
+        success: false,
+        message:
+            'All ${rows.length} products failed. '
+            '${first?['resultMsg'] ?? 'unknown error'}',
+        total: rows.length,
+        succeeded: 0,
+        failed: totalFailed,
+        jobId: jobIdLabel,
+      );
+    }
+
+    if (totalFailed > 0) {
+      final failedItems = await allFailedItems();
       failedItems.sort(
         (a, b) => (a['index'] as int? ?? 0).compareTo(b['index'] as int? ?? 0),
       );
@@ -883,13 +1087,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
       return BulkSaveResult(
         success: false,
         message:
-            '$failed of $total failed at RRA. '
+            '$totalFailed of ${rows.length} failed at RRA. '
             'First error (row $idx, $name): '
             '${first['resultMsg'] ?? first['status']}',
-        total: total,
-        succeeded: succeeded,
-        failed: failed,
-        jobId: accepted.jobId,
+        total: rows.length,
+        succeeded: totalSuccess,
+        failed: totalFailed,
+        jobId: jobIdLabel,
       );
     }
 
@@ -898,34 +1102,34 @@ class BulkAddProductViewModel extends ChangeNotifier {
         success: true,
         rraSkipped: true,
         message:
-            'Saved $succeeded products to Ditto on data-connector (job '
-            '${accepted.jobId}), but RRA was not called because tax is disabled '
+            'Saved $totalSuccess products to Ditto on data-connector (job '
+            '$jobIdLabel), but RRA was not called because tax is disabled '
             'for this branch. Wait for Ditto sync or restart Flipper to see them '
             'in the app.',
-        total: total,
-        succeeded: succeeded,
+        total: rows.length,
+        succeeded: totalSuccess,
         failed: 0,
-        jobId: accepted.jobId,
+        jobId: jobIdLabel,
       );
     }
 
     await _refreshVariantsFromDittoCloud(branchId);
 
     _progressNotifier.value = ProgressData(
-      progress: 'Done — $succeeded products added',
-      currentItem: total,
-      totalItems: total,
+      progress: 'Done — $totalSuccess products added',
+      currentItem: rows.length,
+      totalItems: rows.length,
     );
 
     return BulkSaveResult(
       success: true,
       message:
-          'Added $succeeded products. Catalog is in Ditto cloud (see Ditto Portal). '
+          'Added $totalSuccess products. Catalog is in Ditto cloud (see Ditto Portal). '
           'Open your product list to load them on this device.',
-      total: total,
-      succeeded: succeeded,
+      total: rows.length,
+      succeeded: totalSuccess,
       failed: 0,
-      jobId: accepted.jobId,
+      jobId: jobIdLabel,
     );
   }
 
@@ -936,6 +1140,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     required String bhfId,
     required bool isVatEnabled,
   }) async {
+    final normToId = await _ensureBulkCategoryLookup(branchId);
     final rows = <Map<String, dynamic>>[];
     for (final product in _excelData!) {
       String barCode = product['BarCode'] ?? '';
@@ -948,12 +1153,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
       }
 
       final rowUid = _bulkUidOf(product);
-      String finalCategoryId = _selectedCategories[rowUid] ?? '';
-      if (finalCategoryId.isEmpty) {
-        final category = await ProxyService.strategy
-            .ensureUncategorizedCategory(branchId: branchId);
-        finalCategoryId = category.id;
-      }
+      final finalCategoryId =
+          _bulkCategoryIdForRow(product, rowUid, normToId);
 
       final qty = _resolveQuantityText(rowUid, product);
       final taxTyCd = _selectedTaxTypes[rowUid] ?? (isVatEnabled ? 'B' : 'D');

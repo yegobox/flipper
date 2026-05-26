@@ -26,6 +26,7 @@ import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/business_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/conversation_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/customer_mixin.dart';
@@ -85,6 +86,7 @@ class CapellaSync extends AiStrategyImpl
         CapellaShiftMixin,
         CapellaStockMixin,
         CategoryMixin,
+        CapellaCategoryDittoMixin,
         CapellaDelegationMixin,
         StockRecountMixin,
         CapellaStockRecountMixin,
