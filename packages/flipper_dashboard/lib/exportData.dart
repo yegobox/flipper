@@ -178,6 +178,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     List<String>? columnNames, // Added parameter for column names
     required bool showProfitCalculations,
     String? currencyCode,
+
     /// When true, PLU line columns [TotalSales], [TaxPayable], [NetProfit] are
     /// written as numeric values from row data instead of Excel formulas.
     /// Use [true] for Google Sheets if you see "Formula parse error" on line cells;
@@ -196,10 +197,25 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // Get the system currency from settings if not provided
       final systemCurrency = currencyCode ?? ProxyService.box.defaultCurrency();
 
+      final businessId = ProxyService.box.getBusinessId();
+      final businessFuture = (businessId != null && businessId.isNotEmpty)
+          ? ProxyService.strategy.getBusiness(businessId: businessId)
+          : Future.value(null);
+
+      final willUseManualData =
+          manualData != null &&
+          manualData.isNotEmpty &&
+          columnNames != null &&
+          columnNames.isNotEmpty;
+
       // Calculate COGS for the transactions in the config
       // SKIP COGS calculation for large datasets to avoid performance issues
       double totalCOGS = 0.0;
-      if (config.transactions.length < 100) {
+      if (willUseManualData) {
+        talker.info(
+          'Skipping COGS: manual transaction-report export uses preset gross/net profit',
+        );
+      } else if (config.transactions.length < 100) {
         print(
           '📊 EXPORT: Calculating COGS for ${config.transactions.length} transactions...',
         );
@@ -251,15 +267,19 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         totalCOGS = totalRevenue * 0.6;
       }
 
+      final resolvedNetProfit = willUseManualData
+          ? config.netProfit
+          : (config.grossProfit != null
+                ? config.grossProfit! - totalCOGS
+                : null);
+
       // Update config with calculated COGS
       config = ExportConfig(
         startDate: config.startDate,
         endDate: config.endDate,
         grossProfit: config.grossProfit,
-        netProfit: config.grossProfit != null
-            ? config.grossProfit! - totalCOGS
-            : null,
-        cogs: totalCOGS,
+        netProfit: resolvedNetProfit,
+        cogs: willUseManualData ? 0.0 : totalCOGS,
         currencyCode: systemCurrency,
         transactions: config.transactions,
       );
@@ -267,9 +287,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       print('📊 EXPORT: Config updated, fetching business info...');
       // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
       ref.read(isProcessingProvider.notifier).startProcessing();
-      final business = await ProxyService.strategy.getBusiness(
-        businessId: ProxyService.box.getBusinessId()!,
-      );
+      final business = await businessFuture;
       print('📊 EXPORT: Business fetched: ${business?.name}');
 
       if (ProxyService.box.exportAsPdf()) {
@@ -422,8 +440,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
           // Column headers row 1; data from row 2 (matches DataGrid export layout).
           for (int i = 0; i < columnNames.length; i++) {
-            final cell =
-                reportSheet.getRangeByIndex(_manualPluHeaderRow, i + 1);
+            final cell = reportSheet.getRangeByIndex(
+              _manualPluHeaderRow,
+              i + 1,
+            );
             cell.setText(columnNames[i]);
             cell.cellStyle = headerStyle;
 
@@ -472,7 +492,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           }
           final useTotalSalesFormula =
               priceColIndex0 != null && qtyColIndex0 != null;
-          final usePluTaxNetFormulas = useTotalSalesFormula &&
+          final usePluTaxNetFormulas =
+              useTotalSalesFormula &&
               taxRateColIndex0 != null &&
               totalSalesColIndex0 != null &&
               taxPayableColIndex0 != null &&
@@ -505,10 +526,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             for (int colIndex = 0; colIndex < columnNames.length; colIndex++) {
               final colName = columnNames[colIndex];
               final dataRow = rowIndex + _manualPluFirstDataRow;
-              final cell = reportSheet.getRangeByIndex(
-                dataRow,
-                colIndex + 1,
-              );
+              final cell = reportSheet.getRangeByIndex(dataRow, colIndex + 1);
 
               if (!staticPluLineValues &&
                   useTotalSalesFormula &&
@@ -527,13 +545,14 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   usePluTaxNetFormulas &&
                   colName.toLowerCase() == 'taxpayable') {
                 final excelRow = dataRow;
-                final taxFormula = PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-                  rowData: rowData,
-                  excelRow: excelRow,
-                  priceLetter: _getColumnLetter(priceColIndex0 + 1),
-                  qtyLetter: _getColumnLetter(qtyColIndex0 + 1),
-                  taxRateLetter: _getColumnLetter(taxRateColIndex0 + 1),
-                );
+                final taxFormula =
+                    PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+                      rowData: rowData,
+                      excelRow: excelRow,
+                      priceLetter: _getColumnLetter(priceColIndex0 + 1),
+                      qtyLetter: _getColumnLetter(qtyColIndex0 + 1),
+                      taxRateLetter: _getColumnLetter(taxRateColIndex0 + 1),
+                    );
                 if (taxFormula != null) {
                   cell.setFormula(taxFormula);
                   cell.cellStyle = numericStyle;
@@ -557,8 +576,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         : null,
                     splyAmtLiteral: supplyAmountColIndex0 == null
                         ? ((rowData[PluExcelRowKeys.splyAmt] as num?)
-                                ?.toDouble() ??
-                            0.0)
+                                  ?.toDouble() ??
+                              0.0)
                         : null,
                   ),
                 );
@@ -613,10 +632,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           if (showProfitCalculations) {
             _formatColumns(
               reportSheet,
-              manualPluDataRowCount:
-                  manualData != null && columnNames != null
-                      ? manualData.length
-                      : null,
+              manualPluDataRowCount: manualData != null && columnNames != null
+                  ? manualData.length
+                  : null,
             );
           } else {
             // Just auto-fit columns without adding profit calculations
@@ -684,10 +702,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  void _formatColumns(
-    excel.Worksheet sheet, {
-    int? manualPluDataRowCount,
-  }) {
+  void _formatColumns(excel.Worksheet sheet, {int? manualPluDataRowCount}) {
     // PLU manual export already uses [_excelPluAmountNumberFormat] on numeric cells.
     // Do not blanket-apply account currency to column 9 — that is [CurrentStock] (units).
 
@@ -740,7 +755,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     // NetProfit column — prefer exact [NetProfit] header; default 10 was wrong for
     // 11-column PLU (TaxPayable is 10, NetProfit is 11).
-    int netProfitColumn = lastColumn >= 11 ? 11 : (lastColumn >= 1 ? lastColumn : 10);
+    int netProfitColumn = lastColumn >= 11
+        ? 11
+        : (lastColumn >= 1 ? lastColumn : 10);
     var foundNetProfitCol = false;
     for (final headerRow in [1, 4]) {
       for (int col = 1; col <= lastColumn; col++) {
@@ -796,8 +813,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       totalSalesStyle.borders.bottom.lineStyle = excel.LineStyle.thin;
       totalSalesStyle.numberFormat = _excelPluAmountNumberFormat;
 
-      final labelCol =
-          totalSalesColumn > 1 ? totalSalesColumn - 1 : totalSalesColumn;
+      final labelCol = totalSalesColumn > 1
+          ? totalSalesColumn - 1
+          : totalSalesColumn;
       sheet
           .getRangeByIndex(totalSalesRowIndex, labelCol)
           .setText('Total Sales (lines):');
@@ -805,8 +823,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           totalSalesStyle;
 
       final tsLetter = _getColumnLetter(totalSalesColumn);
-      final totalSalesSumCell =
-          sheet.getRangeByIndex(totalSalesRowIndex, totalSalesColumn);
+      final totalSalesSumCell = sheet.getRangeByIndex(
+        totalSalesRowIndex,
+        totalSalesColumn,
+      );
       totalSalesSumCell.setFormula(
         '=SUM($tsLetter${dataStartRow}:$tsLetter${dataEndRow})',
       );
@@ -820,18 +840,20 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     // [getRangeByIndex] columns are 1-based; when NetProfit is column 1,
     // [netProfitColumn - 1] was 0 and Syncfusion threw "out of the range".
-    final netProfitLabelCol =
-        netProfitColumn > 1 ? netProfitColumn - 1 : netProfitColumn;
+    final netProfitLabelCol = netProfitColumn > 1
+        ? netProfitColumn - 1
+        : netProfitColumn;
 
     sheet
         .getRangeByIndex(netProfitTotalRowIndex, netProfitLabelCol)
         .setText('Total Net Profit (Before Expenses):');
-    sheet
-        .getRangeByIndex(netProfitTotalRowIndex, netProfitLabelCol)
-        .cellStyle = summaryStyle;
+    sheet.getRangeByIndex(netProfitTotalRowIndex, netProfitLabelCol).cellStyle =
+        summaryStyle;
 
-    final sumCell =
-        sheet.getRangeByIndex(netProfitTotalRowIndex, netProfitColumn);
+    final sumCell = sheet.getRangeByIndex(
+      netProfitTotalRowIndex,
+      netProfitColumn,
+    );
     sumCell.setFormula(
       '=SUM(${_getColumnLetter(netProfitColumn)}${dataStartRow}:${_getColumnLetter(netProfitColumn)}${dataEndRow})',
     );
@@ -876,13 +898,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       final lastCol = reportSheet.getLastColumn();
 
-      int netProfitColumn =
-          lastCol >= 11 ? 11 : (lastCol >= 1 ? lastCol : 10);
+      int netProfitColumn = lastCol >= 11 ? 11 : (lastCol >= 1 ? lastCol : 10);
       var foundNetCol = false;
       for (final headerRow in [1, 4]) {
         for (int col = 1; col <= lastCol; col++) {
-          final cellValue =
-              reportSheet.getRangeByIndex(headerRow, col).getText();
+          final cellValue = reportSheet
+              .getRangeByIndex(headerRow, col)
+              .getText();
           if (cellValue == null) continue;
           final norm = cellValue.toLowerCase().replaceAll(RegExp(r'\s+'), '');
           if (norm == 'netprofit') {
@@ -896,8 +918,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (!foundNetCol) {
         for (final headerRow in [1, 4]) {
           for (int col = 1; col <= lastCol; col++) {
-            final cellValue =
-                reportSheet.getRangeByIndex(headerRow, col).getText();
+            final cellValue = reportSheet
+                .getRangeByIndex(headerRow, col)
+                .getText();
             if (cellValue == null) continue;
             final lower = cellValue.toLowerCase();
             if (lower.contains('net') && lower.contains('profit')) {
@@ -915,8 +938,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       var totalRowIndex = reportSheet.getLastRow();
       final labelCol = netProfitColumn > 1 ? netProfitColumn - 1 : 1;
       for (var r = totalRowIndex; r >= 1; r--) {
-        final label =
-            reportSheet.getRangeByIndex(r, labelCol).getText() ?? '';
+        final label = reportSheet.getRangeByIndex(r, labelCol).getText() ?? '';
         if (label.contains('Total Net Profit (Before Expenses)')) {
           totalRowIndex = r;
           break;
@@ -944,9 +966,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       reportSheet
           .getRangeByIndex(finalNetProfitRowIndex, labelCol)
           .setText('Final Net Profit (After Expenses):');
-      reportSheet
-              .getRangeByIndex(finalNetProfitRowIndex, labelCol)
-              .cellStyle =
+      reportSheet.getRangeByIndex(finalNetProfitRowIndex, labelCol).cellStyle =
           finalNetProfitStyle;
 
       // Get the Final Net Profit cell
@@ -964,12 +984,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         // Qualified sheet refs (no XML-escaped \'…\'): Sheets imports handle Report!A1 / Expenses!B1 reliably.
         final formula =
             PluExcelFormulaBuilder.finalNetProfitAfterExpensesFormula(
-          reportSheetName: reportSheet.name,
-          expensesSheetName: expensesSheet.name,
-          netProfitColumnLetter: _getColumnLetter(netProfitColumn),
-          netProfitBeforeExpensesRow: totalRowIndex,
-          totalExpensesRow: totalExpensesRowIndex,
-        );
+              reportSheetName: reportSheet.name,
+              expensesSheetName: expensesSheet.name,
+              netProfitColumnLetter: _getColumnLetter(netProfitColumn),
+              netProfitBeforeExpensesRow: totalRowIndex,
+              totalExpensesRow: totalExpensesRowIndex,
+            );
 
         finalNetProfitCell.setFormula(formula);
 
@@ -1228,7 +1248,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (left < 8) left = 8;
     if (left + wh > size.width) left = (size.width - wh).clamp(0.0, size.width);
     var top = padding.top + 8;
-    if (top + wh > size.height) top = (size.height - wh - 8).clamp(0.0, size.height);
+    if (top + wh > size.height)
+      top = (size.height - wh - 8).clamp(0.0, size.height);
     return Rect.fromLTWH(left, top, wh, wh);
   }
 
@@ -1244,17 +1265,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final bytes = await file.readAsBytes();
       final mimeType = _lookupMimeType(filePath);
       await Share.shareXFiles(
-        [
-          XFile.fromData(bytes, mimeType: mimeType, name: fileName),
-        ],
+        [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
         subject: 'Report Download - $formattedDate',
         sharePositionOrigin: shareOrigin,
       );
     } else {
       await Share.shareXFiles(
-        [
-          XFile(filePath),
-        ],
+        [XFile(filePath)],
         subject: 'Report Download - $formattedDate',
         sharePositionOrigin: shareOrigin,
       );

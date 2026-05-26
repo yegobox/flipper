@@ -9,12 +9,14 @@ class TransactionDataSource extends DynamicDataSource<ITransaction> {
     bool showPluReport, {
     Map<String, TransactionPaymentSums>? paymentSumsByTransactionId,
     Map<String, TransactionReportCashierProfile>? cashierDirectory,
+    bool serverSidePaging = false,
   }) : super(
           transactions,
           rowsPerPage,
           showPluReport: showPluReport,
           paymentSumsByTransactionId: paymentSumsByTransactionId,
           cashierDirectory: cashierDirectory,
+          serverSidePaging: serverSidePaging,
         );
 }
 

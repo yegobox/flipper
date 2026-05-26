@@ -9,6 +9,61 @@ part of 'transactions_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(TransactionReportPageIndex)
+const transactionReportPageIndexProvider =
+    TransactionReportPageIndexProvider._();
+
+final class TransactionReportPageIndexProvider
+    extends $NotifierProvider<TransactionReportPageIndex, int> {
+  const TransactionReportPageIndexProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionReportPageIndexProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionReportPageIndexHash();
+
+  @$internal
+  @override
+  TransactionReportPageIndex create() => TransactionReportPageIndex();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int>(value),
+    );
+  }
+}
+
+String _$transactionReportPageIndexHash() =>
+    r'9f7b8562bfbe4a9cf7b3d5850970676b891c2a8e';
+
+abstract class _$TransactionReportPageIndex extends $Notifier<int> {
+  int build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<int, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<int, int>,
+              int,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
 @ProviderFor(coreTransactionsStream)
 const coreTransactionsStreamProvider = CoreTransactionsStreamFamily._();
 
@@ -244,11 +299,11 @@ final class TransactionReportSnapshotProvider
         $FunctionalProvider<
           AsyncValue<TransactionReportSnapshot>,
           TransactionReportSnapshot,
-          Stream<TransactionReportSnapshot>
+          FutureOr<TransactionReportSnapshot>
         >
     with
         $FutureModifier<TransactionReportSnapshot>,
-        $StreamProvider<TransactionReportSnapshot> {
+        $FutureProvider<TransactionReportSnapshot> {
   const TransactionReportSnapshotProvider._({
     required TransactionReportSnapshotFamily super.from,
     required bool super.argument,
@@ -272,12 +327,12 @@ final class TransactionReportSnapshotProvider
 
   @$internal
   @override
-  $StreamProviderElement<TransactionReportSnapshot> $createElement(
+  $FutureProviderElement<TransactionReportSnapshot> $createElement(
     $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Stream<TransactionReportSnapshot> create(Ref ref) {
+  FutureOr<TransactionReportSnapshot> create(Ref ref) {
     final argument = this.argument as bool;
     return transactionReportSnapshot(ref, forceRealData: argument);
   }
@@ -295,10 +350,10 @@ final class TransactionReportSnapshotProvider
 }
 
 String _$transactionReportSnapshotHash() =>
-    r'944206634f9f8782a3d105a8a6ed47fa62edf5d0';
+    r'ca3dde0f2048af03c3ea77c0b172ac11ea6f905d';
 
 final class TransactionReportSnapshotFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<TransactionReportSnapshot>, bool> {
+    with $FunctionalFamilyOverride<FutureOr<TransactionReportSnapshot>, bool> {
   const TransactionReportSnapshotFamily._()
     : super(
         retry: null,
@@ -323,11 +378,11 @@ final class TransactionListProvider
         $FunctionalProvider<
           AsyncValue<List<ITransaction>>,
           List<ITransaction>,
-          Stream<List<ITransaction>>
+          FutureOr<List<ITransaction>>
         >
     with
         $FutureModifier<List<ITransaction>>,
-        $StreamProvider<List<ITransaction>> {
+        $FutureProvider<List<ITransaction>> {
   const TransactionListProvider._({
     required TransactionListFamily super.from,
     required bool super.argument,
@@ -351,12 +406,12 @@ final class TransactionListProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<ITransaction>> $createElement(
+  $FutureProviderElement<List<ITransaction>> $createElement(
     $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Stream<List<ITransaction>> create(Ref ref) {
+  FutureOr<List<ITransaction>> create(Ref ref) {
     final argument = this.argument as bool;
     return transactionList(ref, forceRealData: argument);
   }
@@ -372,10 +427,10 @@ final class TransactionListProvider
   }
 }
 
-String _$transactionListHash() => r'db42881764e145f5888d2c9aab0f105f54278827';
+String _$transactionListHash() => r'bb8963a4d23c42628b3a924b5e5fb7552536c4a6';
 
 final class TransactionListFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<ITransaction>>, bool> {
+    with $FunctionalFamilyOverride<FutureOr<List<ITransaction>>, bool> {
   const TransactionListFamily._()
     : super(
         retry: null,
@@ -477,11 +532,11 @@ final class TransactionItemListProvider
         $FunctionalProvider<
           AsyncValue<List<TransactionItem>>,
           List<TransactionItem>,
-          Stream<List<TransactionItem>>
+          FutureOr<List<TransactionItem>>
         >
     with
         $FutureModifier<List<TransactionItem>>,
-        $StreamProvider<List<TransactionItem>> {
+        $FutureProvider<List<TransactionItem>> {
   const TransactionItemListProvider._()
     : super(
         from: null,
@@ -498,18 +553,61 @@ final class TransactionItemListProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<TransactionItem>> $createElement(
+  $FutureProviderElement<List<TransactionItem>> $createElement(
     $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Stream<List<TransactionItem>> create(Ref ref) {
+  FutureOr<List<TransactionItem>> create(Ref ref) {
     return transactionItemList(ref);
   }
 }
 
 String _$transactionItemListHash() =>
-    r'6e180c9a402d9f7f2fc8593e15ca0183eb4bebcd';
+    r'22d9eb1343d3151e4fc4ba388f68472d02c7254d';
+
+@ProviderFor(transactionReportKpiTotals)
+const transactionReportKpiTotalsProvider =
+    TransactionReportKpiTotalsProvider._();
+
+final class TransactionReportKpiTotalsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<TransactionReportKpiTotals>,
+          TransactionReportKpiTotals,
+          FutureOr<TransactionReportKpiTotals>
+        >
+    with
+        $FutureModifier<TransactionReportKpiTotals>,
+        $FutureProvider<TransactionReportKpiTotals> {
+  const TransactionReportKpiTotalsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionReportKpiTotalsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionReportKpiTotalsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<TransactionReportKpiTotals> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<TransactionReportKpiTotals> create(Ref ref) {
+    return transactionReportKpiTotals(ref);
+  }
+}
+
+String _$transactionReportKpiTotalsHash() =>
+    r'e2f203afbaf6271070edc88014c42cd9c7c22741';
 
 @ProviderFor(expensesStream)
 const expensesStreamProvider = ExpensesStreamFamily._();

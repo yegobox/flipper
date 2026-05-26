@@ -1,12 +1,14 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flipper_dashboard/export/export_report_transactions.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
+import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
 import 'package:flipper_dashboard/exportData.dart';
+import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -17,116 +19,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 /// Column names for detailed PLU manual export — same order as [pluReportTableHeader].
 const int _kTransactionItemsIdChunk = 400;
 
-/// [transactionItemList] uses Rx [.startWith] empty lists, so the stream's first
-/// emission is always [] and [ProviderBase.future] can complete before Capella
-/// delivers rows (common when nothing else has subscribed yet, e.g. mobile
-/// Transactions screen). Listen until we see non-empty data or an empty list
-/// that has stayed empty for [debounce].
-Future<List<TransactionItem>> _awaitPluLineItems(
-  WidgetRef ref, {
-  Duration debounce = const Duration(seconds: 5),
-}) async {
-  final completer = Completer<List<TransactionItem>>();
-  Timer? emptyDebounce;
-  void onNext(AsyncValue<List<TransactionItem>> next) {
-    next.when(
-      data: (list) {
-        if (list.isNotEmpty) {
-          emptyDebounce?.cancel();
-          if (!completer.isCompleted) {
-            completer.complete(list);
-          }
-        } else {
-          emptyDebounce?.cancel();
-          emptyDebounce = Timer(debounce, () {
-            final v = ref.read(transactionItemListProvider).value;
-            if (!completer.isCompleted) {
-              completer.complete(v ?? const []);
-            }
-          });
-        }
-      },
-      error: (e, st) {
-        emptyDebounce?.cancel();
-        if (!completer.isCompleted) {
-          completer.completeError(e, st);
-        }
-      },
-      loading: () {
-        emptyDebounce?.cancel();
-      },
-    );
-  }
-
-  final sub = ref.listenManual(transactionItemListProvider, (prev, next) {
-    onNext(next);
-  });
-  onNext(ref.read(transactionItemListProvider));
-
-  try {
-    return await completer.future.timeout(
-      const Duration(seconds: 90),
-      onTimeout: () {
-        emptyDebounce?.cancel();
-        return ref.read(transactionItemListProvider).value ?? [];
-      },
-    );
-  } finally {
-    emptyDebounce?.cancel();
-    sub.close();
-  }
-}
-
-/// [transactionListProvider] is autoDispose. Awaiting [.future] while nothing
-/// else listens lets Riverpod dispose the provider mid-load ("disposed during
-/// loading state"). [listenManual] keeps a listener until the first data/error.
-Future<List<ITransaction>> _awaitPluSales(
-  WidgetRef ref, {
-  required bool forceRealData,
-}) async {
-  final completer = Completer<List<ITransaction>>();
-  final provider = transactionListProvider(forceRealData: forceRealData);
-
-  void onNext(AsyncValue<List<ITransaction>> next) {
-    next.when(
-      data: (list) {
-        if (!completer.isCompleted) {
-          completer.complete(list);
-        }
-      },
-      error: (e, st) {
-        if (!completer.isCompleted) {
-          completer.completeError(e, st);
-        }
-      },
-      loading: () {},
-    );
-  }
-
-  final sub = ref.listenManual(provider, (prev, next) => onNext(next));
-  onNext(ref.read(provider));
-
-  try {
-    return await completer.future.timeout(
-      const Duration(seconds: 90),
-      onTimeout: () {
-        final v = ref.read(provider);
-        if (v.hasValue) {
-          return v.requireValue;
-        }
-        throw TimeoutException(
-          'transactionListProvider',
-          const Duration(seconds: 90),
-        );
-      },
-    );
-  } finally {
-    sub.close();
-  }
-}
-
-/// Fallback when the live item stream stayed empty but we have sale IDs (e.g.
-/// some clients still populate items via id lookup reliably).
+/// Fallback when batched loaders return no line rows but filtered sales remain.
 Future<List<TransactionItem>> _loadLineItemsFromSaleIds(
   List<ITransaction> sales,
 ) async {
@@ -166,29 +59,6 @@ const List<String> kPluDetailedExportColumnNames = [
   'TaxPayable',
   'NetProfit',
 ];
-
-double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
-  return expenseTransactions.fold<double>(
-    0.0,
-    (sum, tx) => sum + (tx.subTotal ?? 0.0),
-  );
-}
-
-double _pluGrossProfitFromItemList(List<TransactionItem> items) {
-  if (items.isEmpty) return 0.0;
-  return items.fold<double>(
-    0.0,
-    (sum, item) => sum + TransactionItemPluMetrics.profitMade(item),
-  );
-}
-
-double _pluTotalLineTaxFromList(List<TransactionItem> items) {
-  if (items.isEmpty) return 0.0;
-  return items.fold<double>(
-    0.0,
-    (sum, item) => sum + TransactionItemPluMetrics.taxPayable(item),
-  );
-}
 
 /// Same row mapping as [DataView._buildManualDataForExport] for [TransactionItemDataSource].
 Future<({List<dynamic> manualData, List<String> columnNames})>
@@ -250,39 +120,12 @@ buildPluManualExportRows(List<TransactionItem> items) async {
   return (manualData: preparedData, columnNames: kPluDetailedExportColumnNames);
 }
 
-Future<double> _calculateNetProfitForItems(
-  List<TransactionItem> items,
-  DateTime startDate,
-  DateTime endDate,
-) async {
-  final gross = _pluGrossProfitFromItemList(items);
-  final tax = _pluTotalLineTaxFromList(items);
-  final bid = ProxyService.box.getBranchId();
-  if (bid == null) return gross - tax;
-  try {
-    final expenseTxs = await ProxyService.getStrategy(Strategy.capella)
-        .transactions(
-          startDate: startDate,
-          endDate: endDate,
-          isExpense: true,
-          skipOriginalTransactionCheck: false,
-          branchId: bid,
-        );
-    return gross - tax - _sumExpenseSubtotals(expenseTxs);
-  } catch (_) {
-    return gross - tax;
-  }
-}
-
 /// Invisible [ConsumerStatefulWidget] that runs the same detailed Excel export as
 /// [DataView.triggerExport] without mounting [DataView] or [SfDataGrid].
 ///
-/// Line items and sales are read from [transactionItemListProvider] and
-/// [transactionListProvider] so the file matches the Transaction Reports grid
-/// (Capella streams). Both providers are autoDispose: we use [Ref.listenManual]
-/// instead of awaiting [.future] so they are not disposed mid-load on mobile.
-/// A separate [transactions] + [transactionItemsForIds] path
-/// often returned no rows on mobile while the grid had data.
+/// Sales and PLU lines use [loadTransactionReportSnapshotFullForExport] plus
+/// [loadTransactionReportPluLinesForFilteredSales] on the filtered export set;
+/// [applyTransactionFiltersToSnapshot] keeps the file aligned with the grid.
 ///
 /// PDF export is not supported here (requires a live grid); callers should catch
 /// and show a message when [ProxyService.box.exportAsPdf] is true.
@@ -322,28 +165,40 @@ class DetailedTransactionReportExportHostState
       throw StateError('missing_branch');
     }
 
-    final salesSnap = ref.read(
-      transactionListProvider(forceRealData: forceRealData),
-    );
-    final List<ITransaction> sales = salesSnap.hasValue
-        ? salesSnap.requireValue
-        : await _awaitPluSales(ref, forceRealData: forceRealData);
-    final exportSales = exportSalesTransactionsOnly(sales);
+    final filters = ref.read(transactionReportFiltersProvider);
 
-    var items = await _awaitPluLineItems(ref);
+    final expenseFut = ProxyService.getStrategy(Strategy.capella).transactions(
+      startDate: startDate,
+      endDate: endDate,
+      isExpense: true,
+      skipOriginalTransactionCheck: false,
+      branchId: branchId,
+    );
+    final snapFut = loadTransactionReportSnapshotFullForExport(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+      forceRealData: forceRealData,
+    );
+    final kpiFut = ref.read(transactionReportKpiTotalsProvider.future);
+
+    final batch = await Future.wait([expenseFut, snapFut, kpiFut]);
+    final expenseTransactions = batch[0] as List<ITransaction>;
+    final fullSnap = batch[1] as TransactionReportSnapshot;
+    final kpiTotals = batch[2] as TransactionReportKpiTotals;
+
+    final reportSnap = applyTransactionFiltersToSnapshot(fullSnap, filters);
+
+    final exportSales = exportSalesTransactionsOnly(reportSnap.transactions);
+
+    var items = await loadTransactionReportPluLinesForFilteredSales(
+      filteredSales: exportSales,
+    );
     items = exportPluItemsSalesOnly(items, exportSales);
     if (items.isEmpty && exportSales.isNotEmpty) {
       items = await _loadLineItemsFromSaleIds(exportSales);
     }
 
-    final expenseTransactions = await ProxyService.getStrategy(Strategy.capella)
-        .transactions(
-          startDate: startDate,
-          endDate: endDate,
-          isExpense: true,
-          skipOriginalTransactionCheck: false,
-          branchId: branchId,
-        );
     final expenses = await Expense.fromTransactions(
       expenseTransactions,
       sales: exportSales,
@@ -359,15 +214,15 @@ class DetailedTransactionReportExportHostState
       endDate: endDate,
       startDate: startDate,
     );
-    config.grossProfit = _pluGrossProfitFromItemList(items);
-    config.netProfit = await _calculateNetProfitForItems(
-      items,
-      startDate,
-      endDate,
-    );
 
-    // Match desktop [DataView]: PLU line formulas from [PluExcelFormulaBuilder].
-    // For Google Sheets-only issues, [exportDataGrid] supports staticPluLineValues.
+    final expenseSum = expenseTransactions.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+    );
+    config.grossProfit = kpiTotals.pluGrossProfit;
+    config.netProfit =
+        kpiTotals.pluGrossProfit - kpiTotals.pluLineTax - expenseSum;
+
     final path = await exportDataGrid(
       workBookKey: _dummyWorkBookKey,
       isStockRecount: false,
