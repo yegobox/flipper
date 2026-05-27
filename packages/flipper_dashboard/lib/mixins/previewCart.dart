@@ -1,7 +1,6 @@
 // ignore_for_file: unused_result
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
@@ -31,6 +30,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_dashboard/utils/sale_agent_completion.dart';
+import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -481,112 +481,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final bool isProformaOrTraining =
           await TurboTaxService.handleProformaOrTrainingMode();
 
-      final stockDeductionSw = Stopwatch()..start();
-
-      final itemsNeedingDeduction = transactionItems.where((item) {
-        if (item.itemTyCd == "3") return false;
-        if (item.quantityShipped == item.qty.toInt()) {
-          talker.info(
-            "Skipping stock deduction for item ${item.name} as it was already processed.",
-          );
-          return false;
-        }
-        final vid = item.variantId;
-        return vid != null && vid.isNotEmpty;
-      }).toList();
-
-      if (!isProformaOrTraining && itemsNeedingDeduction.isNotEmpty) {
-        final variantIds = itemsNeedingDeduction
-            .map((e) => e.variantId!)
-            .toSet()
-            .toList();
-        final swVariants = Stopwatch()..start();
-        final variantsMap = await capella.batchGetVariantsByIds(variantIds);
-        swVariants.stop();
-
-        final stockIds = <String>{};
-        for (final item in itemsNeedingDeduction) {
-          final v = variantsMap[item.variantId!];
-          final sid = v?.stockId;
-          if (sid != null && sid.isNotEmpty) stockIds.add(sid);
-        }
-
-        final swStocks = Stopwatch()..start();
-        final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
-        for (final sid in stockIds) {
-          if (!stocksMap.containsKey(sid)) {
-            stocksMap[sid] = await capella.getStockById(id: sid);
-          }
-        }
-        swStocks.stop();
-
-        final qtyDeltaPerStock = <String, double>{};
-        for (final item in itemsNeedingDeduction) {
-          final v = variantsMap[item.variantId!];
-          final sid = v?.stockId;
-          if (sid == null || sid.isEmpty) continue;
-          qtyDeltaPerStock[sid] =
-              (qtyDeltaPerStock[sid] ?? 0) + item.qty.toDouble();
-        }
-
-        final stockUpdatesById =
-            <String, ({double currentStock, double rsdQty})>{};
-        final deductedStockIds = <String>{};
-        for (final e in qtyDeltaPerStock.entries) {
-          final sid = e.key;
-          final delta = e.value;
-          final stock = stocksMap[sid];
-          final current = stock?.currentStock;
-          if (current == null) continue;
-
-          originalStockQuantities[sid] = current;
-          deductedStockIds.add(sid);
-
-          var newStock = (current - delta).roundToTwoDecimalPlaces();
-          if (allowSellingBelowStock && newStock < 0) {
-            newStock = 0;
-          }
-          stockUpdatesById[sid] = (currentStock: newStock, rsdQty: newStock);
-        }
-
-        final swUpdateStocks = Stopwatch()..start();
-        await capella.batchUpdateStocks(stockUpdatesById);
-        swUpdateStocks.stop();
-
-        // Stock levels are already updated above; line-level quantityShipped is
-        // bookkeeping only — defer so Pay is not blocked on N Ditto writes.
-        unawaited(
-          _deferMarkItemsQuantityShipped(
-            capella: capella,
-            items: itemsNeedingDeduction,
-            deductedStockIds: deductedStockIds,
-            variantsMap: variantsMap,
-          ),
-        );
-
-        talker.debug(
-          '[sale_completion_timing] deduction_detail_ms '
-          'batch_variants_ms=${swVariants.elapsedMilliseconds} '
-          'batch_stocks_ms=${swStocks.elapsedMilliseconds} '
-          'update_stocks_ms=${swUpdateStocks.elapsedMilliseconds} '
-          'update_transaction_items_ms=0 (deferred) '
-          'total_ms=${flowWatch.elapsedMilliseconds}',
-        );
-      }
-
-      final rraSaleSnapshotKey = rraSaleStockSnapshotBoxKey(transactionId);
-      ProxyService.box.remove(key: rraSaleSnapshotKey);
-      if (allowSellingBelowStock && originalStockQuantities.isNotEmpty) {
-        await ProxyService.box.writeString(
-          key: rraSaleSnapshotKey,
-          value: jsonEncode(originalStockQuantities),
-        );
-      }
-
       talker.debug(
-        '[sale_completion_timing] stock_deduction_ms=${stockDeductionSw.elapsedMilliseconds} '
+        '[sale_completion_timing] stock_deduction_ms=0 (deferred_after_rra) '
         'total_ms=${flowWatch.elapsedMilliseconds}',
       );
+
+      void schedulePostSaleStockDeduction() {
+        scheduleDeferredSaleStockDeduction(
+          transactionItems: transactionItems,
+          allowSellingBelowStock: allowSellingBelowStock,
+          isProformaOrTraining: isProformaOrTraining,
+          transactionId: transactionId,
+        );
+      }
 
       // update this transaction as completed
 
@@ -657,6 +564,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           ticketName: ticketName,
           finalSubTotal: finalSubTotal,
           completionCashierName: completionCashierName,
+          transactionItems: transactionItems,
+          allowSellingBelowStock: allowSellingBelowStock,
+          isProformaOrTraining: isProformaOrTraining,
         );
         talker.debug(
           '[sale_completion_timing] flow_total_until_waiting_payment_ms=${flowWatch.elapsedMilliseconds}',
@@ -681,6 +591,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             // This ensures markTransactionAsCompleted sees the correct total paid, avoiding race conditions
             // with the database fetch.
             transaction.cashReceived = (transaction.cashReceived ?? 0) + amount;
+
+            schedulePostSaleStockDeduction();
 
             final wasLoan = await markTransactionAsCompleted(
               transaction: transaction,
@@ -892,6 +804,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     String? ticketName,
     required double finalSubTotal,
     String? completionCashierName,
+    required List<TransactionItem> transactionItems,
+    required bool allowSellingBelowStock,
+    required bool isProformaOrTraining,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -1072,6 +987,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 // Update the local transaction object with the payment amount we just processed.
                 transaction.cashReceived =
                     (transaction.cashReceived ?? 0) + amount;
+
+                scheduleDeferredSaleStockDeduction(
+                  transactionItems: transactionItems,
+                  allowSellingBelowStock: allowSellingBelowStock,
+                  isProformaOrTraining: isProformaOrTraining,
+                  transactionId: transaction.id,
+                );
 
                 await markTransactionAsCompleted(
                   transaction: transaction,
@@ -1478,27 +1400,3 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 }
 
-Future<void> _deferMarkItemsQuantityShipped({
-  required dynamic capella,
-  required List<TransactionItem> items,
-  required Set<String> deductedStockIds,
-  required Map<String, Variant> variantsMap,
-}) async {
-  try {
-    for (final item in items) {
-      final v = variantsMap[item.variantId!];
-      final sid = v?.stockId;
-      if (sid == null || !deductedStockIds.contains(sid)) continue;
-
-      item.quantityShipped = item.qty.toInt();
-      await capella.updateTransactionItem(
-        transactionItemId: item.id,
-        quantityShipped: item.quantityShipped,
-        ignoreForReport: false,
-        skipParentSaleSubtotalRecalc: true,
-      );
-    }
-  } catch (e, s) {
-    talker.warning('Deferred quantityShipped update failed: $e\n$s');
-  }
-}

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
+import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -96,7 +97,7 @@ mixin TransactionMixinOld {
 
         // Quick-selling: RRA sign → persist sale → UI success, then PDF/print.
         if (deferPersistTaxReceiptFields) {
-          response = await handleReceiptGeneration(
+          final signOutcome = await handleReceiptGeneration(
             formKey: formKey,
             context: context,
             transaction: transaction,
@@ -107,6 +108,7 @@ mixin TransactionMixinOld {
             signOnly: true,
             transactionItems: preloadedLineItemsForCollectPayment,
           );
+          response = signOutcome.response;
           if (response.resultCd != "000") {
             throw Exception(response.resultMsg);
           }
@@ -120,22 +122,23 @@ mixin TransactionMixinOld {
           );
           await _awaitPossibleFuture(onComplete());
 
-          final signed = response;
+          scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
           unawaited(
             _presentReceiptAfterSale(
               formKey: formKey,
               context: context,
               transaction: transaction,
-              signedResponse: signed,
+              signedResponse: response,
               purchaseCode: purchaseCode,
               sendDigitalReceipt: sendDigitalReceipt,
               transactionItems: preloadedLineItemsForCollectPayment,
+              presentationReceipt: signOutcome.presentationReceipt,
             ),
           );
-          return signed;
+          return response;
         }
 
-        response = await handleReceiptGeneration(
+        final receiptOutcome = await handleReceiptGeneration(
           formKey: formKey,
           context: context,
           transaction: transaction,
@@ -145,6 +148,7 @@ mixin TransactionMixinOld {
           sendDigitalReceipt: sendDigitalReceipt,
           transactionItems: preloadedLineItemsForCollectPayment,
         );
+        response = receiptOutcome.response;
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
         } else {
@@ -284,7 +288,11 @@ mixin TransactionMixinOld {
     }
   }
 
-  Future<RwApiResponse> handleReceiptGeneration({
+  Future<({
+    RwApiResponse response,
+    DeferredSaleReceiptPersist? deferredPersist,
+    Receipt? presentationReceipt,
+  })> handleReceiptGeneration({
     String? purchaseCode,
     ITransaction? transaction,
     required GlobalKey<FormState> formKey,
@@ -296,6 +304,7 @@ mixin TransactionMixinOld {
     bool presentationOnly = false,
     RwApiResponse? signedResponse,
     List<TransactionItem>? transactionItems,
+    Receipt? presentationReceiptForPdf,
   }) async {
     try {
       if (sendDigitalReceipt && !presentationOnly) {
@@ -313,8 +322,14 @@ mixin TransactionMixinOld {
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
             transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceiptForPdf,
           );
-      final (:response, :bytes) = responseFrom;
+      final (
+        :response,
+        :bytes,
+        :deferredPersist,
+        :presentationReceipt,
+      ) = responseFrom;
 
       if (!signOnly) {
         try {
@@ -325,7 +340,11 @@ mixin TransactionMixinOld {
           await printing(bytes, context);
         }
       }
-      return response;
+      return (
+        response: response,
+        deferredPersist: deferredPersist,
+        presentationReceipt: presentationReceipt,
+      );
     } catch (e) {
       rethrow;
     }
@@ -339,6 +358,7 @@ mixin TransactionMixinOld {
     String? purchaseCode,
     required bool sendDigitalReceipt,
     List<TransactionItem>? transactionItems,
+    Receipt? presentationReceipt,
   }) async {
     try {
       final responseFrom = await TaxController(object: transaction).handleReceipt(
@@ -349,6 +369,7 @@ mixin TransactionMixinOld {
         presentationOnly: true,
         signedResponse: signedResponse,
         transactionItems: transactionItems,
+        presentationReceiptForPdf: presentationReceipt,
       );
       final bytes = responseFrom.bytes;
       if (!context.mounted) return;
