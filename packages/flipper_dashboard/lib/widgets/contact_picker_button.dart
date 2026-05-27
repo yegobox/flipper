@@ -30,9 +30,26 @@ class ContactPickerButton extends StatelessWidget {
       );
 
       if (status == PermissionStatus.granted) {
-        final contact = await FlutterContacts.native.showPicker(
-          properties: {ContactProperty.phone},
-        );
+        // flutter_contacts v2.0.x returns `String?` (contactId),
+        // flutter_contacts v2.1.x returns `Contact?`.
+        final dynamic picked = await FlutterContacts.native.showPicker();
+
+        String? contactId;
+        Contact? contact;
+
+        if (picked is Contact) {
+          contact = picked;
+          contactId = picked.id;
+        } else if (picked is String) {
+          contactId = picked;
+        }
+
+        contact ??= contactId == null
+            ? null
+            : await FlutterContacts.get(
+                contactId,
+                properties: {ContactProperty.phone},
+              );
 
         if (contact != null && contact.phones.isNotEmpty) {
           final rawPhone = contact.phones.first.number;
