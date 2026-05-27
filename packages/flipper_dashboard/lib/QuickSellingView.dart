@@ -98,6 +98,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  /// Prior non-credit payments from payment records, when loaded; otherwise
+  /// [ITransaction.cashReceived]. Must match [updatePaymentRemainder] /
+  /// [standardizedPaymentInitialization] so change/balance are not double-counted.
+  double _effectiveAlreadyPaid(ITransaction? transaction) {
+    if (_cachedNonCreditPaid != null) return _cachedNonCreditPaid!;
+    return transaction?.cashReceived ?? 0.0;
+  }
+
   double get totalAfterDiscountAndShipping {
     return _calculateTotal();
   }
@@ -144,7 +152,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref: ref,
       transaction: transaction,
       total: _calculateTotal(items: items),
-      overrideAlreadyPaid: _cachedNonCreditPaid,
+      overrideAlreadyPaid: _effectiveAlreadyPaid(transaction),
       receivedAmountController: widget.receivedAmountController,
       lastAutoSetAmount: _lastAutoSetAmount,
       onAutoSetAmountChanged: (amount) {
@@ -709,6 +717,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           _prefillCustomerDetails(next.value!);
           if (isNewTransaction) {
             resetDigitalReceiptToggle(ref);
+            _cachedNonCreditPaid = null;
+            _lastPaymentInitTransactionId = null;
             _updateReceivedAmountIfNeeded(next.value!);
           }
         }
@@ -835,13 +845,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         if (!mounted) return;
         final nonCreditPaid = await fetchNonCreditPaid(txn.id);
         if (!mounted) return;
-        _cachedNonCreditPaid = nonCreditPaid;
+        setState(() => _cachedNonCreditPaid = nonCreditPaid);
         standardizedPaymentInitialization(
           ref: ref,
           transaction: txn,
           total: _calculateTotal(),
           overrideAlreadyPaid: nonCreditPaid,
         );
+        _updateReceivedAmountIfNeeded(txn);
       });
     }
 
@@ -850,7 +861,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       builder: (context, model, child) {
         try {
           final alreadyPaidVal =
-              transactionAsyncValue.value?.cashReceived ?? 0.0;
+              _effectiveAlreadyPaid(transactionAsyncValue.value);
           return context.isSmallDevice
               ? _buildSmallDeviceScaffold(
                   alreadyPaidVal,
