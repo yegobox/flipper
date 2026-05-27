@@ -16,6 +16,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // ignore: unused_import
@@ -636,10 +637,59 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required ITransaction transaction,
     required Repository repository,
   }) async {
+    final snapshotKey = rraSaleStockSnapshotBoxKey(transaction.id);
+    Map<String, num> allocations = {};
+    var movementItemsForStockIo = items;
+    var capRra = false;
+
     try {
       if (receiptType != 'NR' && receiptType != 'CR' && receiptType != 'TR') {
+        final bizId = ProxyService.box.getBusinessId();
+        Setting? bizSetting;
+        if (bizId != null && bizId.isNotEmpty) {
+          bizSetting =
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getSetting(businessId: bizId);
+        }
+        final snapshot = decodeRraSaleStockSnapshot(
+          ProxyService.box.readString(key: snapshotKey),
+        );
+        capRra = bizSetting?.allowSellingBelowStock == true &&
+            snapshot != null &&
+            snapshot.isNotEmpty;
+
+        movementItemsForStockIo = items;
+        if (capRra) {
+          final capellaStrat = ProxyService.getStrategy(Strategy.capella);
+          final variantIds = items
+              .where((i) {
+                final vid = i.variantId;
+                return vid != null &&
+                    vid.trim().isNotEmpty &&
+                    i.itemTyCd != '3';
+              })
+              .map((i) => i.variantId!)
+              .toSet()
+              .toList();
+          final variantsLookup =
+              variantIds.isEmpty
+                  ? <String, Variant>{}
+                  : await capellaStrat.batchGetVariantsByIds(variantIds);
+          allocations = rraAllocatedQtyByTransactionItemId(
+            items: items,
+            variantsByVariantId: variantsLookup,
+            snapshotByStockId: snapshot,
+            allowSellingBelowStock: true,
+          );
+          movementItemsForStockIo = movementItemsWithRraCapAllocation(
+            items,
+            allocations,
+          );
+        }
+
         await saveStockItems(
-          items: items,
+          items: movementItemsForStockIo,
           tinNumber: ebm.tinNumber.toString(),
           bhFId: ebm.bhfId,
           updateMaster: false,
@@ -657,19 +707,29 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
           URI: ebm.taxServerUrl,
         );
+
         for (var item in items) {
-          final Variant? variant = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getVariant(id: item.variantId!);
-          final Stock stock = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getStockById(id: variant?.stockId ?? "");
+          if (item.itemTyCd == '3') continue;
+          if (capRra && ((allocations[item.id] ?? 0) <= 0)) continue;
+          final vid = item.variantId;
+          if (vid == null || vid.isEmpty) continue;
+
+          final Variant? variant =
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getVariant(id: vid);
+          final Stock stock =
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getStockById(id: variant?.stockId ?? "");
           if (variant == null) continue;
 
           await ProxyService.tax.saveStockMaster(
             variant: variant,
             URI: ebm.taxServerUrl,
-            stockMasterQty: stock.currentStock!,
+            stockMasterQty: capRra
+                ? math.max(0.0, stock.currentStock?.toDouble() ?? 0.0)
+                : stock.currentStock!,
           );
         }
       } else if (receiptType == 'NR' || receiptType == 'TR') {
@@ -712,6 +772,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
+    } finally {
+      ProxyService.box.remove(key: snapshotKey);
     }
   }
 

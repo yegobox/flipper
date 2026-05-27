@@ -78,6 +78,9 @@ class SettingsService with ListenableServiceMixin {
         setting.isCurrencyDecimal = map['isCurrencyDecimal'];
         _isCurrencyDecimal.value = map['isCurrencyDecimal'];
       }
+      if (map.containsKey('allowSellingBelowStock')) {
+        setting.allowSellingBelowStock = map['allowSellingBelowStock'];
+      }
       setting.lastTouched = DateTime.now().toUtc();
 
       await ProxyService.getStrategy(
@@ -102,6 +105,7 @@ class SettingsService with ListenableServiceMixin {
         enablePriceQuantityAdjustment:
             map['enablePriceQuantityAdjustment'] ?? false,
         isCurrencyDecimal: map['isCurrencyDecimal'] ?? false,
+        allowSellingBelowStock: map['allowSellingBelowStock'] ?? false,
         lastTouched: DateTime.now().toUtc(),
       );
 
@@ -116,6 +120,11 @@ class SettingsService with ListenableServiceMixin {
     return ProxyService.getStrategy(
       Strategy.capella,
     ).getSetting(businessId: ProxyService.box.getBusinessId() ?? "");
+  }
+
+  Future<bool> isAllowSellingBelowStock() async {
+    final s = await settings();
+    return s?.allowSellingBelowStock == true;
   }
 
   Future<bool> isDailyReportEnabled() async {

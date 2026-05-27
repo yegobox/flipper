@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
@@ -31,6 +32,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_dashboard/utils/sale_agent_completion.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
+import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
@@ -282,6 +284,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }) async {
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
+    var allowSellingBelowStock = false;
     String? completionCashierName;
     bool transactionWasMarkedCompleted = false;
     final flowWatch = Stopwatch()..start();
@@ -457,13 +460,22 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final itemsToValidate = transactionItems
           .where((item) => item.itemTyCd != "3")
           .toList();
-      final outOfStockItems = await validateStockQuantity(itemsToValidate);
-      if (outOfStockItems.isNotEmpty) {
-        if (mounted) {
-          await showOutOfStockDialog(context, outOfStockItems);
+
+      final saleSettingsSvc = locator<SettingsService>();
+      allowSellingBelowStock =
+          await saleSettingsSvc.isAllowSellingBelowStock();
+
+      if (!allowSellingBelowStock) {
+        final outOfStockItems = await validateStockQuantity(
+          itemsToValidate,
+        );
+        if (outOfStockItems.isNotEmpty) {
+          if (mounted) {
+            await showOutOfStockDialog(context, outOfStockItems);
+          }
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+          return false;
         }
-        ref.read(payButtonStateProvider.notifier).stopLoading();
-        return false;
       }
 
       final bool isProformaOrTraining =
@@ -530,7 +542,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           originalStockQuantities[sid] = current;
           deductedStockIds.add(sid);
 
-          final newStock = (current - delta).roundToTwoDecimalPlaces();
+          var newStock = (current - delta).roundToTwoDecimalPlaces();
+          if (allowSellingBelowStock && newStock < 0) {
+            newStock = 0;
+          }
           stockUpdatesById[sid] = (currentStock: newStock, rsdQty: newStock);
         }
 
@@ -565,6 +580,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           'total_ms=${flowWatch.elapsedMilliseconds}',
         );
       }
+
+      final rraSaleSnapshotKey = rraSaleStockSnapshotBoxKey(transactionId);
+      ProxyService.box.remove(key: rraSaleSnapshotKey);
+      if (allowSellingBelowStock && originalStockQuantities.isNotEmpty) {
+        await ProxyService.box.writeString(
+          key: rraSaleSnapshotKey,
+          value: jsonEncode(originalStockQuantities),
+        );
+      }
+
       talker.debug(
         '[sale_completion_timing] stock_deduction_ms=${stockDeductionSw.elapsedMilliseconds} '
         'total_ms=${flowWatch.elapsedMilliseconds}',
@@ -572,8 +597,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // update this transaction as completed
 
-      final settingsService = locator<SettingsService>();
-      final isCurrencyDecimal = settingsService.isCurrencyDecimal;
+      final isCurrencyDecimal = saleSettingsSvc.isCurrencyDecimal;
 
       // Compute final subtotal using item discounts (dcAmt) if present.
       // NOTE: `applyDiscount()` persists discounts to items + transaction.subTotal.
@@ -703,6 +727,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       talker.error("Error in complete transaction flow: $e", s);
 
       if (!transactionWasMarkedCompleted) {
+        ProxyService.box.remove(key: rraSaleStockSnapshotBoxKey(transactionId));
         // Rollback stock quantities
         for (var entry in originalStockQuantities.entries) {
           final stockId = entry.key;
