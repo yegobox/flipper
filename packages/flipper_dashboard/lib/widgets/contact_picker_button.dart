@@ -30,28 +30,18 @@ class ContactPickerButton extends StatelessWidget {
       );
 
       if (status == PermissionStatus.granted) {
-        // Open the native contact picker using new API
-        final contactId = await FlutterContacts.native.showPicker();
+        final contact = await FlutterContacts.native.showPicker(
+          properties: {ContactProperty.phone},
+        );
 
-        if (contactId != null) {
-          // Fetch full contact details to get phone numbers using new API
-          final fullContact = await FlutterContacts.get(
-            contactId,
-            properties: {ContactProperty.phone},
-          );
-
-          if (fullContact != null && fullContact.phones.isNotEmpty) {
-            // Get the first phone number and normalize it
-            final rawPhone = fullContact.phones.first.number;
-            // Normalize phone number to remove country codes, spaces, and special characters
-            // This converts numbers like "+2507830 54 874" to "0783054874"
-            final normalizedPhone = MomoUssdService.cleanPhoneNumber(rawPhone);
-            onPhoneSelected(normalizedPhone);
-            HapticFeedback.lightImpact();
-          } else {
-            if (context.mounted) {
-              _showNoPhoneError(context);
-            }
+        if (contact != null && contact.phones.isNotEmpty) {
+          final rawPhone = contact.phones.first.number;
+          final normalizedPhone = MomoUssdService.cleanPhoneNumber(rawPhone);
+          onPhoneSelected(normalizedPhone);
+          HapticFeedback.lightImpact();
+        } else if (contact != null) {
+          if (context.mounted) {
+            _showNoPhoneError(context);
           }
         }
       } else if (status == PermissionStatus.permanentlyDenied) {
