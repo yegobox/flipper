@@ -13,6 +13,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:synchronized/synchronized.dart';
 
 final _persistLock = Lock();
@@ -104,7 +106,10 @@ Future<bool> persistItemToTransaction({
     final currentStock =
         cachedStock?.currentStock ?? variant.stock?.currentStock;
     if (variant.taxTyCd != "D" && variant.itemTyCd != "3") {
-      if (currentStock == null || currentStock <= 0) {
+      final allowSellingBelowStock =
+          await locator<SettingsService>().isAllowSellingBelowStock();
+      if (!allowSellingBelowStock &&
+          (currentStock == null || currentStock <= 0)) {
         ref.read(optimisticOrderCountProvider.notifier).decrement();
         if (cartOptimismApplied) {
           ref
@@ -135,8 +140,6 @@ Future<bool> persistItemToTransaction({
           );
     }
   }
-
-  var saveReturnedFalseTreatAsSuccess = false;
 
   await _persistLock.synchronized(() async {
     if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
@@ -203,7 +206,6 @@ Future<bool> persistItemToTransaction({
         partOfComposite: false,
       );
       if (!saved) {
-        saveReturnedFalseTreatAsSuccess = true;
         return;
       }
     }
