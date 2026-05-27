@@ -104,6 +104,7 @@ bool _rwTaxIsQtyUnitCdCodeValueError(String? msg) {
 }
 
 class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
+  static final Map<String, Configurations> _taxConfigByBranchAndType = {};
   String itemPrefix = "flip-";
   Dio? _dio;
   Talker? _talker;
@@ -790,6 +791,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     String? custMblNo,
     required String customerName,
     Customer? customer,
+    List<TransactionItem>? preloadedItems,
   }) async {
     if ((isAndroid || isIos) && URI.contains('localhost')) {
       return RwApiResponse(
@@ -808,9 +810,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     Ebm? ebm = await ProxyService.strategy.ebm(
       branchId: ProxyService.box.getBranchId()!,
     );
-    List<TransactionItem> items = await ProxyService.getStrategy(
-      Strategy.capella,
-    ).transactionItems(transactionId: transaction.id, branchId: branchId);
+    final List<TransactionItem> items;
+    if (preloadedItems != null && preloadedItems.isNotEmpty) {
+      items = preloadedItems;
+    } else {
+      items = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).transactionItems(transactionId: transaction.id, branchId: branchId);
+    }
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
@@ -1033,29 +1040,40 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   // Helper function to map TransactionItem to JSON
+  Future<Configurations> _taxConfigForType(String taxType) async {
+    final branchId = ProxyService.box.getBranchId()!;
+    final cacheKey = '$branchId|$taxType';
+    final cached = _taxConfigByBranchAndType[cacheKey];
+    if (cached != null) return cached;
+
+    final repository = Repository();
+    final taxConfigs = await repository.get<Configurations>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [
+          Where('taxType').isExactly(taxType),
+          Where('branchId').isExactly(branchId),
+        ],
+      ),
+    );
+    if (taxConfigs.isEmpty) {
+      throw Exception('Failed to get tax config for $taxType');
+    }
+    final config = taxConfigs.first;
+    _taxConfigByBranchAndType[cacheKey] = config;
+    return config;
+  }
+
+  Future<Configurations> _taxConfigForItem(TransactionItem item) =>
+      _taxConfigForType(item.taxTyCd ?? 'B');
+
   Future<Map<String, dynamic>> mapItemToJson(
     TransactionItem item, {
     required String bhfId,
     num? approvedQty,
     int? itemSeq,
   }) async {
-    final repository = Repository();
-
-    List<Configurations> taxConfigs = await repository.get<Configurations>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: Query(
-        where: [
-          Where('taxType').isExactly(item.taxTyCd ?? "B"),
-          Where('branchId').isExactly(ProxyService.box.getBranchId()!),
-        ],
-      ),
-    );
-    Configurations? taxConfig;
-    try {
-      taxConfig = taxConfigs.first;
-    } catch (e) {
-      throw Exception("Failed to get tax config");
-    }
+    final taxConfig = await _taxConfigForItem(item);
 
     // Base calculations
     final unitPrice = item.price;
@@ -1084,22 +1102,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     double ttTaxAmount = 0.0;
     double ttTaxblBase = 0.0;
     if (item.ttCatCd == 'TT') {
-      // Get TT tax configuration
-      List<Configurations> ttTaxConfigs = await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: Query(
-          where: [
-            Where('taxType').isExactly('TT'),
-            Where('branchId').isExactly(ProxyService.box.getBranchId()!),
-          ],
-        ),
-      );
-      Configurations? ttTaxConfig;
-      try {
-        ttTaxConfig = ttTaxConfigs.first;
-      } catch (e) {
-        throw Exception("Failed to get TT tax config");
-      }
+      final ttTaxConfig = await _taxConfigForType('TT');
       final ttTaxPercentage = ttTaxConfig.taxPercentage ?? 0.0;
 
       // Determine taxable base for TT tax depending on the item's tax type

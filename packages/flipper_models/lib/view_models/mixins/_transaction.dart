@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
@@ -91,7 +93,47 @@ mixin TransactionMixinOld {
           value: ebm!.taxServerUrl,
         );
         ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId);
-        // Collect payment and complete transaction details before generating receipt
+
+        // Quick-selling: RRA sign → persist sale → UI success, then PDF/print.
+        if (deferPersistTaxReceiptFields) {
+          response = await handleReceiptGeneration(
+            formKey: formKey,
+            context: context,
+            transaction: transaction,
+            purchaseCode: purchaseCode,
+            onSuccess: onSuccess,
+            persistReceiptTransactionFields: false,
+            sendDigitalReceipt: sendDigitalReceipt,
+            signOnly: true,
+            transactionItems: preloadedLineItemsForCollectPayment,
+          );
+          if (response.resultCd != "000") {
+            throw Exception(response.resultMsg);
+          }
+          await _completeTransactionAfterTaxValidation(
+            transaction,
+            customerName: customerNameController.text,
+            countryCode: countryCodeController.text,
+            preloadedLineItems: preloadedLineItemsForCollectPayment,
+            tenderAmount: amount,
+            skipTransactionPersist: skipTransactionPersist,
+          );
+          await _awaitPossibleFuture(onComplete());
+
+          final signed = response;
+          unawaited(
+            _presentReceiptAfterSale(
+              formKey: formKey,
+              context: context,
+              transaction: transaction,
+              signedResponse: signed,
+              purchaseCode: purchaseCode,
+              sendDigitalReceipt: sendDigitalReceipt,
+              transactionItems: preloadedLineItemsForCollectPayment,
+            ),
+          );
+          return signed;
+        }
 
         response = await handleReceiptGeneration(
           formKey: formKey,
@@ -101,6 +143,7 @@ mixin TransactionMixinOld {
           onSuccess: onSuccess,
           persistReceiptTransactionFields: !deferPersistTaxReceiptFields,
           sendDigitalReceipt: sendDigitalReceipt,
+          transactionItems: preloadedLineItemsForCollectPayment,
         );
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
@@ -249,13 +292,13 @@ mixin TransactionMixinOld {
     required BuildContext context,
     bool persistReceiptTransactionFields = true,
     bool sendDigitalReceipt = false,
+    bool signOnly = false,
+    bool presentationOnly = false,
+    RwApiResponse? signedResponse,
+    List<TransactionItem>? transactionItems,
   }) async {
     try {
-      // Note: This method is now called unawaited by finalizePayment.
-      // We perform the heavy listing here (signing, printing).
-      // If context unmounts, we try to handle gracefully.
-
-      if (sendDigitalReceipt) {
+      if (sendDigitalReceipt && !presentationOnly) {
         await DigitalReceiptService.queueSmsAfterReceiptUpload(transaction!.id);
       }
 
@@ -266,21 +309,57 @@ mixin TransactionMixinOld {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: sendDigitalReceipt,
+            signOnly: signOnly,
+            presentationOnly: presentationOnly,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
           );
       final (:response, :bytes) = responseFrom;
 
-      try {
-        formKey.currentState?.reset();
-      } catch (e) {
-        // Ignore form reset error if unmounted
-      }
+      if (!signOnly) {
+        try {
+          formKey.currentState?.reset();
+        } catch (_) {}
 
-      if (bytes != null && !sendDigitalReceipt) {
-        await printing(bytes, context);
+        if (bytes != null && !sendDigitalReceipt) {
+          await printing(bytes, context);
+        }
       }
       return response;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<void> _presentReceiptAfterSale({
+    required GlobalKey<FormState> formKey,
+    required BuildContext context,
+    required ITransaction transaction,
+    required RwApiResponse signedResponse,
+    String? purchaseCode,
+    required bool sendDigitalReceipt,
+    List<TransactionItem>? transactionItems,
+  }) async {
+    try {
+      final responseFrom = await TaxController(object: transaction).handleReceipt(
+        purchaseCode: purchaseCode,
+        filterType: getFilterType(transactionType: transaction.receiptType),
+        persistReceiptTransactionFields: false,
+        skipPresentation: sendDigitalReceipt,
+        presentationOnly: true,
+        signedResponse: signedResponse,
+        transactionItems: transactionItems,
+      );
+      final bytes = responseFrom.bytes;
+      if (!context.mounted) return;
+      try {
+        formKey.currentState?.reset();
+      } catch (_) {}
+      if (bytes != null && !sendDigitalReceipt) {
+        await printing(bytes, context);
+      }
+    } catch (e, s) {
+      talker.error('Deferred receipt print failed: $e', s);
     }
   }
 

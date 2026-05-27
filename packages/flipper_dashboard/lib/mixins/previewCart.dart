@@ -553,30 +553,23 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         await capella.batchUpdateStocks(stockUpdatesById);
         swUpdateStocks.stop();
 
-        final swUpdateItems = Stopwatch()..start();
-        await Future.wait(
-          itemsNeedingDeduction.map((item) async {
-            final v = variantsMap[item.variantId!];
-            final sid = v?.stockId;
-            if (sid == null || !deductedStockIds.contains(sid)) return;
-
-            item.quantityShipped = item.qty.toInt();
-            await capella.updateTransactionItem(
-              transactionItemId: item.id,
-              quantityShipped: item.quantityShipped,
-              ignoreForReport: false,
-              skipParentSaleSubtotalRecalc: true,
-            );
-          }),
+        // Stock levels are already updated above; line-level quantityShipped is
+        // bookkeeping only — defer so Pay is not blocked on N Ditto writes.
+        unawaited(
+          _deferMarkItemsQuantityShipped(
+            capella: capella,
+            items: itemsNeedingDeduction,
+            deductedStockIds: deductedStockIds,
+            variantsMap: variantsMap,
+          ),
         );
-        swUpdateItems.stop();
 
         talker.debug(
           '[sale_completion_timing] deduction_detail_ms '
           'batch_variants_ms=${swVariants.elapsedMilliseconds} '
           'batch_stocks_ms=${swStocks.elapsedMilliseconds} '
           'update_stocks_ms=${swUpdateStocks.elapsedMilliseconds} '
-          'update_transaction_items_ms=${swUpdateItems.elapsedMilliseconds} '
+          'update_transaction_items_ms=0 (deferred) '
           'total_ms=${flowWatch.elapsedMilliseconds}',
         );
       }
@@ -1482,5 +1475,30 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               ? val.roundToTwoDecimalPlaces()
               : val.roundToDouble());
     });
+  }
+}
+
+Future<void> _deferMarkItemsQuantityShipped({
+  required dynamic capella,
+  required List<TransactionItem> items,
+  required Set<String> deductedStockIds,
+  required Map<String, Variant> variantsMap,
+}) async {
+  try {
+    for (final item in items) {
+      final v = variantsMap[item.variantId!];
+      final sid = v?.stockId;
+      if (sid == null || !deductedStockIds.contains(sid)) continue;
+
+      item.quantityShipped = item.qty.toInt();
+      await capella.updateTransactionItem(
+        transactionItemId: item.id,
+        quantityShipped: item.quantityShipped,
+        ignoreForReport: false,
+        skipParentSaleSubtotalRecalc: true,
+      );
+    }
+  } catch (e, s) {
+    talker.warning('Deferred quantityShipped update failed: $e\n$s');
   }
 }
