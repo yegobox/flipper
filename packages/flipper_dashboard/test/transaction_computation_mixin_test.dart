@@ -94,6 +94,28 @@ void main() {
       expect(change, 0.0);
     });
 
+    test(
+      'change is zero when tender matches total using payment-record prior paid',
+      () {
+        const total = 21500.0;
+        const currentTender = 21500.0;
+        const staleTxnCashReceived = 150.0;
+        const priorPaidFromRecords = 0.0;
+
+        final wrongChange = computation.calculateAmountToChange(
+          total: total,
+          paid: staleTxnCashReceived + currentTender,
+        );
+        expect(wrongChange, 150.0);
+
+        final change = computation.calculateAmountToChange(
+          total: total,
+          paid: priorPaidFromRecords + currentTender,
+        );
+        expect(change, 0.0);
+      },
+    );
+
     test('calculateTransactionTotal with discount returns correct value', () {
       // Create a simple mock-like object for transaction item
       // Since we can't easily mock the actual TransactionItem, we'll test with a simple scenario

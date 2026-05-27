@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/Refund.dart';
+import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
 import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
@@ -42,18 +43,6 @@ String transactionReportGridTypeLabel(ITransaction t) {
   return rt ?? '-';
 }
 
-double _reportByHand(ITransaction tx, TransactionPaymentSums? sums) {
-  if (sums == null || !sums.hasAnyRecord) {
-    return tx.cashReceived ?? 0.0;
-  }
-  return sums.byHand;
-}
-
-double _reportCredit(ITransaction tx, TransactionPaymentSums? sums) {
-  if (sums == null || !sums.hasAnyRecord) return 0.0;
-  return sums.credit;
-}
-
 double _reportBalanceDue(ITransaction tx) {
   final rb = tx.remainingBalance;
   if (rb != null && rb > 0.01) return rb.toDouble();
@@ -66,19 +55,6 @@ double _signedReportMoney(double raw, ITransaction tx) {
   if (tx.isExpense == true) return -raw.abs();
   return raw;
 }
-
-/// Public wrappers for DataView export and period totals.
-double transactionReportByHandForTotals(
-  ITransaction tx,
-  TransactionPaymentSums? sums,
-) =>
-    _reportByHand(tx, sums);
-
-double transactionReportCreditForTotals(
-  ITransaction tx,
-  TransactionPaymentSums? sums,
-) =>
-    _reportCredit(tx, sums);
 
 /// Row map for CSV/Excel summary export (keys match grid column names).
 Map<String, Object?> transactionSummaryExportRow(
@@ -95,8 +71,14 @@ Map<String, Object?> transactionSummaryExportRow(
     'Type': transactionReportGridTypeLabel(transaction),
     'Status': _transactionReportStatusLabel(transaction),
     'SaleTotal': _signedReportMoney(transaction.subTotal ?? 0.0, transaction),
-    'ByHand': _signedReportMoney(_reportByHand(transaction, sums), transaction),
-    'Credit': _signedReportMoney(_reportCredit(transaction, sums), transaction),
+    'ByHand': _signedReportMoney(
+      transactionReportByHandForTotals(transaction, sums),
+      transaction,
+    ),
+    'Credit': _signedReportMoney(
+      transactionReportCreditForTotals(transaction, sums),
+      transaction,
+    ),
     'Tax': TransactionSummaryTax.taxColumn(transaction),
     'BalanceDue': _reportBalanceDue(transaction),
     'Actions': '',
@@ -124,6 +106,9 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   List<DataGridRow> _dataGridRows = [];
   int _rowsPerPage = 10;
 
+  /// When true, [data] is already one server page — skip local slicing in paging.
+  bool serverSidePaging = false;
+
   /// Per-transaction payment breakdown for summary reports (optional).
   Map<String, TransactionPaymentSums>? paymentSumsByTransactionId;
 
@@ -136,6 +121,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     this.showPluReport = false,
     this.paymentSumsByTransactionId,
     this.cashierDirectory,
+    this.serverSidePaging = false,
   }) {
     data = initialData;
     _rowsPerPage = rowsPerPage;
@@ -186,8 +172,9 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         return _buildStockRow(item);
       } else {
-        final int numberOfColumns =
-            showPluReport ? 10 : kTransactionSummaryColumnCount;
+        final int numberOfColumns = showPluReport
+            ? 10
+            : kTransactionSummaryColumnCount;
         return DataGridRow(
           cells: List.generate(
             numberOfColumns,
@@ -204,6 +191,11 @@ abstract class DynamicDataSource<T> extends DataGridSource {
 
   /// Restores paginated rows after export is done.
   void restorePagedRowsAfterExport(int pageIndex) {
+    if (serverSidePaging) {
+      _dataGridRows = buildPaginatedDataGridRows();
+      notifyListeners();
+      return;
+    }
     final startIndex = pageIndex * _rowsPerPage;
     final endIndex = (startIndex + _rowsPerPage > data.length)
         ? data.length
@@ -217,8 +209,9 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         } else if (item is Variant) {
           return _buildStockRow(item);
         } else {
-          final int numberOfColumns =
-              showPluReport ? 10 : kTransactionSummaryColumnCount;
+          final int numberOfColumns = showPluReport
+              ? 10
+              : kTransactionSummaryColumnCount;
           return DataGridRow(
             cells: List.generate(
               numberOfColumns,
@@ -235,6 +228,12 @@ abstract class DynamicDataSource<T> extends DataGridSource {
 
   @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    if (serverSidePaging) {
+      talker.info(
+        'DynamicDataSource: serverSidePaging handlePageChange — parent owns data slice',
+      );
+      return true;
+    }
     talker.info(
       'DynamicDataSource: handlePageChange - oldPageIndex: $oldPageIndex, newPageIndex: $newPageIndex',
     );
@@ -251,8 +250,9 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         return _buildStockRow(item);
       } else {
-        final int numberOfColumns =
-            showPluReport ? 10 : kTransactionSummaryColumnCount;
+        final int numberOfColumns = showPluReport
+            ? 10
+            : kTransactionSummaryColumnCount;
         return DataGridRow(
           cells: List.generate(
             numberOfColumns,
@@ -281,8 +281,9 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         row = _buildStockRow(item);
       } else {
-        final int numberOfColumns =
-            showPluReport ? 10 : kTransactionSummaryColumnCount;
+        final int numberOfColumns = showPluReport
+            ? 10
+            : kTransactionSummaryColumnCount;
         row = DataGridRow(
           cells: List.generate(
             numberOfColumns,
@@ -405,21 +406,24 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'ByHand',
-          value: _signedReportMoney(_reportByHand(trans, sums), trans),
+          value: _signedReportMoney(
+            transactionReportByHandForTotals(trans, sums),
+            trans,
+          ),
         ),
         DataGridCell<double>(
           columnName: 'Credit',
-          value: _signedReportMoney(_reportCredit(trans, sums), trans),
+          value: _signedReportMoney(
+            transactionReportCreditForTotals(trans, sums),
+            trans,
+          ),
         ),
         DataGridCell<double>(columnName: 'Tax', value: taxValue),
         DataGridCell<double>(
           columnName: 'BalanceDue',
           value: _reportBalanceDue(trans),
         ),
-        DataGridCell<String>(
-          columnName: 'Actions',
-          value: trans.id.toString(),
-        ),
+        DataGridCell<String>(columnName: 'Actions', value: trans.id.toString()),
       ],
     );
   }
@@ -494,9 +498,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ix < data.length &&
         data[ix] is ITransaction &&
         ((data[ix] as ITransaction).status ?? '').toLowerCase() == PARKED;
-    final bg = isParked
-        ? Colors.amber.withValues(alpha: 0.08)
-        : null;
+    final bg = isParked ? Colors.amber.withValues(alpha: 0.08) : null;
 
     return DataGridRowAdapter(
       cells: row.getCells().map<Widget>((e) {
@@ -512,8 +514,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
 
   DataGridRowAdapter _buildZReportStyledRow(DataGridRow row) {
     final tx = _transactionForZReportRow(row);
-    final isParked =
-        tx != null && (tx.status ?? '').toLowerCase() == PARKED;
+    final isParked = tx != null && (tx.status ?? '').toLowerCase() == PARKED;
     final rowBg = isParked ? Colors.amber.withValues(alpha: 0.06) : null;
     final sym = ProxyService.box.defaultCurrency();
 
@@ -577,10 +578,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
               )
             : const Color(0xFF2563EB);
         final initials = tx != null
-            ? transactionReportCashierInitials(
-                tx,
-                directory: cashierDirectory,
-              )
+            ? transactionReportCashierInitials(tx, directory: cashierDirectory)
             : initialsFromLabel(label);
         return Container(
           color: rowBg,
@@ -692,7 +690,9 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       }
       if (name == 'Credit') {
         final v = (e.value is num) ? (e.value as num).toDouble() : 0.0;
-        final tint = v > 0.0001 ? const Color(0xFFD97706) : const Color(0xFF374151);
+        final tint = v > 0.0001
+            ? const Color(0xFFD97706)
+            : const Color(0xFF374151);
         return Container(
           alignment: Alignment.centerLeft,
           color: rowBg,

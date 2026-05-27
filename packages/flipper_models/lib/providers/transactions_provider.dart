@@ -1,7 +1,15 @@
+import 'dart:math' show min;
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
+import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
+import 'package:flipper_models/helpers/transaction_item_plu_metrics.dart';
+import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
+import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
+import 'package:flipper_models/sync/capella/capella_sync.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
@@ -18,6 +26,39 @@ List<ITransaction> transactionReportScopeFilter(List<ITransaction> all) {
   return all
       .where((tx) => tx.status == COMPLETE || tx.status == PARKED)
       .toList();
+}
+
+/// Chunks [getPaymentSumsByTransactionIds] to avoid huge IN-clause queries.
+Future<Map<String, TransactionPaymentSums>>
+getPaymentSumsByTransactionIdsChunked(
+  List<String> transactionIds, {
+  required String branchId,
+  int chunkSize = 800,
+}) async {
+  if (transactionIds.isEmpty) return {};
+  final strategy = ProxyService.getStrategy(Strategy.capella);
+  final out = <String, TransactionPaymentSums>{};
+  for (var i = 0; i < transactionIds.length; i += chunkSize) {
+    final end = min(i + chunkSize, transactionIds.length);
+    final chunk = transactionIds.sublist(i, end);
+    final part = await strategy.getPaymentSumsByTransactionIds(
+      chunk,
+      branchId: branchId,
+    );
+    out.addAll(part);
+  }
+  return out;
+}
+
+@Riverpod(keepAlive: true)
+class TransactionReportPageIndex extends _$TransactionReportPageIndex {
+  @override
+  int build() => 0;
+
+  void setPage(int page) => state = page < 0 ? 0 : page;
+
+  /// Call when the global report date range or rows-per-page policy changes.
+  void reset() => state = 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -136,84 +177,101 @@ Stream<List<ITransaction>> transactionsScreenTransactions(Ref ref) {
 }
 
 // ---------------------------------------------------------------------------
-// transactionReportSnapshot — Transaction Reports grid + payment breakdown.
-// Parked + completed (sales and expenses); by-hand vs CREDIT from payment records.
+// transactionReportSnapshot — paged async load (Capella SQL window + chunked payment sums).
+// Matches report scope: COMPLETE + PARKED rows in range (agent-scoped like core stream).
 // ---------------------------------------------------------------------------
 @riverpod
-Stream<TransactionReportSnapshot> transactionReportSnapshot(
+Future<TransactionReportSnapshot> transactionReportSnapshot(
   Ref ref, {
   required bool forceRealData,
-}) {
+}) async {
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
 
   if (startDate == null || endDate == null) {
-    return Stream.value(
-      const TransactionReportSnapshot(
-        transactions: [],
-        paymentSumsByTransactionId: {},
-      ),
+    return const TransactionReportSnapshot(
+      transactions: [],
+      paymentSumsByTransactionId: {},
+      totalRowCount: 0,
     );
   }
 
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) throw StateError('Branch ID is required');
 
-  return coreTransactionsStream(
-    ref,
+  final rowsPerPage = ref.watch(rowsPerPageProvider);
+  final pageIndex = ref.watch(transactionReportPageIndexProvider);
+  final limit = rowsPerPage.clamp(1, 10000);
+  final offset = pageIndex * limit;
+
+  final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
+
+  final total = await capella.countTransactionsReportPagingWindow(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
     forceRealData: forceRealData,
-    includeParked: true,
-  ).asyncMap((all) async {
-    final filtered = transactionReportScopeFilter(all);
-    if (filtered.isEmpty) {
-      return const TransactionReportSnapshot(
-        transactions: [],
-        paymentSumsByTransactionId: {},
-      );
-    }
+  );
 
-    final ids = filtered.map((t) => t.id.toString()).toList();
-    try {
-      final sums = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).getPaymentSumsByTransactionIds(ids, branchId: branchId);
-      return TransactionReportSnapshot(
-        transactions: filtered,
-        paymentSumsByTransactionId: sums,
-      );
-    } catch (e, s) {
-      talker.error('transactionReportSnapshot payment sums: $e\n$s');
-      return TransactionReportSnapshot(
-        transactions: filtered,
-        paymentSumsByTransactionId: {
-          for (final id in ids)
-            id: const TransactionPaymentSums(
-              byHand: 0,
-              credit: 0,
-              hasAnyRecord: false,
-            ),
-        },
-      );
-    }
-  });
+  final page = await capella.pageTransactionsReportPagingWindow(
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    forceRealData: forceRealData,
+    limit: limit,
+    offset: offset,
+  );
+
+  final filtered = transactionReportScopeFilter(page);
+  if (filtered.isEmpty) {
+    return TransactionReportSnapshot(
+      transactions: const [],
+      paymentSumsByTransactionId: const {},
+      totalRowCount: total,
+    );
+  }
+
+  final ids = filtered.map((t) => t.id.toString()).toList();
+  try {
+    final sums = await getPaymentSumsByTransactionIdsChunked(
+      ids,
+      branchId: branchId,
+    );
+    return TransactionReportSnapshot(
+      transactions: filtered,
+      paymentSumsByTransactionId: sums,
+      totalRowCount: total,
+    );
+  } catch (e, s) {
+    talker.error('transactionReportSnapshot payment sums: $e\n$s');
+    return TransactionReportSnapshot(
+      transactions: filtered,
+      paymentSumsByTransactionId: {
+        for (final id in ids)
+          id: const TransactionPaymentSums(
+            byHand: 0,
+            credit: 0,
+            hasAnyRecord: false,
+          ),
+      },
+      totalRowCount: total,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
-// transactionList — backward-compatible list-only view of the report snapshot.
+// transactionList — backward-compatible list-only view of the report snapshot page.
 // ---------------------------------------------------------------------------
 @riverpod
-Stream<List<ITransaction>> transactionList(
+Future<List<ITransaction>> transactionList(
   Ref ref, {
   required bool forceRealData,
-}) {
-  return transactionReportSnapshot(
-    ref,
-    forceRealData: forceRealData,
-  ).map((snap) => snap.transactions);
+}) async {
+  final snap = await ref.watch(
+    transactionReportSnapshotProvider(forceRealData: forceRealData).future,
+  );
+  return snap.transactions;
 }
 
 // ---------------------------------------------------------------------------
@@ -241,68 +299,126 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
 }
 
 // ---------------------------------------------------------------------------
-// transactionItemList — line-items for completed + parked transactions in report scope.
-// Joins items with the same scope as [transactionReportSnapshot] / summary grid.
+// transactionItemList — line items for the current report page (detailed PLU grid).
 // ---------------------------------------------------------------------------
 @riverpod
-Stream<List<TransactionItem>> transactionItemList(Ref ref) {
+Future<List<TransactionItem>> transactionItemList(Ref ref) async {
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
   final branchId = ProxyService.box.branchIdString();
   final forceRealData = !(ProxyService.box.enableDebug() ?? false);
 
-  talker.debug('transactionItemList called');
+  talker.debug('transactionItemList (paged) called');
 
   if (branchId == null) {
     talker.error('Branch ID is required');
     throw StateError('Branch ID is required');
   }
   if (startDate == null || endDate == null) {
-    talker.warning('startDate or endDate is null, returning empty stream');
-    return Stream.value([]);
+    talker.warning('startDate or endDate is null, returning empty item list');
+    return const <TransactionItem>[];
   }
 
-  final itemStream = ProxyService.getStrategy(Strategy.capella)
-      .transactionItemsStreams(
-        startDate: startDate,
-        endDate: endDate,
-        branchId: branchId,
-        branchIdString: branchId,
-        // Local-first: summary mode no longer subscribes here, but detailed PLU
-        // view should paint from local replica immediately without alwaysHydrate.
-        fetchRemote: false,
-      )
-      .startWith(const <TransactionItem>[]);
+  final snap = await ref.watch(
+    transactionReportSnapshotProvider(forceRealData: forceRealData).future,
+  );
+  final ids = snap.transactions.map((t) => t.id.toString()).toList();
+  if (ids.isEmpty) return const <TransactionItem>[];
 
-  final completedSalesStream = coreTransactionsStream(
-    ref,
-    startDate: startDate,
-    endDate: endDate,
-    branchId: branchId,
-    forceRealData: forceRealData,
-    includeParked: true,
-  ).map(transactionReportScopeFilter).startWith(const <ITransaction>[]);
+  final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
+  const chunk = 200;
+  final out = <TransactionItem>[];
+  for (var i = 0; i < ids.length; i += chunk) {
+    final end = min(i + chunk, ids.length);
+    final sub = ids.sublist(i, end);
+    final grouped = await capella.transactionItemsForIds(sub);
+    for (final list in grouped.values) {
+      out.addAll(list);
+    }
+  }
+  talker.debug(
+    'transactionItemList: page tx ids=${ids.length} → ${out.length} line rows',
+  );
+  return out;
+}
 
-  return Rx.combineLatest2<
-        List<TransactionItem>,
-        List<ITransaction>,
-        List<TransactionItem>
-      >(itemStream, completedSalesStream, (items, txs) {
-        final allowed = txs.map((t) => t.id.toString()).toSet();
-        final filtered = items.where((i) {
-          final tid = i.transactionId?.toString();
-          return tid != null && allowed.contains(tid);
-        }).toList();
-        talker.debug(
-          'transactionItemList: ${items.length} raw → ${filtered.length} report-scoped lines',
-        );
-        return filtered;
-      })
-      .handleError((error, stackTrace) {
-        talker.error('Error loading transaction items: $error');
-        throw error;
-      });
+// ---------------------------------------------------------------------------
+// transactionReportKpiTotals — full-period PLU + payment rollups (batched; not page-limited).
+// ---------------------------------------------------------------------------
+@riverpod
+Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
+  final dateRange = ref.watch(dateRangeProvider);
+  final startDate = dateRange.startDate;
+  final endDate = dateRange.endDate;
+  if (startDate == null || endDate == null) {
+    return const TransactionReportKpiTotals();
+  }
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) throw StateError('Branch ID is required');
+
+  final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+  final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
+
+  var pluLineSales = 0.0;
+  var pluGrossProfit = 0.0;
+  var pluLineTax = 0.0;
+  var periodByHand = 0.0;
+  var periodCredit = 0.0;
+
+  const batchTx = 500;
+  var offset = 0;
+  while (true) {
+    final batch = await capella.pageTransactionsReportPagingWindow(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+      forceRealData: forceRealData,
+      limit: batchTx,
+      offset: offset,
+    );
+    if (batch.isEmpty) break;
+
+    final scoped = transactionReportScopeFilter(batch);
+    final ids = scoped.map((t) => t.id.toString()).toList();
+    final sums = await getPaymentSumsByTransactionIdsChunked(
+      ids,
+      branchId: branchId,
+    );
+
+    for (final tx in scoped) {
+      if (tx.isExpense == true) continue;
+      final s = sums[tx.id.toString()];
+      periodByHand += transactionReportByHandForTotals(tx, s);
+      periodCredit += transactionReportCreditForTotals(tx, s);
+    }
+
+    final salesIds = scoped
+        .where((t) => t.isExpense != true)
+        .map((t) => t.id.toString())
+        .toList();
+    for (var j = 0; j < salesIds.length; j += 200) {
+      final end = min(j + 200, salesIds.length);
+      final sub = salesIds.sublist(j, end);
+      final grouped = await capella.transactionItemsForIds(sub);
+      for (final item in grouped.values.expand((e) => e)) {
+        if (transactionReportCashMovementPluLine(item)) continue;
+        pluLineSales += item.price.toDouble() * item.qty.toDouble();
+        pluGrossProfit += TransactionItemPluMetrics.profitMade(item);
+        pluLineTax += TransactionItemPluMetrics.taxPayable(item);
+      }
+    }
+
+    offset += batch.length;
+  }
+
+  return TransactionReportKpiTotals(
+    pluLineSales: pluLineSales,
+    pluGrossProfit: pluGrossProfit,
+    pluLineTax: pluLineTax,
+    periodByHand: periodByHand,
+    periodCredit: periodCredit,
+  );
 }
 
 // ---------------------------------------------------------------------------

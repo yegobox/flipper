@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/providers/transaction_report_chart_provider.dart';
 import 'package:flipper_dashboard/providers/transaction_report_business_cashiers_provider.dart';
 import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
@@ -72,6 +73,11 @@ class TransactionListState extends ConsumerState<TransactionList>
     super.dispose();
   }
 
+  bool _dateRangeChanged(DateRangeModel? prev, DateRangeModel next) {
+    if (prev == null) return false;
+    return prev.startDate != next.startDate || prev.endDate != next.endDate;
+  }
+
   static final DateFormat _rangeFmt = DateFormat('dd/MM/yyyy');
 
   String _formatRange(DateTime? startDate, DateTime? endDate) {
@@ -89,17 +95,16 @@ class TransactionListState extends ConsumerState<TransactionList>
     if (startDate == null || endDate == null) {
       print('🔴 EXPORT BUTTON: No date range selected');
       if (mounted) {
-        showWarningNotification(
-          context,
-          'Please select a date range first',
-        );
+        showWarningNotification(context, 'Please select a date range first');
       }
       return;
     }
 
     print('🔵 EXPORT BUTTON: Date range selected, checking dataViewKey...');
-    print('🔵 EXPORT BUTTON: dataViewKey.currentState = ${dataViewKey.currentState}');
-    
+    print(
+      '🔵 EXPORT BUTTON: dataViewKey.currentState = ${dataViewKey.currentState}',
+    );
+
     try {
       if (dataViewKey.currentState == null) {
         // DataView not yet mounted (e.g. no data / still loading)
@@ -116,13 +121,14 @@ class TransactionListState extends ConsumerState<TransactionList>
       // This avoids creating a second overlay widget (which would open new
       // Ditto live queries and slow the export down).
       print('🔵 EXPORT BUTTON: Calling triggerExport...');
-      
+
       // Delay so the UI has time to show the loading spinner state
       await Future.delayed(const Duration(milliseconds: 100));
 
       final forceRealData = !(ProxyService.box.enableDebug() ?? false);
-      final snapAsync =
-          ref.read(filteredTransactionReportSnapshotProvider(forceRealData));
+      final snapAsync = ref.read(
+        filteredTransactionReportSnapshotProvider(forceRealData),
+      );
       final snap = snapAsync.asData?.value;
       if (snap == null) {
         if (mounted) {
@@ -133,14 +139,8 @@ class TransactionListState extends ConsumerState<TransactionList>
         }
         return;
       }
-      final allowedIds = snap.transactions.map((t) => t.id.toString()).toSet();
 
-      await dataViewKey.currentState!.triggerExport(
-        headerTitle: 'Report',
-        filteredSummaryTransactions: snap.transactions,
-        filteredPaymentSumsByTransactionId: snap.paymentSumsByTransactionId,
-        allowedTransactionIds: allowedIds,
-      );
+      await dataViewKey.currentState!.triggerExport(headerTitle: 'Report');
       print('🔵 EXPORT BUTTON: triggerExport completed');
     } catch (e) {
       print('🔴 EXPORT BUTTON: Error caught: $e');
@@ -156,6 +156,20 @@ class TransactionListState extends ConsumerState<TransactionList>
 
   @override
   Widget build(BuildContext context) {
+    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+
+    ref.listen<DateRangeModel>(dateRangeProvider, (previous, next) {
+      if (_dateRangeChanged(previous, next)) {
+        ref.read(transactionReportPageIndexProvider.notifier).reset();
+      }
+    });
+
+    ref.listen<int>(rowsPerPageProvider, (previous, next) {
+      if (previous != null && previous != next) {
+        ref.read(transactionReportPageIndexProvider.notifier).reset();
+      }
+    });
+
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
@@ -163,46 +177,55 @@ class TransactionListState extends ConsumerState<TransactionList>
     final showDetailed = ref.watch(toggleBooleanValueProvider);
     final rowsPerPage = ref.watch(rowsPerPageProvider);
     final filters = ref.watch(transactionReportFiltersProvider);
-    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
 
-    final baseSnapAsync =
-        ref.watch(transactionReportSnapshotProvider(forceRealData: forceRealData));
+    final baseSnapAsync = ref.watch(
+      transactionReportSnapshotProvider(forceRealData: forceRealData),
+    );
 
-    final filteredSnapAsync =
-        ref.watch(filteredTransactionReportSnapshotProvider(forceRealData));
+    final filteredSnapAsync = ref.watch(
+      filteredTransactionReportSnapshotProvider(forceRealData),
+    );
 
     final transactions = filteredSnapAsync.asData?.value.transactions;
     final paymentSumsForGrid =
         filteredSnapAsync.asData?.value.paymentSumsByTransactionId;
 
-    final AsyncValue<List<TransactionItem>> itemsAsync =
-        ref.watch(filteredTransactionItemListProvider(forceRealData));
+    final AsyncValue<List<TransactionItem>> itemsAsync = ref.watch(
+      filteredTransactionItemListProvider(forceRealData),
+    );
     final transactionItems = itemsAsync.asData?.value;
 
-    final AsyncValue<List<dynamic>> dataProvider = switch (showDetailed) {
+    final AsyncValue<List<dynamic>> dataProviderRaw = switch (showDetailed) {
       true => switch (itemsAsync) {
-          AsyncData(:final value) =>
-            AsyncValue<List<dynamic>>.data(value.cast<dynamic>()),
-          AsyncError(:final error, :final stackTrace) =>
-            AsyncValue<List<dynamic>>.error(error, stackTrace),
-          _ => const AsyncValue<List<dynamic>>.loading(),
-        },
+        AsyncData(:final value) => AsyncValue<List<dynamic>>.data(
+          value.cast<dynamic>(),
+        ),
+        AsyncError(:final error, :final stackTrace) =>
+          AsyncValue<List<dynamic>>.error(error, stackTrace),
+        _ => const AsyncValue<List<dynamic>>.loading(),
+      },
       false => switch (filteredSnapAsync) {
-          AsyncData(:final value) => AsyncValue<List<dynamic>>.data(
-              value.transactions.cast<dynamic>(),
-            ),
-          AsyncError(:final error, :final stackTrace) =>
-            AsyncValue<List<dynamic>>.error(error, stackTrace),
-          _ => const AsyncValue<List<dynamic>>.loading(),
-        }
+        AsyncData(:final value) => AsyncValue<List<dynamic>>.data(
+          value.transactions.cast<dynamic>(),
+        ),
+        AsyncError(:final error, :final stackTrace) =>
+          AsyncValue<List<dynamic>>.error(error, stackTrace),
+        _ => const AsyncValue<List<dynamic>>.loading(),
+      },
     };
 
+    final dataProvider = dataProviderRaw;
+
     final cashiersAsync = ref.watch(transactionReportBusinessCashiersProvider);
-    final businessCashiers = cashiersAsync.asData?.value ??
+    final businessCashiers =
+        cashiersAsync.asData?.value ??
         const <TransactionReportCashierProfile>[];
     final cashierDirectory = businessCashiers.isEmpty
         ? null
         : {for (final p in businessCashiers) p.userId: p};
+
+    final baseTransactions =
+        baseSnapAsync.asData?.value.transactions ?? const <ITransaction>[];
 
     return _buildReportScaffold(
       context,
@@ -215,7 +238,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       transactionItems,
       paymentSumsForGrid,
       filters: filters,
-      baseTransactions: baseSnapAsync.asData?.value.transactions,
+      baseTransactions: baseTransactions,
       businessCashiers: businessCashiers,
       cashierDirectory: cashierDirectory,
       cashiersLoading: cashiersAsync.isLoading,
@@ -231,13 +254,13 @@ class TransactionListState extends ConsumerState<TransactionList>
     AsyncValue<List<dynamic>> dataProvider,
     List<ITransaction>? transactions,
     List<TransactionItem>? transactionItems,
-    Map<String, TransactionPaymentSums>? paymentSumsForGrid,
-    {required TransactionReportFilters filters,
-    required List<ITransaction>? baseTransactions,
+    Map<String, TransactionPaymentSums>? paymentSumsForGrid, {
+    required TransactionReportFilters filters,
+    required List<ITransaction> baseTransactions,
     required List<TransactionReportCashierProfile> businessCashiers,
     required Map<String, TransactionReportCashierProfile>? cashierDirectory,
-    required bool cashiersLoading,}
-  ) {
+    required bool cashiersLoading,
+  }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth > 900;
@@ -261,9 +284,6 @@ class TransactionListState extends ConsumerState<TransactionList>
                   _buildTopHeader(context, startDate, endDate, isDesktop),
                   const SizedBox(height: 16),
                   TransactionReportKpiStrip(
-                    transactions: transactions ?? const <ITransaction>[],
-                    transactionItems: transactionItems,
-                    paymentSumsByTransactionId: paymentSumsForGrid,
                     startDate: kpiStart,
                     endDate: kpiEnd,
                     showDetailed: showDetailed,
@@ -279,7 +299,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                       showDetailed,
                       isDesktop,
                       filters,
-                      baseTransactions ?? transactions,
+                      baseTransactions,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -291,7 +311,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                     ),
                     child: _buildCashierChipsRow(
                       isDesktop,
-                      baseTransactions ?? transactions,
+                      baseTransactions,
                       filters,
                       businessCashiers: businessCashiers,
                       loading: cashiersLoading,
@@ -361,16 +381,18 @@ class TransactionListState extends ConsumerState<TransactionList>
               Text(
                 'Transaction Reports',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: const Color(0xFF111827),
-                      fontSize: 22,
-                    ),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                  color: const Color(0xFF111827),
+                  fontSize: 22,
+                ),
               ),
               const SizedBox(height: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
@@ -430,8 +452,9 @@ class TransactionListState extends ConsumerState<TransactionList>
             backgroundColor: _kReportPrimary,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         ),
       ],
@@ -466,13 +489,14 @@ class TransactionListState extends ConsumerState<TransactionList>
                     : filters.status,
                 options: () {
                   final txs = baseTransactions ?? const <ITransaction>[];
-                  final set = txs
-                      .map((t) => t.status)
-                      .whereType<String>()
-                      .where((s) => s.isNotEmpty)
-                      .toSet()
-                      .toList()
-                    ..sort();
+                  final set =
+                      txs
+                          .map((t) => t.status)
+                          .whereType<String>()
+                          .where((s) => s.isNotEmpty)
+                          .toSet()
+                          .toList()
+                        ..sort();
                   return set;
                 }(),
                 onChanged: (v) => ref
@@ -482,19 +506,21 @@ class TransactionListState extends ConsumerState<TransactionList>
               const SizedBox(width: 12),
               _buildDropdownFilter(
                 label: 'All types',
-                value: (filters.transactionType == null ||
+                value:
+                    (filters.transactionType == null ||
                         filters.transactionType!.isEmpty)
                     ? null
                     : filters.transactionType,
                 options: () {
                   final txs = baseTransactions ?? const <ITransaction>[];
-                  final set = txs
-                      .map((t) => t.receiptType)
-                      .whereType<String>()
-                      .where((s) => s.isNotEmpty)
-                      .toSet()
-                      .toList()
-                    ..sort();
+                  final set =
+                      txs
+                          .map((t) => t.receiptType)
+                          .whereType<String>()
+                          .where((s) => s.isNotEmpty)
+                          .toSet()
+                          .toList()
+                        ..sort();
                   return set;
                 }(),
                 onChanged: (v) => ref
@@ -595,8 +621,10 @@ class TransactionListState extends ConsumerState<TransactionList>
           isDense: true,
           filled: true,
           fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: Colors.grey.shade200),
@@ -647,7 +675,10 @@ class TransactionListState extends ConsumerState<TransactionList>
         focusedBorder: embeddedInToolbar
             ? OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: _kReportPrimary, width: 1.2),
+                borderSide: const BorderSide(
+                  color: _kReportPrimary,
+                  width: 1.2,
+                ),
               )
             : InputBorder.none,
         filled: embeddedInToolbar,
@@ -661,11 +692,7 @@ class TransactionListState extends ConsumerState<TransactionList>
     );
 
     if (embeddedInToolbar) {
-      return Row(
-        children: [
-          Expanded(child: field),
-        ],
-      );
+      return Row(children: [Expanded(child: field)]);
     }
 
     return Row(
@@ -761,8 +788,8 @@ class TransactionListState extends ConsumerState<TransactionList>
     required List<TransactionReportCashierProfile> businessCashiers,
     required bool loading,
   }) {
-    final allSelected = filters.cashierAgentId == null ||
-        filters.cashierAgentId!.isEmpty;
+    final allSelected =
+        filters.cashierAgentId == null || filters.cashierAgentId!.isEmpty;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -824,8 +851,9 @@ class TransactionListState extends ConsumerState<TransactionList>
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          onPressed: () =>
-              ref.read(transactionReportFiltersProvider.notifier).setCashierAgentId(null),
+          onPressed: () => ref
+              .read(transactionReportFiltersProvider.notifier)
+              .setCashierAgentId(null),
           child: Text(
             'Clear',
             style: TextStyle(
@@ -856,11 +884,11 @@ class TransactionListState extends ConsumerState<TransactionList>
           child: Container(
             width: 44,
             height: 44,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: isLoading
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: isLoading
                 ? const Padding(
                     padding: EdgeInsets.all(12.0),
                     child: CircularProgressIndicator(strokeWidth: 2.5),
@@ -931,6 +959,8 @@ class TransactionListState extends ConsumerState<TransactionList>
     TransactionReportFilters filters, {
     Map<String, TransactionReportCashierProfile>? cashierDirectory,
   }) {
+    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+
     return dataProvider.when(
       data: (data) {
         if (data.isEmpty) {
@@ -969,12 +999,28 @@ class TransactionListState extends ConsumerState<TransactionList>
         final validEndDate = endDate ?? DateTime.now();
 
         if (filters.viewMode == TransactionReportViewMode.chart) {
-          return SalesByCashierChart(
-            transactions: transactions ?? const <ITransaction>[],
-            paymentSumsByTransactionId: paymentSumsByTransactionId,
-            cashierDirectory: cashierDirectory,
+          final chartSnap = ref.watch(
+            transactionReportChartSnapshotProvider(forceRealData),
+          );
+          return chartSnap.when(
+            data: (reportSnap) {
+              return SalesByCashierChart(
+                transactions: reportSnap.transactions,
+                paymentSumsByTransactionId:
+                    reportSnap.paymentSumsByTransactionId,
+                cashierDirectory: cashierDirectory,
+              );
+            },
+            loading: () => _buildLoadingState(),
+            error: (e, s) => _buildErrorState(e),
           );
         }
+
+        final filteredSnap = ref.watch(
+          filteredTransactionReportSnapshotProvider(forceRealData),
+        );
+        final totalRows = filteredSnap.asData?.value.totalRowCount ?? 0;
+        final pageIdx = ref.watch(transactionReportPageIndexProvider);
 
         return DataView(
           key: dataViewKey,
@@ -983,7 +1029,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           paymentSumsByTransactionId: paymentSumsByTransactionId,
           startDate: validStartDate,
           endDate: validEndDate,
-          rowsPerPage: ref.read(rowsPerPageProvider),
+          rowsPerPage: ref.watch(rowsPerPageProvider),
           showDetailedReport: showDetailed,
           showDetailed: showDetailed,
           showActionsRow: false,
@@ -992,7 +1038,13 @@ class TransactionListState extends ConsumerState<TransactionList>
           cashierDirectory: cashierDirectory,
           workBookKey: workBookKey,
           forceEmpty: data.isEmpty,
-          disablePagination: true, // Disable internal pagination
+          disablePagination: false,
+          serverSidePaging: totalRows > 0,
+          serverSideTotalRowCount: totalRows > 0 ? totalRows : null,
+          externalPageIndex: pageIdx,
+          onServerSidePageChange: ref
+              .read(transactionReportPageIndexProvider.notifier)
+              .setPage,
         );
       },
       loading: () => _buildLoadingState(),

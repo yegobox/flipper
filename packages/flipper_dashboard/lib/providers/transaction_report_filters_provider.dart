@@ -1,5 +1,5 @@
-import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
+import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
@@ -49,14 +49,16 @@ class TransactionReportFilters {
           ? null
           : (transactionType ?? this.transactionType),
       payment: payment ?? this.payment,
-      cashierAgentId:
-          clearCashierAgentId ? null : (cashierAgentId ?? this.cashierAgentId),
+      cashierAgentId: clearCashierAgentId
+          ? null
+          : (cashierAgentId ?? this.cashierAgentId),
       viewMode: viewMode ?? this.viewMode,
     );
   }
 }
 
-class TransactionReportFiltersNotifier extends Notifier<TransactionReportFilters> {
+class TransactionReportFiltersNotifier
+    extends Notifier<TransactionReportFilters> {
   @override
   TransactionReportFilters build() => const TransactionReportFilters();
 
@@ -69,28 +71,30 @@ class TransactionReportFiltersNotifier extends Notifier<TransactionReportFilters
       state = state.copyWith(status: value, clearStatus: value == null);
 
   void setTransactionType(String? value) => state = state.copyWith(
-        transactionType: value,
-        clearTransactionType: value == null,
-      );
+    transactionType: value,
+    clearTransactionType: value == null,
+  );
 
   void setPayment(TransactionReportPaymentFilter value) =>
       state = state.copyWith(payment: value);
 
   void setCashierAgentId(String? value) => state = state.copyWith(
-        cashierAgentId: value,
-        clearCashierAgentId: value == null,
-      );
+    cashierAgentId: value,
+    clearCashierAgentId: value == null,
+  );
 
   void setViewMode(TransactionReportViewMode mode) =>
       state = state.copyWith(viewMode: mode);
 }
 
 final transactionReportFiltersProvider =
-    NotifierProvider<TransactionReportFiltersNotifier, TransactionReportFilters>(
-  TransactionReportFiltersNotifier.new,
-);
+    NotifierProvider<
+      TransactionReportFiltersNotifier,
+      TransactionReportFilters
+    >(TransactionReportFiltersNotifier.new);
 
-TransactionReportSnapshot _applyFiltersToSnapshot(
+/// Apply UX filters client-side ([TransactionReportFilters]) to [TransactionReportSnapshot].
+TransactionReportSnapshot applyTransactionFiltersToSnapshot(
   TransactionReportSnapshot snap,
   TransactionReportFilters filters,
 ) {
@@ -119,7 +123,8 @@ TransactionReportSnapshot _applyFiltersToSnapshot(
     if (filters.status != null && filters.status!.isNotEmpty) {
       if (tx.status != filters.status) continue;
     }
-    if (filters.transactionType != null && filters.transactionType!.isNotEmpty) {
+    if (filters.transactionType != null &&
+        filters.transactionType!.isNotEmpty) {
       // “Type” in the report grid maps to receiptType.
       if ((tx.receiptType ?? '') != filters.transactionType) continue;
     }
@@ -141,60 +146,64 @@ TransactionReportSnapshot _applyFiltersToSnapshot(
   return TransactionReportSnapshot(
     transactions: filtered,
     paymentSumsByTransactionId: sums,
+    totalRowCount: snap.totalRowCount,
   );
 }
 
 /// Filtered summary snapshot (transactions + payment sums) for table, chart and export.
 final filteredTransactionReportSnapshotProvider =
     Provider.family<AsyncValue<TransactionReportSnapshot>, bool>((
-  ref,
-  forceRealData,
-) {
-  final base =
-      ref.watch(transactionReportSnapshotProvider(forceRealData: forceRealData));
-  final filters = ref.watch(transactionReportFiltersProvider);
-  return base.whenData((snap) => _applyFiltersToSnapshot(snap, filters));
-});
+      ref,
+      forceRealData,
+    ) {
+      final base = ref.watch(
+        transactionReportSnapshotProvider(forceRealData: forceRealData),
+      );
+      final filters = ref.watch(transactionReportFiltersProvider);
+      return base.whenData(
+        (snap) => applyTransactionFiltersToSnapshot(snap, filters),
+      );
+    });
 
 /// Filtered detailed line items (AsyncValue). Uses the filtered summary transaction id set.
 final filteredTransactionItemListProvider =
-    Provider.family<AsyncValue<List<TransactionItem>>, bool>((ref, forceRealData) {
-  final snapAsync = ref.watch(
-    filteredTransactionReportSnapshotProvider(forceRealData),
-  );
-  final itemsAsync = ref.watch(transactionItemListProvider);
+    Provider.family<AsyncValue<List<TransactionItem>>, bool>((
+      ref,
+      forceRealData,
+    ) {
+      final snapAsync = ref.watch(
+        filteredTransactionReportSnapshotProvider(forceRealData),
+      );
+      final itemsAsync = ref.watch(transactionItemListProvider);
 
-  if (snapAsync.isLoading || itemsAsync.isLoading) {
-    return const AsyncValue.loading();
-  }
-  final snapErr = snapAsync.error;
-  final itemsErr = itemsAsync.error;
-  if (snapErr != null) {
-    return AsyncValue.error(
-      snapErr,
-      snapAsync.stackTrace ?? StackTrace.current,
-    );
-  }
-  if (itemsErr != null) {
-    return AsyncValue.error(
-      itemsErr,
-      itemsAsync.stackTrace ?? StackTrace.current,
-    );
-  }
+      if (snapAsync.isLoading || itemsAsync.isLoading) {
+        return const AsyncValue.loading();
+      }
+      final snapErr = snapAsync.error;
+      final itemsErr = itemsAsync.error;
+      if (snapErr != null) {
+        return AsyncValue.error(
+          snapErr,
+          snapAsync.stackTrace ?? StackTrace.current,
+        );
+      }
+      if (itemsErr != null) {
+        return AsyncValue.error(
+          itemsErr,
+          itemsAsync.stackTrace ?? StackTrace.current,
+        );
+      }
 
-  final snap = snapAsync.value;
-  final items = itemsAsync.value;
-  if (snap == null || items == null) {
-    return const AsyncValue.data(<TransactionItem>[]);
-  }
+      final snap = snapAsync.value;
+      final items = itemsAsync.value;
+      if (snap == null || items == null) {
+        return const AsyncValue.data(<TransactionItem>[]);
+      }
 
-  final allowed = snap.transactions.map((t) => t.id.toString()).toSet();
-  final filtered = items
-      .where((i) {
+      final allowed = snap.transactions.map((t) => t.id.toString()).toSet();
+      final filtered = items.where((i) {
         final tid = i.transactionId?.toString();
         return tid != null && allowed.contains(tid);
-      })
-      .toList();
-  return AsyncValue.data(filtered);
-});
-
+      }).toList();
+      return AsyncValue.data(filtered);
+    });

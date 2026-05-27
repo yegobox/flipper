@@ -1911,6 +1911,152 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  /// WHERE clause matching [transactionsStream] Transaction Reports semantics:
+  /// current [agentId], [createdAt] window, adjustment filter, COMPLETE+PARKED
+  /// (drops WAITING_MOMO for stable paging aligned with UI scope).
+  ({String clause, Map<String, dynamic> arguments})
+      _transactionsReportPagingWhere({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String branchId,
+  }) {
+    final agentId = ProxyService.box.getUserId();
+    if (agentId == null || agentId.isEmpty) {
+      throw StateError('Agent id is required for report-scoped transaction paging');
+    }
+    final localStartDate = DateTime(
+      startDate.year,
+      startDate.month,
+      startDate.day,
+    );
+    final localEndDate = DateTime(
+      endDate.year,
+      endDate.month,
+      endDate.day,
+      23,
+      59,
+      59,
+      999,
+    );
+    final whereClauses = <String>[
+      'agentId = :agentId',
+      '(status = :statusComplete OR status = :statusParked)',
+      'subTotal > 0',
+      'branchId = :branchId',
+      'transactionType != :adjustmentType',
+      'createdAt >= :startDate AND createdAt <= :endDate',
+    ];
+    final arguments = <String, dynamic>{
+      'agentId': agentId,
+      'statusComplete': COMPLETE,
+      'statusParked': PARKED,
+      'branchId': branchId,
+      'adjustmentType': 'Adjustment',
+      'startDate': localStartDate.toIso8601String(),
+      'endDate': localEndDate.toIso8601String(),
+    };
+    return (clause: whereClauses.join(' AND '), arguments: arguments);
+  }
+
+  /// Rows in the Transaction Reports paging window (local Ditto replica).
+  Future<int> countTransactionsReportPagingWindow({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String branchId,
+    required bool forceRealData,
+  }) async {
+    if (!forceRealData) {
+      return DummyTransactionGenerator.generateDummyTransactions(
+        count: 100,
+        branchId: branchId,
+        status: COMPLETE,
+      ).length;
+    }
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for countTransactionsReportPagingWindow');
+        return 0;
+      }
+      final prepared = _transactionsReportPagingWhere(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+      );
+      final query =
+          'SELECT COUNT(*) AS c FROM transactions WHERE ${prepared.clause}';
+      final queryResult = await ditto.store.execute(
+        query,
+        arguments: prepared.arguments,
+      );
+      if (queryResult.items.isEmpty) return 0;
+      final row = Map<String, dynamic>.from(queryResult.items.first.value);
+      final raw = row['c'] ?? row['C'];
+      if (raw is int) return raw;
+      if (raw is num) return raw.toInt();
+      return int.tryParse(raw.toString()) ?? 0;
+    } catch (e, s) {
+      talker.error('countTransactionsReportPagingWindow: $e', s);
+      return 0;
+    }
+  }
+
+  Future<List<ITransaction>> pageTransactionsReportPagingWindow({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String branchId,
+    required bool forceRealData,
+    required int limit,
+    required int offset,
+  }) async {
+    if (!forceRealData) {
+      final all = DummyTransactionGenerator.generateDummyTransactions(
+        count: 100,
+        branchId: branchId,
+        status: COMPLETE,
+      );
+      final safeOffset = offset.clamp(0, all.length);
+      final safeLimit = limit.clamp(0, all.length - safeOffset);
+      return all.sublist(safeOffset, safeOffset + safeLimit);
+    }
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for pageTransactionsReportPagingWindow');
+        return [];
+      }
+      final prepared = _transactionsReportPagingWhere(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+      );
+      final safeLimit = limit.clamp(0, 10000);
+      final safeOffset = offset.clamp(0, 1 << 30);
+      final query =
+          'SELECT * FROM transactions WHERE ${prepared.clause} ORDER BY createdAt DESC LIMIT $safeLimit OFFSET $safeOffset';
+
+      talker.info('Capella Ditto Query (transactions report paging): $query');
+
+      final queryResult = await ditto.store.execute(
+        query,
+        arguments: prepared.arguments,
+      );
+      final list = <ITransaction>[];
+      for (final item in queryResult.items) {
+        try {
+          final transactionData = Map<String, dynamic>.from(item.value);
+          list.add(_convertFromDittoDocument(transactionData));
+        } catch (e) {
+          talker.error('Error converting transaction: $e');
+        }
+      }
+      return list;
+    } catch (e, stackTrace) {
+      talker.error('pageTransactionsReportPagingWindow: $e', stackTrace);
+      return [];
+    }
+  }
+
   @override
   FutureOr<void> deletePaymentRecords({required String transactionId}) async {
     try {

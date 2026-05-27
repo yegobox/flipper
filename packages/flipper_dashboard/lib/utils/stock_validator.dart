@@ -6,8 +6,10 @@ import 'package:flipper_services/proxy.dart';
 /// Validates if the requested quantities are available in stock
 /// Returns a list of out-of-stock items, or an empty list if all items are in stock
 Future<List<TransactionItem>> validateStockQuantity(
-  List<TransactionItem> items,
-) async {
+  List<TransactionItem> items, {
+  bool allowSellingBelowStock = false,
+}) async {
+  if (allowSellingBelowStock) return [];
   final capella = ProxyService.getStrategy(Strategy.capella);
   final variantIds = items
       .map((e) => e.variantId)

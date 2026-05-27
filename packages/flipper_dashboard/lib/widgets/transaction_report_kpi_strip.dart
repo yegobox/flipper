@@ -1,103 +1,29 @@
-import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// KPI row for Transaction Reports — lives on the grey page chrome (not inside the table card).
+/// KPI row for Transaction Reports — full-period aggregates (batched), not tied to grid page.
 class TransactionReportKpiStrip extends ConsumerWidget {
   const TransactionReportKpiStrip({
     super.key,
-    required this.transactions,
-    required this.transactionItems,
-    required this.paymentSumsByTransactionId,
     required this.startDate,
     required this.endDate,
     required this.showDetailed,
   });
 
-  final List<ITransaction> transactions;
-  final List<TransactionItem>? transactionItems;
-  final Map<String, TransactionPaymentSums>? paymentSumsByTransactionId;
   final DateTime startDate;
   final DateTime endDate;
   final bool showDetailed;
 
-  /// IDs of non-expense transactions (sales). PLU KPIs count only these lines.
-  static Set<String> _salesTransactionIds(List<ITransaction> txs) {
-    return {
-      for (final t in txs)
-        if (t.isExpense != true) t.id.toString(),
-    };
-  }
-
-  static double _pluLineRevenueFromItemList(
-    List<TransactionItem> items,
-    Set<String> salesTransactionIds,
-  ) {
-    if (items.isEmpty) return 0.0;
-    return items.fold<double>(
-      0.0,
-      (sum, item) {
-        final tid = item.transactionId?.toString();
-        if (tid == null || !salesTransactionIds.contains(tid)) {
-          return sum;
-        }
-        return sum + item.price.toDouble() * item.qty.toDouble();
-      },
-    );
-  }
-
-  static double _pluGrossProfitFromItemList(
-    List<TransactionItem> items,
-    Set<String> salesTransactionIds,
-  ) {
-    if (items.isEmpty) return 0.0;
-    return items.fold<double>(
-      0.0,
-      (sum, item) {
-        final tid = item.transactionId?.toString();
-        if (tid == null || !salesTransactionIds.contains(tid)) {
-          return sum;
-        }
-        return sum + TransactionItemPluMetrics.profitMade(item);
-      },
-    );
-  }
-
-  static double _pluTotalLineTaxFromList(
-    List<TransactionItem> items,
-    Set<String> salesTransactionIds,
-  ) {
-    if (items.isEmpty) return 0.0;
-    return items.fold<double>(
-      0.0,
-      (sum, item) {
-        final tid = item.transactionId?.toString();
-        if (tid == null || !salesTransactionIds.contains(tid)) {
-          return sum;
-        }
-        return sum + TransactionItemPluMetrics.taxPayable(item);
-      },
-    );
-  }
-
-  static double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
+  double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
     return expenseTransactions.fold<double>(
       0.0,
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
-  }
-
-  List<TransactionItem> _profitCardItems(
-    AsyncValue<List<TransactionItem>> itemsAsync,
-  ) {
-    return transactionItems ?? itemsAsync.value ?? [];
-  }
-
-  bool _profitCardItemsLoading(AsyncValue<List<TransactionItem>> itemsAsync) {
-    return transactionItems == null && itemsAsync.isLoading;
   }
 
   Widget _summaryCard(
@@ -169,152 +95,99 @@ class TransactionReportKpiStrip extends ConsumerWidget {
     );
   }
 
-  Widget _twoCardRow(WidgetRef ref) {
-    final salesIds = _salesTransactionIds(transactions);
+  Widget _netProfitCard(
+    WidgetRef ref,
+    AsyncValue<TransactionReportKpiTotals> kpiAsync,
+  ) {
+    final bid = ProxyService.box.getBranchId();
+
+    if (kpiAsync.isLoading && !kpiAsync.hasValue) {
+      return _summaryCard('Net Profit', 0.0, true, Colors.purple);
+    }
+
+    final kpi = kpiAsync.value ?? const TransactionReportKpiTotals();
+    final gross = kpi.pluGrossProfit;
+    final tax = kpi.pluLineTax;
+    final kpiLoading = kpiAsync.isLoading;
+
+    if (bid == null) {
+      return _summaryCard('Net Profit', gross - tax, kpiLoading, Colors.purple);
+    }
+
+    final expAsync = ref.watch(
+      expensesStreamProvider(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: bid,
+      ),
+    );
+
+    return expAsync.when(
+      data: (expenseTxs) => _summaryCard(
+        'Net Profit',
+        gross - tax - _sumExpenseSubtotals(expenseTxs),
+        kpiLoading,
+        Colors.purple,
+      ),
+      loading: () =>
+          _summaryCard('Net Profit', gross - tax, true, Colors.purple),
+      error: (_, __) =>
+          _summaryCard('Net Profit', gross - tax, kpiLoading, Colors.purple),
+    );
+  }
+
+  Widget _twoCardRow(
+    WidgetRef ref,
+    AsyncValue<TransactionReportKpiTotals> kpiAsync,
+  ) {
+    final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
+    final kpi = kpiAsync.asData?.value;
+
     return Row(
       children: [
         const SizedBox(width: 12),
         Expanded(
-          child: Consumer(
-            builder: (context, ref, _) {
-              final itemsAsync = ref.watch(transactionItemListProvider);
-              final items = _profitCardItems(itemsAsync);
-              final loading = _profitCardItemsLoading(itemsAsync);
-              final lineSales = _pluLineRevenueFromItemList(items, salesIds);
-              return _summaryCard('Total Sales', lineSales, loading, Colors.green);
-            },
+          child: _summaryCard(
+            'Total Sales',
+            kpi?.pluLineSales,
+            loading,
+            Colors.green,
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(
-          child: Consumer(
-            builder: (context, ref, _) {
-              final itemsAsync = ref.watch(transactionItemListProvider);
-              final items = _profitCardItems(itemsAsync);
-              final itemsLoading = _profitCardItemsLoading(itemsAsync);
-              final gross = _pluGrossProfitFromItemList(items, salesIds);
-              final tax = _pluTotalLineTaxFromList(items, salesIds);
-              final bid = ProxyService.box.getBranchId();
-
-              if (bid == null) {
-                return _summaryCard(
-                  'Net Profit',
-                  gross - tax,
-                  itemsLoading,
-                  Colors.purple,
-                );
-              }
-
-              final expAsync = ref.watch(
-                expensesStreamProvider(
-                  startDate: startDate,
-                  endDate: endDate,
-                  branchId: bid,
-                ),
-              );
-
-              return expAsync.when(
-                data: (expenseTxs) => _summaryCard(
-                  'Net Profit',
-                  gross - tax - _sumExpenseSubtotals(expenseTxs),
-                  itemsLoading,
-                  Colors.purple,
-                ),
-                loading: () => _summaryCard('Net Profit', gross - tax, true, Colors.purple),
-                error: (_, __) => _summaryCard(
-                  'Net Profit',
-                  gross - tax,
-                  itemsLoading,
-                  Colors.purple,
-                ),
-              );
-            },
-          ),
-        ),
+        Expanded(child: _netProfitCard(ref, kpiAsync)),
         const SizedBox(width: 12),
       ],
     );
   }
 
-  Widget _fourCardRow(WidgetRef ref) {
-    final salesIds = _salesTransactionIds(transactions);
-    final sumsMap = paymentSumsByTransactionId ?? <String, TransactionPaymentSums>{};
-    var byHand = 0.0;
-    var credit = 0.0;
-    for (final tx in transactions) {
-      if (tx.isExpense == true) continue;
-      final s = sumsMap[tx.id.toString()];
-      byHand += transactionReportByHandForTotals(tx, s);
-      credit += transactionReportCreditForTotals(tx, s);
-    }
+  Widget _fourCardRow(
+    WidgetRef ref,
+    AsyncValue<TransactionReportKpiTotals> kpiAsync,
+  ) {
+    final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
+    final kpi = kpiAsync.asData?.value;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(width: 12),
         Expanded(
-          child: Consumer(
-            builder: (context, ref, _) {
-              final itemsAsync = ref.watch(transactionItemListProvider);
-              final items = _profitCardItems(itemsAsync);
-              final loading = _profitCardItemsLoading(itemsAsync);
-              final lineSales = _pluLineRevenueFromItemList(items, salesIds);
-              return _summaryCard('Total Sales', lineSales, loading, Colors.green);
-            },
+          child: _summaryCard(
+            'Total Sales',
+            kpi?.pluLineSales,
+            loading,
+            Colors.green,
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(
-          child: Consumer(
-            builder: (context, ref, _) {
-              final itemsAsync = ref.watch(transactionItemListProvider);
-              final items = _profitCardItems(itemsAsync);
-              final itemsLoading = _profitCardItemsLoading(itemsAsync);
-              final gross = _pluGrossProfitFromItemList(items, salesIds);
-              final tax = _pluTotalLineTaxFromList(items, salesIds);
-              final bid = ProxyService.box.getBranchId();
-
-              if (bid == null) {
-                return _summaryCard(
-                  'Net Profit',
-                  gross - tax,
-                  itemsLoading,
-                  Colors.purple,
-                );
-              }
-
-              final expAsync = ref.watch(
-                expensesStreamProvider(
-                  startDate: startDate,
-                  endDate: endDate,
-                  branchId: bid,
-                ),
-              );
-
-              return expAsync.when(
-                data: (expenseTxs) => _summaryCard(
-                  'Net Profit',
-                  gross - tax - _sumExpenseSubtotals(expenseTxs),
-                  itemsLoading,
-                  Colors.purple,
-                ),
-                loading: () => _summaryCard('Net Profit', gross - tax, true, Colors.purple),
-                error: (_, __) => _summaryCard(
-                  'Net Profit',
-                  gross - tax,
-                  itemsLoading,
-                  Colors.purple,
-                ),
-              );
-            },
-          ),
-        ),
+        Expanded(child: _netProfitCard(ref, kpiAsync)),
         const SizedBox(width: 12),
         Expanded(
           child: _summaryCard(
             'Period \u2014 By Hand',
-            byHand,
-            false,
+            kpi?.periodByHand,
+            loading,
             Colors.teal,
           ),
         ),
@@ -322,8 +195,8 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         Expanded(
           child: _summaryCard(
             'Period \u2014 Credit',
-            credit,
-            false,
+            kpi?.periodCredit,
+            loading,
             Colors.deepOrange,
           ),
         ),
@@ -334,9 +207,10 @@ class TransactionReportKpiStrip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final kpiAsync = ref.watch(transactionReportKpiTotalsProvider);
     if (showDetailed) {
-      return _twoCardRow(ref);
+      return _twoCardRow(ref, kpiAsync);
     }
-    return _fourCardRow(ref);
+    return _fourCardRow(ref, kpiAsync);
   }
 }

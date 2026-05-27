@@ -118,10 +118,14 @@ class ReportsDashboard extends HookConsumerWidget {
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     ).then((dateRange) {
-      if (dateRange != null) {
-        ref.read(dateRangeProvider.notifier).setStartDate(dateRange.start);
-        ref.read(dateRangeProvider.notifier).setEndDate(dateRange.end);
-      }
+      if (dateRange == null) return;
+      // Let route dismiss paint before triggering heavy downstream rebuilds.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(dateRangeProvider.notifier).setRange(
+              start: dateRange.start,
+              end: dateRange.end,
+            );
+      });
     });
   }
 

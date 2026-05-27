@@ -4,14 +4,16 @@ import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 
 final stockProvider = FutureProvider.family<Stock, String>((
@@ -56,8 +58,86 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
     super.dispose();
   }
 
+  /// Loads current stock docs from Ditto for export (fresh read, no Riverpod cache).
+  /// Optionally waits briefly if mesh replication has not landed rows yet.
+  Future<({Map<String, Stock> byId, bool incompleteSync})>
+      _resolveStocksForExport(List<Variant> variants) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) {
+      return (byId: <String, Stock>{}, incompleteSync: false);
+    }
+
+    final ditto = DittoService.instance.dittoInstance;
+    if (ditto != null) {
+      await ensureBranchCatalogCloudSubscriptions(
+        ditto: ditto,
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId(),
+      );
+    }
+
+    final stockIds = variants
+        .map((v) => v.stockId)
+        .where((id) => id != null && id.isNotEmpty)
+        .cast<String>()
+        .toSet()
+        .toList();
+
+    if (stockIds.isEmpty) {
+      return (byId: <String, Stock>{}, incompleteSync: false);
+    }
+
+    final capella = ProxyService.getStrategy(Strategy.capella);
+
+    Future<Map<String, Stock>> runBatch() =>
+        capella.batchGetStocksByIds(stockIds);
+
+    var stocksById = await runBatch();
+
+    bool missingIds() =>
+        stockIds.any((id) => !stocksById.containsKey(id));
+
+    var incompleteSync = false;
+
+    if (missingIds()) {
+      incompleteSync = true;
+      const meshDelays = <Duration>[
+        Duration(milliseconds: 2000),
+        Duration(milliseconds: 3500),
+        Duration(milliseconds: 5000),
+      ];
+      for (final delay in meshDelays) {
+        await Future.delayed(delay);
+        final next = await runBatch();
+        for (final entry in next.entries) {
+          stocksById[entry.key] = entry.value;
+        }
+        if (!missingIds()) {
+          incompleteSync = false;
+          break;
+        }
+      }
+    }
+
+    for (final sid in stockIds) {
+      if (!stocksById.containsKey(sid)) {
+        try {
+          stocksById[sid] = await capella.getStockById(id: sid);
+        } catch (_) {
+          incompleteSync = true;
+        }
+      }
+    }
+
+    if (stockIds.any((id) => !stocksById.containsKey(id))) {
+      incompleteSync = true;
+    }
+
+    return (byId: stocksById, incompleteSync: incompleteSync);
+  }
+
   /// Export items to Excel file
-  Future<void> _exportItemsToExcel(List<dynamic> variants) async {
+  Future<void> _exportItemsToExcel(List<Variant> variants) async {
     if (variants.isEmpty) {
       toast('No items to export');
       return;
@@ -84,6 +164,9 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
         return;
       }
 
+      final resolved = await _resolveStocksForExport(variants);
+      final stocksById = resolved.byId;
+
       // Create Excel file (default sheet is Sheet1; rename to sheet1 for a single data sheet)
       final excel = Excel.createExcel();
       excel.rename('Sheet1', 'sheet1');
@@ -102,22 +185,16 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
         TextCellValue('Unit'),
       ]);
 
-      // Add data rows
+      // Add data rows — quantities from one Ditto batch read (not cached stockProvider).
       for (final variant in variants) {
-        Stock? stockAsync;
-        try {
-          stockAsync = await ref.read(
-            stockProvider(variant.stock?.id ?? '').future,
-          );
-        } catch (e) {
-          talker.warning('Error fetching stock for variant: $e');
-        }
-
-        final qty = stockAsync?.currentStock ?? 0;
+        final sid = variant.stockId;
+        final qty = (sid != null && sid.isNotEmpty)
+            ? (stocksById[sid]?.currentStock ?? 0)
+            : 0;
 
         sheet.appendRow([
           TextCellValue(variant.productName ?? ''),
-          TextCellValue(variant.name ?? ''),
+          TextCellValue(variant.name),
           TextCellValue(variant.itemCd ?? ''),
           TextCellValue(variant.sku ?? ''),
           IntCellValue(qty.toInt()),
@@ -137,6 +214,12 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
       });
 
       toast('Successfully exported ${variants.length} items');
+      if (resolved.incompleteSync && mounted) {
+        toast(
+          'Some quantities may still be catching up from sync; '
+          're-export later if totals look wrong.',
+        );
+      }
     } catch (e) {
       talker.error('Error exporting items: $e');
       setState(() {
@@ -313,10 +396,11 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    if (variant.stock != null)
+                                    if (variant.stockId != null &&
+                                        variant.stockId!.isNotEmpty)
                                       ref
                                           .watch(
-                                            stockProvider(variant.stock!.id),
+                                            stockProvider(variant.stockId!),
                                           )
                                           .when(
                                             data: (stock) => Text(

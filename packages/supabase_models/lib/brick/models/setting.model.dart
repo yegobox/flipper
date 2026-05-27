@@ -34,6 +34,10 @@ class Setting extends OfflineFirstWithSupabaseModel {
   bool? enablePriceQuantityAdjustment;
   bool? isCurrencyDecimal;
 
+  /// When true, checkout may exceed on-hand qty (local stock floors at 0);
+  /// RRA stock IO/master are capped to units that were available at sale start.
+  bool? allowSellingBelowStock;
+
   DateTime? lastTouched;
 
   DateTime? deletedAt;
@@ -60,6 +64,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
     this.createdAt,
     this.enablePriceQuantityAdjustment,
     this.isCurrencyDecimal,
+    this.allowSellingBelowStock,
     this.lastTouched,
     this.deletedAt,
   }) : id = id ?? const Uuid().v4();
@@ -90,6 +95,9 @@ class Setting extends OfflineFirstWithSupabaseModel {
       enablePriceQuantityAdjustment:
           json['enablePriceQuantityAdjustment'] as bool?,
       isCurrencyDecimal: json['isCurrencyDecimal'] as bool?,
+      allowSellingBelowStock:
+          json['allowSellingBelowStock'] as bool? ??
+              json['allow_selling_below_stock'] as bool?,
       lastTouched: json['lastTouched'] != null
           ? DateTime.tryParse(json['lastTouched'] as String)
           : null,
@@ -124,6 +132,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
       'createdAt': createdAt,
       'enablePriceQuantityAdjustment': enablePriceQuantityAdjustment,
       'isCurrencyDecimal': isCurrencyDecimal,
+      'allowSellingBelowStock': allowSellingBelowStock,
       'lastTouched': lastTouched?.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
     };

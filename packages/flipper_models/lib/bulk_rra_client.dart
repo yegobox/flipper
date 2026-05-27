@@ -35,11 +35,21 @@ class BulkRraClient {
       body['taxServerUrl'] = taxServerUrl;
     }
 
-    final response = await _http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+    final response = await _http
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        )
+        .timeout(
+          const Duration(minutes: 15),
+          onTimeout: () {
+            throw Exception(
+              'Bulk RRA submit timed out after 15 minutes (large file upload). '
+              'Check data-connector is reachable and HTTP_MAX_BODY_MB / reverse proxy limits.',
+            );
+          },
+        );
 
     if (response.statusCode != 202) {
       talker.error('bulk-add failed ${response.statusCode}: ${response.body}');

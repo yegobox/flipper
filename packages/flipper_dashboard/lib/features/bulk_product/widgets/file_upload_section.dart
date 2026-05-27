@@ -175,7 +175,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
         const Icon(FluentIcons.info_24_regular, size: 16, color: Colors.grey),
         const SizedBox(width: 8),
         Text(
-          'Supported: .xlsx, .xls',
+          'Supported: .xlsx, .xls (save WPS as Excel .xlsx)',
           style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey),
         ),
         const Spacer(),

@@ -44,7 +44,7 @@ final class DateRangeProvider
   }
 }
 
-String _$dateRangeHash() => r'268af0ecad10e688f98dd6bc846a77173a9b7490';
+String _$dateRangeHash() => r'bc952ce38096113d15e91b4482b86d8fee1293ca';
 
 /// A provider for managing date range state.
 

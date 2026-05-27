@@ -76,7 +76,8 @@ abstract class TaxApi implements NoticeInterface {
       String? custMblNo,
       required String customerName,
       Customer? customer,
-      required DateTime timeToUser});
+      required DateTime timeToUser,
+      List<TransactionItem>? preloadedItems});
   Future<RwApiResponse> saveItem(
       {required Variant variation, required String URI});
 

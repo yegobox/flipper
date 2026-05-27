@@ -41,7 +41,7 @@ final class OptimisticCartProvider
   }
 }
 
-String _$optimisticCartHash() => r'156d03ab492bcfc05b62bd84c184ebc54e0ba887';
+String _$optimisticCartHash() => r'fe6b74540deb8c71eebc1ac573e2beb8a0c27c13';
 
 abstract class _$OptimisticCart extends $Notifier<OptimisticCartState> {
   OptimisticCartState build();

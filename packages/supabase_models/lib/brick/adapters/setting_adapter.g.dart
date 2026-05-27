@@ -59,6 +59,9 @@ Future<Setting> _$SettingFromSupabase(
     isCurrencyDecimal: data['is_currency_decimal'] == null
         ? null
         : data['is_currency_decimal'] as bool?,
+    allowSellingBelowStock: data['allow_selling_below_stock'] == null
+        ? null
+        : data['allow_selling_below_stock'] as bool?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -100,6 +103,7 @@ Future<Map<String, dynamic>> _$SettingToSupabase(
     'created_at': instance.createdAt,
     'enable_price_quantity_adjustment': instance.enablePriceQuantityAdjustment,
     'is_currency_decimal': instance.isCurrencyDecimal,
+    'allow_selling_below_stock': instance.allowSellingBelowStock,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -163,6 +167,9 @@ Future<Setting> _$SettingFromSqlite(
     isCurrencyDecimal: data['is_currency_decimal'] == null
         ? null
         : data['is_currency_decimal'] == 1,
+    allowSellingBelowStock: data['allow_selling_below_stock'] == null
+        ? null
+        : data['allow_selling_below_stock'] == 1,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -226,6 +233,9 @@ Future<Map<String, dynamic>> _$SettingToSqlite(
     'is_currency_decimal': instance.isCurrencyDecimal == null
         ? null
         : (instance.isCurrencyDecimal! ? 1 : 0),
+    'allow_selling_below_stock': instance.allowSellingBelowStock == null
+        ? null
+        : (instance.allowSellingBelowStock! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -328,6 +338,10 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     'isCurrencyDecimal': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_currency_decimal',
+    ),
+    'allowSellingBelowStock': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'allow_selling_below_stock',
     ),
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -479,6 +493,12 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     'isCurrencyDecimal': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'is_currency_decimal',
+      iterable: false,
+      type: bool,
+    ),
+    'allowSellingBelowStock': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'allow_selling_below_stock',
       iterable: false,
       type: bool,
     ),

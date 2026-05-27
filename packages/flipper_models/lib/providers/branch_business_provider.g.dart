@@ -64,7 +64,7 @@ final class BranchesProvider
   }
 }
 
-String _$branchesHash() => r'e06f2d451bb2996c4d28227c7c536664ad681074';
+String _$branchesHash() => r'b318bfe06c9b3e1ce5174134c27200ffb3a518e6';
 
 final class BranchesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Branch>>, String?> {

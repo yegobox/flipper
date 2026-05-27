@@ -16,6 +16,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // ignore: unused_import
@@ -103,6 +104,7 @@ bool _rwTaxIsQtyUnitCdCodeValueError(String? msg) {
 }
 
 class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
+  static final Map<String, Configurations> _taxConfigByBranchAndType = {};
   String itemPrefix = "flip-";
   Dio? _dio;
   Talker? _talker;
@@ -636,10 +638,59 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required ITransaction transaction,
     required Repository repository,
   }) async {
+    final snapshotKey = rraSaleStockSnapshotBoxKey(transaction.id);
+    Map<String, num> allocations = {};
+    var movementItemsForStockIo = items;
+    var capRra = false;
+
     try {
       if (receiptType != 'NR' && receiptType != 'CR' && receiptType != 'TR') {
+        final bizId = ProxyService.box.getBusinessId();
+        Setting? bizSetting;
+        if (bizId != null && bizId.isNotEmpty) {
+          bizSetting =
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getSetting(businessId: bizId);
+        }
+        final snapshot = decodeRraSaleStockSnapshot(
+          ProxyService.box.readString(key: snapshotKey),
+        );
+        capRra = bizSetting?.allowSellingBelowStock == true &&
+            snapshot != null &&
+            snapshot.isNotEmpty;
+
+        movementItemsForStockIo = items;
+        if (capRra) {
+          final capellaStrat = ProxyService.getStrategy(Strategy.capella);
+          final variantIds = items
+              .where((i) {
+                final vid = i.variantId;
+                return vid != null &&
+                    vid.trim().isNotEmpty &&
+                    i.itemTyCd != '3';
+              })
+              .map((i) => i.variantId!)
+              .toSet()
+              .toList();
+          final variantsLookup =
+              variantIds.isEmpty
+                  ? <String, Variant>{}
+                  : await capellaStrat.batchGetVariantsByIds(variantIds);
+          allocations = rraAllocatedQtyByTransactionItemId(
+            items: items,
+            variantsByVariantId: variantsLookup,
+            snapshotByStockId: snapshot,
+            allowSellingBelowStock: true,
+          );
+          movementItemsForStockIo = movementItemsWithRraCapAllocation(
+            items,
+            allocations,
+          );
+        }
+
         await saveStockItems(
-          items: items,
+          items: movementItemsForStockIo,
           tinNumber: ebm.tinNumber.toString(),
           bhFId: ebm.bhfId,
           updateMaster: false,
@@ -657,19 +708,29 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
           URI: ebm.taxServerUrl,
         );
+
         for (var item in items) {
-          final Variant? variant = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getVariant(id: item.variantId!);
-          final Stock stock = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getStockById(id: variant?.stockId ?? "");
+          if (item.itemTyCd == '3') continue;
+          if (capRra && ((allocations[item.id] ?? 0) <= 0)) continue;
+          final vid = item.variantId;
+          if (vid == null || vid.isEmpty) continue;
+
+          final Variant? variant =
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getVariant(id: vid);
+          final Stock stock =
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getStockById(id: variant?.stockId ?? "");
           if (variant == null) continue;
 
           await ProxyService.tax.saveStockMaster(
             variant: variant,
             URI: ebm.taxServerUrl,
-            stockMasterQty: stock.currentStock!,
+            stockMasterQty: capRra
+                ? math.max(0.0, stock.currentStock?.toDouble() ?? 0.0)
+                : stock.currentStock!,
           );
         }
       } else if (receiptType == 'NR' || receiptType == 'TR') {
@@ -712,6 +773,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
+    } finally {
+      ProxyService.box.remove(key: snapshotKey);
     }
   }
 
@@ -728,6 +791,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     String? custMblNo,
     required String customerName,
     Customer? customer,
+    List<TransactionItem>? preloadedItems,
   }) async {
     if ((isAndroid || isIos) && URI.contains('localhost')) {
       return RwApiResponse(
@@ -746,9 +810,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     Ebm? ebm = await ProxyService.strategy.ebm(
       branchId: ProxyService.box.getBranchId()!,
     );
-    List<TransactionItem> items = await ProxyService.getStrategy(
-      Strategy.capella,
-    ).transactionItems(transactionId: transaction.id, branchId: branchId);
+    final List<TransactionItem> items;
+    if (preloadedItems != null && preloadedItems.isNotEmpty) {
+      items = preloadedItems;
+    } else {
+      items = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).transactionItems(transactionId: transaction.id, branchId: branchId);
+    }
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
@@ -971,29 +1040,40 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   // Helper function to map TransactionItem to JSON
+  Future<Configurations> _taxConfigForType(String taxType) async {
+    final branchId = ProxyService.box.getBranchId()!;
+    final cacheKey = '$branchId|$taxType';
+    final cached = _taxConfigByBranchAndType[cacheKey];
+    if (cached != null) return cached;
+
+    final repository = Repository();
+    final taxConfigs = await repository.get<Configurations>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [
+          Where('taxType').isExactly(taxType),
+          Where('branchId').isExactly(branchId),
+        ],
+      ),
+    );
+    if (taxConfigs.isEmpty) {
+      throw Exception('Failed to get tax config for $taxType');
+    }
+    final config = taxConfigs.first;
+    _taxConfigByBranchAndType[cacheKey] = config;
+    return config;
+  }
+
+  Future<Configurations> _taxConfigForItem(TransactionItem item) =>
+      _taxConfigForType(item.taxTyCd ?? 'B');
+
   Future<Map<String, dynamic>> mapItemToJson(
     TransactionItem item, {
     required String bhfId,
     num? approvedQty,
     int? itemSeq,
   }) async {
-    final repository = Repository();
-
-    List<Configurations> taxConfigs = await repository.get<Configurations>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: Query(
-        where: [
-          Where('taxType').isExactly(item.taxTyCd ?? "B"),
-          Where('branchId').isExactly(ProxyService.box.getBranchId()!),
-        ],
-      ),
-    );
-    Configurations? taxConfig;
-    try {
-      taxConfig = taxConfigs.first;
-    } catch (e) {
-      throw Exception("Failed to get tax config");
-    }
+    final taxConfig = await _taxConfigForItem(item);
 
     // Base calculations
     final unitPrice = item.price;
@@ -1022,22 +1102,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     double ttTaxAmount = 0.0;
     double ttTaxblBase = 0.0;
     if (item.ttCatCd == 'TT') {
-      // Get TT tax configuration
-      List<Configurations> ttTaxConfigs = await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: Query(
-          where: [
-            Where('taxType').isExactly('TT'),
-            Where('branchId').isExactly(ProxyService.box.getBranchId()!),
-          ],
-        ),
-      );
-      Configurations? ttTaxConfig;
-      try {
-        ttTaxConfig = ttTaxConfigs.first;
-      } catch (e) {
-        throw Exception("Failed to get TT tax config");
-      }
+      final ttTaxConfig = await _taxConfigForType('TT');
       final ttTaxPercentage = ttTaxConfig.taxPercentage ?? 0.0;
 
       // Determine taxable base for TT tax depending on the item's tax type

@@ -4,7 +4,6 @@ import 'dart:math' as math;
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -12,14 +11,22 @@ import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
 import 'package:receipt/print.dart';
+
+typedef ReceiptHandleResult = ({
+  RwApiResponse response,
+  Uint8List? bytes,
+  Receipt? presentationReceipt,
+  DeferredSaleReceiptPersist? deferredPersist,
+});
 
 class TaxController<OBJ> {
   TaxController({this.object});
 
   OBJ? object;
 
-  Future<({RwApiResponse response, Uint8List? bytes})> handleReceipt({
+  Future<ReceiptHandleResult> handleReceipt({
     bool skiGenerateRRAReceiptSignature = false,
     String? purchaseCode,
     void Function()? onSuccess,
@@ -29,6 +36,11 @@ class TaxController<OBJ> {
     /// persistence pass (e.g. [markTransactionAsCompleted] with Capella).
     bool persistReceiptTransactionFields = true,
     bool skipPresentation = false,
+    bool signOnly = false,
+    bool presentationOnly = false,
+    RwApiResponse? signedResponse,
+    List<TransactionItem>? transactionItems,
+    Receipt? presentationReceiptForPdf,
   }) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
@@ -83,6 +95,11 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            signOnly: signOnly,
+            presentationOnly: presentationOnly,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceiptForPdf,
           );
         } catch (e) {
           rethrow;
@@ -102,6 +119,11 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            signOnly: signOnly,
+            presentationOnly: presentationOnly,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceiptForPdf,
           );
         } catch (e) {
           rethrow;
@@ -122,6 +144,11 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            signOnly: signOnly,
+            presentationOnly: presentationOnly,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceiptForPdf,
           );
         } catch (e) {
           rethrow;
@@ -141,6 +168,11 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            signOnly: signOnly,
+            presentationOnly: presentationOnly,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceiptForPdf,
           );
         } catch (e) {
           rethrow;
@@ -160,6 +192,11 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            signOnly: signOnly,
+            presentationOnly: presentationOnly,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceiptForPdf,
           );
         } catch (e) {
           rethrow;
@@ -180,6 +217,11 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            signOnly: signOnly,
+            presentationOnly: presentationOnly,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceiptForPdf,
           );
         } catch (e) {
           rethrow;
@@ -199,6 +241,11 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            signOnly: signOnly,
+            presentationOnly: presentationOnly,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceiptForPdf,
           );
         } catch (e) {
           rethrow;
@@ -247,7 +294,7 @@ class TaxController<OBJ> {
    * @params receiptType - The type of receipt to print.
    * @params transaction - The transaction to print a receipt for.
    */
-  Future<({RwApiResponse response, Uint8List? bytes})> printReceipt({
+  Future<ReceiptHandleResult> printReceipt({
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
@@ -262,13 +309,18 @@ class TaxController<OBJ> {
     void Function()? onSuccess,
     bool persistReceiptTransactionFields = true,
     bool skipPresentation = false,
+    bool signOnly = false,
+    bool presentationOnly = false,
+    RwApiResponse? signedResponse,
+    List<TransactionItem>? transactionItems,
+    Receipt? presentationReceiptForPdf,
   }) async {
     // Use provided items or fetch transaction items
-    List<TransactionItem> transactionItems = items ?? [];
+    List<TransactionItem> lineItems = transactionItems ?? items ?? [];
 
-    if (transactionItems.isEmpty) {
+    if (lineItems.isEmpty) {
       try {
-        transactionItems = await ProxyService.getStrategy(Strategy.capella)
+        lineItems = await ProxyService.getStrategy(Strategy.capella)
             .transactionItems(
               transactionId: transaction.id,
               branchId: (await ProxyService.strategy.activeBranch(
@@ -276,22 +328,44 @@ class TaxController<OBJ> {
               )).id,
             );
       } catch (e) {
-        // If we can't fetch items, continue with empty list for delegation
         talker.warning('Could not fetch transaction items: $e');
       }
     }
 
-    // Try normal processing first
     try {
-      // touch the transaction unawaited
       transaction.lastPaymentDate = DateTime.now();
       transaction.createdAt = DateTime.now();
       transaction.updatedAt = DateTime.now();
 
-      //unawaited(repository.upsert(transaction));
-      // Normal processing (desktop or mobile)
       RwApiResponse responses;
       Uint8List? bytes;
+
+      if (presentationOnly) {
+        if (signedResponse == null) {
+          throw Exception('presentationOnly requires signedResponse');
+        }
+        responses = signedResponse;
+        if (responses.resultCd == "000") {
+          bytes = await _buildReceiptPdfBytes(
+            responses: responses,
+            transaction: transaction,
+            transactionItems: lineItems,
+            receiptType: receiptType,
+            originalInvoiceNumber: originalInvoiceNumber,
+            onSuccess: onSuccess,
+            persistReceiptTransactionFields: persistReceiptTransactionFields,
+            skipPresentation: skipPresentation,
+            presentationReceipt: presentationReceiptForPdf,
+          );
+        }
+        return (
+          response: responses,
+          bytes: bytes,
+          presentationReceipt: presentationReceiptForPdf,
+          deferredPersist: null,
+        );
+      }
+
       if (!skiGenerateRRAReceiptSignature) {
         final enableTransactionDelegation = ProxyService.box.readBool(
           key: 'enableTransactionDelegation',
@@ -307,12 +381,12 @@ class TaxController<OBJ> {
               salesSttsCd: salesSttsCd,
               originalInvoiceNumber: originalInvoiceNumber,
               sarTyCd: sarTyCd,
-              transactionItems: transactionItems,
+              transactionItems: lineItems,
               skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
               onSuccess: onSuccess,
             );
           }
-          responses = await generateRRAReceiptSignature(
+          final signResult = await generateRRAReceiptSignature(
             custMblNo: custMblNo,
             customerName: customerName,
             customer: customer,
@@ -323,158 +397,38 @@ class TaxController<OBJ> {
             purchaseCode: purchaseCode,
             sarTyCd: sarTyCd,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
+            transactionItems: lineItems,
+            deferPostSignReceiptPersist: signOnly,
           );
-          // fetch same transaction
+          responses = signResult.response;
+
+          if (signOnly) {
+            return (
+              response: responses,
+              bytes: null,
+              presentationReceipt: signResult.presentationReceipt,
+              deferredPersist: signResult.deferredPersist,
+            );
+          }
 
           if (responses.resultCd == "000") {
-            Business? business = await ProxyService.strategy.getBusiness(
-              businessId: ProxyService.box.getBusinessId()!,
-            );
-            Ebm? ebm = await ProxyService.strategy.ebm(
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            Receipt? receipt = await ProxyService.strategy.getReceipt(
-              transactionId: transaction.id,
-            );
-
-            double totalB = 0;
-            double totalC = 0;
-            double totalA = 0;
-            double totalD = 0;
-            double totalTT = 0;
-            double totalDiscount = 0;
-
-            try {
-              for (var item in transactionItems) {
-                // Calculate discounted price if discount rate exists and is not 0
-                var discountedPrice = item.price;
-                if (item.dcRt != 0) {
-                  discountedPrice = item.price * (1 - item.dcRt! / 100);
-                  // Calculate and add the discount amount for this item
-                  var discountAmount =
-                      (item.price - discountedPrice) * item.qty;
-                  totalDiscount += discountAmount;
-                }
-
-                // Calculate total with discounted price * quantity
-                var itemTotal = discountedPrice * item.qty;
-
-                // Add to respective totals based on tax type code
-                switch (item.taxTyCd) {
-                  case "B":
-                    totalB += itemTotal;
-                    break;
-                  case "C":
-                    totalC += itemTotal;
-                    break;
-                  case "A":
-                    totalA += itemTotal;
-                    break;
-                  case "D":
-                    totalD += itemTotal;
-                    break;
-                  case "TT":
-                    totalTT += itemTotal;
-                    break;
-                }
-              }
-            } catch (s) {
-              rethrow;
-            }
-
-            Configurations? taxConfigTaxB = await ProxyService.strategy
-                .getByTaxType(taxtype: "B");
-            Configurations? taxConfigTaxA = await ProxyService.strategy
-                .getByTaxType(taxtype: "A");
-            Configurations? taxConfigTaxC = await ProxyService.strategy
-                .getByTaxType(taxtype: "C");
-            Configurations? taxConfigTaxD = await ProxyService.strategy
-                .getByTaxType(taxtype: "D");
-            Configurations? taxConfigTaxTT = await ProxyService.strategy
-                .getByTaxType(taxtype: "TT");
-
-            Print print = Print();
-
-            final List<TransactionPaymentRecord> paymentTypes =
-                await ProxyService.strategy.getPaymentType(
-                  transactionId: transaction.id,
-                );
-            await print.print(
-              vatEnabled: ebm!.vatEnabled ?? false,
-              taxTT: totalTT,
-              totalTaxTT: calculateTotalTax(totalTT, taxConfigTaxTT!),
-              customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
-                  ? transaction.customerPhone
-                  : ProxyService.box.currentSaleCustomerPhoneNumber(),
-              totalDiscount: totalDiscount,
-              whenCreated: receipt!.whenCreated!,
-              timeFromServer:
-                  responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
-                  receipt.timeReceivedFromserver!,
-              taxB: totalB,
-              taxC: totalC,
-              taxA: totalA,
-              taxD: totalD,
-              grandTotal: transaction.subTotal!,
-              totalTaxA: calculateTotalTax(totalA, taxConfigTaxA!),
-              totalTaxB: calculateTotalTax(totalB, taxConfigTaxB!),
-              totalTaxC: calculateTotalTax(totalC, taxConfigTaxC!),
-              totalTaxD: calculateTotalTax(totalD, taxConfigTaxD!),
-              currencySymbol: "RW",
-              originalInvoiceNumber: originalInvoiceNumber,
+            bytes = await _buildReceiptPdfBytes(
+              responses: responses,
               transaction: transaction,
-              totalTax: ebm.vatEnabled == true
-                  ? (totalB * 18 / 118).toStringAsFixed(2)
-                  : 0.toStringAsFixed(2),
-              items: transactionItems,
-              cash: transaction.subTotal!,
-              received: transaction.cashReceived!,
-              payMode: paymentTypes.isEmpty
-                  ? "CASH".toPaymentType()
-                  : paymentTypes.last.paymentMethod?.toPaymentType() ??
-                        "CASH".toPaymentType(),
-              mrc: receipt.mrcNo ?? "",
-              internalData: receipt.intrlData ?? "",
-              receiptQrCode: receipt.qrCode ?? "",
-              receiptSignature: receipt.rcptSign ?? "",
-              cashierName: business!.name!,
-              sdcId: receipt.sdcId ?? "",
-              invoiceNum: receipt.invcNo!,
-              rcptNo: receipt.rcptNo ?? 0,
-              totRcptNo: receipt.totRcptNo ?? 0,
-              brandName: business.name!,
-              brandAddress: business.adrs ?? "",
-              brandTel: business.phoneNumber ?? "",
-              brandTIN: (ebm.tinNumber).toString(),
-              brandDescription: business.name!,
-              brandFooter: business.name!,
-              emails: [business.email ?? ""],
-              brandEmail: business.email ?? "info@yegobox.com",
-              customerTin: (transaction.customerTin?.isNotEmpty ?? false)
-                  ? transaction.customerTin
-                  : ProxyService.box.customerTin(),
+              transactionItems: lineItems,
               receiptType: receiptType,
-              customerName: (transaction.customerName?.isNotEmpty ?? false)
-                  ? transaction.customerName!
-                  : ProxyService.box.customerName()!,
-              printCallback: (Uint8List data) {
-                bytes = data;
-                onSuccess?.call();
-              },
+              originalInvoiceNumber: originalInvoiceNumber,
+              onSuccess: onSuccess,
+              persistReceiptTransactionFields: persistReceiptTransactionFields,
               skipPresentation: skipPresentation,
+              presentationReceipt: signResult.presentationReceipt,
             );
-
-            transaction.receiptPrinted = true;
-            if (persistReceiptTransactionFields) {
-              await ProxyService.getStrategy(
-                Strategy.capella,
-              ).updateTransaction(
-                transactionId: transaction.id,
-                receiptPrinted: true,
-              );
-            }
-
-            return (response: responses, bytes: bytes);
+            return (
+              response: responses,
+              bytes: bytes,
+              presentationReceipt: signResult.presentationReceipt,
+              deferredPersist: signResult.deferredPersist,
+            );
           }
           throw Exception("Invalid action");
         } catch (e) {
@@ -487,6 +441,155 @@ class TaxController<OBJ> {
     }
   }
 
+  Future<Uint8List?> _buildReceiptPdfBytes({
+    required RwApiResponse responses,
+    required ITransaction transaction,
+    required List<TransactionItem> transactionItems,
+    required String receiptType,
+    int? originalInvoiceNumber,
+    void Function()? onSuccess,
+    bool persistReceiptTransactionFields = true,
+    bool skipPresentation = false,
+    Receipt? presentationReceipt,
+  }) async {
+    Business? business = await ProxyService.strategy.getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
+    final receipt =
+        presentationReceipt ??
+        await ProxyService.strategy.getReceipt(transactionId: transaction.id);
+    if (receipt == null) {
+      throw Exception(
+        'Receipt not found for transaction ${transaction.id}. '
+        'Deferred persist may still be in progress.',
+      );
+    }
+
+    double totalB = 0;
+    double totalC = 0;
+    double totalA = 0;
+    double totalD = 0;
+    double totalTT = 0;
+    double totalDiscount = 0;
+
+    for (final item in transactionItems) {
+      var discountedPrice = item.price;
+      if (item.dcRt != 0) {
+        discountedPrice = item.price * (1 - item.dcRt! / 100);
+        totalDiscount += (item.price - discountedPrice) * item.qty;
+      }
+      final itemTotal = discountedPrice * item.qty;
+      switch (item.taxTyCd) {
+        case "B":
+          totalB += itemTotal;
+        case "C":
+          totalC += itemTotal;
+        case "A":
+          totalA += itemTotal;
+        case "D":
+          totalD += itemTotal;
+        case "TT":
+          totalTT += itemTotal;
+      }
+    }
+
+    final taxConfigTaxB = await ProxyService.strategy.getByTaxType(
+      taxtype: "B",
+    );
+    final taxConfigTaxA = await ProxyService.strategy.getByTaxType(
+      taxtype: "A",
+    );
+    final taxConfigTaxC = await ProxyService.strategy.getByTaxType(
+      taxtype: "C",
+    );
+    final taxConfigTaxD = await ProxyService.strategy.getByTaxType(
+      taxtype: "D",
+    );
+    final taxConfigTaxTT = await ProxyService.strategy.getByTaxType(
+      taxtype: "TT",
+    );
+
+    Uint8List? bytes;
+    final paymentTypes = await ProxyService.strategy.getPaymentType(
+      transactionId: transaction.id,
+    );
+
+    await Print().print(
+      vatEnabled: ebm!.vatEnabled ?? false,
+      taxTT: totalTT,
+      totalTaxTT: calculateTotalTax(totalTT, taxConfigTaxTT!),
+      customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
+          ? transaction.customerPhone
+          : ProxyService.box.currentSaleCustomerPhoneNumber(),
+      totalDiscount: totalDiscount,
+      whenCreated: receipt.whenCreated!,
+      timeFromServer:
+          responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
+          receipt.timeReceivedFromserver!,
+      taxB: totalB,
+      taxC: totalC,
+      taxA: totalA,
+      taxD: totalD,
+      grandTotal: transaction.subTotal!,
+      totalTaxA: calculateTotalTax(totalA, taxConfigTaxA!),
+      totalTaxB: calculateTotalTax(totalB, taxConfigTaxB!),
+      totalTaxC: calculateTotalTax(totalC, taxConfigTaxC!),
+      totalTaxD: calculateTotalTax(totalD, taxConfigTaxD!),
+      currencySymbol: "RW",
+      originalInvoiceNumber: originalInvoiceNumber,
+      transaction: transaction,
+      totalTax: ebm.vatEnabled == true
+          ? (totalB * 18 / 118).toStringAsFixed(2)
+          : 0.toStringAsFixed(2),
+      items: transactionItems,
+      cash: transaction.subTotal!,
+      received: transaction.cashReceived!,
+      payMode: paymentTypes.isEmpty
+          ? "CASH".toPaymentType()
+          : paymentTypes.last.paymentMethod?.toPaymentType() ?? "CASH",
+      mrc: receipt.mrcNo ?? "",
+      internalData: receipt.intrlData ?? "",
+      receiptQrCode: receipt.qrCode ?? "",
+      receiptSignature: receipt.rcptSign ?? "",
+      cashierName: business!.name!,
+      sdcId: receipt.sdcId ?? "",
+      invoiceNum: receipt.invcNo!,
+      rcptNo: receipt.rcptNo ?? 0,
+      totRcptNo: receipt.totRcptNo ?? 0,
+      brandName: business.name!,
+      brandAddress: business.adrs ?? "",
+      brandTel: business.phoneNumber ?? "",
+      brandTIN: (ebm.tinNumber).toString(),
+      brandDescription: business.name!,
+      brandFooter: business.name!,
+      emails: [business.email ?? ""],
+      brandEmail: business.email ?? "info@yegobox.com",
+      customerTin: (transaction.customerTin?.isNotEmpty ?? false)
+          ? transaction.customerTin
+          : ProxyService.box.customerTin(),
+      receiptType: receiptType,
+      customerName: (transaction.customerName?.isNotEmpty ?? false)
+          ? transaction.customerName!
+          : ProxyService.box.customerName()!,
+      printCallback: (Uint8List data) {
+        bytes = data;
+        onSuccess?.call();
+      },
+      skipPresentation: skipPresentation,
+    );
+
+    transaction.receiptPrinted = true;
+    if (persistReceiptTransactionFields) {
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).updateTransaction(transactionId: transaction.id, receiptPrinted: true);
+    }
+    return bytes;
+  }
+
   /**
    * Generates a receipt signature by calling the EBM API, updates the receipt 
    * counter, and saves the receipt to the local database.
@@ -496,7 +599,11 @@ class TaxController<OBJ> {
    * @param receiptType - Type of receipt (e.g. 'SALES')
    * @param transaction - The transaction object
   */
-  Future<RwApiResponse> generateRRAReceiptSignature({
+  Future<({
+    RwApiResponse response,
+    Receipt? presentationReceipt,
+    DeferredSaleReceiptPersist? deferredPersist,
+  })> generateRRAReceiptSignature({
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
@@ -507,13 +614,19 @@ class TaxController<OBJ> {
     required String customerName,
     Customer? customer,
     bool persistReceiptTransactionFields = true,
+    List<TransactionItem>? transactionItems,
+    bool deferPostSignReceiptPersist = false,
   }) async {
+    Receipt? presentationReceipt;
+    DeferredSaleReceiptPersist? deferredPersist;
     try {
       String branchId = ProxyService.box.getBranchId()!;
       List<brick.Counter> counters =
           await ProxyService.getStrategy(Strategy.capella).getCounters(
             branchId: ProxyService.box.getBranchId()!,
-            fetchRemote: !Platform.isWindows,
+            fetchRemote: deferPostSignReceiptPersist
+                ? false
+                : !Platform.isWindows,
           );
       // Determine the highest invoice number across all counters and use that
       // when assigning invoiceNumber. We still pass the specific `counter`
@@ -564,6 +677,7 @@ class TaxController<OBJ> {
             purchaseCode: purchaseCode,
             timeToUser: now,
             sarTyCd: sarTyCd,
+            preloadedItems: transactionItems,
           );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
@@ -697,23 +811,49 @@ class TaxController<OBJ> {
           }
         }
 
-        await saveReceipt(
-          receiptSignature,
-          transaction,
-          qrCode,
-          highestInvcNo,
-          receiptNumber,
-          whenCreated: now,
-          invoiceNumber: highestInvcNo,
-        );
+        if (deferPostSignReceiptPersist) {
+          presentationReceipt = buildPresentationReceipt(
+            receiptSignature: receiptSignature,
+            transaction: transaction,
+            qrCode: qrCode,
+            highestInvcNo: highestInvcNo,
+            receiptNumber: receiptNumber,
+            whenCreated: now,
+            receiptType: receiptType,
+          );
+          deferredPersist = DeferredSaleReceiptPersist(
+            receiptSignature: receiptSignature,
+            transaction: transaction,
+            qrCode: qrCode,
+            highestInvcNo: highestInvcNo,
+            receiptNumber: receiptNumber,
+            whenCreated: now,
+            counters: counters,
+            receiptType: receiptType,
+          );
+        } else {
+          await saveReceipt(
+            receiptSignature,
+            transaction,
+            qrCode,
+            highestInvcNo,
+            receiptNumber,
+            whenCreated: now,
+            invoiceNumber: highestInvcNo,
+          );
 
-        /// Ensure all counters of the same branch are synchronized
-        await ProxyService.strategy.updateCounters(
-          counters: counters,
-          receiptSignature: receiptSignature,
-        );
+          /// Ensure all counters of the same branch are synchronized
+          await ProxyService.strategy.updateCounters(
+            counters: counters,
+            receiptSignature: receiptSignature,
+          );
+        }
       }
-      return receiptSignature;
+      return (
+        response: receiptSignature,
+        presentationReceipt: presentationReceipt,
+        deferredPersist: deferredPersist,
+      );
     } catch (e, s) {
       talker.info(e);
       talker.error(s);
@@ -777,8 +917,7 @@ class TaxController<OBJ> {
   ///
   /// Returns a placeholder response if delegation succeeds, or rethrows the
   /// original error if delegation is not available or fails.
-  Future<({RwApiResponse response, Uint8List? bytes})>
-  _handleDelegationFallback({
+  Future<ReceiptHandleResult> _handleDelegationFallback({
     required ITransaction transaction,
     required String receiptType,
     String? purchaseCode,
@@ -825,6 +964,8 @@ class TaxController<OBJ> {
         return (
           response: RwApiResponse(resultCd: "000", resultMsg: "Delegated"),
           bytes: bytes,
+          presentationReceipt: null,
+          deferredPersist: null,
         );
       } catch (delegationError) {
         throw delegationError;

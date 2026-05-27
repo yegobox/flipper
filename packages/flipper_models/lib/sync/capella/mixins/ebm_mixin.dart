@@ -112,7 +112,7 @@ mixin CapellaEbmMixin implements EbmInterface {
   }
 
   @override
-  Future<void> saveEbm({
+  Future<bool> saveEbm({
     required String mrc,
     required String branchId,
     required String severUrl,
@@ -188,8 +188,10 @@ mixin CapellaEbmMixin implements EbmInterface {
         'mrc': updatedEbm.mrc,
         'data_connector_url': updatedEbm.dataConnectorUrl,
       });
+      return true;
     } catch (e) {
       talker.error('Capella saveEbm: Error saving EBM: $e');
+      return false;
     }
   }
 }

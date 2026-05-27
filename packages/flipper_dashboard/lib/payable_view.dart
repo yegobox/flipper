@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/typeDef.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -42,14 +43,29 @@ class PayableView extends HookConsumerWidget {
   /// re-entrant layout (`!_debugDoingThisLayout`) and unpainted
   /// [_RenderLayoutBuilder] in production.
   ///
-  /// Heuristic: narrow window, or landscape with a short viewport (typical
-  /// phone landscape with POS split — full [MediaQuery] width is still large).
-  static bool _useVerticalCheckoutBar(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    final landscape =
-        MediaQuery.orientationOf(context) == Orientation.landscape;
-    if (size.width < 560) return true;
-    if (landscape && size.height < 600) return true;
+  /// Heuristic: narrow checkout pane, or landscape with a short viewport.
+  /// Prefers [constraints] from the parent when bounded; falls back to
+  /// [MediaQuery] for loose/unbounded parents.
+  static bool _useVerticalCheckoutBar(
+    BuildContext context, {
+    BoxConstraints? constraints,
+  }) {
+    final width = constraints != null && constraints.maxWidth.isFinite
+        ? constraints.maxWidth
+        : MediaQuery.sizeOf(context).width;
+    final height = constraints != null && constraints.maxHeight.isFinite
+        ? constraints.maxHeight
+        : MediaQuery.sizeOf(context).height;
+    final landscape = constraints != null &&
+            constraints.maxWidth.isFinite &&
+            constraints.maxHeight.isFinite
+        ? constraints.maxWidth > constraints.maxHeight
+        : MediaQuery.orientationOf(context) == Orientation.landscape;
+    if (width < PosLayoutBreakpoints.payableVerticalBarMaxWidth) return true;
+    if (landscape &&
+        height < PosLayoutBreakpoints.payableVerticalBarMaxLandscapeHeight) {
+      return true;
+    }
     return false;
   }
 
@@ -64,23 +80,30 @@ class PayableView extends HookConsumerWidget {
       ),
     );
 
-    final body = _useVerticalCheckoutBar(context)
-        ? _buildVerticalLayout(
-            context,
-            ref,
-            transactionsAsync,
-            showTickets,
-          )
-        : _buildHorizontalLayout(
-            context,
-            ref,
-            transactionsAsync,
-            showTickets,
-          );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final body = _useVerticalCheckoutBar(
+          context,
+          constraints: constraints,
+        )
+            ? _buildVerticalLayout(
+                context,
+                ref,
+                transactionsAsync,
+                showTickets,
+              )
+            : _buildHorizontalLayout(
+                context,
+                ref,
+                transactionsAsync,
+                showTickets,
+              );
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
-      child: body,
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
+          child: body,
+        );
+      },
     );
   }
 

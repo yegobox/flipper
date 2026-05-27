@@ -4,7 +4,7 @@ publish_to: "none"
 #  ios : 1.184
 # macos : 1.181
 
-version: 1.185.4252223235233+1756529238
+version: 1.185.4252223235249+1756529254
 
 
 environment:
@@ -76,10 +76,10 @@ dependencies:
   dropdown_search: ^6.0.2
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
-  syncfusion_flutter_datagrid: ^29.2.11
-  syncfusion_flutter_xlsio: ^29.2.11
-  syncfusion_flutter_datagrid_export: ^29.2.11
-  syncfusion_flutter_core: ^29.2.11
+  syncfusion_flutter_datagrid: ^33.2.7
+  syncfusion_flutter_xlsio: ^33.2.7
+  syncfusion_flutter_datagrid_export: ^33.2.7
+  syncfusion_flutter_core: ^33.2.7
   flex_color_picker: ^3.7.1
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
@@ -114,15 +114,15 @@ dependencies:
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   # plugin_platform_interface: ^2.1.0
   web: ^1.1.0
-  archive: any
+  archive: ^4.0.9
   bidi: ^2.0.10
   crypto: ^3.0.7
   path_parsing: ">=0.2.0 <2.0.0"
   vector_math: ^2.1.0
   xml: ">=6.3.0 <7.0.0"
   dotted_line: ^3.2.2
-  syncfusion_flutter_pdf: ^29.2.11
-  syncfusion_flutter_barcodes: ^29.2.11
+  syncfusion_flutter_pdf: ^33.2.7
+  syncfusion_flutter_barcodes: ^33.2.7
   win32: ^5.14.0
   qr: ^3.0.2
   flutter_bloc: ^9.1.1
@@ -217,7 +217,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5126.0
+  msix_version: 1.170.5142.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE

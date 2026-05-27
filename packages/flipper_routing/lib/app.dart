@@ -389,7 +389,7 @@ class App {}
 //             "lastSaleRcptNo": null,
 //             "lastInvcNo": null,
 //             "lastSaleInvcNo": 7885983517,
-//             "lastTrainInvcNo": null,
+//             "lastTrainInvcNo": null,x
 //             "lastProfrmInvcNo": null,
 //             "lastCopyInvcNo": null,
 //             "vatTyCd": null
@@ -404,6 +404,7 @@ class App {}
 // fix nuget issue : winget install Microsoft.NuGet
 //Show things on second screen: https://pub.dev/packages/presentation_displays
 //  /usr/local/apache-tomcat-9.0.89/bin/startup.sh
+// online: /opt/tomcat9/bin
 // https://pub.dev/packages/requests_inspector
 
 // Now need to heavily use sizer: ^2.0.15 for managing the scalability

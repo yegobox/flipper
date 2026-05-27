@@ -43,6 +43,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   final Map<String, bool> _hasItemChanged = {};
   final Map<String, String> _itemErrors = {};
   String? _expandedItemId;
+  final Map<String, GlobalKey> _rowKeys = {};
+  ScrollController? _cartItemsScrollController;
+  double? _listViewportHeight;
 
   // Debouncing for text fields
   final Map<String, Timer?> _debounceTimers = {};
@@ -133,8 +136,48 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     for (final timer in _debounceTimers.values) {
       timer?.cancel();
     }
+    _cartItemsScrollController?.dispose();
     super.dispose();
   }
+
+  ScrollController get _itemsScrollController =>
+      _cartItemsScrollController ??= ScrollController();
+
+  GlobalKey _rowKeyFor(String id) => _rowKeys.putIfAbsent(id, GlobalKey.new);
+
+  void _toggleExpandedItem(String itemId, {required bool isSaving}) {
+    if (isSaving) return;
+    final wasExpanded = _expandedItemId == itemId;
+    setState(() {
+      _expandedItemId = wasExpanded ? null : itemId;
+    });
+    if (!wasExpanded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final ctx = _rowKeys[itemId]?.currentContext;
+        if (ctx != null) {
+          Scrollable.ensureVisible(
+            ctx,
+            alignment: 0.0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    }
+  }
+
+  bool get _useCompactExpandedControls {
+    final h = _listViewportHeight;
+    return h != null &&
+        h < PosLayoutBreakpoints.expandedCartRowCompactHeight;
+  }
+
+  EdgeInsets _fieldContentPadding({bool compact = false}) =>
+      EdgeInsets.symmetric(
+        vertical: compact ? 12 : 16,
+        horizontal: compact ? 12 : 16,
+      );
 
   @override
   void didUpdateWidget(covariant T oldWidget) {
@@ -314,7 +357,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   Widget _buildItemsList(bool isOrdering, {required bool scrollable}) {
     final visibleItems = _visibleTransactionItems;
-    return ListView.separated(
+    final listView = ListView.separated(
+      controller: scrollable ? _itemsScrollController : null,
       shrinkWrap: !scrollable,
       physics: scrollable
           ? const AlwaysScrollableScrollPhysics()
@@ -327,7 +371,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       ),
       itemBuilder: (context, index) {
         final item = visibleItems[index];
-        return _buildModernItemRow(item, isOrdering);
+        return KeyedSubtree(
+          key: _rowKeyFor(item.id),
+          child: _buildModernItemRow(item, isOrdering),
+        );
+      },
+    );
+    if (!scrollable) return listView;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _listViewportHeight = constraints.maxHeight;
+        return listView;
       },
     );
   }
@@ -567,13 +621,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           visualDensity: VisualDensity.compact,
           onPressed: isSaving
               ? null
-              : () {
-                  setState(() {
-                    _expandedItemId = _expandedItemId == item.id
-                        ? null
-                        : item.id;
-                  });
-                },
+              : () => _toggleExpandedItem(item.id, isSaving: isSaving),
           icon: Icon(
             _expandedItemId == item.id ? Icons.expand_less : Icons.expand_more,
             color: isSaving
@@ -597,65 +645,81 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  Widget _buildExpandedControls(TransactionItem item, bool isOrdering) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Quantity field
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Quantity',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildPrecisionQuantityField(item, isOrdering),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 20),
-
-              // Price field
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Unit Price',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildModernPriceField(item, isOrdering),
-                  ],
-                ),
-              ),
-            ],
+  Widget _buildExpandedFieldColumn({
+    required String label,
+    required Widget field,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[700],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        field,
+      ],
     );
   }
 
-  Widget _buildPrecisionQuantityField(TransactionItem item, bool isOrdering) {
+  Widget _buildExpandedControls(TransactionItem item, bool isOrdering) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compactWidth = constraints.maxWidth <
+            PosLayoutBreakpoints.expandedCartRowCompactWidth;
+        final compact = compactWidth || _useCompactExpandedControls;
+        final containerPadding = compact ? 12.0 : 16.0;
+        final quantityColumn = _buildExpandedFieldColumn(
+          label: 'Quantity',
+          field: _buildPrecisionQuantityField(
+            item,
+            isOrdering,
+            compact: compact,
+          ),
+        );
+        final priceColumn = _buildExpandedFieldColumn(
+          label: 'Unit Price',
+          field: _buildModernPriceField(item, isOrdering, compact: compact),
+        );
+
+        return Container(
+          padding: EdgeInsets.all(containerPadding),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: compact
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    quantityColumn,
+                    const SizedBox(height: 12),
+                    priceColumn,
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: quantityColumn),
+                    const SizedBox(width: 20),
+                    Expanded(child: priceColumn),
+                  ],
+                ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPrecisionQuantityField(
+    TransactionItem item,
+    bool isOrdering, {
+    bool compact = false,
+  }) {
     _initController(item);
     final controller = _quantityControllers[item.id]!;
     final focusNode = _quantityFocusNodes[item.id]!;
@@ -669,10 +733,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         prefixIcon: Icon(Icons.shopping_cart_outlined, color: Colors.grey[600]),
         suffixText: 'qty',
         suffixStyle: TextStyle(color: Colors.grey[600]),
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 16,
-        ),
+        contentPadding: _fieldContentPadding(compact: compact),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey[300]!),
@@ -710,7 +771,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  Widget _buildModernPriceField(TransactionItem item, bool isOrdering) {
+  Widget _buildModernPriceField(
+    TransactionItem item,
+    bool isOrdering, {
+    bool compact = false,
+  }) {
     _initController(item);
     final controller = _priceControllers[item.id]!;
     final focusNode = _priceFocusNodes[item.id]!;
@@ -742,10 +807,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         ),
         helperText: helperText,
         helperStyle: const TextStyle(color: Colors.blue, fontSize: 12),
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 16,
-        ),
+        contentPadding: _fieldContentPadding(compact: compact),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey[300]!),
