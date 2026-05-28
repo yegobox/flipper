@@ -237,6 +237,26 @@ Future<DailyReportPreviewResponse> previewDailyReportExcel({
   );
 }
 
+Future<DailyReportPresignResponse> createMergedDailyReportExcel({
+  required String branchId,
+  required List<String> objectKeys,
+  String? dataConnectorUrl,
+}) async {
+  if (objectKeys.length < 2) {
+    throw DailyReportDownloadException(
+      'Select at least two daily report files to merge.',
+    );
+  }
+  final base = await resolveDataConnectorBaseUrl(
+    dataConnectorUrl: dataConnectorUrl,
+  );
+  return mergeDailyReportExcels(
+    branchId: branchId,
+    objectKeys: objectKeys,
+    dataConnectorBaseUrl: base,
+  );
+}
+
 Future<String> mergeAndDownloadDailyReportExcels({
   required String branchId,
   required List<String> objectKeys,

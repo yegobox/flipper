@@ -7,11 +7,24 @@ import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/daily_report_files_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
+
+// Aligned with shift history / embedded dashboard screens.
+const Color _kBg = Color(0xFFF9FAFB);
+const Color _kBlue = Color(0xFF3B82F6);
+const Color _kGreen = Color(0xFF22C55E);
+const Color _kTextPrimary = Color(0xFF111827);
+const Color _kTextMuted = Color(0xFF6B7280);
+const Color _kBorder = Color(0xFFE5E7EB);
+const Color _kSelectedRow = Color(0xFFEFF6FF);
+const Color _kGreenSoft = Color(0xFFECFDF5);
+const Color _kSurfaceAlt = Color(0xFFF3F4F6);
 
 class DailyReportFilesScreen extends ConsumerStatefulWidget {
   const DailyReportFilesScreen({super.key});
@@ -23,19 +36,11 @@ class DailyReportFilesScreen extends ConsumerStatefulWidget {
 
 class _DailyReportFilesScreenState
     extends ConsumerState<DailyReportFilesScreen> {
-  static const Color _bg = Color(0xFFF7F8FA);
-  static const Color _ink = Color(0xFF151616);
-  static const Color _muted = Color(0xFF7A7D78);
-  static const Color _border = Color(0xFFE6E7E1);
-  static const Color _accent = Color(0xFF006AFE);
-  static const Color _green = Color(0xFF0F6F43);
-  static const Color _greenSoft = Color(0xFFEFF8F2);
-  static const Color _selected = Color(0xFFEAF3F0);
-
   // Use a row-unique key (not only `id`) because some Ditto rows can share IDs
   // (e.g. migrated docs missing `_id`/`id`, or repeated exports).
   final Set<String> _selectedKeys = {};
   bool _batchBusy = false;
+  String? _batchAction;
   String? _singleBusyId;
   DailyReportFile? _previewFile;
   Future<DailyReportPreviewResponse>? _previewFuture;
@@ -82,7 +87,7 @@ class _DailyReportFilesScreenState
         .toList(growable: false);
   }
 
-  Future<void> _download(
+  Future<String?> _download(
     DailyReportFile file, {
     required bool openAfterSave,
   }) async {
@@ -93,7 +98,7 @@ class _DailyReportFilesScreenState
         'No active branch.',
         type: NotificationType.error,
       );
-      return;
+      return null;
     }
     final key = file.s3ObjectKey?.trim();
     if (key == null || key.isEmpty) {
@@ -102,7 +107,7 @@ class _DailyReportFilesScreenState
         'This file has no storage key yet.',
         type: NotificationType.error,
       );
-      return;
+      return null;
     }
 
     final ebm = await ProxyService.strategy.ebm(
@@ -110,7 +115,7 @@ class _DailyReportFilesScreenState
       fetchRemote: false,
     );
 
-    await downloadDailyReportExcel(
+    return downloadDailyReportExcel(
       branchId: branchId,
       objectKey: key,
       dataConnectorUrl: ebm?.dataConnectorUrl,
@@ -190,7 +195,10 @@ class _DailyReportFilesScreenState
         .toList(growable: false);
     if (selected.isEmpty) return;
 
-    setState(() => _batchBusy = true);
+    setState(() {
+      _batchBusy = true;
+      _batchAction = 'download';
+    });
     try {
       for (var i = 0; i < selected.length; i++) {
         final last = i == selected.length - 1;
@@ -223,10 +231,82 @@ class _DailyReportFilesScreenState
       if (mounted) {
         setState(() {
           _batchBusy = false;
+          _batchAction = null;
           _selectedKeys.clear();
         });
       }
     }
+  }
+
+  Future<void> _onShareSelected(List<DailyReportFile> all) async {
+    if (kIsWeb) {
+      showCustomSnackBarUtil(
+        context,
+        'Sharing is not supported in the browser.',
+        type: NotificationType.error,
+      );
+      return;
+    }
+
+    final selected = all
+        .where((f) => _selectedKeys.contains(_rowKey(f)))
+        .toList(growable: false);
+    if (selected.isEmpty) return;
+
+    setState(() {
+      _batchBusy = true;
+      _batchAction = 'share';
+    });
+    try {
+      final xFiles = <XFile>[];
+      for (final file in selected) {
+        final path = await _download(file, openAfterSave: false);
+        if (path != null) {
+          xFiles.add(XFile(path));
+        }
+      }
+      if (xFiles.isEmpty) return;
+
+      await Share.shareXFiles(xFiles, subject: 'Daily reports');
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Shared ${xFiles.length} file(s)',
+          type: NotificationType.success,
+        );
+      }
+    } on DailyReportDownloadException catch (e) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          e.message,
+          type: NotificationType.error,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          e.toString(),
+          type: NotificationType.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _batchBusy = false;
+          _batchAction = null;
+        });
+      }
+    }
+  }
+
+  void _onArchiveSelected() {
+    showCustomSnackBarUtil(
+      context,
+      'Archive is not available yet.',
+      type: NotificationType.info,
+    );
   }
 
   Future<void> _onMergeSelected(List<DailyReportFile> all) async {
@@ -258,21 +338,25 @@ class _DailyReportFilesScreenState
       return;
     }
 
-    setState(() => _batchBusy = true);
+    setState(() {
+      _batchBusy = true;
+      _batchAction = 'merge';
+    });
     try {
       final ebm = await ProxyService.strategy.ebm(
         branchId: branchId,
         fetchRemote: false,
       );
-      await mergeAndDownloadDailyReportExcels(
+      await createMergedDailyReportExcel(
         branchId: branchId,
         objectKeys: objectKeys,
         dataConnectorUrl: ebm?.dataConnectorUrl,
       );
+      ref.invalidate(dailyReportFilesProvider(branchId));
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Merged ${selected.length} reports',
+          'Merged ${selected.length} reports. New workbook added to the list.',
           type: NotificationType.success,
         );
       }
@@ -296,6 +380,7 @@ class _DailyReportFilesScreenState
       if (mounted) {
         setState(() {
           _batchBusy = false;
+          _batchAction = null;
           _selectedKeys.clear();
         });
       }
@@ -320,7 +405,7 @@ class _DailyReportFilesScreenState
     final filesAsync = ref.watch(dailyReportFilesProvider(branchId));
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: _kBg,
       body: SafeArea(
         child: branchId.isEmpty
             ? _Shell(
@@ -329,6 +414,7 @@ class _DailyReportFilesScreenState
                 visibleFiles: const <DailyReportFile>[],
                 selectedKeys: _selectedKeys,
                 batchBusy: _batchBusy,
+                batchAction: _batchAction,
                 search: _search,
                 onSearchChanged: (_) => setState(() {}),
                 onSelectAll: () {},
@@ -337,6 +423,8 @@ class _DailyReportFilesScreenState
                     ref.invalidate(dailyReportFilesProvider(branchId)),
                 onDownloadSelected: null,
                 onMergeSelected: null,
+                onArchiveSelected: null,
+                onShareSelected: null,
                 child: _EmptyState(
                   title: 'No branch selected',
                   message: 'Select a branch to see the daily Excel exports.',
@@ -352,6 +440,7 @@ class _DailyReportFilesScreenState
                   visibleFiles: const <DailyReportFile>[],
                   selectedKeys: _selectedKeys,
                   batchBusy: _batchBusy,
+                  batchAction: _batchAction,
                   search: _search,
                   onSearchChanged: (_) => setState(() {}),
                   onSelectAll: () {},
@@ -360,6 +449,8 @@ class _DailyReportFilesScreenState
                       ref.invalidate(dailyReportFilesProvider(branchId)),
                   onDownloadSelected: null,
                   onMergeSelected: null,
+                  onArchiveSelected: null,
+                  onShareSelected: null,
                   child: const Center(child: CircularProgressIndicator()),
                 ),
                 error: (_, __) => _Shell(
@@ -368,6 +459,7 @@ class _DailyReportFilesScreenState
                   visibleFiles: const <DailyReportFile>[],
                   selectedKeys: _selectedKeys,
                   batchBusy: _batchBusy,
+                  batchAction: _batchAction,
                   search: _search,
                   onSearchChanged: (_) => setState(() {}),
                   onSelectAll: () {},
@@ -376,6 +468,8 @@ class _DailyReportFilesScreenState
                       ref.invalidate(dailyReportFilesProvider(branchId)),
                   onDownloadSelected: null,
                   onMergeSelected: null,
+                  onArchiveSelected: null,
+                  onShareSelected: null,
                   child: _EmptyState(
                     title: 'Could not load reports',
                     message: 'Check your connection and try again.',
@@ -392,6 +486,7 @@ class _DailyReportFilesScreenState
                     visibleFiles: visible,
                     selectedKeys: _selectedKeys,
                     batchBusy: _batchBusy,
+                    batchAction: _batchAction,
                     search: _search,
                     onSearchChanged: (_) => setState(() {}),
                     onSelectAll: () => _toggleAll(visible, select: true),
@@ -404,6 +499,12 @@ class _DailyReportFilesScreenState
                     onMergeSelected: _selectedKeys.length < 2
                         ? null
                         : () => _onMergeSelected(files),
+                    onArchiveSelected: _selectedKeys.isEmpty
+                        ? null
+                        : _onArchiveSelected,
+                    onShareSelected: _selectedKeys.isEmpty
+                        ? null
+                        : () => _onShareSelected(files),
                     previewFile: _previewFile,
                     previewFuture: _previewFuture,
                     onClosePreview: _closePreview,
@@ -481,6 +582,7 @@ class _Shell extends StatelessWidget {
     required this.visibleFiles,
     required this.selectedKeys,
     required this.batchBusy,
+    required this.batchAction,
     required this.search,
     required this.onSearchChanged,
     required this.onSelectAll,
@@ -488,6 +590,8 @@ class _Shell extends StatelessWidget {
     required this.onRefresh,
     required this.onDownloadSelected,
     required this.onMergeSelected,
+    required this.onArchiveSelected,
+    required this.onShareSelected,
     required this.child,
     this.previewFile,
     this.previewFuture,
@@ -500,6 +604,7 @@ class _Shell extends StatelessWidget {
   final List<DailyReportFile> visibleFiles;
   final Set<String> selectedKeys;
   final bool batchBusy;
+  final String? batchAction;
   final TextEditingController search;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onSelectAll;
@@ -507,6 +612,8 @@ class _Shell extends StatelessWidget {
   final VoidCallback onRefresh;
   final VoidCallback? onDownloadSelected;
   final VoidCallback? onMergeSelected;
+  final VoidCallback? onArchiveSelected;
+  final VoidCallback? onShareSelected;
   final DailyReportFile? previewFile;
   final Future<DailyReportPreviewResponse>? previewFuture;
   final VoidCallback? onClosePreview;
@@ -559,6 +666,9 @@ class _Shell extends StatelessWidget {
           _SelectionBar(
             selectedCount: selectedKeys.length,
             busy: batchBusy,
+            busyAction: batchAction,
+            onArchive: onArchiveSelected,
+            onShare: onShareSelected,
             onDownload: onDownloadSelected,
             onMerge: onMergeSelected,
             onClose: onClearSelection,
@@ -590,7 +700,7 @@ class _HeroHeader extends StatelessWidget {
         Text(
           'Daily Reports',
           style: GoogleFonts.outfit(
-            color: _DailyReportFilesScreenState._ink,
+            color: _kTextPrimary,
             fontSize: 34,
             height: 1.05,
             fontWeight: FontWeight.w800,
@@ -613,7 +723,7 @@ class _HeroHeader extends StatelessWidget {
               ],
             ),
             style: GoogleFonts.outfit(
-              color: const Color(0xFF5F625D),
+              color: _kTextMuted,
               fontSize: 16,
               height: 1.42,
               fontWeight: FontWeight.w400,
@@ -675,7 +785,7 @@ class _HeaderButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: filled ? _DailyReportFilesScreenState._ink : Colors.white,
+      color: filled ? _kBlue : Colors.white,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
@@ -685,11 +795,7 @@ class _HeaderButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: filled
-                  ? _DailyReportFilesScreenState._ink
-                  : _DailyReportFilesScreenState._border,
-            ),
+            border: Border.all(color: filled ? _kBlue : _kBorder),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: filled ? .12 : .04),
@@ -704,17 +810,13 @@ class _HeaderButton extends StatelessWidget {
               DashboardQuickAccessSvgs.assetIcon(
                 icon,
                 size: 18,
-                color: filled
-                    ? Colors.white
-                    : _DailyReportFilesScreenState._ink,
+                color: filled ? Colors.white : _kTextPrimary,
               ),
               const SizedBox(width: 9),
               Text(
                 label,
                 style: GoogleFonts.outfit(
-                  color: filled
-                      ? Colors.white
-                      : _DailyReportFilesScreenState._ink,
+                  color: filled ? Colors.white : _kTextPrimary,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
@@ -724,9 +826,7 @@ class _HeaderButton extends StatelessWidget {
                 DashboardQuickAccessSvgs.assetIcon(
                   trailing!,
                   size: 18,
-                  color: filled
-                      ? Colors.white
-                      : _DailyReportFilesScreenState._ink,
+                  color: filled ? Colors.white : _kTextPrimary,
                 ),
               ],
             ],
@@ -764,7 +864,7 @@ class _KpiStrip extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _DailyReportFilesScreenState._border),
+        border: Border.all(color: _kBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: .04),
@@ -845,7 +945,7 @@ class _KpiCell extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.outfit(
-              color: _DailyReportFilesScreenState._muted,
+              color: _kTextMuted,
               fontSize: 13,
               letterSpacing: 3,
               fontWeight: FontWeight.w600,
@@ -856,7 +956,7 @@ class _KpiCell extends StatelessWidget {
             value,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
-              color: _DailyReportFilesScreenState._ink,
+              color: _kTextPrimary,
               fontSize: 30,
               height: 1,
               fontWeight: FontWeight.w800,
@@ -867,7 +967,7 @@ class _KpiCell extends StatelessWidget {
             caption,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
-              color: _DailyReportFilesScreenState._muted,
+              color: _kTextMuted,
               fontSize: 14,
               fontWeight: FontWeight.w400,
             ),
@@ -885,11 +985,7 @@ class _VerticalRule extends StatelessWidget {
   Widget build(BuildContext context) {
     return const SizedBox(
       height: double.infinity,
-      child: VerticalDivider(
-        width: 1,
-        thickness: 1,
-        color: _DailyReportFilesScreenState._border,
-      ),
+      child: VerticalDivider(width: 1, thickness: 1, color: _kBorder),
     );
   }
 }
@@ -925,7 +1021,7 @@ class _ListFrame extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _DailyReportFilesScreenState._border),
+          border: Border.all(color: _kBorder),
         ),
         child: Column(
           children: [
@@ -933,11 +1029,7 @@ class _ListFrame extends StatelessWidget {
               height: 58,
               padding: const EdgeInsets.symmetric(horizontal: 18),
               decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: _DailyReportFilesScreenState._border,
-                  ),
-                ),
+                border: Border(bottom: BorderSide(color: _kBorder)),
               ),
               child: Row(
                 children: [
@@ -949,7 +1041,7 @@ class _ListFrame extends StatelessWidget {
                       onChanged: (_) => selectedCount > 0
                           ? onClearSelection()
                           : onSelectAll(),
-                      activeColor: _DailyReportFilesScreenState._ink,
+                      activeColor: _kBlue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -961,7 +1053,7 @@ class _ListFrame extends StatelessWidget {
                         ? '$selectedCount selected'
                         : '${allFiles.length} files',
                     style: GoogleFonts.outfit(
-                      color: _DailyReportFilesScreenState._ink,
+                      color: _kTextPrimary,
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
                     ),
@@ -971,7 +1063,7 @@ class _ListFrame extends StatelessWidget {
                     TextButton(
                       onPressed: onClearSelection,
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF5F625D),
+                        foregroundColor: _kTextMuted,
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 36),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -980,7 +1072,7 @@ class _ListFrame extends StatelessWidget {
                         'Clear selection',
                         style: GoogleFonts.outfit(
                           decoration: TextDecoration.underline,
-                          decorationColor: const Color(0xFF5F625D),
+                          decorationColor: _kTextMuted,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -990,13 +1082,13 @@ class _ListFrame extends StatelessWidget {
                   DashboardQuickAccessSvgs.assetIcon(
                     DashboardQuickAccessSvgs.clock,
                     size: 17,
-                    color: _DailyReportFilesScreenState._muted,
+                    color: _kTextMuted,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     'Auto-syncs every 5 min',
                     style: GoogleFonts.outfit(
-                      color: _DailyReportFilesScreenState._muted,
+                      color: _kTextMuted,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1008,12 +1100,8 @@ class _ListFrame extends StatelessWidget {
               height: 68,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               decoration: const BoxDecoration(
-                color: Color(0xFFFBFCFB),
-                border: Border(
-                  bottom: BorderSide(
-                    color: _DailyReportFilesScreenState._border,
-                  ),
-                ),
+                color: _kSurfaceAlt,
+                border: Border(bottom: BorderSide(color: _kBorder)),
               ),
               child: Row(
                 children: [
@@ -1022,14 +1110,14 @@ class _ListFrame extends StatelessWidget {
                       controller: search,
                       onChanged: onSearchChanged,
                       style: GoogleFonts.outfit(
-                        color: _DailyReportFilesScreenState._ink,
+                        color: _kTextPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Search by report name, date, or ID...',
                         hintStyle: GoogleFonts.outfit(
-                          color: _DailyReportFilesScreenState._muted,
+                          color: _kTextMuted,
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
                         ),
@@ -1038,7 +1126,7 @@ class _ListFrame extends StatelessWidget {
                           child: DashboardQuickAccessSvgs.assetIcon(
                             DashboardQuickAccessSvgs.search,
                             size: 20,
-                            color: _DailyReportFilesScreenState._muted,
+                            color: _kTextMuted,
                           ),
                         ),
                         suffixIcon: Container(
@@ -1046,16 +1134,14 @@ class _ListFrame extends StatelessWidget {
                           alignment: Alignment.center,
                           margin: const EdgeInsets.all(7),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF5F4F0),
+                            color: _kSurfaceAlt,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: _DailyReportFilesScreenState._border,
-                            ),
+                            border: Border.all(color: _kBorder),
                           ),
                           child: Text(
                             '#K',
                             style: GoogleFonts.outfit(
-                              color: _DailyReportFilesScreenState._muted,
+                              color: _kTextMuted,
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
@@ -1069,9 +1155,7 @@ class _ListFrame extends StatelessWidget {
                         ),
                         border: _outline(),
                         enabledBorder: _outline(),
-                        focusedBorder: _outline(
-                          color: _DailyReportFilesScreenState._accent,
-                        ),
+                        focusedBorder: _outline(color: _kBlue),
                       ),
                     ),
                   ),
@@ -1100,7 +1184,7 @@ class _ListFrame extends StatelessWidget {
                     onPressed: onRefresh,
                     icon: DashboardQuickAccessSvgs.assetIcon(
                       DashboardQuickAccessSvgs.refresh,
-                      color: _DailyReportFilesScreenState._ink,
+                      color: _kTextPrimary,
                     ),
                   ),
                 ],
@@ -1113,9 +1197,7 @@ class _ListFrame extends StatelessWidget {
     );
   }
 
-  OutlineInputBorder _outline({
-    Color color = _DailyReportFilesScreenState._border,
-  }) {
+  OutlineInputBorder _outline({Color color = _kBorder}) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
       borderSide: BorderSide(color: color),
@@ -1142,13 +1224,9 @@ class _ToolChip extends StatelessWidget {
       height: 42,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: filled ? _DailyReportFilesScreenState._ink : Colors.white,
+        color: filled ? _kBlue : Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: filled
-              ? _DailyReportFilesScreenState._ink
-              : _DailyReportFilesScreenState._border,
-        ),
+        border: Border.all(color: filled ? _kBlue : _kBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1156,14 +1234,14 @@ class _ToolChip extends StatelessWidget {
           DashboardQuickAccessSvgs.assetIcon(
             icon,
             size: 18,
-            color: filled ? Colors.white : _DailyReportFilesScreenState._ink,
+            color: filled ? Colors.white : _kTextPrimary,
           ),
           if (label.isNotEmpty) ...[
             const SizedBox(width: 8),
             Text(
               label,
               style: GoogleFonts.outfit(
-                color: _DailyReportFilesScreenState._muted,
+                color: _kTextMuted,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -1173,7 +1251,7 @@ class _ToolChip extends StatelessWidget {
           Text(
             value,
             style: GoogleFonts.outfit(
-              color: filled ? Colors.white : _DailyReportFilesScreenState._ink,
+              color: filled ? Colors.white : _kTextPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w800,
             ),
@@ -1183,7 +1261,7 @@ class _ToolChip extends StatelessWidget {
             DashboardQuickAccessSvgs.assetIcon(
               DashboardQuickAccessSvgs.chevronDown,
               size: 18,
-              color: _DailyReportFilesScreenState._ink,
+              color: _kTextPrimary,
             ),
           ],
         ],
@@ -1284,16 +1362,14 @@ class _GroupHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: _DailyReportFilesScreenState._border),
-        ),
+        border: Border(bottom: BorderSide(color: _kBorder)),
       ),
       child: Row(
         children: [
           Text(
             title,
             style: GoogleFonts.outfit(
-              color: const Color(0xFF555852),
+              color: _kTextMuted,
               fontSize: 13,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.4,
@@ -1305,14 +1381,14 @@ class _GroupHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: const Color(0xFFFBFCFB),
+              color: _kSurfaceAlt,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _DailyReportFilesScreenState._border),
+              border: Border.all(color: _kBorder),
             ),
             child: Text(
               'Today',
               style: GoogleFonts.outfit(
-                color: _DailyReportFilesScreenState._muted,
+                color: _kTextMuted,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -1322,7 +1398,7 @@ class _GroupHeader extends StatelessWidget {
           Text(
             '$count ${count == 1 ? 'file' : 'files'}',
             style: GoogleFonts.outfit(
-              color: _DailyReportFilesScreenState._muted,
+              color: _kTextMuted,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -1360,7 +1436,7 @@ class _FileRow extends StatelessWidget {
     final category = _category(file);
 
     return Material(
-      color: selected ? _DailyReportFilesScreenState._selected : Colors.white,
+      color: selected ? _kSelectedRow : Colors.white,
       child: InkWell(
         onTap: busy ? null : onPreview,
         child: Container(
@@ -1368,19 +1444,10 @@ class _FileRow extends StatelessWidget {
           decoration: BoxDecoration(
             border: selected
                 ? const Border(
-                    left: BorderSide(
-                      color: _DailyReportFilesScreenState._green,
-                      width: 3,
-                    ),
-                    bottom: BorderSide(
-                      color: _DailyReportFilesScreenState._border,
-                    ),
+                    left: BorderSide(color: _kBlue, width: 3),
+                    bottom: BorderSide(color: _kBorder),
                   )
-                : const Border(
-                    bottom: BorderSide(
-                      color: _DailyReportFilesScreenState._border,
-                    ),
-                  ),
+                : const Border(bottom: BorderSide(color: _kBorder)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 18),
           child: Row(
@@ -1388,7 +1455,7 @@ class _FileRow extends StatelessWidget {
               Checkbox(
                 value: selected,
                 onChanged: busy ? null : (_) => onToggle(),
-                activeColor: _DailyReportFilesScreenState._ink,
+                activeColor: _kBlue,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
@@ -1401,7 +1468,7 @@ class _FileRow extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFDDECE2)),
+                  border: Border.all(color: _kBorder),
                 ),
                 child: DashboardQuickAccessSvgs.assetIcon(
                   DashboardQuickAccessSvgs.fileExcel,
@@ -1422,7 +1489,7 @@ class _FileRow extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.outfit(
-                              color: _DailyReportFilesScreenState._ink,
+                              color: _kTextPrimary,
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
                             ),
@@ -1434,7 +1501,7 @@ class _FileRow extends StatelessWidget {
                         Text(
                           '.xlsx',
                           style: GoogleFonts.outfit(
-                            color: _DailyReportFilesScreenState._muted,
+                            color: _kTextMuted,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -1484,7 +1551,7 @@ class _FileRow extends StatelessWidget {
                 icon: DashboardQuickAccessSvgs.assetIcon(
                   DashboardQuickAccessSvgs.eye,
                   size: 20,
-                  color: _DailyReportFilesScreenState._ink,
+                  color: _kTextPrimary,
                 ),
               ),
               IconButton(
@@ -1499,7 +1566,7 @@ class _FileRow extends StatelessWidget {
                     : DashboardQuickAccessSvgs.assetIcon(
                         DashboardQuickAccessSvgs.download,
                         size: 21,
-                        color: _DailyReportFilesScreenState._green,
+                        color: _kGreen,
                       ),
               ),
               IconButton(
@@ -1508,7 +1575,7 @@ class _FileRow extends StatelessWidget {
                 icon: DashboardQuickAccessSvgs.assetIcon(
                   DashboardQuickAccessSvgs.more,
                   size: 22,
-                  color: _DailyReportFilesScreenState._ink,
+                  color: _kTextPrimary,
                 ),
               ),
             ],
@@ -1522,6 +1589,9 @@ class _FileRow extends StatelessWidget {
     final raw = (file.fileName ?? file.type).trim();
     if (raw.isEmpty) return 'Daily Transactions';
     final lower = raw.toLowerCase();
+    if (lower.contains('merged')) {
+      return _mergedDisplayName(raw);
+    }
     if (lower.contains('daily_transactions') ||
         lower.contains('daily transactions') ||
         file.type.toLowerCase().contains('transaction')) {
@@ -1564,6 +1634,30 @@ class _FileRow extends StatelessWidget {
         .join(' ');
   }
 
+  static String _mergedDisplayName(String raw) {
+    final withoutExtension = raw.replaceAll(
+      RegExp(r'\.xlsx$', caseSensitive: false),
+      '',
+    );
+    final dates = RegExp(
+      r'\d{4}-\d{2}-\d{2}',
+    ).allMatches(withoutExtension).map((m) => m.group(0)!).toList();
+    if (dates.length >= 2) {
+      return '${dates.first} - ${dates.last} (merged)';
+    }
+    if (dates.length == 1) {
+      return '${dates.first} (merged)';
+    }
+    return withoutExtension
+        .replaceAll(
+          RegExp(r'^daily[-_\s]*transactions[-_\s]*', caseSensitive: false),
+          '',
+        )
+        .replaceAll(RegExp(r'[-_]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
   static String _shortId(DailyReportFile file) {
     final source = (file.runId ?? file.id).replaceAll('-', '').trim();
     if (source.isEmpty) return 'report';
@@ -1571,6 +1665,9 @@ class _FileRow extends StatelessWidget {
   }
 
   static String _category(DailyReportFile file) {
+    if ((file.fileName ?? '').toLowerCase().contains('merged')) {
+      return 'Merged workbook';
+    }
     if ((file.implementation ?? '').trim().isNotEmpty) {
       return file.implementation!.trim();
     }
@@ -1586,7 +1683,7 @@ class _FileRow extends StatelessWidget {
 
   static TextStyle _metaStyle(BuildContext context, {bool strong = false}) {
     return GoogleFonts.outfit(
-      color: _DailyReportFilesScreenState._muted,
+      color: _kTextMuted,
       fontSize: 14,
       fontWeight: strong ? FontWeight.w700 : FontWeight.w500,
     );
@@ -1599,7 +1696,7 @@ class _Dot extends StatelessWidget {
     return Text(
       '•',
       style: GoogleFonts.outfit(
-        color: _DailyReportFilesScreenState._muted,
+        color: _kTextMuted,
         fontSize: 14,
         fontWeight: FontWeight.w700,
       ),
@@ -1621,12 +1718,12 @@ class _CodePill extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: _DailyReportFilesScreenState._border),
+        border: Border.all(color: _kBorder),
       ),
       child: Text(
         text,
         style: GoogleFonts.outfit(
-          color: const Color(0xFF60635F),
+          color: _kTextMuted,
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
@@ -1647,7 +1744,7 @@ class _NewPill extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 12),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: _DailyReportFilesScreenState._green,
+        color: _kGreen,
         borderRadius: BorderRadius.circular(compact ? 4 : 16),
       ),
       child: Text(
@@ -1670,16 +1767,12 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = ready
-        ? _DailyReportFilesScreenState._green
-        : _DailyReportFilesScreenState._muted;
+    final color = ready ? _kGreen : _kTextMuted;
     return Container(
       height: 30,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: ready
-            ? _DailyReportFilesScreenState._greenSoft
-            : const Color(0xFFF0EFEA),
+        color: ready ? _kGreenSoft : _kSurfaceAlt,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
@@ -1782,9 +1875,7 @@ class _PreviewPanel extends StatelessWidget {
             height: 98,
             padding: const EdgeInsets.symmetric(horizontal: 28),
             decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: _DailyReportFilesScreenState._border),
-              ),
+              border: Border(bottom: BorderSide(color: _kBorder)),
             ),
             child: Row(
               children: [
@@ -1794,7 +1885,7 @@ class _PreviewPanel extends StatelessWidget {
                   icon: DashboardQuickAccessSvgs.assetIcon(
                     DashboardQuickAccessSvgs.x,
                     size: 22,
-                    color: _DailyReportFilesScreenState._ink,
+                    color: _kTextPrimary,
                   ),
                 ),
                 const SizedBox(width: 18),
@@ -1808,7 +1899,7 @@ class _PreviewPanel extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
-                          color: _DailyReportFilesScreenState._muted,
+                          color: _kTextMuted,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 3,
@@ -1820,7 +1911,7 @@ class _PreviewPanel extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
-                          color: _DailyReportFilesScreenState._ink,
+                          color: _kTextPrimary,
                           fontSize: 23,
                           fontWeight: FontWeight.w800,
                           height: 1.05,
@@ -1888,7 +1979,7 @@ class _PreviewIconButton extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _DailyReportFilesScreenState._border),
+            border: Border.all(color: _kBorder),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: .05),
@@ -1902,7 +1993,7 @@ class _PreviewIconButton extends StatelessWidget {
             child: DashboardQuickAccessSvgs.assetIcon(
               icon,
               size: 21,
-              color: _DailyReportFilesScreenState._ink,
+              color: _kTextPrimary,
             ),
           ),
         ),
@@ -1919,7 +2010,7 @@ class _PreviewDownloadButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: _DailyReportFilesScreenState._ink,
+      color: _kTextPrimary,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
@@ -1974,7 +2065,7 @@ class _PreviewBody extends StatelessWidget {
               Text(
                 'PREVIEW',
                 style: GoogleFonts.outfit(
-                  color: _DailyReportFilesScreenState._muted,
+                  color: _kTextMuted,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 3,
@@ -1984,7 +2075,7 @@ class _PreviewBody extends StatelessWidget {
               Text(
                 'FIRST $firstRows OF ${NumberFormat.decimalPattern().format(preview.rows)} ROWS',
                 style: GoogleFonts.outfit(
-                  color: _DailyReportFilesScreenState._muted,
+                  color: _kTextMuted,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 3,
@@ -1998,7 +2089,7 @@ class _PreviewBody extends StatelessWidget {
           Text(
             'RAW FILENAME',
             style: GoogleFonts.outfit(
-              color: _DailyReportFilesScreenState._muted,
+              color: _kTextMuted,
               fontSize: 13,
               fontWeight: FontWeight.w600,
               letterSpacing: 3,
@@ -2011,16 +2102,16 @@ class _PreviewBody extends StatelessWidget {
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFFBFCFB),
+              color: _kSurfaceAlt,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _DailyReportFilesScreenState._border),
+              border: Border.all(color: _kBorder),
             ),
             child: Text(
               preview.fileName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.outfit(
-                color: const Color(0xFF4F524D),
+                color: _kTextMuted,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
               ),
@@ -2057,7 +2148,7 @@ class _PreviewStatsGrid extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _DailyReportFilesScreenState._border),
+        border: Border.all(color: _kBorder),
       ),
       child: GridView.builder(
         shrinkWrap: true,
@@ -2075,14 +2166,10 @@ class _PreviewStatsGrid extends StatelessWidget {
               border: Border(
                 right: (index + 1) % 3 == 0
                     ? BorderSide.none
-                    : const BorderSide(
-                        color: _DailyReportFilesScreenState._border,
-                      ),
+                    : const BorderSide(color: _kBorder),
                 bottom: index >= 3
                     ? BorderSide.none
-                    : const BorderSide(
-                        color: _DailyReportFilesScreenState._border,
-                      ),
+                    : const BorderSide(color: _kBorder),
               ),
             ),
             child: Column(
@@ -2094,7 +2181,7 @@ class _PreviewStatsGrid extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
-                    color: _DailyReportFilesScreenState._muted,
+                    color: _kTextMuted,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 3,
@@ -2106,7 +2193,7 @@ class _PreviewStatsGrid extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
-                    color: _DailyReportFilesScreenState._ink,
+                    color: _kTextPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                   ),
@@ -2153,7 +2240,7 @@ class _SpreadsheetPreview extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _DailyReportFilesScreenState._border),
+        border: Border.all(color: _kBorder),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -2169,18 +2256,14 @@ class _SpreadsheetPreview extends StatelessWidget {
                       width: 160,
                       alignment: Alignment.center,
                       decoration: const BoxDecoration(
-                        border: Border(
-                          right: BorderSide(
-                            color: _DailyReportFilesScreenState._border,
-                          ),
-                        ),
+                        border: Border(right: BorderSide(color: _kBorder)),
                       ),
                       child: Text(
                         preview.sheetName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
-                          color: _DailyReportFilesScreenState._ink,
+                          color: _kTextPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
                         ),
@@ -2190,16 +2273,12 @@ class _SpreadsheetPreview extends StatelessWidget {
                       width: 50,
                       alignment: Alignment.center,
                       decoration: const BoxDecoration(
-                        border: Border(
-                          right: BorderSide(
-                            color: _DailyReportFilesScreenState._border,
-                          ),
-                        ),
+                        border: Border(right: BorderSide(color: _kBorder)),
                       ),
                       child: Text(
                         '+',
                         style: GoogleFonts.outfit(
-                          color: _DailyReportFilesScreenState._muted,
+                          color: _kTextMuted,
                           fontSize: 20,
                           fontWeight: FontWeight.w400,
                         ),
@@ -2259,16 +2338,16 @@ class _SheetRow extends StatelessWidget {
             width: 46,
             alignment: Alignment.center,
             decoration: const BoxDecoration(
-              color: Color(0xFFFBFCFB),
+              color: _kSurfaceAlt,
               border: Border(
-                top: BorderSide(color: _DailyReportFilesScreenState._border),
-                right: BorderSide(color: _DailyReportFilesScreenState._border),
+                top: BorderSide(color: _kBorder),
+                right: BorderSide(color: _kBorder),
               ),
             ),
             child: Text(
               rowNumber,
               style: GoogleFonts.outfit(
-                color: _DailyReportFilesScreenState._muted,
+                color: _kTextMuted,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -2282,12 +2361,10 @@ class _SheetRow extends StatelessWidget {
                   : Alignment.centerRight,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: isLetterRow ? const Color(0xFFFBFCFB) : Colors.white,
+                color: isLetterRow ? _kSurfaceAlt : Colors.white,
                 border: const Border(
-                  top: BorderSide(color: _DailyReportFilesScreenState._border),
-                  right: BorderSide(
-                    color: _DailyReportFilesScreenState._border,
-                  ),
+                  top: BorderSide(color: _kBorder),
+                  right: BorderSide(color: _kBorder),
                 ),
               ),
               child: Text(
@@ -2295,9 +2372,7 @@ class _SheetRow extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.outfit(
-                  color: isLetterRow
-                      ? _DailyReportFilesScreenState._muted
-                      : _DailyReportFilesScreenState._ink,
+                  color: isLetterRow ? _kTextMuted : _kTextPrimary,
                   fontSize: isLetterRow ? 12 : 15,
                   fontWeight: isHeader ? FontWeight.w800 : FontWeight.w500,
                 ),
@@ -2323,7 +2398,7 @@ class _PreviewError extends StatelessWidget {
           message,
           textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
-            color: _DailyReportFilesScreenState._muted,
+            color: _kTextMuted,
             fontSize: 15,
             height: 1.4,
             fontWeight: FontWeight.w500,
@@ -2346,6 +2421,9 @@ class _SelectionBar extends StatelessWidget {
   const _SelectionBar({
     required this.selectedCount,
     required this.busy,
+    required this.busyAction,
+    required this.onArchive,
+    required this.onShare,
     required this.onDownload,
     required this.onMerge,
     required this.onClose,
@@ -2353,107 +2431,153 @@ class _SelectionBar extends StatelessWidget {
 
   final int selectedCount;
   final bool busy;
+  final String? busyAction;
+  final VoidCallback? onArchive;
+  final VoidCallback? onShare;
   final VoidCallback? onDownload;
   final VoidCallback? onMerge;
   final VoidCallback onClose;
 
+  static final _buttonShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(8),
+  );
+
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final iconOnly = width < 720;
+    final canMerge = selectedCount > 1 && onMerge != null;
+
     return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 24,
-      child: Center(
-        child: Container(
-          height: 66,
-          constraints: const BoxConstraints(maxWidth: 1120),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF121310),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF30312E)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: .28),
-                blurRadius: 28,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Text(
-                NumberFormat.decimalPattern().format(selectedCount),
-                style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontSize: 29,
-                  height: 1,
-                  fontWeight: FontWeight.w900,
+      left: 16,
+      right: 16,
+      bottom: 20,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Material(
+          elevation: 6,
+          shadowColor: Colors.black.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 960),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _kBorder),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+                  child: Row(
+                    children: [
+                      Text(
+                        NumberFormat.decimalPattern().format(selectedCount),
+                        style: GoogleFonts.outfit(
+                          color: _kTextPrimary,
+                          fontSize: 24,
+                          height: 1,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              selectedCount == 1
+                                  ? 'file selected'
+                                  : 'files selected',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: _kTextPrimary,
+                                height: 1.2,
+                              ),
+                            ),
+                            Text(
+                              _selectedSizeLabel(selectedCount),
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: _kTextMuted,
+                                height: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          reverse: true,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _SelectionBarButton(
+                                icon: DashboardQuickAccessSvgs.archive,
+                                label: 'Archive',
+                                iconOnly: iconOnly,
+                                busy: busy && busyAction == 'archive',
+                                onPressed: busy ? null : onArchive,
+                              ),
+                              const SizedBox(width: 8),
+                              _SelectionBarButton(
+                                icon: DashboardQuickAccessSvgs.share,
+                                label: 'Share',
+                                iconOnly: iconOnly,
+                                busy: busy && busyAction == 'share',
+                                onPressed: busy ? null : onShare,
+                              ),
+                              const SizedBox(width: 8),
+                              _SelectionBarButton(
+                                icon: DashboardQuickAccessSvgs.download,
+                                label: 'Download',
+                                iconOnly: iconOnly,
+                                busy: busy && busyAction == 'download',
+                                onPressed: busy ? null : onDownload,
+                              ),
+                              if (canMerge) ...[
+                                const SizedBox(width: 8),
+                                _SelectionBarButton(
+                                  icon: DashboardQuickAccessSvgs.stack,
+                                  label: 'Merge into one workbook',
+                                  iconOnly: iconOnly,
+                                  filled: true,
+                                  busy: busy && busyAction == 'merge',
+                                  onPressed: busy ? null : onMerge,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Close',
+                        onPressed: busy ? null : onClose,
+                        icon: DashboardQuickAccessSvgs.assetIcon(
+                          DashboardQuickAccessSvgs.x,
+                          size: 20,
+                          color: _kTextMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                selectedCount == 1 ? 'file selected' : 'files selected',
-                style: GoogleFonts.outfit(
-                  color: const Color(0xFFD0D0CC),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Container(
-                height: 28,
-                width: 1,
-                margin: const EdgeInsets.symmetric(horizontal: 26),
-                color: const Color(0xFF3B3C38),
-              ),
-              Text(
-                _selectedSizeLabel(selectedCount),
-                style: GoogleFonts.outfit(
-                  color: const Color(0xFFA8AAA3),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              _SelectionAction(
-                icon: DashboardQuickAccessSvgs.archive,
-                label: 'Archive',
-                onTap: () {},
-              ),
-              const SizedBox(width: 8),
-              _SelectionAction(
-                icon: DashboardQuickAccessSvgs.share,
-                label: 'Share',
-                onTap: () {},
-              ),
-              const SizedBox(width: 8),
-              _SelectionAction(
-                icon: DashboardQuickAccessSvgs.download,
-                label: 'Download',
-                busy: busy,
-                onTap: onDownload,
-              ),
-              if (selectedCount > 1) ...[
-                const SizedBox(width: 8),
-                _SelectionAction(
-                  icon: DashboardQuickAccessSvgs.stack,
-                  label: 'Merge into one workbook',
-                  filled: true,
-                  busy: busy,
-                  onTap: onMerge,
-                ),
+                if (busy)
+                  const LinearProgressIndicator(
+                    minHeight: 2,
+                    backgroundColor: _kBorder,
+                    color: _kBlue,
+                  ),
               ],
-              const SizedBox(width: 16),
-              IconButton(
-                tooltip: 'Close',
-                onPressed: onClose,
-                icon: DashboardQuickAccessSvgs.assetIcon(
-                  DashboardQuickAccessSvgs.x,
-                  size: 20,
-                  color: const Color(0xFFB7B8B3),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -2468,68 +2592,84 @@ class _SelectionBar extends StatelessWidget {
   }
 }
 
-class _SelectionAction extends StatelessWidget {
-  const _SelectionAction({
+class _SelectionBarButton extends StatelessWidget {
+  const _SelectionBarButton({
     required this.icon,
     required this.label,
-    required this.onTap,
+    required this.iconOnly,
+    required this.onPressed,
     this.filled = false,
     this.busy = false,
   });
 
   final String icon;
   final String label;
-  final VoidCallback? onTap;
+  final bool iconOnly;
+  final VoidCallback? onPressed;
   final bool filled;
   final bool busy;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: filled ? _DailyReportFilesScreenState._green : Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: busy ? null : onTap,
-        child: Container(
-          height: 46,
-          padding: EdgeInsets.symmetric(horizontal: filled ? 20 : 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: filled ? const Color(0xFF1F8054) : const Color(0xFF3D3E3A),
-            ),
+    final fg = filled ? Colors.white : _kTextPrimary;
+    final iconWidget = busy
+        ? SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2, color: fg),
+          )
+        : DashboardQuickAccessSvgs.assetIcon(icon, size: 18, color: fg);
+
+    if (filled) {
+      return FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: _kBlue,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: _kBlue.withValues(alpha: 0.5),
+          padding: EdgeInsets.symmetric(
+            horizontal: iconOnly ? 12 : 16,
+            vertical: 10,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (busy && label.contains('Download'))
-                const SizedBox(
-                  width: 17,
-                  height: 17,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              else
-                DashboardQuickAccessSvgs.assetIcon(
-                  icon,
-                  size: 18,
-                  color: Colors.white,
-                ),
-              const SizedBox(width: 9),
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+          minimumSize: const Size(0, 40),
+          shape: _SelectionBar._buttonShape,
+          textStyle: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            iconWidget,
+            if (!iconOnly) ...[const SizedBox(width: 8), Text(label)],
+          ],
+        ),
+      );
+    }
+
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: _kTextPrimary,
+        side: const BorderSide(color: _kBorder),
+        padding: EdgeInsets.symmetric(
+          horizontal: iconOnly ? 12 : 16,
+          vertical: 10,
+        ),
+        minimumSize: const Size(0, 40),
+        shape: _SelectionBar._buttonShape,
+        textStyle: GoogleFonts.outfit(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          iconWidget,
+          if (!iconOnly) ...[const SizedBox(width: 8), Text(label)],
+        ],
       ),
     );
   }
@@ -2565,9 +2705,7 @@ class _EmptyState extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: _DailyReportFilesScreenState._border,
-                  ),
+                  border: Border.all(color: _kBorder),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.04),
@@ -2588,7 +2726,7 @@ class _EmptyState extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w800,
                   fontSize: 20,
-                  color: _DailyReportFilesScreenState._ink,
+                  color: _kTextPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -2598,14 +2736,14 @@ class _EmptyState extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   height: 1.38,
-                  color: _DailyReportFilesScreenState._muted,
+                  color: _kTextMuted,
                 ),
               ),
               const SizedBox(height: 18),
               FilledButton.icon(
                 onPressed: onPrimary,
                 style: FilledButton.styleFrom(
-                  backgroundColor: _DailyReportFilesScreenState._ink,
+                  backgroundColor: _kBlue,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
