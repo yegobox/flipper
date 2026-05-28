@@ -37,6 +37,7 @@ class EnhancedSideMenu extends ConsumerWidget {
 
     final showKds = ref.watch(sideMenuShowKdsProvider);
     final showItems = ref.watch(sideMenuShowItemsProvider);
+    final showDailyReportFiles = ref.watch(sideMenuShowDailyReportFilesProvider);
     final showStockRecount = ref.watch(sideMenuShowStockRecountProvider);
     final showIncomingOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
     final showProduction = ref.watch(sideMenuShowProductionProvider);
@@ -135,6 +136,18 @@ class EnhancedSideMenu extends ConsumerWidget {
                 DashboardPage.reports;
           },
           tooltip: 'Items',
+        ),
+      if (showDailyReportFiles)
+        _SideMenuItem(
+          iconBuilder: (_) =>
+              AdminDashboardSvgs.picture(AdminDashboardSvgs.dailyReportsExcel, size: 28),
+          isSelected: selectedItem == 11,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 11;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.dailyReportFiles;
+          },
+          tooltip: 'Daily Reports',
         ),
       if (showKds)
         _SideMenuItem(

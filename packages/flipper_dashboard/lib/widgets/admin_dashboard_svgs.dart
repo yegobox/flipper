@@ -8,6 +8,20 @@ abstract final class AdminDashboardSvgs {
 
   static const String _xmlns = 'xmlns="http://www.w3.org/2000/svg"';
 
+  // ---- Reports / exports ----
+  static const String dailyReportsExcel =
+      '''<svg width="120" height="120" viewBox="0 0 120 120" fill="none" $_xmlns>
+  <rect x="16" y="18" width="88" height="64" rx="8" fill="#F3F7F4" stroke="#1F7A3A" stroke-width="4"/>
+  <rect x="24" y="28" width="72" height="38" rx="4" fill="white"/>
+  <path d="M34 38H86M34 50H86M34 62H86" stroke="#A7C9B0" stroke-width="3"/>
+  <path d="M48 30V66M62 30V66M76 30V66" stroke="#D4E8D8" stroke-width="3"/>
+  <rect x="40" y="36" width="24" height="24" rx="4" fill="#1F7A3A"/>
+  <path d="M47 43L57 55M57 43L47 55" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <path d="M60 76V96" stroke="#1F7A3A" stroke-width="5" stroke-linecap="round"/>
+  <path d="M50 87L60 97L70 87" stroke="#1F7A3A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="38" y="100" width="44" height="6" rx="3" fill="#1F7A3A"/>
+</svg>''';
+
   // ---- Leads feature icon set (shared desktop + mobile) ----
   static const String leadsBackChevronLeft =
       '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18L9 12l6-6"/></svg>''';

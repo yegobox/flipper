@@ -1,4 +1,5 @@
 export 'exceptions.dart';
+export 'models/daily_report_file.dart';
 export 'helperModels/extensions.dart';
 export 'package:supabase_models/supabase_models.dart';
 export 'models/subscription_plan.dart';

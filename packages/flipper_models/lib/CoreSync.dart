@@ -1440,6 +1440,13 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
+  Stream<List<DailyReportFile>> dailyReportFilesStream({
+    required String branchId,
+  }) {
+    return Stream.value(<DailyReportFile>[]);
+  }
+
+  @override
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required String businessId,
     List<String>? addons,

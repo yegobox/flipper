@@ -89,8 +89,12 @@ final sideMenuShowProductionProvider = Provider<bool>((ref) {
       userHasFeatureWriteAccess(ref, AppFeature.Sales);
 });
 
+final sideMenuShowDailyReportFilesProvider = Provider<bool>((ref) {
+  if (!ref.watch(hasFeatureProvider('INVENTORY'))) return false;
+  return userHasFeatureWriteAccess(ref, AppFeature.Reports);
+});
+
 final sideMenuShowShiftHistoryProvider = Provider<bool>((ref) {
-  if (!ref.watch(hasFeatureProvider('SHIFT_HISTORY'))) return false;
   final uid = ProxyService.box.getUserId() ?? '';
   if (uid.isEmpty) return false;
   final adminAsync = ref.watch(
