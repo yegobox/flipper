@@ -8,6 +8,127 @@ class DashboardQuickAccessSvgs {
 
   static const _xmlns = 'xmlns="http://www.w3.org/2000/svg"';
 
+  // Shared icon names mirrored from flipper/assets/icons.
+  static const String archive = 'assets/icons/archive.svg';
+  static const String bell = 'assets/icons/bell.svg';
+  static const String calendar = 'assets/icons/calendar.svg';
+  static const String chart = 'assets/icons/chart.svg';
+  static const String chevronDown = 'assets/icons/chev-down.svg';
+  static const String chevronRight = 'assets/icons/chev-right.svg';
+  static const String clock = 'assets/icons/clock.svg';
+  static const String download = 'assets/icons/download.svg';
+  static const String eye = 'assets/icons/eye.svg';
+  static const String fileExcel = 'assets/icons/file-excel.svg';
+  static const String filter = 'assets/icons/filter.svg';
+  static const String group = 'assets/icons/group.svg';
+  static const String merge = 'assets/icons/merge.svg';
+  static const String more = 'assets/icons/more.svg';
+  static const String refresh = 'assets/icons/refresh.svg';
+  static const String search = 'assets/icons/search.svg';
+  static const String share = 'assets/icons/share.svg';
+  static const String sortDesc = 'assets/icons/sort-desc.svg';
+  static const String stack = 'assets/icons/stack.svg';
+  static const String sparkle = 'assets/icons/sparkle.svg';
+  static const String x = 'assets/icons/x.svg';
+
+  static Widget assetIcon(String assetName, {double size = 24, Color? color}) {
+    return SvgPicture.string(
+      _assetSvg(assetName),
+      width: size,
+      height: size,
+      colorFilter: color == null
+          ? null
+          : ColorFilter.mode(color, BlendMode.srcIn),
+    );
+  }
+
+  static String _strokeIcon(String body) =>
+      '<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">$body</svg>';
+
+  static String _assetSvg(String assetName) {
+    switch (assetName) {
+      case archive:
+        return _strokeIcon(
+          '<rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8"/><path d="M10 12h4"/>',
+        );
+      case bell:
+        return _strokeIcon(
+          '<path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 004 0"/>',
+        );
+      case calendar:
+        return _strokeIcon(
+          '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 3v4"/><path d="M16 3v4"/>',
+        );
+      case chart:
+        return _strokeIcon(
+          '<path d="M4 4v16h16"/><path d="m7 14 3-3 3 3 5-6"/>',
+        );
+      case chevronDown:
+        return _strokeIcon('<path d="m6 9 6 6 6-6"/>');
+      case chevronRight:
+        return _strokeIcon('<path d="m9 6 6 6-6 6"/>');
+      case clock:
+        return _strokeIcon(
+          '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        );
+      case download:
+        return _strokeIcon(
+          '<path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/>',
+        );
+      case eye:
+        return _strokeIcon(
+          '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+        );
+      case fileExcel:
+        return '''<svg viewBox="0 0 32 32" fill="none" $_xmlns>
+  <rect x="4.5" y="3.5" width="23" height="25" rx="3" fill="#F7FAF7" stroke="#CFE0D2"/>
+  <path d="M19 3.5v6a2 2 0 002 2h6.5" stroke="#CFE0D2"/>
+  <rect x="8" y="15" width="16" height="9" rx="1" fill="#0E5132"/>
+  <path d="M8 18.5h16M8 22h16M13.5 15v9M18.5 15v9" stroke="#F7FAF7" stroke-width="0.9"/>
+</svg>''';
+      case filter:
+        return _strokeIcon('<path d="M3 5h18l-7 9v6l-4-2v-4z"/>');
+      case group:
+        return _strokeIcon(
+          '<rect x="3" y="4" width="18" height="3" rx="1"/><rect x="3" y="10.5" width="18" height="3" rx="1"/><rect x="3" y="17" width="18" height="3" rx="1"/>',
+        );
+      case merge:
+        return _strokeIcon(
+          '<path d="M5 4v4a4 4 0 004 4h6a4 4 0 014 4v4"/><path d="M2 7h6"/><path d="m5 4-3 3 3 3"/>',
+        );
+      case more:
+        return '<svg viewBox="0 0 24 24" fill="none" $_xmlns><circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/></svg>';
+      case refresh:
+        return _strokeIcon(
+          '<path d="M4 12a8 8 0 0114-5.3L20 9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 01-14 5.3L4 15"/><path d="M4 20v-5h5"/>',
+        );
+      case search:
+        return _strokeIcon(
+          '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+        );
+      case share:
+        return _strokeIcon(
+          '<path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/><path d="m8 8 4-4 4 4"/><path d="M12 4v12"/>',
+        );
+      case sortDesc:
+        return _strokeIcon(
+          '<path d="M7 4v16"/><path d="m3 16 4 4 4-4"/><path d="M14 6h7"/><path d="M14 11h5"/><path d="M14 16h3"/>',
+        );
+      case stack:
+        return _strokeIcon(
+          '<path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/>',
+        );
+      case sparkle:
+        return _strokeIcon(
+          '<path d="M12 3l1.8 6L20 10.5 13.8 12 12 18l-1.8-6L4 10.5 10.2 9z"/>',
+        );
+      case x:
+        return _strokeIcon('<path d="M18 6L6 18"/><path d="M6 6l12 12"/>');
+      default:
+        return _strokeIcon('<circle cx="12" cy="12" r="9"/>');
+    }
+  }
+
   // Drawer B (mobile) icons
   static String drawerHeaderGridIconWhite() =>
       '''
@@ -304,27 +425,31 @@ class DashboardQuickAccessSvgs {
 </svg>''';
 
   // App switcher (desktop) icons — 20×20, per design spec.
-  static String appSwitcherPosIcon() => '''
+  static String appSwitcherPosIcon() =>
+      '''
 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
   <rect x="2" y="4" width="16" height="10" rx="2" stroke="#185FA5" stroke-width="1.5"/>
   <path d="M6 17h8" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"/>
   <path d="M10 14v3" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"/>
 </svg>''';
 
-  static String appSwitcherReportsIcon() => '''
+  static String appSwitcherReportsIcon() =>
+      '''
 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
   <rect x="2" y="2" width="16" height="16" rx="2" stroke="#534AB7" stroke-width="1.5"/>
   <path d="M6 14V10M10 14V7M14 14V11" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round"/>
 </svg>''';
 
-  static String appSwitcherOrdersIcon() => '''
+  static String appSwitcherOrdersIcon() =>
+      '''
 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
   <path d="M3 5h14l-1.5 7H4.5L3 5z" stroke="#854F0B" stroke-width="1.5" stroke-linejoin="round"/>
   <circle cx="7" cy="16" r="1.25" fill="#854F0B"/>
   <circle cx="13" cy="16" r="1.25" fill="#854F0B"/>
 </svg>''';
 
-  static String appSwitcherInventoryIcon() => '''
+  static String appSwitcherInventoryIcon() =>
+      '''
 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
   <rect x="3"  y="3"  width="6" height="6" rx="1" stroke="#3B6D11" stroke-width="1.5"/>
   <rect x="11" y="3"  width="6" height="6" rx="1" stroke="#3B6D11" stroke-width="1.5"/>
@@ -332,13 +457,15 @@ class DashboardQuickAccessSvgs {
   <rect x="11" y="11" width="6" height="6" rx="1" stroke="#3B6D11" stroke-width="1.5"/>
 </svg>''';
 
-  static String appSwitcherCustomersIcon() => '''x
+  static String appSwitcherCustomersIcon() =>
+      '''x
 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
   <circle cx="10" cy="7" r="3" stroke="#993556" stroke-width="1.5"/>
   <path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#993556" stroke-width="1.5" stroke-linecap="round"/>
 </svg>''';
 
-  static String appSwitcherSettingsIcon() => '''
+  static String appSwitcherSettingsIcon() =>
+      '''
 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
   <circle cx="10" cy="10" r="2.5" stroke="#5F5E5A" stroke-width="1.5"/>
   <path d="M10 2v2M10 16v2M2 10h2M16 10h2
