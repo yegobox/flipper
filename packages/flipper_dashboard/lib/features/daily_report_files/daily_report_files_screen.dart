@@ -585,16 +585,24 @@ class _DailyReportFilesScreenState
   }) async {
     if (files.isEmpty) return;
 
-    final selected = files;
-    final withoutKey = selected
-        .where((f) => (f.s3ObjectKey ?? '').trim().isEmpty)
-        .length;
-    if (withoutKey > 0) {
+    final pending = files.where((f) => !f.isArchived).toList(growable: false);
+    if (pending.isEmpty) {
       showCustomSnackBarUtil(
         context,
-        withoutKey == selected.length
-            ? 'Selected files have no storage key yet.'
-            : '$withoutKey selected file(s) have no storage key and cannot be archived.',
+        'Selected files are already archived.',
+        type: NotificationType.error,
+      );
+      return;
+    }
+
+    final archivable = pending
+        .where((f) => (f.s3ObjectKey ?? '').trim().isNotEmpty)
+        .toList(growable: false);
+    final skipped = pending.length - archivable.length;
+    if (archivable.isEmpty) {
+      showCustomSnackBarUtil(
+        context,
+        'Selected files have no storage key yet.',
         type: NotificationType.error,
       );
       return;
@@ -617,7 +625,10 @@ class _DailyReportFilesScreenState
     try {
       final count = await ProxyService.getStrategy(
         Strategy.capella,
-      ).archiveDailyReportFiles(branchId: branchId, files: selected);
+      ).archiveDailyReportFiles(
+        branchId: branchId,
+        files: pending,
+      );
       if (!mounted) return;
       if (count == 0) {
         showCustomSnackBarUtil(
@@ -626,9 +637,13 @@ class _DailyReportFilesScreenState
           type: NotificationType.error,
         );
       } else {
+        final base = count == 1 ? 'Archived 1 file' : 'Archived $count files';
+        final detail = skipped > 0
+            ? '$base ($skipped skipped — no storage key yet)'
+            : base;
         showCustomSnackBarUtil(
           context,
-          count == 1 ? 'Archived 1 file' : 'Archived $count files',
+          detail,
           type: NotificationType.success,
         );
         if (clearSelectionOnSuccess) {
@@ -2976,9 +2991,10 @@ class _SelectionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final iconOnly = width < 720;
     final canMerge = selectedCount > 1 && onMerge != null;
+    final barWidth = MediaQuery.sizeOf(context).width - 32;
+    final mergeLabel =
+        barWidth < 880 ? 'Merge' : 'Merge into one workbook';
 
     return Positioned(
       left: 16,
@@ -2992,7 +3008,7 @@ class _SelectionBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           color: Colors.white,
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 960),
+            width: math.min(barWidth, 960),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: _kBorder),
@@ -3002,8 +3018,9 @@ class _SelectionBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 4, 10),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         NumberFormat.decimalPattern().format(selectedCount),
@@ -3015,79 +3032,84 @@ class _SelectionBar extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              selectedCount == 1
-                                  ? 'file selected'
-                                  : 'files selected',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.outfit(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: _kTextPrimary,
-                                height: 1.2,
-                              ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            selectedCount == 1
+                                ? 'file selected'
+                                : 'files selected',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: _kTextPrimary,
+                              height: 1.2,
                             ),
-                            Text(
-                              _selectedSizeLabel(selectedCount),
-                              style: GoogleFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: _kTextMuted,
-                                height: 1.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Flexible(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          reverse: true,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _SelectionBarButton(
-                                icon: DashboardQuickAccessSvgs.archive,
-                                label: 'Archive',
-                                iconOnly: iconOnly,
-                                busy: busy && busyAction == 'archive',
-                                onPressed: busy ? null : onArchive,
-                              ),
-                              const SizedBox(width: 8),
-                              _SelectionBarButton(
-                                icon: DashboardQuickAccessSvgs.share,
-                                label: 'Share',
-                                iconOnly: iconOnly,
-                                busy: busy && busyAction == 'share',
-                                onPressed: busy ? null : onShare,
-                              ),
-                              const SizedBox(width: 8),
-                              _SelectionBarButton(
-                                icon: DashboardQuickAccessSvgs.download,
-                                label: 'Download',
-                                iconOnly: iconOnly,
-                                busy: busy && busyAction == 'download',
-                                onPressed: busy ? null : onDownload,
-                              ),
-                              if (canMerge) ...[
-                                const SizedBox(width: 8),
-                                _SelectionBarButton(
-                                  icon: DashboardQuickAccessSvgs.stack,
-                                  label: 'Merge into one workbook',
-                                  iconOnly: iconOnly,
-                                  filled: true,
-                                  busy: busy && busyAction == 'merge',
-                                  onPressed: busy ? null : onMerge,
-                                ),
-                              ],
-                            ],
                           ),
+                          Text(
+                            _selectedSizeLabel(selectedCount),
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: _kTextMuted,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: constraints.maxWidth,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _SelectionBarButton(
+                                      icon: DashboardQuickAccessSvgs.archive,
+                                      label: 'Archive',
+                                      busy: busy && busyAction == 'archive',
+                                      onPressed: busy ? null : onArchive,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _SelectionBarButton(
+                                      icon: DashboardQuickAccessSvgs.share,
+                                      label: 'Share',
+                                      busy: busy && busyAction == 'share',
+                                      onPressed: busy ? null : onShare,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _SelectionBarButton(
+                                      icon:
+                                          DashboardQuickAccessSvgs.download,
+                                      label: 'Download',
+                                      busy: busy && busyAction == 'download',
+                                      onPressed: busy ? null : onDownload,
+                                    ),
+                                    if (canMerge) ...[
+                                      const SizedBox(width: 8),
+                                      _SelectionBarButton(
+                                        icon: DashboardQuickAccessSvgs.stack,
+                                        label: mergeLabel,
+                                        filled: true,
+                                        busy: busy && busyAction == 'merge',
+                                        onPressed: busy ? null : onMerge,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                       IconButton(
@@ -3128,7 +3150,6 @@ class _SelectionBarButton extends StatelessWidget {
   const _SelectionBarButton({
     required this.icon,
     required this.label,
-    required this.iconOnly,
     required this.onPressed,
     this.filled = false,
     this.busy = false,
@@ -3136,7 +3157,6 @@ class _SelectionBarButton extends StatelessWidget {
 
   final String icon;
   final String label;
-  final bool iconOnly;
   final VoidCallback? onPressed;
   final bool filled;
   final bool busy;
@@ -3152,6 +3172,15 @@ class _SelectionBarButton extends StatelessWidget {
           )
         : DashboardQuickAccessSvgs.assetIcon(icon, size: 18, color: fg);
 
+    final child = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        iconWidget,
+        const SizedBox(width: 8),
+        Text(label),
+      ],
+    );
+
     if (filled) {
       return FilledButton(
         onPressed: onPressed,
@@ -3159,10 +3188,7 @@ class _SelectionBarButton extends StatelessWidget {
           backgroundColor: _kBlue,
           foregroundColor: Colors.white,
           disabledBackgroundColor: _kBlue.withValues(alpha: 0.5),
-          padding: EdgeInsets.symmetric(
-            horizontal: iconOnly ? 12 : 16,
-            vertical: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           minimumSize: const Size(0, 40),
           shape: _SelectionBar._buttonShape,
           textStyle: GoogleFonts.outfit(
@@ -3170,13 +3196,7 @@ class _SelectionBarButton extends StatelessWidget {
             fontSize: 14,
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            iconWidget,
-            if (!iconOnly) ...[const SizedBox(width: 8), Text(label)],
-          ],
-        ),
+        child: child,
       );
     }
 
@@ -3185,10 +3205,7 @@ class _SelectionBarButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         foregroundColor: _kTextPrimary,
         side: const BorderSide(color: _kBorder),
-        padding: EdgeInsets.symmetric(
-          horizontal: iconOnly ? 12 : 16,
-          vertical: 10,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         minimumSize: const Size(0, 40),
         shape: _SelectionBar._buttonShape,
         textStyle: GoogleFonts.outfit(
@@ -3196,13 +3213,7 @@ class _SelectionBarButton extends StatelessWidget {
           fontSize: 14,
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          iconWidget,
-          if (!iconOnly) ...[const SizedBox(width: 8), Text(label)],
-        ],
-      ),
+      child: child,
     );
   }
 }

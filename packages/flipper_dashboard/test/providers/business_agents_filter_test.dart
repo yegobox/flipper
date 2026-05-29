@@ -11,7 +11,9 @@ void main() {
       Tenant(name: 'Agent B', type: 'Agent', userId: 'u3'),
     ];
 
-    final agents = tenants.where(FlipperBaseModel.isAgentTenantForSale).toList();
+    final agents = tenants
+        .where(FlipperBaseModel.isAgentTenantForSale)
+        .toList();
     expect(agents.length, 2);
     expect(agents[0].name, 'Agent A');
     expect(agents[1].name, 'Agent B');

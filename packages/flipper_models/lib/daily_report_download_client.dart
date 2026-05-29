@@ -131,6 +131,75 @@ Future<DailyReportPreviewResponse> fetchDailyReportPreview({
   }
 }
 
+class DailyReportArchiveResponse {
+  DailyReportArchiveResponse({required this.archivedCount});
+
+  final int archivedCount;
+
+  factory DailyReportArchiveResponse.fromJson(Map<String, dynamic> json) {
+    return DailyReportArchiveResponse(
+      archivedCount: (json['archivedCount'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Soft-archives catalogue rows on data-connector (Ditto `archivedAt`).
+Future<DailyReportArchiveResponse> archiveDailyReportFilesRemote({
+  required String branchId,
+  required List<String> objectKeys,
+  required String dataConnectorBaseUrl,
+}) async {
+  final keys = objectKeys
+      .map((k) => k.trim())
+      .where((k) => k.isNotEmpty)
+      .toSet()
+      .toList(growable: false);
+  if (keys.isEmpty) {
+    return DailyReportArchiveResponse(archivedCount: 0);
+  }
+
+  final trimmed = dataConnectorBaseUrl.trim();
+  final base = trimmed.endsWith('/') ? trimmed : '$trimmed/';
+  final uri = Uri.parse('${base}reports/daily-files/archive');
+
+  final res = await http.post(
+    uri,
+    headers: const {'content-type': 'application/json'},
+    body: json.encode({'branchId': branchId, 'objectKeys': keys}),
+  );
+  if (res.statusCode >= 400) {
+    Map<String, dynamic>? err;
+    try {
+      err = json.decode(res.body) as Map<String, dynamic>?;
+    } catch (_) {}
+    final msg = err?['error'] as String? ?? res.body;
+    throw DailyReportDownloadException(
+      'Archive failed (${res.statusCode}): $msg',
+    );
+  }
+  try {
+    final map = json.decode(res.body) as Map<String, dynamic>;
+    return DailyReportArchiveResponse.fromJson(map);
+  } catch (e) {
+    throw DailyReportDownloadException('Invalid archive response: $e');
+  }
+}
+
+Future<DailyReportArchiveResponse> archiveDailyReportFilesViaDataConnector({
+  required String branchId,
+  required List<String> objectKeys,
+  String? dataConnectorUrl,
+}) async {
+  final base = await resolveDataConnectorBaseUrl(
+    dataConnectorUrl: dataConnectorUrl,
+  );
+  return archiveDailyReportFilesRemote(
+    branchId: branchId,
+    objectKeys: objectKeys,
+    dataConnectorBaseUrl: base,
+  );
+}
+
 Future<DailyReportPresignResponse> mergeDailyReportExcels({
   required String branchId,
   required List<String> objectKeys,

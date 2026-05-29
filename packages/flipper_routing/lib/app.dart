@@ -908,3 +908,5 @@ class App {}
 // ./scripts/add-nginx-site.sh rows.yegobox.com 8087
 // DRY_RUN=1 ./scripts/add-nginx-site.sh rows.yegobox.com 8087
 // git merge -X ours origin/main
+
+// 20260519150000_repair_orphan_users_with_pins.sql

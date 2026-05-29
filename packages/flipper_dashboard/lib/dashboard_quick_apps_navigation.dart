@@ -101,6 +101,9 @@ Future<void> navigateToDashboardAppPage({
         ),
       );
       break;
+    case 'AgentCommission':
+      await routerService.navigateTo(const AgentCommissionRoute());
+      break;
     default:
       await routerService.navigateTo(
         CheckOutRoute(isBigScreen: isBigScreen),

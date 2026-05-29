@@ -51,7 +51,9 @@ class FlipperBaseModel extends ReactiveViewModel {
   }
 
   /// Resolves [businessId] from box to the businesses.id UUID used in Supabase.
-  static Future<String?> resolveBusinessUuidForTenants(String businessId) async {
+  static Future<String?> resolveBusinessUuidForTenants(
+    String businessId,
+  ) async {
     try {
       final row = await Supabase.instance.client
           .from('businesses')
@@ -203,12 +205,10 @@ class FlipperBaseModel extends ReactiveViewModel {
       }
     }
 
-    return bestByIdentity.values.toList()
-      ..sort(
-        (a, b) => (a.name ?? '').toLowerCase().compareTo(
-              (b.name ?? '').toLowerCase(),
-            ),
-      );
+    return bestByIdentity.values.toList()..sort(
+      (a, b) =>
+          (a.name ?? '').toLowerCase().compareTo((b.name ?? '').toLowerCase()),
+    );
   }
 
   static Tenant tenantFromSupabaseRow(Map<String, dynamic> r) {

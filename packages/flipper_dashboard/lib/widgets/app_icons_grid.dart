@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/CreditIcon.dart';
 import 'package:flipper_dashboard/dashboard_app_shortcuts.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
+import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_models/providers/all_providers.dart';
@@ -86,6 +87,13 @@ class AppIconsGrid extends ConsumerWidget {
         'svgBg': const Color(0xFFEFF2FF),
       },
       {
+        'icon': Icons.support_agent,
+        'color': const Color(0xFF6B4EA2),
+        'page': 'AgentCommission',
+        'label': 'Commission',
+        'feature': 'AgentCommission',
+      },
+      {
         'icon': Icons.call,
         'color': Colors.lightBlue,
         'page': "Support",
@@ -133,10 +141,13 @@ class AppIconsGrid extends ConsumerWidget {
 
     // Filtering out apps the user does not have access to
     final uid = ProxyService.box.getUserId() ?? '';
+    final showCommission = ref.watch(showAgentCommissionNavProvider);
+
     final filteredApps = rippleApps.where((app) {
       if (app['feature'] == 'Orders') return true;
       if (app['feature'] == 'ServicesGigs') return true;
       if (app['feature'] == 'Settings') return true;
+      if (app['feature'] == 'AgentCommission') return showCommission;
       final feature = app['feature'] as String;
       // POS hosts "Add product"; show tile if user can sell or add catalog items.
       if (feature == 'Sales' || app['page'] == 'POS') {

@@ -1450,6 +1450,7 @@ class CoreSync extends AiStrategyImpl
   Future<int> archiveDailyReportFiles({
     required String branchId,
     required List<DailyReportFile> files,
+    String? dataConnectorUrl,
   }) async {
     return 0;
   }

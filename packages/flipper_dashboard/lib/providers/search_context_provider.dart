@@ -30,6 +30,7 @@ final searchContextProvider = Provider<SearchContext>((ref) {
     case DashboardPage.shiftHistory:
     case DashboardPage.productionOutput:
     case DashboardPage.dailyReportFiles:
+    case DashboardPage.agentCommission:
       return SearchContext.general;
   }
 });

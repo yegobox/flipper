@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/daily_report_download_client.dart';
 import 'package:flipper_models/models/daily_report_file.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -75,8 +76,48 @@ mixin CapellaDailyReportFilesMixin {
     return controller.stream;
   }
 
-  /// Soft-archives catalogue rows in Ditto (`archivedAt` timestamp). Returns count updated.
+  /// Soft-archives catalogue rows (`archivedAt`). Uses data-connector when
+  /// available, then patches local Ditto so the list updates immediately.
   Future<int> archiveDailyReportFiles({
+    required String branchId,
+    required List<DailyReportFile> files,
+    String? dataConnectorUrl,
+  }) async {
+    if (branchId.trim().isEmpty || files.isEmpty) return 0;
+
+    final pending = files.where((f) => !f.isArchived).toList(growable: false);
+    if (pending.isEmpty) return 0;
+
+    final objectKeys = pending
+        .map((f) => f.s3ObjectKey?.trim() ?? '')
+        .where((k) => k.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    var remoteCount = 0;
+    if (objectKeys.isNotEmpty) {
+      try {
+        final response = await archiveDailyReportFilesViaDataConnector(
+          branchId: branchId,
+          objectKeys: objectKeys,
+          dataConnectorUrl: dataConnectorUrl,
+        );
+        remoteCount = response.archivedCount;
+      } catch (e, st) {
+        talker.warning('archiveDailyReportFiles HTTP failed: $e\n$st');
+      }
+    }
+
+    final localCount = await _archiveDailyReportFilesInDitto(
+      branchId: branchId,
+      files: pending,
+    );
+
+    if (remoteCount > 0) return remoteCount;
+    return localCount;
+  }
+
+  Future<int> _archiveDailyReportFilesInDitto({
     required String branchId,
     required List<DailyReportFile> files,
   }) async {
@@ -85,7 +126,6 @@ mixin CapellaDailyReportFilesMixin {
       talker.error('Ditto not initialized — archiveDailyReportFiles');
       return 0;
     }
-    if (branchId.trim().isEmpty || files.isEmpty) return 0;
 
     final now = DateTime.now().toUtc().toIso8601String();
     var archived = 0;
@@ -99,6 +139,8 @@ mixin CapellaDailyReportFilesMixin {
         branchId: branchId,
         s3ObjectKey: key,
         documentId: file.id.trim(),
+        createdAt: file.createdAt,
+        fileName: file.fileName,
       );
       if (existing == null) {
         talker.warning(
@@ -135,6 +177,8 @@ mixin CapellaDailyReportFilesMixin {
     required String branchId,
     String? s3ObjectKey,
     required String documentId,
+    DateTime? createdAt,
+    String? fileName,
   }) async {
     if (s3ObjectKey != null && s3ObjectKey.isNotEmpty) {
       final byKey = await ditto.store.execute(
@@ -142,6 +186,23 @@ mixin CapellaDailyReportFilesMixin {
         arguments: {'branchId': branchId, 'key': s3ObjectKey},
       );
       final row = _firstDittoRow(byKey);
+      if (row != null) return row;
+    }
+
+    final createdIso = createdAt?.toUtc().toIso8601String();
+    final trimmedName = fileName?.trim() ?? '';
+    if (createdIso != null &&
+        createdIso.isNotEmpty &&
+        trimmedName.isNotEmpty) {
+      final byMeta = await ditto.store.execute(
+        'SELECT * FROM daily_report_files WHERE branchId = :branchId AND createdAt = :createdAt AND fileName = :fileName LIMIT 1',
+        arguments: {
+          'branchId': branchId,
+          'createdAt': createdIso,
+          'fileName': trimmedName,
+        },
+      );
+      final row = _firstDittoRow(byMeta);
       if (row != null) return row;
     }
 
