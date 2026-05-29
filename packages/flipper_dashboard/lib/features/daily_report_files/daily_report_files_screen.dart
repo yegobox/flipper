@@ -5,6 +5,7 @@ import 'package:flipper_models/daily_report_download_client.dart';
 import 'package:flipper_models/models/daily_report_file.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/daily_report_files_provider.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -301,12 +302,77 @@ class _DailyReportFilesScreenState
     }
   }
 
-  void _onArchiveSelected() {
-    showCustomSnackBarUtil(
-      context,
-      'Archive is not available yet.',
-      type: NotificationType.info,
-    );
+  Future<void> _onArchiveSelected(List<DailyReportFile> all) async {
+    final selected = all
+        .where((f) => _selectedKeys.contains(_rowKey(f)))
+        .toList(growable: false);
+    if (selected.isEmpty) return;
+
+    final withoutKey = selected
+        .where((f) => (f.s3ObjectKey ?? '').trim().isEmpty)
+        .length;
+    if (withoutKey > 0) {
+      showCustomSnackBarUtil(
+        context,
+        withoutKey == selected.length
+            ? 'Selected files have no storage key yet.'
+            : '$withoutKey selected file(s) have no storage key and cannot be archived.',
+        type: NotificationType.error,
+      );
+      return;
+    }
+
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) {
+      showCustomSnackBarUtil(
+        context,
+        'No active branch.',
+        type: NotificationType.error,
+      );
+      return;
+    }
+
+    setState(() {
+      _batchBusy = true;
+      _batchAction = 'archive';
+    });
+    try {
+      final count = await ProxyService.getStrategy(Strategy.capella)
+          .archiveDailyReportFiles(
+            branchId: branchId,
+            files: selected,
+          );
+      if (!mounted) return;
+      if (count == 0) {
+        showCustomSnackBarUtil(
+          context,
+          'No files could be archived.',
+          type: NotificationType.error,
+        );
+      } else {
+        showCustomSnackBarUtil(
+          context,
+          count == 1 ? 'Archived 1 file' : 'Archived $count files',
+          type: NotificationType.success,
+        );
+        setState(() => _selectedKeys.clear());
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          e.toString(),
+          type: NotificationType.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _batchBusy = false;
+          _batchAction = null;
+        });
+      }
+    }
   }
 
   Future<void> _onMergeSelected(List<DailyReportFile> all) async {
@@ -501,7 +567,7 @@ class _DailyReportFilesScreenState
                         : () => _onMergeSelected(files),
                     onArchiveSelected: _selectedKeys.isEmpty
                         ? null
-                        : _onArchiveSelected,
+                        : () => _onArchiveSelected(files),
                     onShareSelected: _selectedKeys.isEmpty
                         ? null
                         : () => _onShareSelected(files),

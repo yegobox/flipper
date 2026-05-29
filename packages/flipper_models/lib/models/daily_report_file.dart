@@ -13,6 +13,7 @@ class DailyReportFile {
     this.runId,
     this.createdAt,
     this.implementation,
+    this.archivedAt,
   });
 
   /// Matches data-connector `daily-detailed-transactions-xlsx`.
@@ -32,6 +33,10 @@ class DailyReportFile {
   final String? runId;
   final DateTime? createdAt;
   final String? implementation;
+  /// When set, the file is hidden from the default list (soft archive).
+  final DateTime? archivedAt;
+
+  bool get isArchived => archivedAt != null;
 
   factory DailyReportFile.fromDittoMap(Map<String, dynamic> m) {
     final rawId = (m['_id'] ?? m['id'])?.toString().trim() ?? '';
@@ -62,6 +67,7 @@ class DailyReportFile {
       runId: m['runId']?.toString(),
       createdAt: DateTime.tryParse(m['createdAt']?.toString() ?? ''),
       implementation: m['implementation']?.toString(),
+      archivedAt: DateTime.tryParse(m['archivedAt']?.toString() ?? ''),
     );
   }
 }

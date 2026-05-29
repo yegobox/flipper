@@ -1447,6 +1447,14 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
+  Future<int> archiveDailyReportFiles({
+    required String branchId,
+    required List<DailyReportFile> files,
+  }) async {
+    return 0;
+  }
+
+  @override
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required String businessId,
     List<String>? addons,
