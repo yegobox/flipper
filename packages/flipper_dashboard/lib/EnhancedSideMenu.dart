@@ -28,7 +28,8 @@ class EnhancedSideMenu extends ConsumerWidget {
     final _dialogService = locator<DialogService>();
     final _routerService = locator<RouterService>();
 
-    final isDesktop = kIsWeb ||
+    final isDesktop =
+        kIsWeb ||
         const {
           TargetPlatform.macOS,
           TargetPlatform.windows,
@@ -37,6 +38,9 @@ class EnhancedSideMenu extends ConsumerWidget {
 
     final showKds = ref.watch(sideMenuShowKdsProvider);
     final showItems = ref.watch(sideMenuShowItemsProvider);
+    final showDailyReportFiles = ref.watch(
+      sideMenuShowDailyReportFilesProvider,
+    );
     final showStockRecount = ref.watch(sideMenuShowStockRecountProvider);
     final showIncomingOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
     final showProduction = ref.watch(sideMenuShowProductionProvider);
@@ -88,12 +92,11 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (isDesktop)
         _SideMenuItem(
-          iconBuilder: (_) =>
-              DashboardQuickAccessSvgs.icon(
-                DashboardQuickAccessSvgs.drawerAuthShieldIcon(),
-                width: 24,
-                height: 24,
-              ),
+          iconBuilder: (_) => DashboardQuickAccessSvgs.icon(
+            DashboardQuickAccessSvgs.drawerAuthShieldIcon(),
+            width: 24,
+            height: 24,
+          ),
           isSelected: false,
           onTap: () {
             showDialog<void>(
@@ -135,6 +138,21 @@ class EnhancedSideMenu extends ConsumerWidget {
                 DashboardPage.reports;
           },
           tooltip: 'Items',
+        ),
+      if (showDailyReportFiles)
+        _SideMenuItem(
+          iconBuilder: (c) => DashboardQuickAccessSvgs.assetIcon(
+            DashboardQuickAccessSvgs.chart,
+            size: 24,
+            color: c,
+          ),
+          isSelected: selectedItem == 11,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 11;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.dailyReportFiles;
+          },
+          tooltip: 'Daily Reports',
         ),
       if (showKds)
         _SideMenuItem(

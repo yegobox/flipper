@@ -12,6 +12,7 @@ enum DashboardPage {
   incomingOrders,
   shiftHistory,
   productionOutput,
+  dailyReportFiles,
 }
 
 final selectedPageProvider = StateProvider<DashboardPage>(

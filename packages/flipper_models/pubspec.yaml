@@ -29,6 +29,8 @@ dependencies:
   sentry_flutter: ^9.18.0
   
   path_provider: ^2.1.5
+  path: ^1.9.0
+  open_filex: ^4.7.0
   http: ^1.2.2
   html_unescape: ^2.0.0
   flutter_riverpod: ^3.0.3

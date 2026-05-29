@@ -30,6 +30,7 @@ import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/business_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/conversation_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/customer_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/daily_report_files_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/delete_operations_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/favorite_mixin.dart';
@@ -92,7 +93,8 @@ class CapellaSync extends AiStrategyImpl
         CapellaStockRecountMixin,
         CapellaSettingsMixin,
         CapellaProductionOutputMixin,
-        CapellaPersonalGoalsMixin
+        CapellaPersonalGoalsMixin,
+        CapellaDailyReportFilesMixin
     implements DatabaseSyncInterface {
   CapellaSync();
 

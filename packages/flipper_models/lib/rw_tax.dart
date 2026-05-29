@@ -626,9 +626,33 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   /// After [trnsSales/saveSales] succeeds, RRA still expects stock movement and
-  /// master updates. Those calls are not needed to build the signed receipt;
-  /// running them here in the background lets [generateReceiptSignature] return
-  /// sooner so PDF generation and printing can start immediately.
+  /// master updates. Those calls are not needed to build the signed receipt.
+  /// Invoke via [syncStockAfterSuccessfulSaveSales] after local stock deduction
+  /// (see [runPostSaleStockDeductionAndRraSync]) so saveStockItems → saveStockMaster
+  /// use post-sale quantities and the allow-below-stock snapshot is available.
+  @override
+  Future<void> syncStockAfterSuccessfulSaveSales({
+    required String receiptType,
+    required List<TransactionItem> items,
+    required ITransaction transaction,
+    required int highestInvcNo,
+    String? sarTyCd,
+  }) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
+    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    if (ebm == null) return;
+    await _syncStockAfterSuccessfulSaveSales(
+      receiptType: receiptType,
+      items: items,
+      ebm: ebm,
+      highestInvcNo: highestInvcNo,
+      sarTyCd: sarTyCd,
+      transaction: transaction,
+      repository: Repository(),
+    );
+  }
+
   Future<void> _syncStockAfterSuccessfulSaveSales({
     required String receiptType,
     required List<TransactionItem> items,
@@ -792,6 +816,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String customerName,
     Customer? customer,
     List<TransactionItem>? preloadedItems,
+    bool deferStockSync = false,
   }) async {
     if ((isAndroid || isIos) && URI.contains('localhost')) {
       return RwApiResponse(
@@ -996,19 +1021,22 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final data = successData;
       // remove any tin saved in local storage on success
       ProxyService.box.remove(key: 'customerTin');
-      // Stock / SAR sync to RRA can run after saveSales succeeds; receipt build
-      // and printing no longer wait on these calls.
-      unawaited(
-        _syncStockAfterSuccessfulSaveSales(
-          receiptType: receiptType,
-          items: items,
-          ebm: ebm,
-          highestInvcNo: highestInvcNo,
-          sarTyCd: sarTyCd,
-          transaction: transaction,
-          repository: repository,
-        ),
-      );
+      if (deferStockSync) {
+        // Quick-selling: deduction + saveStockItems → saveStockMaster in
+        // runPostSaleStockDeductionAndRraSync after saveSales.
+      } else {
+        unawaited(
+          _syncStockAfterSuccessfulSaveSales(
+            receiptType: receiptType,
+            items: items,
+            ebm: ebm,
+            highestInvcNo: highestInvcNo,
+            sarTyCd: sarTyCd,
+            transaction: transaction,
+            repository: repository,
+          ),
+        );
+      }
       return data;
     } catch (e, s) {
       _talker?.error(e);

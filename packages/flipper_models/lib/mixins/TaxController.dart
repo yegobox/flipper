@@ -678,6 +678,7 @@ class TaxController<OBJ> {
             timeToUser: now,
             sarTyCd: sarTyCd,
             preloadedItems: transactionItems,
+            deferStockSync: deferPostSignReceiptPersist,
           );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
@@ -812,6 +813,11 @@ class TaxController<OBJ> {
         }
 
         if (deferPostSignReceiptPersist) {
+          // In-memory fields for post-sale RRA stock sync (deferred persist path).
+          transaction.invoiceNumber = transaction.invoiceNumber ?? highestInvcNo;
+          transaction.receiptNumber = transaction.receiptNumber ?? highestInvcNo;
+          transaction.totalReceiptNumber =
+              transaction.totalReceiptNumber ?? highestInvcNo;
           presentationReceipt = buildPresentationReceipt(
             receiptSignature: receiptSignature,
             transaction: transaction,

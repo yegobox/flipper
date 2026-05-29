@@ -422,6 +422,13 @@ abstract class DatabaseSyncInterface extends AiStrategy
   });
   DatabaseSyncInterface instance();
   Stream<List<Report>> reports({required String branchId});
+  Stream<List<DailyReportFile>> dailyReportFilesStream({
+    required String branchId,
+  });
+  Future<int> archiveDailyReportFiles({
+    required String branchId,
+    required List<DailyReportFile> files,
+  });
   Report report({required int id});
 
   FutureOr<bool> isAdmin({required String userId, required String appFeature});
