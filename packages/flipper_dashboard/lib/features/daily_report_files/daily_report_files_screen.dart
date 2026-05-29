@@ -1498,8 +1498,7 @@ class _FileRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = _displayName(file);
     final created = file.createdAt;
-    final id = _shortId(file);
-    final category = _category(file);
+    final category = _categoryLabel(file);
 
     return Material(
       color: selected ? _kSelectedRow : Colors.white,
@@ -1561,8 +1560,6 @@ class _FileRow extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        _CodePill(text: id),
                         const SizedBox(width: 8),
                         Text(
                           '.xlsx',
@@ -1592,17 +1589,19 @@ class _FileRow extends StatelessWidget {
                           file.day ?? 'No report day',
                           style: _metaStyle(context),
                         ),
-                        const SizedBox(width: 10),
-                        _Dot(),
-                        const SizedBox(width: 10),
-                        Flexible(
-                          child: Text(
-                            category,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: _metaStyle(context),
+                        if (category != null) ...[
+                          const SizedBox(width: 10),
+                          _Dot(),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              category,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: _metaStyle(context),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ],
@@ -1730,15 +1729,11 @@ class _FileRow extends StatelessWidget {
     return source.length <= 8 ? source : source.substring(0, 8);
   }
 
-  static String _category(DailyReportFile file) {
+  static String? _categoryLabel(DailyReportFile file) {
     if ((file.fileName ?? '').toLowerCase().contains('merged')) {
       return 'Merged workbook';
     }
-    if ((file.implementation ?? '').trim().isNotEmpty) {
-      return file.implementation!.trim();
-    }
-    if (file.type.contains('transaction')) return 'Transactions';
-    return 'Daily report';
+    return null;
   }
 
   static bool _isNew(DailyReportFile file) {
@@ -1765,34 +1760,6 @@ class _Dot extends StatelessWidget {
         color: _kTextMuted,
         fontSize: 14,
         fontWeight: FontWeight.w700,
-      ),
-    );
-  }
-}
-
-class _CodePill extends StatelessWidget {
-  const _CodePill({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 26,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: _kBorder),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.outfit(
-          color: _kTextMuted,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-        ),
       ),
     );
   }

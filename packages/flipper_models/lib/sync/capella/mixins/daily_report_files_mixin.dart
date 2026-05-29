@@ -21,8 +21,11 @@ mixin CapellaDailyReportFilesMixin {
     }
 
     const type = DailyReportFile.dailyDetailedTransactionsXlsxType;
+    // Do not filter `archivedAt IS NULL` in DQL — Ditto does not treat a missing
+    // field as NULL, so legacy catalogue rows would be excluded. Filter in
+    // [_mapAndSort] instead.
     final query =
-        'SELECT * FROM daily_report_files WHERE branchId = :branchId AND type = :type AND archivedAt IS NULL ORDER BY createdAt DESC';
+        'SELECT * FROM daily_report_files WHERE branchId = :branchId AND type = :type ORDER BY createdAt DESC';
     final arguments = <String, dynamic>{'branchId': branchId, 'type': type};
 
     final controller = StreamController<List<DailyReportFile>>.broadcast();
