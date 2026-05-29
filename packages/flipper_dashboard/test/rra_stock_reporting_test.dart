@@ -154,4 +154,6 @@ void main() {
       );
     });
   });
+
+  // Stock I/O payload regressions: see flipper_models/test/rra_stock_io_payload_test.dart
 }

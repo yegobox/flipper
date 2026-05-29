@@ -114,33 +114,6 @@ bool _variantTinMissing(Variant variant) =>
     variant.tin == null || variant.tin == 0;
 
 /// Fills [Variant.tin] / [Variant.bhfId] from branch EBM when missing (product add path).
-/// Incoming stock I/O (not sale / sale-return-out) — match data-connector bulk shape.
-bool _isIncomingStockIo(String sarTyCd) {
-  return sarTyCd != StockInOutType.sale &&
-      sarTyCd != StockInOutType.returnOut;
-}
-
-Map<String, String> _stockIoRegistrarFields(List<TransactionItem> items) {
-  for (final item in items) {
-    final modrId = item.modrId?.toString().trim();
-    if (modrId != null && modrId.isNotEmpty) {
-      final regrId = item.regrId?.toString().trim();
-      final regrNm = item.regrNm?.trim();
-      final modrNm = item.modrNm?.trim();
-      final effectiveRegrId =
-          (regrId != null && regrId.isNotEmpty) ? regrId : modrId;
-      return {
-        'regrId': effectiveRegrId,
-        'regrNm': (regrNm != null && regrNm.isNotEmpty) ? regrNm : effectiveRegrId,
-        'modrId': modrId,
-        'modrNm': (modrNm != null && modrNm.isNotEmpty) ? modrNm : modrId,
-      };
-    }
-  }
-  final mod = randomNumber().toString().substring(0, 15);
-  return {'regrId': mod, 'regrNm': mod, 'modrId': mod, 'modrNm': mod};
-}
-
 Future<bool> _hydrateVariantEbmFields(Variant variant) async {
   final needsTin = _variantTinMissing(variant);
   final needsBhf = variant.bhfId == null || variant.bhfId!.trim().isEmpty;
@@ -305,17 +278,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final url = Uri.parse(
         URI,
       ).replace(path: Uri.parse(URI).path + 'stock/saveStockItems').toString();
-      final registrar = _stockIoRegistrarFields(items);
-      final incomingStockIo = _isIncomingStockIo(sarTyCd);
-
       /// Filter out service items as they cannot be saved in IO
       items = items.where((item) => item.itemTyCd != "3").toList();
-      // TOTAL D:
       final itemsList = items
           .asMap()
           .entries
           .map(
-            (entry) => mapStockIoItemToJson(
+            (entry) => mapRraStockIoItemToJson(
               entry.value,
               bhfId: bhFId,
               approvedQty: entry.value.qty == 0
@@ -332,44 +301,32 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         );
       }
 
-      final json = <String, dynamic>{
-        "totItemCnt": items.length,
-        "tin": tinNumber,
-        "bhfId": bhFId,
-        "regTyCd": regTyCd,
-        "sarTyCd": sarTyCd,
-        "ocrnDt": ocrnDt.toYYYMMdd(),
-        "totTaxblAmt": totalSupplyPrice.roundToTwoDecimalPlaces(),
-        "totTaxAmt": totalvat.roundToTwoDecimalPlaces(),
-        "totAmt": totalAmount.roundToTwoDecimalPlaces(),
-        "remark": remark,
-        "regrId": registrar['regrId'],
-        "regrNm": registrar['regrNm'],
-        "modrId": registrar['modrId'],
-        "modrNm": registrar['modrNm'],
-        "sarNo": sarNo,
-        "orgSarNo": invoiceNumber ?? int.tryParse(sarNo ?? '') ?? 0,
-        "itemList": itemsList,
-      };
+      final storedCustomerName = ProxyService.box.customerName();
+      final effectiveCustomerName =
+          (customerName != null && customerName.trim().isNotEmpty)
+          ? customerName.trim()
+          : (storedCustomerName != null && storedCustomerName.trim().isNotEmpty)
+          ? storedCustomerName.trim()
+          : "N/A";
 
-      // data-connector bulk stock-in omits customer fields; sales still need them.
-      if (!incomingStockIo) {
-        final storedCustomerName = ProxyService.box.customerName();
-        final effectiveCustomerName =
-            (customerName != null && customerName.trim().isNotEmpty)
-            ? customerName.trim()
-            : (storedCustomerName != null &&
-                  storedCustomerName.trim().isNotEmpty)
-            ? storedCustomerName.trim()
-            : "N/A";
-        json["custNm"] = effectiveCustomerName;
-        if (custBhfId != null && custBhfId.isNotEmpty) {
-          json["custBhfId"] = custBhfId;
-        }
-        if (custTin != null && custTin.isValidTin()) {
-          json["custTin"] = custTin;
-        }
-      }
+      final json = buildRraSaveStockItemsRequest(
+        items: items,
+        itemList: itemsList,
+        tinNumber: tinNumber,
+        bhfId: bhFId,
+        sarTyCd: sarTyCd,
+        regTyCd: regTyCd ?? 'A',
+        ocrnDt: ocrnDt.toYYYMMdd(),
+        totalSupplyPrice: totalSupplyPrice,
+        totalvat: totalvat,
+        totalAmount: totalAmount,
+        remark: remark,
+        sarNo: sarNo,
+        orgSarNo: (invoiceNumber ?? int.tryParse(sarNo ?? '') ?? 0).toInt(),
+        saleCustomerName: effectiveCustomerName,
+        saleCustTin: custTin != null && custTin.isValidTin() ? custTin : null,
+        saleCustBhfId: custBhfId,
+      );
       talker.info(json);
       Response response = await sendPostRequest(url, json);
 
@@ -775,8 +732,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           tinNumber: ebm.tinNumber.toString(),
           bhFId: ebm.bhfId,
           updateMaster: false,
-          customerName: null,
-          custTin: null,
+          customerName: transaction.customerName,
+          custTin: transaction.customerTin,
           invoiceNumber: highestInvcNo,
           regTyCd: "A",
           sarNo: highestInvcNo.toString(),
@@ -1179,56 +1136,19 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   Future<Configurations> _taxConfigForItem(TransactionItem item) =>
       _taxConfigForType(item.taxTyCd ?? 'B');
 
-  /// Stock I/O lines (`saveStockItems`) — matches data-connector / legacy RRA stock-in:
-  /// unit [splyAmt], [taxAmt]=0, [pkg]=1, line totals = retail × qty.
+  /// Stock I/O lines (`saveStockItems`) — see [mapRraStockIoItemToJson].
   Map<String, dynamic> mapStockIoItemToJson(
     TransactionItem item, {
     required String bhfId,
     num? approvedQty,
     int? itemSeq,
-  }) {
-    final quantity = (approvedQty ?? item.qty).toDouble();
-    final retailUnit = item.price.toDouble();
-    final supplyUnit = (item.supplyPrice ?? item.price).toDouble();
-    final lineTotal = (retailUnit * quantity).roundToTwoDecimalPlaces();
-    final modId =
-        item.modrId?.toString() ??
-        randomNumber().toString().substring(0, 15);
-
-    final line = <String, dynamic>{
-      'itemSeq': itemSeq ?? item.itemSeq ?? 1,
-      'itemCd': item.itemCd,
-      'itemClsCd': item.itemClsCd,
-      'itemNm': item.itemNm ?? item.name,
-      'itemTyCd': item.itemTyCd,
-      'itemStdNm': item.itemStdNm ?? item.name,
-      'qtyUnitCd': item.qtyUnitCd ?? 'U',
-      'pkgUnitCd': item.pkgUnitCd ?? 'CT',
-      'pkg': 1,
-      'qty': quantity,
-      'prc': retailUnit,
-      'splyAmt': supplyUnit.roundToTwoDecimalPlaces(),
-      'taxTyCd': item.taxTyCd ?? 'B',
-      'taxblAmt': lineTotal,
-      'taxAmt': 0,
-      'totAmt': lineTotal,
-      'totDcAmt': '0',
-      'regrId': item.regrId?.toString() ?? modId,
-      'regrNm': item.regrNm ?? item.regrId?.toString() ?? modId,
-      'modrId': modId,
-      'modrNm': item.modrNm ?? modId,
-    };
-
-    final bcd = item.bcd;
-    if (bcd != null && bcd.isNotEmpty) {
-      line['bcd'] = bcd;
-    }
-
-    line.removeWhere(
-      (key, value) => value == null || (value is String && value.isEmpty),
-    );
-    return line;
-  }
+  }) =>
+      mapRraStockIoItemToJson(
+        item,
+        bhfId: bhfId,
+        approvedQty: approvedQty,
+        itemSeq: itemSeq,
+      );
 
   Future<Map<String, dynamic>> mapItemToJson(
     TransactionItem item, {

@@ -238,7 +238,7 @@ class ProductDataGridSource extends DataGridSource {
       final displayBarCode = product['BarCode'] ?? '';
       final rowUid = model.bulkRowUidForRow(product);
       model.selectedProductTypes[rowUid] ??= '2';
-      model.selectedTaxTypes[rowUid] ??= 'B';
+      model.selectedTaxTypes[rowUid] ??= model.defaultBulkTaxTyCd;
       model.selectedItemClasses[rowUid] ??= '5020230602';
 
       return DataGridRow(
