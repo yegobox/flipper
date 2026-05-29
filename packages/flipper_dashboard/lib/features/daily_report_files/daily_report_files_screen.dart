@@ -10,6 +10,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -58,6 +59,65 @@ enum _TypeFilter {
   final String label;
 }
 
+class _FocusSearchIntent extends Intent {
+  const _FocusSearchIntent();
+}
+
+Future<T?> _showToolbarMenu<T extends Object>({
+  required BuildContext anchorContext,
+  required List<T> options,
+  required String Function(T option) label,
+  required T? selected,
+}) async {
+  final button = anchorContext.findRenderObject() as RenderBox?;
+  if (button == null) return null;
+  final overlay =
+      Overlay.of(anchorContext).context.findRenderObject() as RenderBox?;
+  if (overlay == null) return null;
+
+  final topLeft = button.localToGlobal(Offset.zero, ancestor: overlay);
+  final bottomRight = button.localToGlobal(
+    button.size.bottomRight(Offset.zero),
+    ancestor: overlay,
+  );
+
+  return showMenu<T>(
+    context: anchorContext,
+    position: RelativeRect.fromRect(
+      Rect.fromPoints(topLeft, bottomRight),
+      Offset.zero & overlay.size,
+    ),
+    color: Colors.white,
+    elevation: 8,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    items: [
+      for (final option in options)
+        PopupMenuItem<T>(
+          value: option,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 22,
+                child: option == selected
+                    ? const Icon(Icons.check, size: 18, color: _kBlue)
+                    : null,
+              ),
+              Expanded(
+                child: Text(
+                  label(option),
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w600,
+                    color: _kTextPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+    ],
+  );
+}
+
 class DailyReportFilesScreen extends ConsumerStatefulWidget {
   const DailyReportFilesScreen({super.key});
 
@@ -77,15 +137,30 @@ class _DailyReportFilesScreenState
   DailyReportFile? _previewFile;
   Future<DailyReportPreviewResponse>? _previewFuture;
   final TextEditingController _search = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
   _DateRangeFilter _dateRange = _DateRangeFilter.last7Days;
   _SortOrder _sortOrder = _SortOrder.newestFirst;
   _TypeFilter _typeFilter = _TypeFilter.all;
   bool _groupByDay = true;
+  bool _refreshing = false;
 
   @override
   void dispose() {
     _search.dispose();
+    _searchFocus.dispose();
     super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    final branchId = ProxyService.box.getBranchId() ?? '';
+    if (branchId.isEmpty) return;
+    setState(() => _refreshing = true);
+    ref.invalidate(dailyReportFilesProvider(branchId));
+    try {
+      await ref.read(dailyReportFilesProvider(branchId).future);
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
   }
 
   void _toggleAll(List<DailyReportFile> files, {required bool select}) {
@@ -143,8 +218,7 @@ class _DailyReportFilesScreenState
   }
 
   bool _matchesTypeFilter(DailyReportFile file) {
-    final isMerged =
-        (file.fileName ?? '').toLowerCase().contains('merged');
+    final isMerged = (file.fileName ?? '').toLowerCase().contains('merged');
     switch (_typeFilter) {
       case _TypeFilter.all:
         return true;
@@ -232,7 +306,11 @@ class _DailyReportFilesScreenState
       }
     } on DailyReportDownloadException catch (e) {
       if (mounted) {
-        showCustomSnackBarUtil(context, e.message, type: NotificationType.error);
+        showCustomSnackBarUtil(
+          context,
+          e.message,
+          type: NotificationType.error,
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -247,148 +325,37 @@ class _DailyReportFilesScreenState
     }
   }
 
-  Future<void> _pickDateRange() async {
-    final picked = await showModalBottomSheet<_DateRangeFilter>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Date range',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: _kTextPrimary,
-                    ),
-                  ),
-                ),
-              ),
-              for (final option in _DateRangeFilter.values)
-                ListTile(
-                  title: Text(
-                    option.label,
-                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-                  ),
-                  trailing: option == _dateRange
-                      ? const Icon(Icons.check, color: _kBlue)
-                      : null,
-                  onTap: () => Navigator.pop(context, option),
-                ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
+  Future<void> _pickDateRange(BuildContext anchorContext) async {
+    final picked = await _showToolbarMenu<_DateRangeFilter>(
+      anchorContext: anchorContext,
+      options: _DateRangeFilter.values,
+      label: (option) => option.label,
+      selected: _dateRange,
     );
-    if (picked != null && picked != _dateRange) {
-      setState(() => _dateRange = picked);
-    }
+    if (!mounted || picked == null || picked == _dateRange) return;
+    setState(() => _dateRange = picked);
   }
 
-  Future<void> _pickSortOrder() async {
-    final picked = await showModalBottomSheet<_SortOrder>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Sort by',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: _kTextPrimary,
-                    ),
-                  ),
-                ),
-              ),
-              for (final option in _SortOrder.values)
-                ListTile(
-                  title: Text(
-                    option.label,
-                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-                  ),
-                  trailing: option == _sortOrder
-                      ? const Icon(Icons.check, color: _kBlue)
-                      : null,
-                  onTap: () => Navigator.pop(context, option),
-                ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
+  Future<void> _pickSortOrder(BuildContext anchorContext) async {
+    final picked = await _showToolbarMenu<_SortOrder>(
+      anchorContext: anchorContext,
+      options: _SortOrder.values,
+      label: (option) => option.label,
+      selected: _sortOrder,
     );
-    if (picked != null && picked != _sortOrder) {
-      setState(() => _sortOrder = picked);
-    }
+    if (!mounted || picked == null || picked == _sortOrder) return;
+    setState(() => _sortOrder = picked);
   }
 
-  Future<void> _pickTypeFilter() async {
-    final picked = await showModalBottomSheet<_TypeFilter>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Report type',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: _kTextPrimary,
-                    ),
-                  ),
-                ),
-              ),
-              for (final option in _TypeFilter.values)
-                ListTile(
-                  title: Text(
-                    option.label,
-                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-                  ),
-                  trailing: option == _typeFilter
-                      ? const Icon(Icons.check, color: _kBlue)
-                      : null,
-                  onTap: () => Navigator.pop(context, option),
-                ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
+  Future<void> _pickTypeFilter(BuildContext anchorContext) async {
+    final picked = await _showToolbarMenu<_TypeFilter>(
+      anchorContext: anchorContext,
+      options: _TypeFilter.values,
+      label: (option) => option.label,
+      selected: _typeFilter,
     );
-    if (picked != null && picked != _typeFilter) {
-      setState(() => _typeFilter = picked);
-    }
+    if (!mounted || picked == null || picked == _typeFilter) return;
+    setState(() => _typeFilter = picked);
   }
 
   Future<String?> _download(
@@ -648,11 +615,9 @@ class _DailyReportFilesScreenState
       _batchAction = 'archive';
     });
     try {
-      final count = await ProxyService.getStrategy(Strategy.capella)
-          .archiveDailyReportFiles(
-            branchId: branchId,
-            files: selected,
-          );
+      final count = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).archiveDailyReportFiles(branchId: branchId, files: selected);
       if (!mounted) return;
       if (count == 0) {
         showCustomSnackBarUtil(
@@ -783,117 +748,35 @@ class _DailyReportFilesScreenState
     final branchName = _branchName(branchId);
     final filesAsync = ref.watch(dailyReportFilesProvider(branchId));
 
-    return Scaffold(
-      backgroundColor: _kBg,
-      body: SafeArea(
-        child: branchId.isEmpty
-            ? _Shell(
-                branchName: branchName,
-                files: const <DailyReportFile>[],
-                visibleFiles: const <DailyReportFile>[],
-                selectedKeys: _selectedKeys,
-                batchBusy: _batchBusy,
-                batchAction: _batchAction,
-                search: _search,
-                dateRangeLabel: _dateRange.label,
-                sortLabel: _sortOrder.label,
-                typeLabel: _typeFilter.label,
-                groupByDay: _groupByDay,
-                onSearchChanged: (_) => setState(() {}),
-                onDateRangeTap: _pickDateRange,
-                onSortTap: _pickSortOrder,
-                onTypeTap: _pickTypeFilter,
-                onGroupByDayTap: () => setState(() => _groupByDay = !_groupByDay),
-                onSelectAll: () {},
-                onClearSelection: () {},
-                onRefresh: () =>
-                    ref.invalidate(dailyReportFilesProvider(branchId)),
-                onDownloadSelected: null,
-                onMergeSelected: null,
-                onArchiveSelected: null,
-                onShareSelected: null,
-                child: _EmptyState(
-                  title: 'No branch selected',
-                  message: 'Select a branch to see the daily Excel exports.',
-                  primaryLabel: 'Refresh',
-                  onPrimary: () =>
-                      ref.invalidate(dailyReportFilesProvider(branchId)),
-                ),
-              )
-            : filesAsync.when(
-                loading: () => _Shell(
-                  branchName: branchName,
-                  files: const <DailyReportFile>[],
-                  visibleFiles: const <DailyReportFile>[],
-                  selectedKeys: _selectedKeys,
-                  batchBusy: _batchBusy,
-                  batchAction: _batchAction,
-                  search: _search,
-                  dateRangeLabel: _dateRange.label,
-                  sortLabel: _sortOrder.label,
-                  typeLabel: _typeFilter.label,
-                  groupByDay: _groupByDay,
-                  onSearchChanged: (_) => setState(() {}),
-                  onDateRangeTap: _pickDateRange,
-                  onSortTap: _pickSortOrder,
-                  onTypeTap: _pickTypeFilter,
-                  onGroupByDayTap: () => setState(() => _groupByDay = !_groupByDay),
-                  onSelectAll: () {},
-                  onClearSelection: () {},
-                  onRefresh: () =>
-                      ref.invalidate(dailyReportFilesProvider(branchId)),
-                  onDownloadSelected: null,
-                  onMergeSelected: null,
-                  onArchiveSelected: null,
-                  onShareSelected: null,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-                error: (_, __) => _Shell(
-                  branchName: branchName,
-                  files: const <DailyReportFile>[],
-                  visibleFiles: const <DailyReportFile>[],
-                  selectedKeys: _selectedKeys,
-                  batchBusy: _batchBusy,
-                  batchAction: _batchAction,
-                  search: _search,
-                  dateRangeLabel: _dateRange.label,
-                  sortLabel: _sortOrder.label,
-                  typeLabel: _typeFilter.label,
-                  groupByDay: _groupByDay,
-                  onSearchChanged: (_) => setState(() {}),
-                  onDateRangeTap: _pickDateRange,
-                  onSortTap: _pickSortOrder,
-                  onTypeTap: _pickTypeFilter,
-                  onGroupByDayTap: () => setState(() => _groupByDay = !_groupByDay),
-                  onSelectAll: () {},
-                  onClearSelection: () {},
-                  onRefresh: () =>
-                      ref.invalidate(dailyReportFilesProvider(branchId)),
-                  onDownloadSelected: null,
-                  onMergeSelected: null,
-                  onArchiveSelected: null,
-                  onShareSelected: null,
-                  child: _EmptyState(
-                    title: 'Could not load reports',
-                    message: 'Check your connection and try again.',
-                    primaryLabel: 'Retry',
-                    onPrimary: () =>
-                        ref.invalidate(dailyReportFilesProvider(branchId)),
-                  ),
-                ),
-                data: (files) {
-                  final visible = _applyFilters(files);
-                  final hasActiveFilters = _search.text.trim().isNotEmpty ||
-                      _dateRange != _DateRangeFilter.allTime ||
-                      _typeFilter != _TypeFilter.all;
-                  return _Shell(
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.keyK, meta: true):
+            _FocusSearchIntent(),
+        SingleActivator(LogicalKeyboardKey.keyK, control: true):
+            _FocusSearchIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          _FocusSearchIntent: CallbackAction<_FocusSearchIntent>(
+            onInvoke: (_) {
+              _searchFocus.requestFocus();
+              return null;
+            },
+          ),
+        },
+        child: Scaffold(
+          backgroundColor: _kBg,
+          body: SafeArea(
+            child: branchId.isEmpty
+                ? _Shell(
                     branchName: branchName,
-                    files: files,
-                    visibleFiles: visible,
+                    files: const <DailyReportFile>[],
+                    visibleFiles: const <DailyReportFile>[],
                     selectedKeys: _selectedKeys,
                     batchBusy: _batchBusy,
                     batchAction: _batchAction,
                     search: _search,
+                    searchFocus: _searchFocus,
                     dateRangeLabel: _dateRange.label,
                     sortLabel: _sortOrder.label,
                     typeLabel: _typeFilter.label,
@@ -904,95 +787,203 @@ class _DailyReportFilesScreenState
                     onTypeTap: _pickTypeFilter,
                     onGroupByDayTap: () =>
                         setState(() => _groupByDay = !_groupByDay),
-                    onSelectAll: () => _toggleAll(visible, select: true),
-                    onClearSelection: () => _toggleAll(visible, select: false),
-                    onRefresh: () =>
-                        ref.invalidate(dailyReportFilesProvider(branchId)),
-                    onDownloadSelected: _selectedKeys.isEmpty
-                        ? null
-                        : () => _onDownloadSelected(files),
-                    onMergeSelected: _selectedKeys.length < 2
-                        ? null
-                        : () => _onMergeSelected(files),
-                    onArchiveSelected: _selectedKeys.isEmpty
-                        ? null
-                        : () => _onArchiveSelected(files),
-                    onShareSelected: _selectedKeys.isEmpty
-                        ? null
-                        : () => _onShareSelected(files),
-                    previewFile: _previewFile,
-                    previewFuture: _previewFuture,
-                    onClosePreview: _closePreview,
-                    onDownloadPreview: _previewFile == null
-                        ? null
-                        : () => _onDownloadOne(_previewFile!),
-                    onSharePreview: _previewFile == null
-                        ? null
-                        : () => _onShareOne(_previewFile!),
-                    child: RefreshIndicator(
-                      onRefresh: () async {
-                        ref.invalidate(dailyReportFilesProvider(branchId));
-                        await Future<void>.delayed(
-                          const Duration(milliseconds: 150),
-                        );
-                      },
-                      child: visible.isEmpty
-                          ? ListView(
-                              padding: EdgeInsets.zero,
-                              children: [
-                                SizedBox(
-                                  height:
-                                      MediaQuery.sizeOf(context).height * .36,
-                                  child: _EmptyState(
-                                    title: files.isEmpty
-                                        ? 'No daily reports yet'
-                                        : 'No matches',
-                                    message: files.isEmpty
-                                        ? 'When reports are generated for this branch, they will appear here for download.'
-                                        : hasActiveFilters
-                                        ? 'Try a different search, date range, or type filter.'
-                                        : 'Try a different report name, date, or ID.',
-                                    primaryLabel: files.isEmpty
-                                        ? 'Refresh'
-                                        : 'Clear filters',
-                                    onPrimary: files.isEmpty
-                                        ? () => ref.invalidate(
-                                            dailyReportFilesProvider(branchId),
-                                          )
-                                        : _clearListFilters,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : _GroupedFileList(
-                              files: visible,
-                              groupByDay: _groupByDay,
-                              selectedKeys: _selectedKeys,
-                              busyAll: _batchBusy,
-                              busyId: _singleBusyId,
-                              rowKeyOf: _rowKey,
-                              onToggle: (id) {
-                                setState(() {
-                                  if (_selectedKeys.contains(id)) {
-                                    _selectedKeys.remove(id);
-                                  } else {
-                                    _selectedKeys.add(id);
-                                  }
-                                });
-                              },
-                              onDownload: (f) => _onDownloadOne(f),
-                              onPreview: _openPreview,
-                              onArchive: (f) => _archiveFiles([f]),
-                              onShare: _onShareOne,
-                              onSelectAll: () =>
-                                  _toggleAll(visible, select: true),
-                              onClearSelection: () =>
-                                  _toggleAll(visible, select: false),
-                            ),
+                    onSelectAll: () {},
+                    onClearSelection: () {},
+                    onRefresh: _onRefresh,
+                    refreshing: _refreshing,
+                    onDownloadSelected: null,
+                    onMergeSelected: null,
+                    onArchiveSelected: null,
+                    onShareSelected: null,
+                    child: _EmptyState(
+                      title: 'No branch selected',
+                      message:
+                          'Select a branch to see the daily Excel exports.',
+                      primaryLabel: 'Refresh',
+                      onPrimary: () =>
+                          ref.invalidate(dailyReportFilesProvider(branchId)),
                     ),
-                  );
-                },
-              ),
+                  )
+                : filesAsync.when(
+                    loading: () => _Shell(
+                      branchName: branchName,
+                      files: const <DailyReportFile>[],
+                      visibleFiles: const <DailyReportFile>[],
+                      selectedKeys: _selectedKeys,
+                      batchBusy: _batchBusy,
+                      batchAction: _batchAction,
+                      search: _search,
+                      searchFocus: _searchFocus,
+                      dateRangeLabel: _dateRange.label,
+                      sortLabel: _sortOrder.label,
+                      typeLabel: _typeFilter.label,
+                      groupByDay: _groupByDay,
+                      onSearchChanged: (_) => setState(() {}),
+                      onDateRangeTap: _pickDateRange,
+                      onSortTap: _pickSortOrder,
+                      onTypeTap: _pickTypeFilter,
+                      onGroupByDayTap: () =>
+                          setState(() => _groupByDay = !_groupByDay),
+                      onSelectAll: () {},
+                      onClearSelection: () {},
+                      onRefresh: _onRefresh,
+                      refreshing: _refreshing,
+                      onDownloadSelected: null,
+                      onMergeSelected: null,
+                      onArchiveSelected: null,
+                      onShareSelected: null,
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (_, __) => _Shell(
+                      branchName: branchName,
+                      files: const <DailyReportFile>[],
+                      visibleFiles: const <DailyReportFile>[],
+                      selectedKeys: _selectedKeys,
+                      batchBusy: _batchBusy,
+                      batchAction: _batchAction,
+                      search: _search,
+                      searchFocus: _searchFocus,
+                      dateRangeLabel: _dateRange.label,
+                      sortLabel: _sortOrder.label,
+                      typeLabel: _typeFilter.label,
+                      groupByDay: _groupByDay,
+                      onSearchChanged: (_) => setState(() {}),
+                      onDateRangeTap: _pickDateRange,
+                      onSortTap: _pickSortOrder,
+                      onTypeTap: _pickTypeFilter,
+                      onGroupByDayTap: () =>
+                          setState(() => _groupByDay = !_groupByDay),
+                      onSelectAll: () {},
+                      onClearSelection: () {},
+                      onRefresh: _onRefresh,
+                      refreshing: _refreshing,
+                      onDownloadSelected: null,
+                      onMergeSelected: null,
+                      onArchiveSelected: null,
+                      onShareSelected: null,
+                      child: _EmptyState(
+                        title: 'Could not load reports',
+                        message: 'Check your connection and try again.',
+                        primaryLabel: 'Retry',
+                        onPrimary: () =>
+                            ref.invalidate(dailyReportFilesProvider(branchId)),
+                      ),
+                    ),
+                    data: (files) {
+                      final visible = _applyFilters(files);
+                      final hasActiveFilters =
+                          _search.text.trim().isNotEmpty ||
+                          _dateRange != _DateRangeFilter.allTime ||
+                          _typeFilter != _TypeFilter.all;
+                      return _Shell(
+                        branchName: branchName,
+                        files: files,
+                        visibleFiles: visible,
+                        selectedKeys: _selectedKeys,
+                        batchBusy: _batchBusy,
+                        batchAction: _batchAction,
+                        search: _search,
+                        searchFocus: _searchFocus,
+                        dateRangeLabel: _dateRange.label,
+                        sortLabel: _sortOrder.label,
+                        typeLabel: _typeFilter.label,
+                        groupByDay: _groupByDay,
+                        onSearchChanged: (_) => setState(() {}),
+                        onDateRangeTap: _pickDateRange,
+                        onSortTap: _pickSortOrder,
+                        onTypeTap: _pickTypeFilter,
+                        onGroupByDayTap: () =>
+                            setState(() => _groupByDay = !_groupByDay),
+                        onSelectAll: () => _toggleAll(visible, select: true),
+                        onClearSelection: () =>
+                            _toggleAll(visible, select: false),
+                        onRefresh: _onRefresh,
+                        refreshing: _refreshing,
+                        onDownloadSelected: _selectedKeys.isEmpty
+                            ? null
+                            : () => _onDownloadSelected(files),
+                        onMergeSelected: _selectedKeys.length < 2
+                            ? null
+                            : () => _onMergeSelected(files),
+                        onArchiveSelected: _selectedKeys.isEmpty
+                            ? null
+                            : () => _onArchiveSelected(files),
+                        onShareSelected: _selectedKeys.isEmpty
+                            ? null
+                            : () => _onShareSelected(files),
+                        previewFile: _previewFile,
+                        previewFuture: _previewFuture,
+                        onClosePreview: _closePreview,
+                        onDownloadPreview: _previewFile == null
+                            ? null
+                            : () => _onDownloadOne(_previewFile!),
+                        onSharePreview: _previewFile == null
+                            ? null
+                            : () => _onShareOne(_previewFile!),
+                        child: RefreshIndicator(
+                          onRefresh: _onRefresh,
+                          child: visible.isEmpty
+                              ? ListView(
+                                  padding: EdgeInsets.zero,
+                                  children: [
+                                    SizedBox(
+                                      height:
+                                          MediaQuery.sizeOf(context).height *
+                                          .36,
+                                      child: _EmptyState(
+                                        title: files.isEmpty
+                                            ? 'No daily reports yet'
+                                            : 'No matches',
+                                        message: files.isEmpty
+                                            ? 'When reports are generated for this branch, they will appear here for download.'
+                                            : hasActiveFilters
+                                            ? 'Try a different search, date range, or type filter.'
+                                            : 'Try a different report name, date, or ID.',
+                                        primaryLabel: files.isEmpty
+                                            ? 'Refresh'
+                                            : 'Clear filters',
+                                        onPrimary: files.isEmpty
+                                            ? () => ref.invalidate(
+                                                dailyReportFilesProvider(
+                                                  branchId,
+                                                ),
+                                              )
+                                            : _clearListFilters,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : _GroupedFileList(
+                                  files: visible,
+                                  groupByDay: _groupByDay,
+                                  selectedKeys: _selectedKeys,
+                                  busyAll: _batchBusy,
+                                  busyId: _singleBusyId,
+                                  rowKeyOf: _rowKey,
+                                  onToggle: (id) {
+                                    setState(() {
+                                      if (_selectedKeys.contains(id)) {
+                                        _selectedKeys.remove(id);
+                                      } else {
+                                        _selectedKeys.add(id);
+                                      }
+                                    });
+                                  },
+                                  onDownload: (f) => _onDownloadOne(f),
+                                  onPreview: _openPreview,
+                                  onArchive: (f) => _archiveFiles([f]),
+                                  onShare: _onShareOne,
+                                  onSelectAll: () =>
+                                      _toggleAll(visible, select: true),
+                                  onClearSelection: () =>
+                                      _toggleAll(visible, select: false),
+                                ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ),
       ),
     );
   }
@@ -1007,6 +998,7 @@ class _Shell extends StatelessWidget {
     required this.batchBusy,
     required this.batchAction,
     required this.search,
+    required this.searchFocus,
     required this.dateRangeLabel,
     required this.sortLabel,
     required this.typeLabel,
@@ -1019,6 +1011,7 @@ class _Shell extends StatelessWidget {
     required this.onSelectAll,
     required this.onClearSelection,
     required this.onRefresh,
+    this.refreshing = false,
     required this.onDownloadSelected,
     required this.onMergeSelected,
     required this.onArchiveSelected,
@@ -1038,18 +1031,20 @@ class _Shell extends StatelessWidget {
   final bool batchBusy;
   final String? batchAction;
   final TextEditingController search;
+  final FocusNode searchFocus;
   final String dateRangeLabel;
   final String sortLabel;
   final String typeLabel;
   final bool groupByDay;
   final ValueChanged<String> onSearchChanged;
-  final VoidCallback onDateRangeTap;
-  final VoidCallback onSortTap;
-  final VoidCallback onTypeTap;
+  final void Function(BuildContext context) onDateRangeTap;
+  final void Function(BuildContext context) onSortTap;
+  final void Function(BuildContext context) onTypeTap;
   final VoidCallback onGroupByDayTap;
   final VoidCallback onSelectAll;
   final VoidCallback onClearSelection;
-  final VoidCallback onRefresh;
+  final Future<void> Function() onRefresh;
+  final bool refreshing;
   final VoidCallback? onDownloadSelected;
   final VoidCallback? onMergeSelected;
   final VoidCallback? onArchiveSelected;
@@ -1105,6 +1100,8 @@ class _Shell extends StatelessWidget {
                       onSelectAll: onSelectAll,
                       onClearSelection: onClearSelection,
                       onRefresh: onRefresh,
+                      refreshing: refreshing,
+                      searchFocus: searchFocus,
                       child: Expanded(child: child),
                     ),
                   ],
@@ -1146,7 +1143,7 @@ class _HeroHeader extends StatelessWidget {
 
   final String branchName;
   final String dateRangeLabel;
-  final VoidCallback onDateRangeTap;
+  final void Function(BuildContext context) onDateRangeTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1218,32 +1215,30 @@ class _HeaderButton extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.trailing,
-    this.filled = false,
   });
 
   final String icon;
   final String label;
-  final VoidCallback onTap;
+  final void Function(BuildContext context) onTap;
   final String? trailing;
-  final bool filled;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: filled ? _kBlue : Colors.white,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
+        onTap: () => onTap(context),
         child: Container(
           height: 42,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: filled ? _kBlue : _kBorder),
+            border: Border.all(color: _kBorder),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: filled ? .12 : .04),
+                color: Colors.black.withValues(alpha: .04),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -1255,13 +1250,13 @@ class _HeaderButton extends StatelessWidget {
               DashboardQuickAccessSvgs.assetIcon(
                 icon,
                 size: 18,
-                color: filled ? Colors.white : _kTextPrimary,
+                color: _kTextPrimary,
               ),
               const SizedBox(width: 9),
               Text(
                 label,
                 style: GoogleFonts.outfit(
-                  color: filled ? Colors.white : _kTextPrimary,
+                  color: _kTextPrimary,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
@@ -1271,7 +1266,7 @@ class _HeaderButton extends StatelessWidget {
                 DashboardQuickAccessSvgs.assetIcon(
                   trailing!,
                   size: 18,
-                  color: filled ? Colors.white : _kTextPrimary,
+                  color: _kTextPrimary,
                 ),
               ],
             ],
@@ -1441,6 +1436,7 @@ class _ListFrame extends StatelessWidget {
     required this.allFiles,
     required this.selectedCount,
     required this.search,
+    required this.searchFocus,
     required this.sortLabel,
     required this.typeLabel,
     required this.groupByDay,
@@ -1451,6 +1447,7 @@ class _ListFrame extends StatelessWidget {
     required this.onSelectAll,
     required this.onClearSelection,
     required this.onRefresh,
+    this.refreshing = false,
     required this.child,
   });
 
@@ -1458,17 +1455,25 @@ class _ListFrame extends StatelessWidget {
   final List<DailyReportFile> allFiles;
   final int selectedCount;
   final TextEditingController search;
+  final FocusNode searchFocus;
   final String sortLabel;
   final String typeLabel;
   final bool groupByDay;
   final ValueChanged<String> onSearchChanged;
-  final VoidCallback onSortTap;
-  final VoidCallback onTypeTap;
+  final void Function(BuildContext context) onSortTap;
+  final void Function(BuildContext context) onTypeTap;
   final VoidCallback onGroupByDayTap;
   final VoidCallback onSelectAll;
   final VoidCallback onClearSelection;
-  final VoidCallback onRefresh;
+  final Future<void> Function() onRefresh;
+  final bool refreshing;
   final Widget child;
+
+  bool? get _headerCheckboxValue {
+    if (selectedCount == 0) return false;
+    if (selectedCount == allFiles.length) return true;
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1494,10 +1499,15 @@ class _ListFrame extends StatelessWidget {
                     width: 26,
                     height: 26,
                     child: Checkbox(
-                      value: selectedCount > 0,
-                      onChanged: (_) => selectedCount > 0
-                          ? onClearSelection()
-                          : onSelectAll(),
+                      tristate: true,
+                      value: _headerCheckboxValue,
+                      onChanged: (_) {
+                        if (selectedCount > 0) {
+                          onClearSelection();
+                        } else {
+                          onSelectAll();
+                        }
+                      },
                       activeColor: _kBlue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
@@ -1565,6 +1575,7 @@ class _ListFrame extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: search,
+                      focusNode: searchFocus,
                       onChanged: onSearchChanged,
                       style: GoogleFonts.outfit(
                         color: _kTextPrimary,
@@ -1586,21 +1597,27 @@ class _ListFrame extends StatelessWidget {
                             color: _kTextMuted,
                           ),
                         ),
-                        suffixIcon: Container(
-                          width: 42,
-                          alignment: Alignment.center,
-                          margin: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: _kSurfaceAlt,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: _kBorder),
-                          ),
-                          child: Text(
-                            '#K',
-                            style: GoogleFonts.outfit(
-                              color: _kTextMuted,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                        suffixIcon: Tooltip(
+                          message: 'Focus search (⌘K)',
+                          child: GestureDetector(
+                            onTap: () => searchFocus.requestFocus(),
+                            child: Container(
+                              width: 42,
+                              alignment: Alignment.center,
+                              margin: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: _kSurfaceAlt,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: _kBorder),
+                              ),
+                              child: Text(
+                                '⌘K',
+                                style: GoogleFonts.outfit(
+                                  color: _kTextMuted,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -1617,34 +1634,53 @@ class _ListFrame extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  _ToolChip(
-                    icon: DashboardQuickAccessSvgs.filter,
-                    label: 'Type:',
-                    value: typeLabel,
-                    onTap: onTypeTap,
-                  ),
-                  const SizedBox(width: 8),
-                  _ToolChip(
-                    icon: DashboardQuickAccessSvgs.sortDesc,
-                    label: 'Sort:',
-                    value: sortLabel,
-                    onTap: onSortTap,
-                  ),
-                  const SizedBox(width: 8),
-                  _ToolChip(
-                    icon: DashboardQuickAccessSvgs.group,
-                    label: '',
-                    value: groupByDay ? 'Group by day' : 'Flat list',
-                    filled: groupByDay,
-                    onTap: onGroupByDayTap,
-                  ),
-                  const SizedBox(width: 10),
-                  IconButton(
-                    tooltip: 'Refresh',
-                    onPressed: onRefresh,
-                    icon: DashboardQuickAccessSvgs.assetIcon(
-                      DashboardQuickAccessSvgs.refresh,
-                      color: _kTextPrimary,
+                  Flexible(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      reverse: true,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _ToolChip(
+                            icon: DashboardQuickAccessSvgs.filter,
+                            label: 'Type:',
+                            value: typeLabel,
+                            onTap: onTypeTap,
+                          ),
+                          const SizedBox(width: 8),
+                          _ToolChip(
+                            icon: DashboardQuickAccessSvgs.sortDesc,
+                            label: 'Sort:',
+                            value: sortLabel,
+                            onTap: onSortTap,
+                          ),
+                          const SizedBox(width: 8),
+                          _ToolChip(
+                            icon: DashboardQuickAccessSvgs.group,
+                            label: '',
+                            value: groupByDay ? 'Group by day' : 'Flat list',
+                            filled: groupByDay,
+                            onTap: (_) => onGroupByDayTap(),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            tooltip: 'Refresh',
+                            onPressed: refreshing ? null : onRefresh,
+                            icon: refreshing
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : DashboardQuickAccessSvgs.assetIcon(
+                                    DashboardQuickAccessSvgs.refresh,
+                                    color: _kTextPrimary,
+                                  ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -1677,7 +1713,7 @@ class _ToolChip extends StatelessWidget {
   final String icon;
   final String label;
   final String value;
-  final VoidCallback onTap;
+  final void Function(BuildContext context) onTap;
   final bool filled;
 
   @override
@@ -1686,53 +1722,53 @@ class _ToolChip extends StatelessWidget {
       color: filled ? _kBlue : Colors.white,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
-        onTap: onTap,
+        onTap: () => onTap(context),
         borderRadius: BorderRadius.circular(8),
         child: Container(
-      height: 42,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: filled ? _kBlue : _kBorder),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          DashboardQuickAccessSvgs.assetIcon(
-            icon,
-            size: 18,
-            color: filled ? Colors.white : _kTextPrimary,
+          height: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: filled ? _kBlue : _kBorder),
           ),
-          if (label.isNotEmpty) ...[
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.outfit(
-                color: _kTextMuted,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DashboardQuickAccessSvgs.assetIcon(
+                icon,
+                size: 18,
+                color: filled ? Colors.white : _kTextPrimary,
               ),
-            ),
-          ],
-          const SizedBox(width: 5),
-          Text(
-            value,
-            style: GoogleFonts.outfit(
-              color: filled ? Colors.white : _kTextPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-            ),
+              if (label.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: GoogleFonts.outfit(
+                    color: filled ? Colors.white70 : _kTextMuted,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+              const SizedBox(width: 5),
+              Text(
+                value,
+                style: GoogleFonts.outfit(
+                  color: filled ? Colors.white : _kTextPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (!filled) ...[
+                const SizedBox(width: 5),
+                DashboardQuickAccessSvgs.assetIcon(
+                  DashboardQuickAccessSvgs.chevronDown,
+                  size: 18,
+                  color: _kTextPrimary,
+                ),
+              ],
+            ],
           ),
-          if (!filled) ...[
-            const SizedBox(width: 5),
-            DashboardQuickAccessSvgs.assetIcon(
-              DashboardQuickAccessSvgs.chevronDown,
-              size: 18,
-              color: _kTextPrimary,
-            ),
-          ],
-        ],
-      ),
         ),
       ),
     );
@@ -2088,14 +2124,8 @@ class _FileRow extends StatelessWidget {
                     value: 'download',
                     child: Text('Download'),
                   ),
-                  const PopupMenuItem(
-                    value: 'share',
-                    child: Text('Share'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'archive',
-                    child: Text('Archive'),
-                  ),
+                  const PopupMenuItem(value: 'share', child: Text('Share')),
+                  const PopupMenuItem(value: 'archive', child: Text('Archive')),
                 ],
                 icon: DashboardQuickAccessSvgs.assetIcon(
                   DashboardQuickAccessSvgs.more,
@@ -2657,12 +2687,12 @@ class _PreviewStatsGrid extends StatelessWidget {
         itemCount: cells.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          mainAxisExtent: 82,
+          mainAxisExtent: 94,
         ),
         itemBuilder: (context, index) {
           final cell = cells[index];
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             decoration: BoxDecoration(
               border: Border(
                 right: (index + 1) % 3 == 0
@@ -2675,7 +2705,7 @@ class _PreviewStatsGrid extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   cell.$1,
@@ -2683,19 +2713,20 @@ class _PreviewStatsGrid extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
                     color: _kTextMuted,
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 3,
+                    letterSpacing: 2.4,
+                    height: 1,
                   ),
                 ),
-                const SizedBox(height: 8),
                 Text(
                   cell.$2,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
                     color: _kTextPrimary,
-                    fontSize: 18,
+                    fontSize: 17,
+                    height: 1,
                     fontWeight: FontWeight.w800,
                   ),
                 ),

@@ -527,10 +527,15 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
         if (persistToBackend) {
           try {
-            await StockIOUtil.saveStockMaster(
-              variant: scannedVariant,
-              stockMasterQty: scannedVariant.stock?.currentStock ?? 0,
-            );
+            // Only sync master for items already registered with RRA (saveItems).
+            // New variants get the full saveItems → saveStockItems → saveStockMaster
+            // sequence from addVariant; calling saveStockMaster alone breaks RRA order.
+            if (scannedVariant.ebmSynced == true) {
+              await StockIOUtil.saveStockMaster(
+                variant: scannedVariant,
+                stockMasterQty: scannedVariant.stock?.currentStock ?? 0,
+              );
+            }
             if (scannedVariant.stockId != null) {
               await ProxyService.strategy.updateVariant(
                 updatables: [scannedVariant],

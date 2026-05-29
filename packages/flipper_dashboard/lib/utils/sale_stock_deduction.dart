@@ -145,3 +145,63 @@ void scheduleDeferredSaleStockDeduction({
     }),
   );
 }
+
+/// Local stock decrement, then RRA `saveStockItems` → `saveStockMaster` (after saveSales).
+Future<void> runPostSaleStockDeductionAndRraSync({
+  required List<TransactionItem> transactionItems,
+  required bool allowSellingBelowStock,
+  required bool isProformaOrTraining,
+  required String transactionId,
+  required ITransaction transaction,
+  required String receiptType,
+  String? sarTyCd,
+}) async {
+  await applyDeferredSaleStockDeduction(
+    transactionItems: transactionItems,
+    allowSellingBelowStock: allowSellingBelowStock,
+    isProformaOrTraining: isProformaOrTraining,
+    transactionId: transactionId,
+  );
+
+  if (isProformaOrTraining) return;
+
+  final highestInvcNo = transaction.invoiceNumber;
+  if (highestInvcNo == null || highestInvcNo <= 0) {
+    talker.warning(
+      'Skipping post-sale RRA stock sync: missing invoiceNumber on ${transaction.id}',
+    );
+    return;
+  }
+
+  await ProxyService.tax.syncStockAfterSuccessfulSaveSales(
+    receiptType: receiptType,
+    items: transactionItems,
+    transaction: transaction,
+    highestInvcNo: highestInvcNo,
+    sarTyCd: sarTyCd,
+  );
+}
+
+void schedulePostSaleStockDeductionAndRraSync({
+  required List<TransactionItem> transactionItems,
+  required bool allowSellingBelowStock,
+  required bool isProformaOrTraining,
+  required String transactionId,
+  required ITransaction transaction,
+  required String receiptType,
+  String? sarTyCd,
+}) {
+  unawaited(
+    runPostSaleStockDeductionAndRraSync(
+      transactionItems: transactionItems,
+      allowSellingBelowStock: allowSellingBelowStock,
+      isProformaOrTraining: isProformaOrTraining,
+      transactionId: transactionId,
+      transaction: transaction,
+      receiptType: receiptType,
+      sarTyCd: sarTyCd,
+    ).catchError((e, s) {
+      talker.error('Post-sale stock deduction / RRA sync failed: $e', s);
+    }),
+  );
+}

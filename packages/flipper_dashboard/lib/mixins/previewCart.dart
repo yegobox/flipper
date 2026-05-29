@@ -487,11 +487,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       );
 
       void schedulePostSaleStockDeduction() {
-        scheduleDeferredSaleStockDeduction(
+        schedulePostSaleStockDeductionAndRraSync(
           transactionItems: transactionItems,
           allowSellingBelowStock: allowSellingBelowStock,
           isProformaOrTraining: isProformaOrTraining,
           transactionId: transactionId,
+          transaction: transaction,
+          receiptType: getFilterType(
+            transactionType: transaction.receiptType,
+          ).name,
         );
       }
 
@@ -988,11 +992,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 transaction.cashReceived =
                     (transaction.cashReceived ?? 0) + amount;
 
-                scheduleDeferredSaleStockDeduction(
+                schedulePostSaleStockDeductionAndRraSync(
                   transactionItems: transactionItems,
                   allowSellingBelowStock: allowSellingBelowStock,
                   isProformaOrTraining: isProformaOrTraining,
                   transactionId: transaction.id,
+                  transaction: transaction,
+                  receiptType: getFilterType(
+                    transactionType: transaction.receiptType,
+                  ).name,
                 );
 
                 await markTransactionAsCompleted(
