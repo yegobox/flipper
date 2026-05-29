@@ -1,6 +1,187 @@
 import 'dart:convert';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_services/constants.dart';
+
+double _roundMoney(num value) =>
+    double.parse(value.toStringAsFixed(2));
+
+/// Stock-in / purchase-side I/O — matches data-connector bulk (no customer fields).
+///
+/// Sale (`11`) and sale return-out (`12`) are outgoing and keep `custNm` / `custTin`.
+bool isIncomingRraStockIo(String sarTyCd) {
+  switch (sarTyCd) {
+    case StockInOutType.import:
+    case StockInOutType.purchase:
+    case StockInOutType.returnIn:
+    case StockInOutType.stockMovementIn:
+    case StockInOutType.processingIn:
+    case StockInOutType.adjustmentIn:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/// Registrar ids for `stock/saveStockItems` envelope — variant ids, not random (bulk path).
+Map<String, String> rraStockIoRegistrarFields(
+  List<TransactionItem> items, {
+  String Function()? fallbackRegistrarId,
+}) {
+  for (final item in items) {
+    final modrId = item.modrId?.toString().trim();
+    if (modrId != null && modrId.isNotEmpty) {
+      final regrId = item.regrId?.toString().trim();
+      final regrNm = item.regrNm?.trim();
+      final modrNm = item.modrNm?.trim();
+      final effectiveRegrId =
+          (regrId != null && regrId.isNotEmpty) ? regrId : modrId;
+      return {
+        'regrId': effectiveRegrId,
+        'regrNm':
+            (regrNm != null && regrNm.isNotEmpty) ? regrNm : effectiveRegrId,
+        'modrId': modrId,
+        'modrNm': (modrNm != null && modrNm.isNotEmpty) ? modrNm : modrId,
+      };
+    }
+  }
+  final mod = (fallbackRegistrarId ?? () => randomNumber().toString())();
+  final short = mod.length > 15 ? mod.substring(0, 15) : mod;
+  return {'regrId': short, 'regrNm': short, 'modrId': short, 'modrNm': short};
+}
+
+/// One `itemList` line for `stock/saveStockItems` (data-connector / bulk shape).
+Map<String, dynamic> mapRraStockIoItemToJson(
+  TransactionItem item, {
+  required String bhfId,
+  num? approvedQty,
+  int? itemSeq,
+  String Function()? fallbackModId,
+}) {
+  final quantity = (approvedQty ?? item.qty).toDouble();
+  final retailUnit = (item.prc ?? item.price).toDouble();
+  final supplyUnit = (item.supplyPrice ?? item.prc ?? item.price).toDouble();
+  final lineTotal = _roundMoney(retailUnit * quantity);
+  final modId = item.modrId?.toString().trim();
+  final effectiveModId = (modId != null && modId.isNotEmpty)
+      ? modId
+      : (fallbackModId ?? () => randomNumber().toString())().substring(0, 15);
+
+  final line = <String, dynamic>{
+    'itemSeq': itemSeq ?? item.itemSeq ?? 1,
+    'itemCd': item.itemCd,
+    'itemClsCd': item.itemClsCd,
+    'itemNm': item.itemNm ?? item.name,
+    'itemTyCd': item.itemTyCd,
+    'itemStdNm': item.itemStdNm ?? item.name,
+    'qtyUnitCd': item.qtyUnitCd ?? 'U',
+    'pkgUnitCd': item.pkgUnitCd ?? 'CT',
+    'pkg': 1,
+    'qty': quantity,
+    'prc': retailUnit,
+    'splyAmt': _roundMoney(supplyUnit),
+    'taxTyCd': item.taxTyCd ?? 'B',
+    'taxblAmt': lineTotal,
+    'taxAmt': 0,
+    'totAmt': lineTotal,
+      'totDcAmt': '0',
+      'orgnNatCd': item.orgnNatCd ?? 'RW',
+      'isrcAplcbYn': 'N',
+      'regrId': item.regrId?.toString() ?? effectiveModId,
+      'regrNm': item.regrNm ?? item.regrId?.toString() ?? effectiveModId,
+      'modrId': effectiveModId,
+      'modrNm': item.modrNm ?? effectiveModId,
+    };
+
+    final bcd = item.bcd;
+    if (bcd != null && bcd.isNotEmpty) {
+      line['bcd'] = bcd;
+    }
+
+    // Never strip required RRA keys (empty itemCd caused silent portal misses).
+    const keepIfPresent = {
+      'itemCd',
+      'itemClsCd',
+      'itemTyCd',
+      'itemNm',
+      'itemStdNm',
+      'qty',
+      'pkg',
+      'prc',
+      'splyAmt',
+      'taxTyCd',
+      'taxblAmt',
+      'taxAmt',
+      'totAmt',
+      'totDcAmt',
+    };
+    line.removeWhere((key, value) {
+      if (keepIfPresent.contains(key)) return false;
+      return value == null || (value is String && value.isEmpty);
+    });
+    return line;
+}
+
+/// Builds the JSON body for `POST stock/saveStockItems` (pure; no HTTP).
+Map<String, dynamic> buildRraSaveStockItemsRequest({
+  required List<TransactionItem> items,
+  required List<Map<String, dynamic>> itemList,
+  required String tinNumber,
+  required String bhfId,
+  required String sarTyCd,
+  required String regTyCd,
+  required String ocrnDt,
+  required double totalSupplyPrice,
+  required double totalvat,
+  required double totalAmount,
+  required String remark,
+  required String? sarNo,
+  required int orgSarNo,
+  String? saleCustomerName,
+  String? saleCustTin,
+  String? saleCustBhfId,
+  String Function()? fallbackRegistrarId,
+}) {
+  final registrar = rraStockIoRegistrarFields(
+    items,
+    fallbackRegistrarId: fallbackRegistrarId,
+  );
+  final incoming = isIncomingRraStockIo(sarTyCd);
+
+  final json = <String, dynamic>{
+    'totItemCnt': items.length,
+    'tin': tinNumber,
+    'bhfId': bhfId,
+    'regTyCd': regTyCd,
+    'sarTyCd': sarTyCd,
+    'ocrnDt': ocrnDt,
+    'totTaxblAmt': _roundMoney(totalSupplyPrice),
+    'totTaxAmt': _roundMoney(totalvat),
+    'totAmt': _roundMoney(totalAmount),
+    'remark': remark,
+    'regrId': registrar['regrId'],
+    'regrNm': registrar['regrNm'],
+    'modrId': registrar['modrId'],
+    'modrNm': registrar['modrNm'],
+    'sarNo': sarNo,
+    'orgSarNo': orgSarNo,
+    'itemList': itemList,
+  };
+
+  if (!incoming) {
+    final name = saleCustomerName?.trim();
+    json['custNm'] = (name != null && name.isNotEmpty) ? name : 'N/A';
+    if (saleCustBhfId != null && saleCustBhfId.isNotEmpty) {
+      json['custBhfId'] = saleCustBhfId;
+    }
+    if (saleCustTin != null && saleCustTin.isNotEmpty) {
+      json['custTin'] = saleCustTin;
+    }
+  }
+
+  return json;
+}
 
 /// LocalStorage key prefix for stocking levels at POS sale-completion time,
 /// keyed by Ditto [`Stock`] id (`stockId`).
@@ -8,6 +189,40 @@ const String kRraSaleStockSnapshotPrefix = 'rra_sale_stock_snapshot_';
 
 String rraSaleStockSnapshotBoxKey(String transactionId) =>
     '$kRraSaleStockSnapshotPrefix$transactionId';
+
+/// Resolves [sarTyCd] for post-[saveSales] `stock/saveStockItems` (matches [TaxController]).
+///
+/// Deferred post-sale sync ([runPostSaleStockDeductionAndRraSync]) must use the same
+/// codes as the pre-performance path (e.g. [StockInOutType.sale] for NS/CS), not `"06"`.
+/// Invoice counter used for post-sale `sarNo` / `orgSarNo` after the sign-only path.
+int? resolvePostSaleInvoiceNo({
+  int? invoiceNumber,
+  int? receiptNumber,
+  int? totalReceiptNumber,
+}) {
+  for (final n in [invoiceNumber, receiptNumber, totalReceiptNumber]) {
+    if (n != null && n > 0) return n;
+  }
+  return null;
+}
+
+String resolveRraStockIoSarTyCd({
+  String? sarTyCd,
+  String? receiptType,
+  String? transactionSarTyCd,
+}) {
+  if (sarTyCd != null && sarTyCd.isNotEmpty) return sarTyCd;
+  if (transactionSarTyCd != null && transactionSarTyCd.isNotEmpty) {
+    return transactionSarTyCd;
+  }
+  switch (receiptType) {
+    case 'NR':
+    case 'TR':
+      return StockInOutType.returnIn;
+    default:
+      return StockInOutType.sale;
+  }
+}
 
 /// Parses [JSON-encoded] `{ stockId -> qty }` from [LocalStorage.writeString].
 Map<String, double>? decodeRraSaleStockSnapshot(String? encoded) {

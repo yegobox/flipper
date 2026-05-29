@@ -17,6 +17,7 @@ import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_services/constants.dart';
 
 class EnhancedSideMenu extends ConsumerWidget {
@@ -52,6 +53,7 @@ class EnhancedSideMenu extends ConsumerWidget {
             featureAccessProvider(userId: uid, featureName: AppFeature.Leads),
           )
         : false;
+    final showAgentCommission = ref.watch(sideMenuShowAgentCommissionProvider);
 
     final menuItems = [
       _SideMenuItem(
@@ -232,6 +234,17 @@ class EnhancedSideMenu extends ConsumerWidget {
                 DashboardPage.shiftHistory;
           },
           tooltip: 'Shift History',
+        ),
+      if (showAgentCommission)
+        _SideMenuItem(
+          iconBuilder: (c) => Icon(Icons.support_agent, color: c, size: 24),
+          isSelected: selectedItem == 12,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 12;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.agentCommission;
+          },
+          tooltip: 'Agent commission',
         ),
       _SideMenuItem(
         iconBuilder: (_) =>

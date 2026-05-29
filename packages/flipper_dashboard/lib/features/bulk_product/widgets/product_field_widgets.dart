@@ -131,7 +131,7 @@ class TaxTypeDropdown extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
         child: DropdownButton<String>(
-          value: selectedValue ?? "B",
+          value: selectedValue ?? model.defaultBulkTaxTyCd,
           items: ["A", "B", "C", "D"].map((String option) {
             return DropdownMenuItem<String>(value: option, child: Text(option));
           }).toList(),
@@ -146,7 +146,7 @@ class TaxTypeDropdown extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
         child: DropdownButton<String>(
-          value: selectedValue ?? "B",
+          value: selectedValue ?? model.defaultBulkTaxTyCd,
           items: ["A", "B", "C", "D"].map((String option) {
             return DropdownMenuItem<String>(value: option, child: Text(option));
           }).toList(),

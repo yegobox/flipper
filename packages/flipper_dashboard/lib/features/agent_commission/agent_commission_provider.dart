@@ -8,8 +8,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supabase_models/brick/models/transaction.model.dart';
-
 const _logTag = '[AgentCommission]';
 
 enum AgentCommissionPeriod { today, week, month, all }
@@ -32,7 +30,7 @@ final agentCommissionSummaryProvider =
       return fetchAgentCommissionSummary(period: period);
     });
 
-DateTime? _periodStart(AgentCommissionPeriod period) {
+DateTime? periodStartFor(AgentCommissionPeriod period) {
   final now = DateTime.now();
   switch (period) {
     case AgentCommissionPeriod.today:
@@ -46,21 +44,46 @@ DateTime? _periodStart(AgentCommissionPeriod period) {
   }
 }
 
-void _logTxnSample(String label, List<ITransaction> txns, {int max = 5}) {
-  if (txns.isEmpty) return;
-  final samples = txns.take(max).map((t) {
-    return 'id=${t.id} status=${t.status} branchId=${t.branchId} '
-        'attributedAgentUserId=${t.attributedAgentUserId} '
-        'agentCommissionAmount=${t.agentCommissionAmount} '
-        'agentCommissionType=${t.agentCommissionType} '
-        'agentCommissionValue=${t.agentCommissionValue} '
-        'lastTouched=${t.lastTouched?.toIso8601String()} '
-        'createdAt=${t.createdAt?.toIso8601String()}';
-  });
+/// Completed attributed sales with commission for [agentUserId] in [period].
+Future<List<AgentCommissionSale>> fetchCommissionSalesForAgent({
+  required String agentUserId,
+  required AgentCommissionPeriod period,
+}) async {
+  if (agentUserId.isEmpty) return const [];
+
+  final periodStart = periodStartFor(period);
+  final capella = ProxyService.getStrategy(Strategy.capella);
+
   talker.info(
-    '$_logTag $label (${txns.length} total, showing ≤$max):\n'
-    '${samples.join('\n')}',
+    '$_logTag fetch sales agentUserId=$agentUserId period=$period '
+    'startDate=${periodStart?.toIso8601String() ?? 'none'}',
   );
+
+  final transactions = await capella.transactions(
+    status: COMPLETE,
+    attributedAgentUserId: agentUserId,
+    startDate: periodStart,
+    filterPeriodByCreatedAt: true,
+    fetchRemote: true,
+  );
+
+  final withCommission = transactions
+      .where((t) => (t.agentCommissionAmount ?? 0) > 0)
+      .toList();
+
+  final sales =
+      withCommission.map(AgentCommissionSale.fromTransaction).toList()
+        ..sort((a, b) {
+          final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return bTime.compareTo(aTime);
+        });
+
+  if (sales.length > 500) {
+    sales.removeRange(500, sales.length);
+  }
+
+  return sales;
 }
 
 Future<AgentCommissionSummary> fetchAgentCommissionSummary({
@@ -69,7 +92,7 @@ Future<AgentCommissionSummary> fetchAgentCommissionSummary({
   final userId = await resolveSessionUserId();
   final businessId = ProxyService.box.getBusinessId();
   final sessionBranchId = ProxyService.box.getBranchId();
-  final periodStart = _periodStart(period);
+  final periodStart = periodStartFor(period);
 
   talker.info(
     '$_logTag fetch start period=$period periodStart=${periodStart?.toIso8601String() ?? 'all'} '
@@ -85,16 +108,10 @@ Future<AgentCommissionSummary> fetchAgentCommissionSummary({
   String? businessName;
   String? agentName;
 
-  final capella = ProxyService.getStrategy(Strategy.capella);
-
   try {
     if (businessId != null && businessId.isNotEmpty) {
       final agents = await FlipperBaseModel.fetchAgentTenantsFromSupabase(
         businessId: businessId,
-      );
-      talker.info(
-        '$_logTag agents from Supabase: count=${agents.length} '
-        'userIds=${agents.map((t) => t.userId).whereType<String>().take(10).join(', ')}',
       );
       for (final tenant in agents) {
         if (tenant.userId == userId) {
@@ -102,26 +119,15 @@ Future<AgentCommissionSummary> fetchAgentCommissionSummary({
           break;
         }
       }
-      if (agentName == null) {
-        talker.warning(
-          '$_logTag no agent tenant matched userId=$userId '
-          '(display name will be missing)',
-        );
-      } else {
-        talker.info('$_logTag matched agent display name: $agentName');
-      }
 
       final businessUuid = await FlipperBaseModel.resolveBusinessUuidForTenants(
         businessId,
       );
-      talker.info(
-        '$_logTag businessUuid=$businessUuid (from box businessId=$businessId)',
-      );
       if (businessUuid != null && businessUuid.isNotEmpty) {
         try {
-          final business = await ProxyService.strategy.getBusiness(businessId: businessUuid);
+          final business =
+              await ProxyService.strategy.getBusiness(businessId: businessUuid);
           businessName = business?.name;
-          talker.info('$_logTag business name from default strategy: $businessName');
         } catch (e) {
           talker.warning('$_logTag capella.getBusiness failed: $e');
           final bizRow = await Supabase.instance.client
@@ -130,75 +136,19 @@ Future<AgentCommissionSummary> fetchAgentCommissionSummary({
               .eq('id', businessUuid)
               .maybeSingle();
           businessName = bizRow?['name'] as String?;
-          talker.info(
-            '$_logTag business name from Supabase fallback: $businessName',
-          );
         }
       }
-    } else {
-      talker.warning(
-        '$_logTag no businessId in box — skipping agent/business lookup',
-      );
     }
 
-    talker.info(
-      '$_logTag querying Ditto transactions status=$COMPLETE '
-      'attributedAgentUserId=$userId '
-      'startDate=${periodStart?.toIso8601String() ?? 'none'}',
+    final sales = await fetchCommissionSalesForAgent(
+      agentUserId: userId,
+      period: period,
     );
 
-    final transactions = await capella.transactions(
-      status: COMPLETE,
-      attributedAgentUserId: userId,
-      startDate: periodStart,
-      filterPeriodByCreatedAt: true,
-      fetchRemote: true,
-    );
-
-    talker.info(
-      '$_logTag Ditto returned ${transactions.length} completed txn(s)',
-    );
-
-    final withCommission = transactions
-        .where((t) => (t.agentCommissionAmount ?? 0) > 0)
-        .toList();
-    final zeroCommission = transactions
-        .where((t) => (t.agentCommissionAmount ?? 0) <= 0)
-        .toList();
-
-    talker.info(
-      '$_logTag filter breakdown: withCommission=${withCommission.length} '
-      'zeroOrNullCommission=${zeroCommission.length}',
-    );
-
-    if (transactions.isEmpty) {
+    if (sales.isEmpty) {
       talker.warning(
-        '$_logTag no transactions — check: (1) sales completed in Ditto, '
-        '(2) attributedAgentUserId on txn matches userId=$userId, '
-        '(3) createdAt within period '
-        '${periodStart?.toIso8601String() ?? 'all time'}',
+        '$_logTag no commissioned sales for userId=$userId in period',
       );
-    } else if (withCommission.isEmpty) {
-      talker.warning(
-        '$_logTag ${transactions.length} txn(s) attributed to agent but none have '
-        'agentCommissionAmount > 0 — commission may not be finalized at sale completion',
-      );
-      _logTxnSample('zero-commission samples', zeroCommission);
-    } else {
-      _logTxnSample('with-commission samples', withCommission);
-    }
-
-    final sales =
-        withCommission.map(AgentCommissionSale.fromTransaction).toList()
-          ..sort((a, b) {
-            final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            return bTime.compareTo(aTime);
-          });
-
-    if (sales.length > 500) {
-      talker.info('$_logTag capping sales list from ${sales.length} to 500');
-      sales.removeRange(500, sales.length);
     }
 
     talker.info(

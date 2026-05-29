@@ -59,6 +59,39 @@ void main() {
       },
     );
 
+    test('initializeControllers seeds tax D when non-VAT', () {
+      final model = BulkAddProductViewModel();
+      model.setVatEnabledForTesting(false);
+      model.setExcelDataForTesting([
+        {'BarCode': 'X', 'Name': 'P', 'Price': '1'},
+      ]);
+      model.initializeControllers();
+      final uid = model.bulkRowUidForRow(model.excelData!.first);
+      expect(model.selectedTaxTypes[uid], 'D');
+    });
+
+    test('initializeControllers seeds tax B when VAT', () {
+      final model = BulkAddProductViewModel();
+      model.setVatEnabledForTesting(true);
+      model.setExcelDataForTesting([
+        {'BarCode': 'X', 'Name': 'P', 'Price': '1'},
+      ]);
+      model.initializeControllers();
+      final uid = model.bulkRowUidForRow(model.excelData!.first);
+      expect(model.selectedTaxTypes[uid], 'B');
+    });
+
+    test('resolveTaxTyCdForRow coerces B to D on non-VAT', () {
+      final model = BulkAddProductViewModel();
+      model.setVatEnabledForTesting(false);
+      model.setExcelDataForTesting([
+        {'BarCode': 'X', 'Name': 'P', 'Price': '1', 'TaxType': 'B'},
+      ]);
+      final row = model.excelData!.first;
+      final uid = model.bulkRowUidForRow(row);
+      expect(model.resolveTaxTyCdForRow(uid, row), 'D');
+    });
+
     test('large import uses one page of field controllers at a time', () {
       final rows = List.generate(
         250,

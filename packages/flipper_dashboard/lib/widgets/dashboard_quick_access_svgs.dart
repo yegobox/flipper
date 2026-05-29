@@ -249,6 +249,7 @@ class DashboardQuickAccessSvgs {
       case 'Settings':
       case 'ProductionOutput':
       case 'Orders':
+      case 'AgentCommission':
         return true;
       default:
         return false;
@@ -278,6 +279,8 @@ class DashboardQuickAccessSvgs {
       case 'ProductionOutput':
       case 'Orders':
         return const Color.fromRGBO(37, 99, 235, 0.10);
+      case 'AgentCommission':
+        return const Color.fromRGBO(107, 78, 162, 0.12);
       default:
         return Colors.grey.withValues(alpha: 0.1);
     }
@@ -313,6 +316,8 @@ class DashboardQuickAccessSvgs {
         return _productionIcon();
       case 'Orders':
         return _ordersIcon();
+      case 'AgentCommission':
+        return _agentCommissionIcon();
       default:
         return _posIcon('#2563EB');
     }
@@ -412,6 +417,14 @@ class DashboardQuickAccessSvgs {
   <rect x="5" y="14" width="3" height="2" rx="0.5" fill="#2563EB"/>
   <rect x="10" y="14" width="3" height="2" rx="0.5" fill="#2563EB"/>
   <rect x="15" y="14" width="4" height="2" rx="0.5" fill="#2563EB"/>
+</svg>''';
+
+  static String _agentCommissionIcon() =>
+      '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke="#6B4EA2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6 20v-1a4 4 0 014-4h4a4 4 0 014 4v1" stroke="#6B4EA2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M17 11h3M18.5 9.5v3" stroke="#6B4EA2" stroke-width="1.6" stroke-linecap="round"/>
 </svg>''';
 
   static String _ordersIcon() =>

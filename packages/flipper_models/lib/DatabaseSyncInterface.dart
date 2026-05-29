@@ -428,6 +428,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<int> archiveDailyReportFiles({
     required String branchId,
     required List<DailyReportFile> files,
+    String? dataConnectorUrl,
   });
   Report report({required int id});
 

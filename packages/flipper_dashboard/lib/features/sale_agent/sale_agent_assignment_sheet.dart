@@ -43,10 +43,7 @@ Future<void> persistSaleAgentAttribution(
         : null;
   }
 
-  await capella.updateTransaction(
-    transaction: txn,
-    transactionId: txn.id,
-  );
+  await capella.updateTransaction(transaction: txn, transactionId: txn.id);
   ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
 }
 
@@ -69,9 +66,8 @@ Future<void> showSaleAgentAssignmentSheet({
     }
   }
 
-  var commissionType = saleAgentCommissionTypeFromDb(
-        transaction.agentCommissionType,
-      ) ??
+  var commissionType =
+      saleAgentCommissionTypeFromDb(transaction.agentCommissionType) ??
       SaleAgentCommissionType.fixed;
   final valueController = TextEditingController(
     text: transaction.agentCommissionValue != null
@@ -112,10 +108,7 @@ Future<void> showSaleAgentAssignmentSheet({
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _SheetSectionLabel(
-                      title: 'AGENTS',
-                      count: agents.length,
-                    ),
+                    _SheetSectionLabel(title: 'AGENTS', count: agents.length),
                     const SizedBox(height: 12),
                     TicketSearchBar(
                       hintText: 'Search agents...',
@@ -128,9 +121,7 @@ Future<void> showSaleAgentAssignmentSheet({
                             'No agents found for this business. Add agents in User Management.',
                       )
                     else if (filtered.isEmpty)
-                      _SheetEmptyMessage(
-                        text: 'No agents match your search.',
-                      )
+                      _SheetEmptyMessage(text: 'No agents match your search.')
                     else
                       Container(
                         decoration: BoxDecoration(
@@ -201,12 +192,10 @@ Future<void> showSaleAgentAssignmentSheet({
                       ),
                       style: GoogleFonts.outfit(fontSize: 15),
                       decoration: _sheetFieldDecoration(
-                        label: commissionType ==
-                                SaleAgentCommissionType.fixed
+                        label: commissionType == SaleAgentCommissionType.fixed
                             ? 'Amount (RWF)'
                             : 'Rate (%)',
-                        hint: commissionType ==
-                                SaleAgentCommissionType.fixed
+                        hint: commissionType == SaleAgentCommissionType.fixed
                             ? 'e.g. 500'
                             : 'e.g. 5',
                       ),
@@ -402,7 +391,10 @@ class _AgentSelectTile extends StatelessWidget {
   static String _initials(Tenant tenant) {
     final name = (tenant.name ?? '').trim();
     if (name.isEmpty) return '?';
-    final parts = name.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+    final parts = name
+        .split(RegExp(r'\s+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
     if (parts.length >= 2) {
       final a = parts[0].isNotEmpty ? parts[0][0] : '';
       final b = parts[1].isNotEmpty ? parts[1][0] : '';
@@ -485,7 +477,10 @@ class _AgentSelectTile extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF6B4EA2).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
@@ -514,10 +509,7 @@ class _AgentSelectTile extends StatelessWidget {
   }
 }
 
-InputDecoration _sheetFieldDecoration({
-  required String label,
-  String? hint,
-}) {
+InputDecoration _sheetFieldDecoration({required String label, String? hint}) {
   return InputDecoration(
     labelText: label,
     hintText: hint,

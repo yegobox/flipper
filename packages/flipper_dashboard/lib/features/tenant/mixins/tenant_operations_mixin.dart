@@ -340,6 +340,21 @@ class TenantOperationsMixin {
         );
       }
 
+      final linkedTenant = await Supabase.instance.client
+          .from('tenants')
+          .select('id')
+          .eq('user_id', userIdFromApi)
+          .eq('business_id', businessIdFromBox)
+          .maybeSingle();
+      if (linkedTenant == null) {
+        _fail(
+          context,
+          'User was created but has no tenant for this business. '
+          'Re-open User Management and save again, or run supabase migration '
+          '20260519150000_repair_orphan_users_with_pins.sql.',
+        );
+      }
+
       await model.loadTenants();
 
       String successMessage;

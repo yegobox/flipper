@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/stock_recount_list_screen.dart';
 import 'package:flipper_dashboard/delegation_list_screen.dart';
 import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orders_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
+import 'package:flipper_dashboard/features/agent_commission/agent_commission_screen.dart';
 import 'package:flipper_dashboard/features/daily_report_files/daily_report_files_app.dart';
 import 'package:flipper_dashboard/features/leads/leads_desktop_screen.dart';
 import 'package:flipper_dashboard/shift_history_content.dart';
@@ -186,6 +187,8 @@ class DashboardLayout extends HookConsumerWidget {
         return const ProductionOutputApp();
       case DashboardPage.dailyReportFiles:
         return const DailyReportFilesApp();
+      case DashboardPage.agentCommission:
+        return const AgentCommissionScreen(embeddedInDashboard: true);
     }
   }
 }
