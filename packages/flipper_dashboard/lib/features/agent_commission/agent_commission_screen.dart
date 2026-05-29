@@ -289,7 +289,6 @@ class _LoadingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _Surface(
-      height: 276,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -494,7 +493,6 @@ class _EarnedCard extends StatelessWidget {
     final duePct = earned <= 0 ? 1.0 : 1.0 - paidPct;
 
     return _Surface(
-      height: 276,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -593,7 +591,6 @@ class _PayoutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final settled = balance.balance <= 0;
     return _Surface(
-      height: 276,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -819,7 +816,7 @@ class _TableHeadCell extends StatelessWidget {
       child: Text(
         label,
         textAlign: alignEnd ? TextAlign.end : TextAlign.start,
-        style: GoogleFonts.robotoMono(
+        style: GoogleFonts.outfit(
           fontSize: 14,
           letterSpacing: 1.8,
           fontWeight: FontWeight.w700,
@@ -948,17 +945,14 @@ class _Surface extends StatelessWidget {
   const _Surface({
     required this.child,
     this.padding = const EdgeInsets.all(26),
-    this.height,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
-  final double? height;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: height,
       padding: padding,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -986,7 +980,7 @@ class _Eyebrow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: GoogleFonts.robotoMono(
+      style: GoogleFonts.outfit(
         fontSize: 15,
         fontWeight: FontWeight.w700,
         letterSpacing: 2.6,
@@ -1198,7 +1192,7 @@ class _MonoAmount extends StatelessWidget {
     return Text(
       value,
       textAlign: TextAlign.end,
-      style: GoogleFonts.robotoMono(
+      style: GoogleFonts.outfit(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         color: color,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/constants.dart';
 
 /// LocalStorage key prefix for stocking levels at POS sale-completion time,
 /// keyed by Ditto [`Stock`] id (`stockId`).
@@ -8,6 +9,40 @@ const String kRraSaleStockSnapshotPrefix = 'rra_sale_stock_snapshot_';
 
 String rraSaleStockSnapshotBoxKey(String transactionId) =>
     '$kRraSaleStockSnapshotPrefix$transactionId';
+
+/// Resolves [sarTyCd] for post-[saveSales] `stock/saveStockItems` (matches [TaxController]).
+///
+/// Deferred post-sale sync ([runPostSaleStockDeductionAndRraSync]) must use the same
+/// codes as the pre-performance path (e.g. [StockInOutType.sale] for NS/CS), not `"06"`.
+/// Invoice counter used for post-sale `sarNo` / `orgSarNo` after the sign-only path.
+int? resolvePostSaleInvoiceNo({
+  int? invoiceNumber,
+  int? receiptNumber,
+  int? totalReceiptNumber,
+}) {
+  for (final n in [invoiceNumber, receiptNumber, totalReceiptNumber]) {
+    if (n != null && n > 0) return n;
+  }
+  return null;
+}
+
+String resolveRraStockIoSarTyCd({
+  String? sarTyCd,
+  String? receiptType,
+  String? transactionSarTyCd,
+}) {
+  if (sarTyCd != null && sarTyCd.isNotEmpty) return sarTyCd;
+  if (transactionSarTyCd != null && transactionSarTyCd.isNotEmpty) {
+    return transactionSarTyCd;
+  }
+  switch (receiptType) {
+    case 'NR':
+    case 'TR':
+      return StockInOutType.returnIn;
+    default:
+      return StockInOutType.sale;
+  }
+}
 
 /// Parses [JSON-encoded] `{ stockId -> qty }` from [LocalStorage.writeString].
 Map<String, double>? decodeRraSaleStockSnapshot(String? encoded) {

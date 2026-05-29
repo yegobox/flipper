@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 TransactionItem _line({
@@ -104,6 +105,53 @@ void main() {
       final item = _line(id: 'l1', variantId: 'va', qty: 2);
       final capped = movementItemsWithRraCapAllocation([item], const {'l1': 0});
       expect(capped, isEmpty);
+    });
+  });
+
+  group('resolvePostSaleInvoiceNo', () {
+    test('prefers invoiceNumber then receipt fallbacks', () {
+      expect(
+        resolvePostSaleInvoiceNo(
+          invoiceNumber: 42,
+          receiptNumber: 10,
+        ),
+        42,
+      );
+      expect(
+        resolvePostSaleInvoiceNo(
+          receiptNumber: 10,
+          totalReceiptNumber: 9,
+        ),
+        10,
+      );
+      expect(resolvePostSaleInvoiceNo(), isNull);
+    });
+  });
+
+  group('resolveRraStockIoSarTyCd', () {
+    test('defaults NS/CS to outgoing sale', () {
+      expect(
+        resolveRraStockIoSarTyCd(receiptType: 'NS'),
+        StockInOutType.sale,
+      );
+      expect(
+        resolveRraStockIoSarTyCd(receiptType: 'CS'),
+        StockInOutType.sale,
+      );
+    });
+
+    test('uses explicit sarTyCd when provided', () {
+      expect(
+        resolveRraStockIoSarTyCd(sarTyCd: '06', receiptType: 'NS'),
+        '06',
+      );
+    });
+
+    test('NR/TR use return-in code', () {
+      expect(
+        resolveRraStockIoSarTyCd(receiptType: 'NR'),
+        StockInOutType.returnIn,
+      );
     });
   });
 }

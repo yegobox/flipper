@@ -103,6 +103,59 @@ bool _rwTaxIsQtyUnitCdCodeValueError(String? msg) {
   return lower.contains('code value error') && lower.contains('qtyunitcd');
 }
 
+/// Package count on RRA `itemList` lines (not unit quantity — see [TransactionItem.qty]).
+int _rraItemListPkgCount(TransactionItem item) {
+  final p = item.pkg;
+  if (p != null && p > 0 && p < item.qty) return p;
+  return 1;
+}
+
+bool _variantTinMissing(Variant variant) =>
+    variant.tin == null || variant.tin == 0;
+
+/// Fills [Variant.tin] / [Variant.bhfId] from branch EBM when missing (product add path).
+/// Incoming stock I/O (not sale / sale-return-out) — match data-connector bulk shape.
+bool _isIncomingStockIo(String sarTyCd) {
+  return sarTyCd != StockInOutType.sale &&
+      sarTyCd != StockInOutType.returnOut;
+}
+
+Map<String, String> _stockIoRegistrarFields(List<TransactionItem> items) {
+  for (final item in items) {
+    final modrId = item.modrId?.toString().trim();
+    if (modrId != null && modrId.isNotEmpty) {
+      final regrId = item.regrId?.toString().trim();
+      final regrNm = item.regrNm?.trim();
+      final modrNm = item.modrNm?.trim();
+      final effectiveRegrId =
+          (regrId != null && regrId.isNotEmpty) ? regrId : modrId;
+      return {
+        'regrId': effectiveRegrId,
+        'regrNm': (regrNm != null && regrNm.isNotEmpty) ? regrNm : effectiveRegrId,
+        'modrId': modrId,
+        'modrNm': (modrNm != null && modrNm.isNotEmpty) ? modrNm : modrId,
+      };
+    }
+  }
+  final mod = randomNumber().toString().substring(0, 15);
+  return {'regrId': mod, 'regrNm': mod, 'modrId': mod, 'modrNm': mod};
+}
+
+Future<bool> _hydrateVariantEbmFields(Variant variant) async {
+  final needsTin = _variantTinMissing(variant);
+  final needsBhf = variant.bhfId == null || variant.bhfId!.trim().isEmpty;
+  if (!needsTin && !needsBhf) return true;
+
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) return false;
+  final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+  if (ebm == null) return false;
+
+  if (needsTin) variant.tin = ebm.tinNumber;
+  if (needsBhf) variant.bhfId = ebm.bhfId;
+  return !_variantTinMissing(variant);
+}
+
 class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   static final Map<String, Configurations> _taxConfigByBranchAndType = {};
   String itemPrefix = "flip-";
@@ -252,27 +305,26 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final url = Uri.parse(
         URI,
       ).replace(path: Uri.parse(URI).path + 'stock/saveStockItems').toString();
-      final mod = randomNumber().toString();
+      final registrar = _stockIoRegistrarFields(items);
+      final incomingStockIo = _isIncomingStockIo(sarTyCd);
 
       /// Filter out service items as they cannot be saved in IO
       items = items.where((item) => item.itemTyCd != "3").toList();
       // TOTAL D:
-      List<Map<String, dynamic>> itemsList = await Future.wait(
-        items
-            .asMap()
-            .entries
-            .map(
-              (entry) async => await mapItemToJson(
-                entry.value,
-                bhfId: bhFId,
-                approvedQty: entry.value.qty == 0
-                    ? approvedQty
-                    : entry.value.qty,
-                itemSeq: entry.key + 1,
-              ),
-            )
-            .toList(),
-      );
+      final itemsList = items
+          .asMap()
+          .entries
+          .map(
+            (entry) => mapStockIoItemToJson(
+              entry.value,
+              bhfId: bhFId,
+              approvedQty: entry.value.qty == 0
+                  ? approvedQty
+                  : entry.value.qty,
+              itemSeq: entry.key + 1,
+            ),
+          )
+          .toList();
       if (itemsList.isEmpty) {
         return RwApiResponse(
           resultCd: "000",
@@ -280,45 +332,43 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         );
       }
 
-      itemsList.forEach((item) {
-        item['totDcAmt'] = "0";
-      });
-      // Log the customer name for debugging
-      talker.info('Customer name from parameter: $customerName');
-      talker.info(
-        'Customer name from storage: ${ProxyService.box.customerName()}',
-      );
-
-      // Always use the customer name from ProxyService.box.customerName()
-      // This ensures consistency with what's entered in QuickSellingView
-      final effectiveCustomerName = ProxyService.box.customerName() ?? "N/A";
-      talker.info('Using customer name from storage: $effectiveCustomerName');
-
-      final json = {
+      final json = <String, dynamic>{
         "totItemCnt": items.length,
         "tin": tinNumber,
         "bhfId": bhFId,
         "regTyCd": regTyCd,
-        "custTin": custTin == null ? null : custTin.isValidTin(),
-        "custNm": effectiveCustomerName,
-        "custBhfId": custBhfId,
         "sarTyCd": sarTyCd,
         "ocrnDt": ocrnDt.toYYYMMdd(),
         "totTaxblAmt": totalSupplyPrice.roundToTwoDecimalPlaces(),
         "totTaxAmt": totalvat.roundToTwoDecimalPlaces(),
         "totAmt": totalAmount.roundToTwoDecimalPlaces(),
         "remark": remark,
-        "regrId": mod,
-        "regrNm": mod,
-        "modrId": mod,
-        "modrNm": mod,
+        "regrId": registrar['regrId'],
+        "regrNm": registrar['regrNm'],
+        "modrId": registrar['modrId'],
+        "modrNm": registrar['modrNm'],
         "sarNo": sarNo,
         "orgSarNo": invoiceNumber ?? int.tryParse(sarNo ?? '') ?? 0,
         "itemList": itemsList,
       };
-      // if custTin is invalid remove it from the json
-      if (custTin != null && !custTin.isValidTin()) {
-        json.remove('custTin');
+
+      // data-connector bulk stock-in omits customer fields; sales still need them.
+      if (!incomingStockIo) {
+        final storedCustomerName = ProxyService.box.customerName();
+        final effectiveCustomerName =
+            (customerName != null && customerName.trim().isNotEmpty)
+            ? customerName.trim()
+            : (storedCustomerName != null &&
+                  storedCustomerName.trim().isNotEmpty)
+            ? storedCustomerName.trim()
+            : "N/A";
+        json["custNm"] = effectiveCustomerName;
+        if (custBhfId != null && custBhfId.isNotEmpty) {
+          json["custBhfId"] = custBhfId;
+        }
+        if (custTin != null && custTin.isValidTin()) {
+          json["custTin"] = custTin;
+        }
       }
       talker.info(json);
       Response response = await sendPostRequest(url, json);
@@ -388,8 +438,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       } else {
         variant.rsdQty = null;
       }
-      if (variant.tin == null) {
-        return RwApiResponse(resultCd: "000", resultMsg: "Missing TIN number");
+      await _hydrateVariantEbmFields(variant);
+      if (_variantTinMissing(variant)) {
+        return RwApiResponse(resultCd: "001", resultMsg: "Missing TIN number");
       }
 
       if (variant.rsdQty == null) {
@@ -529,7 +580,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     ).replace(path: Uri.parse(URI).path + 'items/saveItems').toString();
 
     try {
-      if (variation.tin == null) {
+      await _hydrateVariantEbmFields(variation);
+      if (_variantTinMissing(variation)) {
         return RwApiResponse(
           resultCd: "001",
           resultMsg: "Invalid Tin Number ${variation.name}",
@@ -672,15 +724,15 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         final bizId = ProxyService.box.getBusinessId();
         Setting? bizSetting;
         if (bizId != null && bizId.isNotEmpty) {
-          bizSetting =
-              await ProxyService.getStrategy(
-                Strategy.capella,
-              ).getSetting(businessId: bizId);
+          bizSetting = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getSetting(businessId: bizId);
         }
         final snapshot = decodeRraSaleStockSnapshot(
           ProxyService.box.readString(key: snapshotKey),
         );
-        capRra = bizSetting?.allowSellingBelowStock == true &&
+        capRra =
+            bizSetting?.allowSellingBelowStock == true &&
             snapshot != null &&
             snapshot.isNotEmpty;
 
@@ -697,10 +749,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               .map((i) => i.variantId!)
               .toSet()
               .toList();
-          final variantsLookup =
-              variantIds.isEmpty
-                  ? <String, Variant>{}
-                  : await capellaStrat.batchGetVariantsByIds(variantIds);
+          final variantsLookup = variantIds.isEmpty
+              ? <String, Variant>{}
+              : await capellaStrat.batchGetVariantsByIds(variantIds);
           allocations = rraAllocatedQtyByTransactionItemId(
             items: items,
             variantsByVariantId: variantsLookup,
@@ -713,7 +764,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           );
         }
 
-        await saveStockItems(
+        final stockIoSarTyCd = resolveRraStockIoSarTyCd(
+          sarTyCd: sarTyCd,
+          receiptType: receiptType,
+          transactionSarTyCd: transaction.sarTyCd,
+        );
+
+        final stockIoResp = await saveStockItems(
           items: movementItemsForStockIo,
           tinNumber: ebm.tinNumber.toString(),
           bhFId: ebm.bhfId,
@@ -723,7 +780,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           invoiceNumber: highestInvcNo,
           regTyCd: "A",
           sarNo: highestInvcNo.toString(),
-          sarTyCd: sarTyCd ?? "06",
+          sarTyCd: stockIoSarTyCd,
           custBhfId: transaction.customerBhfId,
           totalSupplyPrice: transaction.subTotal!,
           totalvat: transaction.taxAmount!.toDouble(),
@@ -732,6 +789,15 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
           URI: ebm.taxServerUrl,
         );
+        if (stockIoResp.resultCd != '000') {
+          talker.warning(
+            'RRA saveStockItems after sale failed: ${stockIoResp.resultCd} '
+            '${stockIoResp.resultMsg} (sarTyCd=$stockIoSarTyCd)',
+          );
+        }
+
+        final tinForMaster = ebm.tinNumber;
+        final bhfForMaster = ebm.bhfId;
 
         for (var item in items) {
           if (item.itemTyCd == '3') continue;
@@ -739,23 +805,41 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           final vid = item.variantId;
           if (vid == null || vid.isEmpty) continue;
 
-          final Variant? variant =
-              await ProxyService.getStrategy(
-                Strategy.capella,
-              ).getVariant(id: vid);
-          final Stock stock =
-              await ProxyService.getStrategy(
-                Strategy.capella,
-              ).getStockById(id: variant?.stockId ?? "");
+          final Variant? variant = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getVariant(id: vid);
           if (variant == null) continue;
 
-          await ProxyService.tax.saveStockMaster(
+          final stockId = variant.stockId;
+          if (stockId == null || stockId.isEmpty) continue;
+
+          final Stock stock = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getStockById(id: stockId);
+          final remainingQty = math.max(
+            0.0,
+            stock.currentStock?.toDouble() ?? 0.0,
+          );
+
+          variant.stock = stock;
+          if (variant.tin == null) {
+            variant.tin = tinForMaster;
+          }
+          if (variant.bhfId == null || variant.bhfId!.isEmpty) {
+            variant.bhfId = bhfForMaster;
+          }
+
+          final masterResp = await ProxyService.tax.saveStockMaster(
             variant: variant,
             URI: ebm.taxServerUrl,
-            stockMasterQty: capRra
-                ? math.max(0.0, stock.currentStock?.toDouble() ?? 0.0)
-                : stock.currentStock!,
+            stockMasterQty: remainingQty,
           );
+          if (masterResp.resultCd != '000') {
+            talker.warning(
+              'RRA saveStockMaster failed for ${variant.itemNm ?? variant.name}: '
+              '${masterResp.resultCd} ${masterResp.resultMsg} (rsdQty=$remainingQty)',
+            );
+          }
         }
       } else if (receiptType == 'NR' || receiptType == 'TR') {
         final sar = await ProxyService.strategy.getSar(
@@ -1095,6 +1179,57 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   Future<Configurations> _taxConfigForItem(TransactionItem item) =>
       _taxConfigForType(item.taxTyCd ?? 'B');
 
+  /// Stock I/O lines (`saveStockItems`) — matches data-connector / legacy RRA stock-in:
+  /// unit [splyAmt], [taxAmt]=0, [pkg]=1, line totals = retail × qty.
+  Map<String, dynamic> mapStockIoItemToJson(
+    TransactionItem item, {
+    required String bhfId,
+    num? approvedQty,
+    int? itemSeq,
+  }) {
+    final quantity = (approvedQty ?? item.qty).toDouble();
+    final retailUnit = item.price.toDouble();
+    final supplyUnit = (item.supplyPrice ?? item.price).toDouble();
+    final lineTotal = (retailUnit * quantity).roundToTwoDecimalPlaces();
+    final modId =
+        item.modrId?.toString() ??
+        randomNumber().toString().substring(0, 15);
+
+    final line = <String, dynamic>{
+      'itemSeq': itemSeq ?? item.itemSeq ?? 1,
+      'itemCd': item.itemCd,
+      'itemClsCd': item.itemClsCd,
+      'itemNm': item.itemNm ?? item.name,
+      'itemTyCd': item.itemTyCd,
+      'itemStdNm': item.itemStdNm ?? item.name,
+      'qtyUnitCd': item.qtyUnitCd ?? 'U',
+      'pkgUnitCd': item.pkgUnitCd ?? 'CT',
+      'pkg': 1,
+      'qty': quantity,
+      'prc': retailUnit,
+      'splyAmt': supplyUnit.roundToTwoDecimalPlaces(),
+      'taxTyCd': item.taxTyCd ?? 'B',
+      'taxblAmt': lineTotal,
+      'taxAmt': 0,
+      'totAmt': lineTotal,
+      'totDcAmt': '0',
+      'regrId': item.regrId?.toString() ?? modId,
+      'regrNm': item.regrNm ?? item.regrId?.toString() ?? modId,
+      'modrId': modId,
+      'modrNm': item.modrNm ?? modId,
+    };
+
+    final bcd = item.bcd;
+    if (bcd != null && bcd.isNotEmpty) {
+      line['bcd'] = bcd;
+    }
+
+    line.removeWhere(
+      (key, value) => value == null || (value is String && value.isEmpty),
+    );
+    return line;
+  }
+
   Future<Map<String, dynamic>> mapItemToJson(
     TransactionItem item, {
     required String bhfId,
@@ -1172,7 +1307,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       dcRt: discountRate.toDouble().roundToTwoDecimalPlaces(),
       dcAmt: totalDiscountAmount.roundToTwoDecimalPlaces(),
       totAmt: totalAfterDiscount.roundToTwoDecimalPlaces(),
-      pkg: quantity.toInt(),
+      // RRA itemList: pkg = package count (1), qty = unit quantity — not the same.
+      pkg: _rraItemListPkgCount(item),
       taxblAmt: totalAfterDiscount.roundToTwoDecimalPlaces(),
       taxAmt: taxAmount.roundToTwoDecimalPlaces(),
       itemClsCd: item.itemClsCd,

@@ -351,6 +351,14 @@ mixin VariantMixin implements VariantInterface {
             );
           }
 
+          if (variantToSave.tin == null || variantToSave.tin == 0) {
+            variantToSave.tin = ebm.tinNumber;
+          }
+          if (variantToSave.bhfId == null ||
+              variantToSave.bhfId!.trim().isEmpty) {
+            variantToSave.bhfId = ebm.bhfId;
+          }
+
           // save items
           final saveResp = await ProxyService.tax.saveItem(
             variation: variantToSave,
@@ -378,7 +386,7 @@ mixin VariantMixin implements VariantInterface {
           // Re-saves must use stock master only or qty is doubled in RRA reports.
           final alreadyInRra = variantToSave.ebmSynced == true;
           if (variantToSave.itemTyCd != "3" && !alreadyInRra) {
-            await ProxyService.tax.saveStockItems(
+            final stockIoResp = await ProxyService.tax.saveStockItems(
               updateMaster: false,
               items: [
                 TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
@@ -395,14 +403,26 @@ mixin VariantMixin implements VariantInterface {
               ocrnDt: DateTime.now().toUtc(),
               URI: serverUrl,
             );
+            if (stockIoResp.resultCd != '000') {
+              throw Exception(
+                'RRA saveStockItems failed for ${variantToSave.name}: '
+                '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
+              );
+            }
           }
 
           if (variantToSave.itemTyCd != "3") {
-            await ProxyService.tax.saveStockMaster(
+            final masterResp = await ProxyService.tax.saveStockMaster(
               variant: variantToSave,
               URI: serverUrl,
               stockMasterQty: stockQty,
             );
+            if (masterResp.resultCd != '000') {
+              throw Exception(
+                'RRA saveStockMaster failed for ${variantToSave.name}: '
+                '${masterResp.resultMsg} (${masterResp.resultCd})',
+              );
+            }
           }
 
           if (!alreadyInRra) {

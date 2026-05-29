@@ -165,20 +165,30 @@ Future<void> runPostSaleStockDeductionAndRraSync({
 
   if (isProformaOrTraining) return;
 
-  final highestInvcNo = transaction.invoiceNumber;
-  if (highestInvcNo == null || highestInvcNo <= 0) {
+  final highestInvcNo = resolvePostSaleInvoiceNo(
+    invoiceNumber: transaction.invoiceNumber,
+    receiptNumber: transaction.receiptNumber,
+    totalReceiptNumber: transaction.totalReceiptNumber,
+  );
+  if (highestInvcNo == null) {
     talker.warning(
-      'Skipping post-sale RRA stock sync: missing invoiceNumber on ${transaction.id}',
+      'Skipping post-sale RRA stock sync: missing invoice/receipt number on ${transaction.id}',
     );
     return;
   }
+
+  final stockIoSarTyCd = resolveRraStockIoSarTyCd(
+    sarTyCd: sarTyCd,
+    receiptType: receiptType,
+    transactionSarTyCd: transaction.sarTyCd,
+  );
 
   await ProxyService.tax.syncStockAfterSuccessfulSaveSales(
     receiptType: receiptType,
     items: transactionItems,
     transaction: transaction,
     highestInvcNo: highestInvcNo,
-    sarTyCd: sarTyCd,
+    sarTyCd: stockIoSarTyCd,
   );
 }
 
