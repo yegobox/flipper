@@ -27,6 +27,37 @@ const Color _kSelectedRow = Color(0xFFEFF6FF);
 const Color _kGreenSoft = Color(0xFFECFDF5);
 const Color _kSurfaceAlt = Color(0xFFF3F4F6);
 
+enum _DateRangeFilter {
+  allTime('All time'),
+  last7Days('Last 7 days'),
+  last30Days('Last 30 days'),
+  last90Days('Last 90 days'),
+  thisMonth('This month'),
+  lastMonth('Last month');
+
+  const _DateRangeFilter(this.label);
+  final String label;
+}
+
+enum _SortOrder {
+  newestFirst('Newest first'),
+  oldestFirst('Oldest first'),
+  nameAsc('Name A–Z'),
+  nameDesc('Name Z–A');
+
+  const _SortOrder(this.label);
+  final String label;
+}
+
+enum _TypeFilter {
+  all('All'),
+  transactions('Transactions'),
+  merged('Merged');
+
+  const _TypeFilter(this.label);
+  final String label;
+}
+
 class DailyReportFilesScreen extends ConsumerStatefulWidget {
   const DailyReportFilesScreen({super.key});
 
@@ -46,6 +77,10 @@ class _DailyReportFilesScreenState
   DailyReportFile? _previewFile;
   Future<DailyReportPreviewResponse>? _previewFuture;
   final TextEditingController _search = TextEditingController();
+  _DateRangeFilter _dateRange = _DateRangeFilter.last7Days;
+  _SortOrder _sortOrder = _SortOrder.newestFirst;
+  _TypeFilter _typeFilter = _TypeFilter.all;
+  bool _groupByDay = true;
 
   @override
   void dispose() {
@@ -69,23 +104,291 @@ class _DailyReportFilesScreenState
     return '$id|$created|$key';
   }
 
-  List<DailyReportFile> _applySearch(List<DailyReportFile> files) {
-    final q = _search.text.trim().toLowerCase();
-    if (q.isEmpty) return files;
-    return files
-        .where((f) {
-          final name = (f.fileName ?? '').toLowerCase();
-          final day = (f.day ?? '').toLowerCase();
-          final key = (f.s3ObjectKey ?? '').toLowerCase();
-          final runId = (f.runId ?? '').toLowerCase();
-          final id = f.id.toLowerCase();
-          return name.contains(q) ||
-              day.contains(q) ||
-              key.contains(q) ||
-              runId.contains(q) ||
-              id.contains(q);
-        })
+  DateTime? _fileReportDate(DailyReportFile file) {
+    final day = (file.day ?? '').trim();
+    if (day.isNotEmpty) {
+      final parsed = DateTime.tryParse(day);
+      if (parsed != null) {
+        return DateTime(parsed.year, parsed.month, parsed.day);
+      }
+    }
+    final created = file.createdAt?.toLocal();
+    if (created == null) return null;
+    return DateTime(created.year, created.month, created.day);
+  }
+
+  bool _matchesDateRange(DailyReportFile file) {
+    if (_dateRange == _DateRangeFilter.allTime) return true;
+    final date = _fileReportDate(file);
+    if (date == null) return false;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (_dateRange) {
+      case _DateRangeFilter.allTime:
+        return true;
+      case _DateRangeFilter.last7Days:
+        return !date.isBefore(today.subtract(const Duration(days: 6)));
+      case _DateRangeFilter.last30Days:
+        return !date.isBefore(today.subtract(const Duration(days: 29)));
+      case _DateRangeFilter.last90Days:
+        return !date.isBefore(today.subtract(const Duration(days: 89)));
+      case _DateRangeFilter.thisMonth:
+        return date.year == today.year && date.month == today.month;
+      case _DateRangeFilter.lastMonth:
+        final lastMonth = DateTime(today.year, today.month - 1, 1);
+        return date.year == lastMonth.year && date.month == lastMonth.month;
+    }
+  }
+
+  bool _matchesTypeFilter(DailyReportFile file) {
+    final isMerged =
+        (file.fileName ?? '').toLowerCase().contains('merged');
+    switch (_typeFilter) {
+      case _TypeFilter.all:
+        return true;
+      case _TypeFilter.merged:
+        return isMerged;
+      case _TypeFilter.transactions:
+        return !isMerged;
+    }
+  }
+
+  int _compareFiles(DailyReportFile a, DailyReportFile b) {
+    switch (_sortOrder) {
+      case _SortOrder.newestFirst:
+        final ac = a.createdAt;
+        final bc = b.createdAt;
+        if (ac != null && bc != null && ac != bc) {
+          return bc.compareTo(ac);
+        }
+        return _FileRow._displayName(b).compareTo(_FileRow._displayName(a));
+      case _SortOrder.oldestFirst:
+        final ac = a.createdAt;
+        final bc = b.createdAt;
+        if (ac != null && bc != null && ac != bc) {
+          return ac.compareTo(bc);
+        }
+        return _FileRow._displayName(a).compareTo(_FileRow._displayName(b));
+      case _SortOrder.nameAsc:
+        return _FileRow._displayName(a).compareTo(_FileRow._displayName(b));
+      case _SortOrder.nameDesc:
+        return _FileRow._displayName(b).compareTo(_FileRow._displayName(a));
+    }
+  }
+
+  List<DailyReportFile> _applyFilters(List<DailyReportFile> files) {
+    var result = files
+        .where(_matchesDateRange)
+        .where(_matchesTypeFilter)
         .toList(growable: false);
+
+    final q = _search.text.trim().toLowerCase();
+    if (q.isNotEmpty) {
+      result = result
+          .where((f) {
+            final name = (f.fileName ?? '').toLowerCase();
+            final day = (f.day ?? '').toLowerCase();
+            final key = (f.s3ObjectKey ?? '').toLowerCase();
+            final runId = (f.runId ?? '').toLowerCase();
+            final id = f.id.toLowerCase();
+            return name.contains(q) ||
+                day.contains(q) ||
+                key.contains(q) ||
+                runId.contains(q) ||
+                id.contains(q);
+          })
+          .toList(growable: false);
+    }
+
+    result.sort(_compareFiles);
+    return result;
+  }
+
+  void _clearListFilters() {
+    setState(() {
+      _search.clear();
+      _dateRange = _DateRangeFilter.allTime;
+      _typeFilter = _TypeFilter.all;
+      _sortOrder = _SortOrder.newestFirst;
+    });
+  }
+
+  Future<void> _onShareOne(DailyReportFile file) async {
+    if (kIsWeb) {
+      showCustomSnackBarUtil(
+        context,
+        'Sharing is not supported in the browser.',
+        type: NotificationType.error,
+      );
+      return;
+    }
+    setState(() => _singleBusyId = _rowKey(file));
+    try {
+      final path = await _download(file, openAfterSave: false);
+      if (path != null) {
+        await Share.shareXFiles([XFile(path)], subject: 'Daily report');
+      }
+    } on DailyReportDownloadException catch (e) {
+      if (mounted) {
+        showCustomSnackBarUtil(context, e.message, type: NotificationType.error);
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          e.toString(),
+          type: NotificationType.error,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _singleBusyId = null);
+    }
+  }
+
+  Future<void> _pickDateRange() async {
+    final picked = await showModalBottomSheet<_DateRangeFilter>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Date range',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: _kTextPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              for (final option in _DateRangeFilter.values)
+                ListTile(
+                  title: Text(
+                    option.label,
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                  ),
+                  trailing: option == _dateRange
+                      ? const Icon(Icons.check, color: _kBlue)
+                      : null,
+                  onTap: () => Navigator.pop(context, option),
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (picked != null && picked != _dateRange) {
+      setState(() => _dateRange = picked);
+    }
+  }
+
+  Future<void> _pickSortOrder() async {
+    final picked = await showModalBottomSheet<_SortOrder>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Sort by',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: _kTextPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              for (final option in _SortOrder.values)
+                ListTile(
+                  title: Text(
+                    option.label,
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                  ),
+                  trailing: option == _sortOrder
+                      ? const Icon(Icons.check, color: _kBlue)
+                      : null,
+                  onTap: () => Navigator.pop(context, option),
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (picked != null && picked != _sortOrder) {
+      setState(() => _sortOrder = picked);
+    }
+  }
+
+  Future<void> _pickTypeFilter() async {
+    final picked = await showModalBottomSheet<_TypeFilter>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Report type',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: _kTextPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              for (final option in _TypeFilter.values)
+                ListTile(
+                  title: Text(
+                    option.label,
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                  ),
+                  trailing: option == _typeFilter
+                      ? const Icon(Icons.check, color: _kBlue)
+                      : null,
+                  onTap: () => Navigator.pop(context, option),
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (picked != null && picked != _typeFilter) {
+      setState(() => _typeFilter = picked);
+    }
   }
 
   Future<String?> _download(
@@ -306,8 +609,16 @@ class _DailyReportFilesScreenState
     final selected = all
         .where((f) => _selectedKeys.contains(_rowKey(f)))
         .toList(growable: false);
-    if (selected.isEmpty) return;
+    await _archiveFiles(selected, clearSelectionOnSuccess: true);
+  }
 
+  Future<void> _archiveFiles(
+    List<DailyReportFile> files, {
+    bool clearSelectionOnSuccess = false,
+  }) async {
+    if (files.isEmpty) return;
+
+    final selected = files;
     final withoutKey = selected
         .where((f) => (f.s3ObjectKey ?? '').trim().isEmpty)
         .length;
@@ -355,7 +666,9 @@ class _DailyReportFilesScreenState
           count == 1 ? 'Archived 1 file' : 'Archived $count files',
           type: NotificationType.success,
         );
-        setState(() => _selectedKeys.clear());
+        if (clearSelectionOnSuccess) {
+          setState(() => _selectedKeys.clear());
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -482,7 +795,15 @@ class _DailyReportFilesScreenState
                 batchBusy: _batchBusy,
                 batchAction: _batchAction,
                 search: _search,
+                dateRangeLabel: _dateRange.label,
+                sortLabel: _sortOrder.label,
+                typeLabel: _typeFilter.label,
+                groupByDay: _groupByDay,
                 onSearchChanged: (_) => setState(() {}),
+                onDateRangeTap: _pickDateRange,
+                onSortTap: _pickSortOrder,
+                onTypeTap: _pickTypeFilter,
+                onGroupByDayTap: () => setState(() => _groupByDay = !_groupByDay),
                 onSelectAll: () {},
                 onClearSelection: () {},
                 onRefresh: () =>
@@ -508,7 +829,15 @@ class _DailyReportFilesScreenState
                   batchBusy: _batchBusy,
                   batchAction: _batchAction,
                   search: _search,
+                  dateRangeLabel: _dateRange.label,
+                  sortLabel: _sortOrder.label,
+                  typeLabel: _typeFilter.label,
+                  groupByDay: _groupByDay,
                   onSearchChanged: (_) => setState(() {}),
+                  onDateRangeTap: _pickDateRange,
+                  onSortTap: _pickSortOrder,
+                  onTypeTap: _pickTypeFilter,
+                  onGroupByDayTap: () => setState(() => _groupByDay = !_groupByDay),
                   onSelectAll: () {},
                   onClearSelection: () {},
                   onRefresh: () =>
@@ -527,7 +856,15 @@ class _DailyReportFilesScreenState
                   batchBusy: _batchBusy,
                   batchAction: _batchAction,
                   search: _search,
+                  dateRangeLabel: _dateRange.label,
+                  sortLabel: _sortOrder.label,
+                  typeLabel: _typeFilter.label,
+                  groupByDay: _groupByDay,
                   onSearchChanged: (_) => setState(() {}),
+                  onDateRangeTap: _pickDateRange,
+                  onSortTap: _pickSortOrder,
+                  onTypeTap: _pickTypeFilter,
+                  onGroupByDayTap: () => setState(() => _groupByDay = !_groupByDay),
                   onSelectAll: () {},
                   onClearSelection: () {},
                   onRefresh: () =>
@@ -545,7 +882,10 @@ class _DailyReportFilesScreenState
                   ),
                 ),
                 data: (files) {
-                  final visible = _applySearch(files);
+                  final visible = _applyFilters(files);
+                  final hasActiveFilters = _search.text.trim().isNotEmpty ||
+                      _dateRange != _DateRangeFilter.allTime ||
+                      _typeFilter != _TypeFilter.all;
                   return _Shell(
                     branchName: branchName,
                     files: files,
@@ -554,7 +894,16 @@ class _DailyReportFilesScreenState
                     batchBusy: _batchBusy,
                     batchAction: _batchAction,
                     search: _search,
+                    dateRangeLabel: _dateRange.label,
+                    sortLabel: _sortOrder.label,
+                    typeLabel: _typeFilter.label,
+                    groupByDay: _groupByDay,
                     onSearchChanged: (_) => setState(() {}),
+                    onDateRangeTap: _pickDateRange,
+                    onSortTap: _pickSortOrder,
+                    onTypeTap: _pickTypeFilter,
+                    onGroupByDayTap: () =>
+                        setState(() => _groupByDay = !_groupByDay),
                     onSelectAll: () => _toggleAll(visible, select: true),
                     onClearSelection: () => _toggleAll(visible, select: false),
                     onRefresh: () =>
@@ -577,6 +926,9 @@ class _DailyReportFilesScreenState
                     onDownloadPreview: _previewFile == null
                         ? null
                         : () => _onDownloadOne(_previewFile!),
+                    onSharePreview: _previewFile == null
+                        ? null
+                        : () => _onShareOne(_previewFile!),
                     child: RefreshIndicator(
                       onRefresh: () async {
                         ref.invalidate(dailyReportFilesProvider(branchId));
@@ -597,21 +949,24 @@ class _DailyReportFilesScreenState
                                         : 'No matches',
                                     message: files.isEmpty
                                         ? 'When reports are generated for this branch, they will appear here for download.'
+                                        : hasActiveFilters
+                                        ? 'Try a different search, date range, or type filter.'
                                         : 'Try a different report name, date, or ID.',
                                     primaryLabel: files.isEmpty
                                         ? 'Refresh'
-                                        : 'Clear search',
+                                        : 'Clear filters',
                                     onPrimary: files.isEmpty
                                         ? () => ref.invalidate(
                                             dailyReportFilesProvider(branchId),
                                           )
-                                        : () => setState(() => _search.clear()),
+                                        : _clearListFilters,
                                   ),
                                 ),
                               ],
                             )
                           : _GroupedFileList(
                               files: visible,
+                              groupByDay: _groupByDay,
                               selectedKeys: _selectedKeys,
                               busyAll: _batchBusy,
                               busyId: _singleBusyId,
@@ -627,6 +982,8 @@ class _DailyReportFilesScreenState
                               },
                               onDownload: (f) => _onDownloadOne(f),
                               onPreview: _openPreview,
+                              onArchive: (f) => _archiveFiles([f]),
+                              onShare: _onShareOne,
                               onSelectAll: () =>
                                   _toggleAll(visible, select: true),
                               onClearSelection: () =>
@@ -650,7 +1007,15 @@ class _Shell extends StatelessWidget {
     required this.batchBusy,
     required this.batchAction,
     required this.search,
+    required this.dateRangeLabel,
+    required this.sortLabel,
+    required this.typeLabel,
+    required this.groupByDay,
     required this.onSearchChanged,
+    required this.onDateRangeTap,
+    required this.onSortTap,
+    required this.onTypeTap,
+    required this.onGroupByDayTap,
     required this.onSelectAll,
     required this.onClearSelection,
     required this.onRefresh,
@@ -663,6 +1028,7 @@ class _Shell extends StatelessWidget {
     this.previewFuture,
     this.onClosePreview,
     this.onDownloadPreview,
+    this.onSharePreview,
   });
 
   final String branchName;
@@ -672,7 +1038,15 @@ class _Shell extends StatelessWidget {
   final bool batchBusy;
   final String? batchAction;
   final TextEditingController search;
+  final String dateRangeLabel;
+  final String sortLabel;
+  final String typeLabel;
+  final bool groupByDay;
   final ValueChanged<String> onSearchChanged;
+  final VoidCallback onDateRangeTap;
+  final VoidCallback onSortTap;
+  final VoidCallback onTypeTap;
+  final VoidCallback onGroupByDayTap;
   final VoidCallback onSelectAll;
   final VoidCallback onClearSelection;
   final VoidCallback onRefresh;
@@ -684,6 +1058,7 @@ class _Shell extends StatelessWidget {
   final Future<DailyReportPreviewResponse>? previewFuture;
   final VoidCallback? onClosePreview;
   final VoidCallback? onDownloadPreview;
+  final VoidCallback? onSharePreview;
   final Widget child;
 
   @override
@@ -707,16 +1082,26 @@ class _Shell extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _HeroHeader(branchName: branchName, onRefresh: onRefresh),
+                    _HeroHeader(
+                      branchName: branchName,
+                      dateRangeLabel: dateRangeLabel,
+                      onDateRangeTap: onDateRangeTap,
+                    ),
                     const SizedBox(height: 28),
-                    _KpiStrip(files: files),
+                    _KpiStrip(files: visibleFiles),
                     const SizedBox(height: 20),
                     _ListFrame(
                       files: visibleFiles,
                       allFiles: files,
                       selectedCount: selectedKeys.length,
                       search: search,
+                      sortLabel: sortLabel,
+                      typeLabel: typeLabel,
+                      groupByDay: groupByDay,
                       onSearchChanged: onSearchChanged,
+                      onSortTap: onSortTap,
+                      onTypeTap: onTypeTap,
+                      onGroupByDayTap: onGroupByDayTap,
                       onSelectAll: onSelectAll,
                       onClearSelection: onClearSelection,
                       onRefresh: onRefresh,
@@ -745,6 +1130,7 @@ class _Shell extends StatelessWidget {
             previewFuture: previewFuture!,
             onClose: onClosePreview ?? () {},
             onDownload: onDownloadPreview,
+            onShare: onSharePreview,
           ),
       ],
     );
@@ -752,10 +1138,15 @@ class _Shell extends StatelessWidget {
 }
 
 class _HeroHeader extends StatelessWidget {
-  const _HeroHeader({required this.branchName, required this.onRefresh});
+  const _HeroHeader({
+    required this.branchName,
+    required this.dateRangeLabel,
+    required this.onDateRangeTap,
+  });
 
   final String branchName;
-  final VoidCallback onRefresh;
+  final String dateRangeLabel;
+  final VoidCallback onDateRangeTap;
 
   @override
   Widget build(BuildContext context) {
@@ -809,23 +1200,11 @@ class _HeroHeader extends StatelessWidget {
         children: [
           if (compact) titleBlock else Expanded(child: titleBlock),
           SizedBox(width: compact ? 0 : 16, height: compact ? 16 : 0),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _HeaderButton(
-                icon: DashboardQuickAccessSvgs.calendar,
-                label: 'Last 7 days',
-                trailing: DashboardQuickAccessSvgs.chevronDown,
-                onTap: () {},
-              ),
-              _HeaderButton(
-                icon: DashboardQuickAccessSvgs.sparkle,
-                label: 'Generate report',
-                filled: true,
-                onTap: onRefresh,
-              ),
-            ],
+          _HeaderButton(
+            icon: DashboardQuickAccessSvgs.calendar,
+            label: dateRangeLabel,
+            trailing: DashboardQuickAccessSvgs.chevronDown,
+            onTap: onDateRangeTap,
           ),
         ],
       ),
@@ -1062,7 +1441,13 @@ class _ListFrame extends StatelessWidget {
     required this.allFiles,
     required this.selectedCount,
     required this.search,
+    required this.sortLabel,
+    required this.typeLabel,
+    required this.groupByDay,
     required this.onSearchChanged,
+    required this.onSortTap,
+    required this.onTypeTap,
+    required this.onGroupByDayTap,
     required this.onSelectAll,
     required this.onClearSelection,
     required this.onRefresh,
@@ -1073,7 +1458,13 @@ class _ListFrame extends StatelessWidget {
   final List<DailyReportFile> allFiles;
   final int selectedCount;
   final TextEditingController search;
+  final String sortLabel;
+  final String typeLabel;
+  final bool groupByDay;
   final ValueChanged<String> onSearchChanged;
+  final VoidCallback onSortTap;
+  final VoidCallback onTypeTap;
+  final VoidCallback onGroupByDayTap;
   final VoidCallback onSelectAll;
   final VoidCallback onClearSelection;
   final VoidCallback onRefresh;
@@ -1229,20 +1620,23 @@ class _ListFrame extends StatelessWidget {
                   _ToolChip(
                     icon: DashboardQuickAccessSvgs.filter,
                     label: 'Type:',
-                    value: 'All',
+                    value: typeLabel,
+                    onTap: onTypeTap,
                   ),
                   const SizedBox(width: 8),
-                  const _ToolChip(
+                  _ToolChip(
                     icon: DashboardQuickAccessSvgs.sortDesc,
                     label: 'Sort:',
-                    value: 'Newest first',
+                    value: sortLabel,
+                    onTap: onSortTap,
                   ),
                   const SizedBox(width: 8),
-                  const _ToolChip(
+                  _ToolChip(
                     icon: DashboardQuickAccessSvgs.group,
                     label: '',
-                    value: 'Group by day',
-                    filled: true,
+                    value: groupByDay ? 'Group by day' : 'Flat list',
+                    filled: groupByDay,
+                    onTap: onGroupByDayTap,
                   ),
                   const SizedBox(width: 10),
                   IconButton(
@@ -1276,21 +1670,28 @@ class _ToolChip extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    required this.onTap,
     this.filled = false,
   });
 
   final String icon;
   final String label;
   final String value;
+  final VoidCallback onTap;
   final bool filled;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
+      color: filled ? _kBlue : Colors.white,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
       height: 42,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: filled ? _kBlue : Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: filled ? _kBlue : _kBorder),
       ),
@@ -1332,6 +1733,8 @@ class _ToolChip extends StatelessWidget {
           ],
         ],
       ),
+        ),
+      ),
     );
   }
 }
@@ -1339,6 +1742,7 @@ class _ToolChip extends StatelessWidget {
 class _GroupedFileList extends StatelessWidget {
   const _GroupedFileList({
     required this.files,
+    required this.groupByDay,
     required this.selectedKeys,
     required this.busyAll,
     required this.busyId,
@@ -1346,11 +1750,14 @@ class _GroupedFileList extends StatelessWidget {
     required this.onToggle,
     required this.onDownload,
     required this.onPreview,
+    required this.onArchive,
+    required this.onShare,
     required this.onSelectAll,
     required this.onClearSelection,
   });
 
   final List<DailyReportFile> files;
+  final bool groupByDay;
   final Set<String> selectedKeys;
   final bool busyAll;
   final String? busyId;
@@ -1358,8 +1765,26 @@ class _GroupedFileList extends StatelessWidget {
   final void Function(String id) onToggle;
   final void Function(DailyReportFile file) onDownload;
   final void Function(DailyReportFile file) onPreview;
+  final void Function(DailyReportFile file) onArchive;
+  final void Function(DailyReportFile file) onShare;
   final VoidCallback onSelectAll;
   final VoidCallback onClearSelection;
+
+  Widget _buildRow(DailyReportFile f) {
+    final rowKey = rowKeyOf(f);
+    final isSelected = selectedKeys.contains(rowKey);
+    final busy = busyAll ? isSelected : (busyId == rowKey);
+    return _FileRow(
+      file: f,
+      selected: isSelected,
+      busy: busy,
+      onToggle: () => onToggle(rowKey),
+      onDownload: () => onDownload(f),
+      onPreview: () => onPreview(f),
+      onArchive: () => onArchive(f),
+      onShare: () => onShare(f),
+    );
+  }
 
   static final _dfHeader = DateFormat('MMM dd, yyyy');
 
@@ -1382,11 +1807,22 @@ class _GroupedFileList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!groupByDay) {
+      return ListView(
+        padding: const EdgeInsets.only(bottom: 112),
+        children: files.map(_buildRow).toList(growable: false),
+      );
+    }
+
     final groups = <String, List<DailyReportFile>>{};
     for (final f in files) {
       groups.putIfAbsent(_groupKey(f), () => <DailyReportFile>[]).add(f);
     }
     final orderedKeys = groups.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    final now = DateTime.now();
+    final todayKey =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 112),
@@ -1395,20 +1831,9 @@ class _GroupedFileList extends StatelessWidget {
           _GroupHeader(
             title: _prettyGroupLabel(key),
             count: groups[key]!.length,
+            isToday: key == todayKey,
           ),
-          ...groups[key]!.map((f) {
-            final rowKey = rowKeyOf(f);
-            final isSelected = selectedKeys.contains(rowKey);
-            final busy = busyAll ? isSelected : (busyId == rowKey);
-            return _FileRow(
-              file: f,
-              selected: isSelected,
-              busy: busy,
-              onToggle: () => onToggle(rowKey),
-              onDownload: () => onDownload(f),
-              onPreview: () => onPreview(f),
-            );
-          }),
+          ...groups[key]!.map(_buildRow),
         ],
       ],
     );
@@ -1416,10 +1841,15 @@ class _GroupedFileList extends StatelessWidget {
 }
 
 class _GroupHeader extends StatelessWidget {
-  const _GroupHeader({required this.title, required this.count});
+  const _GroupHeader({
+    required this.title,
+    required this.count,
+    this.isToday = false,
+  });
 
   final String title;
   final int count;
+  final bool isToday;
 
   @override
   Widget build(BuildContext context) {
@@ -1441,25 +1871,27 @@ class _GroupHeader extends StatelessWidget {
               letterSpacing: 1.4,
             ),
           ),
-          const SizedBox(width: 12),
-          Container(
-            height: 26,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: _kSurfaceAlt,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _kBorder),
-            ),
-            child: Text(
-              'Today',
-              style: GoogleFonts.outfit(
-                color: _kTextMuted,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+          if (isToday) ...[
+            const SizedBox(width: 12),
+            Container(
+              height: 26,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: _kSurfaceAlt,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: _kBorder),
+              ),
+              child: Text(
+                'Today',
+                style: GoogleFonts.outfit(
+                  color: _kTextMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
+          ],
           const Spacer(),
           Text(
             '$count ${count == 1 ? 'file' : 'files'}',
@@ -1483,6 +1915,8 @@ class _FileRow extends StatelessWidget {
     required this.onToggle,
     required this.onDownload,
     required this.onPreview,
+    required this.onArchive,
+    required this.onShare,
   });
 
   final DailyReportFile file;
@@ -1491,6 +1925,8 @@ class _FileRow extends StatelessWidget {
   final VoidCallback onToggle;
   final VoidCallback onDownload;
   final VoidCallback onPreview;
+  final VoidCallback onArchive;
+  final VoidCallback onShare;
 
   static final _time = DateFormat.jm();
 
@@ -1634,9 +2070,33 @@ class _FileRow extends StatelessWidget {
                         color: _kGreen,
                       ),
               ),
-              IconButton(
-                tooltip: 'More',
-                onPressed: () {},
+              PopupMenuButton<String>(
+                tooltip: 'More actions',
+                enabled: !busy,
+                onSelected: (action) {
+                  switch (action) {
+                    case 'download':
+                      onDownload();
+                    case 'share':
+                      onShare();
+                    case 'archive':
+                      onArchive();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'download',
+                    child: Text('Download'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'share',
+                    child: Text('Share'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'archive',
+                    child: Text('Archive'),
+                  ),
+                ],
                 icon: DashboardQuickAccessSvgs.assetIcon(
                   DashboardQuickAccessSvgs.more,
                   size: 22,
@@ -1837,12 +2297,14 @@ class _PreviewOverlay extends StatelessWidget {
     required this.previewFuture,
     required this.onClose,
     required this.onDownload,
+    this.onShare,
   });
 
   final DailyReportFile file;
   final Future<DailyReportPreviewResponse> previewFuture;
   final VoidCallback onClose;
   final VoidCallback? onDownload;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -1869,6 +2331,7 @@ class _PreviewOverlay extends StatelessWidget {
               previewFuture: previewFuture,
               onClose: onClose,
               onDownload: onDownload,
+              onShare: onShare,
             ),
           ),
         ],
@@ -1883,12 +2346,14 @@ class _PreviewPanel extends StatelessWidget {
     required this.previewFuture,
     required this.onClose,
     required this.onDownload,
+    this.onShare,
   });
 
   final DailyReportFile file;
   final Future<DailyReportPreviewResponse> previewFuture;
   final VoidCallback onClose;
   final VoidCallback? onDownload;
+  final VoidCallback? onShare;
 
   static final _day = DateFormat('MMM dd, yyyy');
   static final _time = DateFormat.jm();
@@ -1956,7 +2421,7 @@ class _PreviewPanel extends StatelessWidget {
                 _PreviewIconButton(
                   icon: DashboardQuickAccessSvgs.share,
                   tooltip: 'Share',
-                  onTap: () {},
+                  onTap: onShare,
                 ),
                 const SizedBox(width: 10),
                 _PreviewDownloadButton(onTap: onDownload),
@@ -1991,12 +2456,12 @@ class _PreviewIconButton extends StatelessWidget {
   const _PreviewIconButton({
     required this.icon,
     required this.tooltip,
-    required this.onTap,
+    this.onTap,
   });
 
   final String icon;
   final String tooltip;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -2006,27 +2471,30 @@ class _PreviewIconButton extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
         onTap: onTap,
-        child: Container(
-          width: 52,
-          height: 52,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _kBorder),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: .05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+        child: Opacity(
+          opacity: onTap == null ? 0.45 : 1,
+          child: Container(
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _kBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Tooltip(
+              message: tooltip,
+              child: DashboardQuickAccessSvgs.assetIcon(
+                icon,
+                size: 21,
+                color: _kTextPrimary,
               ),
-            ],
-          ),
-          child: Tooltip(
-            message: tooltip,
-            child: DashboardQuickAccessSvgs.assetIcon(
-              icon,
-              size: 21,
-              color: _kTextPrimary,
             ),
           ),
         ),
