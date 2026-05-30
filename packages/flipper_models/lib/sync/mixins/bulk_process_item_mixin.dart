@@ -91,6 +91,8 @@ Future<void> runBulkProcessItem(
       stock.value = qty * variant.retailPrice!;
       await repository.upsert(stock);
       variant.stock = stock;
+      variant.qty = qty;
+      variant.rsdQty = qty;
 
       await host.addVariant(
         skipRRaCall: false,
@@ -134,6 +136,8 @@ Future<void> runBulkProcessItem(
         stock.value = qty * variant.retailPrice!;
         await repository.upsert(stock);
         variant.stock = stock;
+        variant.qty = qty;
+        variant.rsdQty = qty;
         await host.addVariant(
           variations: [variant],
           branchId: branchId,
@@ -176,6 +180,8 @@ Future<void> runBulkProcessItem(
       stock.value = qty * variant.retailPrice!;
       await repository.upsert(stock);
       variant.stock = stock;
+      variant.qty = qty;
+      variant.rsdQty = qty;
 
       await host.addVariant(
         variations: [variant],
