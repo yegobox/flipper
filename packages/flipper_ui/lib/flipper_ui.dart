@@ -1,5 +1,7 @@
 library flipper_ui;
 
+export 'package:flipper_design_system/flipper_design_system.dart';
+
 // Widgets Export
 export 'src/widgets/box_text.dart';
 export 'src/widgets/box_button.dart';

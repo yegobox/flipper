@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:async/async.dart';
-import 'package:flipper_infra/size.dart';
-import 'package:flipper_infra/theme_extension.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_ui/widget/mouse_hover_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';

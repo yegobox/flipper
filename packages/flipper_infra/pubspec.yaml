@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flipper_design_system: any
   freezed_annotation: any
   json_annotation: ^4.8.1
   time: ^2.1.4

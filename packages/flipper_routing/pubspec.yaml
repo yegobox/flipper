@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flipper_design_system: any
 
   flipper_dashboard: any
   flipper_login: any

@@ -22,7 +22,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter/material.dart';
@@ -309,29 +309,8 @@ class _FlipperAppState extends State<FlipperApp> {
   }
 
   ThemeData _buildTheme() {
-    // Bundled `.ttf` files live under `google_fonts/` (see pubspec assets). Must stay false so
-    // release builds do not depend on runtime font downloads.
-    GoogleFonts.config.allowRuntimeFetching = false;
-
-    return ThemeData(
-      textTheme: GoogleFonts.outfitTextTheme(),
-      brightness: Brightness.light,
-      primaryColor: Colors.blue,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF00C2E8),
-        primary: const Color(0xFF00C2E8),
-        secondary: const Color(0xFF1D1D1D),
-      ).copyWith(surface: Colors.white),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      cardTheme: CardThemeData(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-      ),
-    );
+    // Bundled `.ttf` files live under `google_fonts/` (see pubspec assets).
+    return FlipperTheme.light(allowRuntimeFontFetching: false);
   }
 
   @override

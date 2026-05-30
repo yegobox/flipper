@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flipper_infra/size.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_ui/style_widget/hover.dart';
 import 'package:flipper_ui/widget/flowy_tooltip.dart';
 import 'package:flowy_svg/flowy_svg.dart';
