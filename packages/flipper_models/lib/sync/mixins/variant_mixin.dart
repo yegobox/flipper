@@ -318,12 +318,14 @@ mixin VariantMixin implements VariantInterface {
               await repository.upsert<Stock>(variantToSave.stock!);
             }
           }
-          repository.upsert<Variant>(variantToSave);
+          await repository.upsert<Variant>(variantToSave);
           Ebm? ebm = await ProxyService.strategy.ebm(
             branchId: ProxyService.box.getBranchId()!,
           );
-          variant.splyAmt = variant.splyAmt!.toPrecision(0);
-          await repository.upsert<Variant>(variant);
+          if (variantToSave.splyAmt != null) {
+            variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
+          }
+          await repository.upsert<Variant>(variantToSave);
           if (skipRRaCall) {
             return;
           }

@@ -4,6 +4,13 @@ import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:uuid/uuid.dart';
 
+/// Packaging unit code from UI (`AM:1:...` → `AM`, bare `CT` → `CT`).
+String resolveRraPackagingUnitCode(Object? packagingUnit, {String fallback = 'CT'}) {
+  final raw = packagingUnit?.toString().trim() ?? '';
+  if (raw.isEmpty) return fallback;
+  return raw.contains(':') ? raw.split(':').first.trim() : raw;
+}
+
 /// Builds a [Variant] with the same EBM/RRA fields as
 /// [ProductMixin.addVariant] in `view_models/mixins/_product.dart` (DesktopProductAdd).
 Future<Variant> prepareBulkVariantLikeDesktopAdd({
@@ -22,6 +29,7 @@ Future<Variant> prepareBulkVariantLikeDesktopAdd({
   String? categoryId,
   String? categoryName,
   Business? business,
+  String? preserveVariantId,
 }) async {
   final registrar = randomNumber().toString().substring(0, 5);
   final regr = randomNumber().toString().substring(0, 5);
@@ -39,7 +47,7 @@ Future<Variant> prepareBulkVariantLikeDesktopAdd({
   final tin = await effectiveTin(business: business);
 
   final variant = Variant(
-    id: const Uuid().v4(),
+    id: preserveVariantId ?? const Uuid().v4(),
     branchId: branchId,
     name: productName,
     itemNm: productName,
@@ -63,7 +71,7 @@ Future<Variant> prepareBulkVariantLikeDesktopAdd({
     taxName: taxTyCd,
     taxPercentage: taxPercentage,
     orgnNatCd: countryCode,
-    pkgUnitCd: packagingUnitCode,
+    pkgUnitCd: resolveRraPackagingUnitCode(packagingUnitCode),
     qtyUnitCd: 'U',
     pkg: 1,
     itemSeq: 0,
@@ -86,12 +94,13 @@ Future<Variant> prepareBulkVariantLikeDesktopAdd({
     bhfId: business?.bhfId ?? '00',
   );
 
-  // Match DesktopProductAdd itemCode args (packagingUnit code + quantityUnit CT).
+  // Match DesktopProductAdd / bulk legacy itemCode (pkg code + qty unit CT).
+  final pkgForItemCd = resolveRraPackagingUnitCode(packagingUnitCode);
   variant.itemCd = await ProxyService.strategy.itemCode(
     countryCode: countryCode,
     productType: itemTyCd,
     branchId: branchId,
-    packagingUnit: packagingUnitCode,
+    packagingUnit: pkgForItemCd,
     quantityUnit: 'CT',
   );
 
