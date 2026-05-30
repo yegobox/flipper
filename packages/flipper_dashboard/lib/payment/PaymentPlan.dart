@@ -52,6 +52,8 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         // First check if a payment plan exists at all
         final plan = await ProxyService.strategy.getPaymentPlan(
           businessId: businessId,
+          fetchOnline: true,
+          preferFresh: true,
         );
 
         if (plan != null) {

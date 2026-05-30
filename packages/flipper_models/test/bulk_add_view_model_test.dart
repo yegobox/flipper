@@ -92,6 +92,12 @@ void main() {
       expect(model.resolveTaxTyCdForRow(uid, row), 'D');
     });
 
+    test('defaultBulkTaxTyCd is D when setVatEnabledForTesting false', () {
+      final model = BulkAddProductViewModel();
+      model.setVatEnabledForTesting(false);
+      expect(model.defaultBulkTaxTyCd, 'D');
+    });
+
     test('large import uses one page of field controllers at a time', () {
       final rows = List.generate(
         250,

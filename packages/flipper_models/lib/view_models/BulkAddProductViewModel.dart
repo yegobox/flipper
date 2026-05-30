@@ -214,13 +214,18 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   Future<void> _refreshVatEnabledFromEbm() async {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null || branchId.isEmpty) {
-      _isVatEnabledForBulk = ProxyService.box.vatEnabled();
-      return;
+    _isVatEnabledForBulk = await isVatEnabledForBranch();
+  }
+
+  /// Re-apply VAT-aware tax codes for every row immediately before save.
+  void _reconcileAllRowTaxTypesBeforeSave() {
+    if (_excelData == null) return;
+    for (final product in _excelData!) {
+      final uid = _bulkUidOf(product);
+      final tax = resolveTaxTyCdForRow(uid, product);
+      _selectedTaxTypes[uid] = tax;
+      product['TaxType'] = tax;
     }
-    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-    _isVatEnabledForBulk = ebm?.vatEnabled ?? ProxyService.box.vatEnabled();
   }
 
   /// Keeps tax codes valid for the current EBM VAT mode.
@@ -910,7 +915,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       await _refreshVatEnabledFromEbm();
-      _seedAllRowTaxTypes();
+      _reconcileAllRowTaxTypesBeforeSave();
       if (_useServerBulkRra) {
         return await _saveViaDataConnector();
       } else {
