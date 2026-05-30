@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart';
@@ -374,8 +375,10 @@ mixin ProductMixin implements ProductInterface {
     ))
         .firstOrNull;
 
-    // Determine tax type code - prioritize explicit taxTyCd, then taxTypes map, then default to "B"
-    String finalTaxTyCd = taxTyCd ?? taxTypes?[product?.barCode] ?? "B";
+    // Determine tax type code - explicit taxTyCd, then taxTypes map, then EBM VAT default.
+    final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
+    String finalTaxTyCd =
+        taxTyCd ?? taxTypes?[product?.barCode] ?? defaultTaxTyCdForVat(vatEnabled);
 
     // Get tax percentage based on the tax type code
     double finalTaxPercentage = taxType?.taxPercentage ?? 18.0;

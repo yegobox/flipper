@@ -1,5 +1,25 @@
 import 'package:flipper_services/proxy.dart';
 
+/// Whether the current branch EBM is VAT-registered (same source as POS / providers).
+Future<bool> isVatEnabledForBranch({String? branchId}) async {
+  try {
+    final resolvedBranchId = branchId ?? ProxyService.box.getBranchId();
+    if (resolvedBranchId == null || resolvedBranchId.isEmpty) {
+      return false;
+    }
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: resolvedBranchId,
+      fetchRemote: true,
+    );
+    return ebm?.vatEnabled ?? false;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// Default RRA tax type when none is specified for a row.
+String defaultTaxTyCdForVat(bool vatEnabled) => vatEnabled ? 'B' : 'D';
+
 /// Resolve the effective TIN number for the current context.
 /// Priority:
 /// 1. Ebm.tinNumber for the current branch (if available)

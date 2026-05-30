@@ -181,6 +181,7 @@ class BulkSaveResult {
     required this.failed,
     this.jobId,
     this.rraSkipped = false,
+    this.isEbmEnabled = false,
   });
 
   final bool success;
@@ -192,6 +193,9 @@ class BulkSaveResult {
 
   /// True when catalog was written but RRA was not called (tax disabled).
   final bool rraSkipped;
+
+  /// Whether this branch uses EBM / tax registration (same gate as bulk UI).
+  final bool isEbmEnabled;
 }
 
 /// Resolves data-connector base URL from [Ebm.dataConnectorUrl] (not the RRA tax URL).

@@ -214,13 +214,18 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   Future<void> _refreshVatEnabledFromEbm() async {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null || branchId.isEmpty) {
-      _isVatEnabledForBulk = ProxyService.box.vatEnabled();
-      return;
+    _isVatEnabledForBulk = await isVatEnabledForBranch();
+  }
+
+  /// Re-apply VAT-aware tax codes for every row immediately before save.
+  void _reconcileAllRowTaxTypesBeforeSave() {
+    if (_excelData == null) return;
+    for (final product in _excelData!) {
+      final uid = _bulkUidOf(product);
+      final tax = resolveTaxTyCdForRow(uid, product);
+      _selectedTaxTypes[uid] = tax;
+      product['TaxType'] = tax;
     }
-    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-    _isVatEnabledForBulk = ebm?.vatEnabled ?? ProxyService.box.vatEnabled();
   }
 
   /// Keeps tax codes valid for the current EBM VAT mode.
@@ -910,18 +915,22 @@ class BulkAddProductViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       await _refreshVatEnabledFromEbm();
-      _seedAllRowTaxTypes();
+      _reconcileAllRowTaxTypesBeforeSave();
       if (_useServerBulkRra) {
         return await _saveViaDataConnector();
       } else {
         await _saveLegacy();
         final n = _excelData?.length ?? 0;
+        final ebmEnabled = _isVatEnabledForBulk;
         return BulkSaveResult(
           success: true,
-          message: 'Saved $n products locally and synced to RRA on device.',
+          message: ebmEnabled
+              ? 'Saved $n products locally and registered with RRA.'
+              : 'Saved $n ${n == 1 ? 'product' : 'products'} to your catalog.',
           total: n,
           succeeded: n,
           failed: 0,
+          isEbmEnabled: ebmEnabled,
         );
       }
     } catch (e) {
@@ -1101,6 +1110,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
         succeeded: 0,
         failed: totalFailed,
         jobId: jobIdLabel,
+        isEbmEnabled: isVatEnabled,
       );
     }
 
@@ -1120,14 +1130,18 @@ class BulkAddProductViewModel extends ChangeNotifier {
       final name = variant?['name'] ?? variant?['itemNm'] ?? 'unknown';
       return BulkSaveResult(
         success: false,
-        message:
-            '$totalFailed of ${rows.length} failed at RRA. '
-            'First error (row $idx, $name): '
-            '${first['resultMsg'] ?? first['status']}',
+        message: isVatEnabled
+            ? '$totalFailed of ${rows.length} failed at RRA. '
+                'First error (row $idx, $name): '
+                '${first['resultMsg'] ?? first['status']}'
+            : '$totalFailed of ${rows.length} failed to save. '
+                'First error (row $idx, $name): '
+                '${first['resultMsg'] ?? first['status']}',
         total: rows.length,
         succeeded: totalSuccess,
         failed: totalFailed,
         jobId: jobIdLabel,
+        isEbmEnabled: isVatEnabled,
       );
     }
 
@@ -1136,14 +1150,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
         success: true,
         rraSkipped: true,
         message:
-            'Saved $totalSuccess products to Ditto on data-connector (job '
-            '$jobIdLabel), but RRA was not called because tax is disabled '
-            'for this branch. Wait for Ditto sync or restart Flipper to see them '
-            'in the app.',
+            'Saved $totalSuccess ${totalSuccess == 1 ? 'product' : 'products'}. '
+            'They will appear in your catalog after sync completes.',
         total: rows.length,
         succeeded: totalSuccess,
         failed: 0,
         jobId: jobIdLabel,
+        isEbmEnabled: false,
       );
     }
 
@@ -1158,12 +1171,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
     return BulkSaveResult(
       success: true,
       message:
-          'Added $totalSuccess products. Catalog is in Ditto cloud (see Ditto Portal). '
-          'Open your product list to load them on this device.',
+          'Added $totalSuccess ${totalSuccess == 1 ? 'product' : 'products'} '
+          'and registered them with RRA. Open your product list to see them '
+          'on this device.',
       total: rows.length,
       succeeded: totalSuccess,
       failed: 0,
       jobId: jobIdLabel,
+      isEbmEnabled: true,
     );
   }
 

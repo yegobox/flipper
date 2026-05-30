@@ -150,94 +150,7 @@ mixin DeleteMixin implements DeleteInterface {
         break;
       case 'variant':
         try {
-          // Try to find and delete locally first
-          final variant = await ProxyService.strategy.getVariant(id: id);
-
-          if (variant != null) {
-            // Found locally, delete variant and its stock
-            final stock = await getStockById(id: variant.stockId ?? "");
-
-            await repository.delete<Variant>(
-              variant,
-              query: Query(
-                action: QueryAction.delete,
-                where: [Where('id').isExactly(id)],
-              ),
-            );
-
-            if (stock != null) {
-              await repository.delete<Stock>(
-                stock,
-                query: Query(
-                  action: QueryAction.delete,
-                  where: [Where('id').isExactly(stock.id)],
-                ),
-              );
-            }
-          } else {
-            // Not found locally, delete using remote sources
-            talker.warning(
-              'Variant with id $id not found locally, attempting remote deletion.',
-            );
-
-            try {
-              // 1. Fetch remote variant to get stockId
-              final remoteVariant = await Supabase.instance.client
-                  .from('variants')
-                  .select('stock_id')
-                  .eq('id', id)
-                  .maybeSingle();
-
-              String? stockId;
-              if (remoteVariant != null && remoteVariant['stock_id'] != null) {
-                stockId = remoteVariant['stock_id'] as String;
-              }
-
-              // 2. Delete from Supabase (Stock first, then Variant to maintain ref integrity if needed,
-              // or Variant first if cascades. Assuming independent for now or cascade from variant?
-              // Usually child (stock) should be deleted or if variant is parent...
-              // Let's delete both explicitly as requested)
-
-              if (stockId != null) {
-                await Supabase.instance.client
-                    .from('stocks')
-                    .delete()
-                    .eq('id', stockId);
-                talker.info('Deleted stock $stockId from Supabase');
-              }
-
-              await Supabase.instance.client
-                  .from('variants')
-                  .delete()
-                  .eq('id', id);
-              talker.info('Deleted variant $id from Supabase');
-
-              // 3. Delete from Ditto
-              final ditto = dittoService.dittoInstance;
-              if (ditto != null) {
-                if (stockId != null) {
-                  await ditto.store.execute(
-                    'DELETE FROM stocks WHERE _id = :id',
-                    arguments: {'id': stockId},
-                  );
-                  talker.info('Deleted stock $stockId from Ditto');
-                }
-
-                await ditto.store.execute(
-                  'DELETE FROM variants WHERE _id = :id',
-                  arguments: {'id': id},
-                );
-                talker.info('Deleted variant $id from Ditto');
-              } else {
-                talker.warning(
-                  'Ditto not initialized, skipping Ditto deletion',
-                );
-              }
-            } catch (e) {
-              talker.error('Error during remote deletion: $e');
-              rethrow;
-            }
-          }
+          await _deleteVariantFromDittoAndSupabase(id: id);
         } catch (e, s) {
           talker.error('Error during variant deletion: $e');
           talker.warning(s);
@@ -346,5 +259,59 @@ mixin DeleteMixin implements DeleteInterface {
         break;
     }
     return true;
+  }
+
+  /// Variants and stocks live in Ditto (Capella), not Brick SQLite.
+  Future<void> _deleteVariantFromDittoAndSupabase({required String id}) async {
+    final variant = await ProxyService.strategy.getVariant(id: id);
+    String? stockId = variant?.stockId;
+
+    if (stockId == null || stockId.isEmpty) {
+      final remoteVariant = await Supabase.instance.client
+          .from('variants')
+          .select('stock_id')
+          .eq('id', id)
+          .maybeSingle();
+      if (remoteVariant != null && remoteVariant['stock_id'] != null) {
+        stockId = remoteVariant['stock_id'] as String;
+      }
+    }
+
+    if (variant == null && stockId == null) {
+      talker.warning(
+        'Variant with id $id not found in Ditto or Supabase, attempting Ditto delete only.',
+      );
+    }
+
+    try {
+      if (stockId != null && stockId.isNotEmpty) {
+        await Supabase.instance.client.from('stocks').delete().eq('id', stockId);
+        talker.info('Deleted stock $stockId from Supabase');
+      }
+
+      await Supabase.instance.client.from('variants').delete().eq('id', id);
+      talker.info('Deleted variant $id from Supabase');
+    } catch (e) {
+      talker.warning('Supabase variant delete skipped or failed: $e');
+    }
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized: variant delete');
+    }
+
+    if (stockId != null && stockId.isNotEmpty) {
+      await ditto.store.execute(
+        'DELETE FROM stocks WHERE _id = :id',
+        arguments: {'id': stockId},
+      );
+      talker.info('Deleted stock $stockId from Ditto');
+    }
+
+    await ditto.store.execute(
+      'DELETE FROM variants WHERE _id = :id',
+      arguments: {'id': id},
+    );
+    talker.info('Deleted variant $id from Ditto');
   }
 }

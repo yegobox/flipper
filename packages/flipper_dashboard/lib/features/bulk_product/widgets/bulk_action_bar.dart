@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/ProgressData.dart';
 
-class BulkActionBar extends StatelessWidget {
+class BulkActionBar extends ConsumerWidget {
   final BulkAddProductViewModel model;
   final String? errorMessage;
   final VoidCallback onSave;
@@ -16,7 +18,8 @@ class BulkActionBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isEbmEnabled = ref.watch(ebmVatEnabledProvider).value ?? false;
     final displayCount = model.uploadedProductCountForUi ?? model.rowCount;
     final isPrimaryParsing = model.selectedFile != null &&
         model.excelData == null &&
@@ -39,22 +42,25 @@ class BulkActionBar extends StatelessWidget {
                   ),
                 ),
               ),
-            Expanded(
-              child: SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Register via server (RRA first)'),
-                subtitle: const Text(
-                  'Catalog is created in Ditto only after RRA succeeds. '
-                  'Turn off to use the previous on-device flow.',
+            if (isEbmEnabled)
+              Expanded(
+                child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Register via server (RRA first)'),
+                  subtitle: const Text(
+                    'Catalog is created in Ditto only after RRA succeeds. '
+                    'Turn off to use the previous on-device flow.',
+                  ),
+                  value: model.useServerBulkRra,
+                  onChanged: model.isSaving ||
+                          model.isLoading ||
+                          model.isLoadingFullParse
+                      ? null
+                      : (value) => model.setUseServerBulkRra(value),
                 ),
-                value: model.useServerBulkRra,
-                onChanged: model.isSaving ||
-                        model.isLoading ||
-                        model.isLoadingFullParse
-                    ? null
-                    : (value) => model.setUseServerBulkRra(value),
-              ),
-            ),
+              )
+            else
+              const Spacer(),
             const SizedBox(width: 12),
             FlipperButton(
               textColor: Colors.white,

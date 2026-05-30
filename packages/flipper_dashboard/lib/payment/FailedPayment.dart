@@ -384,6 +384,8 @@ class _FailedPaymentState extends State<FailedPayment>
       final fetchedPlan = await ProxyService.strategy
           .getPaymentPlan(
             businessId: businessId,
+            fetchOnline: true,
+            preferFresh: true,
           )
           .timeout(const Duration(seconds: 30));
 

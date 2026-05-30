@@ -273,7 +273,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     if (variant!.name != 'Regular') {
       ProxyService.strategy.flipperDelete(
         id: id,
-        endPoint: 'variation',
+        endPoint: 'variant',
         flipperHttpClient: ProxyService.http,
       );
       //this will reload the variations remain

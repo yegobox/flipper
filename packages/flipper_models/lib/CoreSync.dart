@@ -361,9 +361,15 @@ class CoreSync extends AiStrategyImpl
     double? taxAmt,
     double? taxblAmt,
     String? itemCd,
+    String? taxTyCd,
   }) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
+    final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
+    final finalTaxTyCd =
+        taxTyCd ??
+        taxTypes?[product?.barCode] ??
+        defaultTaxTyCdForVat(vatEnabled);
 
     return Variant(
       spplrNm: spplrNm ?? "",
@@ -425,6 +431,7 @@ class CoreSync extends AiStrategyImpl
       itemSeq: itemSeq,
       itemNm: product?.name ?? name,
       taxPercentage: taxType?.taxPercentage ?? 18.0,
+      taxName: finalTaxTyCd,
       tin: tinNumber,
       bcd:
           bcd ??
@@ -441,7 +448,7 @@ class CoreSync extends AiStrategyImpl
       regrNm: product?.name ?? name,
 
       /// taxation type code
-      taxTyCd: taxTypes?[product?.barCode] ?? "B",
+      taxTyCd: finalTaxTyCd,
       // default unit price
       dftPrc: retailPrice,
       prc: retailPrice,
@@ -1293,6 +1300,22 @@ class CoreSync extends AiStrategyImpl
     bool? preferFresh,
   }) async {
     try {
+      // Supabase is authoritative for payment verification and admin edits.
+      // Ditto can lag behind; never let stale Ditto override a fresh Supabase row.
+      if (preferFresh == true) {
+        final remote = await _paymentPlanFromSupabase(businessId);
+        if (remote != null) {
+          talker.info(
+            'getPaymentPlan: from Supabase (preferFresh) businessId=$businessId',
+          );
+          final planId = remote.id;
+          if (planId != null) {
+            unawaited(_notifyTurboPlanSyncedToDitto(planId: planId));
+          }
+          return remote;
+        }
+      }
+
       // Prefer Ditto when live (e.g. PlanDittoScheduler). Plan is not in Brick/SQLite — if Ditto misses
       // or is not ready, read the `plans` row from Supabase (same as GetterOperationsMixin).
       if (dittoService.isReady()) {
@@ -3017,7 +3040,13 @@ class CoreSync extends AiStrategyImpl
     required Map<String, String> itemTypes,
   }) async {
     try {
-      int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
+      final branchId = ProxyService.box.getBranchId()!;
+      final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
+      final defaultTaxTyCd = defaultTaxTyCdForVat(vatEnabled);
+      String bulkTaxFor(String? barCode) =>
+          taxTypes[barCode ?? ''] ?? defaultTaxTyCd;
+
+      int? tin = await effectiveTin(branchId: branchId);
       if (item.bcdU != null && item.bcdU!.isNotEmpty) {
         print('Searching for variant with modrId: ${item.barCode}');
 
@@ -3036,7 +3065,8 @@ class CoreSync extends AiStrategyImpl
               itemTypes[item.barCode] ??
               variant.itemTyCd ??
               "2"; // 2 = Finished Product
-          variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
+          variant.taxTyCd = bulkTaxFor(item.barCode);
+          variant.taxName = variant.taxTyCd;
 
           // Update prices if provided
           if (item.retailPrice != null) {
@@ -3064,7 +3094,7 @@ class CoreSync extends AiStrategyImpl
           await ProxyService.strategy.addVariant(
             skipRRaCall: false,
             variations: [variant],
-            branchId: ProxyService.box.getBranchId()!,
+            branchId: branchId,
           );
 
           print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
@@ -3073,7 +3103,6 @@ class CoreSync extends AiStrategyImpl
           throw Exception('no variant found with modrId:${item.barCode}');
         }
       } else {
-        final branchId = await ProxyService.box.getBranchId()!;
         final businessId = await ProxyService.box.getBusinessId()!;
         // TO DO: fix this when sql is fixed.
         final bhfId = await ProxyService.box.bhfId();
@@ -3092,7 +3121,8 @@ class CoreSync extends AiStrategyImpl
                 itemClasses[item.barCode] ?? variant.itemClsCd ?? "5020230602";
             variant.itemTyCd =
                 itemTypes[item.barCode] ?? variant.itemTyCd ?? "2";
-            variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
+            variant.taxTyCd = bulkTaxFor(item.barCode);
+            variant.taxName = variant.taxTyCd;
             if (item.retailPrice != null) {
               variant.retailPrice = item.retailPrice;
               variant.prc = item.retailPrice;
@@ -3136,7 +3166,8 @@ class CoreSync extends AiStrategyImpl
               itemTypes[item.barCode] ??
               variant.itemTyCd ??
               "2"; // 2 = Finished Product
-          variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
+          variant.taxTyCd = bulkTaxFor(item.barCode);
+          variant.taxName = variant.taxTyCd;
 
           // Update prices if provided
           if (item.retailPrice != null) {
@@ -3201,6 +3232,7 @@ class CoreSync extends AiStrategyImpl
             taxTypes: taxTypes,
             itemClasses: itemClasses,
             itemTypes: itemTypes,
+            taxTyCd: bulkTaxFor(item.barCode),
             product: Product(
               color: randomizeColor(),
               name: item.itemNm ?? item.name,
