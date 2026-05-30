@@ -54,6 +54,7 @@ import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_models/sync/capella/mixins/production_output_mixin.dart';
+import 'package:flipper_models/sync/mixins/bulk_process_item_mixin.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -94,7 +95,8 @@ class CapellaSync extends AiStrategyImpl
         CapellaSettingsMixin,
         CapellaProductionOutputMixin,
         CapellaPersonalGoalsMixin,
-        CapellaDailyReportFilesMixin
+        CapellaDailyReportFilesMixin,
+        BulkProcessItemMixin
     implements DatabaseSyncInterface {
   CapellaSync();
 
@@ -1155,18 +1157,6 @@ class CapellaSync extends AiStrategyImpl
     Encoding? encoding,
   }) {
     // TODO: implement post
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> processItem({
-    required Variant item,
-    required Map<String, String> quantitis,
-    required Map<String, String> taxTypes,
-    required Map<String, String> itemClasses,
-    required Map<String, String> itemTypes,
-  }) {
-    // TODO: implement processItem
     throw UnimplementedError();
   }
 

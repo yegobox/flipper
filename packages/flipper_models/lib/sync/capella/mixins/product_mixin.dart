@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -84,7 +85,24 @@ mixin CapellaProductMixin implements ProductInterface {
     required String branchId,
     required String quantityUnit,
   }) async {
-    throw UnimplementedError('itemCode needs to be implemented for Capella');
+    final lastSequence = await maxRraItemCodeSequenceForBranch(
+      repository: repository,
+      branchId: branchId,
+      ditto: dittoService.dittoInstance,
+    );
+    final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
+    final newItemCode =
+        '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
+
+    await repository.upsert(
+      ItemCode(
+        code: newItemCode,
+        createdAt: DateTime.now().toUtc(),
+        branchId: branchId,
+      ),
+    );
+
+    return newItemCode;
   }
 
   @override
@@ -379,6 +397,7 @@ mixin CapellaProductMixin implements ProductInterface {
           taxTyCd: taxTyCd,
           splyAmt: splyAmt,
           spplrItemClsCd: spplrItemClsCd,
+          categoryId: product.categoryId,
         );
         talker.info('New variant created: ${newVariant.toFlipperJson()}');
 

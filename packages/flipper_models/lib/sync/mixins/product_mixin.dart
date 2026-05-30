@@ -5,6 +5,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart';
+import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -237,6 +238,7 @@ mixin ProductMixin implements ProductInterface {
           taxTyCd: taxTyCd,
           splyAmt: splyAmt,
           spplrItemClsCd: spplrItemClsCd,
+          categoryId: product.categoryId,
         );
         talker.info('New variant created: ${newVariant.toFlipperJson()}');
 
@@ -492,34 +494,14 @@ mixin ProductMixin implements ProductInterface {
       required String branchId,
       required String quantityUnit}) async {
     final repository = Repository();
-    final query = Query(
-      limit: 1,
-      where: [
-        Where('code').isNot(null),
-        Where('branchId').isExactly(branchId),
-      ],
-      orderBy: [OrderBy('createdAt', ascending: false)],
+    final lastSequence = await maxRraItemCodeSequenceForBranch(
+      repository: repository,
+      branchId: branchId,
     );
-    final items = await repository.get<ItemCode>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-
-    // Extract the last sequence number and increment it
-    int lastSequence = 0;
-    if (items.isNotEmpty) {
-      final lastItemCode = items.first.code;
-      final sequencePart = lastItemCode.substring(lastItemCode.length - 7);
-      try {
-        lastSequence = int.parse(sequencePart);
-      } catch (e) {
-        lastSequence = 0;
-      }
-    }
     final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
-    // Construct the new item code
     final newItemCode =
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
 
-    // Save the new item code in the database
     final newItem = ItemCode(
         code: newItemCode,
         createdAt: DateTime.now().toUtc(),

@@ -318,12 +318,14 @@ mixin VariantMixin implements VariantInterface {
               await repository.upsert<Stock>(variantToSave.stock!);
             }
           }
-          repository.upsert<Variant>(variantToSave);
+          await repository.upsert<Variant>(variantToSave);
           Ebm? ebm = await ProxyService.strategy.ebm(
             branchId: ProxyService.box.getBranchId()!,
           );
-          variant.splyAmt = variant.splyAmt!.toPrecision(0);
-          await repository.upsert<Variant>(variant);
+          if (variantToSave.splyAmt != null) {
+            variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
+          }
+          await repository.upsert<Variant>(variantToSave);
           if (skipRRaCall) {
             return;
           }
@@ -359,56 +361,59 @@ mixin VariantMixin implements VariantInterface {
             variantToSave.bhfId = ebm.bhfId;
           }
 
-          // save items
-          final saveResp = await ProxyService.tax.saveItem(
-            variation: variantToSave,
-            URI: serverUrl,
-          );
-          if (saveResp.resultCd != '000') {
-            throw Exception(
-              'RRA saveItems failed for ${variantToSave.name}: '
-              '${saveResp.resultMsg} (${saveResp.resultCd})',
-            );
-          }
-
-          // save io — ensure SAR exists (first bulk row used to fail when SAR doc missing)
-          var sar = await ProxyService.strategy.getSar(
-            branchId: ProxyService.box.getBranchId()!,
-          );
-          sar ??= Sar(sarNo: 0, branchId: branchId);
-          sar.sarNo = sar.sarNo + 1;
-          await repository.upsert<Sar>(sar);
-
+          final alreadyInRra = variantToSave.ebmSynced == true;
           final supplyUnit = variantToSave.supplyPrice ?? 0;
           final retailUnit = variantToSave.retailPrice ?? 0;
 
-          // Stock-in (sar 06) adds qty in RRA; only for first registration.
-          // Re-saves must use stock master only or qty is doubled in RRA reports.
-          final alreadyInRra = variantToSave.ebmSynced == true;
-          if (variantToSave.itemTyCd != "3" && !alreadyInRra) {
-            final stockIoResp = await ProxyService.tax.saveStockItems(
-              updateMaster: false,
-              items: [
-                TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
-              ],
-              tinNumber: ebm.tinNumber.toString(),
-              bhFId: ebm.bhfId,
-              totalSupplyPrice: supplyUnit * stockQty,
-              totalvat: 0,
-              totalAmount: retailUnit * stockQty,
-              sarTyCd: "06",
-              sarNo: sar.sarNo.toString(),
-              invoiceNumber: sar.sarNo,
-              remark: "Stock In from adding new item",
-              ocrnDt: DateTime.now().toUtc(),
+          if (!alreadyInRra) {
+            final saveResp = await ProxyService.tax.saveItem(
+              variation: variantToSave,
               URI: serverUrl,
             );
-            if (stockIoResp.resultCd != '000') {
+            if (saveResp.resultCd != '000') {
               throw Exception(
-                'RRA saveStockItems failed for ${variantToSave.name}: '
-                '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
+                'RRA saveItems failed for ${variantToSave.name}: '
+                '${saveResp.resultMsg} (${saveResp.resultCd})',
               );
             }
+
+            var sar = await ProxyService.strategy.getSar(
+              branchId: ProxyService.box.getBranchId()!,
+            );
+            sar ??= Sar(sarNo: 0, branchId: branchId);
+            sar.sarNo = sar.sarNo + 1;
+            await repository.upsert<Sar>(sar);
+
+            if (variantToSave.itemTyCd != "3") {
+              final stockIoResp = await ProxyService.tax.saveStockItems(
+                updateMaster: false,
+                items: [
+                  TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
+                ],
+                tinNumber: ebm.tinNumber.toString(),
+                bhFId: ebm.bhfId,
+                totalSupplyPrice: supplyUnit * stockQty,
+                totalvat: 0,
+                totalAmount: retailUnit * stockQty,
+                sarTyCd: "06",
+                sarNo: sar.sarNo.toString(),
+                invoiceNumber: sar.sarNo,
+                remark: "Stock In from adding new item",
+                ocrnDt: DateTime.now().toUtc(),
+                URI: serverUrl,
+              );
+              if (stockIoResp.resultCd != '000') {
+                throw Exception(
+                  'RRA saveStockItems failed for ${variantToSave.name}: '
+                  '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
+                );
+              }
+            }
+          } else {
+            talker.info(
+              'RRA: ${variantToSave.itemCd} already registered — '
+              'updating stock master only',
+            );
           }
 
           if (variantToSave.itemTyCd != "3") {

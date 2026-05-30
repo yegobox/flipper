@@ -311,6 +311,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     _isParseComplete = true;
     _estimatedRowCount = null;
     _largeImportPageIndex = 0;
+    _bulkUidCounter = 0;
     _clearRowState();
     notifyListeners();
   }
@@ -465,14 +466,29 @@ class BulkAddProductViewModel extends ChangeNotifier {
     _selectedCategories.clear();
   }
 
-  Map<String, String> _buildQuantitiesMap() {
+  /// Barcode for legacy bulk save / [processItem] maps.
+  ///
+  /// Uses Excel BarCode when present; otherwise the product name so re-uploading
+  /// a spreadsheet finds the same catalog row (random TEMP_* broke re-import).
+  String _stableBulkBarCode(Map<String, dynamic> product, int rowIndex) {
+    final fromExcel = (product['BarCode'] ?? '').toString().trim();
+    if (fromExcel.isNotEmpty) return fromExcel;
+    final name = (product['Name'] ?? '').toString().trim();
+    if (name.isNotEmpty) return name;
+    return 'TEMP_${DateTime.now().microsecondsSinceEpoch}_$rowIndex';
+  }
+
+  /// Quantities keyed by [Variant.barCode] after TEMP barcodes are assigned.
+  Map<String, String> _buildQuantitiesMapFromItems(
+    List<brick.Variant> items,
+  ) {
     final map = <String, String>{};
     if (_excelData == null) return map;
-    for (final product in _excelData!) {
-      final barCode = product['BarCode'] ?? '';
-      if (barCode.toString().trim().isEmpty) continue;
-      final uid = _bulkUidOf(product);
-      map[barCode.toString()] = _resolveQuantityText(uid, product);
+    for (var i = 0; i < items.length; i++) {
+      final barCode = items[i].barCode?.toString() ?? '';
+      if (barCode.isEmpty) continue;
+      final uid = _bulkUidOf(_excelData![i]);
+      map[barCode] = _resolveQuantityText(uid, _excelData![i]);
     }
     return map;
   }
@@ -567,6 +583,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
   Future<void> _applyParsedExcel(BulkExcelParseResult parsed) async {
     _clearRowState();
+    _bulkUidCounter = 0;
     _excelData = parsed.rows;
     _estimatedRowCount = parsed.rows.length;
     _largeImportPageIndex = 0;
@@ -830,8 +847,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
     final branchId = ProxyService.box.getBranchId()!;
     final normToId = await _ensureBulkCategoryLookup(branchId);
     final items = <brick.Variant>[];
-    for (final product in _excelData!) {
-      String barCode = product['BarCode'] ?? '';
+    for (var rowIndex = 0; rowIndex < _excelData!.length; rowIndex++) {
+      final product = _excelData![rowIndex];
+      final barCode = _stableBulkBarCode(product, rowIndex);
       final rowUid = _bulkUidOf(product);
       final finalCategoryId = _bulkCategoryIdForRow(product, rowUid, normToId);
       final qtyText = _resolveQuantityText(rowUid, product);
@@ -849,6 +867,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
               0,
           quantity: double.tryParse(qtyText) ?? 1,
           categoryId: finalCategoryId,
+          orgnNatCd: 'RW',
+          qtyUnitCd: 'U',
         ),
       );
     }
@@ -867,11 +887,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
     final itemTypesByBarcode = <String, String>{};
     for (var i = 0; i < items.length; i++) {
       final rowUid = _bulkUidOf(_excelData![i]);
-      String barCode = items[i].barCode?.toString() ?? '';
-      if (barCode.isEmpty) {
-        barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}_$i';
-        items[i].barCode = barCode;
-      }
+      final barCode = _stableBulkBarCode(_excelData![i], i);
+      items[i].barCode = barCode;
       taxTypesByBarcode[barCode] = resolveTaxTyCdForRow(rowUid, _excelData![i]);
       itemClassesByBarcode[barCode] =
           _selectedItemClasses[rowUid] ?? '5020230602';
@@ -892,12 +909,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
       items,
       isVatEnabled: isVatEnabled,
     );
+    final quantities = _buildQuantitiesMapFromItems(items);
 
     for (final item in items) {
       try {
         await ProxyService.strategy.processItem(
           item: item,
-          quantitis: _buildQuantitiesMap(),
+          quantitis: quantities,
           taxTypes: maps.$1,
           itemClasses: maps.$2,
           itemTypes: maps.$3,
@@ -910,6 +928,11 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   Future<BulkSaveResult> saveAllWithProgress() async {
+    if (!_isParseComplete || _isLoadingFullParse || _isLoading) {
+      throw StateError(
+        'Spreadsheet is still loading. Wait for parsing to finish before saving.',
+      );
+    }
     _isSaving = true;
     _blockingSaveOverlayDismissed = false;
     notifyListeners();
@@ -984,6 +1007,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       items,
       isVatEnabled: isVatEnabled,
     );
+    final quantities = _buildQuantitiesMapFromItems(items);
 
     for (var i = 0; i < items.length; i++) {
       try {
@@ -1000,15 +1024,20 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
         await ProxyService.strategy.processItem(
           item: items[i],
-          quantitis: _buildQuantitiesMap(),
+          quantitis: quantities,
           taxTypes: maps.$1,
           itemClasses: maps.$2,
           itemTypes: maps.$3,
         );
       } catch (e) {
         talker.error('General error: $e');
+        rethrow;
       }
     }
+
+    await _refreshVariantsFromDittoCloud(
+      ProxyService.box.getBranchId()!,
+    );
   }
 
   Future<BulkSaveResult> _saveViaDataConnector() async {

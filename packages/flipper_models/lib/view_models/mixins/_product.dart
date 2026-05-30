@@ -4,7 +4,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/ebm_helper.dart';
+import 'package:flipper_models/sync/utils/bulk_desktop_variant_prep.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as newMod;
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/material.dart';
@@ -75,134 +75,97 @@ mixin ProductMixin {
       }
       List<Variant> updatables = [];
       for (var i = 0; i < variations!.length; i++) {
-        // Parse the packagingUnit string to extract code and name
-        if (packagingUnit.isNotEmpty) {
-          final parts = packagingUnit.split(':');
-          if (parts.length >= 4) {
-            // Format: "CODE:NUMBER:SHORT_DESCRIPTION:LONG_DESCRIPTION"
-            final unitCode = parts[0];
-            // Set all unit-related fields
-            variations[i].pkgUnitCd = unitCode;
-          } else {
-            // Fallback if the format is different
-            variations[i].pkgUnitCd = parts[0];
-          }
-        } else {
-          // Fallback for non-string or empty packagingUnit
-          final unitStr = packagingUnit.toString();
-          variations[i].pkgUnitCd = unitStr;
-        }
-        final number = randomNumber().toString().substring(0, 5);
+        final existing = variations[i];
+        final pkgCode = resolveRraPackagingUnitCode(
+          packagingUnit,
+          fallback: existing.pkgUnitCd ?? 'CT',
+        );
 
-        variations[i].itemClsCd = variations[i].itemClsCd ?? "5020230602";
-        variations[i].isrccNm = "";
-        variations[i].isrcRt = 0;
-        if (variations[i].qtyUnitCd == null ||
-            variations[i].qtyUnitCd!.isEmpty ||
-            variations[i].qtyUnitCd!.length == 'null') {
-          variations[i].qtyUnitCd = "U";
-        }
-        variations[i].categoryName = category?.name;
         final discountController =
-            rates != null ? rates[variations[i].id] : null;
-
+            rates != null ? rates[existing.id] : null;
         final discountText = (discountController ??
-                model.getDiscountController(variations[i].id))
+                model.getDiscountController(existing.id))
             .text;
+        final dcRt = double.tryParse(discountText) ?? 0;
 
-        variations[i].dcRt = double.tryParse(discountText) ?? 0;
-
-        variations[i].color = color;
-        variations[i].pkg = 1;
-        variations[i].itemCd = await ProxyService.strategy.itemCode(
-            countryCode: countryofOrigin,
-            productType: selectedProductType,
-            branchId: ProxyService.box.getBranchId()!,
-            packagingUnit: packagingUnit,
-            quantityUnit: "CT");
-        variations[i].modrNm = number;
-        variations[i].productName = productName;
-        variations[i].productId = product.id;
-        variations[i].modrId = number;
         final effectiveRetailPrice = preserveVariationFields
-            ? (variations[i].retailPrice ?? retailPrice)
+            ? (existing.retailPrice ?? retailPrice)
             : retailPrice;
         final effectiveSupplyPrice = preserveVariationFields
-            ? (variations[i].supplyPrice ?? supplyPrice)
+            ? (existing.supplyPrice ?? supplyPrice)
             : supplyPrice;
 
-        variations[i].prc = effectiveRetailPrice;
-        variations[i].supplyPrice = effectiveSupplyPrice;
-        variations[i].retailPrice = effectiveRetailPrice;
-        variations[i].regrId = randomNumber().toString().substring(0, 5);
-
-        variations[i].itemTyCd = selectedProductType;
-
-        /// available type for itemTyCd are 1 for raw material and 3 for service
-        /// is insurance applicable default is not applicable
-        variations[i].isrcAplcbYn = "N";
-        variations[i].useYn = "N";
-        variations[i].itemSeq = i;
-        variations[i].itemStdNm = productName;
-
-        /// taxation type code - set this BEFORE calling setTaxPercentage
-        /// Tax type must be set - no fallback allowed
-        if (variations[i].taxTyCd == null || variations[i].taxTyCd!.isEmpty) {
+        if (existing.taxTyCd == null || existing.taxTyCd!.isEmpty) {
           throw Exception(
-              'Fatal Error: Tax type (taxTyCd) must be set for variant ${variations[i].id}. This is a required field.');
+              'Fatal Error: Tax type (taxTyCd) must be set for variant ${existing.id}. This is a required field.');
         }
-        variations[i].taxName = variations[i].taxTyCd!;
 
-        // Now we can safely call setTaxPercentage since taxTyCd is set
-        variations[i].taxPercentage = await setTaxPercentage(variations[i]);
-
-        // Prefer EBM-provided tin when available; fall back to business or box via helper
-        variations[i].tin = await effectiveTin(business: business);
-
-        variations[i].bhfId = business?.bhfId ?? "00";
-        variations[i].bcd = variations[i].bcd;
-        variations[i].splyAmt = variations[i].supplyPrice;
-
-        /// country of origin for this item comes from the selected country in CountryOfOriginSelector
-        /// and this will happen when we do import.
-        variations[i].orgnNatCd = countryofOrigin;
-        // When preserving per-variant fields (mobile), still replace placeholder
-        // titles created while the product row was TEMP_PRODUCT / unnamed.
-        final vn = variations[i].name.trim();
+        final vn = existing.name.trim();
         final isUnsetOrPlaceholder =
             vn.isEmpty || vn == TEMP_PRODUCT || vn == CUSTOM_PRODUCT;
+        var displayName = existing.name.trim();
         if (!preserveVariationFields || isUnsetOrPlaceholder) {
-          variations[i].itemNm = productName;
-          variations[i].name = productName;
+          displayName = productName;
         }
-        // Ditto/RRA require non-empty itemNm. When preserving per-variant names,
-        // [onScanItem] sets name but not always itemNm — fill from name or title.
-        final rawItemNm = variations[i].itemNm?.trim() ?? '';
-        if (rawItemNm.isEmpty || rawItemNm.toLowerCase() == 'null') {
-          final fromName = variations[i].name.trim();
-          final resolved = fromName.isNotEmpty
-              ? fromName
-              : (productName.trim().isNotEmpty ? productName.trim() : 'Item');
-          variations[i].itemNm = resolved;
+        var displayItemNm = existing.itemNm?.trim() ?? '';
+        if (displayItemNm.isEmpty ||
+            displayItemNm.toLowerCase() == 'null' ||
+            (!preserveVariationFields || isUnsetOrPlaceholder)) {
+          displayItemNm = displayName.isNotEmpty ? displayName : productName;
         }
 
-        /// registration name
-        variations[i].regrNm = productName;
-        // default unit price
-        variations[i].dftPrc = variations[i].retailPrice;
+        final prepared = await prepareBulkVariantLikeDesktopAdd(
+          product: product,
+          productName: productName,
+          branchId: ProxyService.box.getBranchId()!,
+          taxTyCd: existing.taxTyCd!,
+          itemClsCd: existing.itemClsCd ?? '5020230602',
+          itemTyCd: selectedProductType,
+          retailPrice: effectiveRetailPrice ?? 0,
+          supplyPrice: effectiveSupplyPrice ?? 0,
+          barCode: existing.bcd ?? existing.barCode ?? existing.sku,
+          sku: int.tryParse(existing.sku?.toString() ?? '') ?? randomNumber(),
+          countryCode:
+              countryofOrigin.trim().isNotEmpty ? countryofOrigin.trim() : 'RW',
+          packagingUnitCode: pkgCode,
+          categoryId: categoryId,
+          categoryName: category?.name,
+          business: business,
+          preserveVariantId: existing.id.isNotEmpty ? existing.id : null,
+        );
 
-        // NOTE: I believe bellow item are required when saving purchase
-        variations[i].spplrItemCd = "";
-        variations[i].spplrItemClsCd = "";
-        variations[i].spplrItemNm = productName;
-        variations[i].ebmSynced = false;
-        variations[i].ttCatCd = ttCatCd;
-        variations[i].propertyTyCd = propertyTyCd;
-        variations[i].roomTypeCd = roomTypeCd;
+        prepared
+          ..color = color ?? existing.color
+          ..name = displayName
+          ..itemNm = displayItemNm
+          ..itemStdNm = productName
+          ..regrNm = productName
+          ..spplrItemNm = productName
+          ..dcRt = dcRt
+          ..itemSeq = i
+          ..ttCatCd = ttCatCd
+          ..propertyTyCd = propertyTyCd
+          ..roomTypeCd = roomTypeCd
+          ..stock = existing.stock
+          ..stockId = existing.stockId
+          ..sku = existing.sku ?? prepared.sku
+          ..imageUrl = existing.imageUrl
+          ..barCode = existing.barCode
+          ..bcd = existing.bcd ?? prepared.bcd
+          ..ebmSynced = false;
 
-        // Unit fields are already set above
+        if (existing.addInfo != null &&
+            existing.addInfo!.trim().startsWith('asset:')) {
+          prepared.addInfo = existing.addInfo;
+        }
 
-        updatables.add(variations[i]);
+        final stockQty = existing.stock?.currentStock ?? existing.qty ?? 0;
+        if (stockQty > 0) {
+          prepared.qty = stockQty;
+          prepared.rsdQty = stockQty;
+        }
+
+        updatables.add(prepared);
       }
 
       await ProxyService.strategy.addVariant(
