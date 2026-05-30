@@ -398,13 +398,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       orgnNatCd: "RW", // Origin National Code (Rwanda)
       // regrId: Random 5-digit number as per product_mixin
       regrId: randomNumber().toString().padLeft(5, '0').substring(0, 5),
-      itemCd: await ProxyService.strategy.itemCode(
-        countryCode: "RW",
-        productType: "2",
-        packagingUnit: "CT",
-        quantityUnit: "U",
-        branchId: branchId,
-      ),
       modrNm: productTitle,
       isrcAplcbYn: "N", // Insurance Applicable Yes/No
       tin: ebm?.tinNumber ?? -1,

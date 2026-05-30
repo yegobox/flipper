@@ -237,6 +237,7 @@ mixin ProductMixin implements ProductInterface {
           taxTyCd: taxTyCd,
           splyAmt: splyAmt,
           spplrItemClsCd: spplrItemClsCd,
+          categoryId: product.categoryId,
         );
         talker.info('New variant created: ${newVariant.toFlipperJson()}');
 
@@ -503,7 +504,6 @@ mixin ProductMixin implements ProductInterface {
     final items = await repository.get<ItemCode>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
-    // Extract the last sequence number and increment it
     int lastSequence = 0;
     if (items.isNotEmpty) {
       final lastItemCode = items.first.code;
@@ -515,11 +515,9 @@ mixin ProductMixin implements ProductInterface {
       }
     }
     final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
-    // Construct the new item code
     final newItemCode =
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
 
-    // Save the new item code in the database
     final newItem = ItemCode(
         code: newItemCode,
         createdAt: DateTime.now().toUtc(),

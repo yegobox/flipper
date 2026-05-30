@@ -84,7 +84,42 @@ mixin CapellaProductMixin implements ProductInterface {
     required String branchId,
     required String quantityUnit,
   }) async {
-    throw UnimplementedError('itemCode needs to be implemented for Capella');
+    final query = brick.Query(
+      limit: 1,
+      where: [
+        brick.Where('code').isNot(null),
+        brick.Where('branchId').isExactly(branchId),
+      ],
+      orderBy: [brick.OrderBy('createdAt', ascending: false)],
+    );
+    final items = await repository.get<ItemCode>(
+      query: query,
+      policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
+
+    var lastSequence = 0;
+    if (items.isNotEmpty) {
+      final lastItemCode = items.first.code;
+      final sequencePart = lastItemCode.substring(lastItemCode.length - 7);
+      try {
+        lastSequence = int.parse(sequencePart);
+      } catch (_) {
+        lastSequence = 0;
+      }
+    }
+    final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
+    final newItemCode =
+        '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
+
+    await repository.upsert(
+      ItemCode(
+        code: newItemCode,
+        createdAt: DateTime.now().toUtc(),
+        branchId: branchId,
+      ),
+    );
+
+    return newItemCode;
   }
 
   @override
@@ -379,6 +414,7 @@ mixin CapellaProductMixin implements ProductInterface {
           taxTyCd: taxTyCd,
           splyAmt: splyAmt,
           spplrItemClsCd: spplrItemClsCd,
+          categoryId: product.categoryId,
         );
         talker.info('New variant created: ${newVariant.toFlipperJson()}');
 

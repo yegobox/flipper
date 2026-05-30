@@ -200,6 +200,13 @@ mixin ProductMixin {
         variations[i].propertyTyCd = propertyTyCd;
         variations[i].roomTypeCd = roomTypeCd;
 
+        final stockQty =
+            variations[i].stock?.currentStock ?? variations[i].qty ?? 0;
+        if (stockQty > 0) {
+          variations[i].qty = stockQty;
+          variations[i].rsdQty = stockQty;
+        }
+
         // Unit fields are already set above
 
         updatables.add(variations[i]);

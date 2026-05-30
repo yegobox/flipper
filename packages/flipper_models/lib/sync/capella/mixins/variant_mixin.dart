@@ -940,6 +940,14 @@ mixin CapellaVariantMixin implements VariantInterface {
             variantToSave.bhfId = ebm.bhfId;
           }
 
+          final stockQty = variantToSave.stock?.currentStock ?? 0;
+          if (stockQty > 0) {
+            variantToSave = variantToSave.copyWith(
+              qty: stockQty,
+              rsdQty: stockQty,
+            );
+          }
+
           // save items
           final saveResp = await ProxyService.tax.saveItem(
             variation: variantToSave,
@@ -961,7 +969,6 @@ mixin CapellaVariantMixin implements VariantInterface {
           await repository.upsert<Sar>(sar);
 
           // Skip stock reporting for services (itemTyCd: "3")
-          final stockQty = variantToSave.stock?.currentStock ?? 0;
           final supplyUnit = variantToSave.supplyPrice ?? 0;
           final retailUnit = variantToSave.retailPrice ?? 0;
           final alreadyInRra = variantToSave.ebmSynced == true;

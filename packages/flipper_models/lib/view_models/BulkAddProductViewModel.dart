@@ -465,14 +465,17 @@ class BulkAddProductViewModel extends ChangeNotifier {
     _selectedCategories.clear();
   }
 
-  Map<String, String> _buildQuantitiesMap() {
+  /// Quantities keyed by [Variant.barCode] after TEMP barcodes are assigned.
+  Map<String, String> _buildQuantitiesMapFromItems(
+    List<brick.Variant> items,
+  ) {
     final map = <String, String>{};
     if (_excelData == null) return map;
-    for (final product in _excelData!) {
-      final barCode = product['BarCode'] ?? '';
-      if (barCode.toString().trim().isEmpty) continue;
-      final uid = _bulkUidOf(product);
-      map[barCode.toString()] = _resolveQuantityText(uid, product);
+    for (var i = 0; i < items.length; i++) {
+      final barCode = items[i].barCode?.toString() ?? '';
+      if (barCode.isEmpty) continue;
+      final uid = _bulkUidOf(_excelData![i]);
+      map[barCode] = _resolveQuantityText(uid, _excelData![i]);
     }
     return map;
   }
@@ -849,6 +852,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
               0,
           quantity: double.tryParse(qtyText) ?? 1,
           categoryId: finalCategoryId,
+          orgnNatCd: 'RW',
+          qtyUnitCd: 'U',
         ),
       );
     }
@@ -892,12 +897,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
       items,
       isVatEnabled: isVatEnabled,
     );
+    final quantities = _buildQuantitiesMapFromItems(items);
 
     for (final item in items) {
       try {
         await ProxyService.strategy.processItem(
           item: item,
-          quantitis: _buildQuantitiesMap(),
+          quantitis: quantities,
           taxTypes: maps.$1,
           itemClasses: maps.$2,
           itemTypes: maps.$3,
@@ -984,6 +990,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       items,
       isVatEnabled: isVatEnabled,
     );
+    final quantities = _buildQuantitiesMapFromItems(items);
 
     for (var i = 0; i < items.length; i++) {
       try {
@@ -1000,15 +1007,20 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
         await ProxyService.strategy.processItem(
           item: items[i],
-          quantitis: _buildQuantitiesMap(),
+          quantitis: quantities,
           taxTypes: maps.$1,
           itemClasses: maps.$2,
           itemTypes: maps.$3,
         );
       } catch (e) {
         talker.error('General error: $e');
+        rethrow;
       }
     }
+
+    await _refreshVariantsFromDittoCloud(
+      ProxyService.box.getBranchId()!,
+    );
   }
 
   Future<BulkSaveResult> _saveViaDataConnector() async {
