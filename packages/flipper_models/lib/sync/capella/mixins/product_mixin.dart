@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -84,29 +85,11 @@ mixin CapellaProductMixin implements ProductInterface {
     required String branchId,
     required String quantityUnit,
   }) async {
-    final query = brick.Query(
-      limit: 1,
-      where: [
-        brick.Where('code').isNot(null),
-        brick.Where('branchId').isExactly(branchId),
-      ],
-      orderBy: [brick.OrderBy('createdAt', ascending: false)],
+    final lastSequence = await maxRraItemCodeSequenceForBranch(
+      repository: repository,
+      branchId: branchId,
+      ditto: dittoService.dittoInstance,
     );
-    final items = await repository.get<ItemCode>(
-      query: query,
-      policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    );
-
-    var lastSequence = 0;
-    if (items.isNotEmpty) {
-      final lastItemCode = items.first.code;
-      final sequencePart = lastItemCode.substring(lastItemCode.length - 7);
-      try {
-        lastSequence = int.parse(sequencePart);
-      } catch (_) {
-        lastSequence = 0;
-      }
-    }
     final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
     final newItemCode =
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
