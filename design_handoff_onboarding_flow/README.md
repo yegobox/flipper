@@ -1,9 +1,24 @@
 # Handoff: Flipper Onboarding (gamified)
 
 ## Overview
-A gamified, premium-feeling onboarding flow for **Flipper** (a business OS / POS app, primary market Rwanda). The flow takes a brand-new user from a welcome carousel through a 3-step sign-up to a reward/celebration moment and a small dashboard peek. Gamification (XP, a "welcome points" reward, a level badge, and a daily streak) is woven through to make account creation feel rewarding.
+A gamified, premium-feeling onboarding flow for **Flipper** (a business OS / POS app, primary market Rwanda). The flow takes a brand-new user from a welcome carousel through a 3-step sign-up to a reward/celebration moment, then through two post-login selection gates (**Choose a business → Choose a branch**) into a small dashboard peek. Gamification (XP, a "welcome points" reward, a level badge, and a daily streak) is woven through to make account creation feel rewarding.
 
 The flow is **mobile** (Android handsets; designed at a 390–412px logical screen width inside a phone shell).
+
+**Full screen order:** Welcome carousel → Sign-up (3 steps) → Celebration → **Choose a business** → **Choose a branch** → Dashboard.
+
+## Domain model (READ THIS FIRST)
+The product hierarchy is two levels under a user:
+
+```
+User  →  Business (a shop)  →  Branch (a location)
+```
+
+- A **Business** is a shop the user owns or has a role in (e.g. "Demo Shop"). A user may belong to several businesses.
+- A **Branch** is a physical/logical location belonging to one business (e.g. "Kigali — Main").
+- After auth, the user first **picks a business**, then **picks a branch of that business**, then lands in the app scoped to that branch.
+
+**Naming matters:** call the first-level entity a **business** (not "profile" — that term tested as confusing because a profile *is* a business). Do **not** label businesses with a type like "Business" vs "Individual"; instead show the user's **role + branch count** (e.g. "Owner · 5 branches"). Optional optimization: if a business has exactly **one** branch, skip the branch screen and go straight into the app.
 
 ## About the Design Files
 The files in this bundle are **design references created in HTML/React-via-Babel** — runnable prototypes that show the intended look, motion, and behavior. **They are not production code to copy verbatim.** Your job is to **recreate these designs in the target codebase's existing environment** (e.g. React Native / Expo, Flutter, native Android, or a web stack) using its established components, navigation, theming, and form patterns.
@@ -139,14 +154,30 @@ The prototype uses inline-Babel React + plain CSS only so it stays readable. Tre
 - **Streak row**: orange flame tile + "Day 1 streak started" (+ "🔥" playful) + "Log a sale tomorrow to keep it alive" + 7 day-pips (first filled amber).
 - **Footer** button: white pill "Enter Flipper" → dashboard peek.
 
-### 4. Dashboard peek (`app.jsx` → `DashPeek`)
+### 4. Choose a business (`select.jsx` → `ChooseProfile`)
+- **Purpose**: First post-auth gate — pick which business (shop) to work in.
+- **Header**: Flipper logo (30px) + "Flipper" wordmark left; a **user avatar chip** right (brand-gradient circle with the user's initial + chevron) — tapping it switches user / logs out. Title "Choose a business" (27/700); subtitle "Select the business you want to manage".
+- **List**: one **business card** per business — white surface, 1px `--line`, radius `--r-md`, `--sh-1`; a 46px rounded **icon tile** (storefront glyph; tint varies per business — `tone-blue`, `tone-violet`, etc.), the business **name** (16/700), a **role · branch-count** subtitle (`--ink-3`, e.g. "Owner · 5 branches"), and a right chevron. Hover lifts to `--sh-2`; `:active` scales .99.
+- **Footer of list**: a dashed **"+ Add a business"** ghost row to create/join another business.
+- **Behavior**: tapping a card selects that business and advances to Choose a branch. **Every card uses the storefront icon** (all entries are businesses — do not use a cart/person icon that implies a different entity type).
+- Data shape: `{ id, name, role, branchCount, iconTone }`.
+
+### 5. Choose a branch (`select.jsx` → `ChooseBranch`)
+- **Purpose**: Second gate — pick a branch of the chosen business.
+- **Header**: circular **back** button (44px, returns to business list) + a centered **org pill** showing the current business (storefront icon + name) so it's clear these branches belong to that business + a 44px spacer to balance. Title "Choose a branch"; subtitle "Select the branch you want to access".
+- **List**: **branch cards** (same card primitive). Each: a **map-pin** icon tile, branch **name** (with an optional **"Default"** tag pill inline when it's the default branch), a location/area **subtitle**. The **selected** card uses the accent treatment — accent border + `--blue-tint` background + soft accent ring, a filled accent pin, and a circular **accent check** on the right. Unselected cards show a hollow **radio circle** on the right.
+- **Footer** (sticky, white, hairline top): primary button "**Continue to {branch}**" → enters the app scoped to that branch.
+- **Behavior**: single-select (radio semantics); default branch pre-selected. For businesses with many branches, add a search field above the list (not in prototype). If the business has only one branch, skip this screen entirely.
+- Data shape: `{ id, name, area, isDefault }`.
+
+### 6. Dashboard peek (`app.jsx` → `DashPeek`)
 - **Purpose**: Land the loop somewhere real.
 - Header: avatar (brand-gradient initial) + "Good morning / `{name}`" + XP chip. Blue gradient **points balance card** (mono 30) with bronze medal + "Bronze Seller" + "350 to Silver →". 2×2 quick-action grid (New sale / Reports / Inventory / Daily goal, each a tinted icon chip + label). Amber "First daily goal — Log 1 sale today → **+50 pts**" card. Text button "↺ Replay onboarding from start" → resets to welcome.
 
 ---
 
 ## Interactions & Behavior
-- **Navigation/state** (lift into your router/state lib): a single `screen` enum drives `welcome | signup | celebrate | dash`. Sign-up holds its own `step` (0–2) and per-field values.
+- **Navigation/state** (lift into your router/state lib): a single `screen` enum drives `welcome | signup | celebrate | profile | branch | dash` (note: the `profile` screen is the "Choose a business" gate — the internal key kept its old name but the UI says "business"). Sign-up holds its own `step` (0–2) and per-field values. Selecting a business stores it and advances to branch; selecting a branch stores it and enters the dashboard.
 - **XP awarding**: idempotent — each award has a key tracked in a Set so re-entering a field doesn't double-count. Awards: username +25, full name +25, contact +25, OTP complete +50, usage (on reaching step 3) +25 → **150 total**.
 - **Field completion**: ≥3 chars (text) shows green check + awards XP. OTP awards at exactly 4 digits.
 - **Send code**: requires contact ≥5 chars; toggles button to "Sent ✓" (green) and reveals the OTP input + resend timer (timer is static copy in the prototype — wire a real countdown).
@@ -155,9 +186,10 @@ The prototype uses inline-Babel React + plain CSS only so it stays readable. Tre
 - **Count-up**: points animate 0→500 with cubic ease-out (~1.1s, requestAnimationFrame).
 
 ## State Management
-- Global: `screen` (flow position), `onboardingData` `{ name, xp, welcomePts }` passed from signup → celebrate → dash.
+- Global: `screen` (flow position), `onboardingData` `{ name, xp, welcomePts }` passed from signup → celebrate → dash, plus the **selected business** and **selected branch** (passed business → branch → dashboard scope).
 - Sign-up local: `step`, `username`, `fullname`, `contact`, `codeSent`, `code` (string, ≤4 digits), `usage`, `xp`, awarded-keys Set, transient "+XP" pop, chip `bump` flag.
-- Data fetching (not in prototype — add in app): real OTP send/verify, username availability, country list, account creation, and points/level/streak from your gamification service.
+- Selection local: `ChooseBranch` holds the selected branch id (radio).
+- Data fetching (not in prototype — add in app): real OTP send/verify, username availability, country list, account creation, the user's **businesses + their branches + the user's role per business**, and points/level/streak from your gamification service.
 
 ## Gamification intensity (config)
 A single setting drives intensity — wire it as a build/theme config (default `balanced`):
@@ -172,15 +204,19 @@ A single setting drives intensity — wire it as a build/theme config (default `
 - **Fonts**: Geist + Geist Mono (Google Fonts). Substitute only if your app already standardizes on another family, but keep a mono for numerics.
 - No raster images or illustrations are required — the hero is built from product-UI preview cards.
 
+## Motion & Animation
+**All animations are specified in a dedicated file: [`ANIMATIONS.md`](./ANIMATIONS.md).** If you're reimplementing in a native framework (React Native/Reanimated, Flutter, SwiftUI, Compose), read that file — it describes every motion in framework-neutral terms (what moves, from→to, duration, easing, trigger) and includes a CSS-easing → native-spring translation table. Do **not** try to infer the animations from the CSS `@keyframes` alone.
+
 ## Files (in this bundle)
 - `Flipper Onboarding.html` — entry; mounts the app, defines theme tokens + the intensity/accent config.
-- `onboarding/styles.css` — **all tokens, components, and animations** (source of truth for visual values).
+- `onboarding/styles.css` — **all tokens, components, and animations** (source of truth for visual values), including the `.sel-*` selection-screen styles.
 - `onboarding/frame.jsx` — phone shell, status bar, home indicator, Flipper logo/badge, progress Ring, Confetti.
 - `onboarding/welcome.jsx` — welcome carousel + floating product-UI cards.
 - `onboarding/signup.jsx` — 3-step sign-up, XP logic, fields, single OTP.
 - `onboarding/celebrate.jsx` — celebration screen + count-up.
+- `onboarding/select.jsx` — **Choose a business + Choose a branch** screens.
 - `onboarding/app.jsx` — flow controller + dashboard peek.
-- `onboarding/icons.jsx` — inline icon set.
+- `onboarding/icons.jsx` — inline icon set (incl. `Store`, `MapPin`, `LogOut`).
 - `onboarding/tweaks-panel.jsx` — prototype-only control panel (ignore for production).
 
-To run the reference: open `Flipper Onboarding.html` in a browser and tap through (Create account → step through → Enter Flipper).
+To run the reference: open `Flipper Onboarding.html` in a browser and tap through (Create account → step through → Enter Flipper → choose a business → choose a branch).

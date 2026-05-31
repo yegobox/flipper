@@ -69,8 +69,10 @@ function DashPeek({ data, onRestart, intensity }) {
 }
 
 function App({ tweaks }) {
-  const [screen, setScreen] = useStateA('welcome'); // welcome | signup | celebrate | dash
+  const [screen, setScreen] = useStateA('welcome'); // welcome | signup | celebrate | profile | branch | dash
   const [data, setData] = useStateA(null);
+  const [profile, setProfile] = useStateA(null);
+  const [branch, setBranch] = useStateA(null);
   const intensity = tweaks.intensity;
 
   // status bar / nav tint per screen
@@ -93,10 +95,24 @@ function App({ tweaks }) {
         />
       )}
       {screen === 'celebrate' && (
-        <Celebrate data={data} intensity={intensity} onEnter={() => setScreen('dash')} />
+        <Celebrate data={data} intensity={intensity} onEnter={() => setScreen('profile')} />
+      )}
+      {screen === 'profile' && (
+        <ChooseProfile
+          data={data}
+          onPick={(p) => { setProfile(p); setScreen('branch'); }}
+          onLogout={() => { setData(null); setProfile(null); setBranch(null); setScreen('welcome'); }}
+        />
+      )}
+      {screen === 'branch' && (
+        <ChooseBranch
+          profile={profile}
+          onBack={() => setScreen('profile')}
+          onPick={(b) => { setBranch(b); setScreen('dash'); }}
+        />
       )}
       {screen === 'dash' && (
-        <DashPeek data={data} intensity={intensity} onRestart={() => { setData(null); setScreen('welcome'); }} />
+        <DashPeek data={data} branch={branch} intensity={intensity} onRestart={() => { setData(null); setProfile(null); setBranch(null); setScreen('welcome'); }} />
       )}
     </Phone>
   );

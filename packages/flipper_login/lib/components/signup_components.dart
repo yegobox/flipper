@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -7,12 +8,12 @@ import 'package:flipper_login/blocs/signup_form_bloc.dart';
 /// UI components for the signup view aligned with the app's standard design system.
 class SignupComponents {
   // App's standard color palette
-  static const Color primaryColor = Color(0xFF0078D4);
-  static const Color accentColor = Color(0xFF0078D4);
-  static const Color backgroundColor = Color(0xFFF5F7FA);
-  static const Color textPrimary = Colors.black87;
-  static const Color textSecondary = Color.fromRGBO(117, 117, 117, 1);
-  static const Color errorColor = Colors.red;
+  static const Color primaryColor = Color(0xFF4F46E5);
+  static const Color accentColor = Color(0xFF22D3EE);
+  static const Color backgroundColor = Color(0xFFF5F8FD);
+  static const Color textPrimary = Color(0xFF0B1220);
+  static const Color textSecondary = Color(0xFF7E8AA0);
+  static const Color errorColor = FlipperColors.error;
   static const Color surfaceColor = Colors.white;
 
   /// Build the header section with the app's branding.
@@ -28,7 +29,7 @@ class SignupComponents {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: primaryColor.withOpacity(0.1),
+                  color: primaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -74,6 +75,7 @@ class SignupComponents {
     List<TextInputFormatter>? inputFormatters,
     Widget? suffix,
     Widget? prefix,
+    bool showCompleteState = true,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -84,38 +86,53 @@ class SignupComponents {
                   (state.extraData as Map).containsKey('enabled'))
               ? (state.extraData as Map)['enabled'] as bool
               : true;
+          final isComplete = showCompleteState &&
+              state.value.trim().isNotEmpty &&
+              !state.hasError &&
+              !state.isValidating;
+          final borderColor =
+              isComplete ? const Color(0xFFBFE6CF) : const Color(0xFFD6DEEA);
 
           return TextFieldBlocBuilder(
             textFieldBloc: fieldBloc,
             isEnabled: isEnabled,
-            suffixButton: suffix != null ? null : SuffixButton.asyncValidating,
+            suffixButton: suffix != null || isComplete
+                ? null
+                : SuffixButton.asyncValidating,
             keyboardType: keyboardType ?? TextInputType.text,
             inputFormatters: inputFormatters,
             decoration: InputDecoration(
               prefix: prefix,
-              suffixIcon: suffix,
+              suffixIcon: suffix ??
+                  (isComplete
+                      ? const _FieldCompleteCheck()
+                      : null),
               labelText: label,
               hintText: hint,
-              hintStyle: TextStyle(color: textSecondary.withOpacity(0.7)),
+              hintStyle: const TextStyle(color: Color(0xFFAEB8CA)),
               prefixIcon: Icon(icon, color: textSecondary, size: 22),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+                borderRadius: Corners.s12Border,
+                borderSide: BorderSide(color: borderColor, width: 1.5),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+                borderRadius: Corners.s12Border,
+                borderSide: BorderSide(color: borderColor, width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: const BorderSide(color: primaryColor, width: 2),
+                borderRadius: Corners.s12Border,
+                borderSide: BorderSide(
+                  color: isComplete ? const Color(0xFFBFE6CF) : primaryColor,
+                  width: 1.8,
+                ),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: Corners.s12Border,
                 borderSide: const BorderSide(color: errorColor, width: 1),
               ),
               filled: true,
-              fillColor: surfaceColor,
+              fillColor:
+                  isComplete ? const Color(0xFFFAFEFB) : const Color(0xFFF7F9FE),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               labelStyle: const TextStyle(
@@ -124,12 +141,12 @@ class SignupComponents {
               ),
               floatingLabelStyle: const TextStyle(
                 color: primaryColor,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w800,
               ),
             ),
-            style: const TextStyle(
+            textStyle: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w700,
               color: textPrimary,
             ),
           );
@@ -159,19 +176,19 @@ class SignupComponents {
             color: textSecondary,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+            borderRadius: Corners.s12Border,
+            borderSide: const BorderSide(color: Color(0xFFD6DEEA)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+            borderRadius: Corners.s12Border,
+            borderSide: const BorderSide(color: Color(0xFFD6DEEA)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(color: primaryColor, width: 2),
+            borderRadius: Corners.s12Border,
+            borderSide: const BorderSide(color: primaryColor, width: 1.6),
           ),
           filled: true,
-          fillColor: surfaceColor,
+          fillColor: const Color(0xFFF7F9FE),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           labelStyle: const TextStyle(
@@ -180,7 +197,7 @@ class SignupComponents {
           ),
           floatingLabelStyle: const TextStyle(
             color: primaryColor,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w800,
           ),
         ),
         itemBuilder: itemBuilder,
@@ -218,8 +235,7 @@ class SignupComponents {
                                 !usernameState.isValidating &&
                                 !usernameState.hasError;
 
-                            final hasFullName =
-                                fullNameState.value.isNotEmpty;
+                            final hasFullName = fullNameState.value.isNotEmpty;
                             final hasPhone = phoneState.value.isNotEmpty;
                             final hasBusinessType =
                                 businessTypeState.value != null;
@@ -227,8 +243,8 @@ class SignupComponents {
                             // Source verification status directly from extraData for maximum reactivity
                             final isPhoneVerified =
                                 (phoneState.extraData is Map &&
-                                    (phoneState.extraData as Map)
-                                        ['verified'] == true);
+                                    (phoneState.extraData as Map)['verified'] ==
+                                        true);
 
                             // Use the form bloc's getter which properly handles both strict and relaxed verification
                             final isTinVerified = formBloc.isTinVerified;
@@ -236,8 +252,9 @@ class SignupComponents {
                             // Check if TIN is required and valid
                             final selectedBusinessType =
                                 businessTypeState.value;
-                            final isTinRequired = selectedBusinessType != null &&
-                                selectedBusinessType.id != "2";
+                            final isTinRequired =
+                                selectedBusinessType != null &&
+                                    selectedBusinessType.id != "2";
 
                             // If TIN is required, it must be filled and verified; if not required, it's automatically valid
                             final isTinValid = !isTinRequired ||
@@ -246,10 +263,8 @@ class SignupComponents {
                                     !tinState.hasError);
 
                             // OTP field logic
-                            final isOtpEnabled =
-                                (otpState.extraData is Map &&
-                                    (otpState.extraData as Map)['enabled'] ==
-                                        true);
+                            final isOtpEnabled = (otpState.extraData is Map &&
+                                (otpState.extraData as Map)['enabled'] == true);
                             final isOtpValid = isPhoneVerified ||
                                 !isOtpEnabled ||
                                 (otpState.value.isNotEmpty &&
@@ -276,39 +291,15 @@ class SignupComponents {
                                 'isTinValid: $isTinValid (isReq: $isTinRequired, hasVal: ${tinState.value.toString().isNotEmpty}, isVer: $isTinVerified, hasErr: ${tinState.hasError})',
                                 name: 'SignupComponents');
 
-                            return Container(
-                              margin: const EdgeInsets.symmetric(vertical: 24),
-                              width: double.infinity,
-                              height: 52,
-                              child: ElevatedButton(
-                                onPressed:
-                                    (isLoading || !isValid) ? null : formBloc.submit,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: primaryColor,
-                                  foregroundColor: Colors.white,
-                                  disabledBackgroundColor:
-                                      primaryColor.withOpacity(0.6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: isLoading
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 3,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Create Account',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: FlipperGradientButton(
+                                text: 'Create account',
+                                icon: Icons.person_add_alt_1_rounded,
+                                isLoading: isLoading,
+                                onPressed: (isLoading || !isValid)
+                                    ? null
+                                    : formBloc.submit,
                               ),
                             );
                           },
@@ -322,6 +313,38 @@ class SignupComponents {
           },
         );
       },
+    );
+  }
+}
+
+class _FieldCompleteCheck extends StatelessWidget {
+  const _FieldCompleteCheck();
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.elasticOut,
+      builder: (context, value, child) {
+        return Transform.scale(scale: value, child: child);
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(right: 12),
+        child: Container(
+          width: 22,
+          height: 22,
+          decoration: const BoxDecoration(
+            color: Color(0xFF10B981),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.check_rounded,
+            color: Colors.white,
+            size: 15,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -8,6 +8,7 @@ export 'src/theme/flipper_theme_extension.dart';
 export 'src/widgets/flipper_button.dart';
 export 'src/widgets/flipper_divider.dart';
 export 'src/widgets/flipper_image_icon.dart';
+export 'src/widgets/flipper_onboarding.dart';
 export 'src/widgets/flipper_text.dart';
 export 'src/widgets/flipper_text_field.dart';
 export 'src/widgets/layout_helpers.dart';

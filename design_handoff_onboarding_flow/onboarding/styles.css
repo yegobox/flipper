@@ -676,6 +676,99 @@ input { font: inherit; color: inherit; }
 /* dashboard peek */
 .peek { padding: 18px; }
 
+/* ===========================================================
+   Choose profile / branch (selection screens)
+   =========================================================== */
+.sel {
+  height: 100%;
+  display: flex; flex-direction: column;
+  background: radial-gradient(120% 60% at 50% -10%, #FFFFFF 0%, var(--app) 46%, var(--app-2) 100%);
+}
+.sel-head { padding: 6px 22px 12px; flex-shrink: 0; }
+.sel-toprow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; min-height: 44px; }
+.sel-h { font-size: 27px; font-weight: 700; letter-spacing: -.025em; margin: 4px 0 5px; }
+.sel-sub { font-size: 15px; color: var(--ink-2); }
+
+.sel-greet {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 40px; padding: 0 8px 0 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--sh-1); color: var(--ink-3);
+}
+.sel-greet-av {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--grad-brand); color: #fff;
+  display: grid; place-items: center; font-size: 13px; font-weight: 700;
+}
+.sel-org-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 14px 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--sh-1);
+  font-size: 13.5px; font-weight: 600; color: var(--ink-1);
+}
+.sel-org-ico { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-tint); color: var(--blue); display: grid; place-items: center; }
+
+.sel-list { padding: 4px 22px 22px; display: flex; flex-direction: column; gap: 10px; }
+
+.sel-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 15px 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-1);
+  text-align: left;
+  transition: border-color .15s, box-shadow .2s, transform .12s, background .15s;
+}
+.sel-card:hover { border-color: var(--line-strong); box-shadow: var(--sh-2); }
+.sel-card:active { transform: scale(.99); }
+.sel-card.is-on { border-color: var(--blue); background: var(--blue-tint); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+
+.sel-ico { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; flex-shrink: 0; transition: background .15s, color .15s; }
+.sel-ico.tone-blue   { background: var(--blue-tint); color: var(--blue); }
+.sel-ico.tone-violet { background: #F3EEFB; color: var(--violet); }
+.sel-ico.tone-win    { background: var(--win-tint); color: var(--win); }
+.sel-ico.tone-xp     { background: var(--xp-tint); color: var(--xp-2); }
+.sel-ico.tone-mute   { background: var(--surface-2); color: var(--ink-3); border: 1px solid var(--line); }
+
+.sel-card-txt { flex: 1; min-width: 0; }
+.sel-card-name { font-size: 16px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; }
+.sel-card-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+.sel-chev { color: var(--ink-4); }
+
+.sel-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+  color: var(--blue); background: var(--blue-tint);
+  padding: 2px 7px; border-radius: var(--r-pill); margin-left: 9px;
+}
+.sel-card.is-on .sel-tag { background: rgba(37,99,235,.16); }
+
+.sel-check {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--blue); color: #fff;
+  display: grid; place-items: center; flex-shrink: 0;
+  animation: pop .3s cubic-bezier(.2,1.5,.4,1);
+}
+.sel-radio {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--line-strong); flex-shrink: 0;
+}
+
+.sel-add {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 15px;
+  border: 1.5px dashed var(--line-strong); border-radius: var(--r-md);
+  color: var(--ink-2); font-size: 14.5px; font-weight: 600;
+  background: transparent; margin-top: 2px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.sel-add:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-tint); }
+
+.sel-foot { flex-shrink: 0; padding: 12px 22px 16px; }
+
 /* generic helpers */
 .row { display: flex; align-items: center; }
 .spacer { flex: 1; }

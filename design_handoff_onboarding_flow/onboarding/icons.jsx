@@ -59,6 +59,9 @@ const Icons = {
   Coins: (p) => <I {...p} d={<><ellipse cx="9" cy="7" rx="5" ry="2.5" /><path d="M4 7v5c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V7" /><path d="M10 14.5c.6 1.2 2.6 2 5 2 2.8 0 5-1.1 5-2.5v-5c0-1.4-2.2-2.5-5-2.5-1 0-1.9.1-2.7.4" /></>} />,
   ShieldCheck: (p) => <I {...p} d={<><path d="M12 3 5 6v5c0 4.5 3 7.6 7 9 4-1.4 7-4.5 7-9V6z" /><path d="m9 11.5 2 2 4-4" /></>} />,
   AtSign: (p) => <I {...p} d={<><circle cx="12" cy="12" r="4" /><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.9 7.9" /></>} />,
+  MapPin: (p) => <I {...p} d={<><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" /><circle cx="12" cy="10" r="2.5" /></>} />,
+  Store: (p) => <I {...p} d={<><path d="M4 9 5.2 4.5A1 1 0 0 1 6.2 4h11.6a1 1 0 0 1 1 .8L20 9" /><path d="M4 9h16v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-4 .3" /><path d="M5 11.5V20h14v-8.5" /><path d="M9.5 20v-4.5h5V20" /></>} />,
+  LogOut: (p) => <I {...p} d={<><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" /><path d="M10 8 6 12l4 4" /><path d="M6 12h11" /></>} />,
 };
 
 // Excel-style file glyph — restrained, not branded.
