@@ -7,6 +7,7 @@ part 'iuser.g.dart';
 class IUser {
   IUser(
       {required this.id,
+      this.name,
       this.phoneNumber,
       this.token,
       this.uid,
@@ -21,6 +22,7 @@ class IUser {
       this.pin});
 
   String id;
+  String? name;
   @JsonKey(name: 'phone_number')
   String? phoneNumber;
   String? token;

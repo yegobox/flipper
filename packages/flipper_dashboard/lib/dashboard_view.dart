@@ -40,10 +40,11 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   String profitType = 'Net Profit';
   final List<String> profitTypeOptions = ['Net Profit', 'Gross Profit'];
 
-  static const Color _pageBg = Color(0xFFF8F9FA);
-  static const Color _accentGreen = Color(0xFF2ECC71);
-  static const Color _summaryRevenueStroke = Color(0xFF16A34A);
-  static const Color _summaryExpenseStroke = Color(0xFFDC2626);
+  static const Color _mobilePageBg = Color(0xFFF4F6FB);
+  static const Color _accentBlue = Color(0xFF2563EB);
+  static const Color _blueTint = Color(0xFFEFF4FF);
+  static const Color _summaryRevenueStroke = Color(0xFF047857);
+  static const Color _summaryExpenseStroke = Color(0xFFB42318);
 
   bool get _mobileChrome => !widget.isBigScreen;
 
@@ -54,11 +55,14 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         _buildFilterRow(),
         Expanded(
           child: ColoredBox(
-            color: _mobileChrome ? _pageBg : Colors.transparent,
+            color: _mobileChrome ? _mobilePageBg : Colors.transparent,
             child: RefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(
                   dashboardGaugeSnapshotProvider(transactionPeriod),
+                );
+                ref.invalidate(
+                  dashboardPreviousGaugeSnapshotProvider(transactionPeriod),
                 );
               },
               child: SingleChildScrollView(
@@ -66,13 +70,17 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 child: Column(
                   children: [
                     _buildAnalyticsSection(ref),
-                    AppIconsGrid(
-                      isBigScreen: widget.isBigScreen,
-                      onQuickAccessSeeAll: widget.onQuickAccessSeeAll,
-                    ),
-                    const SizedBox(height: 24),
-                    _buildFooter(),
-                    const SizedBox(height: 16),
+                    if (!_mobileChrome) ...[
+                      AppIconsGrid(
+                        isBigScreen: widget.isBigScreen,
+                        onQuickAccessSeeAll: widget.onQuickAccessSeeAll,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildFooter(),
+                      const SizedBox(height: 16),
+                    ] else ...[
+                      const SizedBox(height: 16),
+                    ],
                   ],
                 ),
               ),
@@ -86,16 +94,12 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   Widget _buildFilterRow() {
     if (_mobileChrome) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+        decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              offset: const Offset(0, 2),
-              blurRadius: 4,
-            ),
-          ],
+          border: Border(
+            bottom: BorderSide(color: Color(0xFFE5E7EB)),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,21 +121,18 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
               ),
             ),
             const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: profitTypeOptions.map((type) {
-                  final isSelected = profitType == type;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _mobileProfitChip(
-                      label: type,
-                      selected: isSelected,
-                      onTap: () => setState(() => profitType = type),
-                    ),
-                  );
-                }).toList(),
-              ),
+            Row(
+              children: profitTypeOptions.map((type) {
+                final isSelected = profitType == type;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _mobileProfitChip(
+                    label: type,
+                    selected: isSelected,
+                    onTap: () => setState(() => profitType = type),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),
@@ -245,23 +246,24 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-        child: Ink(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.ease,
           decoration: BoxDecoration(
-            color: selected ? Colors.black : Colors.white,
+            color: selected ? const Color(0xFF111827) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected ? Colors.black : const Color(0xFFE0E0E0),
+              color: selected ? const Color(0xFF111827) : const Color(0xFFE5E7EB),
+              width: 1.5,
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Text(
-              label,
-              style: GoogleFonts.outfit(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : const Color(0xFF4A4A4A),
-              ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w600,
+              color: selected ? Colors.white : const Color(0xFF4B5563),
             ),
           ),
         ),
@@ -279,24 +281,24 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-        child: Ink(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.ease,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: selected ? _blueTint : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected ? _accentGreen : const Color(0xFFE0E0E0),
-              width: selected ? 1.5 : 1,
+              color: selected ? _accentBlue : const Color(0xFFE5E7EB),
+              width: 1.5,
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Text(
-              label,
-              style: GoogleFonts.outfit(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: selected ? _accentGreen : const Color(0xFF4A4A4A),
-              ),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: selected ? _accentBlue : const Color(0xFF4B5563),
             ),
           ),
         ),
@@ -320,52 +322,107 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     );
   }
 
+  int? _deltaPercent(
+    DashboardGaugeSnapshot current,
+    DashboardGaugeSnapshot? previous,
+  ) {
+    if (current.isEmpty) return null;
+    final currentVal = current.displayValue(profitType);
+    final prevVal = previous?.displayValue(profitType) ?? 0;
+    if (prevVal == 0) return null;
+    return (((currentVal - prevVal) / prevVal.abs()) * 100).round();
+  }
+
   Widget _buildAnalyticsSection(WidgetRef ref) {
     final gaugeAsync = ref.watch(
       dashboardGaugeSnapshotProvider(transactionPeriod),
     );
+    final prevAsync = _mobileChrome
+        ? ref.watch(dashboardPreviousGaugeSnapshotProvider(transactionPeriod))
+        : const AsyncValue<DashboardGaugeSnapshot>.data(
+            DashboardGaugeSnapshot(grossProfit: 0, deductions: 0),
+          );
 
-    final presentation =
-        _mobileChrome
-            ? GaugePresentation.dashboardHome
-            : GaugePresentation.standard;
+    if (_mobileChrome) {
+      return gaugeAsync.when(
+        data: (snapshot) {
+          final previous = prevAsync.hasValue ? prevAsync.value : null;
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DashboardHomeGauge(
+                  value: snapshot.displayValue(profitType),
+                  revenue: snapshot.revenue,
+                  grossProfit: snapshot.grossProfit,
+                  deductions: snapshot.deductions,
+                  profitType: profitType,
+                  periodLabel: transactionPeriod,
+                  isEmpty: snapshot.isEmpty,
+                  deltaPercent: _deltaPercent(snapshot, previous),
+                  comparisonLabel:
+                      dashboardComparisonPeriodLabel(transactionPeriod),
+                ),
+                const SizedBox(height: 12),
+                _buildStockValueSummaryCard(context, ref, snapshot.isEmpty),
+                const SizedBox(height: 12),
+                _buildRevenueExpenseRow(snapshot, previous),
+                const SizedBox(height: 12),
+                _buildDailyGoalCard(ref),
+              ],
+            ),
+          );
+        },
+        error: (err, stack) {
+          log('error: $err stack: $stack');
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: DashboardHomeGauge(
+              value: 0,
+              revenue: 0,
+              grossProfit: 0,
+              deductions: 0,
+              profitType: profitType,
+              periodLabel: transactionPeriod,
+              isEmpty: true,
+            ),
+          );
+        },
+        loading: () => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
 
     return gaugeAsync.when(
       data: (snapshot) {
         return Padding(
-          padding: EdgeInsets.fromLTRB(_mobileChrome ? 16 : 0, 12, _mobileChrome ? 16 : 0, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SemiCircleGauge(
-                dataOnGreenSide: snapshot.grossProfit,
-                dataOnRedSide: snapshot.deductions,
-                startPadding: 50.0,
-                profitType: profitType,
-                areValueColumnsVisible: true,
-                presentation: presentation,
-              ),
-              if (_mobileChrome) ...[
-                const SizedBox(height: 16),
-                _buildStockValueSummaryCard(context, ref),
-                const SizedBox(height: 12),
-                _buildRevenueExpenseRow(snapshot),
-              ],
-            ],
+          padding: const EdgeInsets.only(top: 12),
+          child: SemiCircleGauge(
+            dataOnGreenSide: snapshot.grossProfit,
+            dataOnRedSide: snapshot.deductions,
+            startPadding: 50.0,
+            profitType: profitType,
+            areValueColumnsVisible: true,
+            presentation: GaugePresentation.standard,
           ),
         );
       },
       error: (err, stack) {
         log('error: $err stack: $stack');
         return Padding(
-          padding: EdgeInsets.fromLTRB(_mobileChrome ? 16 : 0, 12, _mobileChrome ? 16 : 0, 0),
+          padding: const EdgeInsets.only(top: 12),
           child: SemiCircleGauge(
             dataOnGreenSide: 0,
             dataOnRedSide: 0,
             startPadding: 0.0,
             profitType: profitType,
             areValueColumnsVisible: true,
-            presentation: presentation,
+            presentation: GaugePresentation.standard,
           ),
         );
       },
@@ -378,52 +435,207 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     );
   }
 
-  Widget _buildStockValueSummaryCard(BuildContext context, WidgetRef ref) {
+  Widget _buildDailyGoalCard(WidgetRef ref) {
+    const goalTarget = 10;
+    final todayAsync = ref.watch(dashboardGaugeSnapshotProvider('Today'));
+
+    return todayAsync.when(
+      data: (today) {
+        final count = today.transactionCount;
+        final progress = (count / goalTarget).clamp(0.0, 1.0);
+        final remaining = (goalTarget - count).clamp(0, goalTarget);
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFFFF8EB),
+                Color(0xFFFFF3D6),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFFCE0BE)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFC24B).withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.card_giftcard_outlined,
+                  color: Color(0xFFB25A00),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      count == 0
+                          ? "Today's goal · 0 of $goalTarget sales"
+                          : "Today's goal · $count of $goalTarget sales",
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF92400E),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text.rich(
+                      TextSpan(
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          color: const Color(0xFFB45309),
+                        ),
+                        children: [
+                          TextSpan(
+                            text: count == 0
+                                ? 'Log your first sale to start earning'
+                                : remaining == 0
+                                    ? 'Goal reached! '
+                                    : 'Just $remaining more to ',
+                          ),
+                          if (count > 0 && remaining > 0)
+                            const TextSpan(
+                              text: '+50 pts',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: progress),
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, value, _) {
+                          return LinearProgressIndicator(
+                            value: value,
+                            minHeight: 6,
+                            backgroundColor: const Color(0xFFFCE0BE),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xFFFB9D00),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildStockValueSummaryCard(
+    BuildContext context,
+    WidgetRef ref,
+    bool analyticsEmpty,
+  ) {
     final summaryAsync = ref.watch(stockValueSummaryProvider);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F4EF),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+        ],
       ),
       child: summaryAsync.when(
         data: (summary) {
+          final stockLevel = summary.productsCount > 0
+              ? ((summary.productsCount - summary.needsRestockCount) /
+                      summary.productsCount)
+                  .clamp(0.0, 1.0)
+              : 0.0;
+          final hasLowStock = summary.needsRestockCount > 0;
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.layers_outlined, size: 18),
+                  Icon(
+                    Icons.layers_outlined,
+                    size: 20,
+                    color: Colors.grey.shade700,
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    'Stock Value',
+                    'Stock value',
                     style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
                     ),
                   ),
                   const Spacer(),
-                  Text(
-                    'RWF ${formatNumber(summary.totalValue)}',
-                    style: GoogleFonts.jetBrainsMono(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
-                      letterSpacing: -0.5,
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'RWF ',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                        TextSpan(
+                          text: formatNumber(summary.totalValue),
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(999),
-                child: const LinearProgressIndicator(
-                  value: 0.6,
-                  minHeight: 6,
-                  backgroundColor: Color(0xFFE6E1D9),
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1F6FEB)),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: stockLevel),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) {
+                    return LinearProgressIndicator(
+                      value: value,
+                      minHeight: 6,
+                      backgroundColor: const Color(0xFFE5E7EB),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFF2563EB),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 12),
@@ -431,19 +643,26 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 children: [
                   Icon(
                     Icons.warning_amber_rounded,
-                    size: 18,
-                    color: Colors.orange.shade800,
+                    size: 16,
+                    color: hasLowStock && !analyticsEmpty
+                        ? const Color(0xFFB45309)
+                        : Colors.grey.shade500,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${summary.needsRestockCount} items low on stock',
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      analyticsEmpty
+                          ? '0 items low on stock'
+                          : '${summary.needsRestockCount} items low on stock',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: hasLowStock && !analyticsEmpty
+                            ? const Color(0xFF92400E)
+                            : Colors.grey.shade600,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).push(
@@ -452,10 +671,16 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                         ),
                       );
                     },
+                    style: TextButton.styleFrom(
+                      foregroundColor: _accentBlue,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     child: Text(
-                      'Full report →',
+                      'Full report ›',
                       style: GoogleFonts.outfit(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -487,30 +712,50 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     );
   }
 
-  Widget _buildRevenueExpenseRow(DashboardGaugeSnapshot snapshot) {
+  Widget _buildRevenueExpenseRow(
+    DashboardGaugeSnapshot snapshot,
+    DashboardGaugeSnapshot? previous,
+  ) {
+    final isEmpty = snapshot.isEmpty;
+    final revenueDelta = isEmpty
+        ? null
+        : _percentChange(snapshot.revenue, previous?.revenue ?? 0);
+    final expenseDelta = isEmpty
+        ? null
+        : _percentChange(snapshot.deductions, previous?.deductions ?? 0);
+
     return Row(
       children: [
         Expanded(
           child: _summaryStatCard(
             icon: DashboardQuickAccessSvgs.revenueSummaryIcon(),
-            iconBackground: const Color.fromRGBO(22, 163, 74, 0.10),
-            label: 'REVENUE',
-            valueText: '${formatNumber(snapshot.grossProfit)} RWF',
-            valueColor: _summaryRevenueStroke,
+            iconBackground: const Color(0xFFE6F7EF),
+            label: 'Revenue',
+            valueText: isEmpty ? '0' : formatNumber(snapshot.revenue),
+            valueColor: isEmpty ? Colors.grey.shade400 : _summaryRevenueStroke,
+            deltaPercent: revenueDelta,
+            isUp: revenueDelta != null && revenueDelta >= 0,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _summaryStatCard(
             icon: DashboardQuickAccessSvgs.expensesSummaryIcon(),
-            iconBackground: const Color.fromRGBO(220, 38, 38, 0.09),
-            label: 'EXPENSES',
-            valueText: '${formatNumber(snapshot.deductions)} RWF',
-            valueColor: _summaryExpenseStroke,
+            iconBackground: const Color(0xFFFDECEC),
+            label: 'Expenses',
+            valueText: isEmpty ? '0' : formatNumber(snapshot.deductions),
+            valueColor: isEmpty ? Colors.grey.shade400 : _summaryExpenseStroke,
+            deltaPercent: expenseDelta,
+            isUp: expenseDelta != null && expenseDelta >= 0,
           ),
         ),
       ],
     );
+  }
+
+  int? _percentChange(double current, double previous) {
+    if (previous == 0) return null;
+    return (((current - previous) / previous.abs()) * 100).round();
   }
 
   Widget _summaryStatCard({
@@ -519,12 +764,15 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     required String label,
     required String valueText,
     required Color valueColor,
+    int? deltaPercent,
+    bool isUp = true,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -556,15 +804,50 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            valueText,
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: valueColor,
-              letterSpacing: -0.5,
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'RWF ',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+                TextSpan(
+                  text: valueText,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w700,
+                    color: valueColor,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
             ),
           ),
+          if (deltaPercent != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  isUp ? Icons.trending_up : Icons.arrow_downward,
+                  size: 12,
+                  color: isUp ? _summaryRevenueStroke : _summaryExpenseStroke,
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  '${deltaPercent.abs()}% ${isUp ? 'up' : 'up'}',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isUp ? _summaryRevenueStroke : _summaryExpenseStroke,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

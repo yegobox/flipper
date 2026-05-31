@@ -647,6 +647,8 @@ class DashboardGaugeSnapshot {
   const DashboardGaugeSnapshot({
     required this.grossProfit,
     required this.deductions,
+    this.revenue = 0,
+    this.transactionCount = 0,
   });
 
   /// Sum of line-level (price×qty − supply) for completed non-expense sales.
@@ -655,7 +657,25 @@ class DashboardGaugeSnapshot {
   /// Line VAT + expense transaction [subTotal]s in the period.
   final double deductions;
 
+  /// Sum of completed sale [subTotal]s in the period (denominator for gauge fill).
+  final double revenue;
+
+  /// Completed non-expense sales in the period.
+  final int transactionCount;
+
   double get netProfit => grossProfit - deductions;
+
+  bool get isEmpty => transactionCount == 0;
+
+  /// Profit margin fill for the semicircle gauge (0–1).
+  double fillFraction(String profitType) {
+    if (revenue <= 0) return 0;
+    final value = profitType == 'Gross Profit' ? grossProfit : netProfit;
+    return (value / revenue).clamp(0.0, 1.0);
+  }
+
+  double displayValue(String profitType) =>
+      profitType == 'Gross Profit' ? grossProfit : netProfit;
 }
 
 /// Inclusive start of the dashboard filter window (matches [DashboardView] chips).
@@ -751,9 +771,139 @@ final dashboardGaugeSnapshotProvider =
           0.0,
           (s, e) => s + (e.subTotal ?? 0.0),
         );
+        final revenue = txs.fold<double>(
+          0.0,
+          (s, t) => s + (t.subTotal ?? 0.0),
+        );
         return DashboardGaugeSnapshot(
           grossProfit: gross,
           deductions: tax + expSum,
+          revenue: revenue,
+          transactionCount: txs.length,
+        );
+      });
+    });
+
+/// Label for period-over-period comparison copy on the dashboard gauge.
+String dashboardComparisonPeriodLabel(String period) {
+  switch (period) {
+    case 'Today':
+      return 'yesterday';
+    case 'This Week':
+      return 'last week';
+    case 'This Month':
+      return 'last month';
+    case 'This Year':
+      return 'last year';
+    default:
+      return 'previous period';
+  }
+}
+
+/// Inclusive start of the window immediately before [period]'s current window.
+DateTime dashboardPreviousPeriodStart(String period) {
+  final current = dashboardPeriodStart(period);
+  if (period == 'Today') {
+    return current.subtract(const Duration(days: 1));
+  }
+  if (period == 'This Week') {
+    return current.subtract(const Duration(days: 7));
+  }
+  if (period == 'This Month') {
+    var y = current.year;
+    var m = current.month - 1;
+    if (m < 1) {
+      y -= 1;
+      m = 12;
+    }
+    final lastDay = DateTime(y, m + 1, 0).day;
+    final d = current.day > lastDay ? lastDay : current.day;
+    return DateTime(y, m, d);
+  }
+  final lastDayYear = DateTime(current.year - 1, current.month + 1, 0).day;
+  final d = current.day > lastDayYear ? lastDayYear : current.day;
+  return DateTime(current.year - 1, current.month, d);
+}
+
+/// Stream gauge snapshot for the period window before [period].
+final dashboardPreviousGaugeSnapshotProvider =
+    StreamProvider.family<DashboardGaugeSnapshot, String>((ref, period) {
+      final prevStart = dashboardPreviousPeriodStart(period);
+      final prevEnd = dashboardPeriodStart(period);
+      final branchId = ProxyService.box.branchIdString();
+      if (branchId == null) {
+        return Stream.value(
+          const DashboardGaugeSnapshot(grossProfit: 0, deductions: 0),
+        );
+      }
+
+      final itemStream = ProxyService.getStrategy(Strategy.capella)
+          .transactionItemsStreams(
+            startDate: prevStart,
+            endDate: prevEnd,
+            branchId: branchId,
+            branchIdString: branchId,
+            fetchRemote: true,
+          )
+          .startWith(const <TransactionItem>[]);
+
+      final completedSalesStream =
+          coreTransactionsStream(
+                ref,
+                startDate: prevStart,
+                endDate: prevEnd,
+                branchId: branchId,
+                forceRealData: true,
+              )
+              .map(
+                (all) => all
+                    .where(
+                      (tx) => tx.isExpense != true && tx.status == COMPLETE,
+                    )
+                    .toList(),
+              )
+              .startWith(const <ITransaction>[]);
+
+      final expenseTxStream = expensesStream(
+        ref,
+        startDate: prevStart,
+        endDate: prevEnd,
+        branchId: branchId,
+        forceRealData: true,
+      ).startWith(const <ITransaction>[]);
+
+      return Rx.combineLatest3<
+        List<TransactionItem>,
+        List<ITransaction>,
+        List<ITransaction>,
+        DashboardGaugeSnapshot
+      >(itemStream, completedSalesStream, expenseTxStream, (items, txs, exps) {
+        final allowed = txs.map((t) => t.id.toString()).toSet();
+        final filtered = items.where((i) {
+          final tid = i.transactionId?.toString();
+          return tid != null && allowed.contains(tid);
+        }).toList();
+        final gross = filtered.fold<double>(
+          0.0,
+          (s, i) => s + TransactionItemPluMetrics.profitMade(i),
+        );
+        final tax = filtered.fold<double>(
+          0.0,
+          (s, i) => s + TransactionItemPluMetrics.taxPayable(i),
+        );
+        final expSum = exps.fold<double>(
+          0.0,
+          (s, e) => s + (e.subTotal ?? 0.0),
+        );
+        final revenue = txs.fold<double>(
+          0.0,
+          (s, t) => s + (t.subTotal ?? 0.0),
+        );
+        return DashboardGaugeSnapshot(
+          grossProfit: gross,
+          deductions: tax + expSum,
+          revenue: revenue,
+          transactionCount: txs.length,
         );
       });
     });

@@ -2,6 +2,7 @@
 import 'package:flipper_web/features/login/theme_provider.dart';
 import 'package:flipper_web/core/localization/locale_provider.dart';
 import 'package:flipper_web/router/router_provider.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flutter/material.dart';
 // go_router is used via the provider
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -40,10 +41,8 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Flipper',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      darkTheme: ThemeData.dark(),
+      theme: FlipperTheme.light(),
+      darkTheme: FlipperTheme.dark(),
       themeMode: themeMode,
       locale: locale,
       routerConfig: router,

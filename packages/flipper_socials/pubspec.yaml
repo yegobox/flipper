@@ -9,6 +9,7 @@ environment:
   sdk: ">=2.18.6 <3.0.0"
 
 dependencies:
+  flipper_design_system: any
   cupertino_icons: ^1.0.2
   stacked: ^3.5.0
   stacked_services: ^1.6.0

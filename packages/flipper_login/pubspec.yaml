@@ -32,6 +32,7 @@ dependencies:
   qr_flutter: ^4.1.0
   flipper_ui: ^1.0.3
   flipper_socials: 1.0.0+1
+  flipper_design_system: any
   flutter_riverpod: ^3.0.3
   riverpod_annotation: ^3.0.3
   flutter_hooks:

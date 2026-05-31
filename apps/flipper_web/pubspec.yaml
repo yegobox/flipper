@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.369+1285
+version: 1.0.379+1295
 
 
 environment:
@@ -20,6 +20,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   sqflite_common_ffi_web: ^1.0.1+1
   flipper_ui: ^1.0.3
+  flipper_design_system: any
   flutter_localizations:
     sdk: flutter
   go_router: ^16.2.2

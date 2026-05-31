@@ -8,6 +8,7 @@ part of 'iuser.dart';
 
 IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
   id: json['id'] as String,
+  name: json['name'] as String?,
   phoneNumber: json['phone_number'] as String?,
   token: json['token'] as String?,
   uid: json['uid'] as String?,
@@ -26,6 +27,7 @@ IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
 
 Map<String, dynamic> _$IUserToJson(IUser instance) => <String, dynamic>{
   'id': instance.id,
+  'name': instance.name,
   'phone_number': instance.phoneNumber,
   'token': instance.token,
   'uid': instance.uid,

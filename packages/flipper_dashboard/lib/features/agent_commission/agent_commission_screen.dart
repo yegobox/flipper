@@ -379,7 +379,7 @@ class _DashboardHeader extends StatelessWidget {
             ),
           ],
         );
-        final actions = Row(
+        final toolbar = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
@@ -398,26 +398,45 @@ class _DashboardHeader extends StatelessWidget {
                   ),
                 ),
               ),
-            if (hasPicker) ...[
-              const SizedBox(width: 8),
-              SizedBox(
-                width: stack ? constraints.maxWidth : 380,
-                child: _AgentPicker(
-                  agents: pickerAgents,
-                  selectedUserId: selectedAgentId!,
-                  onSelected: onAgentSelected ?? (_) {},
-                ),
-              ),
-            ] else if (summary.agentName != null ||
-                summary.businessName != null) ...[
-              const SizedBox(width: 8),
-              _AgentIdentityCard(
-                name: summary.agentName ?? 'Agent',
-                subtitle: summary.businessName,
-              ),
-            ],
           ],
         );
+
+        Widget? trailing;
+        if (hasPicker) {
+          trailing = _AgentPicker(
+            agents: pickerAgents,
+            selectedUserId: selectedAgentId!,
+            onSelected: onAgentSelected ?? (_) {},
+          );
+        } else if (summary.agentName != null ||
+            summary.businessName != null) {
+          trailing = _AgentIdentityCard(
+            name: summary.agentName ?? 'Agent',
+            subtitle: summary.businessName,
+          );
+        }
+
+        final actions = stack
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  toolbar,
+                  if (trailing != null) ...[
+                    const SizedBox(height: 12),
+                    trailing,
+                  ],
+                ],
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  toolbar,
+                  if (trailing != null) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(width: 380, child: trailing),
+                  ],
+                ],
+              );
 
         if (stack) {
           return Column(
@@ -682,43 +701,93 @@ class _AttributedSalesSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const _Eyebrow('ATTRIBUTED SALES'),
-            if (summary.saleCount > 0) ...[
-              const SizedBox(width: 10),
-              _CountBubble(summary.saleCount.toString()),
-            ],
-            const Spacer(),
-            if (summary.saleCount > 0) ...[
-              _LegendDot(color: _kAccent, label: '$pendingCount pending'),
-              const SizedBox(width: 18),
-              OutlinedButton.icon(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _kInk,
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: _kLine),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                icon: const Icon(Icons.print_outlined, size: 19),
-                label: Text(
-                  'Export',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
+        if (!isWide)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Flexible(child: _Eyebrow('ATTRIBUTED SALES')),
+                  if (summary.saleCount > 0) ...[
+                    const SizedBox(width: 10),
+                    _CountBubble(summary.saleCount.toString()),
+                  ],
+                ],
               ),
+              if (summary.saleCount > 0) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    _LegendDot(color: _kAccent, label: '$pendingCount pending'),
+                    OutlinedButton.icon(
+                      onPressed: () {},
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _kInk,
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: _kLine),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.print_outlined, size: 19),
+                      label: Text(
+                        'Export',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
-          ],
-        ),
+          )
+        else
+          Row(
+            children: [
+              const _Eyebrow('ATTRIBUTED SALES'),
+              if (summary.saleCount > 0) ...[
+                const SizedBox(width: 10),
+                _CountBubble(summary.saleCount.toString()),
+              ],
+              const Spacer(),
+              if (summary.saleCount > 0) ...[
+                _LegendDot(color: _kAccent, label: '$pendingCount pending'),
+                const SizedBox(width: 18),
+                OutlinedButton.icon(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _kInk,
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: _kLine),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.print_outlined, size: 19),
+                  label: Text(
+                    'Export',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         const SizedBox(height: 16),
         if (summary.sales.isEmpty)
           _EmptySalesCard(period: period)

@@ -93,6 +93,11 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  String? getUserName() {
+    return 'Test User';
+  }
+
+  @override
   bool hasSignedInForAutoBackup() {
     return true; // Sample auto-backup sign-in status
   }

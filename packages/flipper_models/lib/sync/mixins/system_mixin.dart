@@ -2,7 +2,6 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/sync/interfaces/system_interface.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/supabase_session_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 mixin SystemMixin implements SystemInterface {
   @override
@@ -11,6 +10,10 @@ mixin SystemMixin implements SystemInterface {
     await ProxyService.box.writeString(key: 'userIdString', value: id);
     await ProxyService.box.writeString(key: 'userId', value: id);
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
+    final name = user.name?.trim();
+    if (name != null && name.isNotEmpty) {
+      await ProxyService.box.writeString(key: 'userName', value: name);
+    }
   }
 
   @override

@@ -57,6 +57,7 @@ dependencies:
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: any
+  flipper_design_system: any
   flipper_ai_feature: any
   fluentui_system_icons: ^1.1.273
   flipper_socials: 1.0.0+1
