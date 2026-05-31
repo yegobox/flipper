@@ -1,4 +1,5 @@
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
+import 'package:flipper_dashboard/features/daily_report_files/daily_report_files_app.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
@@ -12,7 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Central navigation for dashboard quick-access apps (grid tiles, launcher shortcuts).
 ///
-/// Keep in sync with [AppIconsGrid] routing logic.
+/// Keep in sync with [AppIconsGrid] and [dashboardAllAppsCatalog].
 Future<void> navigateToDashboardAppPage({
   required BuildContext context,
   required bool isBigScreen,
@@ -103,6 +104,13 @@ Future<void> navigateToDashboardAppPage({
       break;
     case 'AgentCommission':
       await routerService.navigateTo(const AgentCommissionRoute());
+      break;
+    case 'DailyReports':
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const DailyReportFilesApp(),
+        ),
+      );
       break;
     default:
       await routerService.navigateTo(
