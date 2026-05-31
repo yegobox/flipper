@@ -47,6 +47,12 @@ abstract final class _SelTokens {
   static const Color signOut = Color(0xFFEF4444);
   static const double desktopContentWidth = 480;
   static const double cardGap = 10;
+  static const LinearGradient brandGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF22D3EE), Color(0xFF2563EB), Color(0xFF4F46E5)],
+    stops: [0, 0.52, 1],
+  );
 }
 
 enum _ChoiceIconTone { blue, violet }
@@ -337,10 +343,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           isDesktop: isDesktopLayout,
           maxWidth: isDesktopLayout ? _SelTokens.desktopContentWidth : 430.0,
           horizontalPadding: isDesktopLayout ? 0 : 22,
-          topPadding: isDesktopLayout ? 0 : 24,
-          bottomPadding: isDesktopLayout ? 0 : 28,
-          titleGap: isDesktopLayout ? 28 : 42,
-          listGap: isDesktopLayout ? 24 : 36,
+          topPadding: isDesktopLayout ? 0 : 6,
+          bottomPadding: isDesktopLayout ? 0 : 22,
+          titleGap: isDesktopLayout ? 28 : 20,
+          listGap: isDesktopLayout ? 24 : 20,
         );
         final content = !_isLoading
             ? _isSelectingBranch
@@ -428,12 +434,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (!layout.isDesktop) ...[
-          Row(
-            children: [
-              const _ChoicesBrand(),
-              const Spacer(),
-              _UserPill(initial: _currentUserInitial),
-            ],
+          SizedBox(
+            height: 44,
+            child: Row(
+              children: [
+                const _ChoicesBrand(),
+                const Spacer(),
+                _UserPill(initial: _userPillInitial(businesses)),
+              ],
+            ),
           ),
           SizedBox(height: layout.titleGap),
         ],
@@ -444,7 +453,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             fontWeight: FontWeight.w700,
             height: 1.05,
             fontSize: layout.isDesktop ? 27 : 27,
-            letterSpacing: layout.isDesktop ? -0.68 : -0.5,
+            letterSpacing: -0.68,
           ),
         ),
         const SizedBox(height: 5),
@@ -535,7 +544,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             fontWeight: FontWeight.w700,
             height: 1.05,
             fontSize: layout.isDesktop ? 27 : 27,
-            letterSpacing: layout.isDesktop ? -0.68 : -0.5,
+            letterSpacing: -0.68,
           ),
         ),
         const SizedBox(height: 5),
@@ -838,8 +847,14 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     }
   }
 
-  String get _currentUserInitial =>
-      _userProfileInitial(ProxyService.box.getUserPhone());
+  String _userPillInitial(List<Business>? businesses) {
+    final label = _displayUserName(businesses);
+    for (var i = 0; i < label.length; i++) {
+      final c = label[i];
+      if (c != '+' && c.trim().isNotEmpty) return c.toUpperCase();
+    }
+    return 'U';
+  }
 
   String _initialFor(String name) => _userProfileInitial(name);
 
@@ -1389,37 +1404,50 @@ class _UserPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 14, 8),
+      height: 40,
+      padding: const EdgeInsets.fromLTRB(4, 0, 8, 0),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFE6ECF5)),
-        boxShadow: [
+        color: _SelTokens.surface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _SelTokens.line),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFF102040).withValues(alpha: .10),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+            color: Color(0x0D102040),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+          BoxShadow(
+            color: Color(0x0A102040),
+            blurRadius: 1,
+            offset: Offset(0, 1),
           ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: const Color(0xFF4F46E5),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: _SelTokens.brandGradient,
+            ),
+            alignment: Alignment.center,
             child: Text(
               initial,
               style: const TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w900,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                height: 1,
               ),
             ),
           ),
-          const SizedBox(width: 10),
           const Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: Color(0xFF7E8AA0),
+            color: _SelTokens.ink3,
+            size: 15,
           ),
         ],
       ),
@@ -1532,8 +1560,9 @@ class _AddBusinessTileState extends State<_AddBusinessTile> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             curve: Curves.easeOut,
+            margin: const EdgeInsets.only(top: 2),
             decoration: BoxDecoration(
-              color: isActive ? _SelTokens.blueTint : _SelTokens.surface2,
+              color: isActive ? _SelTokens.blueTint : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
             child: CustomPaint(
@@ -1543,13 +1572,21 @@ class _AddBusinessTileState extends State<_AddBusinessTile> {
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 15),
-                child: Text(
-                  'Add a business',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: foreground,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w600,
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_rounded, size: 18, color: foreground),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Add a business',
+                        style: TextStyle(
+                          color: foreground,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
