@@ -508,12 +508,14 @@ mixin AuthMixin implements AuthInterface {
 
     if (shouldEnableOfflineLogin) {
       offlineLogin = true;
+      final offlineName = userAccess?['name']?.toString().trim();
       return _createOfflineUser(
         phoneNumber,
         pin,
         businessesE,
         branchesE,
         canonicalUserId: canonicalUserId,
+        name: offlineName,
       );
     }
 
@@ -875,6 +877,10 @@ mixin AuthMixin implements AuthInterface {
       }
 
       ProxyService.box.writeString(key: 'userPhone', value: lookupPhone);
+      final apiName = responseBody['name']?.toString().trim();
+      if (apiName != null && apiName.isNotEmpty) {
+        await ProxyService.box.writeString(key: 'userName', value: apiName);
+      }
       await _initializeDitto(responseBody['id'].toString());
       // Save user access to Ditto for cross-device synchronization
       await ProxyService.ditto.saveUserAccess(responseBody);
@@ -962,6 +968,7 @@ mixin AuthMixin implements AuthInterface {
     List<Business> businesses,
     List<Branch> branches, {
     String? canonicalUserId,
+    String? name,
   }) {
     final resolvedId =
         canonicalUserId ?? ProxyService.box.getUserId() ?? pin.userId ?? '';
@@ -971,6 +978,7 @@ mixin AuthMixin implements AuthInterface {
       uid: pin.uid,
       phoneNumber: pin.phoneNumber!,
       id: resolvedId,
+      name: name,
       businesses: _convertBusinesses(businesses),
     );
   }

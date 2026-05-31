@@ -495,6 +495,11 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
+  String? getUserName() {
+    return _cache['userName'] as String?;
+  }
+
+  @override
   bool getNeedAccountLinkWithPhone() {
     return (_cache['needLinkPhoneNumber'] as bool?) ?? false;
   }

@@ -15,6 +15,7 @@ abstract class LocalStorage {
   int? getBranchServerId();
   bool? getIsTokenRegistered();
   String? getUserPhone();
+  String? getUserName();
   String? getUserId();
   double? getCashReceived();
   bool getNeedAccountLinkWithPhone();

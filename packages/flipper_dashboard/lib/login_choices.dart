@@ -76,7 +76,22 @@ _ChoiceIconTone _iconToneForIndex(int index) {
   return index.isEven ? _ChoiceIconTone.blue : _ChoiceIconTone.violet;
 }
 
+/// First letter for avatar chips; skips "+" and non-letters (e.g. E.164 phones).
+String _userProfileInitial(String? label) {
+  final stored = ProxyService.box.getUserName()?.trim();
+  for (final source in [stored, label]) {
+    if (source == null || source.isEmpty) continue;
+    for (var i = 0; i < source.length; i++) {
+      final c = source[i];
+      if (RegExp(r'[A-Za-z]').hasMatch(c)) return c.toUpperCase();
+    }
+  }
+  return 'U';
+}
+
 String _displayUserName(List<Business>? businesses) {
+  final storedName = ProxyService.box.getUserName()?.trim();
+  if (storedName != null && storedName.isNotEmpty) return storedName;
   for (final business in businesses ?? <Business>[]) {
     final fullName = business.fullName?.trim();
     if (fullName != null && fullName.isNotEmpty) return fullName;
@@ -135,6 +150,26 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         ref.read(selectedBusinessIdProvider.notifier).state = null;
       }
     });
+    unawaited(_hydrateStoredUserName());
+  }
+
+  /// Backfill `userName` from Ditto when prefs only have phone (older sessions).
+  Future<void> _hydrateStoredUserName() async {
+    final existing = ProxyService.box.getUserName()?.trim();
+    if (existing != null && existing.isNotEmpty) return;
+
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) return;
+
+    try {
+      final access = await ProxyService.ditto.getUserAccess(userId);
+      final name = access?['name']?.toString().trim();
+      if (name == null || name.isEmpty) return;
+      await ProxyService.box.writeString(key: 'userName', value: name);
+      if (mounted) setState(() {});
+    } catch (e) {
+      talker.debug('Could not hydrate userName from Ditto: $e');
+    }
   }
 
   /// Requests all permissions required for Ditto sync on Android
@@ -803,19 +838,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     }
   }
 
-  String get _currentUserInitial {
-    final phone = ProxyService.box.getUserPhone();
-    if (phone != null && phone.trim().isNotEmpty) {
-      return phone.trim()[0].toUpperCase();
-    }
-    return 'U';
-  }
+  String get _currentUserInitial =>
+      _userProfileInitial(ProxyService.box.getUserPhone());
 
-  String _initialFor(String name) {
-    final trimmed = name.trim();
-    if (trimmed.isNotEmpty) return trimmed[0].toUpperCase();
-    return _currentUserInitial;
-  }
+  String _initialFor(String name) => _userProfileInitial(name);
 
   Future<void> _handleSignOut() async {
     if (_isSigningOut) return;
