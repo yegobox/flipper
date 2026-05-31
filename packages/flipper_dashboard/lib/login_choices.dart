@@ -106,14 +106,18 @@ String _displayUserName(List<Business>? businesses) {
   return 'User';
 }
 
+String _formatContactForChip(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return '';
+  return trimmed.startsWith('+') ? trimmed.substring(1) : trimmed;
+}
+
 String _displayUserContact(List<Business>? businesses) {
   for (final business in businesses ?? <Business>[]) {
     final email = business.email?.toString().trim();
     if (email != null && email.isNotEmpty) return email;
   }
-  final phone = ProxyService.box.getUserPhone()?.trim();
-  if (phone != null && phone.isNotEmpty) return phone;
-  return '';
+  return _formatContactForChip(ProxyService.box.getUserPhone());
 }
 
 class LoginChoices extends StatefulHookConsumerWidget {
@@ -513,39 +517,35 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            _RoundBackButton(
-              onPressed: () {
-                setState(() {
-                  _isSelectingBranch = false;
-                  _loadingItemId = null;
-                  _selectedBranchId = null;
-                });
-              },
-            ),
-            const Spacer(),
-            _BusinessPill(name: selectedBusiness?.name ?? 'Demo Shop'),
-            const Spacer(),
-            const SizedBox(width: 54),
-          ],
+        _BranchSelectionTopRow(
+          businessName: selectedBusiness?.name ?? 'Business',
+          onBack: () {
+            setState(() {
+              _isSelectingBranch = false;
+              _loadingItemId = null;
+              _selectedBranchId = null;
+            });
+          },
         ),
         SizedBox(height: layout.titleGap),
         Text(
           'Choose a branch',
-          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-            color: const Color(0xFF0B1220),
-            fontWeight: FontWeight.w900,
+          style: TextStyle(
+            color: _SelTokens.ink1,
+            fontWeight: FontWeight.w700,
             height: 1.05,
+            fontSize: layout.isDesktop ? 27 : 27,
+            letterSpacing: layout.isDesktop ? -0.68 : -0.5,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 5),
         Text(
           'Select the branch you want to access',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: const Color(0xFF4A5567),
+          style: const TextStyle(
+            color: _SelTokens.ink2,
             height: 1.35,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
+            fontSize: 15,
           ),
         ),
         SizedBox(height: layout.listGap),
@@ -561,7 +561,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
               return _BranchChoiceTile(
                 name: branch.name ?? 'Branch',
                 subtitle: branch.location ?? '',
-                isDefault: index == 0,
+                isDefault: branch.isDefault == true,
                 isSelected: isSelected,
                 isLoading: _loadingItemId == branch.id.toString(),
                 onTap: () {
@@ -1014,12 +1014,11 @@ class _DesktopLoginChoicesScaffoldState
             Expanded(
               child: Align(
                 alignment: Alignment.center,
-                child: SingleChildScrollView(
+                child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 32, 24, 40),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxWidth: widget.layout.maxWidth,
-                      maxHeight: 560,
                     ),
                     child: widget.child,
                   ),
@@ -1544,20 +1543,14 @@ class _AddBusinessTileState extends State<_AddBusinessTile> {
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 15),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_rounded, color: foreground, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Add a business',
-                      style: TextStyle(
-                        color: foreground,
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'Add a business',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: foreground,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -1651,6 +1644,40 @@ class _DesktopBusinessHelpText extends StatelessWidget {
   }
 }
 
+/// Back + centered business pill (handoff `.sel-toprow` / `.sel-org-pill`).
+class _BranchSelectionTopRow extends StatelessWidget {
+  final String businessName;
+  final VoidCallback onBack;
+
+  const _BranchSelectionTopRow({
+    required this.businessName,
+    required this.onBack,
+  });
+
+  static const double _sideSlot = 44;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: _sideSlot,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _RoundBackButton(onPressed: onBack),
+          ),
+          Center(child: _BusinessPill(name: businessName)),
+          const Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(width: _sideSlot, height: _sideSlot),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BusinessPill extends StatelessWidget {
   final String name;
 
@@ -1659,34 +1686,43 @@ class _BusinessPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      height: 38,
+      padding: const EdgeInsets.fromLTRB(8, 0, 14, 0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _SelTokens.surface,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE6ECF5)),
-        boxShadow: [
+        border: Border.all(color: _SelTokens.line),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFF102040).withValues(alpha: .08),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+            color: Color(0x0D102040),
+            blurRadius: 2,
+            offset: Offset(0, 1),
           ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.storefront_outlined,
-            color: Color(0xFF4F46E5),
-            size: 18,
+          Container(
+            width: 26,
+            height: 26,
+            decoration: const BoxDecoration(
+              color: _SelTokens.blueTint,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.storefront_outlined,
+              color: _SelTokens.blue,
+              size: 15,
+            ),
           ),
           const SizedBox(width: 8),
           Text(
             name,
             style: const TextStyle(
-              color: Color(0xFF0B1220),
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
+              color: _SelTokens.ink1,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -1920,24 +1956,24 @@ class _RoundBackButton extends StatelessWidget {
       customBorder: const CircleBorder(),
       onTap: onPressed,
       child: Container(
-        width: 54,
-        height: 54,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _SelTokens.surface,
           shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFFE6ECF5)),
-          boxShadow: [
+          border: Border.all(color: _SelTokens.line),
+          boxShadow: const [
             BoxShadow(
-              color: const Color(0xFF102040).withValues(alpha: .08),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              color: Color(0x0D102040),
+              blurRadius: 2,
+              offset: Offset(0, 1),
             ),
           ],
         ),
         child: const Icon(
           Icons.chevron_left_rounded,
-          color: Color(0xFF4A5567),
-          size: 28,
+          color: _SelTokens.ink2,
+          size: 20,
         ),
       ),
     );
