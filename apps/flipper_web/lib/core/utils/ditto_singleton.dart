@@ -321,11 +321,13 @@ class DittoSingleton {
         }
         await Future.delayed(const Duration(milliseconds: 500));
         _ditto = null;
+        DittoService.instance.clearDittoInstance();
         await _releaseLock();
         print('✅ Ditto singleton disposed and lock released');
       } catch (e) {
         print('❌ Error disposing Ditto singleton: $e');
         _ditto = null;
+        DittoService.instance.clearDittoInstance();
         await _releaseLock();
       }
     } else {

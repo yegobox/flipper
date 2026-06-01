@@ -6,6 +6,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/transaction_query_helpers.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -337,8 +338,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       );
 
       controller.onCancel = () async {
-        await observer?.cancel();
-        await controller.close();
+        await cancelDittoStoreObserver(observer);
+        if (!controller.isClosed) {
+          await controller.close();
+        }
       };
 
       return controller.stream;
@@ -2107,9 +2110,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final observerSlot = <dynamic>[null];
 
       controller.onCancel = () {
-        try {
-          observerSlot[0]?.cancel();
-        } catch (_) {}
+        unawaited(cancelDittoStoreObserver(observerSlot[0]));
         if (!controller.isClosed) {
           controller.close();
         }

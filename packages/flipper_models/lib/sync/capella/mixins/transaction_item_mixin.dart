@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
+import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -641,9 +642,13 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
 
     controller.onCancel = () async {
       talker.debug('Cleaning up transactionItemsStreams subscriptions');
-      await observer?.cancel();
-      specificSubscription.cancel();
-      await controller.close();
+      await cancelDittoStoreObserver(observer);
+      try {
+        specificSubscription.cancel();
+      } catch (_) {}
+      if (!controller.isClosed) {
+        await controller.close();
+      }
       talker.debug('Cleanup completed for transactionItemsStreams');
     };
 

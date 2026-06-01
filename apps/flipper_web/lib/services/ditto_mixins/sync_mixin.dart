@@ -27,6 +27,15 @@ mixin SyncMixin on DittoCore {
     _dittoListeners.remove(listener);
   }
 
+  /// Clears [dittoInstance] after the native client was closed elsewhere.
+  void clearDittoInstance() {
+    _observationTimer?.cancel();
+    _observationTimer = null;
+    _lastSetupDitto = null;
+    clearDittoReference();
+    _notifyDittoListeners();
+  }
+
   void _notifyDittoListeners() {
     for (final listener in List<void Function(Ditto?)>.from(_dittoListeners)) {
       try {
