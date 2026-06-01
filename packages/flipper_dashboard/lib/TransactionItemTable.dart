@@ -8,6 +8,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/pos_cart_expanded_line.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/utils.dart';
@@ -343,11 +345,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ),
           SizedBox(height: gapBeforeSubtitle),
           Text(
-            'Add your first item to get started',
+            'Tap a product to start a sale',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: compact ? 13 : 14,
-              color: Colors.grey[500],
+              color: PosTokens.ink3,
             ),
           ),
         ],
@@ -364,11 +366,18 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ? const AlwaysScrollableScrollPhysics()
           : const NeverScrollableScrollPhysics(),
       itemCount: visibleItems.length,
-      separatorBuilder: (context, index) => Container(
-        height: 1,
-        color: Colors.grey[100],
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-      ),
+      separatorBuilder: (context, index) {
+        final usePosSeparator =
+            !isOrdering &&
+            MediaQuery.sizeOf(context).width >=
+                PosLayoutBreakpoints.mobileLayoutMaxWidth;
+        if (usePosSeparator) return const SizedBox(height: 4);
+        return Container(
+          height: 1,
+          color: Colors.grey[100],
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+        );
+      },
       itemBuilder: (context, index) {
         final item = visibleItems[index];
         return KeyedSubtree(
@@ -395,14 +404,23 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final isSaving = _isItemSaving[item.id] ?? false;
     final hasError = _itemErrors.containsKey(item.id);
     final hasChanged = _hasItemChanged[item.id] ?? false;
+    final usePosLine =
+        !isOrdering &&
+        MediaQuery.sizeOf(context).width >=
+            PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
-    final isOptimisticLine = OptimisticCartIds.isOptimistic(item.id);
+    if (usePosLine) {
+      return _buildPosHandoffCartLine(
+        item: item,
+        isOrdering: isOrdering,
+        isExpanded: isExpanded,
+        isSaving: isSaving,
+        hasError: hasError,
+      );
+    }
 
-    return AnimatedContainer(
-      duration: isOptimisticLine
-          ? Duration.zero
-          : const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    return Container(
+      padding: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: hasError
             ? Colors.red[50]
@@ -422,6 +440,100 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildPosHandoffCartLine({
+    required TransactionItem item,
+    required bool isOrdering,
+    required bool isExpanded,
+    required bool isSaving,
+    required bool hasError,
+  }) {
+    _initController(item);
+    final displayQty = _displayQtyFor(item);
+    final pendingOpt =
+        ref
+            .watch(optimisticCartProvider)
+            .pendingQtyByVariantId[item.variantId ?? ''] ??
+        0;
+    final qtyLocked =
+        pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
+    final currency = ProxyService.box.defaultCurrency();
+    final unitFormatted = formatNumber(item.price.toDouble());
+    final qtyFormatted = _formatQty(displayQty);
+    final stock = item.stock?.currentStock;
+    String? stockHint;
+    if (stock != null) {
+      final n = stock is int ? stock : stock.floor();
+      stockHint = '$n left in stock';
+    }
+    final retail = item.retailPrice ?? item.price;
+    final priceHint = (item.price - retail).abs() < 0.01 ? 'Default price' : null;
+
+    return PosCartExpandedLine(
+      name: _getItemName(item),
+      currency: currency,
+      unitPriceText: '$currency $unitFormatted each',
+      lineTotalText: _getItemTotal(item),
+      qtyText: qtyFormatted,
+      subtotalDetailText: '$qtyFormatted × $currency $unitFormatted',
+      isExpanded: isExpanded,
+      isSaving: isSaving,
+      hasError: hasError,
+      errorText: _itemErrors[item.id],
+      stockHint: stockHint,
+      priceHint: priceHint,
+      onToggleExpand: () => _toggleExpandedItem(item.id, isSaving: isSaving),
+      onDelete: () => _showDeleteConfirmation(item, isOrdering),
+      onDecrement: () => _decrementQuantity(item, isOrdering),
+      onIncrement: () => _incrementQuantity(item, isOrdering),
+      decrementEnabled: displayQty > 0 && !qtyLocked,
+      incrementEnabled: !qtyLocked,
+      expandedQuantityStepper: isExpanded
+          ? PosCartExpandedQtyStepper(
+              qtyText: qtyFormatted,
+              decrementEnabled: displayQty > 0 && !qtyLocked,
+              incrementEnabled: !qtyLocked,
+              onDecrement: isSaving
+                  ? null
+                  : () => _decrementQuantity(item, isOrdering),
+              onIncrement: isSaving
+                  ? null
+                  : () => _incrementQuantity(item, isOrdering),
+            )
+          : null,
+      expandedPriceField: isExpanded
+          ? PosCartExpandedPriceField(
+              controller: _priceControllers[item.id]!,
+              focusNode: _priceFocusNodes[item.id]!,
+              currency: currency,
+              enabled: !isSaving,
+              onChanged: (value) {
+                setState(() {
+                  _hasItemChanged[item.id] = true;
+                  _itemErrors.remove(item.id);
+                });
+                final originalUnitPrice = item.retailPrice ?? item.price;
+                final newPrice = double.tryParse(value);
+                if (_settingsService.enablePriceQuantityAdjustment &&
+                    newPrice != null &&
+                    originalUnitPrice > 0) {
+                  final newQty = newPrice / originalUnitPrice;
+                  _quantityControllers[item.id]?.text =
+                      newQty.toStringAsFixed(2);
+                }
+                _debounceTimers[item.id]?.cancel();
+                _debounceTimers[item.id] = Timer(_debounceDuration, () {
+                  _updatePriceFromTextField(item, value, isOrdering);
+                });
+              },
+              onSubmitted: (value) {
+                _debounceTimers[item.id]?.cancel();
+                _updatePriceFromTextField(item, value, isOrdering);
+              },
+            )
+          : null,
     );
   }
 
@@ -856,36 +968,36 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildModernSummary() {
+    final count = _visibleTransactionItems.length;
+    final itemLabel = count == 1 ? '1 item' : '$count items';
+    final currency = ProxyService.box.defaultCurrency();
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(8),
-          bottomRight: Radius.circular(8),
-        ),
-        border: Border(top: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+        color: PosTokens.surface,
+        border: Border(top: BorderSide(color: PosTokens.line, width: 1)),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            'Grand Total',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Colors.grey[800],
+          Expanded(
+            child: Text(
+              'Grand Total · $itemLabel',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: PosTokens.ink2,
+              ),
             ),
           ),
           Flexible(
             child: Text(
-              grandTotal.toCurrencyFormatted(
-                symbol: ProxyService.box.defaultCurrency(),
-              ),
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: PosLayoutBreakpoints.posAccentBlue,
+              grandTotal.toCurrencyFormatted(symbol: currency),
+              style: PosTokens.posPriceStyle(
+                Theme.of(context).textTheme,
+                fontSize: 26,
+                color: PosTokens.blue,
               ),
               textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,

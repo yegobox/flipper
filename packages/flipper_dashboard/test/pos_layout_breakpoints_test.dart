@@ -2,6 +2,19 @@ import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('PosLayoutBreakpoints grid', () {
+    test('cart drawer width capped at cart panel width', () {
+      expect(PosLayoutBreakpoints.cartDrawerWidth(2000), 460);
+    });
+
+    test('wide pane uses 4 columns max', () {
+      expect(
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(1200),
+        4,
+      );
+    });
+  });
+
   group('PosLayoutBreakpoints checkout layout', () {
     test('useSingleScrollCheckoutPane below threshold', () {
       expect(

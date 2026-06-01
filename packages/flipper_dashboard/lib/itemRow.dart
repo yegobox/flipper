@@ -33,6 +33,9 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/utils/pos_product_tile.dart';
+import 'package:flipper_dashboard/widgets/pos_catalog_grid_card.dart';
 
 /// One map built per cart stream emission; rows use `.select` so only variants whose
 /// qty changed rebuild.
@@ -103,6 +106,8 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool isOrdering;
   final bool forceRemoteUrl;
   final bool forceListView;
+  /// Desktop POS catalog grid — uses [PosCatalogGridCard] (handoff layout).
+  final bool usePosCatalogTile;
 
   const RowItem({
     Key? key,
@@ -112,6 +117,7 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.stock,
     required this.forceRemoteUrl,
     required this.forceListView,
+    this.usePosCatalogTile = false,
     this.delete = _defaultFunction,
     this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
@@ -146,10 +152,12 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   // Constants for consistent styling
-  static const double cardBorderRadius = 8.0;
-  static const double imageBorderRadius = 8.0;
+  static const double cardBorderRadius = PosTokens.radiusMd;
+  static const double imageBorderRadius = PosTokens.radiusMd;
   static const double contentPadding = 12.0;
-  static const int animationDuration = 200;
+
+  double get _lowStockThreshold =>
+      widget.variant?.stock?.lowStock ?? 10.0;
 
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
@@ -210,6 +218,108 @@ class _RowItemState extends ConsumerState<RowItem>
       // Reinitialize cache
       _initImageCache();
     }
+  }
+
+  void _handleProductTap({
+    required bool isMultiSelectActive,
+    required String? itemId,
+  }) {
+    if (isMultiSelectActive) {
+      if (itemId != null) {
+        ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+      }
+      return;
+    }
+    final flipperWatch? w =
+        kDebugMode ? flipperWatch('onAddingItemToQuickSell') : null;
+    w?.start();
+    _onAddToCartWithOptimistic();
+    w?.log('Item Added to Quick Sell');
+  }
+
+  Widget _buildDesktopPosGridCard({
+    required BuildContext context,
+    required WidgetRef ref,
+    required bool isSelected,
+    required bool isMultiSelectActive,
+    required String? itemId,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+  }) {
+    final variantId = widget.variant?.id;
+    final txnId = ref.watch(
+      posCartPendingTransactionIdProvider(widget.isOrdering),
+    );
+
+    int inCartQty = 0;
+    if (txnId != null &&
+        txnId.isNotEmpty &&
+        variantId != null &&
+        variantId.isNotEmpty) {
+      final branchId = ProxyService.box.branchIdString() ?? '0';
+      inCartQty = ref.watch(
+        pendingCartQtyByVariantIdProvider((
+          transactionId: txnId,
+          branchId: branchId,
+        )).select((map) => map[variantId] ?? 0),
+      );
+      inCartQty = (inCartQty + _cartOptimisticBump).clamp(0, 999);
+    }
+
+    final stockAsync = ref.watch(
+      stockByVariantProvider(widget.variant?.stockId ?? ''),
+    );
+    final stockRaw = stockAsync.value?.currentStock ?? widget.stock;
+    final stockValue = stockRaw is int ? stockRaw : stockRaw.floor();
+    final visual = posStockVisual(
+      currentStock: stockValue,
+      lowStockThreshold: _lowStockThreshold,
+    );
+    final isOut = visual == PosStockVisual.out;
+
+    final price = widget.variant?.retailPrice ?? 0;
+    final currency = ProxyService.box.defaultCurrency();
+
+    final bcd = widget.variant?.bcd;
+    final bcdLabel =
+        bcd != null && bcd.isNotEmpty ? 'BCD: $bcd' : null;
+
+    final hasImage = widget.imageUrl?.isNotEmpty == true;
+
+    return PosCatalogGridCard(
+      productName: widget.productName.isNotEmpty
+          ? widget.productName
+          : 'Unnamed Product',
+      bcdLabel: bcdLabel,
+      currencySymbol: currency,
+      priceAmount: price,
+      stockVisual: visual,
+      stockLabel: posStockLabel(visual, stockValue),
+      inCartQty: inCartQty,
+      showSelectionBorder: isMultiSelectActive && isSelected,
+      isOutOfStock: isOut,
+      thumb: posCatalogThumb(
+        name: widget.productName,
+        hasImage: hasImage,
+        image: hasImage
+            ? ClipRRect(
+                child: SizedBox.expand(child: _buildImage()),
+              )
+            : null,
+        isOutOfStock: isOut,
+      ),
+      onTap: isOut
+          ? null
+          : () => _handleProductTap(
+              isMultiSelectActive: isMultiSelectActive,
+              itemId: itemId,
+            ),
+      onLongPress: () {
+        if (itemId != null && !widget.isOrdering) {
+          ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+        }
+      },
+    );
   }
 
   @override
@@ -274,12 +384,28 @@ class _RowItemState extends ConsumerState<RowItem>
             deviceType !=
                 'Desktop'); // Use list view on phones or when forced (except on desktop)
 
+    final bool renderPosCatalogTile = widget.usePosCatalogTile;
+
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: animationDuration),
-          curve: Curves.easeInOut,
+        if (renderPosCatalogTile) {
+          return _buildDesktopPosGridCard(
+            context: context,
+            ref: ref,
+            isSelected: isSelected,
+            isMultiSelectActive: isMultiSelectActive,
+            itemId: itemId,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          );
+        }
+
+        final listChild = useListView
+            ? _buildListItemContent(isSelected, textTheme, colorScheme)
+            : _buildItemContent(isSelected, textTheme, colorScheme);
+
+        return Container(
           decoration: BoxDecoration(
             color: isSelected
                 ? colorScheme.primaryContainer.withValues(alpha: 0.25)
@@ -291,40 +417,18 @@ class _RowItemState extends ConsumerState<RowItem>
                   : Colors.grey.withValues(alpha: 0.12),
               width: isSelected ? 2.0 : 1.0,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: isSelected
-                    ? colorScheme.primary.withValues(alpha: 0.3)
-                    : Colors.black.withValues(alpha: 0.04),
-                blurRadius: isSelected ? 8.0 : 4.0,
-                spreadRadius: isSelected ? 1.0 : 0.0,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: PosTokens.shadow1,
           ),
-          // Add clipBehavior to ensure no child overflows
           clipBehavior: Clip.antiAlias,
           child: Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(cardBorderRadius),
             child: InkWell(
               borderRadius: BorderRadius.circular(cardBorderRadius),
-              onTap: () async {
-                if (isMultiSelectActive) {
-                  if (itemId != null) {
-                    ref
-                        .read(selectedItemIdsProvider.notifier)
-                        .toggleSelection(itemId);
-                  }
-                  return;
-                }
-                final flipperWatch? w = kDebugMode
-                    ? flipperWatch("onAddingItemToQuickSell")
-                    : null;
-                w?.start();
-                _onAddToCartWithOptimistic();
-                w?.log('Item Added to Quick Sell');
-              },
+              onTap: () => _handleProductTap(
+                isMultiSelectActive: isMultiSelectActive,
+                itemId: itemId,
+              ),
               onLongPress: () {
                 if (itemId != null && !widget.isOrdering) {
                   ref
@@ -335,19 +439,9 @@ class _RowItemState extends ConsumerState<RowItem>
               child: Stack(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(
-                      contentPadding - 4,
-                    ), // Further reduced padding
-                    child: useListView
-                        ? _buildListItemContent(
-                            isSelected,
-                            textTheme,
-                            colorScheme,
-                          )
-                        : _buildItemContent(isSelected, textTheme, colorScheme),
+                    padding: const EdgeInsets.all(contentPadding - 4),
+                    child: listChild,
                   ),
-
-                  // Selection indicator overlay (always show when selected)
                   if (isSelected)
                     Positioned(
                       top: 8,
@@ -365,8 +459,6 @@ class _RowItemState extends ConsumerState<RowItem>
                         ),
                       ),
                     ),
-
-                  // Overlay action buttons when selected and NOT in multi-select mode (only 1 item selected)
                   if (isSelected &&
                       selectedItemIds.length == 1 &&
                       !widget.isOrdering)
@@ -697,51 +789,39 @@ class _RowItemState extends ConsumerState<RowItem>
     final String? productSubtitle =
         hasDistinctVariant && productTitle.isNotEmpty ? productTitle : null;
 
-    final String initials = primaryLine
-        .split(RegExp(r'\s+'))
-        .where((p) => p.isNotEmpty)
-        .take(2)
-        .map((p) => p.characters.first.toUpperCase())
-        .join();
-
     final num retailPrice = widget.variant?.retailPrice ?? 0;
     final String priceText = retailPrice.toCurrencyFormatted(
       symbol: ProxyService.box.defaultCurrency(),
     );
+
+    final tileColor = widget.color.isEmpty
+        ? posTileColorForName(primaryLine)
+        : HexColor(widget.color);
+    final abbrText = posTileAbbr(primaryLine);
 
     final Widget leading = widget.imageUrl?.isNotEmpty == true
         ? SizedBox(
             width: 44,
             height: 44,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: HexColor(
-                    widget.color.isEmpty ? "#673AB7" : widget.color,
-                  ).withValues(alpha: 0.12),
-                ),
-                child: _buildImage(),
-              ),
+              borderRadius: BorderRadius.circular(10),
+              child: _buildImage(),
             ),
           )
         : Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: HexColor(
-                widget.color.isEmpty ? "#673AB7" : widget.color,
-              ).withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(12),
+              color: tileColor,
+              borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
             child: Text(
-              initials.isEmpty ? 'PRD' : initials,
-              style: textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: HexColor(
-                  widget.color.isEmpty ? "#673AB7" : widget.color,
-                ).withValues(alpha: 0.9),
+              abbrText.isEmpty ? 'PRD' : abbrText,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                fontSize: 13,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -830,16 +910,17 @@ class _RowItemState extends ConsumerState<RowItem>
                             ? stockRaw
                             : stockRaw.floor();
 
-                        final Color bg = stockValue <= 0
-                            ? Colors.red.withValues(alpha: 0.12)
-                            : (stockValue <= 5
-                                  ? Colors.orange.withValues(alpha: 0.14)
-                                  : Colors.green.withValues(alpha: 0.14));
-                        final Color fg = stockValue <= 0
-                            ? Colors.red.shade700
-                            : (stockValue <= 5
-                                  ? Colors.orange.shade800
-                                  : Colors.green.shade800);
+                        final threshold = _lowStockThreshold;
+                        final visual = posStockVisual(
+                          currentStock: stockValue,
+                          lowStockThreshold: threshold,
+                        );
+                        final Color bg = visual == PosStockVisual.out
+                            ? PosTokens.lossTint
+                            : (visual == PosStockVisual.low
+                                  ? PosTokens.warnTint
+                                  : PosTokens.gain.withValues(alpha: 0.14));
+                        final Color fg = posStockTextColor(visual);
 
                         return Container(
                           padding: const EdgeInsets.symmetric(
@@ -1072,9 +1153,9 @@ class _RowItemState extends ConsumerState<RowItem>
               if (widget.imageUrl == null || widget.imageUrl!.isEmpty)
                 Container(
                   decoration: BoxDecoration(
-                    color: HexColor(
-                      widget.color.isEmpty ? "#FF0000" : widget.color,
-                    ),
+                    color: widget.color.isEmpty
+                        ? posTileColorForName(widget.productName)
+                        : HexColor(widget.color),
                     borderRadius: BorderRadius.circular(imageBorderRadius),
                   ),
                   child: Center(

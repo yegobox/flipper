@@ -21,6 +21,8 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/SearchFieldWidget.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/pos_catalog_search_row.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -280,19 +282,25 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             if (isSelectionMode)
               _buildBulkSelectionBar(context, model, selectedIds),
             if (showLinkedSearch) ...[
-              SizedBox(height: isMobileLayout ? 8 : 16),
+              SizedBox(height: isMobileLayout ? 8 : 20),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                child: Material(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
-                  child: SearchFieldWidget(
-                    controller: linked,
-                    hintText: 'Search products...',
-                    densePadding: true,
-                    showTrailingToolbar: false,
-                  ),
+                padding: EdgeInsets.fromLTRB(
+                  isMobileLayout ? 16 : 22,
+                  0,
+                  isMobileLayout ? 16 : 22,
+                  10,
                 ),
+                child: isMobileLayout
+                    ? SearchFieldWidget(
+                        controller: linked,
+                        hintText: 'Search products…',
+                        densePadding: true,
+                        showTrailingToolbar: false,
+                      )
+                    : PosCatalogSearchRow(
+                        controller: linked,
+                        hintText: 'Search products…',
+                      ),
               ),
             ],
             Expanded(
@@ -597,7 +605,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -642,7 +650,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         Expanded(
           child: showProductList && !isMobileLayout
               ? ColoredBox(
-                  color: const Color(0xFFF8FAFC),
+                  color: PosTokens.posBg,
                   child: _buildMainContentSection(
                     context,
                     model,
@@ -719,10 +727,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                                                     ? const Color(0xFFE8E8ED)
                                                     : Colors.white)
                                               : (isCurrent
-                                                    ? Theme.of(
-                                                        context,
-                                                      ).colorScheme.primary
-                                                    : Colors.transparent),
+                                                    ? PosTokens.blue
+                                                    : PosTokens.surface),
                                           borderRadius: BorderRadius.circular(
                                             10,
                                           ),
@@ -741,9 +747,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                                                 border: Border.all(
                                                   color: isMobileLayout
                                                       ? const Color(0xFFD1D1D6)
-                                                      : Theme.of(
-                                                          context,
-                                                        ).colorScheme.primary,
+                                                      : (isCurrent
+                                                            ? PosTokens.blue
+                                                            : PosTokens.line),
                                                 ),
                                               ),
                                               child: Text(
@@ -758,12 +764,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                                                                 0xFF3C3C43,
                                                               ))
                                                       : (isCurrent
-                                                            ? Theme.of(context)
-                                                                  .colorScheme
-                                                                  .onPrimary
-                                                            : Theme.of(context)
-                                                                  .colorScheme
-                                                                  .primary),
+                                                            ? Colors.white
+                                                            : PosTokens.ink2),
                                                 ),
                                               ),
                                             ),
@@ -860,9 +862,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final crossAxisCount =
         PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(paneWidth);
     final spacing = PosLayoutBreakpoints.desktopGridSpacing(paneWidth);
-    final aspectRatio = PosLayoutBreakpoints.desktopGridChildAspectRatio(
-      crossAxisCount,
-    );
+    final aspectRatio =
+        PosLayoutBreakpoints.desktopGridChildAspectRatioForPane(paneWidth);
 
     _lastGridCrossAxisCount = crossAxisCount;
     _lastGridMainAxisSpacing = spacing;
@@ -885,6 +886,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           variant: variants[index],
           isOrdering: false,
           forceListView: false,
+          usePosCatalogTile: true,
         );
       },
       physics: const AlwaysScrollableScrollPhysics(),

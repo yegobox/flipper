@@ -1,10 +1,14 @@
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// A compact widget showing user information in the top bar
 class UserInfoWidget extends StatefulHookConsumerWidget {
-  const UserInfoWidget({Key? key}) : super(key: key);
+  const UserInfoWidget({super.key, this.handoffTopBarStyle = false});
+
+  /// Handoff `.pos-user` chip (POS top bar).
+  final bool handoffTopBarStyle;
 
   @override
   ConsumerState<UserInfoWidget> createState() => _UserInfoWidgetState();
@@ -120,12 +124,68 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final displayName = widget.handoffTopBarStyle
+        ? _userName.toUpperCase()
+        : _userName;
+
+    if (widget.handoffTopBarStyle) {
+      return Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: PosTokens.gradBrand,
+              ),
+              child: Text(
+                _getInitials(_userName),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  displayName,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: PosTokens.ink1,
+                    height: 1.15,
+                  ),
+                ),
+                if (_branchName != null)
+                  Text(
+                    _branchName!,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: PosTokens.ink3,
+                      height: 1.15,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // User avatar
           CircleAvatar(
             radius: 16,
             backgroundColor: Theme.of(
@@ -141,13 +201,12 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
             ),
           ),
           const SizedBox(width: 8),
-          // User info
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                _userName,
+                displayName,
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/typeDef.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -12,7 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/material.dart';
 
 class PayableView extends HookConsumerWidget {
-  static const double _kBarButtonHeight = 64;
+  static const double _kBarButtonHeight = PosTokens.payButtonHeight;
   static const double _kVerticalGap = 10;
 
   const PayableView({
@@ -134,11 +135,11 @@ class PayableView extends HookConsumerWidget {
               height: _kBarButtonHeight,
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                  side: const BorderSide(color: Color(0xFFE5E7EB)),
+                  backgroundColor: PosTokens.surface,
+                  foregroundColor: PosTokens.ink2,
+                  side: const BorderSide(color: PosTokens.line),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(PosTokens.radiusSm),
                   ),
                 ),
                 onPressed: () {

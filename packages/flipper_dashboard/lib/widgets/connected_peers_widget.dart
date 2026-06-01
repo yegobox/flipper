@@ -1,10 +1,14 @@
+import 'package:flipper_dashboard/widgets/pos_top_bar_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/ditto_presence_provider.dart';
 import 'package:ditto_live/ditto_live.dart';
 
 class ConnectedPeersWidget extends ConsumerStatefulWidget {
-  const ConnectedPeersWidget({Key? key}) : super(key: key);
+  const ConnectedPeersWidget({super.key, this.handoffTopBarStyle = false});
+
+  /// Handoff `.pos-iconbtn` refresh + red badge (POS top bar).
+  final bool handoffTopBarStyle;
 
   @override
   ConsumerState<ConnectedPeersWidget> createState() =>
@@ -202,6 +206,18 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
         final peers = presenceGraph.remotePeers;
         final count = peers.length;
         final isConnected = count > 0;
+
+        if (widget.handoffTopBarStyle) {
+          return PosTopCircleIconButton(
+            iconName: 'refresh',
+            iconSize: 19,
+            tooltip: isConnected
+                ? 'Connected to $count device(s). Tap to see details.'
+                : 'Searching for devices on same network...',
+            badge: '$count',
+            onPressed: () => _showPeersDialog(context, presenceGraph),
+          );
+        }
 
         return InkWell(
           onTap: () => _showPeersDialog(context, presenceGraph),

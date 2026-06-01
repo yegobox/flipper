@@ -17,6 +17,7 @@ import 'package:flipper_dashboard/shift_history_content.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/hooks/use_access_permissions_realtime.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -89,38 +90,16 @@ class DashboardLayout extends HookConsumerWidget {
               return Column(
                 children: [
                   DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.06),
-                          offset: const Offset(0, 2),
-                          blurRadius: 6,
-                        ),
-                      ],
+                    decoration: const BoxDecoration(
+                      color: PosTokens.surface,
+                      border: Border(
+                        bottom: BorderSide(color: PosTokens.line),
+                      ),
                     ),
                     child: SizedBox(
                       height: PosLayoutBreakpoints.desktopTopBarHeight,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: PosLayoutBreakpoints.sideMenuWidth,
-                            child: Center(
-                              child: Image.asset(
-                                'assets/logo.png',
-                                package: 'flipper_dashboard',
-                                width: 32,
-                                height: 32,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: UnifiedTopBar(
-                              searchController: searchController,
-                            ),
-                          ),
-                        ],
+                      child: UnifiedTopBar(
+                        searchController: searchController,
                       ),
                     ),
                   ),

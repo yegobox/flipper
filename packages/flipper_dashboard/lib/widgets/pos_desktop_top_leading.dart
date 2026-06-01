@@ -6,9 +6,11 @@ import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/umusada_helper.dart';
+import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
+import 'package:flipper_dashboard/widgets/pos_top_bar_widgets.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
@@ -18,14 +20,12 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 
-/// Left cluster of the desktop POS top bar: branding + "Point of Sale" + toolbar
-/// icons (matches design: grid, scan, cart, monitor, add).
+/// Left cluster of the desktop POS top bar (handoff): logo + tools.
 class PosDesktopTopLeading extends StatefulHookConsumerWidget {
   final TextEditingController searchController;
 
@@ -115,66 +115,58 @@ class _PosDesktopTopLeadingState extends ConsumerState<PosDesktopTopLeading> {
     });
   }
 
-  Widget _orderIcon(int count) {
+  Widget _cartTool(int count) {
+    final button = PosTopToolButton(
+      iconName: 'cart',
+      tooltip: 'Orders',
+      onPressed: _toggleOrders,
+    );
+    if (count <= 0) return button;
     return badges.Badge(
-      showBadge: count > 0,
+      showBadge: true,
+      position: badges.BadgePosition.topEnd(top: 4, end: 4),
       badgeContent: Text(
         count.toString(),
-        style: const TextStyle(color: Colors.white, fontSize: 10),
+        style: const TextStyle(color: Colors.white, fontSize: 9),
       ),
-      child: const Icon(FluentIcons.cart_24_regular, color: Color(0xFF64748B)),
+      child: button,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final stringValue = ref.watch(searchStringProvider);
+    final isAutoAdd = ref.watch(autoAddSearchProvider);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
+        PosHandoffIcons.svg('flipper-logo', size: 30),
+        const SizedBox(width: 11),
+        const Text(
           'FLIPPER',
           style: TextStyle(
-            fontSize: 17,
+            fontSize: 19,
             fontWeight: FontWeight.w800,
-            color: Colors.black.withValues(alpha: 0.87),
-            letterSpacing: 0.5,
+            color: PosTokens.ink1,
+            letterSpacing: -0.01,
           ),
         ),
-        const SizedBox(width: 14),
-        Text(
+        const SizedBox(width: 11),
+        const Text(
           'Point of Sale',
           style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black.withValues(alpha: 0.72),
+            fontWeight: FontWeight.w500,
+            color: PosTokens.ink3,
           ),
         ),
-        const SizedBox(width: 12),
-        IconButton(
-          tooltip: 'Apps',
-          onPressed: _openAppPicker,
-          icon: const Icon(Icons.grid_view_rounded, color: Color(0xFF64748B)),
-        ),
-        Consumer(
-          builder: (context, ref, _) {
-            final isAutoAdd = ref.watch(autoAddSearchProvider);
-            return IconButton(
-              tooltip: 'Toggle scan mode',
-              onPressed: () {
-                ref.read(autoAddSearchProvider.notifier).toggle();
-              },
-              icon: Icon(
-                isAutoAdd
-                    ? FluentIcons.barcode_scanner_24_filled
-                    : FluentIcons.barcode_scanner_24_regular,
-                color: isAutoAdd
-                    ? PosLayoutBreakpoints.posAccentBlue
-                    : const Color(0xFF64748B),
-              ),
-            );
-          },
+
+        PosTopToolButton(
+          iconName: 'barcode',
+          tooltip: 'Toggle scan mode',
+          isActive: isAutoAdd,
+          onPressed: () => ref.read(autoAddSearchProvider.notifier).toggle(),
         ),
         Consumer(
           builder: (context, ref, _) {
@@ -185,51 +177,47 @@ class _PosDesktopTopLeadingState extends ConsumerState<PosDesktopTopLeading> {
               ),
             );
             return orders.when(
-              data: (list) => IconButton(
-                tooltip: 'Orders',
-                onPressed: _toggleOrders,
-                icon: _orderIcon(list.length),
-              ),
-              loading: () => IconButton(
-                tooltip: 'Orders',
-                onPressed: _toggleOrders,
-                icon: _orderIcon(0),
-              ),
+              data: (list) => _cartTool(list.length),
+              loading: () => _cartTool(0),
               error: (_, __) => const SizedBox.shrink(),
             );
           },
         ),
-        IconButton(
+        PosTopToolButton(
+          iconName: 'monitor',
           tooltip: 'Locations',
           onPressed: _openBranchPerformance,
-          icon: const Icon(
-            FluentIcons.desktop_24_regular,
-            color: Color(0xFF64748B),
-          ),
         ),
         if (_hasText)
-          IconButton(
-            tooltip: 'Clear search',
-            onPressed: () {
-              if (!ref.read(toggleProvider)) {
-                ref.read(searchStringProvider.notifier).emitString(value: '');
-              }
-              widget.searchController.clear();
-              setState(() => _hasText = false);
-            },
-            icon: const Icon(
-              FluentIcons.dismiss_24_regular,
-              color: Color(0xFF64748B),
+          Tooltip(
+            message: 'Clear search',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  if (!ref.read(toggleProvider)) {
+                    ref
+                        .read(searchStringProvider.notifier)
+                        .emitString(value: '');
+                  }
+                  widget.searchController.clear();
+                  setState(() => _hasText = false);
+                },
+                borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+                hoverColor: PosTokens.surface2,
+                child: const SizedBox(
+                  width: 38,
+                  height: 38,
+                  child: Icon(Icons.close, size: 20, color: PosTokens.ink2),
+                ),
+              ),
             ),
           )
         else
-          IconButton(
+          PosTopToolButton(
+            iconName: 'plus',
             tooltip: 'Add product',
             onPressed: () => unawaited(_openAddProduct()),
-            icon: const Icon(
-              FluentIcons.add_20_regular,
-              color: Color(0xFF64748B),
-            ),
           ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
       ],
     );

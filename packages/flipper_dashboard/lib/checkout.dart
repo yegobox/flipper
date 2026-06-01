@@ -50,23 +50,12 @@ class CheckOutState extends ConsumerState<CheckOut>
         TransactionMixinOld,
         PreviewCartMixin,
         Refresh {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
   late TabController tabController;
 
   @override
   void initState() {
     super.initState();
     NavigationGuardService().startCriticalWorkflow();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(_animationController);
-    _animationController.forward();
 
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
@@ -84,7 +73,6 @@ class CheckOutState extends ConsumerState<CheckOut>
   void dispose() {
     NavigationGuardService().endCriticalWorkflow();
     WidgetsBinding.instance.removeObserver(this);
-    _animationController.dispose();
     tabController.dispose();
     discountController.dispose();
     receivedAmountController.dispose();
@@ -232,9 +220,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           ),
           child: Padding(
             padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
-            child: FadeTransition(
-              opacity: _animation,
-              child: PosDefaultView(
+            child: PosDefaultView(
                 transaction: transaction,
                 quickSellingView: _buildQuickSellingView(),
                 onCompleteTransaction:
@@ -262,7 +248,6 @@ class CheckOutState extends ConsumerState<CheckOut>
                 },
               ),
             ),
-          ),
         );
       },
     );

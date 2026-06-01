@@ -3,6 +3,8 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/pos_quick_cash_row.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
@@ -248,12 +250,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       padding: const EdgeInsets.fromLTRB(2, 0, 2, 6),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
+          color: PosTokens.surface,
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          border: Border.all(color: PosTokens.line),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: SizedBox(
             width: double.infinity,
             child: SingleChildScrollView(
@@ -371,16 +373,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         : PosLayoutBreakpoints.posAccentBlue;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      height: PosTokens.chipHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 13),
       decoration: BoxDecoration(
-        color: isRemaining
-            ? Colors.red.withValues(alpha: 0.06)
-            : const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(8),
+        color: isRemaining ? PosTokens.lossTint : PosTokens.blueTint,
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         border: Border.all(
           color: isRemaining
-              ? Colors.red.withValues(alpha: 0.28)
-              : const Color(0xFFBFDBFE),
+              ? PosTokens.loss.withValues(alpha: 0.28)
+              : Colors.transparent,
         ),
       ),
       child: Row(
@@ -391,15 +392,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
               color: labelColor,
               fontWeight: FontWeight.w600,
+              fontSize: 13,
             ),
           ),
           Text(
             (isRemaining ? remaining : change).toCurrencyFormatted(
               symbol: ProxyService.box.defaultCurrency(),
             ),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            style: PosTokens.posMonoStyle(
+              Theme.of(context).textTheme,
+              fontSize: 13,
               color: valueColor,
-              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -2126,6 +2129,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 alreadyPaid: alreadyPaid,
               ),
               const SizedBox(height: 10.0),
+              PosQuickCashRow(
+                exactAmount: totalAfterDiscountAndShipping,
+                enabled: totalAfterDiscountAndShipping > 0,
+                onSelect: (amount) {
+                  widget.receivedAmountController.text =
+                      amount == amount.truncateToDouble()
+                          ? amount.toStringAsFixed(0)
+                          : amount.toStringAsFixed(2);
+                  ProxyService.box.writeDouble(
+                    key: 'getCashReceived',
+                    value: amount,
+                  );
+                  setState(() {});
+                },
+              ),
+              const SizedBox(height: 10.0),
               _customerNameField(),
               const SizedBox(height: 10.0),
             ],
@@ -2296,13 +2315,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         maxLines: 1,
         minLines: 1,
         key: const Key('received-amount-field'), // Add this line
-        outlineColor: PosLayoutBreakpoints.posAccentBlue,
-        borderRadius: 8,
-        fillColor: Colors.white,
-        style: const TextStyle(
+        outlineColor: PosTokens.blue,
+        borderRadius: PosTokens.radiusMd,
+        fillColor: PosTokens.surface,
+        style: PosTokens.posMonoStyle(
+          Theme.of(context).textTheme,
           fontSize: 22,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF111827),
         ),
         suffixIcon: Container(
           margin: const EdgeInsetsDirectional.only(end: 4),

@@ -86,11 +86,13 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required Variant variant,
     required bool isOrdering,
     required bool forceRemoteUrl,
-    bool forceListView = false, // Add parameter with default value
+    bool forceListView = false,
+    bool usePosCatalogTile = false,
   }) {
     return buildRowItem(
       forceRemoteUrl: forceRemoteUrl,
-      forceListView: forceListView, // Pass the parameter
+      forceListView: forceListView,
+      usePosCatalogTile: usePosCatalogTile,
       context: context,
       model: model,
       variant: variant,
@@ -186,7 +188,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required double stock,
     required bool forceRemoteUrl,
     required bool isOrdering,
-    bool forceListView = false, // Add parameter with default value
+    bool forceListView = false,
+    bool usePosCatalogTile = false,
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
 
@@ -209,7 +212,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         // Return a fallback UI instead of showing the error
         return RowItem(
           forceRemoteUrl: forceRemoteUrl,
-          forceListView: forceListView, // Pass the parameter
+          forceListView: forceListView,
+          usePosCatalogTile: usePosCatalogTile,
           isOrdering: isOrdering,
           color: variant.color ?? "#673AB7",
           stock: stock,
@@ -236,7 +240,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (assetAsync == null) {
           return RowItem(
             forceRemoteUrl: forceRemoteUrl,
-            forceListView: forceListView, // Pass the parameter
+            forceListView: forceListView,
+            usePosCatalogTile: usePosCatalogTile,
             isOrdering: isOrdering,
             color: variant.color ?? "#673AB7",
             stock: stock,
@@ -264,7 +269,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         return assetAsync.when(
           loading: () => RowItem(
             forceRemoteUrl: forceRemoteUrl,
-            forceListView: forceListView, // Pass the parameter
+            forceListView: forceListView,
+            usePosCatalogTile: usePosCatalogTile,
             isOrdering: isOrdering,
             color: variant.color ?? "#673AB7",
             stock: stock,
@@ -294,7 +300,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             // Return the product row without asset data
             return RowItem(
               forceRemoteUrl: forceRemoteUrl,
-              forceListView: forceListView, // Pass the parameter
+              forceListView: forceListView,
+              usePosCatalogTile: usePosCatalogTile,
               isOrdering: isOrdering,
               color: variant.color ?? "#673AB7",
               stock: stock,
@@ -328,7 +335,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           data: (asset) {
             return RowItem(
               forceRemoteUrl: forceRemoteUrl,
-              forceListView: forceListView, // Pass the parameter
+              forceListView: forceListView,
+              usePosCatalogTile: usePosCatalogTile,
               isOrdering: isOrdering,
               color: variant.color ?? "#673AB7",
               stock: stock,
