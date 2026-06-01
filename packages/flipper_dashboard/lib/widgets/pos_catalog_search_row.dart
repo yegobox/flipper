@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/pos_add_product_button.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,8 @@ class PosCatalogSearchRow extends ConsumerWidget {
           isActive: ref.watch(autoAddSearchProvider),
           onPressed: () => ref.read(autoAddSearchProvider.notifier).toggle(),
         ),
+        const SizedBox(width: 12),
+        const PosAddProductButton(),
       ],
     );
   }
@@ -144,10 +147,7 @@ class _PosSearchFieldState extends State<_PosSearchField> {
 }
 
 class _PosScanButton extends StatelessWidget {
-  const _PosScanButton({
-    required this.onPressed,
-    required this.isActive,
-  });
+  const _PosScanButton({required this.onPressed, required this.isActive});
 
   final VoidCallback onPressed;
   final bool isActive;

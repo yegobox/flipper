@@ -44,7 +44,7 @@ class UnifiedTopBar extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            PosDesktopTopLeading(searchController: searchController),
+            const PosDesktopTopLeading(),
             const Spacer(),
             const IconRow(),
             _posNoticeBell(context, ref),

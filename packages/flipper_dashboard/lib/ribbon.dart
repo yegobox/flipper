@@ -2,14 +2,18 @@
 
 import 'dart:async';
 
+import 'package:badges/badges.dart' as badges;
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/import_purchase_dialog.dart';
+import 'package:flipper_dashboard/umusada_helper.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_dashboard/widgets/pos_top_bar_widgets.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flipper_dashboard/features/stock_value/stock_value_report_desktop_screen.dart';
+import 'package:flipper_models/providers/orders_provider.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/features/transaction_reports/transaction_reports_desktop_screen.dart';
@@ -21,10 +25,12 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
         buttonIndexProvider,
         selectedBranchProvider;
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flutter/material.dart';
@@ -85,6 +91,52 @@ class IconRowState extends ConsumerState<IconRow>
       }
     });
     _runNavigationForUi(uiIndex);
+  }
+
+  void _openSalesUmusada() {
+    UmusadaHelper.handleOrderingFlow(context, () {
+      try {
+        ProxyService.box.writeBool(key: 'isOrdering', value: true);
+        locator<RouterService>().navigateTo(OrdersRoute());
+      } catch (e) {
+        debugPrint('$e');
+      }
+    });
+  }
+
+  Widget _buildSalesUmusadaButton() {
+    final stringValue = ref.watch(searchStringProvider);
+    final orders = ref.watch(
+      stockRequestsProvider(
+        status: RequestStatus.pending,
+        search: stringValue.isNotEmpty ? stringValue : null,
+      ),
+    );
+
+    Widget tool({required int count}) {
+      final button = PosTopToolButton(
+        key: const Key('ribbon_umusada_sales'),
+        iconName: 'cart',
+        tooltip: 'Sales — Join Umusada',
+        onPressed: _openSalesUmusada,
+      );
+      if (count <= 0) return button;
+      return badges.Badge(
+        showBadge: true,
+        position: badges.BadgePosition.topEnd(top: 4, end: 4),
+        badgeContent: Text(
+          count.toString(),
+          style: const TextStyle(color: Colors.white, fontSize: 9),
+        ),
+        child: button,
+      );
+    }
+
+    return orders.when(
+      data: (list) => tool(count: list.length),
+      loading: () => tool(count: 0),
+      error: (_, __) => const SizedBox.shrink(),
+    );
   }
 
   void _runNavigationForUi(int uiIndex) {
@@ -209,6 +261,7 @@ class IconRowState extends ConsumerState<IconRow>
           uiIndex: 3,
           key: const Key('analytics_desktop'),
         ),
+        _buildSalesUmusadaButton(),
         if (showImportPurchase)
           Tooltip(
             message: 'Import & Purchase',

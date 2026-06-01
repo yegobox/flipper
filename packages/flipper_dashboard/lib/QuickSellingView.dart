@@ -52,7 +52,6 @@ String _qsvPendingLabel(AsyncValue<ITransaction> v) {
   return 'id=${t.id} status=${t.status} invoiceNo=${t.invoiceNumber}';
 }
 
-
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController discountController;
@@ -863,8 +862,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         try {
-          final alreadyPaidVal =
-              _effectiveAlreadyPaid(transactionAsyncValue.value);
+          final alreadyPaidVal = _effectiveAlreadyPaid(
+            transactionAsyncValue.value,
+          );
           return context.isSmallDevice
               ? _buildSmallDeviceScaffold(
                   alreadyPaidVal,
@@ -1530,43 +1530,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildErrorCard(String title, String error) {
-    return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: Theme.of(context).colorScheme.onErrorContainer,
-          ),
-          SizedBox(height: 8),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onErrorContainer,
-            ),
-          ),
-          if (error.isNotEmpty) ...[
-            SizedBox(height: 4),
-            Text(
-              error,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onErrorContainer.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildBottomActionBar(
     double alreadyPaid,
     AsyncValue<ITransaction> transactionAsyncValue,
@@ -2135,8 +2098,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 onSelect: (amount) {
                   widget.receivedAmountController.text =
                       amount == amount.truncateToDouble()
-                          ? amount.toStringAsFixed(0)
-                          : amount.toStringAsFixed(2);
+                      ? amount.toStringAsFixed(0)
+                      : amount.toStringAsFixed(2);
                   ProxyService.box.writeDouble(
                     key: 'getCashReceived',
                     value: amount,

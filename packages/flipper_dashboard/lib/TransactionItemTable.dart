@@ -23,7 +23,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   // === CORE DATA ===
   /// Cart lines come from [posCartDisplayItemsProvider] (Ditto + optimistic).
-  List<TransactionItem> get _cartLines => ref.watch(posCartDisplayItemsProvider);
+  List<TransactionItem> get _cartLines =>
+      ref.watch(posCartDisplayItemsProvider);
 
   /// Legacy name used by [QuickSellingView] totals / completion hints.
   List<TransactionItem> get internalTransactionItems => _cartLines;
@@ -171,8 +172,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   bool get _useCompactExpandedControls {
     final h = _listViewportHeight;
-    return h != null &&
-        h < PosLayoutBreakpoints.expandedCartRowCompactHeight;
+    return h != null && h < PosLayoutBreakpoints.expandedCartRowCompactHeight;
   }
 
   EdgeInsets _fieldContentPadding({bool compact = false}) =>
@@ -457,8 +457,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             .watch(optimisticCartProvider)
             .pendingQtyByVariantId[item.variantId ?? ''] ??
         0;
-    final qtyLocked =
-        pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
+    final qtyLocked = pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
     final currency = ProxyService.box.defaultCurrency();
     final unitFormatted = formatNumber(item.price.toDouble());
     final qtyFormatted = _formatQty(displayQty);
@@ -469,7 +468,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       stockHint = '$n left in stock';
     }
     final retail = item.retailPrice ?? item.price;
-    final priceHint = (item.price - retail).abs() < 0.01 ? 'Default price' : null;
+    final priceHint = (item.price - retail).abs() < 0.01
+        ? 'Default price'
+        : null;
 
     return PosCartExpandedLine(
       name: _getItemName(item),
@@ -520,8 +521,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                     newPrice != null &&
                     originalUnitPrice > 0) {
                   final newQty = newPrice / originalUnitPrice;
-                  _quantityControllers[item.id]?.text =
-                      newQty.toStringAsFixed(2);
+                  _quantityControllers[item.id]?.text = newQty.toStringAsFixed(
+                    2,
+                  );
                 }
                 _debounceTimers[item.id]?.cancel();
                 _debounceTimers[item.id] = Timer(_debounceDuration, () {
@@ -781,7 +783,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   Widget _buildExpandedControls(TransactionItem item, bool isOrdering) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compactWidth = constraints.maxWidth <
+        final compactWidth =
+            constraints.maxWidth <
             PosLayoutBreakpoints.expandedCartRowCompactWidth;
         final compact = compactWidth || _useCompactExpandedControls;
         final containerPadding = compact ? 12.0 : 16.0;
@@ -981,27 +984,23 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Expanded(
-            child: Text(
-              'Grand Total · $itemLabel',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: PosTokens.ink2,
-              ),
+          Text(
+            'Grand Total · $itemLabel',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: PosTokens.ink2,
             ),
           ),
-          Flexible(
-            child: Text(
-              grandTotal.toCurrencyFormatted(symbol: currency),
-              style: PosTokens.posPriceStyle(
-                Theme.of(context).textTheme,
-                fontSize: 26,
-                color: PosTokens.blue,
-              ),
-              textAlign: TextAlign.end,
-              overflow: TextOverflow.ellipsis,
+          const Spacer(),
+          Text(
+            grandTotal.toCurrencyFormatted(symbol: currency),
+            style: PosTokens.posPriceStyle(
+              Theme.of(context).textTheme,
+              fontSize: 26,
+              color: PosTokens.blue,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
