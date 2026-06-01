@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 
 /// Shared layout breakpoints for POS / dashboard desktop shell.
 /// Keep in sync with [DeviceTypeExtension.isSmallDevice] (< 600) in flipper_models.
@@ -8,11 +9,13 @@ abstract final class PosLayoutBreakpoints {
 
   /// Left rail width; must match [EnhancedSideMenu] and the header logo column
   /// in [DashboardLayout].
-  static const double sideMenuWidth = 80;
+  static const double sideMenuWidth = PosTokens.sideMenuWidth;
 
-  /// Desktop shell header row ([UnifiedTopBar] + logo column); keep in sync with
-  /// [UnifiedTopBar] vertical sizing.
-  static const double desktopTopBarHeight = 70;
+  /// Desktop shell header row ([UnifiedTopBar] + logo column).
+  static const double desktopTopBarHeight = PosTokens.topBarHeight;
+
+  /// Fixed cart column width on wide desktop split (handoff).
+  static const double cartPanelWidth = PosTokens.cartPanelWidth;
 
   /// Horizontal inset for search strip above checkout (see [UnifiedTopBar]).
   static const double contentSearchLeadingInset = 8;
@@ -23,30 +26,42 @@ abstract final class PosLayoutBreakpoints {
   static const double desktopSplitMinWidth = 1100;
 
   /// Primary accent from POS mock (blue-600).
-  static const Color posAccentBlue = Color(0xFF2563EB);
+  static const Color posAccentBlue = PosTokens.blue;
 
   /// Product grid column count from **pane** width (not full window).
-  /// Wide panes use 5 columns to match the desktop POS reference.
+  /// Wide panes cap at 4 columns per handoff.
   static int productGridCrossAxisCountForPaneWidth(double paneWidth) {
     if (paneWidth < 520) return 2;
     if (paneWidth < 720) return 3;
-    if (paneWidth < 1000) return 4;
-    return 5;
+    return 4;
   }
 
   static double desktopGridSpacing(double paneWidth) =>
-      paneWidth < 720 ? 12.0 : 16.0;
+      paneWidth < 720 ? 12.0 : PosTokens.gridGap;
 
-  /// Child aspect ratio for product cards in the grid.
+  /// Body below the 104px thumb (padding + name + bcd + price row).
+  static const double productCardBodyHeight = 88;
+
+  static double productCardTotalHeight() =>
+      PosTokens.productThumbHeight + productCardBodyHeight;
+
+  /// Aspect ratio from pane width so grid cells match handoff card proportions.
+  static double desktopGridChildAspectRatioForPane(double paneWidth) {
+    final cols = productGridCrossAxisCountForPaneWidth(paneWidth);
+    final spacing = desktopGridSpacing(paneWidth);
+    final tileWidth = (paneWidth - spacing * (cols - 1)) / cols;
+    return tileWidth / productCardTotalHeight();
+  }
+
+  /// Child aspect ratio for product cards in the grid (~104px thumb + body).
   static double desktopGridChildAspectRatio(int crossAxisCount) {
-    if (crossAxisCount <= 2) return 0.72;
-    if (crossAxisCount <= 3) return 0.76;
-    if (crossAxisCount <= 4) return 0.78;
-    return 0.78;
+    // Legacy callers: approximate width for column count.
+    const refWidth = 900.0;
+    return desktopGridChildAspectRatioForPane(refWidth);
   }
 
   static double cartDrawerWidth(double maxWidth) =>
-      math.min(440, maxWidth * 0.48).clamp(320.0, 440.0).toDouble();
+      math.min(cartPanelWidth, maxWidth * 0.48).clamp(320.0, cartPanelWidth).toDouble();
 
   /// Below this checkout-pane height, cart + form use one vertical scroll
   /// ([QuickSellingView._buildSharedView]).

@@ -13,6 +13,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
@@ -404,24 +405,22 @@ class _SideMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = PosLayoutBreakpoints.posAccentBlue;
     final color = isLogout
-        ? Colors.red
-        : (isSelected ? accent : const Color(0xFF64748B));
+        ? PosTokens.loss
+        : (isSelected ? accent : PosTokens.ink3);
 
     final content = Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10),
+      child: AnimatedContainer(
+        duration: PosTokens.hoverTransition,
+        curve: Curves.ease,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: isSelected
-              ? (isLogout
-                    ? Colors.red.withValues(alpha: 0.08)
-                    : accent.withValues(alpha: 0.1))
+              ? (isLogout ? PosTokens.lossTint : PosTokens.blueTint)
               : null,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: iconBuilder(color),
-        ),
+        child: Center(child: iconBuilder(color)),
       ),
     );
 
@@ -429,7 +428,10 @@ class _SideMenuItem extends StatelessWidget {
       message: tooltip,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+        hoverColor: isLogout
+            ? PosTokens.lossTint
+            : PosTokens.surface2,
         child: isSelected
             ? Row(
                 children: [

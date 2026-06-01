@@ -17,6 +17,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/providers/business_agents_provider.dart';
@@ -504,22 +505,37 @@ class _SearchInputWithDropdownState
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            borderRadius: BorderRadius.circular(
+              widget.embeddedInCheckoutPane
+                  ? PosTokens.radiusMd
+                  : 12.0,
+            ),
+            borderSide: const BorderSide(color: PosTokens.line, width: 1.5),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(
+              widget.embeddedInCheckoutPane
+                  ? PosTokens.radiusMd
+                  : 12.0,
+            ),
             borderSide: const BorderSide(
-              color: PosLayoutBreakpoints.posAccentBlue,
+              color: PosTokens.blue,
               width: 1.5,
             ),
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            borderRadius: BorderRadius.circular(
+              widget.embeddedInCheckoutPane
+                  ? PosTokens.radiusMd
+                  : 12.0,
+            ),
+            borderSide: const BorderSide(color: PosTokens.line, width: 1.5),
           ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: PosTokens.surface,
+          contentPadding: widget.embeddedInCheckoutPane
+              ? const EdgeInsets.symmetric(vertical: 14)
+              : null,
         ),
       ),
     );

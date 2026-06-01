@@ -2,12 +2,18 @@
 
 import 'dart:async';
 
+import 'package:badges/badges.dart' as badges;
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/import_purchase_dialog.dart';
-import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/umusada_helper.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
+import 'package:flipper_dashboard/widgets/pos_top_bar_widgets.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flipper_dashboard/features/stock_value/stock_value_report_desktop_screen.dart';
+import 'package:flipper_models/providers/orders_provider.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/features/transaction_reports/transaction_reports_desktop_screen.dart';
@@ -19,62 +25,18 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
         buttonIndexProvider,
         selectedBranchProvider;
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
-
-class IconText extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final bool isSelected;
-  final Key key;
-
-  const IconText({
-    required this.icon,
-    required this.text,
-    required this.key,
-    this.isSelected = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = PosLayoutBreakpoints.posAccentBlue;
-
-    return Container(
-      key: key,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? primary.withValues(alpha: 0.12)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: isSelected ? primary : Colors.black54, size: 20.0),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-              color: isSelected ? primary : Colors.black87,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              fontSize: 13.0,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class IconRow extends StatefulHookConsumerWidget {
   const IconRow({super.key});
@@ -129,6 +91,52 @@ class IconRowState extends ConsumerState<IconRow>
       }
     });
     _runNavigationForUi(uiIndex);
+  }
+
+  void _openSalesUmusada() {
+    UmusadaHelper.handleOrderingFlow(context, () {
+      try {
+        ProxyService.box.writeBool(key: 'isOrdering', value: true);
+        locator<RouterService>().navigateTo(OrdersRoute());
+      } catch (e) {
+        debugPrint('$e');
+      }
+    });
+  }
+
+  Widget _buildSalesUmusadaButton() {
+    final stringValue = ref.watch(searchStringProvider);
+    final orders = ref.watch(
+      stockRequestsProvider(
+        status: RequestStatus.pending,
+        search: stringValue.isNotEmpty ? stringValue : null,
+      ),
+    );
+
+    Widget tool({required int count}) {
+      final button = PosTopToolButton(
+        key: const Key('ribbon_umusada_sales'),
+        iconName: 'cart',
+        tooltip: 'Sales — Join Umusada',
+        onPressed: _openSalesUmusada,
+      );
+      if (count <= 0) return button;
+      return badges.Badge(
+        showBadge: true,
+        position: badges.BadgePosition.topEnd(top: 4, end: 4),
+        badgeContent: Text(
+          count.toString(),
+          style: const TextStyle(color: Colors.white, fontSize: 9),
+        ),
+        child: button,
+      );
+    }
+
+    return orders.when(
+      data: (list) => tool(count: list.length),
+      loading: () => tool(count: 0),
+      error: (_, __) => const SizedBox.shrink(),
+    );
   }
 
   void _runNavigationForUi(int uiIndex) {
@@ -194,21 +202,20 @@ class IconRowState extends ConsumerState<IconRow>
 
   Widget _buildMainTab(
     BuildContext context, {
-    required IconData icon,
+    required String iconName,
     required String label,
     required int uiIndex,
     required Key key,
     VoidCallback? onDoubleTap,
   }) {
-    return InkWell(
-      onTap: () => _onMainTabPressed(uiIndex),
-      onDoubleTap: onDoubleTap,
-      borderRadius: BorderRadius.circular(8),
-      child: IconText(
-        icon: icon,
-        text: label,
-        key: key,
+    return KeyedSubtree(
+      key: key,
+      child: PosTopNavItem(
+        iconName: iconName,
+        label: label,
         isSelected: _selectedMain[uiIndex],
+        onTap: () => _onMainTabPressed(uiIndex),
+        onDoubleTap: onDoubleTap,
       ),
     );
   }
@@ -223,67 +230,63 @@ class IconRowState extends ConsumerState<IconRow>
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
+      spacing: 4,
       children: [
         _buildMainTab(
           context,
-          icon: Icons.home_outlined,
+          iconName: 'home',
           label: 'Home',
           uiIndex: 0,
           key: const Key('home_desktop'),
           onDoubleTap: () => _showTaxDialog(context),
         ),
-        const SizedBox(width: 4),
         _buildMainTab(
           context,
-          icon: Icons.sync_outlined,
+          iconName: 'refresh',
           label: 'Transactions',
           uiIndex: 1,
           key: const Key('transactions_desktop'),
         ),
-        const SizedBox(width: 4),
         _buildMainTab(
           context,
-          icon: Icons.payment_outlined,
+          iconName: 'wallet',
           label: 'EOD',
           uiIndex: 2,
           key: const Key('eod_desktop'),
         ),
-        const SizedBox(width: 4),
         _buildMainTab(
           context,
-          icon: Icons.dashboard_outlined,
+          iconName: 'chart',
           label: 'Analytics',
           uiIndex: 3,
           key: const Key('analytics_desktop'),
         ),
-        if (showImportPurchase) ...[
-          const SizedBox(width: 4),
+        _buildSalesUmusadaButton(),
+        if (showImportPurchase)
           Tooltip(
             message: 'Import & Purchase',
-            child: InkWell(
+            child: PosTopToolButton(
               key: const Key('import_purchase_ribbon'),
-              onTap: () => unawaited(_handleImportPurchaseTap(context)),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                child: Icon(
-                  FluentIcons.expand_up_right_16_regular,
-                  color: Colors.black54,
-                  size: 20,
-                ),
-              ),
+              iconName: 'arrow-up-right',
+              iconSize: 18,
+              tooltip: 'Import & Purchase',
+              onPressed: () => unawaited(_handleImportPurchaseTap(context)),
             ),
           ),
-        ],
-        const SizedBox(width: 4),
         PopupMenuButton<String>(
           tooltip: 'More',
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Icon(Icons.more_horiz, color: Colors.black54, size: 22),
+          offset: const Offset(0, 40),
+          padding: EdgeInsets.zero,
+          child: SizedBox(
+            width: 38,
+            height: 38,
+            child: Center(
+              child: PosHandoffIcons.svg(
+                'more',
+                size: 18,
+                color: PosTokens.ink2,
+              ),
+            ),
           ),
           onSelected: (value) {
             unawaited(_handleMoreMenuSelection(context, value));

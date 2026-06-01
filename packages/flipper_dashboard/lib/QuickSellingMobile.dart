@@ -21,6 +21,7 @@ import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_services/utils.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
@@ -64,8 +65,8 @@ class QuickSellingMobile {
             hasSabGradient: false,
             hasTopBarLayer: false,
             child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
+              decoration: const BoxDecoration(
+                color: PosTokens.posBg,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Column(
@@ -77,7 +78,7 @@ class QuickSellingMobile {
                     height: 4,
                     margin: EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: PosTokens.line,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -87,7 +88,7 @@ class QuickSellingMobile {
                     context: context,
                     transaction: transaction,
                   ),
-                  Divider(height: 1, color: Colors.grey[200]),
+                  const Divider(height: 1, color: PosTokens.line),
                   // Content
                   Flexible(
                     child: Padding(
@@ -225,7 +226,7 @@ class _QuickSellingMobileContentState
                       ],
                     ),
                   ),
-                  Divider(height: 1, color: Colors.grey[200]),
+                  const Divider(height: 1, color: PosTokens.line),
                   // Content
                   Padding(
                     padding: const EdgeInsets.all(20.0),

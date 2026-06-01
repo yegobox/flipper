@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/constants.dart';
@@ -96,12 +97,15 @@ class InventoryApp extends HookConsumerWidget {
             PosLayoutBreakpoints.desktopSplitMinWidth;
 
         if (!useCartDrawer) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              buildProductSection(ref),
-              Expanded(child: buildMainContent(isScanningMode, ref)),
-            ],
+          return ColoredBox(
+            color: PosTokens.posBg,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                buildProductSection(ref),
+                Expanded(child: buildMainContent(isScanningMode, ref)),
+              ],
+            ),
           );
         }
 
@@ -110,7 +114,7 @@ class InventoryApp extends HookConsumerWidget {
 
         return Scaffold(
           key: scaffoldKey,
-          backgroundColor: Colors.white,
+          backgroundColor: PosTokens.posBg,
           body: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

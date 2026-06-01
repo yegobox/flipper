@@ -11,6 +11,11 @@ class DittoCore {
     _ditto = ditto;
   }
 
+  /// Drops the cached instance without closing it (caller must [Ditto.close] first).
+  void clearDittoReference() {
+    _ditto = null;
+  }
+
   /// Get the Ditto instance (for use by cache implementations)
   Ditto? get dittoInstance => _ditto;
 
