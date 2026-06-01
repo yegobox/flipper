@@ -197,6 +197,10 @@ class TransactionListState extends ConsumerState<TransactionList>
 
     final AsyncValue<List<dynamic>> dataProviderRaw = switch (showDetailed) {
       true => switch (itemsAsync) {
+        AsyncData(:final value) when value.isNotEmpty =>
+          AsyncValue<List<dynamic>>.data(value.cast<dynamic>()),
+        AsyncData(:final value) when (transactions?.isNotEmpty ?? false) =>
+          const AsyncValue<List<dynamic>>.loading(),
         AsyncData(:final value) => AsyncValue<List<dynamic>>.data(
           value.cast<dynamic>(),
         ),
@@ -918,6 +922,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           _buildSwitchOption('Detailed', showDetailed, () {
             if (!showDetailed) {
               ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+              ref.invalidate(transactionItemListProvider);
             }
           }),
         ],

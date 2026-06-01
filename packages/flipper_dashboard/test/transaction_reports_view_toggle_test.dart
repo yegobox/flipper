@@ -161,7 +161,9 @@ void main() {
           transactionReportChartSnapshotProvider(
             false,
           ).overrideWith((ref) => Future.value(snap)),
-          transactionItemListProvider.overrideWith((ref) async => []),
+          transactionItemListProvider.overrideWith(
+            (ref) => Stream.value(const <TransactionItem>[]),
+          ),
           transactionReportKpiTotalsProvider.overrideWith(
             (ref) async => const TransactionReportKpiTotals(),
           ),

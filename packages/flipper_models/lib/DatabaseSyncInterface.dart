@@ -430,6 +430,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required List<DailyReportFile> files,
     String? dataConnectorUrl,
   });
+  Future<void> refreshDailyReportFilesFromCloud({required String branchId});
   Report report({required int id});
 
   FutureOr<bool> isAdmin({required String userId, required String appFeature});

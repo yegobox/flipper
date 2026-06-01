@@ -194,16 +194,36 @@ final filteredTransactionItemListProvider =
         );
       }
 
-      final snap = snapAsync.value;
-      final items = itemsAsync.value;
-      if (snap == null || items == null) {
+      if (!snapAsync.hasValue) {
+        return snapAsync.isLoading
+            ? const AsyncValue.loading()
+            : const AsyncValue.data(<TransactionItem>[]);
+      }
+
+      final snap = snapAsync.requireValue;
+      final allowed = snap.transactions.map((t) => t.id.toString()).toSet();
+      if (allowed.isEmpty) {
         return const AsyncValue.data(<TransactionItem>[]);
       }
 
-      final allowed = snap.transactions.map((t) => t.id.toString()).toSet();
-      final filtered = items.where((i) {
-        final tid = i.transactionId?.toString();
-        return tid != null && allowed.contains(tid);
-      }).toList();
+      // [transactionItemList] is a Ditto stream; first emission may be [] before PLU rows arrive.
+      if (!itemsAsync.hasValue || itemsAsync.isLoading) {
+        return const AsyncValue.loading();
+      }
+      if (itemsAsync.hasError) {
+        return AsyncValue.error(
+          itemsAsync.error!,
+          itemsAsync.stackTrace ?? StackTrace.current,
+        );
+      }
+
+      final items = itemsAsync.requireValue;
+      if (items.isEmpty && snap.transactions.isNotEmpty) {
+        return const AsyncValue.loading();
+      }
+
+      final filtered = items
+          .where((i) => transactionReportLineMatchesSale(i, allowed))
+          .toList();
       return AsyncValue.data(filtered);
     });

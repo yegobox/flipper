@@ -28,6 +28,53 @@ List<ITransaction> transactionReportScopeFilter(List<ITransaction> all) {
       .toList();
 }
 
+/// Matches line items to parent sales on the current report page (uuid string tolerant).
+/// Same Ditto stream as [transactionItemList] / detailed grid; used when one-shot fetch is empty.
+Future<List<TransactionItem>> waitReportPluLinesFromStream({
+  required CapellaSync capella,
+  required DateTime startDate,
+  required DateTime endDate,
+  required String branchId,
+}) async {
+  try {
+    final lines = await capella
+        .transactionItemsStreams(
+          startDate: startDate,
+          endDate: endDate,
+          branchId: branchId,
+          branchIdString: branchId,
+          fetchRemote: false,
+        )
+        .where((items) => items.isNotEmpty)
+        .first
+        .timeout(const Duration(seconds: 15));
+    talker.debug('waitReportPluLinesFromStream: ${lines.length} lines');
+    return lines;
+  } catch (e) {
+    talker.warning('waitReportPluLinesFromStream: $e');
+    return capella.fetchTransactionItemsReportScope(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+    );
+  }
+}
+
+bool transactionReportLineMatchesSale(
+  TransactionItem item,
+  Set<String> saleIds,
+) {
+  final tid = item.transactionId?.toString().trim();
+  if (tid == null || tid.isEmpty) return false;
+  if (saleIds.contains(tid)) return true;
+  final compact = tid.replaceAll('-', '').toLowerCase();
+  if (compact.isEmpty) return false;
+  for (final id in saleIds) {
+    if (id.replaceAll('-', '').toLowerCase() == compact) return true;
+  }
+  return false;
+}
+
 /// Chunks [getPaymentSumsByTransactionIds] to avoid huge IN-clause queries.
 Future<Map<String, TransactionPaymentSums>>
 getPaymentSumsByTransactionIdsChunked(
@@ -299,48 +346,84 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
 }
 
 // ---------------------------------------------------------------------------
-// transactionItemList — line items for the current report page (detailed PLU grid).
+// transactionItemList — PLU lines for Transaction Reports (detailed grid).
+// Stream + Ditto observer (pre–May-26); joined to report-scoped sales in range.
+// [filteredTransactionItemListProvider] narrows to the current page / UI filters.
 // ---------------------------------------------------------------------------
 @riverpod
-Future<List<TransactionItem>> transactionItemList(Ref ref) async {
+Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
-  final branchId = ProxyService.box.branchIdString();
+  final branchId =
+      ProxyService.box.branchIdString() ?? ProxyService.box.getBranchId();
   final forceRealData = !(ProxyService.box.enableDebug() ?? false);
 
-  talker.debug('transactionItemList (paged) called');
+  talker.debug('transactionItemList (stream) called');
 
   if (branchId == null) {
     talker.error('Branch ID is required');
     throw StateError('Branch ID is required');
   }
   if (startDate == null || endDate == null) {
-    talker.warning('startDate or endDate is null, returning empty item list');
-    return const <TransactionItem>[];
+    talker.warning('startDate or endDate is null, returning empty stream');
+    return Stream.value(const <TransactionItem>[]);
   }
 
-  final snap = await ref.watch(
-    transactionReportSnapshotProvider(forceRealData: forceRealData).future,
-  );
-  final ids = snap.transactions.map((t) => t.id.toString()).toList();
-  if (ids.isEmpty) return const <TransactionItem>[];
+  final itemStream = ProxyService.getStrategy(Strategy.capella)
+      .transactionItemsStreams(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+        branchIdString: branchId,
+        fetchRemote: false,
+      )
+      .startWith(const <TransactionItem>[]);
 
-  final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
-  const chunk = 200;
-  final out = <TransactionItem>[];
-  for (var i = 0; i < ids.length; i += chunk) {
-    final end = min(i + chunk, ids.length);
-    final sub = ids.sublist(i, end);
-    final grouped = await capella.transactionItemsForIds(sub);
-    for (final list in grouped.values) {
-      out.addAll(list);
+  final reportSalesStream = coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    forceRealData: forceRealData,
+    includeParked: true,
+  ).map(transactionReportScopeFilter).startWith(const <ITransaction>[]);
+
+  // Rebuild when the paged report snapshot updates so PLU ids match visible sales.
+  ref.watch(transactionReportSnapshotProvider(forceRealData: forceRealData));
+
+  return Rx.combineLatest2<
+    List<TransactionItem>,
+    List<ITransaction>,
+    List<TransactionItem>
+  >(itemStream, reportSalesStream, (items, sales) {
+    final snap = ref
+        .read(transactionReportSnapshotProvider(forceRealData: forceRealData))
+        .asData
+        ?.value;
+    final allowed = sales.map((t) => t.id.toString()).toSet();
+    if (snap != null) {
+      allowed.addAll(snap.transactions.map((t) => t.id.toString()));
     }
-  }
-  talker.debug(
-    'transactionItemList: page tx ids=${ids.length} → ${out.length} line rows',
-  );
-  return out;
+    final filtered = items
+        .where((i) => transactionReportLineMatchesSale(i, allowed))
+        .toList();
+    if (items.isNotEmpty && filtered.isEmpty) {
+      talker.warning(
+        'transactionItemList: ${items.length} PLU rows but none matched '
+        '${allowed.length} sale id(s); sample item tx=${items.first.transactionId}',
+      );
+    } else {
+      talker.debug(
+        'transactionItemList: ${items.length} raw → ${filtered.length} '
+        'report-scoped lines (${allowed.length} sale ids)',
+      );
+    }
+    return filtered;
+  }).handleError((Object error, StackTrace stackTrace) {
+    talker.error('Error loading transaction items: $error');
+    throw error;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -359,10 +442,31 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
 
   final forceRealData = !(ProxyService.box.enableDebug() ?? false);
   final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
+  final branchIdForPlu =
+      ProxyService.box.branchIdString() ?? branchId;
+
+  // Recompute when the live PLU stream updates (same source as detailed grid).
+  final pluAsync = ref.watch(transactionItemListProvider);
+  var periodLines = pluAsync.asData?.value ?? const <TransactionItem>[];
+  if (periodLines.isEmpty) {
+    periodLines = await waitReportPluLinesFromStream(
+      capella: capella,
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchIdForPlu,
+    );
+  }
 
   var pluLineSales = 0.0;
   var pluGrossProfit = 0.0;
   var pluLineTax = 0.0;
+  for (final item in periodLines) {
+    if (transactionReportCashMovementPluLine(item)) continue;
+    pluLineSales += item.price.toDouble() * item.qty.toDouble();
+    pluGrossProfit += TransactionItemPluMetrics.profitMade(item);
+    pluLineTax += TransactionItemPluMetrics.taxPayable(item);
+  }
+
   var periodByHand = 0.0;
   var periodCredit = 0.0;
 
@@ -391,22 +495,6 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
       final s = sums[tx.id.toString()];
       periodByHand += transactionReportByHandForTotals(tx, s);
       periodCredit += transactionReportCreditForTotals(tx, s);
-    }
-
-    final salesIds = scoped
-        .where((t) => t.isExpense != true)
-        .map((t) => t.id.toString())
-        .toList();
-    for (var j = 0; j < salesIds.length; j += 200) {
-      final end = min(j + 200, salesIds.length);
-      final sub = salesIds.sublist(j, end);
-      final grouped = await capella.transactionItemsForIds(sub);
-      for (final item in grouped.values.expand((e) => e)) {
-        if (transactionReportCashMovementPluLine(item)) continue;
-        pluLineSales += item.price.toDouble() * item.qty.toDouble();
-        pluGrossProfit += TransactionItemPluMetrics.profitMade(item);
-        pluLineTax += TransactionItemPluMetrics.taxPayable(item);
-      }
     }
 
     offset += batch.length;

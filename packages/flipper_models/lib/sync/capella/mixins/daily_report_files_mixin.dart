@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/daily_report_download_client.dart';
 import 'package:flipper_models/models/daily_report_file.dart';
-import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
 
@@ -11,6 +11,51 @@ mixin CapellaDailyReportFilesMixin {
   Talker get talker;
 
   DittoService get dittoService => DittoService.instance;
+
+  static const _dailyReportFilesQuery =
+      'SELECT * FROM daily_report_files WHERE branchId = :branchId AND type = :type ORDER BY createdAt DESC';
+
+  Map<String, dynamic> _dailyReportFilesArguments(String branchId) {
+    return <String, dynamic>{
+      'branchId': branchId,
+      'type': DailyReportFile.dailyDetailedTransactionsXlsxType,
+    };
+  }
+
+  /// Ensures cloud replication is active and waits briefly for new catalogue rows.
+  Future<void> refreshDailyReportFilesFromCloud({
+    required String branchId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null || branchId.isEmpty) {
+      talker.warning('refreshDailyReportFilesFromCloud: Ditto not ready');
+      return;
+    }
+
+    dittoService.startSync();
+    await ensureDailyReportFilesCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
+    );
+
+    final before = await _loadDailyReportFilesFromStore(ditto, branchId);
+    final beforeSig = _dailyReportFilesSignature(before);
+
+    const pollDelaysMs = <int>[0, 600, 1200, 2500];
+    for (final ms in pollDelaysMs) {
+      if (ms > 0) {
+        await Future.delayed(Duration(milliseconds: ms));
+      }
+      final next = await _loadDailyReportFilesFromStore(ditto, branchId);
+      if (_dailyReportFilesSignature(next) != beforeSig) {
+        talker.info(
+          'refreshDailyReportFilesFromCloud: catalogue updated '
+          '(${before.length} → ${next.length} files)',
+        );
+        return;
+      }
+    }
+  }
 
   Stream<List<DailyReportFile>> dailyReportFilesStream({
     required String branchId,
@@ -21,24 +66,17 @@ mixin CapellaDailyReportFilesMixin {
       return Stream.value([]);
     }
 
-    const type = DailyReportFile.dailyDetailedTransactionsXlsxType;
-    // Do not filter `archivedAt IS NULL` in DQL — Ditto does not treat a missing
-    // field as NULL, so legacy catalogue rows would be excluded. Filter in
-    // [_mapAndSort] instead.
-    final query =
-        'SELECT * FROM daily_report_files WHERE branchId = :branchId AND type = :type ORDER BY createdAt DESC';
-    final arguments = <String, dynamic>{'branchId': branchId, 'type': type};
+    final query = _dailyReportFilesQuery;
+    final arguments = _dailyReportFilesArguments(branchId);
 
     final controller = StreamController<List<DailyReportFile>>.broadcast();
     dynamic observer;
-    dynamic subscriptionRegistration;
 
     () async {
       try {
-        final prepared = prepareDqlSyncSubscription(query, arguments);
-        subscriptionRegistration = await ditto.sync.registerSubscription(
-          prepared.dql,
-          arguments: prepared.arguments,
+        await ensureDailyReportFilesCloudSubscription(
+          ditto: ditto,
+          branchId: branchId,
         );
 
         observer = ditto.store.registerObserver(
@@ -67,13 +105,32 @@ mixin CapellaDailyReportFilesMixin {
 
     controller.onCancel = () async {
       await observer?.cancel();
-      try {
-        subscriptionRegistration?.cancel();
-      } catch (_) {/* noop */}
       await controller.close();
     };
 
     return controller.stream;
+  }
+
+  Future<List<DailyReportFile>> _loadDailyReportFilesFromStore(
+    dynamic ditto,
+    String branchId,
+  ) async {
+    final result = await ditto.store.execute(
+      _dailyReportFilesQuery,
+      arguments: _dailyReportFilesArguments(branchId),
+    );
+    return _mapAndSort(result.items);
+  }
+
+  String _dailyReportFilesSignature(List<DailyReportFile> files) {
+    if (files.isEmpty) return 'empty';
+    final newest = files.first.createdAt?.toUtc().millisecondsSinceEpoch ?? 0;
+    final keys = files
+        .map((f) => f.s3ObjectKey?.trim() ?? f.id)
+        .where((k) => k.isNotEmpty)
+        .toList()
+      ..sort();
+    return '${files.length}|$newest|${keys.join(',')}';
   }
 
   /// Soft-archives catalogue rows (`archivedAt`). Uses data-connector when

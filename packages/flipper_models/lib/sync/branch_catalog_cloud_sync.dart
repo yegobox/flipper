@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/models/daily_report_file.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart';
 
@@ -117,4 +118,42 @@ Future<bool> waitForVariantNamesInDitto({
   }
 
   return false;
+}
+
+/// Ditto cloud pull for server-generated daily report catalogue rows.
+Future<void> ensureDailyReportFilesCloudSubscription({
+  required Ditto ditto,
+  required String branchId,
+}) async {
+  if (branchId.isEmpty) return;
+
+  const type = DailyReportFile.dailyDetailedTransactionsXlsxType;
+  final key = 'daily_report_files|$branchId|$type';
+  if (!_branchCatalogSubscriptionKeys.add(key)) {
+    return;
+  }
+
+  const sql =
+      'SELECT * FROM daily_report_files WHERE branchId = :branchId AND type = :type';
+  final args = <String, dynamic>{'branchId': branchId, 'type': type};
+
+  try {
+    final prepared = prepareDqlSyncSubscription(sql, args);
+    await ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+    if (kDebugMode) {
+      debugPrint(
+        'ensureDailyReportFilesCloudSubscription: registered $key',
+      );
+    }
+  } catch (e, st) {
+    _branchCatalogSubscriptionKeys.remove(key);
+    debugPrint(
+      'ensureDailyReportFilesCloudSubscription: failed $key: $e\n'
+      '${describeDqlSyncSubscriptionAttempt(sql, args)}\n'
+      '$st',
+    );
+  }
 }

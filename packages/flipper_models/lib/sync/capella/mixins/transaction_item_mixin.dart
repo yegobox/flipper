@@ -16,6 +16,15 @@ String? _dittoDocumentId(Map<String, dynamic> data) {
   return data['_id']?.toString();
 }
 
+/// Parent sale link — camelCase and snake_case both appear in Ditto payloads.
+String? _dittoTransactionIdLink(Map<String, dynamic> data) {
+  final camel = data['transactionId']?.toString().trim();
+  if (camel != null && camel.isNotEmpty) return camel;
+  final snake = data['transaction_id']?.toString().trim();
+  if (snake != null && snake.isNotEmpty) return snake;
+  return null;
+}
+
 mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
   Talker get talker;
@@ -102,7 +111,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       final conditions = <String>['variantId = :variantId'];
       final arguments = <String, dynamic>{'variantId': variantId};
       if (transactionId != null && transactionId.isNotEmpty) {
-        conditions.add('transactionId = :transactionId');
+        conditions.add(
+          '(transactionId = :transactionId OR transaction_id = :transactionId)',
+        );
         arguments['transactionId'] = transactionId;
       }
       conditions.add('active = :active');
@@ -146,7 +157,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       final conditions = <String>[];
 
       if (transactionId != null) {
-        conditions.add('transactionId = :transactionId');
+        conditions.add(
+          '(transactionId = :transactionId OR transaction_id = :transactionId)',
+        );
         arguments['transactionId'] = transactionId;
       }
       if (requestId != null) {
@@ -154,7 +167,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         arguments['requestId'] = requestId;
       }
       if (branchId != null) {
-        conditions.add('branchId = :branchId');
+        conditions.add('(branchId = :branchId OR branch_id = :branchId)');
         arguments['branchId'] = branchId;
       }
       if (variantId != null) {
@@ -206,19 +219,15 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         return {};
       }
 
-      // Build: WHERE transactionId IN (:t0, :t1, :t2, ...)
-      final placeholders = transactionIds
-          .asMap()
-          .entries
-          .map((e) => ':t${e.key}')
-          .join(', ');
-      final arguments = <String, dynamic>{
-        for (var i = 0; i < transactionIds.length; i++)
-          't$i': transactionIds[i],
-      };
-
+      // Dual-key OR join (parity with data-connector): snake_case has appeared on synced rows.
+      final orParts = <String>[];
+      final arguments = <String, dynamic>{};
+      for (var i = 0; i < transactionIds.length; i++) {
+        orParts.add('(transactionId = :t$i OR transaction_id = :t$i)');
+        arguments['t$i'] = transactionIds[i];
+      }
       final query =
-          'SELECT * FROM transaction_items WHERE transactionId IN ($placeholders)';
+          'SELECT * FROM transaction_items WHERE (${orParts.join(' OR ')})';
 
       final result = await ditto.store.execute(query, arguments: arguments);
 
@@ -226,11 +235,10 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       final grouped = <String, List<TransactionItem>>{};
       for (final doc in result.items) {
         final data = Map<String, dynamic>.from(doc.value);
+        final tid = _dittoTransactionIdLink(data);
+        if (tid == null) continue;
         final item = _convertFromDittoDocument(data);
-        final tid = item.transactionId;
-        if (tid != null) {
-          grouped.putIfAbsent(tid, () => []).add(item);
-        }
+        grouped.putIfAbsent(tid, () => []).add(item);
       }
       return grouped;
     } catch (e) {
@@ -238,6 +246,171 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       return {};
     }
   }
+
+  bool _reportItemBranchMatches(TransactionItem item, String branchId) {
+    final rowBranch = item.branchId?.toString().trim();
+    if (rowBranch == null || rowBranch.isEmpty) return true;
+    return rowBranch == branchId;
+  }
+
+  List<TransactionItem> _parseTransactionItemQuery(dynamic queryResult) {
+    final items = <TransactionItem>[];
+    for (final doc in queryResult.items) {
+      try {
+        final data = Map<String, dynamic>.from(doc.value);
+        items.add(_convertFromDittoDocument(data));
+      } catch (e) {
+        talker.error('Error converting transaction item row: $e');
+      }
+    }
+    return items;
+  }
+
+  /// Ditto Playground–verified window: branchId + createdAt inclusive day.
+  Future<List<TransactionItem>> _fetchTransactionItemsPlaygroundScope({
+    required DateTime localStartDate,
+    required DateTime localEndDate,
+    required String branchId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return [];
+    final query =
+        'SELECT * FROM transaction_items WHERE branchId = :branchId AND '
+        'createdAt >= :startDate AND createdAt <= :endDate '
+        'ORDER BY createdAt DESC';
+    final result = await ditto.store.execute(
+      query,
+      arguments: {
+        'branchId': branchId,
+        'startDate': localStartDate.toIso8601String(),
+        'endDate': localEndDate.toIso8601String(),
+      },
+    );
+    return _parseTransactionItemQuery(result)
+        .where((i) => _reportItemBranchMatches(i, branchId))
+        .toList();
+  }
+
+  /// One-shot fetch using the same DQL scope as [transactionItemsStreams] (pre–May-26 report path).
+  Future<List<TransactionItem>> _fetchTransactionItemsLegacyStreamScope({
+    required DateTime localStartDate,
+    required DateTime endDate,
+    required String branchId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return [];
+    final query =
+        'SELECT * FROM transaction_items WHERE '
+        '(branchId = :branchId OR branch_id = :branchId) AND '
+        'createdAt >= :startDate AND createdAt <= :endDate '
+        'ORDER BY createdAt DESC';
+    final result = await ditto.store.execute(
+      query,
+      arguments: {
+        'branchId': branchId,
+        'startDate': localStartDate.toIso8601String(),
+        // Matches [transactionItemsStreams]: end of selected day + 1 day bound.
+        'endDate': endDate.add(const Duration(days: 1)).toIso8601String(),
+      },
+    );
+    return _parseTransactionItemQuery(result)
+        .where((i) => _reportItemBranchMatches(i, branchId))
+        .toList();
+  }
+
+  /// Inclusive report-day window (Ditto playground / transaction paging parity).
+  Future<List<TransactionItem>> _fetchTransactionItemsInclusiveDayScope({
+    required DateTime localStartDate,
+    required DateTime localEndDate,
+    required String branchId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return [];
+    final dateClause =
+        '((createdAt >= :startDate AND createdAt <= :endDate) OR '
+        '(created_at >= :startDate AND created_at <= :endDate) OR '
+        '(lastTouched >= :startDate AND lastTouched <= :endDate) OR '
+        '(last_touched >= :startDate AND last_touched <= :endDate))';
+    final query =
+        'SELECT * FROM transaction_items WHERE '
+        '(branchId = :branchId OR branch_id = :branchId) AND $dateClause '
+        'ORDER BY createdAt DESC';
+    final result = await ditto.store.execute(
+      query,
+      arguments: {
+        'branchId': branchId,
+        'startDate': localStartDate.toIso8601String(),
+        'endDate': localEndDate.toIso8601String(),
+      },
+    );
+    return _parseTransactionItemQuery(result)
+        .where((i) => _reportItemBranchMatches(i, branchId))
+        .toList();
+  }
+
+  /// All PLU rows for Transaction Reports in [startDate]…[endDate] (branch-scoped).
+  /// Restores pre-regression stream loading; callers filter to sale ids as needed.
+  Future<List<TransactionItem>> fetchTransactionItemsReportScope({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String branchId,
+  }) async {
+    try {
+      final localStartDate = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+      final localEndDate = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      var lines = await _fetchTransactionItemsPlaygroundScope(
+        localStartDate: localStartDate,
+        localEndDate: localEndDate,
+        branchId: branchId,
+      );
+      if (lines.isNotEmpty) return lines;
+
+      lines = await _fetchTransactionItemsLegacyStreamScope(
+        localStartDate: localStartDate,
+        endDate: endDate,
+        branchId: branchId,
+      );
+      if (lines.isNotEmpty) return lines;
+
+      lines = await _fetchTransactionItemsInclusiveDayScope(
+        localStartDate: localStartDate,
+        localEndDate: localEndDate,
+        branchId: branchId,
+      );
+      if (lines.isNotEmpty) return lines;
+
+      // Last resort: bulk link by parent sale id (export / legacy payloads).
+      return [];
+    } catch (e, s) {
+      talker.error('fetchTransactionItemsReportScope: $e', s);
+      return [];
+    }
+  }
+
+  /// @deprecated Prefer [fetchTransactionItemsReportScope].
+  Future<List<TransactionItem>> transactionItemsInReportDateRange({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String branchId,
+  }) =>
+      fetchTransactionItemsReportScope(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+      );
 
   num? _dittoOptNum(dynamic v) {
     if (v == null) return null;
@@ -273,7 +446,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     return TransactionItem(
       id: _dittoDocumentId(data),
       name: data['name'] ?? '',
-      transactionId: data['transactionId'],
+      transactionId: _dittoTransactionIdLink(data),
       variantId: data['variantId'],
       qty: _dittoOptNum(data['qty']) ?? 0,
       price: _dittoOptNum(data['price']) ?? 0,
@@ -283,7 +456,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       active: data['active'] ?? true,
       doneWithTransaction: data['doneWithTransaction'] ?? false,
       lastTouched: lastTouched,
-      branchId: data['branchId'],
+      branchId: _dittoFirstString(data, ['branchId', 'branch_id']),
       taxTyCd: data['taxTyCd'],
       bcd: _dittoFirstString(data, ['bcd', 'barcode', 'Barcode', 'barCode']),
       sku: _dittoOptString(data['sku']),
@@ -323,10 +496,10 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       taxPercentage: _dittoOptNum(data['taxPercentage']),
       supplyPriceAtSale: _dittoOptNum(data['supplyPriceAtSale']),
       createdAt: data['createdAt'] != null
-          ? DateTime.parse(data['createdAt'])
+          ? DateTime.tryParse(data['createdAt'].toString())
           : null,
       updatedAt: data['updatedAt'] != null
-          ? DateTime.parse(data['updatedAt'])
+          ? DateTime.tryParse(data['updatedAt'].toString())
           : null,
     );
   }
@@ -355,11 +528,13 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     final conditions = <String>[];
 
     if (transactionId != null) {
-      conditions.add('transactionId = :transactionId');
+      conditions.add(
+        '(transactionId = :transactionId OR transaction_id = :transactionId)',
+      );
       arguments['transactionId'] = transactionId;
     }
     if (branchId != null) {
-      conditions.add('branchId = :branchId');
+      conditions.add('(branchId = :branchId OR branch_id = :branchId)');
       arguments['branchId'] = branchId;
     }
     if (active != null) {
