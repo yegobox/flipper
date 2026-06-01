@@ -349,6 +349,12 @@ class AppService with ListenableServiceMixin {
             businessId: ProxyService.box.getBusinessId(),
           ),
         );
+        unawaited(
+          ensureDailyReportFilesCloudSubscription(
+            ditto: ditto,
+            branchId: branchId,
+          ),
+        );
       }
     } catch (e) {
       print("⚠️ Ditto initialization failed (app will continue offline): $e");

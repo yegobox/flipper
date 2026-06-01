@@ -1481,6 +1481,11 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
+  Future<void> refreshDailyReportFilesFromCloud({
+    required String branchId,
+  }) async {}
+
+  @override
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required String businessId,
     List<String>? addons,

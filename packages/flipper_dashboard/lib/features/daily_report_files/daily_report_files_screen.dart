@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
@@ -143,9 +144,20 @@ class _DailyReportFilesScreenState
   _TypeFilter _typeFilter = _TypeFilter.all;
   bool _groupByDay = true;
   bool _refreshing = false;
+  Timer? _autoSyncTimer;
+  Future<void>? _refreshInFlight;
+
+  @override
+  void initState() {
+    super.initState();
+    _autoSyncTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      unawaited(_onRefresh());
+    });
+  }
 
   @override
   void dispose() {
+    _autoSyncTimer?.cancel();
     _search.dispose();
     _searchFocus.dispose();
     super.dispose();
@@ -154,13 +166,26 @@ class _DailyReportFilesScreenState
   Future<void> _onRefresh() async {
     final branchId = ProxyService.box.getBranchId() ?? '';
     if (branchId.isEmpty) return;
-    setState(() => _refreshing = true);
-    ref.invalidate(dailyReportFilesProvider(branchId));
-    try {
-      await ref.read(dailyReportFilesProvider(branchId).future);
-    } finally {
-      if (mounted) setState(() => _refreshing = false);
+    if (_refreshInFlight != null) {
+      return _refreshInFlight;
     }
+
+    final run = () async {
+      setState(() => _refreshing = true);
+      try {
+        await ProxyService.getStrategy(
+          Strategy.capella,
+        ).refreshDailyReportFilesFromCloud(branchId: branchId);
+        ref.invalidate(dailyReportFilesProvider(branchId));
+        await ref.read(dailyReportFilesProvider(branchId).future);
+      } finally {
+        _refreshInFlight = null;
+        if (mounted) setState(() => _refreshing = false);
+      }
+    }();
+
+    _refreshInFlight = run;
+    return run;
   }
 
   void _toggleAll(List<DailyReportFile> files, {required bool select}) {
@@ -815,8 +840,7 @@ class _DailyReportFilesScreenState
                       message:
                           'Select a branch to see the daily Excel exports.',
                       primaryLabel: 'Refresh',
-                      onPrimary: () =>
-                          ref.invalidate(dailyReportFilesProvider(branchId)),
+                      onPrimary: _onRefresh,
                     ),
                   )
                 : filesAsync.when(
@@ -880,8 +904,7 @@ class _DailyReportFilesScreenState
                         title: 'Could not load reports',
                         message: 'Check your connection and try again.',
                         primaryLabel: 'Retry',
-                        onPrimary: () =>
-                            ref.invalidate(dailyReportFilesProvider(branchId)),
+                        onPrimary: _onRefresh,
                       ),
                     ),
                     data: (files) {
@@ -958,11 +981,7 @@ class _DailyReportFilesScreenState
                                             ? 'Refresh'
                                             : 'Clear filters',
                                         onPrimary: files.isEmpty
-                                            ? () => ref.invalidate(
-                                                dailyReportFilesProvider(
-                                                  branchId,
-                                                ),
-                                              )
+                                            ? _onRefresh
                                             : _clearListFilters,
                                       ),
                                     ),
