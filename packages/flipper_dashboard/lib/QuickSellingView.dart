@@ -952,7 +952,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
         ),
 
-        _buildItemsList(transactionAsyncValue),
+        _buildItemsList(
+          transactionAsyncValue,
+          ref
+              .watch(posCartDisplayItemsProvider)
+              .where(
+                (item) => !_optimisticallyDeletedItemIds.contains(item.id),
+              )
+              .toList(),
+        ),
 
         // Customer & Payment Section
         if (!isOrdering) ...[
@@ -1213,12 +1221,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
   }
 
-  Widget _buildItemsList(AsyncValue<ITransaction> transactionAsyncValue) {
-    final items = ref
-        .watch(posCartDisplayItemsProvider)
-        .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
-        .toList();
-
+  Widget _buildItemsList(
+    AsyncValue<ITransaction> transactionAsyncValue,
+    List<TransactionItem> items,
+  ) {
     if (items.isEmpty) {
       return SliverToBoxAdapter(
         child: _buildEmptyStateCard(

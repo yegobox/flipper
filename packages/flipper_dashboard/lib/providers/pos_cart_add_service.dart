@@ -48,7 +48,6 @@ class PosCartAddService {
           );
       cartOptimismApplied = true;
       bumpPosCartDisplayEpoch(ref);
-      ref.invalidate(posCartDisplayItemsProvider);
       if (OptimisticCartBootstrap.isBootstrap(optimismTxnId)) {
         final realId =
             readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id ??
@@ -136,7 +135,6 @@ class PosCartAddService {
             .addPendingLine(transactionId: txn.id, variant: variant);
         cartOptimismApplied = true;
         bumpPosCartDisplayEpoch(ref);
-        ref.invalidate(posCartDisplayItemsProvider);
       }
 
       await persistItemToTransaction(

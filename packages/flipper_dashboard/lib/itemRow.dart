@@ -28,42 +28,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/pos_product_tile.dart';
 import 'package:flipper_dashboard/widgets/pos_catalog_grid_card.dart';
-
-/// One map built per cart stream emission; rows use `.select` so only variants whose
-/// qty changed rebuild.
-final pendingCartQtyByVariantIdProvider =
-    Provider.family<
-      Map<String, int>,
-      ({String transactionId, String branchId})
-    >((ref, args) {
-      final async = ref.watch(
-        transactionItemsStreamProvider(
-          transactionId: args.transactionId,
-          branchId: args.branchId,
-        ),
-      );
-      return async.maybeWhen(
-        data: (List<TransactionItem> items) {
-          final out = <String, int>{};
-          for (final it in items) {
-            if (it.active == false) continue;
-            final vid = it.variantId;
-            if (vid == null || vid.isEmpty) continue;
-            out[vid] = (out[vid] ?? 0) + it.qty.round();
-          }
-          return out;
-        },
-        orElse: () => const <String, int>{},
-      );
-    });
 
 Map<int, String> positionString = {
   0: 'first',
@@ -166,12 +139,6 @@ class _RowItemState extends ConsumerState<RowItem>
   Widget? _cachedImageWidget;
   static final Map<String, Future<void>> _assetDownloadCache = {};
 
-  /// Adds not yet reflected on [transactionItemsStreamProvider] — keeps +/- UI responsive.
-  int _cartOptimisticBump = 0;
-
-  /// Clears optimistic bump when the pending cart transaction changes (e.g. after checkout).
-  String? _lastObservedPendingTxnId;
-
   @override
   void initState() {
     super.initState();
@@ -197,14 +164,6 @@ class _RowItemState extends ConsumerState<RowItem>
   @override
   void didUpdateWidget(RowItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    if (widget.isOrdering != oldWidget.isOrdering) {
-      _lastObservedPendingTxnId = null;
-    }
-
-    if (widget.variant?.id != oldWidget.variant?.id) {
-      _cartOptimisticBump = 0;
-    }
 
     if (widget.imageUrl != oldWidget.imageUrl ||
         (widget.variant?.branchId != oldWidget.variant?.branchId)) {
@@ -247,24 +206,11 @@ class _RowItemState extends ConsumerState<RowItem>
     required ColorScheme colorScheme,
   }) {
     final variantId = widget.variant?.id;
-    final txnId = ref.watch(
-      posCartPendingTransactionIdProvider(widget.isOrdering),
-    );
-
-    int inCartQty = 0;
-    if (txnId != null &&
-        txnId.isNotEmpty &&
-        variantId != null &&
-        variantId.isNotEmpty) {
-      final branchId = ProxyService.box.branchIdString() ?? '0';
-      inCartQty = ref.watch(
-        pendingCartQtyByVariantIdProvider((
-          transactionId: txnId,
-          branchId: branchId,
-        )).select((map) => map[variantId] ?? 0),
-      );
-      inCartQty = (inCartQty + _cartOptimisticBump).clamp(0, 999);
-    }
+    final inCartQty = (variantId != null && variantId.isNotEmpty)
+        ? ref.watch(
+            posCartQtyByVariantIdProvider.select((map) => map[variantId] ?? 0),
+          )
+        : 0;
 
     final stockAsync = ref.watch(
       stockByVariantProvider(widget.variant?.stockId ?? ''),
@@ -324,50 +270,6 @@ class _RowItemState extends ConsumerState<RowItem>
 
   @override
   Widget build(BuildContext context) {
-    final txnIdForCart = ref.watch(
-      posCartPendingTransactionIdProvider(widget.isOrdering),
-    );
-    ref.listen<String?>(posCartPendingTransactionIdProvider(widget.isOrdering), (
-      previous,
-      next,
-    ) {
-      if (next == null || next.isEmpty) return;
-      if (_lastObservedPendingTxnId == next) return;
-      final hadTxn =
-          _lastObservedPendingTxnId != null &&
-          _lastObservedPendingTxnId!.isNotEmpty;
-      _lastObservedPendingTxnId = next;
-      if (!hadTxn || !mounted) return;
-      if (_cartOptimisticBump == 0) return;
-      setState(() => _cartOptimisticBump = 0);
-    });
-    final txnForListen = (txnIdForCart != null && txnIdForCart.isNotEmpty)
-        ? txnIdForCart
-        : null;
-    final variantIdForListen = widget.variant?.id;
-    if (txnForListen != null && variantIdForListen != null) {
-      final branchId = ProxyService.box.branchIdString() ?? '0';
-      ref.listen<int>(
-        pendingCartQtyByVariantIdProvider((
-          transactionId: txnForListen,
-          branchId: branchId,
-        )).select((map) => map[variantIdForListen] ?? 0),
-        (previous, next) {
-          if (!mounted) return;
-          final v = widget.variant;
-          if (v == null || v.id != variantIdForListen) return;
-
-          final prevQty = previous ?? 0;
-          if (next > prevQty && _cartOptimisticBump > 0) {
-            final delta = next - prevQty;
-            setState(() {
-              _cartOptimisticBump = (_cartOptimisticBump - delta).clamp(0, 999);
-            });
-          }
-        },
-      );
-    }
-
     final selectedItemIds = ref.watch(selectedItemIdsProvider);
     final itemId = widget.variant?.id ?? widget.product?.id;
     final isSelected = selectedItemIds.contains(itemId);
@@ -1020,46 +922,24 @@ class _RowItemState extends ConsumerState<RowItem>
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
-        final branchId = ProxyService.box.branchIdString() ?? '0';
-        final streamTotalQty = ref.watch(
-          pendingCartQtyByVariantIdProvider((
-            transactionId: txnId,
-            branchId: branchId,
-          )).select((map) => map[v.id] ?? 0),
-        );
-        final int displayQty = (streamTotalQty + _cartOptimisticBump).clamp(
-          0,
-          999999,
+        final displayQty = ref.watch(
+          posCartQtyByVariantIdProvider.select((map) => map[v.id] ?? 0),
         );
 
         if (displayQty <= 0) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
-        final decrementEnabled = streamTotalQty > 0;
-
         return _buildStepper(
           textTheme: textTheme,
           colorScheme: colorScheme,
           qty: displayQty,
-          decrementEnabled: decrementEnabled,
+          decrementEnabled: displayQty > 0,
           onDecrement: () async {
-            if (!decrementEnabled) return;
-            final items =
-                ref
-                    .read(
-                      transactionItemsStreamProvider(
-                        transactionId: txnId,
-                        branchId: branchId,
-                      ),
-                    )
-                    .asData
-                    ?.value ??
-                const <TransactionItem>[];
-            final matching = items
-                .where((it) => it.active != false && it.variantId == v.id)
-                .toList();
-            await _decrementOne(transactionId: txnId, matchingItems: matching);
+            _decrementVariantFromCart(
+              transactionId: txnId,
+              variantId: v.id,
+            );
           },
           onIncrement: _onAddToCartWithOptimistic,
         );
@@ -1218,6 +1098,37 @@ class _RowItemState extends ConsumerState<RowItem>
         ),
       ),
     );
+  }
+
+  void _decrementVariantFromCart({
+    required String transactionId,
+    required String variantId,
+  }) {
+    final matching = ref
+        .read(posCartDisplayItemsProvider)
+        .where((it) => it.active != false && it.variantId == variantId)
+        .toList();
+    final persisted = matching
+        .where((it) => !OptimisticCartIds.isOptimistic(it.id))
+        .toList();
+    if (persisted.isNotEmpty) {
+      unawaited(
+        _decrementOne(transactionId: transactionId, matchingItems: persisted),
+      );
+      return;
+    }
+
+    final txnForOpt = transactionId.isNotEmpty
+        ? transactionId
+        : (ref.read(posCartMergeTxnIdProvider(widget.isOrdering)));
+    if (txnForOpt.isEmpty) return;
+
+    ref.read(optimisticCartProvider.notifier).rollbackPending(
+          transactionId: txnForOpt,
+          variantId: variantId,
+        );
+    ref.read(optimisticOrderCountProvider.notifier).decrement();
+    ref.read(posCartDisplayEpochProvider.notifier).update((n) => n + 1);
   }
 
   Future<void> _decrementOne({
@@ -1473,7 +1384,6 @@ class _RowItemState extends ConsumerState<RowItem>
       product: widget.product,
       isComposite: widget.isComposite,
     );
-    if (mounted) setState(() => _cartOptimisticBump++);
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {

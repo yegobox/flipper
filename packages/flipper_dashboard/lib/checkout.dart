@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/widgets/pos_default_view.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
@@ -23,6 +24,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
@@ -34,8 +36,9 @@ const double _kDesktopCheckoutBodyTopInset = 0.0;
 enum OrderStatus { pending, approved }
 
 class CheckOut extends StatefulHookConsumerWidget {
-  const CheckOut({Key? key, required this.isBigScreen}) : super(key: key);
+  const CheckOut({Key? key, this.isBigScreen = false}) : super(key: key);
 
+  /// When omitted (e.g. web URL `/check-out`), layout follows viewport width.
   final bool isBigScreen;
 
   @override
@@ -187,9 +190,16 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Widget _buildDataWidget(ITransaction? transaction) {
     final showCart = ref.watch(oldImplementationOfRiverpod.previewingCart);
-    return widget.isBigScreen
-        ? _buildBigScreenLayout(transaction, showCart: showCart)
-        : _buildSmallScreenLayout(showCart: showCart);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useDesktopLayout =
+            widget.isBigScreen ||
+            constraints.maxWidth >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+        return useDesktopLayout
+            ? _buildBigScreenLayout(transaction, showCart: showCart)
+            : _buildSmallScreenLayout(showCart: showCart);
+      },
+    );
   }
 
   Widget _buildBigScreenLayout(
@@ -266,21 +276,9 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   String getCartText({required String transactionId}) {
-    // Get the latest count with a fresh watch to ensure reactivity
-    final itemsAsync = ref.watch(
-      transactionItemsStreamProvider(
-        transactionId: transactionId,
-        branchId: ProxyService.box.getBranchId() ?? '0',
-      ),
-    );
-
-    // Get the count from the async value
-    final count = itemsAsync.when(
-      data: (items) => items.length,
-      loading: () => int.parse(getCartItemCount(transactionId: transactionId)),
-      error: (_, __) => 0,
-    );
-
+    final items = ref.watch(posCartDisplayItemsProvider);
+    final count =
+        posCartDisplayItemsForTransaction(items, transactionId).length;
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
@@ -331,14 +329,13 @@ class CheckOutState extends ConsumerState<CheckOut>
     final controller = CheckoutController(ref: ref, context: context);
 
     final transactionItemsHint = ref
-        .read(
-          transactionItemsStreamProvider(
-            transactionId: transaction.id,
-            branchId: ProxyService.box.getBranchId() ?? '0',
-          ),
-        )
-        .asData
-        ?.value;
+            .read(optimisticCartProvider.notifier)
+            .hasPendingFor(transaction.id)
+        ? null
+        : ref
+            .read(posCartDisplayItemsProvider)
+            .where((i) => !OptimisticCartIds.isOptimistic(i.id))
+            .toList();
 
     return await controller.handleCompleteTransaction(
       transaction: transaction,

@@ -21,7 +21,9 @@ import 'package:flipper_dashboard/widgets/mpos/mpos_totals_card.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 import 'package:flipper_models/providers/digital_payment_provider.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/coreViewModel.dart';
@@ -79,6 +81,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
       TransactionInitializationHelper.initializeSession(
         ref: ref,
         transaction: widget.transaction,
@@ -280,7 +283,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => MposSuccessScreen(
+        builder: (successContext) => MposSuccessScreen(
           data: MposSaleCompleteSnapshot(
             total: total,
             itemCount: itemCount,
@@ -289,7 +292,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             tendered: tender,
             change: change,
           ),
-          onNewSale: () => Navigator.of(context).pop(),
+          onNewSale: () => Navigator.of(successContext).pop(),
         ),
       ),
     );
@@ -515,6 +518,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(posCartStreamReconciliationProvider, (_, __) {});
+
     ref.listen(payButtonStateProvider, (previous, next) {
       final wasLoading = previous?[ButtonType.pay] == true;
       final isNowLoading = next[ButtonType.pay] == true;
@@ -526,17 +531,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           final txn =
               ref.read(transactionByIdProvider(_transactionId)).value ??
               widget.transaction;
+          final merged = posCartDisplayItemsForTransaction(
+            ref.read(posCartDisplayItemsProvider),
+            _transactionId,
+          );
           final total = calculateTransactionTotal(
-            items: ref
-                    .read(
-                      transactionItemsStreamProvider(
-                        transactionId: _transactionId,
-                        branchId: ProxyService.box.getBranchId()!,
-                      ),
-                    )
-                    .asData
-                    ?.value ??
-                [],
+            items: merged,
             transaction: txn,
           );
           _navigateToSuccessScreen(total: total);
@@ -544,12 +544,23 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       }
     });
 
-    final itemsAsync = ref.watch(
+    final streamAsync = ref.watch(
       transactionItemsStreamProvider(
         transactionId: _transactionId,
         branchId: ProxyService.box.getBranchId()!,
       ),
     );
+    final mergedAll = ref.watch(posCartDisplayItemsProvider);
+    final items = List<TransactionItem>.from(
+      posCartDisplayItemsForTransaction(mergedAll, _transactionId),
+    )
+      ..removeWhere((i) => _optimisticallyDeletedItemIds.contains(i.id))
+      ..sort((a, b) {
+        final ad = a.createdAt ?? DateTime(2000);
+        final bd = b.createdAt ?? DateTime(2000);
+        return bd.compareTo(ad);
+      });
+
     final transactionAsync = ref.watch(transactionByIdProvider(_transactionId));
     final customerPhone = ref.watch(customerPhoneNumberProvider);
     final digitalEnabled =
@@ -557,23 +568,34 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
     final txn = transactionAsync.value ?? widget.transaction;
 
+    final pendingOptimistic = ref
+        .read(optimisticCartProvider.notifier)
+        .hasPendingFor(_transactionId);
+
+    if (streamAsync.hasError && items.isEmpty) {
+      return Scaffold(
+        backgroundColor: MposTokens.bg,
+        body: SafeArea(
+          child: Center(child: Text('Error: ${streamAsync.error}')),
+        ),
+      );
+    }
+
+    if (items.isEmpty && streamAsync.isLoading && !pendingOptimistic) {
+      return const Scaffold(
+        backgroundColor: MposTokens.bg,
+        body: SafeArea(
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: MposTokens.bg,
       body: SafeArea(
         bottom: false,
-        child: itemsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error: $e')),
-          data: (rawItems) {
-            final items = List<TransactionItem>.from(rawItems)
-              ..removeWhere(
-                (i) => _optimisticallyDeletedItemIds.contains(i.id),
-              )
-              ..sort((a, b) {
-                final ad = a.createdAt ?? DateTime(2000);
-                final bd = b.createdAt ?? DateTime(2000);
-                return bd.compareTo(ad);
-              });
+        child: Builder(
+          builder: (context) {
 
             final alreadyPaid = txn.cashReceived ?? 0.0;
             final payments = ref.watch(oldProvider.paymentMethodsProvider);
@@ -595,8 +617,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             );
 
             final currentId = txn.id;
-            if (itemsAsync.hasValue &&
-                transactionAsync.hasValue &&
+            if (transactionAsync.hasValue &&
                 _lastTransactionId != currentId) {
               _lastTransactionId = currentId;
               WidgetsBinding.instance.addPostFrameCallback((_) async {

@@ -140,6 +140,36 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   );
 });
 
+/// Per-variant qty from merged cart (Ditto + optimistic). Grid rows use `.select`.
+final posCartQtyByVariantIdProvider = Provider<Map<String, int>>((ref) {
+  ref.watch(posCartDisplayEpochProvider);
+  final items = ref.watch(posCartDisplayItemsProvider);
+  final out = <String, int>{};
+  for (final it in items) {
+    if (it.active == false) continue;
+    final vid = it.variantId;
+    if (vid == null || vid.isEmpty) continue;
+    out[vid] = (out[vid] ?? 0) + it.qty.round();
+  }
+  return out;
+});
+
+/// Merged cart lines for a specific transaction (e.g. mobile checkout screen).
+List<TransactionItem> posCartDisplayItemsForTransaction(
+  List<TransactionItem> merged,
+  String transactionId,
+) {
+  if (transactionId.isEmpty) return const [];
+  return merged
+      .where(
+        (i) =>
+            i.active != false &&
+            (i.transactionId == transactionId ||
+                OptimisticCartIds.isOptimistic(i.id)),
+      )
+      .toList();
+}
+
 /// Synchronous txn id for grid tap (no stream subscription).
 String? readPosCartTransactionIdFast(Ref ref, {required bool isExpense}) {
   final cacheId = readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id;

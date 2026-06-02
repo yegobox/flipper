@@ -15,6 +15,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -100,21 +102,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   }
 
   String getCartText({required String transactionId}) {
-    // Get the latest count with a fresh watch to ensure reactivity
-    final itemsAsync = ref.watch(
-      transactionItemsStreamProvider(
-        transactionId: transactionId,
-        branchId: ProxyService.box.branchIdString()!,
-      ),
-    );
-
-    // Get the count from the async value
-    final count = itemsAsync.when(
-      data: (items) => items.length,
-      loading: () => 0,
-      error: (_, __) => 0,
-    );
-
+    final items = ref.watch(posCartDisplayItemsProvider);
+    final count = posCartDisplayItemsForTransaction(items, transactionId)
+        .length;
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
@@ -135,15 +125,14 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               );
 
               final txn = transactionAsyncValue.asData?.value;
-
-              final itemsAsync = txn == null
-                  ? const AsyncValue<List<TransactionItem>>.data([])
-                  : ref.watch(
-                      transactionItemsStreamProvider(
-                        transactionId: txn.id,
-                        branchId: ProxyService.box.branchIdString()!,
-                      ),
-                    );
+              final cartItems = ref.watch(posCartDisplayItemsProvider);
+              final checkoutTxn = txn ??
+                  (cartItems.isNotEmpty
+                      ? readCachedPendingCartTransactionWidget(
+                          ref,
+                          isExpense: false,
+                        )
+                      : null);
 
               final isPhone = responsive.ResponsiveLayout.isPhone(context) ||
                   responsive.ResponsiveLayout.isTinyLimit(context);
@@ -175,6 +164,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                     MposCatalogHeader(
                       subtitle: _catalogSubtitle(txn),
                       status: status,
+                      isScanActive: ref.watch(autoAddSearchProvider),
                       onBack: () => Navigator.of(context).maybePop(),
                       onScan: () => _openCatalogScanner(context),
                       searchField: _CheckoutPosProductSearch(
@@ -183,7 +173,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       ),
                     ),
                     Expanded(child: catalogBody),
-                    if (txn != null) _buildMobileCartBar(txn, itemsAsync),
+                    if (checkoutTxn != null || cartItems.isNotEmpty)
+                      _buildMobileCartBar(checkoutTxn, cartItems),
                   ],
                 );
               }
@@ -191,8 +182,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               return Column(
                 children: [
                   _buildTopBar(context, ref, txn),
-                  _buildSaleSummary(txn, itemsAsync),
-                  _buildTicketsItemsRow(txn, itemsAsync),
+                  _buildSaleSummary(txn, cartItems),
+                  _buildTicketsItemsRow(txn, cartItems),
                   _buildSearchAndScanRow(),
                   Expanded(child: catalogBody),
                 ],
@@ -421,9 +412,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
 
   ({int itemRows, double subtotal, double tax, double total}) _computeSaleMoney(
     ITransaction? transaction,
-    AsyncValue<List<TransactionItem>> itemsAsync,
+    List<TransactionItem> items,
   ) {
-    final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
     final active = items.where((i) => i.active != false).toList();
     var lineSub = 0.0;
     var lineTax = 0.0;
@@ -444,11 +434,11 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
 
   Widget _buildSaleSummary(
     ITransaction? transaction,
-    AsyncValue<List<TransactionItem>> itemsAsync,
+    List<TransactionItem> items,
   ) {
     final scheme = Theme.of(context).colorScheme;
     final sym = ProxyService.box.defaultCurrency();
-    final m = _computeSaleMoney(transaction, itemsAsync);
+    final m = _computeSaleMoney(transaction, items);
     final itemText = '${m.itemRows} item${m.itemRows == 1 ? '' : 's'}';
 
     Widget moneyCol(String label, String amount, {required Color amountColor}) {
@@ -532,10 +522,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
 
   Widget _buildTicketsItemsRow(
     ITransaction? transaction,
-    AsyncValue<List<TransactionItem>> itemsAsync,
+    List<TransactionItem> items,
   ) {
     final scheme = Theme.of(context).colorScheme;
-    final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
     final count = items.where((i) => i.active != false).length;
 
     return Padding(
@@ -616,26 +605,40 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   }
 
   Widget _buildMobileCartBar(
-    ITransaction transaction,
-    AsyncValue<List<TransactionItem>> itemsAsync,
+    ITransaction? transaction,
+    List<TransactionItem> items,
   ) {
-    final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
-    final activeItems =
-        items.where((i) => i.active != false).toList();
+    final activeItems = items.where((i) => i.active != false).toList();
     final count = activeItems.fold<double>(
       0,
       (s, i) => s + i.qty.toDouble(),
     ).round();
-    final total = calculateTransactionTotal(
-      items: activeItems,
-      transaction: transaction,
-    );
+    final total = transaction != null
+        ? calculateTransactionTotal(
+            items: activeItems,
+            transaction: transaction,
+          )
+        : activeItems.fold<double>(
+            0,
+            (s, i) => s + (i.totAmt ?? i.price * i.qty).toDouble(),
+          );
 
     return MposCartBar(
       itemCount: count,
       total: total,
       onReviewPay: count > 0
-          ? () => _openMobileCheckout(transaction)
+          ? () {
+              final t =
+                  transaction ??
+                  readCachedPendingCartTransactionWidget(
+                    ref,
+                    isExpense: false,
+                  ) ??
+                  ref
+                      .read(pendingTransactionStreamProvider(isExpense: false))
+                      .value;
+              if (t != null) _openMobileCheckout(t);
+            }
           : null,
     );
   }
