@@ -266,7 +266,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   children: [
                     Consumer(
                       builder: (context, ref, _) {
-                        ref.watch(posCartDisplayEpochProvider);
+                        ref.watch(posCartPaymentRefreshSignalProvider);
                         return _buildCompactAmountSummary(alreadyPaid);
                       },
                     ),
@@ -1578,7 +1578,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                             'Complete sale with total amount ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
                         child: Consumer(
                           builder: (context, ref, _) {
-                            ref.watch(posCartDisplayEpochProvider);
+                            ref.watch(posCartPaymentRefreshSignalProvider);
                             final payWording = (_remainingBalance(alreadyPaid) > 0)
                                 ? "Record Payment • ${(ref.watch(paymentMethodsProvider).fold<double>(0, (sum, p) => sum + p.amount)).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}"
                                 : "Pay • ${(_calculateTotal() - alreadyPaid).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}";
@@ -2108,7 +2108,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               const SizedBox(height: 10.0),
               Consumer(
                 builder: (context, ref, _) {
-                  ref.watch(posCartDisplayEpochProvider);
+                  ref.watch(posCartPaymentRefreshSignalProvider);
                   final total = _calculateTotal();
                   return PosQuickCashRow(
                     exactAmount: total,
@@ -2147,7 +2147,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   ) {
     return Consumer(
       builder: (context, ref, _) {
-        ref.watch(posCartDisplayEpochProvider);
+        ref.watch(posCartPaymentRefreshSignalProvider);
         final finalPayable = (_calculateTotal() - alreadyPaid).clamp(
           0.0,
           double.infinity,

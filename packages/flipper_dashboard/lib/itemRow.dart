@@ -292,29 +292,29 @@ class _RowItemState extends ConsumerState<RowItem>
 
     final bool renderPosCatalogTile = widget.usePosCatalogTile;
 
+    if (isCompactPosList) {
+      return _buildMposCatalogProductCard(
+        context: context,
+        ref: ref,
+        textTheme: textTheme,
+        colorScheme: colorScheme,
+      );
+    }
+    if (renderPosCatalogTile) {
+      return _buildDesktopPosGridCard(
+        context: context,
+        ref: ref,
+        isSelected: isSelected,
+        isMultiSelectActive: isMultiSelectActive,
+        itemId: itemId,
+        textTheme: textTheme,
+        colorScheme: colorScheme,
+      );
+    }
+
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
-        if (isCompactPosList) {
-          return _buildMposCatalogProductCard(
-            context: context,
-            ref: ref,
-            textTheme: textTheme,
-            colorScheme: colorScheme,
-          );
-        }
-        if (renderPosCatalogTile) {
-          return _buildDesktopPosGridCard(
-            context: context,
-            ref: ref,
-            isSelected: isSelected,
-            isMultiSelectActive: isMultiSelectActive,
-            itemId: itemId,
-            textTheme: textTheme,
-            colorScheme: colorScheme,
-          );
-        }
-
         final listChild = useListView
             ? _buildListItemContent(isSelected, textTheme, colorScheme)
             : _buildItemContent(isSelected, textTheme, colorScheme);
@@ -1125,7 +1125,6 @@ class _RowItemState extends ConsumerState<RowItem>
           variantId: variantId,
         );
     ref.read(optimisticOrderCountProvider.notifier).decrement();
-    ref.read(posCartDisplayEpochProvider.notifier).update((n) => n + 1);
   }
 
   Future<void> _decrementOne({

@@ -48,9 +48,10 @@ class PosCartAddService {
       );
     }
 
-    // Two frames before Ditto: first frame paints optimistic cart (macOS spinner fix).
+    // Two frames before Ditto so the optimistic cart paints first (macOS spinner).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!ref.mounted) return;
         unawaited(
           _runPersist(
             context: context,

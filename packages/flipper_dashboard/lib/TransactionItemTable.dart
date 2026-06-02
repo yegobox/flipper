@@ -61,6 +61,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     super.initState();
   }
 
+  void _ensureController(TransactionItem item) {
+    if (_quantityControllers.containsKey(item.id)) return;
+    _initController(item);
+  }
+
   void _initController(TransactionItem item) {
     final id = item.id;
     final price = item.price;
@@ -382,7 +387,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         final item = visibleItems[index];
         return KeyedSubtree(
           key: _rowKeyFor(item.id),
-          child: _buildModernItemRow(item, isOrdering),
+          child: Consumer(
+            builder: (context, ref, _) =>
+                _buildModernItemRow(item, isOrdering, ref: ref),
+          ),
         );
       },
     );
@@ -399,7 +407,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
       .toList();
 
-  Widget _buildModernItemRow(TransactionItem item, bool isOrdering) {
+  Widget _buildModernItemRow(
+    TransactionItem item,
+    bool isOrdering, {
+    WidgetRef? ref,
+  }) {
     final isExpanded = _expandedItemId == item.id;
     final isSaving = _isItemSaving[item.id] ?? false;
     final hasError = _itemErrors.containsKey(item.id);
@@ -416,6 +428,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         isExpanded: isExpanded,
         isSaving: isSaving,
         hasError: hasError,
+        lineRef: ref ?? this.ref,
       );
     }
 
@@ -449,13 +462,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     required bool isExpanded,
     required bool isSaving,
     required bool hasError,
+    required WidgetRef lineRef,
   }) {
-    _initController(item);
+    _ensureController(item);
     final displayQty = _displayQtyFor(item);
     final vid = item.variantId ?? '';
     final pendingOpt = vid.isEmpty
         ? 0.0
-        : ref.watch(
+        : lineRef.watch(
             optimisticCartProvider.select(
               (s) => s.pendingQtyByVariantId[vid] ?? 0,
             ),

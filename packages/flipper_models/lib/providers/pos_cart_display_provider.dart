@@ -44,10 +44,14 @@ final posCartPendingTransactionIdProvider = Provider.family<String?, bool>((
 /// Transaction id used to merge Ditto line items with optimistic ghosts.
 final posCartMergeTxnIdProvider = Provider.family<String, bool>((ref, isExpense) {
   final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));
-  final optimistic = ref.watch(optimisticCartProvider);
-  final optimisticId = optimistic.activeTransactionId;
-  final preferBootstrap =
-      optimistic.pendingQtyByVariantId.values.any((q) => q > 0);
+  final optimisticId = ref.watch(
+    optimisticCartProvider.select((s) => s.activeTransactionId),
+  );
+  final preferBootstrap = ref.watch(
+    optimisticCartProvider.select(
+      (s) => s.pendingQtyByVariantId.values.any((q) => q > 0),
+    ),
+  );
   return cartTransactionIdForMergeIds(
     pendingTransactionId: pendingId,
     optimisticTransactionId: optimisticId,
@@ -102,7 +106,6 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
 final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   ref.keepAlive();
 
-  ref.watch(posCartDisplayEpochProvider);
   final isExpense = _posCartIsExpense();
   final mergeTxnId = ref.watch(posCartMergeTxnIdProvider(isExpense));
 
@@ -179,14 +182,18 @@ PosCartSummary computePosCartSummary(List<TransactionItem> items) {
 }
 
 final posCartSummaryProvider = Provider<PosCartSummary>((ref) {
-  ref.watch(posCartDisplayEpochProvider);
   return computePosCartSummary(ref.watch(posCartDisplayItemsProvider));
+});
+
+/// Bumps when cart line totals change — for payment chrome without full epoch.
+final posCartPaymentRefreshSignalProvider = Provider<double>((ref) {
+  final s = ref.watch(posCartSummaryProvider);
+  return s.lineSubtotal + s.lineTax;
 });
 
 /// Per-variant qty for catalog badges. While optimistic qty is pending, derive
 /// from [optimisticCartProvider] only so the product grid does not watch Ditto.
 final posCartQtyByVariantIdProvider = Provider<Map<String, int>>((ref) {
-  ref.watch(posCartDisplayEpochProvider);
   final optimistic = ref.watch(optimisticCartProvider);
   final hasPending =
       optimistic.pendingQtyByVariantId.values.any((q) => q > 0);
@@ -221,7 +228,6 @@ final posCartQtyForVariantProvider = Provider.family<int, String>((
   variantId,
 ) {
   if (variantId.isEmpty) return 0;
-  ref.watch(posCartDisplayEpochProvider);
 
   final hasPending = ref.watch(
     optimisticCartProvider.select(

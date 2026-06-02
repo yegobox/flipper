@@ -25,32 +25,24 @@ void applyPosCartTapSync({
   if (variant.id.isEmpty) return;
 
   final isExpense = isOrdering;
-  final resolved = resolvedPendingTxnId ??
-      readPosCartTransactionIdFast(ref, isExpense: isExpense);
-  final optimismTxnId = (resolved != null && resolved.isNotEmpty)
-      ? resolved
-      : OptimisticCartBootstrap.txnId;
-
   if (isOrdering) return;
 
-  ref.read(optimisticCartProvider.notifier).addPendingLine(
-        transactionId: optimismTxnId,
-        variant: variant,
-      );
-  bumpPosCartDisplayEpoch(ref);
-
-  if (OptimisticCartBootstrap.isBootstrap(optimismTxnId)) {
-    final realId =
+  var txnId = resolvedPendingTxnId ??
+      readPosCartTransactionIdFast(ref, isExpense: isExpense);
+  if (txnId == null || txnId.isEmpty) {
+    txnId =
         readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id ??
             ref
                 .read(pendingTransactionStreamProvider(isExpense: isExpense))
                 .value
-                ?.id;
-    if (realId != null && realId.isNotEmpty) {
-      ref
-          .read(optimisticCartProvider.notifier)
-          .bindPendingTransaction(realId);
-    }
+                ?.id ??
+            OptimisticCartBootstrap.txnId;
   }
+
+  // Single notifier update — avoids bind + epoch double-invalidation.
+  ref.read(optimisticCartProvider.notifier).addPendingLine(
+        transactionId: txnId,
+        variant: variant,
+      );
 }
 
