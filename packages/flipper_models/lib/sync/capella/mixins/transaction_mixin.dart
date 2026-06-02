@@ -938,13 +938,66 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  FutureOr<void> assignCustomerToTransaction({
+    required Customer customer,
+    required ITransaction transaction,
+  }) async {
+    transaction.customerId = customer.id;
+    transaction.customerName = customer.custNm;
+    transaction.customerTin = customer.custTin;
+    transaction.customerPhone = customer.telNo;
+    transaction.currentSaleCustomerPhoneNumber = customer.telNo;
+
+    await updateTransaction(
+      transactionId: transaction.id,
+      customerId: customer.id,
+      customerName: customer.custNm,
+      customerTin: customer.custTin,
+      customerPhone: customer.telNo,
+      updatedAt: DateTime.now(),
+      lastTouched: DateTime.now(),
+    );
+  }
+
   @override
   FutureOr<void> removeCustomerFromTransaction({
     required ITransaction transaction,
   }) async {
-    throw UnimplementedError(
-      'removeCustomerFromTransaction needs to be implemented for Capella',
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for removeCustomerFromTransaction');
+      return;
+    }
+
+    final targetId = transaction.id;
+    final now = DateTime.now();
+
+    transaction.customerId = null;
+    transaction.customerName = null;
+    transaction.customerTin = null;
+    transaction.customerPhone = null;
+    transaction.currentSaleCustomerPhoneNumber = null;
+
+    final query =
+        'UPDATE transactions SET '
+        'customerId = NULL, '
+        'customerName = NULL, '
+        'customerTin = NULL, '
+        'customerPhone = NULL, '
+        'currentSaleCustomerPhoneNumber = NULL, '
+        'updatedAt = :updatedAt, '
+        'lastTouched = :lastTouched '
+        'WHERE _id = :id OR id = :id';
+
+    await ditto.store.execute(
+      query,
+      arguments: {
+        'id': targetId,
+        'updatedAt': now.toIso8601String(),
+        'lastTouched': now.toIso8601String(),
+      },
     );
+    talker.info('Removed customer from transaction $targetId (Capella)');
   }
 
   @override

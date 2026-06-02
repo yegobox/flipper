@@ -384,11 +384,24 @@ class _RowItemState extends ConsumerState<RowItem>
             deviceType !=
                 'Desktop'); // Use list view on phones or when forced (except on desktop)
 
+    final bool isCompactPosList =
+        widget.forceListView &&
+        !widget.isOrdering &&
+        MediaQuery.sizeOf(context).width < 600;
+
     final bool renderPosCatalogTile = widget.usePosCatalogTile;
 
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
+        if (isCompactPosList) {
+          return _buildMposCatalogProductCard(
+            context: context,
+            ref: ref,
+            textTheme: textTheme,
+            colorScheme: colorScheme,
+          );
+        }
         if (renderPosCatalogTile) {
           return _buildDesktopPosGridCard(
             context: context,
@@ -772,6 +785,35 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
+  bool get _isMposCatalogRow =>
+      widget.forceListView &&
+      !widget.isOrdering &&
+      MediaQuery.sizeOf(context).width < 600;
+
+  Widget _buildMposCatalogProductCard({
+    required BuildContext context,
+    required WidgetRef ref,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: PosTokens.line),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: _buildPosMobileListRow(textTheme, colorScheme),
+    );
+  }
+
   Widget _buildPosMobileListRow(TextTheme textTheme, ColorScheme colorScheme) {
     // Match non-compact rows: when variant label differs from product title,
     // lead with variant name so POS/search rows match what was saved per SKU.
@@ -799,37 +841,44 @@ class _RowItemState extends ConsumerState<RowItem>
         : HexColor(widget.color);
     final abbrText = posTileAbbr(primaryLine);
 
+    final thumbSize = _isMposCatalogRow ? 50.0 : 44.0;
+    final thumbRadius = _isMposCatalogRow ? 13.0 : 10.0;
+
     final Widget leading = widget.imageUrl?.isNotEmpty == true
         ? SizedBox(
-            width: 44,
-            height: 44,
+            width: thumbSize,
+            height: thumbSize,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(thumbRadius),
               child: _buildImage(),
             ),
           )
         : Container(
-            width: 44,
-            height: 44,
+            width: thumbSize,
+            height: thumbSize,
             decoration: BoxDecoration(
               color: tileColor,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(thumbRadius),
             ),
             alignment: Alignment.center,
             child: Text(
               abbrText.isEmpty ? 'PRD' : abbrText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
-                fontSize: 13,
+                fontSize: _isMposCatalogRow ? 15 : 13,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           );
 
+    final codeLine = widget.variant?.bcd?.trim().isNotEmpty == true
+        ? widget.variant!.bcd!.trim()
+        : (productSubtitle ?? '');
+
     return SizedBox(
-      height: 68,
+      height: _isMposCatalogRow ? 72 : 68,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -845,14 +894,16 @@ class _RowItemState extends ConsumerState<RowItem>
               children: [
                 Text(
                   primaryLine.isNotEmpty ? primaryLine : 'Unnamed',
-                  style: textTheme.titleSmall?.copyWith(
+                  style: TextStyle(
+                    fontSize: _isMposCatalogRow ? 15 : 14,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: PosTokens.ink1,
+                    letterSpacing: -0.01,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (productSubtitle != null) ...[
+                if (!_isMposCatalogRow && productSubtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(
                     productSubtitle,
@@ -864,90 +915,91 @@ class _RowItemState extends ConsumerState<RowItem>
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 4),
-                Text(
-                  widget.variant?.bcd?.isNotEmpty == true
-                      ? 'BCD: ${widget.variant!.bcd}'
-                      : '',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                if (codeLine.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    codeLine,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: PosTokens.ink3,
+                      fontFamily: 'monospace',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
               ],
             ),
           ),
 
           const SizedBox(width: 12),
 
-          // Right: price + stock pill + plus button
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 priceText,
-                style: textTheme.titleSmall?.copyWith(
+                style: TextStyle(
+                  fontSize: _isMposCatalogRow ? 14.5 : 14,
                   fontWeight: FontWeight.w800,
-                  color: Colors.black87,
+                  color: PosTokens.ink1,
+                  fontFamily: _isMposCatalogRow ? 'monospace' : null,
                 ),
               ),
               const SizedBox(height: 6),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Stock pill (live)
-                  RepaintBoundary(
-                    child: Consumer(
-                      builder: (context, ref, _) {
-                        final stockAsync = ref.watch(
-                          stockByVariantProvider(widget.variant?.stockId ?? ''),
-                        );
-                        final stockRaw = stockAsync.value?.currentStock ?? 0;
-                        final stockValue = stockRaw is int
-                            ? stockRaw
-                            : stockRaw.floor();
+              RepaintBoundary(
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final stockAsync = ref.watch(
+                      stockByVariantProvider(widget.variant?.stockId ?? ''),
+                    );
+                    final stockRaw = stockAsync.value?.currentStock ?? 0;
+                    final stockValue = stockRaw is int
+                        ? stockRaw
+                        : stockRaw.floor();
 
-                        final threshold = _lowStockThreshold;
-                        final visual = posStockVisual(
-                          currentStock: stockValue,
-                          lowStockThreshold: threshold,
-                        );
-                        final Color bg = visual == PosStockVisual.out
-                            ? PosTokens.lossTint
-                            : (visual == PosStockVisual.low
-                                  ? PosTokens.warnTint
-                                  : PosTokens.gain.withValues(alpha: 0.14));
-                        final Color fg = posStockTextColor(visual);
+                    final threshold = _lowStockThreshold;
+                    final visual = posStockVisual(
+                      currentStock: stockValue,
+                      lowStockThreshold: threshold,
+                    );
+                    final Color bg = visual == PosStockVisual.out
+                        ? PosTokens.lossTint
+                        : (visual == PosStockVisual.low
+                              ? PosTokens.warnTint
+                              : PosTokens.gain.withValues(alpha: 0.14));
+                    final Color fg = posStockTextColor(visual);
+                    final label = visual == PosStockVisual.out
+                        ? 'Out of stock'
+                        : '$stockValue left';
 
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: bg,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            '$stockValue left',
-                            style: textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: fg,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  _buildCartQtyControl(textTheme, colorScheme),
-                ],
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: fg,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
+          const SizedBox(width: 10),
+          _buildCartQtyControl(textTheme, colorScheme),
         ],
       ),
     );
@@ -1016,6 +1068,37 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   Widget _buildPlusOnlyButton(TextTheme textTheme, ColorScheme colorScheme) {
+    if (_isMposCatalogRow) {
+      return Consumer(
+        builder: (context, ref, _) {
+          final stockAsync = ref.watch(
+            stockByVariantProvider(widget.variant?.stockId ?? ''),
+          );
+          final stockRaw = stockAsync.value?.currentStock ?? 0;
+          final stockValue = stockRaw is int ? stockRaw : stockRaw.floor();
+          final enabled = stockValue > 0;
+
+          return Material(
+            color: enabled ? PosTokens.blue : const Color(0xFFE8E8ED),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: enabled ? _onAddToCartWithOptimistic : null,
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(
+                  Icons.add_rounded,
+                  color: enabled ? Colors.white : const Color(0xFFAEAEB2),
+                  size: 22,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return SizedBox(
       width: 38,
       height: 32,
@@ -1042,6 +1125,37 @@ class _RowItemState extends ConsumerState<RowItem>
     required Future<void> Function() onDecrement,
     required VoidCallback onIncrement,
   }) {
+    if (_isMposCatalogRow) {
+      return Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: PosTokens.blue,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _mposQtyTap(
+              icon: Icons.remove_rounded,
+              onTap: decrementEnabled ? () async => onDecrement() : null,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                qty.toString(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            _mposQtyTap(icon: Icons.add_rounded, onTap: onIncrement),
+          ],
+        ),
+      );
+    }
+
     return Container(
       height: 32,
       decoration: BoxDecoration(
@@ -1087,6 +1201,21 @@ class _RowItemState extends ConsumerState<RowItem>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _mposQtyTap({required IconData icon, VoidCallback? onTap}) {
+    return SizedBox(
+      width: 36,
+      height: 40,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
       ),
     );
   }

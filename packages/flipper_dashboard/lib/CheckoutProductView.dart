@@ -39,6 +39,11 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
+import 'package:flipper_dashboard/theme/mpos_tokens.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_cart_bar.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_catalog_header.dart';
+import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 
 class CheckoutProductView extends StatefulHookConsumerWidget {
   const CheckoutProductView({
@@ -71,7 +76,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         TextEditingControllersMixin,
         TickerProviderStateMixin,
         TransactionMixinOld,
-        PreviewCartMixin {
+        PreviewCartMixin,
+        TransactionComputationMixin {
   final TextEditingController searchController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
   final TextEditingController receivedAmountController =
@@ -120,7 +126,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         if (didPop) return;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF2F2F7),
+        backgroundColor: MposTokens.bg,
         body: SafeArea(
           child: Consumer(
             builder: (context, ref, _) {
@@ -139,36 +145,56 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       ),
                     );
 
+              final isPhone = responsive.ResponsiveLayout.isPhone(context) ||
+                  responsive.ResponsiveLayout.isTinyLimit(context);
+
+              final catalogBody = ref
+                  .watch(
+                    outerVariantsProvider(
+                      ProxyService.box.getBranchId() ?? "",
+                    ),
+                  )
+                  .when(
+                    data: (variants) {
+                      if (variants.isEmpty) {
+                        return _buildEmptyItemsView(context);
+                      }
+                      return ProductView.normalMode(
+                        suppressMobilePagination: isPhone,
+                      );
+                    },
+                    error: (error, stackTrace) =>
+                        _buildErrorView(context, error),
+                    loading: () => _buildLoadingView(),
+                  );
+
+              if (isPhone) {
+                final status = (txn?.status ?? 'PENDING').toUpperCase();
+                return Column(
+                  children: [
+                    MposCatalogHeader(
+                      subtitle: _catalogSubtitle(txn),
+                      status: status,
+                      onBack: () => Navigator.of(context).maybePop(),
+                      onScan: () => _openCatalogScanner(context),
+                      searchField: _CheckoutPosProductSearch(
+                        controller: searchController,
+                        mposStyle: true,
+                      ),
+                    ),
+                    Expanded(child: catalogBody),
+                    if (txn != null) _buildMobileCartBar(txn, itemsAsync),
+                  ],
+                );
+              }
+
               return Column(
                 children: [
                   _buildTopBar(context, ref, txn),
                   _buildSaleSummary(txn, itemsAsync),
                   _buildTicketsItemsRow(txn, itemsAsync),
                   _buildSearchAndScanRow(),
-                  Expanded(
-                    child: ref
-                        .watch(
-                          outerVariantsProvider(
-                            ProxyService.box.getBranchId() ?? "",
-                          ),
-                        )
-                        .when(
-                          data: (variants) {
-                            if (variants.isEmpty) {
-                              return _buildEmptyItemsView(context);
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                              ),
-                              child: ProductView.normalMode(),
-                            );
-                          },
-                          error: (error, stackTrace) =>
-                              _buildErrorView(context, error),
-                          loading: () => _buildLoadingView(),
-                        ),
-                  ),
+                  Expanded(child: catalogBody),
                 ],
               );
             },
@@ -342,6 +368,28 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         ? '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}'
         : '—';
     return '$who · Walk-in · $time';
+  }
+
+  String _catalogSubtitle(ITransaction? transaction) {
+    final createdAt = transaction?.createdAt;
+    final time = createdAt != null
+        ? '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}'
+        : '—';
+    final name = transaction?.customerName?.trim();
+    final who = (name != null && name.isNotEmpty) ? name : 'Walk-in';
+    return '$who · $time';
+  }
+
+  void _openCatalogScanner(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScannView(
+          intent: 'selling',
+          scannerActions: CheckoutScannerActions(context, ref),
+        ),
+      ),
+    );
   }
 
   ({Color dotColor, Color bgColor, Color borderColor, Color textColor})
@@ -525,7 +573,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             child: FilledButton(
               onPressed: transaction == null
                   ? null
-                  : () => _showPreviewCartBottomSheet(transaction),
+                  : () => _openMobileCheckout(transaction),
               style: FilledButton.styleFrom(
                 backgroundColor: scheme.primary,
                 shape: RoundedRectangleBorder(
@@ -567,13 +615,44 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     );
   }
 
-  void _showPreviewCartBottomSheet(ITransaction transaction) {
-    // Show bottom sheet like in old implementation
-    print("Transaction isLoan: ${transaction.isLoan}");
-    QuickSellingMobile.showBottom(
+  Widget _buildMobileCartBar(
+    ITransaction transaction,
+    AsyncValue<List<TransactionItem>> itemsAsync,
+  ) {
+    final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
+    final activeItems =
+        items.where((i) => i.active != false).toList();
+    final count = activeItems.fold<double>(
+      0,
+      (s, i) => s + i.qty.toDouble(),
+    ).round();
+    final total = calculateTransactionTotal(
+      items: activeItems,
+      transaction: transaction,
+    );
+
+    return MposCartBar(
+      itemCount: count,
+      total: total,
+      onReviewPay: count > 0
+          ? () => _openMobileCheckout(transaction)
+          : null,
+    );
+  }
+
+  void _openMobileCheckout(ITransaction transaction) {
+    QuickSellingMobile.openCheckout(
       context: context,
       ref: ref,
       transaction: transaction,
+      doneDelete: () {
+        ref.refresh(
+          transactionItemsStreamProvider(
+            branchId: ProxyService.box.branchIdString()!,
+            transactionId: transaction.id,
+          ),
+        );
+      },
       onCharge:
           (
             transactionId,
@@ -589,14 +668,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               onPaymentFailed,
             );
           },
-      doneDelete: () {
-        ref.refresh(
-          transactionItemsStreamProvider(
-            branchId: ProxyService.box.branchIdString()!,
-            transactionId: transaction.id,
-          ),
-        );
-      },
     );
   }
 
@@ -745,9 +816,13 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
 /// Mobile checkout product search: POS-style field (add product, clear).
 /// Uses the same debounced [processDebouncedValue] path as [SearchField].
 class _CheckoutPosProductSearch extends StatefulHookConsumerWidget {
-  const _CheckoutPosProductSearch({required this.controller});
+  const _CheckoutPosProductSearch({
+    required this.controller,
+    this.mposStyle = false,
+  });
 
   final TextEditingController controller;
+  final bool mposStyle;
 
   @override
   ConsumerState<_CheckoutPosProductSearch> createState() =>
@@ -901,6 +976,78 @@ class _CheckoutPosProductSearchState
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    if (widget.mposStyle) {
+      return TextFormField(
+        controller: widget.controller,
+        focusNode: focusNode,
+        textInputAction: TextInputAction.search,
+        keyboardType: TextInputType.text,
+        style: const TextStyle(
+          fontSize: 15.5,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: PosTokens.surface2,
+          hintText: 'Search products or scan…',
+          hintStyle: const TextStyle(
+            color: PosTokens.ink3,
+            fontWeight: FontWeight.w500,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+            borderSide: const BorderSide(color: PosTokens.blue, width: 1.5),
+          ),
+          prefixIcon: _isSearching
+              ? const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : const Icon(
+                  Icons.search_rounded,
+                  size: 19,
+                  color: PosTokens.ink3,
+                ),
+          suffixIcon: hasText
+              ? IconButton(
+                  onPressed: _clearSearch,
+                  icon: const Icon(Icons.close_rounded, color: PosTokens.ink3),
+                  tooltip: 'Clear',
+                )
+              : Consumer(
+                  builder: (context, ref, _) {
+                    final appMode = ref.watch(appModeProvider);
+                    if (!appMode) return const SizedBox.shrink();
+                    return IconButton(
+                      onPressed: () => unawaited(_handleAddProduct()),
+                      icon: const Icon(
+                        Icons.add_rounded,
+                        color: PosTokens.blue,
+                      ),
+                      tooltip: 'Add product',
+                    ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]);
+                  },
+                ),
+        ),
+      );
+    }
+
     return TextFormField(
       controller: widget.controller,
       focusNode: focusNode,

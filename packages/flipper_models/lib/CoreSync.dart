@@ -1433,7 +1433,10 @@ class CoreSync extends AiStrategyImpl
     required ITransaction transaction,
   }) {
     transaction.customerId = null;
+    transaction.customerName = null;
     transaction.customerTin = null;
+    transaction.customerPhone = null;
+    transaction.currentSaleCustomerPhoneNumber = null;
     repository.upsert(transaction);
   }
 

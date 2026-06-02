@@ -117,12 +117,16 @@ void main() {
     });
   });
 
-  group('BottomSheets Class Tests', () {
-    test('BottomSheets class exists', () {
+  group('QuickSellingMobile entry tests', () {
+    test('QuickSellingMobile class exists', () {
       expect(QuickSellingMobile, isNotNull);
     });
 
-    test('BottomSheets has showBottom method', () {
+    test('has openCheckout method', () {
+      expect(QuickSellingMobile.openCheckout, isNotNull);
+    });
+
+    test('legacy showBottom delegates to openCheckout', () {
       expect(QuickSellingMobile.showBottom, isNotNull);
     });
   });
