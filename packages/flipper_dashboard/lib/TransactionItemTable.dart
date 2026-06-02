@@ -18,16 +18,18 @@ import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'dart:async'; // Import for Timer
 
 /// Modern Transaction Item Table Mixin
-/// Inspired by Microsoft Fluent Design, QuickBooks clarity, and Duolingo engagement
+/// Inspired by Microsoft Fluent Design, QuickBooks clarity, and  engagement
 mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   // === CORE DATA ===
-  /// Cart lines come from [posCartDisplayItemsProvider] (Ditto + optimistic).
+  /// Cart lines for one-off reads (payment hints). Table UI uses [cartLines] from
+  /// [PosCartTableHost] so the checkout shell does not rebuild on every tap.
   List<TransactionItem> get _cartLines =>
-      ref.watch(posCartDisplayItemsProvider);
+      ref.read(posCartDisplayItemsProvider);
 
   /// Legacy name used by [QuickSellingView] totals / completion hints.
-  List<TransactionItem> get internalTransactionItems => _cartLines;
+  List<TransactionItem> get internalTransactionItems =>
+      _tableCartLines ?? _cartLines;
 
   /// When set by [buildTransactionItemsTable], drives list UI for that frame.
   List<TransactionItem>? _tableCartLines;
@@ -184,10 +186,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   @override
   void didUpdateWidget(covariant T oldWidget) {
     super.didUpdateWidget(oldWidget);
-    for (var item in _cartLines) {
-      _initController(item);
-    }
-    _removeUnusedControllers();
+    final lines = _tableCartLines;
+    if (lines == null) return;
+    // Controllers are created lazily by row widgets as they become visible.
+    // Keeping this hook to dispose controllers for removed items.
+    _removeUnusedControllers(lines);
   }
 
   // === MODERN CALCULATIONS WITH QUICKBOOKS PRECISION ===
@@ -222,9 +225,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }) {
     _tableCartLines = cartLines;
     final lines = _linesForTable;
-    for (final item in lines) {
-      _initController(item);
-    }
     _removeUnusedControllers(lines);
 
     return Container(
@@ -452,11 +452,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }) {
     _initController(item);
     final displayQty = _displayQtyFor(item);
-    final pendingOpt =
-        ref
-            .watch(optimisticCartProvider)
-            .pendingQtyByVariantId[item.variantId ?? ''] ??
-        0;
+    final vid = item.variantId ?? '';
+    final pendingOpt = vid.isEmpty
+        ? 0.0
+        : ref.watch(
+            optimisticCartProvider.select(
+              (s) => s.pendingQtyByVariantId[vid] ?? 0,
+            ),
+          );
     final qtyLocked = pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
     final currency = ProxyService.box.defaultCurrency();
     final unitFormatted = formatNumber(item.price.toDouble());
@@ -646,13 +649,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  // === DUOLINGO-INSPIRED QUICK CONTROLS ===
+  // === -INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
-    final pendingOpt =
-        ref
-            .watch(optimisticCartProvider)
-            .pendingQtyByVariantId[item.variantId ?? ''] ??
-        0;
+    final vid = item.variantId ?? '';
+    final pendingOpt = vid.isEmpty
+        ? 0.0
+        : ref.watch(
+            optimisticCartProvider.select(
+              (s) => s.pendingQtyByVariantId[vid] ?? 0,
+            ),
+          );
     final qtyLocked = pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
     final displayQty = _displayQtyFor(item);
     return FittedBox(

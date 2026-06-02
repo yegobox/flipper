@@ -6,6 +6,7 @@ import 'package:flipper_models/providers/cached_pending_cart_transaction_provide
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_cart_sync_tap.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -31,48 +32,37 @@ class PosCartAddService {
     if (variant.id.isEmpty) return;
 
     final isExpense = isOrdering;
-    warmPosCartPendingTransactionCache(ref, isExpense: isExpense);
+    // Cache is warmed when checkout opens; avoid sync work on every grid tap.
     final resolvedTxnId =
         readPosCartTransactionIdFast(ref, isExpense: isExpense);
-    final optimismTxnId = (resolvedTxnId != null && resolvedTxnId.isNotEmpty)
-        ? resolvedTxnId
-        : OptimisticCartBootstrap.txnId;
 
     ref.read(optimisticOrderCountProvider.notifier).increment();
 
-    var cartOptimismApplied = false;
-    if (!isOrdering) {
-      ref.read(optimisticCartProvider.notifier).addPendingLine(
-            transactionId: optimismTxnId,
-            variant: variant,
-          );
-      cartOptimismApplied = true;
-      bumpPosCartDisplayEpoch(ref);
-      if (OptimisticCartBootstrap.isBootstrap(optimismTxnId)) {
-        final realId =
-            readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id ??
-            ref
-                .read(pendingTransactionStreamProvider(isExpense: isExpense))
-                .value
-                ?.id;
-        if (realId != null && realId.isNotEmpty) {
-          ref
-              .read(optimisticCartProvider.notifier)
-              .bindPendingTransaction(realId);
-        }
-      }
-    }
-
-    unawaited(
-      _runPersist(
-        context: context,
+    final cartOptimismApplied = !isOrdering;
+    if (cartOptimismApplied) {
+      applyPosCartTapSync(
+        ref: ref,
         variant: variant,
         isOrdering: isOrdering,
-        product: product,
-        isComposite: isComposite,
-        cartOptimismApplied: cartOptimismApplied,
-      ),
-    );
+        resolvedPendingTxnId: resolvedTxnId,
+      );
+    }
+
+    // Two frames before Ditto: first frame paints optimistic cart (macOS spinner fix).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(
+          _runPersist(
+            context: context,
+            variant: variant,
+            isOrdering: isOrdering,
+            product: product,
+            isComposite: isComposite,
+            cartOptimismApplied: cartOptimismApplied,
+          ),
+        );
+      });
+    });
   }
 
   /// Scanner / flows that need success/failure.
@@ -101,6 +91,7 @@ class PosCartAddService {
     required bool isComposite,
     required bool cartOptimismApplied,
   }) async {
+    if (!ref.mounted) return;
     final pendingProv = pendingTransactionStreamProvider(
       isExpense: isOrdering,
     );

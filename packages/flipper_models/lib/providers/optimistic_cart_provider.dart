@@ -1,6 +1,7 @@
-import 'package:flipper_models/db_model_export.dart';
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
+import 'package:supabase_models/brick/models/variant.model.dart';
 
 part 'optimistic_cart_provider.g.dart';
 
@@ -87,27 +88,54 @@ class OptimisticCartState {
   }
 }
 
+/// Pure optimistic tap (no Riverpod / Capella). Used by [OptimisticCart] and tests.
+OptimisticCartState ensureOptimisticCartTransaction(
+  OptimisticCartState state,
+  String transactionId,
+) {
+  final current = state.activeTransactionId;
+  if (current == transactionId) return state;
+  if (current == null ||
+      current.isEmpty ||
+      OptimisticCartBootstrap.isBootstrap(current)) {
+    return state.copyWith(activeTransactionId: transactionId);
+  }
+  return OptimisticCartState(
+    activeTransactionId: transactionId,
+    pendingQtyByVariantId: {},
+    lastStreamQtySumByVariantId: {},
+    variantSnapshotByVariantId: {},
+    reconcileAfter: null,
+  );
+}
+
+/// Pure optimistic tap (no Riverpod / Capella). Used by [OptimisticCart] and tests.
+OptimisticCartState addOptimisticPendingLine(
+  OptimisticCartState state, {
+  required String transactionId,
+  required Variant variant,
+}) {
+  final vid = variant.id;
+  if (vid.isEmpty) return state;
+  final withTxn = ensureOptimisticCartTransaction(state, transactionId);
+  final nextPending = Map<String, double>.from(withTxn.pendingQtyByVariantId);
+  nextPending[vid] = (nextPending[vid] ?? 0) + 1;
+  final nextSnap = Map<String, Variant>.from(withTxn.variantSnapshotByVariantId);
+  nextSnap[vid] = variant;
+  return withTxn.copyWith(
+    pendingQtyByVariantId: nextPending,
+    variantSnapshotByVariantId: nextSnap,
+    reconcileAfter: DateTime.now().add(const Duration(milliseconds: 120)),
+  );
+}
+
 @Riverpod(keepAlive: true)
 class OptimisticCart extends _$OptimisticCart {
   @override
   OptimisticCartState build() => const OptimisticCartState();
 
   void _ensureTransaction(String transactionId) {
-    final current = state.activeTransactionId;
-    if (current == transactionId) return;
-    if (current == null ||
-        current.isEmpty ||
-        OptimisticCartBootstrap.isBootstrap(current)) {
-      state = state.copyWith(activeTransactionId: transactionId);
-      return;
-    }
-    state = OptimisticCartState(
-      activeTransactionId: transactionId,
-      pendingQtyByVariantId: {},
-      lastStreamQtySumByVariantId: {},
-      variantSnapshotByVariantId: {},
-      reconcileAfter: null,
-    );
+    state = ensureOptimisticCartTransaction(state, transactionId);
   }
 
   /// Replaces [OptimisticCartBootstrap.txnId] when the real pending sale is known.
@@ -124,17 +152,10 @@ class OptimisticCart extends _$OptimisticCart {
 
   /// Call right after the pending transaction is known, before the Ditto save lock.
   void addPendingLine({required String transactionId, required Variant variant}) {
-    final vid = variant.id;
-    if (vid.isEmpty) return;
-    _ensureTransaction(transactionId);
-    final nextPending = Map<String, double>.from(state.pendingQtyByVariantId);
-    nextPending[vid] = (nextPending[vid] ?? 0) + 1;
-    final nextSnap = Map<String, Variant>.from(state.variantSnapshotByVariantId);
-    nextSnap[vid] = variant;
-    state = state.copyWith(
-      pendingQtyByVariantId: nextPending,
-      variantSnapshotByVariantId: nextSnap,
-      reconcileAfter: DateTime.now().add(const Duration(milliseconds: 120)),
+    state = addOptimisticPendingLine(
+      state,
+      transactionId: transactionId,
+      variant: variant,
     );
   }
 
@@ -272,11 +293,9 @@ String cartTransactionIdForMergeIds({
   required String? optimisticTransactionId,
   bool preferBootstrapWhilePending = false,
 }) {
-  if (preferBootstrapWhilePending &&
-      OptimisticCartBootstrap.isBootstrap(optimisticTransactionId) &&
-      optimisticTransactionId != null &&
-      optimisticTransactionId.isNotEmpty) {
-    return optimisticTransactionId;
+  // Fast cart paint: skip [transactionItemsStreamProvider] while taps are in flight.
+  if (preferBootstrapWhilePending) {
+    return OptimisticCartBootstrap.txnId;
   }
   if (pendingTransactionId != null && pendingTransactionId.isNotEmpty) {
     return pendingTransactionId;
@@ -353,6 +372,62 @@ List<TransactionItem> mergeTransactionItemsWithOptimisticCart({
   }
 
   return _sortNewestFirst(out);
+}
+
+/// In-memory cart lines after a grid tap (no Capella/Ditto stream subscription).
+///
+/// When [optimistic] has pending qty, uses the bootstrap fast path so display
+/// never waits on [transactionItemsStreamProvider].
+List<TransactionItem> mergePosCartDisplayAfterTap({
+  required OptimisticCartState optimistic,
+  required String? pendingTransactionId,
+  List<TransactionItem> streamItems = const [],
+}) {
+  final preferBootstrap =
+      optimistic.pendingQtyByVariantId.values.any((q) => q > 0);
+  final mergeTxnId = cartTransactionIdForMergeIds(
+    pendingTransactionId: pendingTransactionId,
+    optimisticTransactionId: optimistic.activeTransactionId,
+    preferBootstrapWhilePending: preferBootstrap,
+  );
+  if (mergeTxnId.isEmpty) return const [];
+
+  if (OptimisticCartBootstrap.isBootstrap(mergeTxnId)) {
+    final ghostTxnId =
+        (pendingTransactionId != null && pendingTransactionId.isNotEmpty)
+        ? pendingTransactionId
+        : mergeTxnId;
+    return mergeTransactionItemsWithOptimisticCart(
+      streamItems: streamItems,
+      optimistic: optimistic,
+      transactionId: ghostTxnId,
+    );
+  }
+
+  return mergeTransactionItemsWithOptimisticCart(
+    streamItems: streamItems,
+    optimistic: optimistic,
+    transactionId: mergeTxnId,
+  );
+}
+
+/// Simulates synchronous tap → cart line (used by perf regression tests).
+List<TransactionItem> simulatePosCartTapDisplaySync({
+  required Variant variant,
+  required String? pendingTransactionId,
+}) {
+  final txnId = (pendingTransactionId != null && pendingTransactionId.isNotEmpty)
+      ? pendingTransactionId
+      : OptimisticCartBootstrap.txnId;
+  final optimistic = addOptimisticPendingLine(
+    const OptimisticCartState(),
+    transactionId: txnId,
+    variant: variant,
+  );
+  return mergePosCartDisplayAfterTap(
+    optimistic: optimistic,
+    pendingTransactionId: pendingTransactionId,
+  );
 }
 
 TransactionItem _ghostTransactionItem({

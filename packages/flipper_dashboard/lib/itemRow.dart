@@ -207,9 +207,7 @@ class _RowItemState extends ConsumerState<RowItem>
   }) {
     final variantId = widget.variant?.id;
     final inCartQty = (variantId != null && variantId.isNotEmpty)
-        ? ref.watch(
-            posCartQtyByVariantIdProvider.select((map) => map[variantId] ?? 0),
-          )
+        ? ref.watch(posCartQtyForVariantProvider(variantId))
         : 0;
 
     final stockAsync = ref.watch(
@@ -233,6 +231,7 @@ class _RowItemState extends ConsumerState<RowItem>
     final hasImage = widget.imageUrl?.isNotEmpty == true;
 
     return PosCatalogGridCard(
+      key: Key('pos-catalog-tap-${variantId ?? itemId ?? ''}'),
       productName: widget.productName.isNotEmpty
           ? widget.productName
           : 'Unnamed Product',
@@ -922,9 +921,7 @@ class _RowItemState extends ConsumerState<RowItem>
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
-        final displayQty = ref.watch(
-          posCartQtyByVariantIdProvider.select((map) => map[v.id] ?? 0),
-        );
+        final displayQty = ref.watch(posCartQtyForVariantProvider(v.id));
 
         if (displayQty <= 0) {
           return _buildPlusOnlyButton(textTheme, colorScheme);

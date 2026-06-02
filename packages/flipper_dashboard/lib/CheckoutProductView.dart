@@ -102,9 +102,11 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   }
 
   String getCartText({required String transactionId}) {
-    final items = ref.watch(posCartDisplayItemsProvider);
-    final count = posCartDisplayItemsForTransaction(items, transactionId)
-        .length;
+    final count = ref.watch(
+      posCartDisplayItemsProvider.select(
+        (items) => posCartDisplayItemsForTransaction(items, transactionId).length,
+      ),
+    );
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
@@ -125,9 +127,11 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               );
 
               final txn = transactionAsyncValue.asData?.value;
-              final cartItems = ref.watch(posCartDisplayItemsProvider);
+              final cartNotEmpty = ref.watch(
+                posCartDisplayItemsProvider.select((l) => l.isNotEmpty),
+              );
               final checkoutTxn = txn ??
-                  (cartItems.isNotEmpty
+                  (cartNotEmpty
                       ? readCachedPendingCartTransactionWidget(
                           ref,
                           isExpense: false,
@@ -173,8 +177,15 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       ),
                     ),
                     Expanded(child: catalogBody),
-                    if (checkoutTxn != null || cartItems.isNotEmpty)
-                      _buildMobileCartBar(checkoutTxn, cartItems),
+                    if (checkoutTxn != null || cartNotEmpty)
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final cartItems = ref.watch(
+                            posCartDisplayItemsProvider,
+                          );
+                          return _buildMobileCartBar(checkoutTxn, cartItems);
+                        },
+                      ),
                   ],
                 );
               }
@@ -182,8 +193,18 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               return Column(
                 children: [
                   _buildTopBar(context, ref, txn),
-                  _buildSaleSummary(txn, cartItems),
-                  _buildTicketsItemsRow(txn, cartItems),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final summary = ref.watch(posCartSummaryProvider);
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildSaleSummary(txn, summary),
+                          _buildTicketsItemsRow(txn, summary),
+                        ],
+                      );
+                    },
+                  ),
                   _buildSearchAndScanRow(),
                   Expanded(child: catalogBody),
                 ],
@@ -410,36 +431,22 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     }
   }
 
-  ({int itemRows, double subtotal, double tax, double total}) _computeSaleMoney(
-    ITransaction? transaction,
-    List<TransactionItem> items,
-  ) {
-    final active = items.where((i) => i.active != false).toList();
-    var lineSub = 0.0;
-    var lineTax = 0.0;
-    for (final it in active) {
-      lineSub += (it.price * it.qty).toDouble();
-      lineTax += (it.taxAmt ?? 0).toDouble();
-    }
-    final t = transaction;
-    final sub = (t?.subTotal != null && t!.subTotal! > 0)
-        ? t.subTotal!
-        : lineSub;
-    final taxVal = (t?.taxAmount != null && (t!.taxAmount ?? 0) > 0)
-        ? t.taxAmount!.toDouble()
-        : lineTax;
-    final total = sub + taxVal;
-    return (itemRows: active.length, subtotal: sub, tax: taxVal, total: total);
-  }
-
   Widget _buildSaleSummary(
     ITransaction? transaction,
-    List<TransactionItem> items,
+    PosCartSummary summary,
   ) {
     final scheme = Theme.of(context).colorScheme;
     final sym = ProxyService.box.defaultCurrency();
-    final m = _computeSaleMoney(transaction, items);
-    final itemText = '${m.itemRows} item${m.itemRows == 1 ? '' : 's'}';
+    final t = transaction;
+    final sub = (t?.subTotal != null && t!.subTotal! > 0)
+        ? t.subTotal!
+        : summary.lineSubtotal;
+    final taxVal = (t?.taxAmount != null && (t!.taxAmount ?? 0) > 0)
+        ? t.taxAmount!.toDouble()
+        : summary.lineTax;
+    final total = sub + taxVal;
+    final itemText =
+        '${summary.activeLineCount} item${summary.activeLineCount == 1 ? '' : 's'}';
 
     Widget moneyCol(String label, String amount, {required Color amountColor}) {
       return Expanded(
@@ -509,7 +516,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               ),
               moneyCol(
                 'Total',
-                m.total.toCurrencyFormatted(symbol: sym),
+                total.toCurrencyFormatted(symbol: sym),
                 amountColor: const Color(0xFF1B7F3A),
               ),
               const ResetTransactionButton(),
@@ -522,10 +529,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
 
   Widget _buildTicketsItemsRow(
     ITransaction? transaction,
-    List<TransactionItem> items,
+    PosCartSummary summary,
   ) {
     final scheme = Theme.of(context).colorScheme;
-    final count = items.where((i) => i.active != false).length;
+    final count = summary.activeLineCount;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
