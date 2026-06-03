@@ -18,6 +18,7 @@ import 'package:flipper_models/providers/device_provider.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/constants.dart';
@@ -1533,8 +1534,10 @@ class _MobileTransactionDelegationSettingsState
       key: 'selectedDelegationDeviceId',
     );
 
+    final isEnabled = enabled ?? false;
+    ref.read(transactionDelegationEnabledProvider.notifier).state = isEnabled;
     setState(() {
-      _isEnabled = enabled ?? false;
+      _isEnabled = isEnabled;
       _selectedDeviceId = selectedDeviceId;
       _isLoading = false;
     });
@@ -1551,6 +1554,7 @@ class _MobileTransactionDelegationSettingsState
         value: value,
       );
 
+      ref.read(transactionDelegationEnabledProvider.notifier).state = value;
       setState(() {
         _isEnabled = value;
         _isLoading = false;

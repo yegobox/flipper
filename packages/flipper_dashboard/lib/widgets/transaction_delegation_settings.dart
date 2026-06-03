@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,16 +11,16 @@ import 'dart:io';
 /// Widget to manage transaction delegation settings
 /// Allows users to enable/disable the feature where mobile devices
 /// delegate transaction completion to desktop machines
-class TransactionDelegationSettings extends StatefulWidget {
-  const TransactionDelegationSettings({Key? key}) : super(key: key);
+class TransactionDelegationSettings extends ConsumerStatefulWidget {
+  const TransactionDelegationSettings({super.key});
 
   @override
-  State<TransactionDelegationSettings> createState() =>
+  ConsumerState<TransactionDelegationSettings> createState() =>
       _TransactionDelegationSettingsState();
 }
 
 class _TransactionDelegationSettingsState
-    extends State<TransactionDelegationSettings> {
+    extends ConsumerState<TransactionDelegationSettings> {
   bool _isEnabled = false;
   bool _isLoading = true;
 
@@ -33,8 +35,10 @@ class _TransactionDelegationSettingsState
       key: 'enableTransactionDelegation',
     );
 
+    final isEnabled = enabled ?? false;
+    ref.read(transactionDelegationEnabledProvider.notifier).state = isEnabled;
     setState(() {
-      _isEnabled = enabled ?? false;
+      _isEnabled = isEnabled;
       _isLoading = false;
     });
   }
@@ -50,6 +54,7 @@ class _TransactionDelegationSettingsState
         value: value,
       );
 
+      ref.read(transactionDelegationEnabledProvider.notifier).state = value;
       setState(() {
         _isEnabled = value;
         _isLoading = false;
