@@ -68,8 +68,19 @@ final sideMenuShowStockRecountProvider = Provider<bool>((ref) {
   return userHasFeatureWriteAccess(ref, AppFeature.Stock);
 });
 
+/// Local desktop toggle (Admin → Transaction Delegation). Kept in sync when the switch changes.
+final transactionDelegationEnabledProvider = StateProvider<bool>((ref) {
+  return ProxyService.box.readBool(key: 'enableTransactionDelegation') ??
+      false;
+});
+
 final sideMenuShowDelegationsProvider = Provider<bool>((ref) {
-  if (!ref.watch(hasFeatureProvider('PRINTING_DELEGATION'))) return false;
+  final enabledLocally = ref.watch(transactionDelegationEnabledProvider);
+  final hasBranchFeature =
+      ref.watch(hasFeatureProvider('PRINTING_DELEGATION'));
+  if (!enabledLocally && !hasBranchFeature) return false;
+  // Receiver was turned on in settings on this device — show queue without waiting for Ditto feature sync.
+  if (enabledLocally) return true;
   return userHasFeatureWriteAccess(ref, AppFeature.Settings) ||
       userHasFeatureWriteAccess(ref, AppFeature.Sales);
 });
