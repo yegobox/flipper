@@ -41,6 +41,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, FocusNode> _priceFocusNodes = {};
   final Map<String, double> _optimisticQtyByItemId = {};
+  final Map<String, ValueNotifier<double>> _lineDisplayQtyNotifiers = {};
+  final ValueNotifier<int> _cartTotalsTick = ValueNotifier(0);
   final Set<String> _optimisticallyDeletedItemIds = {};
   final SettingsService _settingsService = locator<SettingsService>();
 
@@ -124,6 +126,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
       // Clean up modern UX state and debounce timers
       _optimisticQtyByItemId.remove(id);
+      _lineDisplayQtyNotifiers.remove(id)?.dispose();
       _optimisticallyDeletedItemIds.remove(id);
       _isItemSaving.remove(id);
       _hasItemChanged.remove(id);
@@ -154,6 +157,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       timer?.cancel();
     }
     _cartItemsScrollController?.dispose();
+    for (final n in _lineDisplayQtyNotifiers.values) {
+      n.dispose();
+    }
+    _lineDisplayQtyNotifiers.clear();
+    _cartTotalsTick.dispose();
     super.dispose();
   }
 
@@ -299,7 +307,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             Expanded(child: _buildItemsList(isOrdering, scrollable: true))
           else
             _buildItemsList(isOrdering, scrollable: false),
-          _buildModernSummary(),
+          ValueListenableBuilder<int>(
+            valueListenable: _cartTotalsTick,
+            builder: (_, __, ___) => _buildModernSummary(),
+          ),
         ],
       ),
     );
@@ -472,82 +483,85 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     required WidgetRef lineRef,
   }) {
     _ensureController(item);
-    final displayQty = _displayQtyFor(item);
     final qtyLocked = OptimisticCartIds.isOptimistic(item.id);
-    final currency = ProxyService.box.defaultCurrency();
-    final unitFormatted = formatNumber(item.price.toDouble());
-    final qtyFormatted = _formatQty(displayQty);
-    final stock = item.stock?.currentStock;
-    String? stockHint;
-    if (stock != null) {
-      final n = stock is int ? stock : stock.floor();
-      stockHint = '$n left in stock';
-    }
-    final retail = item.retailPrice ?? item.price;
-    final priceHint = (item.price - retail).abs() < 0.01
-        ? 'Default price'
-        : null;
+    return ValueListenableBuilder<double>(
+      valueListenable: _lineQtyListenable(item),
+      builder: (context, displayQty, _) {
+        final currency = ProxyService.box.defaultCurrency();
+        final unitFormatted = formatNumber(item.price.toDouble());
+        final qtyFormatted = _formatQty(displayQty);
+        final stock = item.stock?.currentStock;
+        String? stockHint;
+        if (stock != null) {
+          final n = stock is int ? stock : stock.floor();
+          stockHint = '$n left in stock';
+        }
+        final retail = item.retailPrice ?? item.price;
+        final priceHint = (item.price - retail).abs() < 0.01
+            ? 'Default price'
+            : null;
 
-    return PosCartExpandedLine(
-      name: _getItemName(item),
-      currency: currency,
-      unitPriceText: '$currency $unitFormatted each',
-      lineTotalText: _getItemTotal(item),
-      qtyText: qtyFormatted,
-      subtotalDetailText: '$qtyFormatted × $currency $unitFormatted',
-      isExpanded: isExpanded,
-      isSaving: isSaving,
-      hasError: hasError,
-      errorText: _itemErrors[item.id],
-      stockHint: stockHint,
-      priceHint: priceHint,
-      onToggleExpand: () => _toggleExpandedItem(item.id, isSaving: isSaving),
-      onDelete: () => _showDeleteConfirmation(item, isOrdering),
-      onDecrement: () => _decrementQuantity(item, isOrdering),
-      onIncrement: () => _incrementQuantity(item, isOrdering),
-      decrementEnabled: displayQty > 0 && !qtyLocked,
-      incrementEnabled: !qtyLocked,
-      expandedQuantityStepper: isExpanded
-          ? PosCartExpandedQtyStepper(
-              qtyText: qtyFormatted,
-              decrementEnabled: displayQty > 0 && !qtyLocked,
-              incrementEnabled: !qtyLocked,
-              onDecrement: () => _decrementQuantity(item, isOrdering),
-              onIncrement: () => _incrementQuantity(item, isOrdering),
-            )
-          : null,
-      expandedPriceField: isExpanded
-          ? PosCartExpandedPriceField(
-              controller: _priceControllers[item.id]!,
-              focusNode: _priceFocusNodes[item.id]!,
-              currency: currency,
-              enabled: !isSaving,
-              onChanged: (value) {
-                setState(() {
-                  _hasItemChanged[item.id] = true;
-                  _itemErrors.remove(item.id);
-                });
-                final originalUnitPrice = item.retailPrice ?? item.price;
-                final newPrice = double.tryParse(value);
-                if (_settingsService.enablePriceQuantityAdjustment &&
-                    newPrice != null &&
-                    originalUnitPrice > 0) {
-                  final newQty = newPrice / originalUnitPrice;
-                  _quantityControllers[item.id]?.text = newQty.toStringAsFixed(
-                    2,
-                  );
-                }
-                _debounceTimers[item.id]?.cancel();
-                _debounceTimers[item.id] = Timer(_debounceDuration, () {
-                  _updatePriceFromTextField(item, value, isOrdering);
-                });
-              },
-              onSubmitted: (value) {
-                _debounceTimers[item.id]?.cancel();
-                _updatePriceFromTextField(item, value, isOrdering);
-              },
-            )
-          : null,
+        return PosCartExpandedLine(
+          name: _getItemName(item),
+          currency: currency,
+          unitPriceText: '$currency $unitFormatted each',
+          lineTotalText: _lineTotalText(item, displayQty),
+          qtyText: qtyFormatted,
+          subtotalDetailText: '$qtyFormatted × $currency $unitFormatted',
+          isExpanded: isExpanded,
+          isSaving: isSaving,
+          hasError: hasError,
+          errorText: _itemErrors[item.id],
+          stockHint: stockHint,
+          priceHint: priceHint,
+          onToggleExpand: () => _toggleExpandedItem(item.id, isSaving: isSaving),
+          onDelete: () => _showDeleteConfirmation(item, isOrdering),
+          onDecrement: () => _decrementQuantity(item, isOrdering),
+          onIncrement: () => _incrementQuantity(item, isOrdering),
+          decrementEnabled: displayQty > 0 && !qtyLocked,
+          incrementEnabled: !qtyLocked,
+          expandedQuantityStepper: isExpanded
+              ? PosCartExpandedQtyStepper(
+                  qtyText: qtyFormatted,
+                  decrementEnabled: displayQty > 0 && !qtyLocked,
+                  incrementEnabled: !qtyLocked,
+                  onDecrement: () => _decrementQuantity(item, isOrdering),
+                  onIncrement: () => _incrementQuantity(item, isOrdering),
+                )
+              : null,
+          expandedPriceField: isExpanded
+              ? PosCartExpandedPriceField(
+                  controller: _priceControllers[item.id]!,
+                  focusNode: _priceFocusNodes[item.id]!,
+                  currency: currency,
+                  enabled: !isSaving,
+                  onChanged: (value) {
+                    setState(() {
+                      _hasItemChanged[item.id] = true;
+                      _itemErrors.remove(item.id);
+                    });
+                    final originalUnitPrice = item.retailPrice ?? item.price;
+                    final newPrice = double.tryParse(value);
+                    if (_settingsService.enablePriceQuantityAdjustment &&
+                        newPrice != null &&
+                        originalUnitPrice > 0) {
+                      final newQty = newPrice / originalUnitPrice;
+                      _quantityControllers[item.id]?.text =
+                          newQty.toStringAsFixed(2);
+                    }
+                    _debounceTimers[item.id]?.cancel();
+                    _debounceTimers[item.id] = Timer(_debounceDuration, () {
+                      _updatePriceFromTextField(item, value, isOrdering);
+                    });
+                  },
+                  onSubmitted: (value) {
+                    _debounceTimers[item.id]?.cancel();
+                    _updatePriceFromTextField(item, value, isOrdering);
+                  },
+                )
+              : null,
+        );
+      },
     );
   }
 
@@ -661,39 +675,43 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   // === -INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
     final qtyLocked = OptimisticCartIds.isOptimistic(item.id);
-    final displayQty = _displayQtyFor(item);
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.center,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildCircularQtyButton(
-            icon: Icons.remove,
-            onTap: () => _decrementQuantity(item, isOrdering),
-            enabled: displayQty > 0 && !qtyLocked,
-            id: '${item.id}-remove',
+    return ValueListenableBuilder<double>(
+      valueListenable: _lineQtyListenable(item),
+      builder: (context, displayQty, _) {
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildCircularQtyButton(
+                icon: Icons.remove,
+                onTap: () => _decrementQuantity(item, isOrdering),
+                enabled: displayQty > 0 && !qtyLocked,
+                id: '${item.id}-remove',
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _formatQty(displayQty),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF111827),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(width: 10),
+              _buildCircularQtyButton(
+                icon: Icons.add,
+                onTap: () => _incrementQuantity(item, isOrdering),
+                enabled: !qtyLocked,
+                id: '${item.id}-add',
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Text(
-            _formatQty(displayQty),
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF111827),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(width: 10),
-          _buildCircularQtyButton(
-            icon: Icons.add,
-            onTap: () => _incrementQuantity(item, isOrdering),
-            enabled: !qtyLocked,
-            id: '${item.id}-add',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1215,8 +1233,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     return null;
   }
 
-  String _getItemTotal(TransactionItem item) {
-    final displayQty = _displayQtyFor(item);
+  String _getItemTotal(TransactionItem item) =>
+      _lineTotalText(item, _displayQtyFor(item));
+
+  String _lineTotalText(TransactionItem item, double displayQty) {
     final double price;
     if (_settingsService.isCurrencyDecimal) {
       price = (item.price * displayQty).toDouble().roundToTwoDecimalPlaces();
@@ -1224,6 +1244,25 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       price = (item.price * displayQty).toDouble().roundToDouble();
     }
     return formatNumber(price);
+  }
+
+  ValueNotifier<double> _lineQtyListenable(TransactionItem item) {
+    final id = item.id;
+    final target = _displayQtyFor(item);
+    final existing = _lineDisplayQtyNotifiers[id];
+    if (existing == null) {
+      final n = ValueNotifier(target);
+      _lineDisplayQtyNotifiers[id] = n;
+      return n;
+    }
+    if ((existing.value - target).abs() > 0.0001) {
+      existing.value = target;
+    }
+    return existing;
+  }
+
+  void _bumpCartTotals() {
+    _cartTotalsTick.value++;
   }
 
   double _displayQtyFor(TransactionItem item) {
@@ -1238,26 +1277,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       return item.qty.toDouble();
     }
     return localQty;
-  }
-
-  /// Same-frame repaint for +/- before Riverpod/Ditto catch up.
-  void _repaintLineQty() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  Variant _variantFromTransactionItem(TransactionItem item) {
-    final vid = item.variantId ?? '';
-    final snap = ref
-        .read(optimisticCartProvider)
-        .variantSnapshotByVariantId[vid];
-    if (snap != null) return snap;
-    return Variant(
-      id: vid,
-      name: item.name,
-      retailPrice: (item.retailPrice ?? item.price).toDouble(),
-      branchId: item.branchId ?? ProxyService.box.getBranchId() ?? '0',
-    );
   }
 
   TransactionItem? _cartLineById(String itemId) {
@@ -1275,6 +1294,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     _optimisticQtyByItemId[item.id] = qty;
     _quantityControllers[item.id]?.text = qty.toString();
     _hasItemChanged[item.id] = true;
+    _lineQtyListenable(item).value = qty;
+    _bumpCartTotals();
   }
 
   Lock _qtyLockFor(String itemId) =>
@@ -1302,7 +1323,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       );
     }
 
-    // Coalesce Ditto writes; UI already updated via [_repaintLineQty].
+    // Coalesce Ditto writes; qty UI already updated via [_setOptimisticQty].
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _lineQtyFlushTimers[itemId] = Timer(_lineQtyFlushDelay, runFlush);
     });
@@ -1378,10 +1399,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       _optimisticQtyByItemId.remove(item.id);
       _quantityControllers[item.id]?.text = item.qty.toString();
       _hasItemChanged[item.id] = false;
+      _lineQtyListenable(item).value = item.qty.toDouble();
     } else {
       _optimisticQtyByItemId[item.id] = rolledBack;
       _quantityControllers[item.id]?.text = rolledBack.toString();
+      _lineQtyListenable(item).value = rolledBack;
     }
+    _bumpCartTotals();
   }
 
   Future<void> _updateTransactionItemInDb(
@@ -1453,20 +1477,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final txnId = item.transactionId ?? '';
     if (vid.isEmpty || txnId.isEmpty) return;
 
-    final newQty = _displayQtyFor(item) + 1;
+    final newQty = _lineQtyListenable(item).value + 1;
     _setOptimisticQty(item, newQty);
-    _repaintLineQty();
-
-    ref.read(optimisticCartProvider.notifier).addPendingLine(
-          transactionId: txnId,
-          variant: _variantFromTransactionItem(item),
-        );
 
     _scheduleLineQtyFlush(
       itemId: item.id,
       variantId: vid,
       txnId: txnId,
       isOrdering: isOrdering,
+      explicitTargetQty: newQty,
     );
   }
 
@@ -1481,9 +1500,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         ref.read(optimisticCartProvider).pendingQtyByVariantId[vid] ?? 0;
     if (pending > 0) {
       final newQty =
-          (_displayQtyFor(item) - 1).clamp(0.0, double.infinity).toDouble();
+          (_lineQtyListenable(item).value - 1).clamp(0.0, double.infinity).toDouble();
       _setOptimisticQty(item, newQty);
-      _repaintLineQty();
       ref.read(optimisticCartProvider.notifier).rollbackPending(
             transactionId: txnId,
             variantId: vid,
@@ -1491,10 +1509,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       return;
     }
 
-    if (_displayQtyFor(item) <= 0) return;
-    final targetQty = _displayQtyFor(item) - 1;
+    if (_lineQtyListenable(item).value <= 0) return;
+    final targetQty = _lineQtyListenable(item).value - 1;
     _setOptimisticQty(item, targetQty);
-    _repaintLineQty();
 
     _scheduleLineQtyFlush(
       itemId: item.id,
