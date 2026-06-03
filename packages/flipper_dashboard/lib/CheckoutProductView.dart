@@ -25,6 +25,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:rxdart/rxdart.dart';
@@ -104,7 +105,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   String getCartText({required String transactionId}) {
     final count = ref.watch(
       posCartDisplayItemsProvider.select(
-        (items) => posCartDisplayItemsForTransaction(items, transactionId).length,
+        (items) =>
+            posCartDisplayItemsForTransaction(items, transactionId).length,
       ),
     );
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
@@ -130,7 +132,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               final cartNotEmpty = ref.watch(
                 posCartDisplayItemsProvider.select((l) => l.isNotEmpty),
               );
-              final checkoutTxn = txn ??
+              final checkoutTxn =
+                  txn ??
                   (cartNotEmpty
                       ? readCachedPendingCartTransactionWidget(
                           ref,
@@ -138,14 +141,13 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                         )
                       : null);
 
-              final isPhone = responsive.ResponsiveLayout.isPhone(context) ||
+              final isPhone =
+                  responsive.ResponsiveLayout.isPhone(context) ||
                   responsive.ResponsiveLayout.isTinyLimit(context);
 
               final catalogBody = ref
                   .watch(
-                    outerVariantsProvider(
-                      ProxyService.box.getBranchId() ?? "",
-                    ),
+                    outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
                   )
                   .when(
                     data: (variants) {
@@ -171,6 +173,11 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       isScanActive: ref.watch(autoAddSearchProvider),
                       onBack: () => Navigator.of(context).maybePop(),
                       onScan: () => _openCatalogScanner(context),
+                      onScanLongPress: () {
+                        if (!ref.read(autoAddSearchProvider)) return;
+                        HapticFeedback.mediumImpact();
+                        ref.read(autoAddSearchProvider.notifier).disable();
+                      },
                       searchField: _CheckoutPosProductSearch(
                         controller: searchController,
                         mposStyle: true,
@@ -431,10 +438,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     }
   }
 
-  Widget _buildSaleSummary(
-    ITransaction? transaction,
-    PosCartSummary summary,
-  ) {
+  Widget _buildSaleSummary(ITransaction? transaction, PosCartSummary summary) {
     final scheme = Theme.of(context).colorScheme;
     final sym = ProxyService.box.defaultCurrency();
     final t = transaction;
@@ -616,10 +620,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     List<TransactionItem> items,
   ) {
     final activeItems = items.where((i) => i.active != false).toList();
-    final count = activeItems.fold<double>(
-      0,
-      (s, i) => s + i.qty.toDouble(),
-    ).round();
+    final count = activeItems
+        .fold<double>(0, (s, i) => s + i.qty.toDouble())
+        .round();
     final total = transaction != null
         ? calculateTransactionTotal(
             items: activeItems,
@@ -851,8 +854,9 @@ class _CheckoutPosProductSearchState
   @override
   void initState() {
     super.initState();
-    _saleSessionSnapshotAtLastTextChange =
-        ref.read(pendingCartSaleSessionProvider);
+    _saleSessionSnapshotAtLastTextChange = ref.read(
+      pendingCartSaleSessionProvider,
+    );
     focusNode = FocusNode();
     hasText = widget.controller.text.isNotEmpty;
     widget.controller.addListener(_onControllerChanged);
@@ -864,8 +868,9 @@ class _CheckoutPosProductSearchState
 
   void _onControllerChanged() {
     final text = widget.controller.text;
-    _saleSessionSnapshotAtLastTextChange =
-        ref.read(pendingCartSaleSessionProvider);
+    _saleSessionSnapshotAtLastTextChange = ref.read(
+      pendingCartSaleSessionProvider,
+    );
     if (mounted) {
       setState(() {
         hasText = text.isNotEmpty;
@@ -992,10 +997,7 @@ class _CheckoutPosProductSearchState
         focusNode: focusNode,
         textInputAction: TextInputAction.search,
         keyboardType: TextInputType.text,
-        style: const TextStyle(
-          fontSize: 15.5,
-          fontWeight: FontWeight.w500,
-        ),
+        style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           filled: true,
           fillColor: PosTokens.surface2,

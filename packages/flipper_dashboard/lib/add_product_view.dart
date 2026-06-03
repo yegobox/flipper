@@ -389,7 +389,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     }
 
     Product product = await model.getProduct(productId: widget.productId);
-    await model.saveProduct(
+    final savedProduct = await model.saveProduct(
       mproduct: product,
       color: model.currentColor,
       inUpdateProcess: widget.productId != null,
@@ -398,7 +398,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
     ref
         .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-        .addProducts(products: [product]);
+        .addProducts(products: [savedProduct ?? product]);
 
     await _updateRegularVariant(model);
 

@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
@@ -21,6 +22,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
@@ -68,7 +70,24 @@ class CheckOutState extends ConsumerState<CheckOut>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
-      ref.read(pendingTransactionStreamProvider(isExpense: false).future);
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId != null && branchId.isNotEmpty) {
+        unawaited(
+          ProxyService.getStrategy(Strategy.capella)
+              .pendingTransactionFuture(
+                branchId: branchId,
+                transactionType: TransactionType.sale,
+                isExpense: false,
+              )
+              .then((txn) {
+            scheduleWriteCachedPendingCartTransactionWidget(
+              ref,
+              isExpense: false,
+              transaction: txn,
+            );
+          }),
+        );
+      }
     });
   }
 
@@ -90,8 +109,17 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildMainContent() {
-    listenCachedPendingCartTransactionSyncWidget(ref, isExpense: false);
+    // Cache + stream merge: [posCartStreamReconciliationProvider] (not duplicate listen).
     ref.listen(posCartStreamReconciliationProvider, (_, __) {});
+
+    // Mobile POS: [CheckoutProductView] owns pending-txn + catalog streams; skip
+    // an extra outer [when] so the route paints on the first frame.
+    if (!widget.isBigScreen) {
+      return _buildDataWidget(
+        readCachedPendingCartTransactionWidget(ref, isExpense: false),
+      );
+    }
+
     final transactionAsyncValue = ref.watch(
       pendingTransactionStreamProvider(isExpense: false),
     );

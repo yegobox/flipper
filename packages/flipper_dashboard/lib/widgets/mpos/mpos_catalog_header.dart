@@ -13,6 +13,7 @@ class MposCatalogHeader extends StatelessWidget {
     required this.searchField,
     required this.onBack,
     required this.onScan,
+    this.onScanLongPress,
     this.isScanActive = false,
   });
 
@@ -21,6 +22,8 @@ class MposCatalogHeader extends StatelessWidget {
   final Widget searchField;
   final VoidCallback onBack;
   final VoidCallback onScan;
+  /// Long-press turns off barcode auto-add (scan mode) without opening the camera.
+  final VoidCallback? onScanLongPress;
   final bool isScanActive;
 
   @override
@@ -72,6 +75,7 @@ class MposCatalogHeader extends StatelessWidget {
                 const SizedBox(width: 10),
                 _MposScanButton(
                   onPressed: onScan,
+                  onLongPress: onScanLongPress,
                   isActive: isScanActive,
                 ),
               ],
@@ -119,9 +123,11 @@ class _MposScanButton extends StatelessWidget {
   const _MposScanButton({
     required this.onPressed,
     required this.isActive,
+    this.onLongPress,
   });
 
   final VoidCallback onPressed;
+  final VoidCallback? onLongPress;
   final bool isActive;
 
   @override
@@ -131,6 +137,7 @@ class _MposScanButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(MposTokens.radiusMd),
       child: InkWell(
         onTap: onPressed,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(MposTokens.radiusMd),
         child: Ink(
           height: 50,

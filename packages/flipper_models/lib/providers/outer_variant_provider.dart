@@ -406,10 +406,8 @@ class Products extends _$Products {
   }
 
   void addProducts({required List<Product> products}) {
-    state.whenData((currentData) {
-      final updatedProducts = [...currentData, ...products];
-      state = AsyncData(updatedProducts);
-    });
+    final currentData = state.value ?? const <Product>[];
+    state = AsyncData(mergeProductsById(currentData, products));
   }
 
   void deleteProduct(int productId) {
@@ -420,4 +418,22 @@ class Products extends _$Products {
       state = AsyncData(updatedProducts);
     });
   }
+}
+
+List<Product> mergeProductsById(
+  List<Product> currentProducts,
+  List<Product> incomingProducts,
+) {
+  final merged = <Product>[...currentProducts];
+  for (final incoming in incomingProducts) {
+    final existingIndex = merged.indexWhere(
+      (product) => product.id == incoming.id,
+    );
+    if (existingIndex == -1) {
+      merged.add(incoming);
+    } else {
+      merged[existingIndex] = incoming;
+    }
+  }
+  return merged;
 }

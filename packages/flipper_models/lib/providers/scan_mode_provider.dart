@@ -38,6 +38,12 @@ class AutoAddSearch extends _$AutoAddSearch {
     state = !state;
     ProxyService.box.writeBool(key: 'enableAutoAddSearch', value: state);
   }
+
+  void disable() {
+    if (!state) return;
+    state = false;
+    ProxyService.box.writeBool(key: 'enableAutoAddSearch', value: false);
+  }
 }
 
 @riverpod

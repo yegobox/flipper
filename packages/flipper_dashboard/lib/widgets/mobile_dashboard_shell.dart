@@ -1,8 +1,10 @@
 import 'package:flipper_dashboard/ProfileFutureWidget.dart';
+import 'package:flipper_dashboard/dashboard_mobile_pos_navigation.dart';
 import 'package:flipper_dashboard/dashboard_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_app_bar_leading.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -30,7 +32,19 @@ class _MobileDashboardShellState extends ConsumerState<MobileDashboardShell> {
   static const Color _pageBg = Color(0xFFF4F6FB);
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      warmMobilePosForCheckout(ref);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // ref.listen is only valid during build (same pattern as [CheckOut]).
+    listenCachedPendingCartTransactionSyncWidget(ref, isExpense: false);
+
     return Scaffold(
       backgroundColor: _pageBg,
       body: Column(

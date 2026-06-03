@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
@@ -47,6 +49,29 @@ void clearCachedPendingCartTransaction(Ref ref, {required bool isExpense}) {
       null;
 }
 
+bool _isWritablePendingCart(ITransaction? transaction) {
+  return transaction != null &&
+      transaction.id.isNotEmpty &&
+      transaction.status == PENDING;
+}
+
+/// Avoids Riverpod "modify during build" when stream already has a value.
+void scheduleWriteCachedPendingCartTransaction(
+  Ref ref, {
+  required bool isExpense,
+  required ITransaction? transaction,
+}) {
+  if (!_isWritablePendingCart(transaction)) return;
+  final txn = transaction!;
+  Future.microtask(() {
+    writeCachedPendingCartTransaction(
+      ref,
+      isExpense: isExpense,
+      transaction: txn,
+    );
+  });
+}
+
 /// Keeps [cachedPendingCartTransactionProvider] aligned with the Ditto stream.
 void listenCachedPendingCartTransactionSync(
   Ref ref, {
@@ -54,8 +79,8 @@ void listenCachedPendingCartTransactionSync(
 }) {
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
   final initial = ref.read(pendingProv);
-  if (initial.hasValue && initial.value != null) {
-    writeCachedPendingCartTransaction(
+  if (initial.hasValue) {
+    scheduleWriteCachedPendingCartTransaction(
       ref,
       isExpense: isExpense,
       transaction: initial.value,
@@ -63,8 +88,8 @@ void listenCachedPendingCartTransactionSync(
   }
 
   ref.listen(pendingProv, (_, next) {
-    if (next.hasValue && next.value != null) {
-      writeCachedPendingCartTransaction(
+    if (next.hasValue) {
+      scheduleWriteCachedPendingCartTransaction(
         ref,
         isExpense: isExpense,
         transaction: next.value,
@@ -103,14 +128,30 @@ void clearCachedPendingCartTransactionWidget(
       null;
 }
 
+void scheduleWriteCachedPendingCartTransactionWidget(
+  WidgetRef ref, {
+  required bool isExpense,
+  required ITransaction? transaction,
+}) {
+  if (!_isWritablePendingCart(transaction)) return;
+  final txn = transaction!;
+  Future.microtask(() {
+    writeCachedPendingCartTransactionWidget(
+      ref,
+      isExpense: isExpense,
+      transaction: txn,
+    );
+  });
+}
+
 void listenCachedPendingCartTransactionSyncWidget(
   WidgetRef ref, {
   required bool isExpense,
 }) {
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
   final initial = ref.read(pendingProv);
-  if (initial.hasValue && initial.value != null) {
-    writeCachedPendingCartTransactionWidget(
+  if (initial.hasValue) {
+    scheduleWriteCachedPendingCartTransactionWidget(
       ref,
       isExpense: isExpense,
       transaction: initial.value,
@@ -118,8 +159,8 @@ void listenCachedPendingCartTransactionSyncWidget(
   }
 
   ref.listen(pendingProv, (_, next) {
-    if (next.hasValue && next.value != null) {
-      writeCachedPendingCartTransactionWidget(
+    if (next.hasValue) {
+      scheduleWriteCachedPendingCartTransactionWidget(
         ref,
         isExpense: isExpense,
         transaction: next.value,

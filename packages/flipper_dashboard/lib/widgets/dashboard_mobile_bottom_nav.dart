@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/dashboard_mobile_pos_navigation.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -92,11 +93,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
             Positioned(
               top: -28,
               child: _NewSaleFab(
-                onTap: () => navigateToDashboardAppPage(
-                  context: context,
-                  isBigScreen: false,
-                  page: 'POS',
-                ),
+                onTap: () => openMobilePosCheckout(context, ref),
               ),
             ),
           ],
@@ -168,6 +165,7 @@ class _NewSaleFabState extends State<_NewSaleFab> {
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTapDown: (_) => setState(() => _pressed = true),
           onTapUp: (_) => setState(() => _pressed = false),
           onTapCancel: () => setState(() => _pressed = false),

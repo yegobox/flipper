@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
@@ -68,12 +70,16 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
 
   void syncPendingTransaction(ITransaction txn) {
-    writeCachedPendingCartTransaction(
+    scheduleWriteCachedPendingCartTransaction(
       ref,
       isExpense: isExpense,
       transaction: txn,
     );
-    ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
+    Future.microtask(
+      () => ref
+          .read(optimisticCartProvider.notifier)
+          .bindPendingTransaction(txn.id),
+    );
   }
 
   ref.listen(pendingProv, (_, next) {
@@ -93,12 +99,14 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
   );
 
   ref.listen(itemsProv, (_, next) {
-    if (next.hasValue) {
-      ref.read(optimisticCartProvider.notifier).onStreamEmitted(
+    if (!next.hasValue) return;
+    final items = next.value!;
+    Future.microtask(
+      () => ref.read(optimisticCartProvider.notifier).onStreamEmitted(
             transactionId: pendingId,
-            items: next.value!,
-          );
-    }
+            items: items,
+          ),
+    );
   }, fireImmediately: true);
 });
 
@@ -321,9 +329,17 @@ String? readPosCartTransactionIdFast(Ref ref, {required bool isExpense}) {
 /// Writes stream pending txn into cache when checkout opens (desktop split).
 void warmPosCartPendingTransactionCache(Ref ref, {required bool isExpense}) {
   final txn = ref.read(pendingTransactionStreamProvider(isExpense: isExpense)).value;
+  scheduleWriteCachedPendingCartTransaction(
+    ref,
+    isExpense: isExpense,
+    transaction: txn,
+  );
   if (txn != null && txn.id.isNotEmpty) {
-    writeCachedPendingCartTransaction(ref, isExpense: isExpense, transaction: txn);
-    ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
+    Future.microtask(
+      () => ref
+          .read(optimisticCartProvider.notifier)
+          .bindPendingTransaction(txn.id),
+    );
   }
 }
 
@@ -333,12 +349,16 @@ void warmPosCartPendingTransactionCacheWidget(
   required bool isExpense,
 }) {
   final txn = ref.read(pendingTransactionStreamProvider(isExpense: isExpense)).value;
+  scheduleWriteCachedPendingCartTransactionWidget(
+    ref,
+    isExpense: isExpense,
+    transaction: txn,
+  );
   if (txn != null && txn.id.isNotEmpty) {
-    writeCachedPendingCartTransactionWidget(
-      ref,
-      isExpense: isExpense,
-      transaction: txn,
+    Future.microtask(
+      () => ref
+          .read(optimisticCartProvider.notifier)
+          .bindPendingTransaction(txn.id),
     );
-    ref.read(optimisticCartProvider.notifier).bindPendingTransaction(txn.id);
   }
 }
