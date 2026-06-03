@@ -4,6 +4,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
+import 'package:flipper_models/helpers/sale_completion_collect.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -97,6 +98,8 @@ mixin TransactionMixinOld {
 
         // Quick-selling: RRA sign → persist sale → UI success, then PDF/print.
         if (deferPersistTaxReceiptFields) {
+          final completionSw = Stopwatch()..start();
+          final signSw = Stopwatch()..start();
           final signOutcome = await handleReceiptGeneration(
             formKey: formKey,
             context: context,
@@ -108,19 +111,70 @@ mixin TransactionMixinOld {
             signOnly: true,
             transactionItems: preloadedLineItemsForCollectPayment,
           );
+          talker.debug(
+            '[sale_completion_timing] rra_sign_ms=${signSw.elapsedMilliseconds}',
+          );
           response = signOutcome.response;
           if (response.resultCd != "000") {
             throw Exception(response.resultMsg);
           }
-          await _completeTransactionAfterTaxValidation(
-            transaction,
-            customerName: customerNameController.text,
-            countryCode: countryCodeController.text,
-            preloadedLineItems: preloadedLineItemsForCollectPayment,
-            tenderAmount: amount,
-            skipTransactionPersist: skipTransactionPersist,
+          final collectSw = Stopwatch()..start();
+          if (skipTransactionPersist) {
+            applySalePaymentFieldsInMemory(
+              transaction: transaction,
+              tenderAmount: amount,
+              paymentType: ProxyService.box.paymentType() ?? paymentType,
+              customerName: customerNameController.text,
+              countryCode: countryCodeController.text,
+              preloadedLineItems: preloadedLineItemsForCollectPayment,
+            );
+            final items = preloadedLineItemsForCollectPayment ?? const [];
+            final saleTotal = items.isEmpty
+                ? amount
+                : items.fold<double>(
+                    0,
+                    (sum, item) =>
+                        sum + item.price.toDouble() * item.qty.toDouble(),
+                  );
+            final derived = deriveSaleCompletionState(
+              transactionCashReceived: transaction.cashReceived ?? 0,
+              finalSubTotal: saleTotal,
+              paymentMethods: [
+                PaymentLineForSaleCompletion(
+                  amount: amount,
+                  method: paymentType,
+                ),
+              ],
+            );
+            scheduleDeferredSaleCollectSideEffects(
+              transaction: transaction,
+              branchId: branchId,
+              bhfId: ebm.bhfId,
+              items: items,
+              completionStatus: derived.status,
+              isProformaMode: ProxyService.box.isProformaMode(),
+              isTrainingMode: ProxyService.box.isTrainingMode(),
+            );
+            ProxyService.box.remove(key: 'pendingCustomerName');
+            ProxyService.box.remove(key: 'pendingCustomerTin');
+          } else {
+            await _completeTransactionAfterTaxValidation(
+              transaction,
+              customerName: customerNameController.text,
+              countryCode: countryCodeController.text,
+              preloadedLineItems: preloadedLineItemsForCollectPayment,
+              tenderAmount: amount,
+              skipTransactionPersist: skipTransactionPersist,
+            );
+          }
+          talker.debug(
+            '[sale_completion_timing] collect_payment_ms=${collectSw.elapsedMilliseconds}',
           );
+          final onCompleteSw = Stopwatch()..start();
           await _awaitPossibleFuture(onComplete());
+          talker.debug(
+            '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
+          );
 
           scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
           unawaited(
@@ -134,6 +188,10 @@ mixin TransactionMixinOld {
               transactionItems: preloadedLineItemsForCollectPayment,
               presentationReceipt: signOutcome.presentationReceipt,
             ),
+          );
+          talker.debug(
+            '[sale_completion_timing] finalize_payment_quick_sell_ms='
+            '${completionSw.elapsedMilliseconds}',
           );
           return response;
         }
@@ -473,9 +531,10 @@ mixin TransactionMixinOld {
       final transactionTypeForCollect =
           transaction.transactionType ?? TransactionType.sale;
       Customer? customer;
-      // Only fetch customer from DB if transaction has a valid customerId
       if (transaction.customerId != null &&
-          transaction.customerId!.isNotEmpty) {
+          transaction.customerId!.isNotEmpty &&
+          transaction.customerTin != null &&
+          transaction.customerTin!.isNotEmpty) {
         customer = (await ProxyService.getStrategy(
           Strategy.capella,
         ).customers(id: transaction.customerId)).firstOrNull;

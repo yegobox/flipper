@@ -229,6 +229,10 @@ abstract class DatabaseSyncInterface extends AiStrategy
     /// When true, mutates [transaction] in memory (shift totals, cash fields) but does not
     /// persist the transaction row; caller must persist (e.g. one [updateTransaction] on completion).
     bool skipTransactionPersist = false,
+
+    /// When true with [skipTransactionPersist], only runs shift / goal side effects;
+    /// [cashReceived] must already be set on [transaction] (Quick Selling hot path).
+    bool skipCashMutation = false,
   });
 
   /// Cash book fast path: one pending txn, one utility line, then completion.
@@ -553,6 +557,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     double amount = 0.0,
     String? paymentMethod,
     required bool singlePaymentOnly,
+    bool saleCompletionFastPath = false,
   });
 
   SendPort? sendPort;

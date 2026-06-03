@@ -1,8 +1,8 @@
 // ignore_for_file: unused_result
 
 import 'dart:async';
-import 'dart:io';
 
+import 'package:flipper_dashboard/utils/sale_completion_budget.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
@@ -330,15 +330,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             query: q,
           );
           brick_user.User? u = local.isNotEmpty ? local.first : null;
-          if (u == null) {
-            try {
-              final remote = await repo.get<brick_user.User>(
-                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-                query: q,
-              );
-              if (remote.isNotEmpty) u = remote.first;
-            } catch (_) {}
-          }
           if (u != null) {
             completionCashierName =
                 TransactionReportCashierProfile.displayNameFromUserRow(
@@ -529,27 +520,27 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       );
       final discount = double.tryParse(discountController.text) ?? 0;
 
-      final String branchId = (await ProxyService.strategy.activeBranch(
-        branchId: ProxyService.box.getBranchId()!,
-      )).id;
+      final String branchId = ProxyService.box.getBranchId()!;
       final paymentType = ProxyService.box.paymentType() ?? "Cash";
-
-      // Get customer if exists
-      final customer = await _getCustomer(transaction.customerId);
 
       if (!isValid) return false;
 
       final isDigitalPaymentEnabled = await ProxyService.strategy
-          // since we need to have updated EBM settings and we rely on internet for that for the bellow platfrom
-          // we haven't encountered with hydrating issue excluding windows.
           .isBranchEnableForPayment(
             currentBranchId: branchId,
-            fetchRemote:
-                (Platform.isAndroid || Platform.isIOS || Platform.isMacOS),
+            fetchRemote: false,
           );
+
+      Customer? customer;
+      if (transaction.customerId != null &&
+          transaction.customerId!.isNotEmpty &&
+          (hasCreditPayment || isDigitalPaymentEnabled)) {
+        customer = await _getCustomer(transaction.customerId);
+      }
 
       final String? ticketName =
           customer?.custNm ??
+          transaction.customerName ??
           (mounted ? ref.read(customerNameControllerProvider).text : null);
 
       if (isDigitalPaymentEnabled && !immediateCompletion) {
@@ -591,42 +582,54 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           preloadedLineItemsForCollectPayment: transactionItems,
           skipCollectPaymentTransactionPersist: true,
           completeTransaction: () async {
-            // Update the local transaction object with the payment amount we just processed.
-            // This ensures markTransactionAsCompleted sees the correct total paid, avoiding race conditions
-            // with the database fetch.
-            transaction.cashReceived = (transaction.cashReceived ?? 0) + amount;
-
-            schedulePostSaleStockDeduction();
-
-            final wasLoan = await markTransactionAsCompleted(
+            final mark = await markTransactionAsCompleted(
               transaction: transaction,
               finalSubTotal: finalSubTotal,
               paymentMethods: paymentMethods,
               ticketName: ticketName,
               cashierName: completionCashierName,
+              lineItemsForAgentCommission: transactionItems,
+              deferPaymentPersist: true,
             );
             transactionWasMarkedCompleted = true;
+            schedulePostSaleStockDeduction();
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
-                wasLoan
+                mark.wasLoan
                     ? "Payment recorded. Transaction parked as loan."
                     : "Payment Successful",
-                backgroundColor: wasLoan ? Colors.orange : Colors.green,
+                backgroundColor: mark.wasLoan ? Colors.orange : Colors.green,
                 showCloseButton: true,
               );
               ref.read(payButtonStateProvider.notifier).stopLoading();
             }
-            try {
-              await _invokeCompleteTransactionCallback(completeTransaction);
-            } catch (e) {
-              talker.error("Error in completeTransaction callback: $e");
+            final deferredPayments = mark.deferredPayments;
+            if (deferredPayments != null && deferredPayments.isNotEmpty) {
+              unawaited(
+                _persistSalePaymentLines(
+                  capella: capella,
+                  transactionId: transaction.id,
+                  payments: deferredPayments,
+                ),
+              );
             }
+            unawaited(() async {
+              try {
+                await _invokeCompleteTransactionCallback(completeTransaction);
+              } catch (e) {
+                talker.error("Error in completeTransaction callback: $e");
+              }
+            }());
             _resetDigitalReceiptToggleAfterSale();
           },
         );
         talker.debug(
           '[sale_completion_timing] flow_total_sync_completion_ms=${flowWatch.elapsedMilliseconds}',
+        );
+        logSaleCompletionOverBudget(
+          elapsedMs: flowWatch.elapsedMilliseconds,
+          source: 'preview_cart_sync',
         );
         // Return false to indicate payment is complete
         // Bottom sheet will close after user confirmation
@@ -667,14 +670,41 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  /// Returns `true` when the transaction was parked as a loan (CREDIT or
-  /// under-payment), `false` when fully completed.
-  Future<bool> markTransactionAsCompleted({
+  Future<void> _persistSalePaymentLines({
+    required dynamic capella,
+    required String transactionId,
+    required List<PaymentLineForSaleCompletion> payments,
+  }) async {
+    final paySw = Stopwatch()..start();
+    try {
+      for (final payment in payments) {
+        await capella.savePaymentType(
+          singlePaymentOnly: false,
+          amount: payment.amount,
+          transactionId: transactionId,
+          paymentMethod: payment.method,
+          saleCompletionFastPath: true,
+        );
+      }
+    } catch (e, s) {
+      talker.error('Deferred sale payment persist failed: $e', s);
+    }
+    talker.debug(
+      '[sale_completion_timing] save_payments_ms=${paySw.elapsedMilliseconds} '
+      'deferred_after_ui=true',
+    );
+  }
+
+  /// Returns loan flag and optional payment lines when [deferPaymentPersist] is true.
+  Future<({bool wasLoan, List<PaymentLineForSaleCompletion>? deferredPayments})>
+  markTransactionAsCompleted({
     required ITransaction transaction,
     required double finalSubTotal,
     required List<Payment> paymentMethods,
     String? ticketName,
     String? cashierName,
+    List<TransactionItem>? lineItemsForAgentCommission,
+    bool deferPaymentPersist = false,
   }) async {
     final capella = ProxyService.getStrategy(Strategy.capella);
 
@@ -697,13 +727,34 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       shouldBeLoan: derived.shouldBeLoan,
     );
 
-    await finalizeAgentCommissionForSaleCompletion(
-      transaction: transaction,
-      finalSubTotal: finalSubTotal,
+    final commSw = Stopwatch()..start();
+    final hasAgentCommissionHints =
+        (transaction.attributedAgentUserId?.isNotEmpty ?? false) ||
+        transaction.agentCommissionType != null ||
+        transaction.agentCommissionValue != null;
+    if (hasAgentCommissionHints) {
+      if (transaction.attributedAgentUserId?.isNotEmpty ?? false) {
+        applyAgentCommissionForSaleCompletionInMemory(
+          transaction: transaction,
+          finalSubTotal: finalSubTotal,
+          preloadedLineItems: lineItemsForAgentCommission,
+        );
+      } else {
+        await finalizeAgentCommissionForSaleCompletion(
+          transaction: transaction,
+          finalSubTotal: finalSubTotal,
+          preloadedLineItems: lineItemsForAgentCommission,
+        );
+      }
+    }
+    talker.debug(
+      '[sale_completion_timing] agent_commission_ms=${commSw.elapsedMilliseconds} '
+      'has_hints=$hasAgentCommissionHints',
     );
 
     final markSw = Stopwatch()..start();
     final now = DateTime.now();
+    final txnSw = Stopwatch()..start();
     await capella.updateTransaction(
       transaction: transaction,
       status: derived.status,
@@ -728,38 +779,59 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       receiptPrinted: transaction.receiptPrinted,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
+      deferEnsureNextPendingCart: true,
+    );
+    talker.debug(
+      '[sale_completion_timing] update_transaction_ms=${txnSw.elapsedMilliseconds}',
     );
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
     transaction.createdAt = now;
     transaction.status = derived.status;
 
-    await Future.wait(
-      paymentsToPersist.map((payment) async {
+    if (!deferPaymentPersist) {
+      final paySw = Stopwatch()..start();
+      for (final payment in paymentsToPersist) {
         await capella.savePaymentType(
           singlePaymentOnly: false,
           amount: payment.amount,
           transactionId: transaction.id,
           paymentMethod: payment.method,
+          saleCompletionFastPath: true,
         );
-      }),
-    );
+      }
+      talker.debug(
+        '[sale_completion_timing] save_payments_ms=${paySw.elapsedMilliseconds}',
+      );
+    }
 
     talker.debug(
-      '[sale_completion_timing] mark_completed_and_payments_ms=${markSw.elapsedMilliseconds}',
+      '[sale_completion_timing] mark_completed_tx_ms=${markSw.elapsedMilliseconds} '
+      'defer_payments=$deferPaymentPersist',
     );
 
     if (mounted) {
-      ref.invalidate(
-        pendingTransactionStreamProvider(
-          isExpense: ProxyService.box.isOrdering() ?? false,
-        ),
-      );
-      ref.read(pendingCartSaleSessionProvider.notifier).state =
-          ref.read(pendingCartSaleSessionProvider) + 1;
+      void refreshPendingCartProviders() {
+        ref.invalidate(
+          pendingTransactionStreamProvider(
+            isExpense: ProxyService.box.isOrdering() ?? false,
+          ),
+        );
+        ref.read(pendingCartSaleSessionProvider.notifier).state =
+            ref.read(pendingCartSaleSessionProvider) + 1;
+      }
+
+      if (deferPaymentPersist) {
+        unawaited(Future.microtask(refreshPendingCartProviders));
+      } else {
+        refreshPendingCartProviders();
+      }
     }
 
-    return derived.shouldBeLoan;
+    return (
+      wasLoan: derived.shouldBeLoan,
+      deferredPayments: deferPaymentPersist ? paymentsToPersist : null,
+    );
   }
 
   Future<Customer?> _getCustomer(String? customerId) async {
@@ -988,9 +1060,29 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   "🔄 Calling completeTransaction callback to close bottom sheet...",
                 );
 
-                // Update the local transaction object with the payment amount we just processed.
-                transaction.cashReceived =
-                    (transaction.cashReceived ?? 0) + amount;
+                final mark = await markTransactionAsCompleted(
+                  transaction: transaction,
+                  finalSubTotal: finalSubTotal,
+                  paymentMethods: paymentMethods,
+                  ticketName: ticketName,
+                  cashierName: completionCashierName,
+                  lineItemsForAgentCommission: transactionItems,
+                  deferPaymentPersist: true,
+                );
+
+                final deferredPayments = mark.deferredPayments;
+                if (deferredPayments != null && deferredPayments.isNotEmpty) {
+                  final capellaStrategy = ProxyService.getStrategy(
+                    Strategy.capella,
+                  );
+                  unawaited(
+                    _persistSalePaymentLines(
+                      capella: capellaStrategy,
+                      transactionId: transaction.id,
+                      payments: deferredPayments,
+                    ),
+                  );
+                }
 
                 schedulePostSaleStockDeductionAndRraSync(
                   transactionItems: transactionItems,
@@ -1003,22 +1095,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   ).name,
                 );
 
-                await markTransactionAsCompleted(
-                  transaction: transaction,
-                  finalSubTotal: finalSubTotal,
-                  paymentMethods: paymentMethods,
-                  ticketName: ticketName,
-                  cashierName: completionCashierName,
-                );
-
                 _isProcessingPayment = false;
                 _paymentTimeout?.cancel(); // Cancel timeout on success
 
-                try {
-                  await _invokeCompleteTransactionCallback(completeTransaction);
-                } catch (e) {
-                  talker.error("Error in completeTransaction callback: $e");
-                }
+                unawaited(() async {
+                  try {
+                    await _invokeCompleteTransactionCallback(
+                      completeTransaction,
+                    );
+                  } catch (e) {
+                    talker.error("Error in completeTransaction callback: $e");
+                  }
+                }());
                 _resetDigitalReceiptToggleAfterSale();
 
                 talker.info(

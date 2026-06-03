@@ -634,17 +634,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final endTime = DateTime.now().toUtc();
     final duration = endTime.difference(startTime).inSeconds;
 
-    PosthogService.instance.capture(
-      'quick_sell_completed',
-      properties: {
-        'transaction_id': transaction.id,
-        'branch_id': transaction.branchId!,
-        'business_id': ProxyService.box.getBusinessId()!,
-        'created_at': startTime.toIso8601String(),
-        'completed_at': endTime.toIso8601String(),
-        'duration_seconds': duration,
-        'source': 'quick_selling_view',
-      },
+    unawaited(
+      PosthogService.instance.capture(
+        'quick_sell_completed',
+        properties: {
+          'transaction_id': transaction.id,
+          'branch_id': transaction.branchId!,
+          'business_id': ProxyService.box.getBusinessId()!,
+          'created_at': startTime.toIso8601String(),
+          'completed_at': endTime.toIso8601String(),
+          'duration_seconds': duration,
+          'source': 'quick_selling_view',
+        },
+      ),
     );
 
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);

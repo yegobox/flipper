@@ -701,7 +701,7 @@ mixin TransactionMixin implements TransactionInterface {
   }) async {
     final effectiveInvoiceNumber = purchase?.spplrInvcNo ?? invoiceNumber;
 
-    final transaction = await updateTransaction(
+    await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
       sarNo: effectiveInvoiceNumber?.toString(),
@@ -723,7 +723,7 @@ mixin TransactionMixin implements TransactionInterface {
       customerName: business.name,
     );
 
-    return transaction;
+    return pendingTransaction;
   }
 
   @override
@@ -960,7 +960,7 @@ mixin TransactionMixin implements TransactionInterface {
   /// meaning it is neither income nor expense. This helps avoid incorrect computations
   /// on the dashboard.
   @override
-  Future<ITransaction> updateTransaction({
+  Future<void> updateTransaction({
     ITransaction? transaction,
     String? receiptType,
     double? subTotal,
@@ -1000,6 +1000,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool? isLoan,
     double? remainingBalance,
     bool skipDittoSync = false,
+    bool deferEnsureNextPendingCart = false,
   }) async {
     if (transaction == null) {
       if (transactionId == null) {
@@ -1067,11 +1068,10 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.remainingBalance =
         remainingBalance ?? transaction.remainingBalance;
 
-    final result = await repository.upsert<ITransaction>(
+    await repository.upsert<ITransaction>(
       transaction,
       skipDittoSync: skipDittoSync,
     );
-    return result;
   }
 
   @override

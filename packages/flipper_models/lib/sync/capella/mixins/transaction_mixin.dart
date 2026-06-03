@@ -1487,6 +1487,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool? isLoan,
     double? remainingBalance,
     bool skipDittoSync = false,
+    bool deferEnsureNextPendingCart = false,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -1626,28 +1627,37 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
 
         if (priorRowForEnsure != null) {
-          try {
-            if (await _priorRowWasActivePosPendingCart(priorRowForEnsure)) {
-              final branchId = priorRowForEnsure['branchId'] as String?;
-              final tt = priorRowForEnsure['transactionType'] as String?;
-              if (branchId != null &&
-                  tt != null &&
-                  _isPosCartTransactionType(tt)) {
-                final isExpense = _boolFromDitto(
-                  priorRowForEnsure['isExpense'],
-                );
-                await _ensureNextPendingCartIfNeeded(
-                  branchId: branchId,
-                  transactionType: tt,
-                  isExpense: isExpense,
-                );
+          final priorRow = priorRowForEnsure;
+          Future<void> ensureNextCart() async {
+            try {
+              if (await _priorRowWasActivePosPendingCart(priorRow)) {
+                final branchId = priorRow['branchId'] as String?;
+                final tt = priorRow['transactionType'] as String?;
+                if (branchId != null &&
+                    tt != null &&
+                    _isPosCartTransactionType(tt)) {
+                  final isExpense = _boolFromDitto(
+                    priorRow['isExpense'],
+                  );
+                  await _ensureNextPendingCartIfNeeded(
+                    branchId: branchId,
+                    transactionType: tt,
+                    isExpense: isExpense,
+                  );
+                }
               }
+            } catch (e, s) {
+              talker.error(
+                'Error ensuring next pending cart after updateTransaction: $e',
+                s,
+              );
             }
-          } catch (e, s) {
-            talker.error(
-              'Error ensuring next pending cart after updateTransaction: $e',
-              s,
-            );
+          }
+
+          if (deferEnsureNextPendingCart) {
+            unawaited(ensureNextCart());
+          } else {
+            await ensureNextCart();
           }
         }
       } else {
