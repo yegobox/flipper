@@ -136,129 +136,128 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: MposTokens.bg,
-        body: SafeArea(
-          child: Consumer(
-            builder: (context, ref, _) {
-              final transactionAsyncValue = ref.watch(
-                pendingTransactionStreamProvider(isExpense: false),
-              );
+      backgroundColor: MposTokens.bg,
+      body: SafeArea(
+        child: Consumer(
+          builder: (context, ref, _) {
+            final isPhone =
+                responsive.ResponsiveLayout.isPhone(context) ||
+                responsive.ResponsiveLayout.isTinyLimit(context);
 
-              final txn = transactionAsyncValue.asData?.value;
-              final cartNotEmpty = ref.watch(
-                posCartDisplayItemsProvider.select((l) => l.isNotEmpty),
-              );
-              final checkoutTxn =
-                  txn ??
-                  (cartNotEmpty
-                      ? readCachedPendingCartTransactionWidget(
-                          ref,
-                          isExpense: false,
-                        )
-                      : null);
-
-              final isPhone =
-                  responsive.ResponsiveLayout.isPhone(context) ||
-                  responsive.ResponsiveLayout.isTinyLimit(context);
-
-              if (isPhone && !_mobileHeavyProvidersReady) {
-                return Column(
-                  children: [
-                    MposCatalogHeader(
-                      subtitle: _catalogSubtitle(null),
-                      status: 'PENDING',
-                      isScanActive: ref.watch(autoAddSearchProvider),
-                      onBack: () => _confirmExitToHome(context),
-                      onScan: () => _openCatalogScanner(context),
-                      onScanLongPress: () {
-                        if (!ref.read(autoAddSearchProvider)) return;
-                        HapticFeedback.mediumImpact();
-                        ref.read(autoAddSearchProvider.notifier).disable();
-                      },
-                      searchField: _CheckoutPosProductSearch(
-                        controller: searchController,
-                        mposStyle: true,
-                      ),
-                    ),
-                    const Expanded(child: _MobileCatalogSkeleton()),
-                  ],
-                );
-              }
-
-              final catalogBody = ref
-                  .watch(
-                    outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
-                  )
-                  .when(
-                    data: (variants) {
-                      if (variants.isEmpty) {
-                        return _buildEmptyItemsView(context);
-                      }
-                      return ProductView.normalMode(
-                        suppressMobilePagination: isPhone,
-                      );
-                    },
-                    error: (error, stackTrace) =>
-                        _buildErrorView(context, error),
-                    loading: () => _buildLoadingView(),
-                  );
-
-              if (isPhone) {
-                final status = (txn?.status ?? 'PENDING').toUpperCase();
-                return Column(
-                  children: [
-                    MposCatalogHeader(
-                      subtitle: _catalogSubtitle(txn),
-                      status: status,
-                      isScanActive: ref.watch(autoAddSearchProvider),
-                      onBack: () => _confirmExitToHome(context),
-                      onScan: () => _openCatalogScanner(context),
-                      onScanLongPress: () {
-                        if (!ref.read(autoAddSearchProvider)) return;
-                        HapticFeedback.mediumImpact();
-                        ref.read(autoAddSearchProvider.notifier).disable();
-                      },
-                      searchField: _CheckoutPosProductSearch(
-                        controller: searchController,
-                        mposStyle: true,
-                      ),
-                    ),
-                    Expanded(child: catalogBody),
-                    if (checkoutTxn != null || cartNotEmpty)
-                      Consumer(
-                        builder: (context, ref, _) {
-                          final cartItems = ref.watch(
-                            posCartDisplayItemsProvider,
-                          );
-                          return _buildMobileCartBar(checkoutTxn, cartItems);
-                        },
-                      ),
-                  ],
-                );
-              }
-
+            if (isPhone && !_mobileHeavyProvidersReady) {
               return Column(
                 children: [
-                  _buildTopBar(context, ref, txn),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final summary = ref.watch(posCartSummaryProvider);
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildSaleSummary(txn, summary),
-                          _buildTicketsItemsRow(txn, summary),
-                        ],
-                      );
+                  MposCatalogHeader(
+                    subtitle: _catalogSubtitle(null),
+                    status: 'PENDING',
+                    isScanActive: ref.watch(autoAddSearchProvider),
+                    onBack: () => _confirmExitToHome(context),
+                    onScan: () => _openCatalogScanner(context),
+                    onScanLongPress: () {
+                      if (!ref.read(autoAddSearchProvider)) return;
+                      HapticFeedback.mediumImpact();
+                      ref.read(autoAddSearchProvider.notifier).disable();
                     },
+                    searchField: _CheckoutPosProductSearch(
+                      controller: searchController,
+                      mposStyle: true,
+                    ),
                   ),
-                  _buildSearchAndScanRow(),
-                  Expanded(child: catalogBody),
+                  const Expanded(child: _MobileCatalogSkeleton()),
                 ],
               );
-            },
-          ),
+            }
+
+            final transactionAsyncValue = ref.watch(
+              pendingTransactionStreamProvider(isExpense: false),
+            );
+
+            final txn = transactionAsyncValue.asData?.value;
+            final cartNotEmpty = ref.watch(
+              posCartDisplayItemsProvider.select((l) => l.isNotEmpty),
+            );
+            final checkoutTxn =
+                txn ??
+                (cartNotEmpty
+                    ? readCachedPendingCartTransactionWidget(
+                        ref,
+                        isExpense: false,
+                      )
+                    : null);
+
+            final catalogBody = ref
+                .watch(
+                  outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
+                )
+                .when(
+                  data: (variants) {
+                    if (variants.isEmpty) {
+                      return _buildEmptyItemsView(context);
+                    }
+                    return ProductView.normalMode(
+                      suppressMobilePagination: isPhone,
+                    );
+                  },
+                  error: (error, stackTrace) => _buildErrorView(context, error),
+                  loading: () => _buildLoadingView(),
+                );
+
+            if (isPhone) {
+              final status = (txn?.status ?? 'PENDING').toUpperCase();
+              return Column(
+                children: [
+                  MposCatalogHeader(
+                    subtitle: _catalogSubtitle(txn),
+                    status: status,
+                    isScanActive: ref.watch(autoAddSearchProvider),
+                    onBack: () => _confirmExitToHome(context),
+                    onScan: () => _openCatalogScanner(context),
+                    onScanLongPress: () {
+                      if (!ref.read(autoAddSearchProvider)) return;
+                      HapticFeedback.mediumImpact();
+                      ref.read(autoAddSearchProvider.notifier).disable();
+                    },
+                    searchField: _CheckoutPosProductSearch(
+                      controller: searchController,
+                      mposStyle: true,
+                    ),
+                  ),
+                  Expanded(child: catalogBody),
+                  if (checkoutTxn != null || cartNotEmpty)
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final cartItems = ref.watch(
+                          posCartDisplayItemsProvider,
+                        );
+                        return _buildMobileCartBar(checkoutTxn, cartItems);
+                      },
+                    ),
+                ],
+              );
+            }
+
+            return Column(
+              children: [
+                _buildTopBar(context, ref, txn),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final summary = ref.watch(posCartSummaryProvider);
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildSaleSummary(txn, summary),
+                        _buildTicketsItemsRow(txn, summary),
+                      ],
+                    );
+                  },
+                ),
+                _buildSearchAndScanRow(),
+                Expanded(child: catalogBody),
+              ],
+            );
+          },
         ),
+      ),
     );
   }
 

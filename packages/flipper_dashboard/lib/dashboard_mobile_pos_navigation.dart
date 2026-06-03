@@ -29,18 +29,18 @@ void warmMobilePosForCheckout(WidgetRef ref) {
           isExpense: false,
         )
         .then((txn) {
-      if (txn == null) return;
-      scheduleWriteCachedPendingCartTransactionWidget(
-        ref,
-        isExpense: false,
-        transaction: txn,
-      );
-      Future.microtask(
-        () => ref
-            .read(optimisticCartProvider.notifier)
-            .bindPendingTransaction(txn.id),
-      );
-    }),
+          if (txn == null) return;
+          scheduleWriteCachedPendingCartTransactionWidget(
+            ref,
+            isExpense: false,
+            transaction: txn,
+          );
+          Future.microtask(
+            () => ref
+                .read(optimisticCartProvider.notifier)
+                .bindPendingTransaction(txn.id),
+          );
+        }),
   );
 
   unawaited(ref.read(ebmVatEnabledProvider.future));
@@ -58,10 +58,13 @@ PageRoute<void> _instantMobilePosRoute(Widget child) {
 /// Fast mobile POS entry: push on the same event loop turn as the tap (no await/warm first).
 Future<void> openMobilePosCheckout(BuildContext context, WidgetRef ref) {
   HapticFeedback.lightImpact();
-  final route = Navigator.of(context).push<void>(
-    _instantMobilePosRoute(const CheckOut(isBigScreen: false)),
-  );
-  // Home shell pre-warms; refresh in background without blocking [Navigator.push].
-  Future.microtask(() => warmMobilePosForCheckout(ref));
+  final route = Navigator.of(
+    context,
+  ).push<void>(_instantMobilePosRoute(const CheckOut(isBigScreen: false)));
+  // Home shell pre-warms; any tap-time refresh waits until the POS first frame
+  // has painted so Ditto/cache work cannot compete with navigation.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    warmMobilePosForCheckout(ref);
+  });
   return route;
 }

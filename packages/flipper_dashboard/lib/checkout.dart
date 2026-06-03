@@ -57,6 +57,7 @@ class CheckOutState extends ConsumerState<CheckOut>
         Refresh {
   TabController? tabController;
   bool _attachCartReconciliation = false;
+  bool _mobileFirstFrameReady = false;
 
   @override
   void initState() {
@@ -73,7 +74,10 @@ class CheckOutState extends ConsumerState<CheckOut>
         tabController = TabController(length: 1, vsync: this);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          setState(() => _attachCartReconciliation = true);
+          setState(() {
+            _mobileFirstFrameReady = true;
+            _attachCartReconciliation = true;
+          });
         });
       }
     }
@@ -98,12 +102,12 @@ class CheckOutState extends ConsumerState<CheckOut>
             isExpense: false,
           )
           .then((txn) {
-        scheduleWriteCachedPendingCartTransactionWidget(
-          ref,
-          isExpense: false,
-          transaction: txn,
-        );
-      }),
+            scheduleWriteCachedPendingCartTransactionWidget(
+              ref,
+              isExpense: false,
+              transaction: txn,
+            );
+          }),
     );
   }
 
@@ -125,6 +129,10 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildMainContent() {
+    if (!widget.isBigScreen && !_mobileFirstFrameReady) {
+      return _buildMobileOpeningFrame();
+    }
+
     if (_attachCartReconciliation) {
       ref.listen(posCartStreamReconciliationProvider, (_, __) {});
     }
@@ -233,6 +241,21 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
+  Widget _buildMobileOpeningFrame() {
+    return const Scaffold(
+      backgroundColor: Color(0xFFF4F6FB),
+      body: SafeArea(
+        child: Center(
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDataWidget(ITransaction? transaction) {
     final showCart = ref.watch(oldImplementationOfRiverpod.previewingCart);
     return LayoutBuilder(
@@ -276,33 +299,33 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: Padding(
             padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
             child: PosDefaultView(
-                transaction: transaction,
-                quickSellingView: _buildQuickSellingView(),
-                onCompleteTransaction:
-                    (
-                      immediateCompletion, [
+              transaction: transaction,
+              quickSellingView: _buildQuickSellingView(),
+              onCompleteTransaction:
+                  (
+                    immediateCompletion, [
+                    onPaymentConfirmed,
+                    onPaymentFailed,
+                  ]) async {
+                    final txn = transaction;
+                    if (txn == null) {
+                      return false;
+                    }
+                    return await _handleCompleteTransaction(
+                      txn,
+                      immediateCompletion,
                       onPaymentConfirmed,
                       onPaymentFailed,
-                    ]) async {
-                      final txn = transaction;
-                      if (txn == null) {
-                        return false;
-                      }
-                      return await _handleCompleteTransaction(
-                        txn,
-                        immediateCompletion,
-                        onPaymentConfirmed,
-                        onPaymentFailed,
-                      );
-                    },
-                onTicketNavigation: () {
-                  final txn = transaction;
-                  if (txn != null) {
-                    handleTicketNavigation(txn);
-                  }
-                },
-              ),
+                    );
+                  },
+              onTicketNavigation: () {
+                final txn = transaction;
+                if (txn != null) {
+                  handleTicketNavigation(txn);
+                }
+              },
             ),
+          ),
         );
       },
     );
@@ -322,12 +345,16 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   String getCartText({required String transactionId}) {
     final items = ref.watch(posCartDisplayItemsProvider);
-    final count =
-        posCartDisplayItemsForTransaction(items, transactionId).length;
+    final count = posCartDisplayItemsForTransaction(
+      items,
+      transactionId,
+    ).length;
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
-  Future<void> _resetCheckoutAfterSuccessfulSale(ITransaction transaction) async {
+  Future<void> _resetCheckoutAfterSuccessfulSale(
+    ITransaction transaction,
+  ) async {
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
@@ -373,14 +400,13 @@ class CheckOutState extends ConsumerState<CheckOut>
   ]) async {
     final controller = CheckoutController(ref: ref, context: context);
 
-    final transactionItemsHint = ref
-            .read(optimisticCartProvider.notifier)
-            .hasPendingFor(transaction.id)
+    final transactionItemsHint =
+        ref.read(optimisticCartProvider.notifier).hasPendingFor(transaction.id)
         ? null
         : ref
-            .read(posCartDisplayItemsProvider)
-            .where((i) => !OptimisticCartIds.isOptimistic(i.id))
-            .toList();
+              .read(posCartDisplayItemsProvider)
+              .where((i) => !OptimisticCartIds.isOptimistic(i.id))
+              .toList();
 
     return await controller.handleCompleteTransaction(
       transaction: transaction,
