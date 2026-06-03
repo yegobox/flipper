@@ -31,6 +31,20 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   final TextEditingController _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  /// Stream may be empty when opening from Transactions (historical sale).
+  ITransaction _resolveTransaction(
+    AsyncValue<List<ITransaction>> watched,
+  ) {
+    final list = watched.asData?.value;
+    if (list != null && list.isNotEmpty) return list.first;
+    return widget.transaction;
+  }
+
+  bool _streamHasLiveTransaction(AsyncValue<List<ITransaction>> watched) {
+    final list = watched.asData?.value;
+    return list != null && list.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentTransaction =
@@ -183,8 +197,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             buildOutlinedButton(
               onPressed: () async {
                 final transaction =
-                    currentTransactionWatched.asData?.value.first;
-                if (transaction?.ebmSynced ?? false) {
+                    _resolveTransaction(currentTransactionWatched);
+                if (transaction.ebmSynced == true) {
                   await TaxController(object: transaction).handleReceipt(
                     skiGenerateRRAReceiptSignature: true,
                     filterType: FilterType.NS,
@@ -266,7 +280,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         height: 60,
         width: double.infinity,
         child: BoxButton(
-          disabled: currentTransactionWatched.value?.first.ebmSynced != true,
+          disabled: _streamHasLiveTransaction(currentTransactionWatched) &&
+              _resolveTransaction(currentTransactionWatched).ebmSynced != true,
           busy: model.handlingConfirm,
           onTap: () {
             model.handlingConfirm = true;
