@@ -16,6 +16,7 @@ import 'package:flipper_services/utils.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'dart:async'; // Import for Timer
+import 'package:synchronized/synchronized.dart';
 
 /// Modern Transaction Item Table Mixin
 /// Inspired by Microsoft Fluent Design, QuickBooks clarity, and  engagement
@@ -54,7 +55,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // Debouncing for text fields
   final Map<String, Timer?> _debounceTimers = {};
+  final Map<String, Lock> _lineQtyLocks = {};
+  final Map<String, Timer?> _lineQtyFlushTimers = {};
   static const Duration _debounceDuration = Duration(milliseconds: 800);
+  static const Duration _lineQtyFlushDelay = Duration(milliseconds: 32);
 
   @override
   void initState() {
@@ -144,6 +148,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       f.dispose();
     }
     for (final timer in _debounceTimers.values) {
+      timer?.cancel();
+    }
+    for (final timer in _lineQtyFlushTimers.values) {
       timer?.cancel();
     }
     _cartItemsScrollController?.dispose();
@@ -466,15 +473,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }) {
     _ensureController(item);
     final displayQty = _displayQtyFor(item);
-    final vid = item.variantId ?? '';
-    final pendingOpt = vid.isEmpty
-        ? 0.0
-        : lineRef.watch(
-            optimisticCartProvider.select(
-              (s) => s.pendingQtyByVariantId[vid] ?? 0,
-            ),
-          );
-    final qtyLocked = pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
+    final qtyLocked = OptimisticCartIds.isOptimistic(item.id);
     final currency = ProxyService.box.defaultCurrency();
     final unitFormatted = formatNumber(item.price.toDouble());
     final qtyFormatted = _formatQty(displayQty);
@@ -513,12 +512,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               qtyText: qtyFormatted,
               decrementEnabled: displayQty > 0 && !qtyLocked,
               incrementEnabled: !qtyLocked,
-              onDecrement: isSaving
-                  ? null
-                  : () => _decrementQuantity(item, isOrdering),
-              onIncrement: isSaving
-                  ? null
-                  : () => _incrementQuantity(item, isOrdering),
+              onDecrement: () => _decrementQuantity(item, isOrdering),
+              onIncrement: () => _incrementQuantity(item, isOrdering),
             )
           : null,
       expandedPriceField: isExpanded
@@ -665,15 +660,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // === -INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
-    final vid = item.variantId ?? '';
-    final pendingOpt = vid.isEmpty
-        ? 0.0
-        : ref.watch(
-            optimisticCartProvider.select(
-              (s) => s.pendingQtyByVariantId[vid] ?? 0,
-            ),
-          );
-    final qtyLocked = pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
+    final qtyLocked = OptimisticCartIds.isOptimistic(item.id);
     final displayQty = _displayQtyFor(item);
     return FittedBox(
       fit: BoxFit.scaleDown,
@@ -1240,16 +1227,44 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   double _displayQtyFor(TransactionItem item) {
-    final optimisticQty = _optimisticQtyByItemId[item.id];
-    if (optimisticQty == null) return item.qty.toDouble();
-
-    if ((item.qty.toDouble() - optimisticQty).abs() < 0.0001) {
+    final localQty = _optimisticQtyByItemId[item.id];
+    if (localQty == null) return item.qty.toDouble();
+    if ((item.qty.toDouble() - localQty).abs() < 0.0001) {
       _optimisticQtyByItemId.remove(item.id);
-      _hasItemChanged[item.id] = false;
+      if (_hasItemChanged[item.id] == true &&
+          _quantityFocusNodes[item.id]?.hasFocus != true) {
+        _hasItemChanged[item.id] = false;
+      }
       return item.qty.toDouble();
     }
+    return localQty;
+  }
 
-    return optimisticQty;
+  /// Same-frame repaint for +/- before Riverpod/Ditto catch up.
+  void _repaintLineQty() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Variant _variantFromTransactionItem(TransactionItem item) {
+    final vid = item.variantId ?? '';
+    final snap = ref
+        .read(optimisticCartProvider)
+        .variantSnapshotByVariantId[vid];
+    if (snap != null) return snap;
+    return Variant(
+      id: vid,
+      name: item.name,
+      retailPrice: (item.retailPrice ?? item.price).toDouble(),
+      branchId: item.branchId ?? ProxyService.box.getBranchId() ?? '0',
+    );
+  }
+
+  TransactionItem? _cartLineById(String itemId) {
+    for (final line in ref.read(posCartDisplayItemsProvider)) {
+      if (line.id == itemId) return line;
+    }
+    return null;
   }
 
   String _formatQty(double qty) {
@@ -1260,6 +1275,99 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     _optimisticQtyByItemId[item.id] = qty;
     _quantityControllers[item.id]?.text = qty.toString();
     _hasItemChanged[item.id] = true;
+  }
+
+  Lock _qtyLockFor(String itemId) =>
+      _lineQtyLocks.putIfAbsent(itemId, Lock.new);
+
+  /// Coalesce rapid +/- on one line; other lines keep their own locks.
+  void _scheduleLineQtyFlush({
+    required String itemId,
+    required String variantId,
+    required String txnId,
+    required bool isOrdering,
+    double? explicitTargetQty,
+  }) {
+    _lineQtyFlushTimers[itemId]?.cancel();
+    void runFlush() {
+      if (!mounted) return;
+      unawaited(
+        _flushLineQtyToDitto(
+          itemId: itemId,
+          variantId: variantId,
+          txnId: txnId,
+          isOrdering: isOrdering,
+          explicitTargetQty: explicitTargetQty,
+        ),
+      );
+    }
+
+    // Coalesce Ditto writes; UI already updated via [_repaintLineQty].
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _lineQtyFlushTimers[itemId] = Timer(_lineQtyFlushDelay, runFlush);
+    });
+  }
+
+  Future<void> _flushLineQtyToDitto({
+    required String itemId,
+    required String variantId,
+    required String txnId,
+    required bool isOrdering,
+    double? explicitTargetQty,
+  }) async {
+    await _qtyLockFor(itemId).synchronized(() async {
+      if (!mounted) return;
+
+      final opt = ref.read(optimisticCartProvider);
+      final double targetQty;
+      if (explicitTargetQty != null) {
+        targetQty = explicitTargetQty;
+      } else {
+        final pending = opt.pendingQtyByVariantId[variantId] ?? 0;
+        if (pending <= 0) return;
+        targetQty =
+            (opt.lastStreamQtySumByVariantId[variantId] ?? 0) + pending;
+      }
+
+      try {
+        await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
+          transactionItemId: itemId,
+          qty: targetQty,
+          incrementQty: false,
+          ignoreForReport: false,
+          quantityRequested: targetQty.round(),
+          skipParentSaleSubtotalRecalc: true,
+        );
+        _refreshTransactionItems(isOrdering, transactionId: txnId);
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _itemErrors[itemId] = 'Failed to update item';
+          });
+          if (explicitTargetQty == null &&
+              variantId.isNotEmpty &&
+              txnId.isNotEmpty) {
+            final pending = ref
+                .read(optimisticCartProvider)
+                .pendingQtyByVariantId[variantId] ??
+                0;
+            if (pending > 0) {
+              ref.read(optimisticCartProvider.notifier).rollbackPending(
+                    transactionId: txnId,
+                    variantId: variantId,
+                    count: pending,
+                  );
+            }
+          } else if (explicitTargetQty != null) {
+            final line = _cartLineById(itemId);
+            if (line != null) {
+              _quantityControllers[itemId]?.text = line.qty.toString();
+            }
+          }
+        }
+        talker.error('Failed to flush cart line qty: $e');
+      }
+    });
   }
 
   void _rollbackOptimisticQty(TransactionItem item, double delta) {
@@ -1286,79 +1394,115 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }) async {
     if (item.partOfComposite ?? false) return;
     if (OptimisticCartIds.isOptimistic(item.id)) return;
-    final pendingOpt =
-        ref.read(optimisticCartProvider).pendingQtyByVariantId[item.variantId ??
-            ''] ??
-        0;
-    if (pendingOpt > 0) return;
 
-    setState(() {
-      _isItemSaving[item.id] = true;
-      _itemErrors.remove(item.id);
-    });
+    await _qtyLockFor(item.id).synchronized(() async {
+      if (!mounted) return;
 
-    try {
-      await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
-        transactionItemId: item.id,
-        qty: isIncrement ? null : qty,
-        price: price,
-        incrementQty: isIncrement,
-        ignoreForReport: false,
-        quantityRequested: isIncrement ? null : qty?.toInt(),
-      );
-      // After successful update, refresh the provider to update the UI
-      _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
       setState(() {
-        _hasItemChanged[item.id] = _optimisticQtyByItemId.containsKey(item.id);
+        _isItemSaving[item.id] = true;
+        _itemErrors.remove(item.id);
       });
-    } catch (e) {
-      setState(() {
-        _itemErrors[item.id] = 'Failed to update item';
-        if (optimisticDelta != null) {
-          _rollbackOptimisticQty(item, optimisticDelta);
+
+      try {
+        await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
+          transactionItemId: item.id,
+          qty: isIncrement ? null : qty,
+          price: price,
+          incrementQty: isIncrement,
+          ignoreForReport: false,
+          quantityRequested: isIncrement ? null : qty?.toInt(),
+        );
+        _refreshTransactionItems(
+          isOrdering,
+          transactionId: item.transactionId!,
+        );
+        if (mounted) {
+          setState(() {
+            _hasItemChanged[item.id] =
+                _optimisticQtyByItemId.containsKey(item.id);
+          });
         }
-        // Revert controller text to original if update fails
-        _quantityControllers[item.id]?.text =
-            _optimisticQtyByItemId[item.id]?.toString() ?? item.qty.toString();
-        _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
-      });
-      talker.error('Failed to update transaction item: $e');
-    } finally {
-      setState(() {
-        _isItemSaving[item.id] = false;
-      });
-    }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _itemErrors[item.id] = 'Failed to update item';
+            if (optimisticDelta != null) {
+              _rollbackOptimisticQty(item, optimisticDelta);
+            }
+            _quantityControllers[item.id]?.text =
+                _optimisticQtyByItemId[item.id]?.toString() ??
+                    item.qty.toString();
+            _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
+          });
+        }
+        talker.error('Failed to update transaction item: $e');
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isItemSaving[item.id] = false;
+          });
+        }
+      }
+    });
   }
 
-  Future<void> _incrementQuantity(TransactionItem item, bool isOrdering) async {
+  void _incrementQuantity(TransactionItem item, bool isOrdering) {
     if (item.partOfComposite ?? false) return;
+    if (OptimisticCartIds.isOptimistic(item.id)) return;
+    final vid = item.variantId ?? '';
+    final txnId = item.transactionId ?? '';
+    if (vid.isEmpty || txnId.isEmpty) return;
+
     final newQty = _displayQtyFor(item) + 1;
-    setState(() => _setOptimisticQty(item, newQty));
-    await _updateTransactionItemInDb(
-      item,
-      isIncrement: true,
+    _setOptimisticQty(item, newQty);
+    _repaintLineQty();
+
+    ref.read(optimisticCartProvider.notifier).addPendingLine(
+          transactionId: txnId,
+          variant: _variantFromTransactionItem(item),
+        );
+
+    _scheduleLineQtyFlush(
+      itemId: item.id,
+      variantId: vid,
+      txnId: txnId,
       isOrdering: isOrdering,
-      optimisticDelta: 1,
     );
   }
 
-  Future<void> _decrementQuantity(TransactionItem item, bool isOrdering) async {
+  void _decrementQuantity(TransactionItem item, bool isOrdering) {
     if (item.partOfComposite ?? false) return;
-    if (item.qty > 0) {
-      // Ensure quantity doesn't go below 0
-      // We can't use incrementQty: true for decrement.
-      // So, for decrement, we must calculate the new quantity locally.
-      final currentQty = _displayQtyFor(item);
-      final newQty = currentQty - 1;
-      setState(() => _setOptimisticQty(item, newQty));
-      await _updateTransactionItemInDb(
-        item,
-        qty: newQty.toDouble(),
-        price: item.price.toDouble(),
-        isOrdering: isOrdering,
-        optimisticDelta: newQty - currentQty,
-      );
+    if (OptimisticCartIds.isOptimistic(item.id)) return;
+    final vid = item.variantId ?? '';
+    final txnId = item.transactionId ?? '';
+    if (vid.isEmpty || txnId.isEmpty) return;
+
+    final pending =
+        ref.read(optimisticCartProvider).pendingQtyByVariantId[vid] ?? 0;
+    if (pending > 0) {
+      final newQty =
+          (_displayQtyFor(item) - 1).clamp(0.0, double.infinity).toDouble();
+      _setOptimisticQty(item, newQty);
+      _repaintLineQty();
+      ref.read(optimisticCartProvider.notifier).rollbackPending(
+            transactionId: txnId,
+            variantId: vid,
+          );
+      return;
     }
+
+    if (_displayQtyFor(item) <= 0) return;
+    final targetQty = _displayQtyFor(item) - 1;
+    _setOptimisticQty(item, targetQty);
+    _repaintLineQty();
+
+    _scheduleLineQtyFlush(
+      itemId: item.id,
+      variantId: vid,
+      txnId: txnId,
+      isOrdering: isOrdering,
+      explicitTargetQty: targetQty,
+    );
   }
 
   Future<void> _updateQuantityFromTextField(

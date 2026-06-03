@@ -125,7 +125,7 @@ OptimisticCartState addOptimisticPendingLine(
   return withTxn.copyWith(
     pendingQtyByVariantId: nextPending,
     variantSnapshotByVariantId: nextSnap,
-    reconcileAfter: DateTime.now().add(const Duration(milliseconds: 120)),
+    reconcileAfter: DateTime.now().add(const Duration(milliseconds: 250)),
   );
 }
 

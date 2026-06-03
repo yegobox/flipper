@@ -107,28 +107,47 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   ref.keepAlive();
 
   final isExpense = _posCartIsExpense();
-  final mergeTxnId = ref.watch(posCartMergeTxnIdProvider(isExpense));
-
   final optimisticState = ref.watch(optimisticCartProvider);
+  final hasPending =
+      optimisticState.pendingQtyByVariantId.values.any((q) => q > 0);
 
-  if (mergeTxnId.isEmpty) return const [];
+  final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));
+  final mergeTxnId = ref.watch(posCartMergeTxnIdProvider(isExpense));
+  final branchId = ProxyService.box.getBranchId() ?? '0';
 
-  if (OptimisticCartBootstrap.isBootstrap(mergeTxnId)) {
-    final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));
-    final ghostTxnId = (pendingId != null && pendingId.isNotEmpty)
-        ? pendingId
-        : mergeTxnId;
+  final txnIdForMerge = (pendingId != null && pendingId.isNotEmpty)
+      ? pendingId
+      : mergeTxnId;
+
+  if (txnIdForMerge.isEmpty && !hasPending) return const [];
+
+  // In-flight taps: sync-read last stream snapshot (no Ditto wait), merge ghosts.
+  if (hasPending) {
+    final cachedStream = txnIdForMerge.isEmpty ||
+            OptimisticCartBootstrap.isBootstrap(txnIdForMerge)
+        ? const <TransactionItem>[]
+        : (ref
+                .read(
+                  transactionItemsStreamProvider(
+                    transactionId: txnIdForMerge,
+                    branchId: branchId,
+                  ),
+                )
+                .value ??
+            const <TransactionItem>[]);
     return mergeTransactionItemsWithOptimisticCart(
-      streamItems: const [],
+      streamItems: cachedStream,
       optimistic: optimisticState,
-      transactionId: ghostTxnId,
+      transactionId: txnIdForMerge,
     );
   }
+
+  if (mergeTxnId.isEmpty) return const [];
 
   final streamAsync = ref.watch(
     transactionItemsStreamProvider(
       transactionId: mergeTxnId,
-      branchId: ProxyService.box.getBranchId() ?? '0',
+      branchId: branchId,
     ),
   );
 
