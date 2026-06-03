@@ -410,6 +410,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       isIncome: parseBool(data['isIncome']),
       isExpense: parseBool(data['isExpense']),
       isRefunded: parseBool(data['isRefunded']),
+      refundedAmount: parseDouble(data['refundedAmount']),
+      refundReason: data['refundReason'] as String?,
+      refundMethod: data['refundMethod'] as String?,
       customerName: data['customerName'],
       customerTin: data['customerTin'],
       remark: data['remark'],
@@ -1466,6 +1469,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     String? customerBhfId,
     double? cashReceived,
     bool? isRefunded,
+    double? refundedAmount,
+    String? refundReason,
+    String? refundMethod,
     String? customerName,
     String? ticketName,
     DateTime? updatedAt,
@@ -1581,6 +1587,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (customerTin != null) addUpdate('customerTin', customerTin);
     if (customerBhfId != null) addUpdate('customerBhfId', customerBhfId);
     if (isRefunded != null) addUpdate('isRefunded', isRefunded);
+    if (refundedAmount != null) addUpdate('refundedAmount', refundedAmount);
+    if (refundReason != null) addUpdate('refundReason', refundReason);
+    if (refundMethod != null) addUpdate('refundMethod', refundMethod);
     if (customerName != null) addUpdate('customerName', customerName);
     if (invoiceNumber != null) addUpdate('invoiceNumber', invoiceNumber);
     if (supplierId != null) addUpdate('supplierId', supplierId);
@@ -2411,6 +2420,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'isIncome': transaction.isIncome,
       'isExpense': transaction.isExpense,
       'isRefunded': transaction.isRefunded,
+      'refundedAmount': transaction.refundedAmount,
+      'refundReason': transaction.refundReason,
+      'refundMethod': transaction.refundMethod,
       'customerName': transaction.customerName,
       'customerTin': transaction.customerTin,
       'remark': transaction.remark,

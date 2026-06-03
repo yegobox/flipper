@@ -1,3 +1,5 @@
+import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
+import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -63,17 +65,49 @@ class TransactionDetail extends StatefulHookConsumerWidget {
 }
 
 class _TransactionDetailState extends ConsumerState<TransactionDetail> {
+  late ITransaction _transaction;
   bool _openProducts = true;
   bool _openTimeline = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _transaction = widget.transaction;
+  }
 
   bool get _reduceMotion =>
       MediaQuery.disableAnimationsOf(context);
 
+  String get _referenceLabel => _formatReference(_transaction);
+
+  Future<void> _openMoreActions() async {
+    await showTransactionActionsSheet(
+      context: context,
+      transaction: _transaction,
+      referenceLabel: _referenceLabel,
+      onRefund: _openRefundSheet,
+    );
+  }
+
+  Future<void> _openRefundSheet() async {
+    final updated = await showTransactionRefundSheet(
+      context: context,
+      transaction: _transaction,
+      referenceLabel: _referenceLabel,
+    );
+    if (updated != null && mounted) {
+      setState(() {
+        _transaction = updated;
+        _openTimeline = true;
+      });
+    }
+  }
+
   _TxDirection get _direction {
-    final income = widget.transaction.isIncome;
+    final income = _transaction.isIncome;
     if (income == true) return _TxDirection.income;
     if (income == false) return _TxDirection.expense;
-    final type = widget.transaction.transactionType?.toString() ?? '';
+    final type = _transaction.transactionType?.toString() ?? '';
     if (type == 'Cash Out') return _TxDirection.expense;
     return _TxDirection.income;
   }
@@ -97,15 +131,14 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                       ? 'Expense'
                       : 'Income',
                   onBack: () => locator<RouterService>().back(),
+                  onMore: _openMoreActions,
                 ),
                 Expanded(
                   child: ListView(
-                    padding: EdgeInsets.only(
-                      bottom: 8 + MediaQuery.paddingOf(context).bottom,
-                    ),
+                    padding: const EdgeInsets.only(bottom: 8),
                     children: [
                       _TxHeroCard(
-                        transaction: widget.transaction,
+                        transaction: _transaction,
                         direction: _direction,
                         palette: palette,
                       ),
@@ -125,17 +158,28 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                         iconTone: _SectionIconTone.green,
                         title: 'Transaction Timeline',
                         subtitle:
-                            '${_buildTimeline(widget.transaction).length} events',
+                            '${_buildTimeline(_transaction).length} events',
                         isOpen: _openTimeline,
                         reduceMotion: _reduceMotion,
                         onToggle: () =>
                             setState(() => _openTimeline = !_openTimeline),
                         child: _TimelineSectionBody(
-                          events: _buildTimeline(widget.transaction),
+                          events: _buildTimeline(_transaction),
                         ),
                       ),
                     ],
                   ),
+                ),
+                _TxDetailFooter(
+                  onMoreActions: _openMoreActions,
+                  onInvoice: () {
+                    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                      const SnackBar(
+                        content: Text('Invoice is not available yet.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -152,7 +196,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
     final items = await ProxyService.getStrategy(Strategy.capella)
         .transactionItems(
           branchId: activeBranch.id,
-          transactionId: widget.transaction.id,
+          transactionId: _transaction.id,
           fetchRemote: true,
         );
     model.completedTransactionItemsList = items;
@@ -208,10 +252,12 @@ class _TxDetailHeader extends StatelessWidget {
   const _TxDetailHeader({
     required this.title,
     required this.onBack,
+    required this.onMore,
   });
 
   final String title;
   final VoidCallback onBack;
+  final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -243,11 +289,135 @@ class _TxDetailHeader extends StatelessWidget {
                 ),
               ),
             ),
-            _HeaderIconButton(
-              child: TransactionDetailSvgs.icon(
-                TransactionDetailSvgs.more(),
-                size: 20,
-                color: _TxDetailColors.ink1,
+            _PressScaleButton(
+              onPressed: onMore,
+              child: _HeaderIconButton(
+                child: TransactionDetailSvgs.icon(
+                  TransactionDetailSvgs.more(),
+                  size: 20,
+                  color: _TxDetailColors.ink1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TxDetailFooter extends StatelessWidget {
+  const _TxDetailFooter({
+    required this.onMoreActions,
+    required this.onInvoice,
+  });
+
+  final VoidCallback onMoreActions;
+  final VoidCallback onInvoice;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        12 + MediaQuery.paddingOf(context).bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: _TxDetailColors.surface,
+        border: Border(top: BorderSide(color: _TxDetailColors.line)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 10,
+            child: _PressScaleButton(
+              onPressed: onMoreActions,
+              child: _FooterButton(
+                ghost: true,
+                icon: TransactionDetailSvgs.more(),
+                label: 'More Actions',
+              ),
+            ),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            flex: 13,
+            child: _PressScaleButton(
+              onPressed: onInvoice,
+              child: _FooterButton(
+                ghost: false,
+                icon: TransactionDetailSvgs.receipt(),
+                label: 'Invoice',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FooterButton extends StatelessWidget {
+  const _FooterButton({
+    required this.ghost,
+    required this.icon,
+    required this.label,
+  });
+
+  final bool ghost;
+  final String icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: ghost ? _TxDetailColors.surface2 : null,
+          gradient: ghost
+              ? null
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                ),
+          border: ghost
+              ? Border.all(color: _TxDetailColors.line, width: 1.5)
+              : null,
+          boxShadow: ghost
+              ? null
+              : [
+                  BoxShadow(
+                    color: _TxDetailColors.blue.withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TransactionDetailSvgs.icon(
+              icon,
+              size: 18,
+              color: ghost ? _TxDetailColors.ink2 : Colors.white,
+            ),
+            const SizedBox(width: 9),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: ghost ? _TxDetailColors.ink2 : Colors.white,
+                ),
               ),
             ),
           ],
@@ -299,11 +469,35 @@ class _TxHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final instant = _transactionInstant(transaction);
     final currency = ProxyService.box.defaultCurrency();
-    final amount = NumberFormat('#,###').format(transaction.subTotal ?? 0);
-    final status = _statusPresentation(transaction.status);
+    final subTotal = transaction.subTotal ?? 0;
+    final amount = NumberFormat('#,###').format(subTotal);
+    final status = _statusPresentation(
+      transaction.status,
+      isRefunded: transaction.isRefunded == true,
+      refundedAmount: transaction.refundedAmount,
+      subTotal: subTotal,
+    );
+    final refunded = transaction.isRefunded == true;
+    final fullRefundStrike = refunded &&
+        (transaction.refundedAmount == null ||
+            !isPartialRefund(
+              transaction.refundedAmount!,
+              subTotal,
+            ));
     final trendSvg = direction == _TxDirection.expense
         ? TransactionDetailSvgs.trendDown()
         : TransactionDetailSvgs.trendUp();
+    final heroPalette = refunded
+        ? _TxPalette(
+            primary: _TxDetailColors.loss,
+            ink: _TxDetailColors.lossInk,
+            tint: _TxDetailColors.lossTint,
+            soft: _TxDetailColors.lossSoft,
+            sign: palette.sign,
+            directionLabel: palette.directionLabel,
+            heroGradientEnd: const Color(0xFFFEF3F3),
+          )
+        : palette;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
@@ -330,10 +524,15 @@ class _TxHeroCard extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      palette.primary.withValues(alpha: 0.7),
-                      palette.primary,
-                    ],
+                    colors: refunded
+                        ? [
+                            const Color(0xFFF87171),
+                            _TxDetailColors.loss,
+                          ]
+                        : [
+                            heroPalette.primary.withValues(alpha: 0.7),
+                            heroPalette.primary,
+                          ],
                   ),
                 ),
               ),
@@ -345,43 +544,46 @@ class _TxHeroCard extends StatelessWidget {
                 gradient: RadialGradient(
                   center: const Alignment(0, -1),
                   radius: 1.3,
-                  colors: [palette.heroGradientEnd, _TxDetailColors.surface],
+                  colors: [heroPalette.heroGradientEnd, _TxDetailColors.surface],
                   stops: const [0, 0.58],
                 ),
               ),
               child: Column(
                 children: [
                   _StatusPill(status: status),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: palette.tint,
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Center(
-                          child: TransactionDetailSvgs.icon(
-                            trendSvg,
-                            size: 14,
-                            color: palette.primary,
+                  if (!refunded) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: heroPalette.tint,
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: Center(
+                            child: TransactionDetailSvgs.icon(
+                              trendSvg,
+                              size: 14,
+                              color: heroPalette.primary,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 7),
-                      Text(
-                        palette.directionLabel,
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: palette.ink,
+                        const SizedBox(width: 7),
+                        Text(
+                          heroPalette.directionLabel,
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: heroPalette.ink,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ] else
+                    const SizedBox(height: 16),
                   const SizedBox(height: 8),
                   FittedBox(
                     fit: BoxFit.scaleDown,
@@ -392,12 +594,17 @@ class _TxHeroCard extends StatelessWidget {
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          palette.sign,
+                          heroPalette.sign,
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 40,
                             fontWeight: FontWeight.w600,
-                            color: palette.primary,
+                            color: fullRefundStrike
+                                ? _TxDetailColors.ink3
+                                : heroPalette.primary,
                             height: 1,
+                            decoration: fullRefundStrike
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -406,8 +613,13 @@ class _TxHeroCard extends StatelessWidget {
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 19,
                             fontWeight: FontWeight.w600,
-                            color: _TxDetailColors.ink3,
+                            color: fullRefundStrike
+                                ? _TxDetailColors.ink3
+                                : _TxDetailColors.ink3,
                             height: 1,
+                            decoration: fullRefundStrike
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -417,13 +629,23 @@ class _TxHeroCard extends StatelessWidget {
                             fontSize: 52,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.03,
-                            color: _TxDetailColors.ink1,
+                            color: fullRefundStrike
+                                ? _TxDetailColors.ink3
+                                : _TxDetailColors.ink1,
                             height: 1,
+                            decoration: fullRefundStrike
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  if (refunded && transaction.refundedAmount != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _RefundBanner(transaction: transaction),
+                    ),
                   const SizedBox(height: 12),
                   Text.rich(
                     TextSpan(
@@ -466,6 +688,81 @@ class _TxHeroCard extends StatelessWidget {
   }
 }
 
+class _RefundBanner extends StatelessWidget {
+  const _RefundBanner({required this.transaction});
+
+  final ITransaction transaction;
+
+  @override
+  Widget build(BuildContext context) {
+    final currency = ProxyService.box.defaultCurrency();
+    final amt = transaction.refundedAmount ?? transaction.subTotal ?? 0;
+    final partial = isPartialRefund(amt, transaction.subTotal ?? 0);
+    final method = transaction.refundMethod == 'momo' ? 'MoMo' : 'Cash';
+    final reason = transaction.refundReason ?? '—';
+    final when = _transactionInstant(transaction);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: _TxDetailColors.lossTint,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF8D4D4)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: _TxDetailColors.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFF8D4D4)),
+            ),
+            child: Center(
+              child: TransactionDetailSvgs.icon(
+                TransactionDetailSvgs.refresh(),
+                size: 18,
+                color: _TxDetailColors.loss,
+              ),
+            ),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  partial
+                      ? '$currency ${NumberFormat('#,###').format(amt.round())} refunded'
+                      : 'Fully refunded to customer',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _TxDetailColors.lossInk,
+                  ),
+                ),
+                Text(
+                  '$reason · via $method${when != null ? ' · ${DateFormat('MMM dd').format(when)}' : ''}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: const Color(0xFFC2696A),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _StatusPill extends StatelessWidget {
   const _StatusPill({required this.status});
 
@@ -473,7 +770,12 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final maxWidth = MediaQuery.sizeOf(context).width - 72;
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: Container(
       height: 30,
       padding: const EdgeInsets.only(left: 11, right: 14),
       decoration: BoxDecoration(
@@ -509,6 +811,8 @@ class _StatusPill extends StatelessWidget {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }
@@ -949,21 +1253,31 @@ class _TimelineRow extends StatelessWidget {
                 height: 30,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: event.done
-                      ? _TxDetailColors.gainTint
-                      : _TxDetailColors.surface2,
-                  border: event.done
-                      ? null
-                      : Border.all(color: _TxDetailColors.line),
+                  color: event.isRefund
+                      ? _TxDetailColors.lossTint
+                      : event.done
+                          ? _TxDetailColors.gainTint
+                          : _TxDetailColors.surface2,
+                  border: event.isRefund
+                      ? Border.all(color: const Color(0xFFF8D4D4))
+                      : event.done
+                          ? null
+                          : Border.all(color: _TxDetailColors.line),
                 ),
                 child: Center(
-                  child: event.done
+                  child: event.isRefund
                       ? TransactionDetailSvgs.icon(
-                          TransactionDetailSvgs.check(),
-                          size: 15,
-                          color: _TxDetailColors.gain,
+                          TransactionDetailSvgs.refresh(),
+                          size: 14,
+                          color: _TxDetailColors.loss,
                         )
-                      : Container(
+                      : event.done
+                          ? TransactionDetailSvgs.icon(
+                              TransactionDetailSvgs.check(),
+                              size: 15,
+                              color: _TxDetailColors.gain,
+                            )
+                          : Container(
                           width: 8,
                           height: 8,
                           decoration: const BoxDecoration(
@@ -1068,12 +1382,14 @@ class _TimelineEvent {
     required this.detail,
     required this.done,
     this.time,
+    this.isRefund = false,
   });
 
   final String title;
   final String detail;
   final DateTime? time;
   final bool done;
+  final bool isRefund;
 }
 
 class _StatusPresentation {
@@ -1094,8 +1410,34 @@ DateTime? _transactionInstant(ITransaction t) {
   return t.lastTouched ?? t.updatedAt ?? t.createdAt;
 }
 
-_StatusPresentation _statusPresentation(String? status) {
+_StatusPresentation _statusPresentation(
+  String? status, {
+  bool isRefunded = false,
+  double? refundedAmount,
+  double subTotal = 0,
+}) {
   final normalized = (status ?? 'unknown').toLowerCase();
+  if (isRefunded ||
+      normalized == 'refunded' ||
+      normalized == 'partially_refunded') {
+    final partial = normalized == 'partially_refunded' ||
+        (refundedAmount != null &&
+            isPartialRefund(refundedAmount, subTotal));
+    if (partial) {
+      return const _StatusPresentation(
+        label: 'PARTIALLY REFUNDED',
+        background: _TxDetailColors.pendingTint,
+        foreground: _TxDetailColors.pendingInk,
+        dot: _TxDetailColors.pendingDot,
+      );
+    }
+    return const _StatusPresentation(
+      label: 'REFUNDED',
+      background: _TxDetailColors.lossTint,
+      foreground: _TxDetailColors.lossInk,
+      dot: _TxDetailColors.loss,
+    );
+  }
   switch (normalized) {
     case 'pending':
     case 'waiting':
@@ -1182,6 +1524,24 @@ List<_TimelineEvent> _buildTimeline(ITransaction transaction) {
   final events = <_TimelineEvent>[];
   final status = (transaction.status ?? '').toLowerCase();
   final isComplete = status == COMPLETE || status == 'complete';
+
+  if (transaction.isRefunded == true) {
+    final refundedAmt = transaction.refundedAmount ?? transaction.subTotal ?? 0;
+    final partial = isPartialRefund(
+      refundedAmt,
+      transaction.subTotal ?? 0,
+    );
+    events.add(
+      _TimelineEvent(
+        title: partial ? 'Partially refunded' : 'Refunded',
+        detail:
+            '$currency ${NumberFormat('#,###').format(refundedAmt.round())} · ${transaction.refundReason ?? 'Refund'}',
+        time: transaction.updatedAt ?? transaction.lastTouched,
+        done: true,
+        isRefund: true,
+      ),
+    );
+  }
 
   if (isComplete) {
     events.add(

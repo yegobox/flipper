@@ -1,16 +1,20 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260527030019.migration.dart';
+part '20260603185233.migration.dart';
 part '20260522081221.migration.dart';
+part '20260527030019.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260527030019(),const Migration20260522081221()};
+  const Migration20260603185233(),
+  const Migration20260522081221(),
+  const Migration20260527030019(),
+};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260522081221,
+  20260527030019,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1537,6 +1541,9 @@ final schema = Schema(
         SchemaColumn('is_income', Column.boolean),
         SchemaColumn('is_expense', Column.boolean),
         SchemaColumn('is_refunded', Column.boolean),
+        SchemaColumn('refunded_amount', Column.Double),
+        SchemaColumn('refund_reason', Column.varchar),
+        SchemaColumn('refund_method', Column.varchar),
         SchemaColumn('customer_name', Column.varchar),
         SchemaColumn('customer_tin', Column.varchar),
         SchemaColumn('remark', Column.varchar),

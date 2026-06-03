@@ -76,6 +76,19 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   bool? isExpense;
   @Supabase(defaultValue: "false")
   bool? isRefunded;
+
+  @Sqlite(name: 'refunded_amount')
+  @Supabase(name: 'refunded_amount')
+  double? refundedAmount;
+
+  @Sqlite(name: 'refund_reason')
+  @Supabase(name: 'refund_reason')
+  String? refundReason;
+
+  @Sqlite(name: 'refund_method')
+  @Supabase(name: 'refund_method')
+  String? refundMethod;
+
   String? customerName;
   String? customerTin;
   String? remark;
@@ -206,6 +219,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     required this.isIncome,
     required this.isExpense,
     this.isRefunded,
+    this.refundedAmount,
+    this.refundReason,
+    this.refundMethod,
     this.customerName,
     this.customerTin,
     this.remark,
@@ -299,6 +315,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     bool? isIncome,
     bool? isExpense,
     bool? isRefunded,
+    double? refundedAmount,
+    String? refundReason,
+    String? refundMethod,
     String? customerName,
     String? customerTin,
     String? remark,
@@ -368,6 +387,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       isIncome: isIncome ?? this.isIncome,
       isExpense: isExpense ?? this.isExpense,
       isRefunded: isRefunded ?? this.isRefunded,
+      refundedAmount: refundedAmount ?? this.refundedAmount,
+      refundReason: refundReason ?? this.refundReason,
+      refundMethod: refundMethod ?? this.refundMethod,
       customerName: customerName ?? this.customerName,
       customerTin: customerTin ?? this.customerTin,
       remark: remark ?? this.remark,

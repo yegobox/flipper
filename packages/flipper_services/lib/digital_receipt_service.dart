@@ -23,10 +23,12 @@ class DigitalReceiptService {
     talker.info('digital receipt: queued SMS for transaction $transactionId');
   }
 
-  static bool _isQueuedForSms(String transactionId) {
+  static bool isQueuedForSms(String transactionId) {
     if (transactionId.isEmpty) return false;
     return _pendingSmsByTransactionId[transactionId] == true;
   }
+
+  static bool _isQueuedForSms(String transactionId) => isQueuedForSms(transactionId);
 
   static void _clearQueuedForSms(String transactionId) {
     if (transactionId.isEmpty) return;

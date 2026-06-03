@@ -18,6 +18,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/asset_sync_service.dart';
+import 'package:flipper_services/receipt_sync_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
@@ -106,6 +107,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       EbmSyncService(repository);
 
       AssetSyncService().initialize();
+      ReceiptSyncService().initialize();
 
       ProxyService.strategy.cleanDuplicatePlans();
       debugPrint('🚀 [StartupViewModel] App components initialized');

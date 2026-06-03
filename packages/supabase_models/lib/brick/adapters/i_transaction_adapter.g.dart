@@ -75,6 +75,15 @@ Future<ITransaction> _$ITransactionFromSupabase(
     isRefunded: data['is_refunded'] == null
         ? null
         : data['is_refunded'] as bool? ?? false,
+    refundedAmount: data['refunded_amount'] == null
+        ? null
+        : data['refunded_amount'] as double?,
+    refundReason: data['refund_reason'] == null
+        ? null
+        : data['refund_reason'] as String?,
+    refundMethod: data['refund_method'] == null
+        ? null
+        : data['refund_method'] as String?,
     customerName: data['customer_name'] == null
         ? null
         : data['customer_name'] as String?,
@@ -222,6 +231,9 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'is_income': instance.isIncome,
     'is_expense': instance.isExpense,
     'is_refunded': instance.isRefunded,
+    'refunded_amount': instance.refundedAmount,
+    'refund_reason': instance.refundReason,
+    'refund_method': instance.refundMethod,
     'customer_name': instance.customerName,
     'customer_tin': instance.customerTin,
     'remark': instance.remark,
@@ -331,6 +343,15 @@ Future<ITransaction> _$ITransactionFromSqlite(
     isIncome: data['is_income'] == null ? null : data['is_income'] == 1,
     isExpense: data['is_expense'] == null ? null : data['is_expense'] == 1,
     isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
+    refundedAmount: data['refunded_amount'] == null
+        ? null
+        : data['refunded_amount'] as double?,
+    refundReason: data['refund_reason'] == null
+        ? null
+        : data['refund_reason'] as String?,
+    refundMethod: data['refund_method'] == null
+        ? null
+        : data['refund_method'] as String?,
     customerName: data['customer_name'] == null
         ? null
         : data['customer_name'] as String?,
@@ -530,6 +551,9 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'is_refunded': instance.isRefunded == null
         ? null
         : (instance.isRefunded! ? 1 : 0),
+    'refunded_amount': instance.refundedAmount,
+    'refund_reason': instance.refundReason,
+    'refund_method': instance.refundMethod,
     'customer_name': instance.customerName,
     'customer_tin': instance.customerTin,
     'remark': instance.remark,
@@ -689,6 +713,18 @@ class ITransactionAdapter
     'isRefunded': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_refunded',
+    ),
+    'refundedAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'refunded_amount',
+    ),
+    'refundReason': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'refund_reason',
+    ),
+    'refundMethod': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'refund_method',
     ),
     'customerName': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -1010,6 +1046,24 @@ class ITransactionAdapter
       columnName: 'is_refunded',
       iterable: false,
       type: bool,
+    ),
+    'refundedAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'refunded_amount',
+      iterable: false,
+      type: double,
+    ),
+    'refundReason': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'refund_reason',
+      iterable: false,
+      type: String,
+    ),
+    'refundMethod': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'refund_method',
+      iterable: false,
+      type: String,
     ),
     'customerName': const RuntimeSqliteColumnDefinition(
       association: false,
