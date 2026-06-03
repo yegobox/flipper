@@ -325,7 +325,6 @@ class CheckOutState extends ConsumerState<CheckOut>
                 }
               },
             ),
-          ),
         );
       },
     );
