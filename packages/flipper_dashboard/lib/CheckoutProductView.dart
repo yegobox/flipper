@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/checkout.dart';
+import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
@@ -89,6 +90,18 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
       TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
 
+  /// First mobile frame: chrome only; catalog streams attach on frame 2.
+  bool _mobileHeavyProvidersReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _mobileHeavyProvidersReady = true);
+    });
+  }
+
   @override
   void dispose() {
     // Dispose controllers to prevent memory leaks
@@ -112,14 +125,17 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
+  void _confirmExitToHome(BuildContext context) {
+    onWillPop(
+      context: context,
+      navigationPurpose: NavigationPurpose.home,
+      message: 'Do you want to go home?',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, dynamic) {
-        if (didPop) return;
-      },
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: MposTokens.bg,
         body: SafeArea(
           child: Consumer(
@@ -144,6 +160,30 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               final isPhone =
                   responsive.ResponsiveLayout.isPhone(context) ||
                   responsive.ResponsiveLayout.isTinyLimit(context);
+
+              if (isPhone && !_mobileHeavyProvidersReady) {
+                return Column(
+                  children: [
+                    MposCatalogHeader(
+                      subtitle: _catalogSubtitle(null),
+                      status: 'PENDING',
+                      isScanActive: ref.watch(autoAddSearchProvider),
+                      onBack: () => _confirmExitToHome(context),
+                      onScan: () => _openCatalogScanner(context),
+                      onScanLongPress: () {
+                        if (!ref.read(autoAddSearchProvider)) return;
+                        HapticFeedback.mediumImpact();
+                        ref.read(autoAddSearchProvider.notifier).disable();
+                      },
+                      searchField: _CheckoutPosProductSearch(
+                        controller: searchController,
+                        mposStyle: true,
+                      ),
+                    ),
+                    const Expanded(child: _MobileCatalogSkeleton()),
+                  ],
+                );
+              }
 
               final catalogBody = ref
                   .watch(
@@ -171,7 +211,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       subtitle: _catalogSubtitle(txn),
                       status: status,
                       isScanActive: ref.watch(autoAddSearchProvider),
-                      onBack: () => Navigator.of(context).maybePop(),
+                      onBack: () => _confirmExitToHome(context),
                       onScan: () => _openCatalogScanner(context),
                       onScanLongPress: () {
                         if (!ref.read(autoAddSearchProvider)) return;
@@ -219,7 +259,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             },
           ),
         ),
-      ),
     );
   }
 
@@ -814,12 +853,26 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   }
 
   Widget _buildLoadingView() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 180),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [CircularProgressIndicator(), SizedBox(height: 16)],
+    return const _MobileCatalogSkeleton();
+  }
+}
+
+/// Lightweight placeholder while [outerVariantsProvider] resolves.
+class _MobileCatalogSkeleton extends StatelessWidget {
+  const _MobileCatalogSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      itemCount: 6,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (_, __) => Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: PosTokens.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: PosTokens.line),
         ),
       ),
     );

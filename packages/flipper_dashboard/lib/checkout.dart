@@ -55,7 +55,8 @@ class CheckOutState extends ConsumerState<CheckOut>
         TransactionMixinOld,
         PreviewCartMixin,
         Refresh {
-  late TabController tabController;
+  TabController? tabController;
+  bool _attachCartReconciliation = false;
 
   @override
   void initState() {
@@ -64,38 +65,53 @@ class CheckOutState extends ConsumerState<CheckOut>
 
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
-      tabController = TabController(length: 3, vsync: this);
+      if (widget.isBigScreen) {
+        tabController = TabController(length: 3, vsync: this);
+        _attachCartReconciliation = true;
+      } else {
+        // [CheckoutProductView] requires a controller; mobile UI does not use tabs.
+        tabController = TabController(length: 1, vsync: this);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() => _attachCartReconciliation = true);
+        });
+      }
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId != null && branchId.isNotEmpty) {
-        unawaited(
-          ProxyService.getStrategy(Strategy.capella)
-              .pendingTransactionFuture(
-                branchId: branchId,
-                transactionType: TransactionType.sale,
-                isExpense: false,
-              )
-              .then((txn) {
-            scheduleWriteCachedPendingCartTransactionWidget(
-              ref,
-              isExpense: false,
-              transaction: txn,
-            );
-          }),
+    if (widget.isBigScreen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _warmPendingCartAfterOpen();
+      });
+    }
+  }
+
+  void _warmPendingCartAfterOpen() {
+    warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) return;
+    unawaited(
+      ProxyService.getStrategy(Strategy.capella)
+          .pendingTransactionFuture(
+            branchId: branchId,
+            transactionType: TransactionType.sale,
+            isExpense: false,
+          )
+          .then((txn) {
+        scheduleWriteCachedPendingCartTransactionWidget(
+          ref,
+          isExpense: false,
+          transaction: txn,
         );
-      }
-    });
+      }),
+    );
   }
 
   @override
   void dispose() {
     NavigationGuardService().endCriticalWorkflow();
     WidgetsBinding.instance.removeObserver(this);
-    tabController.dispose();
+    tabController?.dispose();
     discountController.dispose();
     receivedAmountController.dispose();
     customerPhoneNumberController.dispose();
@@ -109,8 +125,9 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildMainContent() {
-    // Cache + stream merge: [posCartStreamReconciliationProvider] (not duplicate listen).
-    ref.listen(posCartStreamReconciliationProvider, (_, __) {});
+    if (_attachCartReconciliation) {
+      ref.listen(posCartStreamReconciliationProvider, (_, __) {});
+    }
 
     // Mobile POS: [CheckoutProductView] owns pending-txn + catalog streams; skip
     // an extra outer [when] so the route paints on the first frame.
@@ -405,7 +422,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: !showCart
               ? CheckoutProductView(
                   widget: widget,
-                  tabController: tabController,
+                  tabController: tabController!,
                   textEditController: textEditController,
                   model: model,
                   onCompleteTransaction:

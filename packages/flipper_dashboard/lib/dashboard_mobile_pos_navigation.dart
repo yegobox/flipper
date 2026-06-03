@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_services/constants.dart';
@@ -42,16 +43,23 @@ void warmMobilePosForCheckout(WidgetRef ref) {
     }),
   );
 
+  unawaited(ref.read(ebmVatEnabledProvider.future));
   unawaited(ref.read(outerVariantsProvider(branchId).future));
+}
+
+PageRoute<void> _instantMobilePosRoute(Widget child) {
+  return PageRouteBuilder<void>(
+    pageBuilder: (_, __, ___) => child,
+    transitionDuration: Duration.zero,
+    reverseTransitionDuration: const Duration(milliseconds: 200),
+  );
 }
 
 /// Fast mobile POS entry: push on the same event loop turn as the tap (no await/warm first).
 Future<void> openMobilePosCheckout(BuildContext context, WidgetRef ref) {
   HapticFeedback.lightImpact();
   final route = Navigator.of(context).push<void>(
-    MaterialPageRoute<void>(
-      builder: (_) => const CheckOut(isBigScreen: false),
-    ),
+    _instantMobilePosRoute(const CheckOut(isBigScreen: false)),
   );
   // Home shell pre-warms; refresh in background without blocking [Navigator.push].
   Future.microtask(() => warmMobilePosForCheckout(ref));

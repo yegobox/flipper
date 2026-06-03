@@ -7,6 +7,7 @@ part 'ebm_provider.g.dart';
 /// Provider that fetches the VAT enabled status from the EBM configuration
 @riverpod
 Future<bool> ebmVatEnabled(Ref ref) async {
+  ref.keepAlive();
   try {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return false;
