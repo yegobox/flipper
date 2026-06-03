@@ -3,11 +3,13 @@
 library flipper_login;
 
 import 'package:email_validator/email_validator.dart';
+import 'package:flipper_dashboard/theme/mpos_tokens.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/utils/mpos_helpers.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -39,11 +41,12 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
   String selectedCustomerTypeValue = 'Individual';
   bool isLoading = false;
 
+  bool get _isBusiness => selectedCustomerTypeValue == 'Business';
+
   bool isEmail(String? s) {
     if (s == null || s.isEmpty) {
       return false;
     }
-    // Using the email_validator package for consistent validation across the app
     return EmailValidator.validate(s);
   }
 
@@ -68,329 +71,587 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
         _phoneController.text = widget.searchedKey!;
       }
       if (!isNumeric(widget.searchedKey) && !isEmail(widget.searchedKey)) {
-        _nameController.text = widget.searchedKey!;
+        _nameController.text = widget.searchedKey ?? '';
       }
       if (isEmail(widget.searchedKey)) {
         _emailController.text = widget.searchedKey!;
       }
     }
+    for (final c in [
+      _nameController,
+      _phoneController,
+      _emailController,
+      _tinNumberController,
+    ]) {
+      c.addListener(_onFieldsChanged);
+    }
+  }
+
+  void _onFieldsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    for (final c in [
+      _nameController,
+      _phoneController,
+      _emailController,
+      _tinNumberController,
+    ]) {
+      c.removeListener(_onFieldsChanged);
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  String get _previewTitle {
+    final name = _nameController.text.trim();
+    if (name.isNotEmpty) return name;
+    return _isBusiness ? 'New business' : 'New customer';
+  }
+
+  String get _previewSubtitle {
+    final phone = _phoneController.text.trim();
+    if (phone.isNotEmpty) return phone;
+    return 'No phone yet';
+  }
+
+  String get _previewInitials {
+    final name = _nameController.text.trim();
+    if (name.isNotEmpty) return mposAbbreviation(name);
+    return 'NC';
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isEditing = widget.customer != null;
 
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 4),
+              const SizedBox(height: 10),
               Center(
                 child: Container(
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
+                    color: PosTokens.lineStrong,
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
               ),
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.customer == null
-                        ? 'Add New Customer'
-                        : 'Update Customer',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const Divider(),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Form(
-                      key: AddCustomer._formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Customer Type Selection
-                          Card(
-                            elevation: 0,
-                            color: theme.colorScheme.surface,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: theme.colorScheme.outline.withValues(
-                                  alpha: 0.2,
-                                ),
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Customer Type',
-                                    style: theme.textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: theme.colorScheme.outline
-                                            .withValues(alpha: 0.2),
-                                      ),
-                                    ),
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<String>(
-                                        value: selectedCustomerTypeValue,
-                                        onChanged: (String? newValue) {
-                                          if (newValue != null) {
-                                            setState(() {
-                                              selectedCustomerTypeValue = newValue;
-                                            });
-                                          }
-                                        },
-                                        items:
-                                            <String>[
-                                              'Business',
-                                              'Individual',
-                                            ].map<DropdownMenuItem<String>>((
-                                              String value,
-                                            ) {
-                                              return DropdownMenuItem<String>(
-                                                value: value,
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 16,
-                                                      ),
-                                                  child: Text(value),
-                                                ),
-                                              );
-                                            }).toList(),
-                                        isExpanded: true,
-                                        icon: const Icon(Icons.arrow_drop_down),
-                                        iconSize: 24,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Customer Details Card
-                          Card(
-                            elevation: 0,
-                            color: theme.colorScheme.surface,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: theme.colorScheme.outline.withValues(
-                                  alpha: 0.2,
-                                ),
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Customer Details',
-                                    style: theme.textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  // Name Field
-                                  BoxInputField(
-                                    controller: _nameController,
-                                    placeholder: 'Full Name',
-                                    leading: const Icon(Icons.person_outline),
-                                    validatorFunc: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'Name is required';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // Phone Field
-                                  BoxInputField(
-                                    controller: _phoneController,
-                                    placeholder: 'Phone Number',
-                                    leading: const Icon(Icons.phone_outlined),
-                                    // keyboardType: TextInputType.phone,
-                                    validatorFunc: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'Phone number is required';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // Email Field
-                                  BoxInputField(
-                                    controller: _emailController,
-                                    placeholder: 'Email Address',
-                                    leading: const Icon(Icons.email_outlined),
-                                    // keyboardType: TextInputType.emailAddress,
-                                    validatorFunc: (value) {
-                                      if (value != null &&
-                                          value.isNotEmpty &&
-                                          !isEmail(value)) {
-                                        return 'Please enter a valid email address';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // TIN Field
-                                  BoxInputField(
-                                    controller: _tinNumberController,
-                                    placeholder: 'TIN Number (Optional)',
-                                    leading: const Icon(Icons.numbers_outlined),
-                                    // keyboardType: TextInputType.number,
-                                    validatorFunc: (value) {
-                                      // TIN is now optional, only validate if provided
-                                      if (value != null && value.trim().isNotEmpty) {
-                                        final trimmedValue = value.trim();
-                                        // Check if the value contains only digits
-                                        if (!RegExp(r'^\d+$').hasMatch(trimmedValue)) {
-                                          return 'TIN should contain only digits';
-                                        }
-                                        // Check if the length is exactly 9 digits
-                                        if (trimmedValue.length != 9) {
-                                          return 'TIN must be 9 digits';
-                                        }
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 10, 12, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        isEditing ? 'Edit customer' : 'New customer',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: PosTokens.ink1,
+                        ),
                       ),
                     ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: PosTokens.surface2,
+                      ),
+                      icon: const Icon(Icons.close_rounded, size: 18),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+                  child: Form(
+                    key: AddCustomer._formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _PreviewCard(
+                          initials: _previewInitials,
+                          title: _previewTitle,
+                          subtitle: _previewSubtitle,
+                          color: mposColorForName(_previewTitle),
+                        ),
+                        const SizedBox(height: 18),
+                        const _FieldLabel('Customer type'),
+                        const SizedBox(height: 8),
+                        _CustomerTypeToggle(
+                          isBusiness: _isBusiness,
+                          onChanged: (business) {
+                            setState(() {
+                              selectedCustomerTypeValue =
+                                  business ? 'Business' : 'Individual';
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _CustomerFormField(
+                          label: _isBusiness ? 'Business name' : 'Full name',
+                          controller: _nameController,
+                          hint: _isBusiness
+                              ? 'e.g. Kigali Traders Ltd'
+                              : 'e.g. Jean Mukamana',
+                          icon: _isBusiness
+                              ? Icons.storefront_outlined
+                              : Icons.person_outline_rounded,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return _isBusiness
+                                  ? 'Business name is required'
+                                  : 'Name is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        _CustomerFormField(
+                          label: 'Phone number',
+                          controller: _phoneController,
+                          hint: '07XX XXX XXX',
+                          icon: Icons.smartphone_outlined,
+                          keyboardType: TextInputType.phone,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Phone number is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        _CustomerFormField(
+                          label: 'Email address',
+                          optional: true,
+                          controller: _emailController,
+                          hint: 'name@email.com',
+                          icon: Icons.mail_outline_rounded,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value != null &&
+                                value.isNotEmpty &&
+                                !isEmail(value)) {
+                              return 'Please enter a valid email address';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        _CustomerFormField(
+                          label: 'TIN number',
+                          optional: true,
+                          controller: _tinNumberController,
+                          hint: 'Tax ID for invoices',
+                          icon: Icons.tag_outlined,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value != null && value.trim().isNotEmpty) {
+                              final trimmedValue = value.trim();
+                              if (!RegExp(r'^\d+$').hasMatch(trimmedValue)) {
+                                return 'TIN should contain only digits';
+                              }
+                              if (trimmedValue.length != 9) {
+                                return 'TIN must be 9 digits';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              // const SizedBox(height: 16),
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          if (AddCustomer._formKey.currentState!.validate()) {
-                            setState(() => isLoading = true);
-                            try {
-                              await model.addCustomer(
-                                id: widget.customer?.id,
-                                customerType: selectedCustomerTypeValue,
-                                email: _emailController.text,
-                                phone: _phoneController.text,
-                                name: _nameController.text,
-                                tinNumber: _tinNumberController.text,
-                                transactionId: widget.transactionId,
-                              );
-                              ref.refresh(customersProvider);
-                              Navigator.of(context).pop();
-                              // Show success snack bar after closing modal using root navigator context
-                              Future.delayed(
-                                const Duration(milliseconds: 100),
-                                () {
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: MposTokens.checkoutPrimaryHeight,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: isLoading ? null : MposTokens.gradBtn,
+                      color: isLoading ? PosTokens.ink4 : null,
+                      borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+                      boxShadow: isLoading ? null : MposTokens.shadowBlue,
+                    ),
+                    child: ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              if (!AddCustomer._formKey.currentState!
+                                  .validate()) {
+                                return;
+                              }
+                              setState(() => isLoading = true);
+                              try {
+                                await model.addCustomer(
+                                  id: widget.customer?.id,
+                                  customerType: selectedCustomerTypeValue,
+                                  email: _emailController.text,
+                                  phone: _phoneController.text,
+                                  name: _nameController.text,
+                                  tinNumber: _tinNumberController.text,
+                                  transactionId: widget.transactionId,
+                                );
+                                ref.refresh(customersProvider);
+                                if (!context.mounted) return;
+                                Navigator.of(context).pop();
+                                Future.delayed(
+                                  const Duration(milliseconds: 100),
+                                  () {
+                                    showCustomSnackBarUtil(
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).context,
+                                      isEditing
+                                          ? 'Customer updated successfully!'
+                                          : 'Customer added and attached',
+                                      backgroundColor: Colors.green[600],
+                                    );
+                                  },
+                                );
+                                model.getTransactionById();
+                              } catch (e) {
+                                if (mounted) {
                                   showCustomSnackBarUtil(
                                     Navigator.of(
                                       context,
                                       rootNavigator: true,
                                     ).context,
-                                    widget.customer == null
-                                        ? 'Customer added successfully!'
-                                        : 'Customer updated successfully!',
-                                    backgroundColor: Colors.green[600],
+                                    e.toString().isNotEmpty
+                                        ? e.toString()
+                                        : 'Failed to add customer',
+                                    backgroundColor: Colors.red,
                                   );
-                                },
-                              );
-                              model.getTransactionById();
-                            } catch (e) {
-                              // Show error to user
-                              if (mounted) {
-                                showCustomSnackBarUtil(
-                                  Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).context,
-                                  e.toString().isNotEmpty
-                                      ? e.toString()
-                                      : 'Failed to add customer',
-                                  backgroundColor: Colors.red,
-                                );
+                                }
+                              } finally {
+                                if (mounted) setState(() => isLoading = false);
                               }
-                            } finally {
-                              setState(() => isLoading = false);
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          widget.customer == null
-                              ? 'Add Customer'
-                              : 'Update Customer',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        disabledBackgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(MposTokens.radiusMd),
                         ),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.check_rounded, size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  isEditing
+                                      ? 'Save changes'
+                                      : 'Add & attach customer',
+                                  style: const TextStyle(
+                                    fontSize: 15.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _PreviewCard extends StatelessWidget {
+  const _PreviewCard({
+    required this.initials,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+  });
+
+  final String initials;
+  final String title;
+  final String subtitle;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: PosTokens.surface,
+        borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+        border: Border.all(color: PosTokens.line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: PosTokens.ink1,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: PosTokens.ink3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text, {this.optional = false});
+
+  final String text;
+  final bool optional;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: text,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: PosTokens.ink1,
+            ),
+          ),
+          if (optional)
+            const TextSpan(
+              text: ' · optional',
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+                color: PosTokens.ink3,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CustomerTypeToggle extends StatelessWidget {
+  const _CustomerTypeToggle({
+    required this.isBusiness,
+    required this.onChanged,
+  });
+
+  final bool isBusiness;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _TypeOption(
+            label: 'Individual',
+            icon: Icons.person_outline_rounded,
+            selected: !isBusiness,
+            onTap: () => onChanged(false),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _TypeOption(
+            label: 'Business',
+            icon: Icons.apartment_outlined,
+            selected: isBusiness,
+            onTap: () => onChanged(true),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TypeOption extends StatelessWidget {
+  const _TypeOption({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        decoration: BoxDecoration(
+          color: selected ? PosTokens.blueTint : PosTokens.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? PosTokens.blue : PosTokens.line,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: selected ? PosTokens.blue : PosTokens.ink3,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? PosTokens.blue : PosTokens.ink2,
+                ),
+              ),
+            ],
+          ),
+        ),
+    );
+  }
+}
+
+class _CustomerFormField extends StatelessWidget {
+  const _CustomerFormField({
+    required this.label,
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    this.optional = false,
+    this.keyboardType = TextInputType.text,
+    this.validator,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final String hint;
+  final IconData icon;
+  final bool optional;
+  final TextInputType keyboardType;
+  final String? Function(String?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _FieldLabel(label, optional: optional),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: PosTokens.ink1,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(
+              color: PosTokens.ink4,
+              fontWeight: FontWeight.w400,
+            ),
+            prefixIcon: Icon(icon, size: 20, color: PosTokens.ink3),
+            filled: true,
+            fillColor: PosTokens.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: PosTokens.line),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: PosTokens.line),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: PosTokens.blue, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: PosTokens.loss),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

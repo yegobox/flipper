@@ -481,7 +481,8 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     CheckOutRoute.name: (routeData) {
-      final args = routeData.argsAs<CheckOutArgs>();
+      final args = routeData.argsAs<CheckOutArgs>(
+          orElse: () => const CheckOutArgs(isBigScreen: false));
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.CheckOut(
@@ -2112,7 +2113,7 @@ class AppsArgs {
 class CheckOutRoute extends _i4.PageRouteInfo<CheckOutArgs> {
   CheckOutRoute({
     _i5.Key? key,
-    required bool isBigScreen,
+    bool isBigScreen = false,
   }) : super(
           CheckOutRoute.name,
           path: '/check-out',
@@ -2128,7 +2129,7 @@ class CheckOutRoute extends _i4.PageRouteInfo<CheckOutArgs> {
 class CheckOutArgs {
   const CheckOutArgs({
     this.key,
-    required this.isBigScreen,
+    this.isBigScreen = false,
   });
 
   final _i5.Key? key;

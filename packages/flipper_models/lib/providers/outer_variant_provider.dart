@@ -5,8 +5,8 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -67,6 +67,8 @@ class OuterVariants extends _$OuterVariants {
 
   @override
   FutureOr<List<Variant>> build(String branchId) async {
+    ref.keepAlive();
+
     // Initialize itemsPerPage once. Use a smaller default for better performance
     final int _defaultPageSize = 15; // Reduced from 20 for better performance
     const int _maxPageSize = 50; // Reduced max from 100
@@ -80,8 +82,8 @@ class OuterVariants extends _$OuterVariants {
       '(pref=${prefIpp ?? 'null'}, default=$_defaultPageSize, max=$_maxPageSize)',
     );
 
-    // Fetch VAT enabled status from EBM and cache it
-    _isVatEnabled = await getVatEnabledFromEbm();
+    // Shared with home pre-warm ([warmMobilePosForCheckout] reads [ebmVatEnabledProvider]).
+    _isVatEnabled = await ref.watch(ebmVatEnabledProvider.future);
 
     // Watch for search string changes and react accordingly.
     final searchString = ref.watch(searchStringProvider);
@@ -123,9 +125,9 @@ class OuterVariants extends _$OuterVariants {
     if (paged.variants.isNotEmpty) return paged;
 
     const delays = <Duration>[
-      Duration(milliseconds: 2000),
-      Duration(milliseconds: 3500),
-      Duration(milliseconds: 5000),
+      Duration(milliseconds: 400),
+      Duration(milliseconds: 900),
+      Duration(milliseconds: 1500),
     ];
     for (final d in delays) {
       talker.info(
@@ -406,10 +408,8 @@ class Products extends _$Products {
   }
 
   void addProducts({required List<Product> products}) {
-    state.whenData((currentData) {
-      final updatedProducts = [...currentData, ...products];
-      state = AsyncData(updatedProducts);
-    });
+    final currentData = state.value ?? const <Product>[];
+    state = AsyncData(mergeProductsById(currentData, products));
   }
 
   void deleteProduct(int productId) {
@@ -420,4 +420,22 @@ class Products extends _$Products {
       state = AsyncData(updatedProducts);
     });
   }
+}
+
+List<Product> mergeProductsById(
+  List<Product> currentProducts,
+  List<Product> incomingProducts,
+) {
+  final merged = <Product>[...currentProducts];
+  for (final incoming in incomingProducts) {
+    final existingIndex = merged.indexWhere(
+      (product) => product.id == incoming.id,
+    );
+    if (existingIndex == -1) {
+      merged.add(incoming);
+    } else {
+      merged[existingIndex] = incoming;
+    }
+  }
+  return merged;
 }

@@ -288,15 +288,20 @@ class _SearchInputWithDropdownState
     ProxyService.box.remove(key: 'customerTin');
     if (transaction.value?.id != null) {
       final oldCustomerId = transaction.value!.customerId;
-      await ProxyService.strategy.removeCustomerFromTransaction(
-        transaction: transaction.value!,
-      );
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).removeCustomerFromTransaction(transaction: transaction.value!);
       if (oldCustomerId != null) {
         ref.invalidate(attachedCustomerProvider(oldCustomerId));
       }
+      ref.invalidate(
+        transactionByIdProvider(transaction.value!.id),
+      );
       ref.refresh(pendingTransactionStreamProvider(isExpense: false));
       setState(() => _searchController.clear());
       ref.read(customerPhoneNumberProvider.notifier).state = null;
+      await ProxyService.box.remove(key: 'customerName');
+      await ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber');
     }
   }
 
@@ -357,7 +362,9 @@ class _SearchInputWithDropdownState
     final customerNameController = ref.read(customerNameControllerProvider);
     try {
       customerNameController.text = customer.custNm!;
-      await ProxyService.strategy.assignCustomerToTransaction(
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).assignCustomerToTransaction(
         customer: customer,
         transaction: transaction,
       );

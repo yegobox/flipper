@@ -95,7 +95,14 @@ onWillPop({
                         key: 'isOrdering',
                         value: false,
                       );
-                      locator<RouterService>().replaceWithFlipperApp();
+                      Navigator.pop(context);
+                      final rootNav = Navigator.of(context, rootNavigator: true);
+                      // Mobile New sale uses [Navigator.push] above the dashboard.
+                      if (rootNav.canPop()) {
+                        rootNav.pop();
+                      } else {
+                        locator<RouterService>().replaceWithFlipperApp();
+                      }
                       return;
                     }
                     Navigator.pop(context);

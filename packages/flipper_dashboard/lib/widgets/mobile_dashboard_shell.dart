@@ -1,8 +1,11 @@
 import 'package:flipper_dashboard/ProfileFutureWidget.dart';
+import 'package:flipper_dashboard/dashboard_mobile_pos_navigation.dart';
 import 'package:flipper_dashboard/dashboard_view.dart';
+import 'package:flipper_dashboard/drawerB.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_app_bar_leading.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -25,14 +28,31 @@ class MobileDashboardShell extends StatefulHookConsumerWidget {
 }
 
 class _MobileDashboardShellState extends ConsumerState<MobileDashboardShell> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DashboardMobileTab _activeTab = DashboardMobileTab.home;
 
   static const Color _pageBg = Color(0xFFF4F6FB);
 
+  void _openDrawer() => _scaffoldKey.currentState?.openDrawer();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      warmMobilePosForCheckout(ref);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // ref.listen is only valid during build (same pattern as [CheckOut]).
+    listenCachedPendingCartTransactionSyncWidget(ref, isExpense: false);
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: _pageBg,
+      drawer: const MyDrawer(),
       body: Column(
         children: [
           Material(
@@ -43,7 +63,7 @@ class _MobileDashboardShellState extends ConsumerState<MobileDashboardShell> {
                 height: 56,
                 child: Row(
                   children: [
-                    const DashboardMobileAppBarLeading(),
+                    DashboardMobileAppBarLeading(onOpenDrawer: _openDrawer),
                     const Spacer(),
                     const ProfileFutureWidget(),
                   ],
@@ -55,6 +75,7 @@ class _MobileDashboardShellState extends ConsumerState<MobileDashboardShell> {
             child: DashboardView(
               isBigScreen: widget.isBigScreen,
               model: widget.model,
+              onQuickAccessSeeAll: _openDrawer,
             ),
           ),
           DashboardMobileBottomNav(

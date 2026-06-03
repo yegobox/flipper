@@ -28,42 +28,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/pos_product_tile.dart';
 import 'package:flipper_dashboard/widgets/pos_catalog_grid_card.dart';
-
-/// One map built per cart stream emission; rows use `.select` so only variants whose
-/// qty changed rebuild.
-final pendingCartQtyByVariantIdProvider =
-    Provider.family<
-      Map<String, int>,
-      ({String transactionId, String branchId})
-    >((ref, args) {
-      final async = ref.watch(
-        transactionItemsStreamProvider(
-          transactionId: args.transactionId,
-          branchId: args.branchId,
-        ),
-      );
-      return async.maybeWhen(
-        data: (List<TransactionItem> items) {
-          final out = <String, int>{};
-          for (final it in items) {
-            if (it.active == false) continue;
-            final vid = it.variantId;
-            if (vid == null || vid.isEmpty) continue;
-            out[vid] = (out[vid] ?? 0) + it.qty.round();
-          }
-          return out;
-        },
-        orElse: () => const <String, int>{},
-      );
-    });
 
 Map<int, String> positionString = {
   0: 'first',
@@ -166,12 +139,6 @@ class _RowItemState extends ConsumerState<RowItem>
   Widget? _cachedImageWidget;
   static final Map<String, Future<void>> _assetDownloadCache = {};
 
-  /// Adds not yet reflected on [transactionItemsStreamProvider] — keeps +/- UI responsive.
-  int _cartOptimisticBump = 0;
-
-  /// Clears optimistic bump when the pending cart transaction changes (e.g. after checkout).
-  String? _lastObservedPendingTxnId;
-
   @override
   void initState() {
     super.initState();
@@ -197,14 +164,6 @@ class _RowItemState extends ConsumerState<RowItem>
   @override
   void didUpdateWidget(RowItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    if (widget.isOrdering != oldWidget.isOrdering) {
-      _lastObservedPendingTxnId = null;
-    }
-
-    if (widget.variant?.id != oldWidget.variant?.id) {
-      _cartOptimisticBump = 0;
-    }
 
     if (widget.imageUrl != oldWidget.imageUrl ||
         (widget.variant?.branchId != oldWidget.variant?.branchId)) {
@@ -247,24 +206,9 @@ class _RowItemState extends ConsumerState<RowItem>
     required ColorScheme colorScheme,
   }) {
     final variantId = widget.variant?.id;
-    final txnId = ref.watch(
-      posCartPendingTransactionIdProvider(widget.isOrdering),
-    );
-
-    int inCartQty = 0;
-    if (txnId != null &&
-        txnId.isNotEmpty &&
-        variantId != null &&
-        variantId.isNotEmpty) {
-      final branchId = ProxyService.box.branchIdString() ?? '0';
-      inCartQty = ref.watch(
-        pendingCartQtyByVariantIdProvider((
-          transactionId: txnId,
-          branchId: branchId,
-        )).select((map) => map[variantId] ?? 0),
-      );
-      inCartQty = (inCartQty + _cartOptimisticBump).clamp(0, 999);
-    }
+    final inCartQty = (variantId != null && variantId.isNotEmpty)
+        ? ref.watch(posCartQtyForVariantProvider(variantId))
+        : 0;
 
     final stockAsync = ref.watch(
       stockByVariantProvider(widget.variant?.stockId ?? ''),
@@ -287,6 +231,7 @@ class _RowItemState extends ConsumerState<RowItem>
     final hasImage = widget.imageUrl?.isNotEmpty == true;
 
     return PosCatalogGridCard(
+      key: Key('pos-catalog-tap-${variantId ?? itemId ?? ''}'),
       productName: widget.productName.isNotEmpty
           ? widget.productName
           : 'Unnamed Product',
@@ -324,50 +269,6 @@ class _RowItemState extends ConsumerState<RowItem>
 
   @override
   Widget build(BuildContext context) {
-    final txnIdForCart = ref.watch(
-      posCartPendingTransactionIdProvider(widget.isOrdering),
-    );
-    ref.listen<String?>(posCartPendingTransactionIdProvider(widget.isOrdering), (
-      previous,
-      next,
-    ) {
-      if (next == null || next.isEmpty) return;
-      if (_lastObservedPendingTxnId == next) return;
-      final hadTxn =
-          _lastObservedPendingTxnId != null &&
-          _lastObservedPendingTxnId!.isNotEmpty;
-      _lastObservedPendingTxnId = next;
-      if (!hadTxn || !mounted) return;
-      if (_cartOptimisticBump == 0) return;
-      setState(() => _cartOptimisticBump = 0);
-    });
-    final txnForListen = (txnIdForCart != null && txnIdForCart.isNotEmpty)
-        ? txnIdForCart
-        : null;
-    final variantIdForListen = widget.variant?.id;
-    if (txnForListen != null && variantIdForListen != null) {
-      final branchId = ProxyService.box.branchIdString() ?? '0';
-      ref.listen<int>(
-        pendingCartQtyByVariantIdProvider((
-          transactionId: txnForListen,
-          branchId: branchId,
-        )).select((map) => map[variantIdForListen] ?? 0),
-        (previous, next) {
-          if (!mounted) return;
-          final v = widget.variant;
-          if (v == null || v.id != variantIdForListen) return;
-
-          final prevQty = previous ?? 0;
-          if (next > prevQty && _cartOptimisticBump > 0) {
-            final delta = next - prevQty;
-            setState(() {
-              _cartOptimisticBump = (_cartOptimisticBump - delta).clamp(0, 999);
-            });
-          }
-        },
-      );
-    }
-
     final selectedItemIds = ref.watch(selectedItemIdsProvider);
     final itemId = widget.variant?.id ?? widget.product?.id;
     final isSelected = selectedItemIds.contains(itemId);
@@ -384,23 +285,36 @@ class _RowItemState extends ConsumerState<RowItem>
             deviceType !=
                 'Desktop'); // Use list view on phones or when forced (except on desktop)
 
+    final bool isCompactPosList =
+        widget.forceListView &&
+        !widget.isOrdering &&
+        MediaQuery.sizeOf(context).width < 600;
+
     final bool renderPosCatalogTile = widget.usePosCatalogTile;
+
+    if (isCompactPosList) {
+      return _buildMposCatalogProductCard(
+        context: context,
+        ref: ref,
+        textTheme: textTheme,
+        colorScheme: colorScheme,
+      );
+    }
+    if (renderPosCatalogTile) {
+      return _buildDesktopPosGridCard(
+        context: context,
+        ref: ref,
+        isSelected: isSelected,
+        isMultiSelectActive: isMultiSelectActive,
+        itemId: itemId,
+        textTheme: textTheme,
+        colorScheme: colorScheme,
+      );
+    }
 
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
-        if (renderPosCatalogTile) {
-          return _buildDesktopPosGridCard(
-            context: context,
-            ref: ref,
-            isSelected: isSelected,
-            isMultiSelectActive: isMultiSelectActive,
-            itemId: itemId,
-            textTheme: textTheme,
-            colorScheme: colorScheme,
-          );
-        }
-
         final listChild = useListView
             ? _buildListItemContent(isSelected, textTheme, colorScheme)
             : _buildItemContent(isSelected, textTheme, colorScheme);
@@ -772,6 +686,35 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
+  bool get _isMposCatalogRow =>
+      widget.forceListView &&
+      !widget.isOrdering &&
+      MediaQuery.sizeOf(context).width < 600;
+
+  Widget _buildMposCatalogProductCard({
+    required BuildContext context,
+    required WidgetRef ref,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: PosTokens.line),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: _buildPosMobileListRow(textTheme, colorScheme),
+    );
+  }
+
   Widget _buildPosMobileListRow(TextTheme textTheme, ColorScheme colorScheme) {
     // Match non-compact rows: when variant label differs from product title,
     // lead with variant name so POS/search rows match what was saved per SKU.
@@ -799,37 +742,44 @@ class _RowItemState extends ConsumerState<RowItem>
         : HexColor(widget.color);
     final abbrText = posTileAbbr(primaryLine);
 
+    final thumbSize = _isMposCatalogRow ? 50.0 : 44.0;
+    final thumbRadius = _isMposCatalogRow ? 13.0 : 10.0;
+
     final Widget leading = widget.imageUrl?.isNotEmpty == true
         ? SizedBox(
-            width: 44,
-            height: 44,
+            width: thumbSize,
+            height: thumbSize,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(thumbRadius),
               child: _buildImage(),
             ),
           )
         : Container(
-            width: 44,
-            height: 44,
+            width: thumbSize,
+            height: thumbSize,
             decoration: BoxDecoration(
               color: tileColor,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(thumbRadius),
             ),
             alignment: Alignment.center,
             child: Text(
               abbrText.isEmpty ? 'PRD' : abbrText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
-                fontSize: 13,
+                fontSize: _isMposCatalogRow ? 15 : 13,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           );
 
+    final codeLine = widget.variant?.bcd?.trim().isNotEmpty == true
+        ? widget.variant!.bcd!.trim()
+        : (productSubtitle ?? '');
+
     return SizedBox(
-      height: 68,
+      height: _isMposCatalogRow ? 72 : 68,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -845,14 +795,16 @@ class _RowItemState extends ConsumerState<RowItem>
               children: [
                 Text(
                   primaryLine.isNotEmpty ? primaryLine : 'Unnamed',
-                  style: textTheme.titleSmall?.copyWith(
+                  style: TextStyle(
+                    fontSize: _isMposCatalogRow ? 15 : 14,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: PosTokens.ink1,
+                    letterSpacing: -0.01,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (productSubtitle != null) ...[
+                if (!_isMposCatalogRow && productSubtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(
                     productSubtitle,
@@ -864,90 +816,91 @@ class _RowItemState extends ConsumerState<RowItem>
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 4),
-                Text(
-                  widget.variant?.bcd?.isNotEmpty == true
-                      ? 'BCD: ${widget.variant!.bcd}'
-                      : '',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                if (codeLine.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    codeLine,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: PosTokens.ink3,
+                      fontFamily: 'monospace',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
               ],
             ),
           ),
 
           const SizedBox(width: 12),
 
-          // Right: price + stock pill + plus button
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 priceText,
-                style: textTheme.titleSmall?.copyWith(
+                style: TextStyle(
+                  fontSize: _isMposCatalogRow ? 14.5 : 14,
                   fontWeight: FontWeight.w800,
-                  color: Colors.black87,
+                  color: PosTokens.ink1,
+                  fontFamily: _isMposCatalogRow ? 'monospace' : null,
                 ),
               ),
               const SizedBox(height: 6),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Stock pill (live)
-                  RepaintBoundary(
-                    child: Consumer(
-                      builder: (context, ref, _) {
-                        final stockAsync = ref.watch(
-                          stockByVariantProvider(widget.variant?.stockId ?? ''),
-                        );
-                        final stockRaw = stockAsync.value?.currentStock ?? 0;
-                        final stockValue = stockRaw is int
-                            ? stockRaw
-                            : stockRaw.floor();
+              RepaintBoundary(
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final stockAsync = ref.watch(
+                      stockByVariantProvider(widget.variant?.stockId ?? ''),
+                    );
+                    final stockRaw = stockAsync.value?.currentStock ?? 0;
+                    final stockValue = stockRaw is int
+                        ? stockRaw
+                        : stockRaw.floor();
 
-                        final threshold = _lowStockThreshold;
-                        final visual = posStockVisual(
-                          currentStock: stockValue,
-                          lowStockThreshold: threshold,
-                        );
-                        final Color bg = visual == PosStockVisual.out
-                            ? PosTokens.lossTint
-                            : (visual == PosStockVisual.low
-                                  ? PosTokens.warnTint
-                                  : PosTokens.gain.withValues(alpha: 0.14));
-                        final Color fg = posStockTextColor(visual);
+                    final threshold = _lowStockThreshold;
+                    final visual = posStockVisual(
+                      currentStock: stockValue,
+                      lowStockThreshold: threshold,
+                    );
+                    final Color bg = visual == PosStockVisual.out
+                        ? PosTokens.lossTint
+                        : (visual == PosStockVisual.low
+                              ? PosTokens.warnTint
+                              : PosTokens.gain.withValues(alpha: 0.14));
+                    final Color fg = posStockTextColor(visual);
+                    final label = visual == PosStockVisual.out
+                        ? 'Out of stock'
+                        : '$stockValue left';
 
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: bg,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            '$stockValue left',
-                            style: textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: fg,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  _buildCartQtyControl(textTheme, colorScheme),
-                ],
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: fg,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
+          const SizedBox(width: 10),
+          _buildCartQtyControl(textTheme, colorScheme),
         ],
       ),
     );
@@ -968,46 +921,22 @@ class _RowItemState extends ConsumerState<RowItem>
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
-        final branchId = ProxyService.box.branchIdString() ?? '0';
-        final streamTotalQty = ref.watch(
-          pendingCartQtyByVariantIdProvider((
-            transactionId: txnId,
-            branchId: branchId,
-          )).select((map) => map[v.id] ?? 0),
-        );
-        final int displayQty = (streamTotalQty + _cartOptimisticBump).clamp(
-          0,
-          999999,
-        );
+        final displayQty = ref.watch(posCartQtyForVariantProvider(v.id));
 
         if (displayQty <= 0) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
 
-        final decrementEnabled = streamTotalQty > 0;
-
         return _buildStepper(
           textTheme: textTheme,
           colorScheme: colorScheme,
           qty: displayQty,
-          decrementEnabled: decrementEnabled,
+          decrementEnabled: displayQty > 0,
           onDecrement: () async {
-            if (!decrementEnabled) return;
-            final items =
-                ref
-                    .read(
-                      transactionItemsStreamProvider(
-                        transactionId: txnId,
-                        branchId: branchId,
-                      ),
-                    )
-                    .asData
-                    ?.value ??
-                const <TransactionItem>[];
-            final matching = items
-                .where((it) => it.active != false && it.variantId == v.id)
-                .toList();
-            await _decrementOne(transactionId: txnId, matchingItems: matching);
+            _decrementVariantFromCart(
+              transactionId: txnId,
+              variantId: v.id,
+            );
           },
           onIncrement: _onAddToCartWithOptimistic,
         );
@@ -1016,6 +945,37 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   Widget _buildPlusOnlyButton(TextTheme textTheme, ColorScheme colorScheme) {
+    if (_isMposCatalogRow) {
+      return Consumer(
+        builder: (context, ref, _) {
+          final stockAsync = ref.watch(
+            stockByVariantProvider(widget.variant?.stockId ?? ''),
+          );
+          final stockRaw = stockAsync.value?.currentStock ?? 0;
+          final stockValue = stockRaw is int ? stockRaw : stockRaw.floor();
+          final enabled = stockValue > 0;
+
+          return Material(
+            color: enabled ? PosTokens.blue : const Color(0xFFE8E8ED),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: enabled ? _onAddToCartWithOptimistic : null,
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(
+                  Icons.add_rounded,
+                  color: enabled ? Colors.white : const Color(0xFFAEAEB2),
+                  size: 22,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return SizedBox(
       width: 38,
       height: 32,
@@ -1042,6 +1002,37 @@ class _RowItemState extends ConsumerState<RowItem>
     required Future<void> Function() onDecrement,
     required VoidCallback onIncrement,
   }) {
+    if (_isMposCatalogRow) {
+      return Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: PosTokens.blue,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _mposQtyTap(
+              icon: Icons.remove_rounded,
+              onTap: decrementEnabled ? () async => onDecrement() : null,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                qty.toString(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            _mposQtyTap(icon: Icons.add_rounded, onTap: onIncrement),
+          ],
+        ),
+      );
+    }
+
     return Container(
       height: 32,
       decoration: BoxDecoration(
@@ -1089,6 +1080,51 @@ class _RowItemState extends ConsumerState<RowItem>
         ],
       ),
     );
+  }
+
+  Widget _mposQtyTap({required IconData icon, VoidCallback? onTap}) {
+    return SizedBox(
+      width: 36,
+      height: 40,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
+      ),
+    );
+  }
+
+  void _decrementVariantFromCart({
+    required String transactionId,
+    required String variantId,
+  }) {
+    final matching = ref
+        .read(posCartDisplayItemsProvider)
+        .where((it) => it.active != false && it.variantId == variantId)
+        .toList();
+    final persisted = matching
+        .where((it) => !OptimisticCartIds.isOptimistic(it.id))
+        .toList();
+    if (persisted.isNotEmpty) {
+      unawaited(
+        _decrementOne(transactionId: transactionId, matchingItems: persisted),
+      );
+      return;
+    }
+
+    final txnForOpt = transactionId.isNotEmpty
+        ? transactionId
+        : (ref.read(posCartMergeTxnIdProvider(widget.isOrdering)));
+    if (txnForOpt.isEmpty) return;
+
+    ref.read(optimisticCartProvider.notifier).rollbackPending(
+          transactionId: txnForOpt,
+          variantId: variantId,
+        );
+    ref.read(optimisticOrderCountProvider.notifier).decrement();
   }
 
   Future<void> _decrementOne({
@@ -1344,7 +1380,6 @@ class _RowItemState extends ConsumerState<RowItem>
       product: widget.product,
       isComposite: widget.isComposite,
     );
-    if (mounted) setState(() => _cartOptimisticBump++);
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {

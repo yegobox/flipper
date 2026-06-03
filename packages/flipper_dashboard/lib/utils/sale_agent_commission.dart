@@ -68,6 +68,27 @@ void mergeAgentAttributionOnto(ITransaction target, ITransaction? source) {
   }
 }
 
+/// In-memory only — no Ditto reads (Pay hot path before [updateTransaction]).
+void applyAgentCommissionForSaleCompletionInMemory({
+  required ITransaction transaction,
+  required double finalSubTotal,
+  List<TransactionItem>? preloadedLineItems,
+}) {
+  var tax = transaction.taxAmount?.toDouble() ?? 0;
+  if (tax <= 0 && preloadedLineItems != null && preloadedLineItems.isNotEmpty) {
+    tax = preloadedLineItems.fold<double>(
+      0,
+      (sum, item) => sum + (item.taxAmt?.toDouble() ?? 0),
+    );
+    transaction.taxAmount = tax;
+  }
+  finalizeAgentCommissionAmount(
+    target: transaction,
+    subTotal: finalSubTotal,
+    taxAmount: tax,
+  );
+}
+
 /// Sets [target.agentCommissionAmount] at sale completion (percent on net excl. VAT).
 void finalizeAgentCommissionAmount({
   required ITransaction target,

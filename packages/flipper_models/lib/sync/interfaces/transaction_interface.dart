@@ -189,6 +189,10 @@ abstract class TransactionInterface {
     bool? isLoan,
     double? remainingBalance,
     bool skipDittoSync = false,
+
+    /// When true, creates the next pending POS cart after the UPDATE returns,
+    /// not on the caller's await chain (Quick Selling completion).
+    bool deferEnsureNextPendingCart = false,
   });
   Future<ITransaction?> getTransaction({
     String? sarNo,

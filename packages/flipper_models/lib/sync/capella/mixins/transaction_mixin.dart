@@ -938,13 +938,66 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  FutureOr<void> assignCustomerToTransaction({
+    required Customer customer,
+    required ITransaction transaction,
+  }) async {
+    transaction.customerId = customer.id;
+    transaction.customerName = customer.custNm;
+    transaction.customerTin = customer.custTin;
+    transaction.customerPhone = customer.telNo;
+    transaction.currentSaleCustomerPhoneNumber = customer.telNo;
+
+    await updateTransaction(
+      transactionId: transaction.id,
+      customerId: customer.id,
+      customerName: customer.custNm,
+      customerTin: customer.custTin,
+      customerPhone: customer.telNo,
+      updatedAt: DateTime.now(),
+      lastTouched: DateTime.now(),
+    );
+  }
+
   @override
   FutureOr<void> removeCustomerFromTransaction({
     required ITransaction transaction,
   }) async {
-    throw UnimplementedError(
-      'removeCustomerFromTransaction needs to be implemented for Capella',
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for removeCustomerFromTransaction');
+      return;
+    }
+
+    final targetId = transaction.id;
+    final now = DateTime.now();
+
+    transaction.customerId = null;
+    transaction.customerName = null;
+    transaction.customerTin = null;
+    transaction.customerPhone = null;
+    transaction.currentSaleCustomerPhoneNumber = null;
+
+    final query =
+        'UPDATE transactions SET '
+        'customerId = NULL, '
+        'customerName = NULL, '
+        'customerTin = NULL, '
+        'customerPhone = NULL, '
+        'currentSaleCustomerPhoneNumber = NULL, '
+        'updatedAt = :updatedAt, '
+        'lastTouched = :lastTouched '
+        'WHERE _id = :id OR id = :id';
+
+    await ditto.store.execute(
+      query,
+      arguments: {
+        'id': targetId,
+        'updatedAt': now.toIso8601String(),
+        'lastTouched': now.toIso8601String(),
+      },
     );
+    talker.info('Removed customer from transaction $targetId (Capella)');
   }
 
   @override
@@ -1434,6 +1487,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool? isLoan,
     double? remainingBalance,
     bool skipDittoSync = false,
+    bool deferEnsureNextPendingCart = false,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -1573,28 +1627,37 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
 
         if (priorRowForEnsure != null) {
-          try {
-            if (await _priorRowWasActivePosPendingCart(priorRowForEnsure)) {
-              final branchId = priorRowForEnsure['branchId'] as String?;
-              final tt = priorRowForEnsure['transactionType'] as String?;
-              if (branchId != null &&
-                  tt != null &&
-                  _isPosCartTransactionType(tt)) {
-                final isExpense = _boolFromDitto(
-                  priorRowForEnsure['isExpense'],
-                );
-                await _ensureNextPendingCartIfNeeded(
-                  branchId: branchId,
-                  transactionType: tt,
-                  isExpense: isExpense,
-                );
+          final priorRow = priorRowForEnsure;
+          Future<void> ensureNextCart() async {
+            try {
+              if (await _priorRowWasActivePosPendingCart(priorRow)) {
+                final branchId = priorRow['branchId'] as String?;
+                final tt = priorRow['transactionType'] as String?;
+                if (branchId != null &&
+                    tt != null &&
+                    _isPosCartTransactionType(tt)) {
+                  final isExpense = _boolFromDitto(
+                    priorRow['isExpense'],
+                  );
+                  await _ensureNextPendingCartIfNeeded(
+                    branchId: branchId,
+                    transactionType: tt,
+                    isExpense: isExpense,
+                  );
+                }
               }
+            } catch (e, s) {
+              talker.error(
+                'Error ensuring next pending cart after updateTransaction: $e',
+                s,
+              );
             }
-          } catch (e, s) {
-            talker.error(
-              'Error ensuring next pending cart after updateTransaction: $e',
-              s,
-            );
+          }
+
+          if (deferEnsureNextPendingCart) {
+            unawaited(ensureNextCart());
+          } else {
+            await ensureNextCart();
           }
         }
       } else {

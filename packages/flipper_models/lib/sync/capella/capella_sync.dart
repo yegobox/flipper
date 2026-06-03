@@ -417,15 +417,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> assignCustomerToTransaction({
-    required Customer customer,
-    required ITransaction transaction,
-  }) {
-    // TODO: implement assignCustomerToTransaction
-    throw UnimplementedError();
-  }
-
-  @override
   Stream<Tenant?> authState({required String branchId}) {
     // TODO: implement authState
     throw UnimplementedError();
@@ -476,6 +467,7 @@ class CapellaSync extends AiStrategyImpl
     bool isUtilityCashbookMovement = false,
     bool skipPersonalGoalAutoSweep = false,
     bool skipTransactionPersist = false,
+    bool skipCashMutation = false,
   }) async {
     if (transaction == null) {
       throw Exception('transaction is null');
@@ -523,7 +515,8 @@ class CapellaSync extends AiStrategyImpl
 
       // Update shift totals via SQLite (shifts aren't managed in Ditto yet);
       // must run after [transaction.subTotal] is known from line items.
-      if (userId != null) {
+      Future<void> updateOpenShiftTotals() async {
+        if (userId == null) return;
         try {
           final shifts = await repository.get<Shift>(
             policy: OfflineFirstGetPolicy.localOnly,
@@ -560,18 +553,29 @@ class CapellaSync extends AiStrategyImpl
         }
       }
 
-      if (transaction.isLoan == true) {
-        transaction.originalLoanAmount ??= computedSubTotal;
-        final totalPaidSoFar = (transaction.cashReceived ?? 0.0) + cashReceived;
-        transaction.cashReceived = totalPaidSoFar;
-        transaction.remainingBalance = computedSubTotal - totalPaidSoFar;
-        transaction.lastPaymentDate = DateTime.now().toUtc();
-        transaction.lastPaymentAmount = cashReceived;
+      if (skipTransactionPersist && skipCashMutation) {
+        await updateOpenShiftTotals();
+      } else if (skipTransactionPersist) {
+        unawaited(updateOpenShiftTotals());
       } else {
-        transaction.cashReceived =
-            (transaction.cashReceived ?? 0.0) + cashReceived;
-        transaction.remainingBalance =
-            computedSubTotal - (transaction.cashReceived ?? 0.0);
+        await updateOpenShiftTotals();
+      }
+
+      if (!skipCashMutation) {
+        if (transaction.isLoan == true) {
+          transaction.originalLoanAmount ??= computedSubTotal;
+          final totalPaidSoFar =
+              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.cashReceived = totalPaidSoFar;
+          transaction.remainingBalance = computedSubTotal - totalPaidSoFar;
+          transaction.lastPaymentDate = DateTime.now().toUtc();
+          transaction.lastPaymentAmount = cashReceived;
+        } else {
+          transaction.cashReceived =
+              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.remainingBalance =
+              computedSubTotal - (transaction.cashReceived ?? 0.0);
+        }
       }
 
       transaction.transactionType = transactionType;
@@ -598,23 +602,70 @@ class CapellaSync extends AiStrategyImpl
         );
       }
 
-      try {
+      if (skipTransactionPersist && skipCashMutation) {
+        try {
+          final resolvedCompletionForGoals =
+              completionStatus ?? transaction.status;
+          await applyPersonalGoalAutoSweepIfEligible(
+            branchId: branchId,
+            transactionId: transaction.id,
+            completionStatus: resolvedCompletionForGoals,
+            isIncome: isIncome,
+            isProformaMode: isProformaMode,
+            isTrainingMode: isTrainingMode,
+            transactionType: transactionType,
+            items: items,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+            skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+          );
+        } catch (e, s) {
+          talker.warning(
+            'collectPayment: personal goal auto-sweep failed: $e\n$s',
+          );
+        }
+      } else if (skipTransactionPersist) {
         final resolvedCompletionForGoals =
             completionStatus ?? transaction.status;
-        await applyPersonalGoalAutoSweepIfEligible(
-          branchId: branchId,
-          transactionId: transaction.id,
-          completionStatus: resolvedCompletionForGoals,
-          isIncome: isIncome,
-          isProformaMode: isProformaMode,
-          isTrainingMode: isTrainingMode,
-          transactionType: transactionType,
-          items: items,
-          isUtilityCashbookMovement: isUtilityCashbookMovement,
-          skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+        final sweepItems = List<TransactionItem>.from(items);
+        unawaited(
+          applyPersonalGoalAutoSweepIfEligible(
+            branchId: branchId,
+            transactionId: transaction.id,
+            completionStatus: resolvedCompletionForGoals,
+            isIncome: isIncome,
+            isProformaMode: isProformaMode,
+            isTrainingMode: isTrainingMode,
+            transactionType: transactionType,
+            items: sweepItems,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+            skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+          ).catchError((e, s) {
+            talker.warning(
+              'collectPayment: deferred personal goal auto-sweep failed: $e\n$s',
+            );
+          }),
         );
-      } catch (e, s) {
-        talker.warning('collectPayment: personal goal auto-sweep skipped: $e\n$s');
+      } else {
+        try {
+          final resolvedCompletionForGoals =
+              completionStatus ?? transaction.status;
+          await applyPersonalGoalAutoSweepIfEligible(
+            branchId: branchId,
+            transactionId: transaction.id,
+            completionStatus: resolvedCompletionForGoals,
+            isIncome: isIncome,
+            isProformaMode: isProformaMode,
+            isTrainingMode: isTrainingMode,
+            transactionType: transactionType,
+            items: items,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+            skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+          );
+        } catch (e, s) {
+          talker.warning(
+            'collectPayment: personal goal auto-sweep skipped: $e\n$s',
+          );
+        }
       }
 
       // Defer variant lastTouched updates to avoid DB contention during receipt
@@ -1282,6 +1333,7 @@ class CapellaSync extends AiStrategyImpl
     double amount = 0.0,
     String? paymentMethod,
     required bool singlePaymentOnly,
+    bool saleCompletionFastPath = false,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -1320,19 +1372,21 @@ class CapellaSync extends AiStrategyImpl
     }
 
     // 1) Drop stale zero-amount rows (matches CoreSync semantics).
-    try {
-      await ditto.store.execute(
-        'DELETE FROM transaction_payment_records WHERE transactionId = :transactionId AND amount = :zero',
-        arguments: {'transactionId': transactionId, 'zero': 0.0},
-      );
-    } catch (e, s) {
-      talker.warning(
-        'savePaymentType: Ditto delete zero-amount rows failed: $e',
-        s,
-      );
-    }
+    if (!saleCompletionFastPath) {
+      try {
+        await ditto.store.execute(
+          'DELETE FROM transaction_payment_records WHERE transactionId = :transactionId AND amount = :zero',
+          arguments: {'transactionId': transactionId, 'zero': 0.0},
+        );
+      } catch (e, s) {
+        talker.warning(
+          'savePaymentType: Ditto delete zero-amount rows failed: $e',
+          s,
+        );
+      }
 
-    await mirrorDeleteZeroAmountSqlite();
+      await mirrorDeleteZeroAmountSqlite();
+    }
 
     // 2) Single-payment mode: clear existing tender rows before inserting the new one.
     if (singlePaymentOnly) {
@@ -1370,9 +1424,27 @@ class CapellaSync extends AiStrategyImpl
       );
     }
 
+    Future<void> mirrorToSqlite(TransactionPaymentRecord r) {
+      return repository.upsert<TransactionPaymentRecord>(
+        r,
+        query: brick.Query(action: QueryAction.insert),
+      );
+    }
+
     if (paymentRecord != null) {
       await upsertDitto(paymentRecord);
-      await repository.upsert<TransactionPaymentRecord>(paymentRecord);
+      if (saleCompletionFastPath) {
+        unawaited(
+          mirrorToSqlite(paymentRecord).catchError((e, s) {
+            talker.warning(
+              'savePaymentType: deferred SQLite mirror failed: $e',
+              s,
+            );
+          }),
+        );
+      } else {
+        await mirrorToSqlite(paymentRecord);
+      }
       return;
     }
 
@@ -1385,10 +1457,18 @@ class CapellaSync extends AiStrategyImpl
       );
 
       await upsertDitto(newPaymentRecord);
-      await repository.upsert<TransactionPaymentRecord>(
-        newPaymentRecord,
-        query: brick.Query(action: QueryAction.insert),
-      );
+      if (saleCompletionFastPath) {
+        unawaited(
+          mirrorToSqlite(newPaymentRecord).catchError((e, s) {
+            talker.warning(
+              'savePaymentType: deferred SQLite mirror failed: $e',
+              s,
+            );
+          }),
+        );
+      } else {
+        await mirrorToSqlite(newPaymentRecord);
+      }
     }
   }
 

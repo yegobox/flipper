@@ -264,7 +264,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildCompactAmountSummary(alreadyPaid),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        ref.watch(posCartPaymentRefreshSignalProvider);
+                        return _buildCompactAmountSummary(alreadyPaid);
+                      },
+                    ),
                     if (branchId != null) ...[
                       _checkoutToolbarDivider(),
                       _buildTopBarInvoiceChip(branchId: branchId),
@@ -629,17 +634,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final endTime = DateTime.now().toUtc();
     final duration = endTime.difference(startTime).inSeconds;
 
-    PosthogService.instance.capture(
-      'quick_sell_completed',
-      properties: {
-        'transaction_id': transaction.id,
-        'branch_id': transaction.branchId!,
-        'business_id': ProxyService.box.getBusinessId()!,
-        'created_at': startTime.toIso8601String(),
-        'completed_at': endTime.toIso8601String(),
-        'duration_seconds': duration,
-        'source': 'quick_selling_view',
-      },
+    unawaited(
+      PosthogService.instance.capture(
+        'quick_sell_completed',
+        properties: {
+          'transaction_id': transaction.id,
+          'branch_id': transaction.branchId!,
+          'business_id': ProxyService.box.getBusinessId()!,
+          'created_at': startTime.toIso8601String(),
+          'completed_at': endTime.toIso8601String(),
+          'duration_seconds': duration,
+          'source': 'quick_selling_view',
+        },
+      ),
     );
 
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
@@ -730,16 +737,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // Payment totals track [posCartDisplayItemsProvider] via [internalTransactionItems].
     ref.listen(posCartDisplayItemsProvider, (previous, next) {
       if (previous == next) return;
-      final transaction = ref
-          .read(
-            pendingTransactionStreamProvider(
-              isExpense: ProxyService.box.isOrdering() ?? false,
-            ),
-          )
-          .value;
-      if (transaction != null) {
-        _updateReceivedAmountIfNeeded(transaction, items: next);
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final transaction = ref
+            .read(
+              pendingTransactionStreamProvider(
+                isExpense: ProxyService.box.isOrdering() ?? false,
+              ),
+            )
+            .value;
+        if (transaction != null) {
+          _updateReceivedAmountIfNeeded(transaction, items: next);
+        }
+      });
     });
 
     // Check for branch changes and refresh transaction if needed
@@ -952,7 +962,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
         ),
 
-        _buildItemsList(transactionAsyncValue),
+        _buildMobileCartItemsSliver(transactionAsyncValue),
 
         // Customer & Payment Section
         if (!isOrdering) ...[
@@ -1213,63 +1223,63 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
   }
 
-  Widget _buildItemsList(AsyncValue<ITransaction> transactionAsyncValue) {
-    final items = ref
-        .watch(posCartDisplayItemsProvider)
-        .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
-        .toList();
-
-    if (items.isEmpty) {
-      return SliverToBoxAdapter(
-        child: _buildEmptyStateCard(
-          'No items added',
-          'Tap the + button to add your first item',
-          Icons.add_shopping_cart_outlined,
-        ),
-      );
-    }
-    return _buildItemsListSliver(items, transactionAsyncValue);
-  }
-
-  SliverToBoxAdapter _buildItemsListSliver(
-    List<TransactionItem> items,
+  /// Phone scroll: cart lines inside [SliverToBoxAdapter] + [Consumer] so taps
+  /// do not rebuild the whole [QuickSellingView] tree.
+  Widget _buildMobileCartItemsSliver(
     AsyncValue<ITransaction> transactionAsyncValue,
   ) {
     return SliverToBoxAdapter(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${items.length} item${items.length > 1 ? 's' : ''}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
+      child: Consumer(
+        builder: (context, ref, _) {
+          final items = ref
+              .watch(posCartDisplayItemsProvider)
+              .where(
+                (item) => !_optimisticallyDeletedItemIds.contains(item.id),
+              )
+              .toList();
+          if (items.isEmpty) {
+            return _buildEmptyStateCard(
+              'No items added',
+              'Tap the + button to add your first item',
+              Icons.add_shopping_cart_outlined,
+            );
+          }
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${items.length} item${items.length > 1 ? 's' : ''}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed:
+                          (transactionAsyncValue.value?.cashReceived ?? 0) > 0
+                          ? null
+                          : () => _deleteAllItems(transactionAsyncValue),
+                      icon: const Icon(Icons.delete_sweep, size: 18),
+                      label: const Text('Delete All'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        disabledForegroundColor: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
-                TextButton.icon(
-                  onPressed:
-                      (transactionAsyncValue.value?.cashReceived ?? 0) > 0
-                      ? null
-                      : () => _deleteAllItems(transactionAsyncValue),
-                  icon: const Icon(Icons.delete_sweep, size: 18),
-                  label: const Text('Delete All'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    disabledForegroundColor: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ...items
-              .map((item) => _buildModernItemCard(item, transactionAsyncValue))
-              .toList(),
-        ],
+              ),
+              ...items.map(
+                (item) => _buildModernItemCard(item, transactionAsyncValue),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1568,11 +1578,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         label: 'Transaction summary and payment actions',
                         hint:
                             'Complete sale with total amount ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
-                        child: PayableView(
+                        child: Consumer(
+                          builder: (context, ref, _) {
+                            ref.watch(posCartPaymentRefreshSignalProvider);
+                            final payWording = (_remainingBalance(alreadyPaid) > 0)
+                                ? "Record Payment • ${(ref.watch(paymentMethodsProvider).fold<double>(0, (sum, p) => sum + p.amount)).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}"
+                                : "Pay • ${(_calculateTotal() - alreadyPaid).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}";
+                            return PayableView(
                           transactionId: transactionAsyncValue.value?.id ?? "",
-                          wording: (_remainingBalance(alreadyPaid) > 0)
-                              ? "Record Payment • ${(ref.watch(paymentMethodsProvider).fold<double>(0, (sum, p) => sum + p.amount)).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}"
-                              : "Pay • ${(totalAfterDiscountAndShipping - alreadyPaid).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
+                          wording: payWording,
                           mode: SellingMode.forSelling,
                           completeTransaction:
                               (
@@ -1610,7 +1624,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                         onPaymentConfirmed: onPaymentConfirmed,
                                         onPaymentFailed: onPaymentFailed,
                                       );
-                                    } catch (e, s) {
+                                    } catch (e) {
                                       await ProxyService.box.writeBool(
                                         key: 'transactionCompleting',
                                         value: false,
@@ -1636,6 +1650,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                             ref.read(toggleProvider.notifier).state = false;
                           },
                           digitalPaymentEnabled: digitalPaymentEnabled,
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -2092,19 +2108,25 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 alreadyPaid: alreadyPaid,
               ),
               const SizedBox(height: 10.0),
-              PosQuickCashRow(
-                exactAmount: totalAfterDiscountAndShipping,
-                enabled: totalAfterDiscountAndShipping > 0,
-                onSelect: (amount) {
-                  widget.receivedAmountController.text =
-                      amount == amount.truncateToDouble()
-                      ? amount.toStringAsFixed(0)
-                      : amount.toStringAsFixed(2);
-                  ProxyService.box.writeDouble(
-                    key: 'getCashReceived',
-                    value: amount,
+              Consumer(
+                builder: (context, ref, _) {
+                  ref.watch(posCartPaymentRefreshSignalProvider);
+                  final total = _calculateTotal();
+                  return PosQuickCashRow(
+                    exactAmount: total,
+                    enabled: total > 0,
+                    onSelect: (amount) {
+                      widget.receivedAmountController.text =
+                          amount == amount.truncateToDouble()
+                          ? amount.toStringAsFixed(0)
+                          : amount.toStringAsFixed(2);
+                      ProxyService.box.writeDouble(
+                        key: 'getCashReceived',
+                        value: amount,
+                      );
+                      setState(() {});
+                    },
                   );
-                  setState(() {});
                 },
               ),
               const SizedBox(height: 10.0),
@@ -2125,20 +2147,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     String transactionId,
     double alreadyPaid,
   ) {
-    final finalPayable = (totalAfterDiscountAndShipping - alreadyPaid).clamp(
-      0.0,
-      double.infinity,
-    );
-    return Row(
-      children: [
-        // Payment Method Field
-        Expanded(
-          child: PaymentMethodsCard(
-            transactionId: transactionId,
-            totalPayable: finalPayable,
-          ),
-        ),
-      ],
+    return Consumer(
+      builder: (context, ref, _) {
+        ref.watch(posCartPaymentRefreshSignalProvider);
+        final finalPayable = (_calculateTotal() - alreadyPaid).clamp(
+          0.0,
+          double.infinity,
+        );
+        return Row(
+          children: [
+            Expanded(
+              child: PaymentMethodsCard(
+                transactionId: transactionId,
+                totalPayable: finalPayable,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

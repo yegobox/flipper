@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/dashboard_mobile_pos_navigation.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -92,11 +93,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
             Positioned(
               top: -28,
               child: _NewSaleFab(
-                onTap: () => navigateToDashboardAppPage(
-                  context: context,
-                  isBigScreen: false,
-                  page: 'POS',
-                ),
+                onTap: () => openMobilePosCheckout(context, ref),
               ),
             ),
           ],
@@ -153,7 +150,7 @@ class _NavItem extends StatelessWidget {
 class _NewSaleFab extends StatefulWidget {
   const _NewSaleFab({required this.onTap});
 
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
 
   @override
   State<_NewSaleFab> createState() => _NewSaleFabState();
@@ -161,6 +158,29 @@ class _NewSaleFab extends StatefulWidget {
 
 class _NewSaleFabState extends State<_NewSaleFab> {
   bool _pressed = false;
+  bool _opening = false;
+
+  Future<void> _open() async {
+    if (_opening) return;
+    setState(() {
+      _opening = true;
+      _pressed = true;
+    });
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    try {
+      await widget.onTap();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _opening = false;
+          _pressed = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -168,10 +188,17 @@ class _NewSaleFabState extends State<_NewSaleFab> {
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
-          onTapDown: (_) => setState(() => _pressed = true),
-          onTapUp: (_) => setState(() => _pressed = false),
-          onTapCancel: () => setState(() => _pressed = false),
-          onTap: widget.onTap,
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) {
+            if (!_opening) setState(() => _pressed = true);
+          },
+          onTapUp: (_) {
+            if (!_opening) setState(() => _pressed = false);
+          },
+          onTapCancel: () {
+            if (!_opening) setState(() => _pressed = false);
+          },
+          onTap: _open,
           child: AnimatedScale(
             scale: _pressed ? 0.94 : 1,
             duration: const Duration(milliseconds: 120),
@@ -199,7 +226,16 @@ class _NewSaleFabState extends State<_NewSaleFab> {
                 ],
                 border: Border.all(color: const Color(0xFFF4F6FB), width: 4),
               ),
-              child: const Icon(Icons.add, color: Colors.white, size: 26),
+              child: _opening
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.6,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.add, color: Colors.white, size: 26),
             ),
           ),
         ),

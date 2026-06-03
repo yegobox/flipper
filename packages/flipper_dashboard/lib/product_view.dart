@@ -35,17 +35,22 @@ class ProductView extends StatefulHookConsumerWidget {
   final String? favIndex;
   final List<String> existingFavs;
   final TextEditingController? linkedSearchController;
+  final bool suppressMobilePagination;
 
-  ProductView.normalMode({Key? key, this.linkedSearchController})
-    : favIndex = null,
-      existingFavs = [],
-      super(key: key);
+  ProductView.normalMode({
+    Key? key,
+    this.linkedSearchController,
+    this.suppressMobilePagination = false,
+  }) : favIndex = null,
+       existingFavs = [],
+       super(key: key);
 
   ProductView.favoriteMode({
     Key? key,
     required this.favIndex,
     required this.existingFavs,
   }) : linkedSearchController = null,
+       suppressMobilePagination = false,
        super(key: key);
 
   @override
@@ -605,7 +610,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(22, 16, 22, 14),
+          padding: EdgeInsets.fromLTRB(
+            isMobileLayout ? 16 : 22,
+            isMobileLayout ? 12 : 16,
+            isMobileLayout ? 16 : 22,
+            isMobileLayout ? 10 : 14,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -615,13 +625,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     final total = notifier.totalCount ?? loadedCount;
                     final totalText = total.toString();
                     if (isMobileLayout) {
-                      final pages = estimatedTotalPages < 1
-                          ? 1
-                          : estimatedTotalPages;
                       return Text(
-                        '$totalText products · page ${_currentPage + 1} of $pages',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        '$loadedCount of $totalText products',
+                        style: const TextStyle(
+                          color: PosTokens.ink3,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -677,7 +684,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   paneWidth: paneWidth,
                 ),
         ),
-        if (estimatedTotalPages > 0)
+        if (estimatedTotalPages > 0 &&
+            !(isMobileLayout && widget.suppressMobilePagination))
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
@@ -837,25 +845,26 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       _lastGridCrossAxisCount = null;
       _lastGridMainAxisSpacing = null;
       _lastGridChildAspectRatio = null;
-      return ListView.separated(
+      return ColoredBox(
+        color: PosTokens.posBg,
+        child: ListView.separated(
         controller: _scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
         itemCount: variants.length,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: buildVariantRow(
+          return buildVariantRow(
               forceRemoteUrl: false,
               context: context,
               model: model,
               variant: variants[index],
               isOrdering: false,
               forceListView: true,
-            ),
-          );
+            );
         },
         physics: const AlwaysScrollableScrollPhysics(),
         cacheExtent: 500.0,
+      ),
       );
     }
 

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/checkout.dart';
+import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
@@ -15,6 +16,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -23,6 +26,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:rxdart/rxdart.dart';
@@ -39,6 +43,11 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
+import 'package:flipper_dashboard/theme/mpos_tokens.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_cart_bar.dart';
+import 'package:flipper_dashboard/widgets/mpos/mpos_catalog_header.dart';
+import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 
 class CheckoutProductView extends StatefulHookConsumerWidget {
   const CheckoutProductView({
@@ -71,7 +80,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         TextEditingControllersMixin,
         TickerProviderStateMixin,
         TransactionMixinOld,
-        PreviewCartMixin {
+        PreviewCartMixin,
+        TransactionComputationMixin {
   final TextEditingController searchController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
   final TextEditingController receivedAmountController =
@@ -79,6 +89,18 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   final TextEditingController customerPhoneNumberController =
       TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
+
+  /// First mobile frame: chrome only; catalog streams attach on frame 2.
+  bool _mobileHeavyProvidersReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _mobileHeavyProvidersReady = true);
+    });
+  }
 
   @override
   void dispose() {
@@ -94,85 +116,146 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   }
 
   String getCartText({required String transactionId}) {
-    // Get the latest count with a fresh watch to ensure reactivity
-    final itemsAsync = ref.watch(
-      transactionItemsStreamProvider(
-        transactionId: transactionId,
-        branchId: ProxyService.box.branchIdString()!,
+    final count = ref.watch(
+      posCartDisplayItemsProvider.select(
+        (items) =>
+            posCartDisplayItemsForTransaction(items, transactionId).length,
       ),
     );
-
-    // Get the count from the async value
-    final count = itemsAsync.when(
-      data: (items) => items.length,
-      loading: () => 0,
-      error: (_, __) => 0,
-    );
-
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+  }
+
+  void _confirmExitToHome(BuildContext context) {
+    onWillPop(
+      context: context,
+      navigationPurpose: NavigationPurpose.home,
+      message: 'Do you want to go home?',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, dynamic) {
-        if (didPop) return;
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF2F2F7),
-        body: SafeArea(
-          child: Consumer(
-            builder: (context, ref, _) {
-              final transactionAsyncValue = ref.watch(
-                pendingTransactionStreamProvider(isExpense: false),
-              );
+    return Scaffold(
+      backgroundColor: MposTokens.bg,
+      body: SafeArea(
+        child: Consumer(
+          builder: (context, ref, _) {
+            final isPhone =
+                responsive.ResponsiveLayout.isPhone(context) ||
+                responsive.ResponsiveLayout.isTinyLimit(context);
 
-              final txn = transactionAsyncValue.asData?.value;
-
-              final itemsAsync = txn == null
-                  ? const AsyncValue<List<TransactionItem>>.data([])
-                  : ref.watch(
-                      transactionItemsStreamProvider(
-                        transactionId: txn.id,
-                        branchId: ProxyService.box.branchIdString()!,
-                      ),
-                    );
-
+            if (isPhone && !_mobileHeavyProvidersReady) {
               return Column(
                 children: [
-                  _buildTopBar(context, ref, txn),
-                  _buildSaleSummary(txn, itemsAsync),
-                  _buildTicketsItemsRow(txn, itemsAsync),
-                  _buildSearchAndScanRow(),
-                  Expanded(
-                    child: ref
-                        .watch(
-                          outerVariantsProvider(
-                            ProxyService.box.getBranchId() ?? "",
-                          ),
-                        )
-                        .when(
-                          data: (variants) {
-                            if (variants.isEmpty) {
-                              return _buildEmptyItemsView(context);
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                              ),
-                              child: ProductView.normalMode(),
-                            );
-                          },
-                          error: (error, stackTrace) =>
-                              _buildErrorView(context, error),
-                          loading: () => _buildLoadingView(),
-                        ),
+                  MposCatalogHeader(
+                    subtitle: _catalogSubtitle(null),
+                    status: 'PENDING',
+                    isScanActive: ref.watch(autoAddSearchProvider),
+                    onBack: () => _confirmExitToHome(context),
+                    onScan: () => _openCatalogScanner(context),
+                    onScanLongPress: () {
+                      if (!ref.read(autoAddSearchProvider)) return;
+                      HapticFeedback.mediumImpact();
+                      ref.read(autoAddSearchProvider.notifier).disable();
+                    },
+                    searchField: _CheckoutPosProductSearch(
+                      controller: searchController,
+                      mposStyle: true,
+                    ),
                   ),
+                  const Expanded(child: _MobileCatalogSkeleton()),
                 ],
               );
-            },
-          ),
+            }
+
+            final transactionAsyncValue = ref.watch(
+              pendingTransactionStreamProvider(isExpense: false),
+            );
+
+            final txn = transactionAsyncValue.asData?.value;
+            final cartNotEmpty = ref.watch(
+              posCartDisplayItemsProvider.select((l) => l.isNotEmpty),
+            );
+            final checkoutTxn =
+                txn ??
+                (cartNotEmpty
+                    ? readCachedPendingCartTransactionWidget(
+                        ref,
+                        isExpense: false,
+                      )
+                    : null);
+
+            final catalogBody = ref
+                .watch(
+                  outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
+                )
+                .when(
+                  data: (variants) {
+                    if (variants.isEmpty) {
+                      return _buildEmptyItemsView(context);
+                    }
+                    return ProductView.normalMode(
+                      suppressMobilePagination: isPhone,
+                    );
+                  },
+                  error: (error, stackTrace) => _buildErrorView(context, error),
+                  loading: () => _buildLoadingView(),
+                );
+
+            if (isPhone) {
+              final status = (txn?.status ?? 'PENDING').toUpperCase();
+              return Column(
+                children: [
+                  MposCatalogHeader(
+                    subtitle: _catalogSubtitle(txn),
+                    status: status,
+                    isScanActive: ref.watch(autoAddSearchProvider),
+                    onBack: () => _confirmExitToHome(context),
+                    onScan: () => _openCatalogScanner(context),
+                    onScanLongPress: () {
+                      if (!ref.read(autoAddSearchProvider)) return;
+                      HapticFeedback.mediumImpact();
+                      ref.read(autoAddSearchProvider.notifier).disable();
+                    },
+                    searchField: _CheckoutPosProductSearch(
+                      controller: searchController,
+                      mposStyle: true,
+                    ),
+                  ),
+                  Expanded(child: catalogBody),
+                  if (checkoutTxn != null || cartNotEmpty)
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final cartItems = ref.watch(
+                          posCartDisplayItemsProvider,
+                        );
+                        return _buildMobileCartBar(checkoutTxn, cartItems);
+                      },
+                    ),
+                ],
+              );
+            }
+
+            return Column(
+              children: [
+                _buildTopBar(context, ref, txn),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final summary = ref.watch(posCartSummaryProvider);
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildSaleSummary(txn, summary),
+                        _buildTicketsItemsRow(txn, summary),
+                      ],
+                    );
+                  },
+                ),
+                _buildSearchAndScanRow(),
+                Expanded(child: catalogBody),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -344,6 +427,28 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     return '$who · Walk-in · $time';
   }
 
+  String _catalogSubtitle(ITransaction? transaction) {
+    final createdAt = transaction?.createdAt;
+    final time = createdAt != null
+        ? '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}'
+        : '—';
+    final name = transaction?.customerName?.trim();
+    final who = (name != null && name.isNotEmpty) ? name : 'Walk-in';
+    return '$who · $time';
+  }
+
+  void _openCatalogScanner(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScannView(
+          intent: 'selling',
+          scannerActions: CheckoutScannerActions(context, ref),
+        ),
+      ),
+    );
+  }
+
   ({Color dotColor, Color bgColor, Color borderColor, Color textColor})
   _statusStyle(String status) {
     switch (status) {
@@ -371,37 +476,19 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     }
   }
 
-  ({int itemRows, double subtotal, double tax, double total}) _computeSaleMoney(
-    ITransaction? transaction,
-    AsyncValue<List<TransactionItem>> itemsAsync,
-  ) {
-    final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
-    final active = items.where((i) => i.active != false).toList();
-    var lineSub = 0.0;
-    var lineTax = 0.0;
-    for (final it in active) {
-      lineSub += (it.price * it.qty).toDouble();
-      lineTax += (it.taxAmt ?? 0).toDouble();
-    }
+  Widget _buildSaleSummary(ITransaction? transaction, PosCartSummary summary) {
+    final scheme = Theme.of(context).colorScheme;
+    final sym = ProxyService.box.defaultCurrency();
     final t = transaction;
     final sub = (t?.subTotal != null && t!.subTotal! > 0)
         ? t.subTotal!
-        : lineSub;
+        : summary.lineSubtotal;
     final taxVal = (t?.taxAmount != null && (t!.taxAmount ?? 0) > 0)
         ? t.taxAmount!.toDouble()
-        : lineTax;
+        : summary.lineTax;
     final total = sub + taxVal;
-    return (itemRows: active.length, subtotal: sub, tax: taxVal, total: total);
-  }
-
-  Widget _buildSaleSummary(
-    ITransaction? transaction,
-    AsyncValue<List<TransactionItem>> itemsAsync,
-  ) {
-    final scheme = Theme.of(context).colorScheme;
-    final sym = ProxyService.box.defaultCurrency();
-    final m = _computeSaleMoney(transaction, itemsAsync);
-    final itemText = '${m.itemRows} item${m.itemRows == 1 ? '' : 's'}';
+    final itemText =
+        '${summary.activeLineCount} item${summary.activeLineCount == 1 ? '' : 's'}';
 
     Widget moneyCol(String label, String amount, {required Color amountColor}) {
       return Expanded(
@@ -471,7 +558,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               ),
               moneyCol(
                 'Total',
-                m.total.toCurrencyFormatted(symbol: sym),
+                total.toCurrencyFormatted(symbol: sym),
                 amountColor: const Color(0xFF1B7F3A),
               ),
               const ResetTransactionButton(),
@@ -484,11 +571,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
 
   Widget _buildTicketsItemsRow(
     ITransaction? transaction,
-    AsyncValue<List<TransactionItem>> itemsAsync,
+    PosCartSummary summary,
   ) {
     final scheme = Theme.of(context).colorScheme;
-    final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
-    final count = items.where((i) => i.active != false).length;
+    final count = summary.activeLineCount;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -525,7 +611,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             child: FilledButton(
               onPressed: transaction == null
                   ? null
-                  : () => _showPreviewCartBottomSheet(transaction),
+                  : () => _openMobileCheckout(transaction),
               style: FilledButton.styleFrom(
                 backgroundColor: scheme.primary,
                 shape: RoundedRectangleBorder(
@@ -567,13 +653,57 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     );
   }
 
-  void _showPreviewCartBottomSheet(ITransaction transaction) {
-    // Show bottom sheet like in old implementation
-    print("Transaction isLoan: ${transaction.isLoan}");
-    QuickSellingMobile.showBottom(
+  Widget _buildMobileCartBar(
+    ITransaction? transaction,
+    List<TransactionItem> items,
+  ) {
+    final activeItems = items.where((i) => i.active != false).toList();
+    final count = activeItems
+        .fold<double>(0, (s, i) => s + i.qty.toDouble())
+        .round();
+    final total = transaction != null
+        ? calculateTransactionTotal(
+            items: activeItems,
+            transaction: transaction,
+          )
+        : activeItems.fold<double>(
+            0,
+            (s, i) => s + (i.totAmt ?? i.price * i.qty).toDouble(),
+          );
+
+    return MposCartBar(
+      itemCount: count,
+      total: total,
+      onReviewPay: count > 0
+          ? () {
+              final t =
+                  transaction ??
+                  readCachedPendingCartTransactionWidget(
+                    ref,
+                    isExpense: false,
+                  ) ??
+                  ref
+                      .read(pendingTransactionStreamProvider(isExpense: false))
+                      .value;
+              if (t != null) _openMobileCheckout(t);
+            }
+          : null,
+    );
+  }
+
+  void _openMobileCheckout(ITransaction transaction) {
+    QuickSellingMobile.openCheckout(
       context: context,
       ref: ref,
       transaction: transaction,
+      doneDelete: () {
+        ref.refresh(
+          transactionItemsStreamProvider(
+            branchId: ProxyService.box.branchIdString()!,
+            transactionId: transaction.id,
+          ),
+        );
+      },
       onCharge:
           (
             transactionId,
@@ -589,14 +719,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               onPaymentFailed,
             );
           },
-      doneDelete: () {
-        ref.refresh(
-          transactionItemsStreamProvider(
-            branchId: ProxyService.box.branchIdString()!,
-            transactionId: transaction.id,
-          ),
-        );
-      },
     );
   }
 
@@ -730,12 +852,26 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   }
 
   Widget _buildLoadingView() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 180),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [CircularProgressIndicator(), SizedBox(height: 16)],
+    return const _MobileCatalogSkeleton();
+  }
+}
+
+/// Lightweight placeholder while [outerVariantsProvider] resolves.
+class _MobileCatalogSkeleton extends StatelessWidget {
+  const _MobileCatalogSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      itemCount: 6,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (_, __) => Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: PosTokens.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: PosTokens.line),
         ),
       ),
     );
@@ -745,9 +881,13 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
 /// Mobile checkout product search: POS-style field (add product, clear).
 /// Uses the same debounced [processDebouncedValue] path as [SearchField].
 class _CheckoutPosProductSearch extends StatefulHookConsumerWidget {
-  const _CheckoutPosProductSearch({required this.controller});
+  const _CheckoutPosProductSearch({
+    required this.controller,
+    this.mposStyle = false,
+  });
 
   final TextEditingController controller;
+  final bool mposStyle;
 
   @override
   ConsumerState<_CheckoutPosProductSearch> createState() =>
@@ -766,8 +906,9 @@ class _CheckoutPosProductSearchState
   @override
   void initState() {
     super.initState();
-    _saleSessionSnapshotAtLastTextChange =
-        ref.read(pendingCartSaleSessionProvider);
+    _saleSessionSnapshotAtLastTextChange = ref.read(
+      pendingCartSaleSessionProvider,
+    );
     focusNode = FocusNode();
     hasText = widget.controller.text.isNotEmpty;
     widget.controller.addListener(_onControllerChanged);
@@ -779,8 +920,9 @@ class _CheckoutPosProductSearchState
 
   void _onControllerChanged() {
     final text = widget.controller.text;
-    _saleSessionSnapshotAtLastTextChange =
-        ref.read(pendingCartSaleSessionProvider);
+    _saleSessionSnapshotAtLastTextChange = ref.read(
+      pendingCartSaleSessionProvider,
+    );
     if (mounted) {
       setState(() {
         hasText = text.isNotEmpty;
@@ -901,6 +1043,75 @@ class _CheckoutPosProductSearchState
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    if (widget.mposStyle) {
+      return TextFormField(
+        controller: widget.controller,
+        focusNode: focusNode,
+        textInputAction: TextInputAction.search,
+        keyboardType: TextInputType.text,
+        style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w500),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: PosTokens.surface2,
+          hintText: 'Search products or scan…',
+          hintStyle: const TextStyle(
+            color: PosTokens.ink3,
+            fontWeight: FontWeight.w500,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+            borderSide: const BorderSide(color: PosTokens.blue, width: 1.5),
+          ),
+          prefixIcon: _isSearching
+              ? const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : const Icon(
+                  Icons.search_rounded,
+                  size: 19,
+                  color: PosTokens.ink3,
+                ),
+          suffixIcon: hasText
+              ? IconButton(
+                  onPressed: _clearSearch,
+                  icon: const Icon(Icons.close_rounded, color: PosTokens.ink3),
+                  tooltip: 'Clear',
+                )
+              : Consumer(
+                  builder: (context, ref, _) {
+                    final appMode = ref.watch(appModeProvider);
+                    if (!appMode) return const SizedBox.shrink();
+                    return IconButton(
+                      onPressed: () => unawaited(_handleAddProduct()),
+                      icon: const Icon(
+                        Icons.add_rounded,
+                        color: PosTokens.blue,
+                      ),
+                      tooltip: 'Add product',
+                    ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]);
+                  },
+                ),
+        ),
+      );
+    }
+
     return TextFormField(
       controller: widget.controller,
       focusNode: focusNode,

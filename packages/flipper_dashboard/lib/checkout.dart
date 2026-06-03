@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
@@ -11,6 +12,7 @@ import 'package:flipper_dashboard/widgets/pos_default_view.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
@@ -20,9 +22,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
@@ -34,8 +38,9 @@ const double _kDesktopCheckoutBodyTopInset = 0.0;
 enum OrderStatus { pending, approved }
 
 class CheckOut extends StatefulHookConsumerWidget {
-  const CheckOut({Key? key, required this.isBigScreen}) : super(key: key);
+  const CheckOut({Key? key, this.isBigScreen = false}) : super(key: key);
 
+  /// When omitted (e.g. web URL `/check-out`), layout follows viewport width.
   final bool isBigScreen;
 
   @override
@@ -50,7 +55,9 @@ class CheckOutState extends ConsumerState<CheckOut>
         TransactionMixinOld,
         PreviewCartMixin,
         Refresh {
-  late TabController tabController;
+  TabController? tabController;
+  bool _attachCartReconciliation = false;
+  bool _mobileFirstFrameReady = false;
 
   @override
   void initState() {
@@ -59,21 +66,56 @@ class CheckOutState extends ConsumerState<CheckOut>
 
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
-      tabController = TabController(length: 3, vsync: this);
+      if (widget.isBigScreen) {
+        tabController = TabController(length: 3, vsync: this);
+        _attachCartReconciliation = true;
+      } else {
+        // [CheckoutProductView] requires a controller; mobile UI does not use tabs.
+        tabController = TabController(length: 1, vsync: this);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            _mobileFirstFrameReady = true;
+            _attachCartReconciliation = true;
+          });
+        });
+      }
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
-      ref.read(pendingTransactionStreamProvider(isExpense: false).future);
-    });
+    if (widget.isBigScreen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _warmPendingCartAfterOpen();
+      });
+    }
+  }
+
+  void _warmPendingCartAfterOpen() {
+    warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) return;
+    unawaited(
+      ProxyService.getStrategy(Strategy.capella)
+          .pendingTransactionFuture(
+            branchId: branchId,
+            transactionType: TransactionType.sale,
+            isExpense: false,
+          )
+          .then((txn) {
+            scheduleWriteCachedPendingCartTransactionWidget(
+              ref,
+              isExpense: false,
+              transaction: txn,
+            );
+          }),
+    );
   }
 
   @override
   void dispose() {
     NavigationGuardService().endCriticalWorkflow();
     WidgetsBinding.instance.removeObserver(this);
-    tabController.dispose();
+    tabController?.dispose();
     discountController.dispose();
     receivedAmountController.dispose();
     customerPhoneNumberController.dispose();
@@ -87,8 +129,22 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Widget _buildMainContent() {
-    listenCachedPendingCartTransactionSyncWidget(ref, isExpense: false);
-    ref.listen(posCartStreamReconciliationProvider, (_, __) {});
+    if (!widget.isBigScreen && !_mobileFirstFrameReady) {
+      return _buildMobileOpeningFrame();
+    }
+
+    if (_attachCartReconciliation) {
+      ref.listen(posCartStreamReconciliationProvider, (_, __) {});
+    }
+
+    // Mobile POS: [CheckoutProductView] owns pending-txn + catalog streams; skip
+    // an extra outer [when] so the route paints on the first frame.
+    if (!widget.isBigScreen) {
+      return _buildDataWidget(
+        readCachedPendingCartTransactionWidget(ref, isExpense: false),
+      );
+    }
+
     final transactionAsyncValue = ref.watch(
       pendingTransactionStreamProvider(isExpense: false),
     );
@@ -185,11 +241,33 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
+  Widget _buildMobileOpeningFrame() {
+    return const Scaffold(
+      backgroundColor: Color(0xFFF4F6FB),
+      body: SafeArea(
+        child: Center(
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDataWidget(ITransaction? transaction) {
     final showCart = ref.watch(oldImplementationOfRiverpod.previewingCart);
-    return widget.isBigScreen
-        ? _buildBigScreenLayout(transaction, showCart: showCart)
-        : _buildSmallScreenLayout(showCart: showCart);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useDesktopLayout =
+            widget.isBigScreen ||
+            constraints.maxWidth >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+        return useDesktopLayout
+            ? _buildBigScreenLayout(transaction, showCart: showCart)
+            : _buildSmallScreenLayout(showCart: showCart);
+      },
+    );
   }
 
   Widget _buildBigScreenLayout(
@@ -221,32 +299,31 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: Padding(
             padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
             child: PosDefaultView(
-                transaction: transaction,
-                quickSellingView: _buildQuickSellingView(),
-                onCompleteTransaction:
-                    (
-                      immediateCompletion, [
+              transaction: transaction,
+              quickSellingView: _buildQuickSellingView(),
+              onCompleteTransaction:
+                  (
+                    immediateCompletion, [
+                    onPaymentConfirmed,
+                    onPaymentFailed,
+                  ]) async {
+                    final txn = transaction;
+                    if (txn == null) {
+                      return false;
+                    }
+                    return await _handleCompleteTransaction(
+                      txn,
+                      immediateCompletion,
                       onPaymentConfirmed,
                       onPaymentFailed,
-                    ]) async {
-                      final txn = transaction;
-                      if (txn == null) {
-                        return false;
-                      }
-                      return await _handleCompleteTransaction(
-                        txn,
-                        immediateCompletion,
-                        onPaymentConfirmed,
-                        onPaymentFailed,
-                      );
-                    },
-                onTicketNavigation: () {
-                  final txn = transaction;
-                  if (txn != null) {
-                    handleTicketNavigation(txn);
-                  }
-                },
-              ),
+                    );
+                  },
+              onTicketNavigation: () {
+                final txn = transaction;
+                if (txn != null) {
+                  handleTicketNavigation(txn);
+                }
+              },
             ),
         );
       },
@@ -266,25 +343,17 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   String getCartText({required String transactionId}) {
-    // Get the latest count with a fresh watch to ensure reactivity
-    final itemsAsync = ref.watch(
-      transactionItemsStreamProvider(
-        transactionId: transactionId,
-        branchId: ProxyService.box.getBranchId() ?? '0',
-      ),
-    );
-
-    // Get the count from the async value
-    final count = itemsAsync.when(
-      data: (items) => items.length,
-      loading: () => int.parse(getCartItemCount(transactionId: transactionId)),
-      error: (_, __) => 0,
-    );
-
+    final items = ref.watch(posCartDisplayItemsProvider);
+    final count = posCartDisplayItemsForTransaction(
+      items,
+      transactionId,
+    ).length;
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
-  Future<void> _resetCheckoutAfterSuccessfulSale(ITransaction transaction) async {
+  Future<void> _resetCheckoutAfterSuccessfulSale(
+    ITransaction transaction,
+  ) async {
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
@@ -330,15 +399,13 @@ class CheckOutState extends ConsumerState<CheckOut>
   ]) async {
     final controller = CheckoutController(ref: ref, context: context);
 
-    final transactionItemsHint = ref
-        .read(
-          transactionItemsStreamProvider(
-            transactionId: transaction.id,
-            branchId: ProxyService.box.getBranchId() ?? '0',
-          ),
-        )
-        .asData
-        ?.value;
+    final transactionItemsHint =
+        ref.read(optimisticCartProvider.notifier).hasPendingFor(transaction.id)
+        ? null
+        : ref
+              .read(posCartDisplayItemsProvider)
+              .where((i) => !OptimisticCartIds.isOptimistic(i.id))
+              .toList();
 
     return await controller.handleCompleteTransaction(
       transaction: transaction,
@@ -380,7 +447,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: !showCart
               ? CheckoutProductView(
                   widget: widget,
-                  tabController: tabController,
+                  tabController: tabController!,
                   textEditController: textEditController,
                   model: model,
                   onCompleteTransaction:

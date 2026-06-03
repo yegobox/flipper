@@ -1433,7 +1433,10 @@ class CoreSync extends AiStrategyImpl
     required ITransaction transaction,
   }) {
     transaction.customerId = null;
+    transaction.customerName = null;
     transaction.customerTin = null;
+    transaction.customerPhone = null;
+    transaction.currentSaleCustomerPhoneNumber = null;
     repository.upsert(transaction);
   }
 
@@ -2158,6 +2161,7 @@ class CoreSync extends AiStrategyImpl
     bool isUtilityCashbookMovement = false,
     bool skipPersonalGoalAutoSweep = false,
     bool skipTransactionPersist = false,
+    bool skipCashMutation = false,
   }) async {
     if (transaction != null) {
       if (note != null) {
@@ -2232,22 +2236,26 @@ class CoreSync extends AiStrategyImpl
           }
         }
 
-        if (transaction.isLoan == true) {
-          transaction.originalLoanAmount ??= transaction.subTotal;
-          // Cumulative cash received
-          double totalPaidSoFar =
-              (transaction.cashReceived ?? 0.0) + cashReceived;
-          transaction.cashReceived = totalPaidSoFar;
-          transaction.remainingBalance = transaction.subTotal! - totalPaidSoFar;
-          transaction.lastPaymentDate = DateTime.now().toUtc();
-          transaction.lastPaymentAmount = cashReceived;
-        } else {
-          // Accumulate cashReceived for non-loan transactions as well
-          // to correctly handle partial payments and subsequent full payments
-          transaction.cashReceived =
-              (transaction.cashReceived ?? 0.0) + cashReceived;
-          transaction.remainingBalance =
-              (transaction.subTotal ?? 0.0) - (transaction.cashReceived ?? 0.0);
+        if (!skipCashMutation) {
+          if (transaction.isLoan == true) {
+            transaction.originalLoanAmount ??= transaction.subTotal;
+            // Cumulative cash received
+            double totalPaidSoFar =
+                (transaction.cashReceived ?? 0.0) + cashReceived;
+            transaction.cashReceived = totalPaidSoFar;
+            transaction.remainingBalance =
+                transaction.subTotal! - totalPaidSoFar;
+            transaction.lastPaymentDate = DateTime.now().toUtc();
+            transaction.lastPaymentAmount = cashReceived;
+          } else {
+            // Accumulate cashReceived for non-loan transactions as well
+            // to correctly handle partial payments and subsequent full payments
+            transaction.cashReceived =
+                (transaction.cashReceived ?? 0.0) + cashReceived;
+            transaction.remainingBalance =
+                (transaction.subTotal ?? 0.0) -
+                (transaction.cashReceived ?? 0.0);
+          }
         }
 
         transaction.transactionType = transactionType;
@@ -2693,6 +2701,7 @@ class CoreSync extends AiStrategyImpl
     double amount = 0.0,
     String? paymentMethod,
     required bool singlePaymentOnly,
+    bool saleCompletionFastPath = false,
   }) async {
     // Input validation
     if (transactionId == null) {
