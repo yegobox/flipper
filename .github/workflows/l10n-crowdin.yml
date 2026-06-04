@@ -2,7 +2,7 @@ name: Sync Crowdin translations
 
 on:
   push:
-    branches: [main]
+    branches: [main,v4]
     paths:
       - packages/flipper_localize/lib/l10n/app_en.arb
       - crowdin.yml
