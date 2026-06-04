@@ -270,9 +270,7 @@ Future<void> main() async {
   );
 }
 
-/// Keep in sync with [DevicePreview.enabled] on [FlipperApp]. When preview is on,
-/// `MaterialApp.router` must pass the inherited `MediaQuery` flag expected by
-/// `package:device_preview` (`isWidgetsAppUsingInheritedMediaQuery` assert).
+/// Keep in sync with [DevicePreview.enabled] on [FlipperApp].
 const bool kFlipperDevicePreviewEnabled = kDebugMode;
 
 class FlipperApp extends StatefulWidget {
@@ -329,9 +327,6 @@ class _FlipperAppState extends State<FlipperApp> {
             debugShowCheckedModeBanner: false,
             title: 'flipper',
             theme: _theme,
-            // Required by package:device_preview when enabled (assert).
-            useInheritedMediaQuery:
-                kFlipperDevicePreviewEnabled, // ignore: deprecated_member_use
             localizationsDelegates: [
               FirebaseUILocalizations.withDefaultOverrides(
                 const LabelOverrides(),
@@ -345,14 +340,20 @@ class _FlipperAppState extends State<FlipperApp> {
               Locale('en'),
               Locale('es'),
             ],
-            locale: const Locale('en'),
+            locale: DevicePreview.locale(context) ?? const Locale('en'),
             themeMode: ThemeMode.system,
             routerDelegate: _routerDelegate,
             routeInformationParser: _routeInformationParser,
             builder: (context, child) {
-              return LauncherShortcutRouterHost(
-                child: PersonalGoalRemoteContributionListener(
-                  child: child!,
+              final app = DevicePreview.appBuilder(context, child);
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.noScaling,
+                ),
+                child: LauncherShortcutRouterHost(
+                  child: PersonalGoalRemoteContributionListener(
+                    child: app,
+                  ),
                 ),
               );
             },
