@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_service.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
@@ -47,6 +48,7 @@ Future<void> showTransactionActionsSheet({
     builder: (ctx) => _TransactionActionsSheet(
       transaction: transaction,
       referenceLabel: referenceLabel,
+      hostContext: context,
       onRefund: () {
         Navigator.of(ctx).pop();
         onRefund();
@@ -79,11 +81,23 @@ class _TransactionActionsSheet extends StatelessWidget {
     required this.transaction,
     required this.referenceLabel,
     required this.onRefund,
+    required this.hostContext,
   });
 
   final ITransaction transaction;
   final String referenceLabel;
   final VoidCallback onRefund;
+  final BuildContext hostContext;
+
+  static final _receiptActions = TransactionReceiptActionsService();
+
+  Future<void> _runReceiptAction(
+    BuildContext sheetContext,
+    Future<void> Function(BuildContext host, ITransaction tx) action,
+  ) async {
+    Navigator.of(sheetContext).pop();
+    await action(hostContext, transaction);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,28 +121,28 @@ class _TransactionActionsSheet extends StatelessWidget {
                   iconSvg: TransactionDetailSvgs.share(),
                   title: 'Share receipt',
                   subtitle: 'Send via WhatsApp, SMS or email',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _stubAction(context, 'Share is not available yet.');
-                  },
+                  onTap: () => _runReceiptAction(
+                    context,
+                    _receiptActions.shareReceipt,
+                  ),
                 ),
                 _ActionRow(
                   iconSvg: TransactionDetailSvgs.download(),
                   title: 'Download PDF',
                   subtitle: 'Save a copy of this receipt',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _stubAction(context, 'Download is not available yet.');
-                  },
+                  onTap: () => _runReceiptAction(
+                    context,
+                    _receiptActions.downloadReceipt,
+                  ),
                 ),
                 _ActionRow(
                   iconSvg: TransactionDetailSvgs.print(),
                   title: 'Print receipt',
                   subtitle: 'Send to a connected printer',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _stubAction(context, 'Print is not available yet.');
-                  },
+                  onTap: () => _runReceiptAction(
+                    context,
+                    _receiptActions.printReceipt,
+                  ),
                 ),
                 _ActionRow(
                   iconSvg: TransactionDetailSvgs.refresh(),
@@ -146,12 +160,6 @@ class _TransactionActionsSheet extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _stubAction(BuildContext context, String message) {
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
 }

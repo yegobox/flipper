@@ -1,57 +1,61 @@
 {
-    "save": "Bika",
+    "save": "Enregistrer",
     "@save": {
         "description": "The conventional newborn programmer greeting"
     },
-    "retailPrice": "Igiciro",
+    "retailPrice": "Prix",
     "@retailPrice": {
         "description": "The conventional newborn programmer greeting"
     },
-    "supplyPrice": "Ikiranguzo",
+    "supplyPrice": "Prix fournisseur",
     "@supplyPrice": {
         "description": "The conventional newborn programmer greeting"
     },
-    "currentSale": "Igurishwa ryubu",
+    "currentSale": "Vente en cours",
     "@currentSale": {
         "description": "The conventional newborn programmer greeting"
     },
-    "addProduct": "Ongeramo ibicuruzwa",
+    "currentStock": "Stock actuel",
+    "@currentStock": {
+        "description": "Current Stock"
+    },
+    "addProduct": "Ajouter des produits",
     "@addProduct": {
         "description": "The conventional newborn programmer greeting"
     },
-    "tickets": "Amatike",
+    "tickets": "Tickets",
     "@tickets": {
         "description": "The conventional newborn programmer greeting"
     },
-    "charge": "kwishyuza",
+    "charge": "Facturer",
     "@charge": {
         "description": "The conventional newborn programmer greeting"
     },
-    "productName": "Izina ryigicuruzwa",
+    "productName": "Nom du produit",
     "@productName": {
         "description": "The conventional newborn programmer greeting"
     },
-    "flipperSetting": "Igenamiterere",
+    "flipperSetting": "Paramètres",
     "@flipperSetting": {
         "description": "The conventional newborn programmer greeting"
     },
-    "options": "Amahitamo",
+    "options": "Options",
     "@options": {
         "description": "Amahitamo"
     },
-    "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
+    "saveTicket": "Vous ne pouvez pas enregistrer le ticket sans ajouter une note",
     "@saveTicket": {
         "description": "Amahitamo"
     },
-    "productNotFound": "Igicuruzwa ntikibonetse",
+    "productNotFound": "Produit introuvable",
     "@productNotFound": {
         "description": "Igicuruzwa ntikibonetse"
     },
-    "noPayable": "Ntabyo kwishyuzwa bihari",
+    "noPayable": "Aucun montant à payer",
     "@noPayable": {
         "description": "Ntabyo kwishyuzwa bihari"
     },
-    "delete": "Siba",
+    "delete": "Supprimer",
     "@delete": {
         "description": "Siba"
     },
@@ -59,15 +63,15 @@
     "@addTomenu": {
         "description": "Ongeraho kuri menu"
     },
-    "edit": "Edit",
+    "edit": "Modifier",
     "@edit": {
         "description": "Ongeraho kuri menu"
     },
-    "addWorkSpace": "Add WorkSpace",
+    "addWorkSpace": "Ajouter un espace de travail",
     "@addWorkSpace": {
         "description": "Add WorkSpace"
     },
-    "addMembers": "Add Members",
+    "addMembers": "Ajouter des membres",
     "@addMembers": {
         "description": "Add Members"
     }

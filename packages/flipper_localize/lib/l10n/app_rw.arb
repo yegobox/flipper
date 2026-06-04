@@ -1,61 +1,61 @@
 {
-    "save": "Save",
+    "save": "Bika",
     "@save": {
         "description": "The save message"
     },
-    "retailPrice": "Price",
+    "retailPrice": "Igiciro",
     "@retailPrice": {
         "description": "The price"
     },
-    "supplyPrice": "Supplier price",
+    "supplyPrice": "Ikiranguzo",
     "@supplyPrice": {
         "description": "Supplier price"
     },
-    "currentSale": "Current Sale",
+    "currentSale": "Igurishwa ryubu",
     "@currentSale": {
         "description": "Current Sale"
     },
-    "currentStock": "Current Stock",
+    "currentStock": "Ububiko buriho",
     "@currentStock": {
         "description": "Current Stock"
     },
-    "addProduct": "Add Products",
+    "addProduct": "Ongeramo ibicuruzwa",
     "@addProduct": {
         "description": "Add Product"
     },
-    "tickets": "Tickets",
+    "tickets": "Amatike",
     "@tickets": {
         "description": "The Tickets"
     },
-    "charge": "Charge",
+    "charge": "Kwishyuza",
     "@charge": {
         "description": "Charge the user for the amount"
     },
-    "productName": "Name of the product",
+    "productName": "Izina ry'igicuruzwa",
     "@productName": {
         "description": "The Name of the product"
     },
-    "flipperSetting": "Settings",
+    "flipperSetting": "Igenamiterere",
     "@flipperSetting": {
         "description": "The Settings"
     },
-    "options": "Options",
+    "options": "Amahitamo",
     "@options": {
         "description": "The options"
     },
-    "saveTicket": "you can not save the tickets without adding a note to ticket",
+    "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
     "@saveTicket": {
         "description": "can not save the tickets without adding a note to ticket"
     },
-    "productNotFound": "Product not found",
+    "productNotFound": "Igicuruzwa ntikibonetse",
     "@productNotFound": {
         "description": "Product not found"
     },
-    "noPayable": "No payable",
+    "noPayable": "Nta byo kwishyuzwa bihari",
     "@noPayable": {
         "description": "No payable"
     },
-    "delete": "Delete",
+    "delete": "Siba",
     "@delete": {
         "description": "Delete"
     },
@@ -63,15 +63,15 @@
     "@addTomenu": {
         "description": "Ongeraho kuri menu"
     },
-    "edit": "Edit",
+    "edit": "Hindura",
     "@edit": {
-        "description": "Ongeraho kuri menu"
+        "description": "Edit"
     },
-    "addWorkSpace": "Add WorkSpace",
+    "addWorkSpace": "Ongeramo aho gukorera",
     "@addWorkSpace": {
         "description": "Add WorkSpace"
     },
-    "addMembers": "Add Members",
+    "addMembers": "Ongeramo abanyamuryango",
     "@addMembers": {
         "description": "Add Members"
     }

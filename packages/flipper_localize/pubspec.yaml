@@ -9,6 +9,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
   firebase_ui_auth: ^3.0.0
 
   firebase_ui_localizations: ^2.0.1
+
+flutter:
+  generate: true

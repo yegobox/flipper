@@ -333,13 +333,11 @@ class _FlipperAppState extends State<FlipperApp> {
               ),
               const FlipperLocalizationsDelegate(),
               GlobalMaterialLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               CountryLocalizations.delegate
             ],
-            supportedLocales: const [
-              Locale('en'),
-              Locale('es'),
-            ],
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             locale: DevicePreview.locale(context) ?? const Locale('en'),
             themeMode: ThemeMode.system,
             routerDelegate: _routerDelegate,

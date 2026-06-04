@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
@@ -79,6 +80,8 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
       MediaQuery.disableAnimationsOf(context);
 
   String get _referenceLabel => _formatReference(_transaction);
+
+  final _receiptActions = TransactionReceiptActionsService();
 
   Future<void> _openMoreActions() async {
     await showTransactionActionsSheet(
@@ -172,14 +175,10 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                 ),
                 _TxDetailFooter(
                   onMoreActions: _openMoreActions,
-                  onInvoice: () {
-                    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                      const SnackBar(
-                        content: Text('Invoice is not available yet.'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
+                  onInvoice: () => _receiptActions.viewInvoice(
+                    context,
+                    _transaction,
+                  ),
                 ),
               ],
             ),

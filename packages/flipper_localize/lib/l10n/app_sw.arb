@@ -15,6 +15,10 @@
     "@currentSale": {
         "description": "The conventional newborn programmer greeting"
     },
+    "currentStock": "Hisa ya sasa",
+    "@currentStock": {
+        "description": "Current Stock"
+    },
     "addProduct": "Ongeza bidhaa",
     "@addProduct": {
         "description": "The conventional newborn programmer greeting"

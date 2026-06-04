@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 class TestApp extends StatelessWidget {
   final Widget child;
@@ -11,13 +12,8 @@ class TestApp extends StatelessWidget {
     return ProviderScope(
       child: MaterialApp(
         home: Scaffold(body: child),
-        localizationsDelegates: [
-          // Add your localization delegates here
-        ],
-        supportedLocales: const [
-          Locale('en'),
-          Locale('es'),
-        ],
+        localizationsDelegates: [...FlipperLocalizationDelegates.delegates],
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       ),
     );
   }
