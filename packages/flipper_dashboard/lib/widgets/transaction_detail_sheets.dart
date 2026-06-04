@@ -21,6 +21,7 @@ abstract final class _SheetColors {
   static const loss = Color(0xFFE5484D);
   static const lossInk = Color(0xFFB42318);
   static const gain = Color(0xFF16A34A);
+  static const gainTint = Color(0xFFE7F6EE);
   static const blue = Color(0xFF2563EB);
 }
 
@@ -244,29 +245,44 @@ class _TransactionRefundSheetState
 
   @override
   Widget build(BuildContext context) {
+    final currency = ProxyService.box.defaultCurrency();
+    final money = NumberFormat('#,###');
+
     if (_step == _RefundStep.processing) {
-      return const _RefundProcessingOverlay();
-    }
-    if (_step == _RefundStep.done) {
-      return _RefundDoneOverlay(
-        amount: _completedAmount ?? _refundAmount,
-        method: _method,
-        partial: _completedPartial,
-        onDone: () => Navigator.of(context).pop(
-          _completedTransaction ??
-              widget.transaction.copyWith(
-                isRefunded: true,
-                refundedAmount: _completedAmount ?? _refundAmount,
-                refundReason: _reason,
-                refundMethod: _method,
-                status: _completedPartial ? 'partially_refunded' : 'refunded',
-              ),
+      return _SheetScaffold(
+        fillHeight: true,
+        child: _RefundProcessingOverlay(
+          currency: currency,
+          refundAmount: _refundAmount,
+          reason: _reason,
+          referenceLabel: widget.referenceLabel,
+          reduceMotion: MediaQuery.disableAnimationsOf(context),
         ),
       );
     }
-
-    final currency = ProxyService.box.defaultCurrency();
-    final money = NumberFormat('#,###');
+    if (_step == _RefundStep.done) {
+      return _SheetScaffold(
+        fillHeight: true,
+        child: _RefundDoneOverlay(
+          amount: _completedAmount ?? _refundAmount,
+          currency: currency,
+          method: _method,
+          partial: _completedPartial,
+          reduceMotion: MediaQuery.disableAnimationsOf(context),
+          onDone: () => Navigator.of(context).pop(
+            _completedTransaction ??
+                widget.transaction.copyWith(
+                  isRefunded: true,
+                  refundedAmount: _completedAmount ?? _refundAmount,
+                  refundReason: _reason,
+                  refundMethod: _method,
+                  status:
+                      _completedPartial ? 'partially_refunded' : 'refunded',
+                ),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: EdgeInsets.only(
@@ -945,118 +961,506 @@ class _RefundConfirmButton extends StatelessWidget {
   }
 }
 
-class _RefundProcessingOverlay extends StatelessWidget {
-  const _RefundProcessingOverlay();
+/// Handoff-style ring spinner (`.tx-spinner` / `txspin`).
+class _RefundRingSpinner extends StatelessWidget {
+  const _RefundRingSpinner({this.reduceMotion = false});
+
+  final bool reduceMotion;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 42,
+      height: 42,
+      child: CircularProgressIndicator(
+        strokeWidth: 3.5,
+        backgroundColor: _SheetColors.line,
+        color: _SheetColors.loss,
+        strokeCap: StrokeCap.round,
+      ),
+    );
+  }
+}
+
+class _RefundProcessingOverlay extends StatefulWidget {
+  const _RefundProcessingOverlay({
+    required this.currency,
+    required this.refundAmount,
+    required this.reason,
+    required this.referenceLabel,
+    this.reduceMotion = false,
+  });
+
+  final String currency;
+  final double refundAmount;
+  final String reason;
+  final String referenceLabel;
+  final bool reduceMotion;
+
+  @override
+  State<_RefundProcessingOverlay> createState() =>
+      _RefundProcessingOverlayState();
+}
+
+class _RefundProcessingOverlayState extends State<_RefundProcessingOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fadeController;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    )..forward();
+    _fade = CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final money = NumberFormat('#,###');
+    final amountLabel =
+        '${widget.currency} ${money.format(widget.refundAmount.round())}';
+
+    return FadeTransition(
+      opacity: _fade,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white.withValues(alpha: 0.86),
+              const Color(0xFFF4F6FB).withValues(alpha: 0.92),
+            ],
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 34),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _SheetColors.surface,
+                    border: Border.all(color: _SheetColors.line),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: _RefundRingSpinner(
+                      reduceMotion: widget.reduceMotion,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Text(
+                  'Processing refund…',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: _SheetColors.ink1,
+                    letterSpacing: -0.02,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  amountLabel,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: _SheetColors.loss,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  widget.reason,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _SheetColors.ink2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  widget.referenceLabel,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: _SheetColors.ink3,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _RefundProgressSteps(reduceMotion: widget.reduceMotion),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RefundProgressSteps extends StatefulWidget {
+  const _RefundProgressSteps({this.reduceMotion = false});
+
+  final bool reduceMotion;
+
+  @override
+  State<_RefundProgressSteps> createState() => _RefundProgressStepsState();
+}
+
+class _RefundProgressStepsState extends State<_RefundProgressSteps> {
+  int _activeStep = 0;
+
+  static const _steps = [
+    'Validating refund',
+    'Restoring stock',
+    'Saving records',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.reduceMotion) return;
+    _advance();
+  }
+
+  Future<void> _advance() async {
+    for (var i = 1; i < _steps.length; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      if (!mounted) return;
+      setState(() => _activeStep = i);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.sizeOf(context).height * 0.5,
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: _SheetColors.surface.withValues(alpha: 0.95),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+        color: _SheetColors.surface.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _SheetColors.line),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(color: _SheetColors.loss),
-          const SizedBox(height: 16),
-          Text(
-            'Processing refund…',
-            style: GoogleFonts.outfit(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: _SheetColors.ink1,
+          for (var i = 0; i < _steps.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            _RefundProgressStepRow(
+              label: _steps[i],
+              state: i < _activeStep
+                  ? _RefundStepState.done
+                  : i == _activeStep
+                      ? _RefundStepState.active
+                      : _RefundStepState.pending,
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _RefundDoneOverlay extends StatelessWidget {
-  const _RefundDoneOverlay({
-    required this.amount,
-    required this.method,
-    required this.partial,
-    required this.onDone,
+enum _RefundStepState { pending, active, done }
+
+class _RefundProgressStepRow extends StatelessWidget {
+  const _RefundProgressStepRow({
+    required this.label,
+    required this.state,
   });
 
-  final double amount;
-  final String method;
-  final bool partial;
-  final VoidCallback onDone;
+  final String label;
+  final _RefundStepState state;
 
   @override
   Widget build(BuildContext context) {
-    final currency = ProxyService.box.defaultCurrency();
-    final money = NumberFormat('#,###');
-    final methodLabel = method == 'momo' ? 'MoMo' : 'cash';
+    final isDone = state == _RefundStepState.done;
+    final isActive = state == _RefundStepState.active;
 
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: const BoxDecoration(
-        color: _SheetColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+    return Row(
+      children: [
+        SizedBox(
+          width: 22,
+          height: 22,
+          child: isDone
+              ? Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _SheetColors.gainTint,
+                  ),
+                  child: TransactionDetailSvgs.icon(
+                    TransactionDetailSvgs.check(),
+                    size: 13,
+                    color: _SheetColors.gain,
+                  ),
+                )
+              : isActive
+                  ? Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          backgroundColor: _SheetColors.line,
+                          color: _SheetColors.loss,
+                          strokeCap: StrokeCap.round,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: _SheetColors.line,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 13.5,
+              fontWeight: isActive || isDone ? FontWeight.w600 : FontWeight.w500,
+              color: isActive
+                  ? _SheetColors.ink1
+                  : isDone
+                      ? _SheetColors.ink2
+                      : _SheetColors.ink4,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RefundDoneOverlay extends StatefulWidget {
+  const _RefundDoneOverlay({
+    required this.amount,
+    required this.currency,
+    required this.method,
+    required this.partial,
+    required this.onDone,
+    this.reduceMotion = false,
+  });
+
+  final double amount;
+  final String currency;
+  final String method;
+  final bool partial;
+  final VoidCallback onDone;
+  final bool reduceMotion;
+
+  @override
+  State<_RefundDoneOverlay> createState() => _RefundDoneOverlayState();
+}
+
+class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  late final Animation<double> _checkScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(
+        milliseconds: widget.reduceMotion ? 220 : 520,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.elasticOut,
-            builder: (context, scale, child) {
-              return Transform.scale(scale: scale, child: child);
-            },
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: _SheetColors.gain.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: TransactionDetailSvgs.icon(
-                TransactionDetailSvgs.check(),
-                size: 48,
-                color: _SheetColors.gain,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Refund completed',
-            style: GoogleFonts.outfit(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '$currency ${money.format(amount.round())} was refunded to the customer via $methodLabel.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              color: _SheetColors.ink3,
-            ),
-          ),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton(
-              onPressed: onDone,
-              style: FilledButton.styleFrom(
-                backgroundColor: _SheetColors.blue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
+    );
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0, 0.35, curve: Curves.easeOut),
+    );
+    _checkScale = CurvedAnimation(
+      parent: _controller,
+      curve: Interval(
+        0.15,
+        1,
+        curve: widget.reduceMotion ? Curves.easeOutCubic : Curves.elasticOut,
+      ),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final money = NumberFormat('#,###');
+    final methodLabel = widget.method == 'momo' ? 'MoMo' : 'cash';
+    final amountLabel =
+        '${widget.currency} ${money.format(widget.amount.round())}';
+
+    return FadeTransition(
+      opacity: _fade,
+      child: ColoredBox(
+        color: _SheetColors.surface,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 34),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ScaleTransition(
+                  scale: _checkScale,
+                  child: Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      color: _SheetColors.gainTint,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Center(
+                      child: TransactionDetailSvgs.icon(
+                        TransactionDetailSvgs.check(),
+                        size: 48,
+                        color: _SheetColors.gain,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              child: const Text('Done'),
+                const SizedBox(height: 22),
+                Text(
+                  'Refund completed',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.02,
+                    color: _SheetColors.ink1,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text.rich(
+                  TextSpan(
+                    style: GoogleFonts.outfit(
+                      fontSize: 14.5,
+                      height: 1.5,
+                      color: _SheetColors.ink2,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: amountLabel,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontWeight: FontWeight.w700,
+                          color: _SheetColors.loss,
+                        ),
+                      ),
+                      TextSpan(
+                        text:
+                            ' was refunded to the customer via $methodLabel.',
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 280),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: _PressScaleButton(
+                      onPressed: widget.onDone,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _SheetColors.blue.withValues(alpha: 0.35),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Done',
+                            style: GoogleFonts.outfit(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Minimal press-scale for Done button (matches transaction detail).
+class _PressScaleButton extends StatefulWidget {
+  const _PressScaleButton({
+    required this.onPressed,
+    required this.child,
+  });
+
+  final VoidCallback onPressed;
+  final Widget child;
+
+  @override
+  State<_PressScaleButton> createState() => _PressScaleButtonState();
+}
+
+class _PressScaleButtonState extends State<_PressScaleButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onPressed,
+      child: AnimatedScale(
+        scale: _pressed ? 0.985 : 1,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.ease,
+        child: widget.child,
       ),
     );
   }
