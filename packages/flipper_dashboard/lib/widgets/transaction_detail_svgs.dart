@@ -59,4 +59,25 @@ class TransactionDetailSvgs {
       _strokeIcon(
         '<path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/><path d="m8 8 4-4 4 4"/><path d="M12 4v12"/>',
       );
+
+  static String chevronRight() =>
+      _strokeIcon('<path d="m9 6 6 6-6 6"/>');
+
+  static String download() =>
+      _strokeIcon(
+        '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
+      );
+
+  static String print() =>
+      _strokeIcon(
+        '<path d="M7 9V3h10v6"/><path d="M5 9h14a2 2 0 012 2v6H3v-6a2 2 0 012-2Z"/><path d="M7 17v4h10v-4"/>',
+      );
+
+  static String refresh() =>
+      _strokeIcon(
+        '<path d="M4 12a8 8 0 0113.4-5.9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 01-13.4 5.9"/><path d="M4 20v-5h5"/>',
+      );
+
+  static String closeX() =>
+      _strokeIcon('<path d="M6 6l12 12M18 6 6 18"/>');
 }

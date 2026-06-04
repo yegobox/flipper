@@ -900,8 +900,8 @@ class App {}
 // screen -r ngrok
 // https://chatgpt.com/c/697322f1-113c-8331-a26e-3a41e12a6b58
 // https://one.google.com/ai?sc=EgIIAQ&hl=en-RW&g1_landing_page=75
-// flutter build macos --config-only
-// flutter build ios --config-only
+// flutter build macos --config-only --release 
+// flutter build ios --config-only --release 
 // https://pub.dev/packages/flutter_face_liveness
 // Ctrl+Shift+T (Windows/Linux)
 // Cmd+Shift+T (macOS)

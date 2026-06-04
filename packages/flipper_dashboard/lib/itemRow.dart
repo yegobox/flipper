@@ -204,6 +204,7 @@ class _RowItemState extends ConsumerState<RowItem>
     required String? itemId,
     required TextTheme textTheme,
     required ColorScheme colorScheme,
+    required int selectedCount,
   }) {
     final variantId = widget.variant?.id;
     final inCartQty = (variantId != null && variantId.isNotEmpty)
@@ -230,40 +231,82 @@ class _RowItemState extends ConsumerState<RowItem>
 
     final hasImage = widget.imageUrl?.isNotEmpty == true;
 
-    return PosCatalogGridCard(
-      key: Key('pos-catalog-tap-${variantId ?? itemId ?? ''}'),
-      productName: widget.productName.isNotEmpty
-          ? widget.productName
-          : 'Unnamed Product',
-      bcdLabel: bcdLabel,
-      currencySymbol: currency,
-      priceAmount: price,
-      stockVisual: visual,
-      stockLabel: posStockLabel(visual, stockValue),
-      inCartQty: inCartQty,
-      showSelectionBorder: isMultiSelectActive && isSelected,
-      isOutOfStock: isOut,
-      thumb: posCatalogThumb(
-        name: widget.productName,
-        hasImage: hasImage,
-        image: hasImage
-            ? ClipRRect(
-                child: SizedBox.expand(child: _buildImage()),
-              )
-            : null,
+    return _wrapWithSelectionChrome(
+      colorScheme: colorScheme,
+      isSelected: isSelected,
+      selectedCount: selectedCount,
+      child: PosCatalogGridCard(
+        key: Key('pos-catalog-tap-${variantId ?? itemId ?? ''}'),
+        productName: widget.productName.isNotEmpty
+            ? widget.productName
+            : 'Unnamed Product',
+        bcdLabel: bcdLabel,
+        currencySymbol: currency,
+        priceAmount: price,
+        stockVisual: visual,
+        stockLabel: posStockLabel(visual, stockValue),
+        inCartQty: inCartQty,
+        showSelectionBorder: isMultiSelectActive && isSelected,
         isOutOfStock: isOut,
+        thumb: posCatalogThumb(
+          name: widget.productName,
+          hasImage: hasImage,
+          image: hasImage
+              ? ClipRRect(
+                  child: SizedBox.expand(child: _buildImage()),
+                )
+              : null,
+          isOutOfStock: isOut,
+        ),
+        onTap: isOut
+            ? null
+            : () => _handleProductTap(
+                isMultiSelectActive: isMultiSelectActive,
+                itemId: itemId,
+              ),
+        onLongPress: () {
+          if (itemId != null && !widget.isOrdering) {
+            ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+          }
+        },
       ),
-      onTap: isOut
-          ? null
-          : () => _handleProductTap(
-              isMultiSelectActive: isMultiSelectActive,
-              itemId: itemId,
+    );
+  }
+
+  Widget _wrapWithSelectionChrome({
+    required Widget child,
+    required ColorScheme colorScheme,
+    required bool isSelected,
+    required int selectedCount,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        if (isSelected)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check,
+                color: Colors.white,
+                size: 14,
+              ),
             ),
-      onLongPress: () {
-        if (itemId != null && !widget.isOrdering) {
-          ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
-        }
-      },
+          ),
+        if (isSelected && selectedCount == 1 && !widget.isOrdering)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: _buildFloatingActionButtons(colorScheme),
+          ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+      ],
     );
   }
 
@@ -298,6 +341,10 @@ class _RowItemState extends ConsumerState<RowItem>
         ref: ref,
         textTheme: textTheme,
         colorScheme: colorScheme,
+        isSelected: isSelected,
+        isMultiSelectActive: isMultiSelectActive,
+        itemId: itemId,
+        selectedCount: selectedItemIds.length,
       );
     }
     if (renderPosCatalogTile) {
@@ -309,6 +356,7 @@ class _RowItemState extends ConsumerState<RowItem>
         itemId: itemId,
         textTheme: textTheme,
         colorScheme: colorScheme,
+        selectedCount: selectedItemIds.length,
       );
     }
 
@@ -350,38 +398,14 @@ class _RowItemState extends ConsumerState<RowItem>
                       .toggleSelection(itemId);
                 }
               },
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(contentPadding - 4),
-                    child: listChild,
-                  ),
-                  if (isSelected)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                      ),
-                    ),
-                  if (isSelected &&
-                      selectedItemIds.length == 1 &&
-                      !widget.isOrdering)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: _buildFloatingActionButtons(colorScheme),
-                    ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
-                ],
+              child: _wrapWithSelectionChrome(
+                colorScheme: colorScheme,
+                isSelected: isSelected,
+                selectedCount: selectedItemIds.length,
+                child: Padding(
+                  padding: const EdgeInsets.all(contentPadding - 4),
+                  child: listChild,
+                ),
               ),
             ),
           ),
@@ -696,13 +720,22 @@ class _RowItemState extends ConsumerState<RowItem>
     required WidgetRef ref,
     required TextTheme textTheme,
     required ColorScheme colorScheme,
+    required bool isSelected,
+    required bool isMultiSelectActive,
+    required String? itemId,
+    required int selectedCount,
   }) {
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isSelected
+            ? colorScheme.primaryContainer.withValues(alpha: 0.25)
+            : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: PosTokens.line),
+        border: Border.all(
+          color: isSelected ? colorScheme.primary : PosTokens.line,
+          width: isSelected ? 2 : 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.07),
@@ -712,6 +745,29 @@ class _RowItemState extends ConsumerState<RowItem>
         ],
       ),
       child: _buildPosMobileListRow(textTheme, colorScheme),
+    );
+
+    return GestureDetector(
+      onTap: isMultiSelectActive
+          ? () {
+              if (itemId != null) {
+                ref.read(selectedItemIdsProvider.notifier).toggleSelection(
+                      itemId,
+                    );
+              }
+            }
+          : null,
+      onLongPress: () {
+        if (itemId != null && !widget.isOrdering) {
+          ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+        }
+      },
+      child: _wrapWithSelectionChrome(
+        colorScheme: colorScheme,
+        isSelected: isSelected,
+        selectedCount: selectedCount,
+        child: card,
+      ),
     );
   }
 

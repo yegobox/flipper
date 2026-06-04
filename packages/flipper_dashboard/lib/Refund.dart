@@ -1,9 +1,7 @@
 import 'package:flipper_dashboard/RefundReasonForm.dart';
-import 'package:flipper_models/SyncStrategy.dart';
-import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_dashboard/services/transaction_refund_service.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -11,12 +9,13 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class Refund extends StatefulHookConsumerWidget {
-  const Refund(
-      {super.key,
-      required this.refundAmount,
-      required this.transactionId,
-      required this.currency,
-      this.transaction});
+  const Refund({
+    super.key,
+    required this.refundAmount,
+    required this.transactionId,
+    required this.currency,
+    this.transaction,
+  });
   final double refundAmount;
   final String transactionId;
   final String? currency;
@@ -30,11 +29,13 @@ class _RefundState extends ConsumerState<Refund> {
   bool isRefundProcessing = false;
   bool isPrintingCopy = false;
   final talker = TalkerFlutter.init();
+  late final _refundService = TransactionRefundService(talker: talker);
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 18, right: 18),
-      child: Container(
+      child: SizedBox(
         width: 300,
         child: Center(
           child: Padding(
@@ -52,143 +53,28 @@ class _RefundState extends ConsumerState<Refund> {
                 const SizedBox(height: 16),
                 Text(
                   'Transaction ID: ${widget.transactionId}',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 const SizedBox(height: 32),
-                RefundReasonForm(),
+                const RefundReasonForm(),
                 const SizedBox(height: 32),
                 BoxButton(
                   borderRadius: 1,
                   title: widget.transaction?.isRefunded == true
-                      ? "Refunded"
-                      : "Refund",
+                      ? 'Refunded'
+                      : 'Refund',
                   color: widget.transaction?.isRefunded == true
                       ? Colors.red
                       : null,
                   busy: isRefundProcessing,
-                  onTap: () async {
-                    setState(() {
-                      isRefundProcessing = true;
-                    });
-
-                    try {
-                      if (widget.transaction!.isRefunded ?? false) {
-                        setState(() {
-                          isRefundProcessing = false;
-                        });
-                        toast("This is already refunded");
-                        return;
-                      }
-
-                      if (widget.transaction!.customerTin != null &&
-                          widget.transaction!.customerTin!.isNotEmpty) {
-                        // Show modal to request purchase code
-                        bool purchaseCodeReceived =
-                            await showPurchaseCodeModal();
-                        if (purchaseCodeReceived) {
-                          // Proceed with refund
-                          if (widget.transaction!.receiptType == "TS") {
-                            await proceed(receiptType: "TR");
-                            // toast("Can not refund a training receipt");
-                            return;
-                          }
-                          if (widget.transaction!.receiptType == "PS") {
-                            toast("Can not refund a proforma");
-                            setState(() {
-                              isRefundProcessing = false;
-                            });
-                            return;
-                          } else if ((widget.transaction!.receiptType ==
-                              "NS")) {
-                            await proceed(receiptType: "NR");
-                          } else if ((widget.transaction!.receiptType ==
-                              "CS")) {
-                            await proceed(receiptType: "CR");
-                          }
-                        }
-                      } else {
-                        if (widget.transaction!.receiptType == "TS") {
-                          await proceed(receiptType: "TR");
-                          // toast("Can not refund a training receipt");
-                          return;
-                        } else if (widget.transaction!.receiptType! == "CS") {
-                          await proceed(receiptType: "CR");
-                        } else if (widget.transaction!.receiptType == "PS") {
-                          toast("Can not refund a proforma");
-                          setState(() {
-                            isRefundProcessing = false;
-                          });
-                          return;
-                        } else if (widget.transaction!.receiptType == "NS") {
-                          await proceed(receiptType: "NR");
-                        }
-                      }
-                    } catch (e, s) {
-                      toast(e.toString());
-                      talker.error(s);
-                    }
-                  },
+                  onTap: () => _onRefundTap(context),
                 ),
                 const SizedBox(height: 16),
                 BoxButton(
                   borderRadius: 1,
                   busy: isPrintingCopy,
-                  title: "Print Copy Receipt",
-                  onTap: () async {
-                    if (widget.transaction!.receiptType == "TS") {
-                      toast("This receipt does not have a copy to print");
-                      return;
-                    }
-                    if (widget.transaction!.customerTin != null &&
-                        widget.transaction!.customerTin!.isNotEmpty) {
-                      bool purchaseCodeReceived = await showPurchaseCodeModal();
-                      if (purchaseCodeReceived) {
-                        try {
-                          if (widget.transaction!.receiptType == "PS") {
-                            if (widget.transaction!.isRefunded ?? false) {
-                              await handleReceipt(filterType: FilterType.PR);
-                            } else {
-                              await handleReceipt(filterType: FilterType.CP);
-                            }
-                          } else {
-                            if (widget.transaction!.isRefunded ?? false) {
-                              await handleReceipt(filterType: FilterType.CR);
-                            } else {
-                              await handleReceipt(filterType: FilterType.CS);
-                            }
-                          }
-                        } catch (e, s) {
-                          toast(e.toString());
-                          talker.error(s);
-                          setState(() {
-                            isPrintingCopy = false;
-                          });
-                        }
-                      }
-                    } else {
-                      try {
-                        if (widget.transaction!.receiptType == "PS") {
-                          if (widget.transaction!.isRefunded ?? false) {
-                            await handleReceipt(filterType: FilterType.PR);
-                          } else {
-                            await handleReceipt(filterType: FilterType.CP);
-                          }
-                        } else {
-                          if (widget.transaction!.isRefunded ?? false) {
-                            await handleReceipt(filterType: FilterType.CR);
-                          } else {
-                            await handleReceipt(filterType: FilterType.CS);
-                          }
-                        }
-                      } catch (e, s) {
-                        toast(e.toString());
-                        talker.error(s);
-                        setState(() {
-                          isPrintingCopy = false;
-                        });
-                      }
-                    }
-                  },
+                  title: 'Print Copy Receipt',
+                  onTap: () => _onPrintCopyTap(context),
                 ),
               ],
             ),
@@ -198,201 +84,91 @@ class _RefundState extends ConsumerState<Refund> {
     );
   }
 
-  String getStringReceiptType(FilterType filterType) {
-    switch (filterType) {
-      case FilterType.CS:
-        return 'CS';
-      case FilterType.NR:
-        return 'NR';
-      case FilterType.CR:
-        return 'CR';
-      case FilterType.PS:
-        return 'PS';
-      case FilterType.TS:
-        return 'TS';
-      case FilterType.NS:
-        return 'NS';
-      default:
-        return 'CS';
+  Future<void> _onRefundTap(BuildContext context) async {
+    setState(() => isRefundProcessing = true);
+    try {
+      final tx = widget.transaction!;
+      if (tx.isRefunded ?? false) {
+        toast('This is already refunded');
+        return;
+      }
+
+      final needsPurchaseCode =
+          tx.customerTin != null && tx.customerTin!.isNotEmpty;
+      if (needsPurchaseCode) {
+        final ok = await TransactionRefundService.showPurchaseCodeDialog(context);
+        if (!ok) return;
+      }
+
+      if (tx.receiptType == 'TS') {
+        await _refundService.executeLegacyFullRefund(
+          transaction: tx,
+          refundAmount: widget.refundAmount,
+          receiptType: 'TR',
+        );
+        return;
+      }
+      if (tx.receiptType == 'PS') {
+        toast('Can not refund a proforma');
+        return;
+      }
+      if (tx.receiptType == 'NS') {
+        await _refundService.executeLegacyFullRefund(
+          transaction: tx,
+          refundAmount: widget.refundAmount,
+          receiptType: 'NR',
+        );
+      } else if (tx.receiptType == 'CS') {
+        await _refundService.executeLegacyFullRefund(
+          transaction: tx,
+          refundAmount: widget.refundAmount,
+          receiptType: 'CR',
+        );
+      }
+    } catch (e, s) {
+      toast(e.toString());
+      talker.error(s);
+    } finally {
+      if (mounted) setState(() => isRefundProcessing = false);
     }
   }
 
-  Future<bool> showPurchaseCodeModal() async {
-    bool purchaseCodeReceived = false;
-
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String purchaseCode = '';
-
-        return AlertDialog(
-          title: Text('Enter Purchase Code'),
-          content: TextField(
-            onChanged: (value) {
-              purchaseCode = value;
-            },
-            decoration: InputDecoration(
-              hintText: 'Enter purchase code',
-              hintStyle: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 16,
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                vertical: 12,
-                horizontal: 16,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Colors.grey[300]!,
-                  width: 1.0,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Theme.of(context).primaryColor,
-                  width: 2.0,
-                ),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                // Close the dialog without saving
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Save the purchase code and mark as received
-                ProxyService.box
-                    .writeString(key: 'purchaseCode', value: purchaseCode);
-                purchaseCodeReceived = true;
-                Navigator.of(context).pop();
-              },
-              child: Text('Submit'),
-            ),
-          ],
-        );
-      },
-    );
-
-    return purchaseCodeReceived;
-  }
-
-  // Common refund logic
-  Future<void> proceed({required String receiptType}) async {
-    try {
-      // Perform refund operations
-      if (receiptType == "CR") {
-        await handleReceipt(filterType: FilterType.CR);
-      } else if (receiptType == "CS") {
-        await handleReceipt(filterType: FilterType.CS);
-      } else if (receiptType == "TR") {
-        await handleReceipt(filterType: FilterType.TR);
-      } else if (receiptType == "NR") {
-        List<TransactionItem> items =
-            await ProxyService.getStrategy(Strategy.capella)
-                .transactionItems(transactionId: widget.transactionId);
-
-        for (TransactionItem item in items) {
-          Variant? variant = await ProxyService.getStrategy(Strategy.capella)
-              .getVariant(id: item.variantId);
-          if (variant != null) {
-            if (variant.itemTyCd != "3") {
-              await ProxyService.strategy.updateStock(
-                stockId: variant.stockId!,
-                currentStock: item.qty.toDouble(),
-                appending: true,
-              );
-            }
-          }
-        }
-        //TODO: handle failures what happen if failure happen in handleReceipt yet we have added stock back to the inventory??
-        await handleReceipt(filterType: FilterType.NR);
-        talker.info(
-            "Original transaction ${widget.transaction!.id} marked as refunded");
-      }
-    } catch (e) {
-      talker.error(e);
-      rethrow;
+  Future<void> _onPrintCopyTap(BuildContext context) async {
+    final tx = widget.transaction!;
+    if (tx.receiptType == 'TS') {
+      toast('This receipt does not have a copy to print');
+      return;
     }
-  }
 
-  Future<void> handleReceipt({required FilterType filterType}) async {
+    final needsPurchaseCode =
+        tx.customerTin != null && tx.customerTin!.isNotEmpty;
+    if (needsPurchaseCode) {
+      final ok = await TransactionRefundService.showPurchaseCodeDialog(context);
+      if (!ok) return;
+    }
+
+    setState(() => isPrintingCopy = true);
     try {
-      setState(() {
-        // Set the correct loading state based on the operation
-        // For CS (Copy Sales) and CR (Copy Refund), we're printing a copy receipt
-        // For all other filter types, we're processing a refund
-        if (filterType == FilterType.CS ||
-            filterType == FilterType.CR ||
-            filterType == FilterType.CP) {
-          isPrintingCopy = true;
-          isRefundProcessing = false;
-        } else {
-          isRefundProcessing = true;
-          isPrintingCopy = false;
-        }
-      });
-
-      // Log the refund process start
-      talker.info(
-          "Processing ${filterType.toString()} for transaction ${widget.transaction!.id}");
-
-      // For refund operations (NR, CR, TR), ensure we're creating a new transaction with correct properties
-      if (filterType == FilterType.NR ||
-          filterType == FilterType.CR ||
-          filterType == FilterType.TR) {
-        talker.info(
-            "Creating refund transaction with receipt type: ${getStringReceiptType(filterType)}");
-      }
-
-      await TaxController(object: widget.transaction)
-          .handleReceipt(filterType: filterType);
-
-      // Only mark as refunded if it's a refund operation and successful
-      if (filterType == FilterType.NR ||
-          filterType == FilterType.CR ||
-          filterType == FilterType.TR) {
-        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
-          transaction: widget.transaction!,
-          isRefunded: true,
+      if (tx.receiptType == 'PS') {
+        await _refundService.handleReceiptCopy(
+          transaction: tx,
+          filterType: (tx.isRefunded ?? false)
+              ? FilterType.PR
+              : FilterType.CP,
         );
-        talker.info(
-            "Transaction ${widget.transaction!.id} marked as refunded after successful receipt handling.");
-        await ProxyService.strategy.updateShiftTotals(
-          transactionAmount: widget.refundAmount,
-          isRefund: true,
+      } else {
+        await _refundService.handleReceiptCopy(
+          transaction: tx,
+          filterType: (tx.isRefunded ?? false)
+              ? FilterType.CR
+              : FilterType.CS,
         );
       }
-
-      setState(() {
-        // Reset the loading state when done
-        if (filterType == FilterType.CS ||
-            filterType == FilterType.CR ||
-            filterType == FilterType.CP) {
-          isPrintingCopy = false;
-        } else {
-          isRefundProcessing = false;
-        }
-      });
-    } catch (e) {
-      talker.critical(e);
-      setState(() {
-        // Reset loading states in case of error
-        if (filterType == FilterType.CS ||
-            filterType == FilterType.CR ||
-            filterType == FilterType.CP) {
-          isPrintingCopy = false;
-        } else {
-          isRefundProcessing = false;
-        }
-      });
-      rethrow;
+    } catch (e, s) {
+      toast(e.toString());
+      talker.error(s);
+    } finally {
+      if (mounted) setState(() => isPrintingCopy = false);
     }
   }
 }

@@ -66,6 +66,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/digital_receipt_service.dart';
+import 'package:flipper_services/receipt_sync_service.dart';
 import 'package:flipper_services/supabase_session_service.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
@@ -2122,6 +2123,11 @@ class CoreSync extends AiStrategyImpl
       return result.uploadedItem.path;
     } catch (e) {
       talker.error("Error uploading file to S3: $e");
+      if (ReceiptSyncService.isUploadNetworkError(e)) {
+        talker.warning(
+          'Receipt upload deferred — will retry when internet is available',
+        );
+      }
       rethrow;
     }
   }

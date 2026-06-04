@@ -975,6 +975,9 @@ mixin TransactionMixin implements TransactionInterface {
     String? customerBhfId,
     double? cashReceived,
     bool? isRefunded,
+    double? refundedAmount,
+    String? refundReason,
+    String? refundMethod,
     String? customerName,
     String? ticketName,
     DateTime? updatedAt,
@@ -1037,6 +1040,9 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.customerId = customerId ?? transaction.customerId;
     transaction.customerType = customerType ?? transaction.customerType;
     transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+    transaction.refundedAmount = refundedAmount ?? transaction.refundedAmount;
+    transaction.refundReason = refundReason ?? transaction.refundReason;
+    transaction.refundMethod = refundMethod ?? transaction.refundMethod;
     transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
     transaction.sarNo = sarNo ?? transaction.sarNo;
     transaction.orgSarNo = orgSarNo ?? transaction.orgSarNo;
