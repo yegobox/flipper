@@ -74,5 +74,274 @@
     "addMembers": "Add Members",
     "@addMembers": {
         "description": "Add Members"
+    },
+    "logOut": "Log out",
+    "@logOut": {
+        "description": "Log out action"
+    },
+    "syncCounter": "Sync counter",
+    "@syncCounter": {
+        "description": "Synchronize counter action"
+    },
+    "resetTransaction": "Reset Transaction",
+    "@resetTransaction": {
+        "description": "Reset transaction action"
+    },
+    "resetTransactionQuestion": "Reset Transaction?",
+    "@resetTransactionQuestion": {
+        "description": "Reset transaction confirmation title"
+    },
+    "resetTransactionDescription": "This will delete the current pending transaction and all its items. This action cannot be undone.",
+    "@resetTransactionDescription": {
+        "description": "Reset transaction confirmation description"
+    },
+    "transactionResetSuccessfully": "Transaction reset successfully",
+    "@transactionResetSuccessfully": {
+        "description": "Success message after resetting a transaction"
+    },
+    "errorResettingTransaction": "Error resetting transaction: {error}",
+    "@errorResettingTransaction": {
+        "description": "Error message after failing to reset a transaction",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "selectedContactHasNoPhoneNumber": "Selected contact has no phone number",
+    "@selectedContactHasNoPhoneNumber": {
+        "description": "Contact picker error message"
+    },
+    "contactsPermissionRequired": "Contacts permission is required to pick a contact",
+    "@contactsPermissionRequired": {
+        "description": "Contact picker permission snackbar"
+    },
+    "permissionRequired": "Permission Required",
+    "@permissionRequired": {
+        "description": "Permission dialog title"
+    },
+    "contactsPermissionDeniedSettings": "Contacts permission has been permanently denied. Please enable it in your device settings to use this feature.",
+    "@contactsPermissionDeniedSettings": {
+        "description": "Contact picker permission denied dialog body"
+    },
+    "cancel": "Cancel",
+    "@cancel": {
+        "description": "Cancel action"
+    },
+    "openSettings": "Open Settings",
+    "@openSettings": {
+        "description": "Open device settings action"
+    },
+    "errorMessage": "Error: {error}",
+    "@errorMessage": {
+        "description": "Generic error message",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "error": "Error",
+    "@error": {
+        "description": "Generic error title"
+    },
+    "pickFromContacts": "Pick from contacts",
+    "@pickFromContacts": {
+        "description": "Contact picker tooltip"
+    },
+    "linkDevice": "Link Device",
+    "@linkDevice": {
+        "description": "Link device screen title"
+    },
+    "useFlipperOnOtherDevices": "Use Flipper on other Devices",
+    "@useFlipperOnOtherDevices": {
+        "description": "Link device screen subtitle"
+    },
+    "linkADevice": "Link A Device",
+    "@linkADevice": {
+        "description": "Link a device button"
+    },
+    "pinCode": "PIN: {pin}",
+    "@pinCode": {
+        "description": "PIN display for linking a device",
+        "placeholders": {
+            "pin": {}
+        }
+    },
+    "listOfConnectedDevices": "List of connected Devices",
+    "@listOfConnectedDevices": {
+        "description": "Connected devices list title"
+    },
+    "paymentTitle": "Payment: {paymentType}",
+    "@paymentTitle": {
+        "description": "Payment confirmation app bar title",
+        "placeholders": {
+            "paymentType": {}
+        }
+    },
+    "digitalReceipt": "Digital Receipt",
+    "@digitalReceipt": {
+        "description": "Digital receipt dialog title"
+    },
+    "needDigitalReceipt": "Do you need a digital receipt?",
+    "@needDigitalReceipt": {
+        "description": "Digital receipt prompt"
+    },
+    "purchaseCode": "Purchase Code",
+    "@purchaseCode": {
+        "description": "Purchase code field label"
+    },
+    "pleaseEnterPurchaseCode": "Please enter a purchase code",
+    "@pleaseEnterPurchaseCode": {
+        "description": "Purchase code validation message"
+    },
+    "submit": "Submit",
+    "@submit": {
+        "description": "Submit action"
+    },
+    "done": "Done",
+    "@done": {
+        "description": "Completion status"
+    },
+    "receipt": "Receipt",
+    "@receipt": {
+        "description": "Receipt action"
+    },
+    "addNote": "Add Note",
+    "@addNote": {
+        "description": "Add note action"
+    },
+    "generatingReceiptWait": "Please wait we are generating the receipt",
+    "@generatingReceiptWait": {
+        "description": "Receipt generation wait message"
+    },
+    "poweredBy": "Powered By",
+    "@poweredBy": {
+        "description": "Powered by label"
+    },
+    "returnToHome": "Return to Home",
+    "@returnToHome": {
+        "description": "Return home action"
+    },
+    "personalGoals": "Personal goals",
+    "@personalGoals": {
+        "description": "Personal goals screen title"
+    },
+    "selectBranchToManageGoals": "Select a branch to manage goals.",
+    "@selectBranchToManageGoals": {
+        "description": "Personal goals empty branch message"
+    },
+    "couldNotLoadGoals": "Could not load goals\n{error}",
+    "@couldNotLoadGoals": {
+        "description": "Personal goals load error",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "personalGoalsEyebrow": "PERSONAL GOALS",
+    "@personalGoalsEyebrow": {
+        "description": "Personal goals section eyebrow"
+    },
+    "totalReservedAcrossGoals": "Total reserved across {count, plural, =1{1 goal} other{{count} goals}}",
+    "@totalReservedAcrossGoals": {
+        "description": "Personal goals total reserved summary",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "savedThisMonth": "Saved this month",
+    "@savedThisMonth": {
+        "description": "Personal goals saved this month label"
+    },
+    "onTrackCount": "{count} on track",
+    "@onTrackCount": {
+        "description": "Personal goals on track count",
+        "placeholders": {
+            "count": {}
+        }
+    },
+    "goalsProgressing": "Goals progressing",
+    "@goalsProgressing": {
+        "description": "Personal goals progressing label"
+    },
+    "allGoals": "All goals",
+    "@allGoals": {
+        "description": "All goals section title"
+    },
+    "personalGoalsProfitGrowth": "Flipper quietly grows each goal from your profits.",
+    "@personalGoalsProfitGrowth": {
+        "description": "Personal goals helper text"
+    },
+    "searchProducts": "Search products…",
+    "@searchProducts": {
+        "description": "Product search placeholder"
+    },
+    "clearSelection": "Clear selection",
+    "@clearSelection": {
+        "description": "Clear selected products action"
+    },
+    "itemsSelected": "{count, plural, =1{1 item selected} other{{count} items selected}}",
+    "@itemsSelected": {
+        "description": "Selected product count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "cannotDeleteVariantWithStockRemaining": "Cannot delete variant with stock remaining.",
+    "@cannotDeleteVariantWithStockRemaining": {
+        "description": "Product delete validation error"
+    },
+    "deleteMultipleItems": "Delete Multiple Items",
+    "@deleteMultipleItems": {
+        "description": "Bulk delete confirmation title"
+    },
+    "deleteItemsConfirmation": "Are you sure you want to delete {count, plural, =1{1 item} other{{count} items}}? This action cannot be undone.",
+    "@deleteItemsConfirmation": {
+        "description": "Bulk delete confirmation body",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "refreshProducts": "Refresh products",
+    "@refreshProducts": {
+        "description": "Refresh products action"
+    },
+    "productsSyncingHint": "If you just opened the app, products may still be syncing — tap refresh.",
+    "@productsSyncingHint": {
+        "description": "Product list empty state syncing hint"
+    },
+    "errorLoadingProducts": "Error loading products",
+    "@errorLoadingProducts": {
+        "description": "Product loading error title"
+    },
+    "retry": "Retry",
+    "@retry": {
+        "description": "Retry action"
+    },
+    "noStockDataAvailable": "No stock data available",
+    "@noStockDataAvailable": {
+        "description": "No stock data empty state"
+    },
+    "cash": "Cash",
+    "@cash": {
+        "description": "Cash payment method"
+    },
+    "credit": "Credit",
+    "@credit": {
+        "description": "Credit payment method"
+    },
+    "momoPayerPhone": "MoMo payer phone",
+    "@momoPayerPhone": {
+        "description": "Mobile money payer phone label"
+    },
+    "momoPaymentRequestHint": "We will send a payment request to this number when you tap Charge.",
+    "@momoPaymentRequestHint": {
+        "description": "Mobile money payment request helper"
+    },
+    "exact": "Exact",
+    "@exact": {
+        "description": "Exact cash amount shortcut"
     }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/cashbook.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/personal_goal.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,9 @@ String formatRwfCompact(double v) {
   if (v >= 1e9) return 'RWF ${(v / 1e9).toStringAsFixed(1)}B';
   if (v >= 1e6) {
     final x = v / 1e6;
-    final s = x == x.roundToDouble() ? x.round().toString() : x.toStringAsFixed(1);
+    final s = x == x.roundToDouble()
+        ? x.round().toString()
+        : x.toStringAsFixed(1);
     return 'RWF ${s}M';
   }
   if (v >= 1e3) return 'RWF ${(v / 1e3).round()}K';
@@ -40,11 +43,13 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
     if (branchId == null || branchId.isEmpty) {
       return Scaffold(
         appBar: CustomAppBar(
-          title: 'Personal goals',
+          title: FLocalization.of(context).personalGoals,
           barBackgroundColor: _pageBg,
           onPop: () => Navigator.of(context).maybePop(),
         ),
-        body: const Center(child: Text('Select a branch to manage goals.')),
+        body: Center(
+          child: Text(FLocalization.of(context).selectBranchToManageGoals),
+        ),
       );
     }
 
@@ -53,14 +58,15 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
     return Scaffold(
       backgroundColor: _pageBg,
       appBar: CustomAppBar(
-        title: 'Personal goals',
+        title: FLocalization.of(context).personalGoals,
         barBackgroundColor: _pageBg,
         onPop: () => Navigator.of(context).maybePop(),
       ),
       body: asyncGoals.when(
         data: (goals) => _buildBody(context, branchId, goals),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Could not load goals\n$e')),
+        error: (e, _) =>
+            Center(child: Text(FLocalization.of(context).couldNotLoadGoals(e))),
       ),
     );
   }
@@ -74,9 +80,9 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
     final onTrack = goals.where((g) => g.progressRatio >= 0.5).length;
     final top =
         goals.cast<PersonalGoal?>().firstWhere(
-              (g) => g?.isTopPriority == true,
-              orElse: () => null,
-            ) ??
+          (g) => g?.isTopPriority == true,
+          orElse: () => null,
+        ) ??
         (goals.isNotEmpty ? goals.first : null);
 
     return RefreshIndicator(
@@ -87,7 +93,7 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
           Text(
-            'PERSONAL GOALS',
+            FLocalization.of(context).personalGoalsEyebrow,
             style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -106,8 +112,11 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Total reserved across ${goals.length} goal${goals.length == 1 ? '' : 's'}',
-            style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey.shade600),
+            FLocalization.of(context).totalReservedAcrossGoals(goals.length),
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
           ),
           const SizedBox(height: 20),
           if (top != null) _TopPriorityCard(goal: top, branchId: branchId),
@@ -118,22 +127,22 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
                 child: _SummaryCard(
                   title: formatRwfCompact(0),
                   titleColor: _purple,
-                  subtitle: 'Saved this month',
+                  subtitle: FLocalization.of(context).savedThisMonth,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _SummaryCard(
-                  title: '$onTrack on track',
+                  title: FLocalization.of(context).onTrackCount(onTrack),
                   titleColor: Colors.black87,
-                  subtitle: 'Goals progressing',
+                  subtitle: FLocalization.of(context).goalsProgressing,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
           Text(
-            'All goals',
+            FLocalization.of(context).allGoals,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -142,8 +151,11 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Flipper quietly grows each goal from your profits.',
-            style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey.shade600),
+            FLocalization.of(context).personalGoalsProfitGrowth,
+            style: GoogleFonts.outfit(
+              fontSize: 13,
+              color: Colors.grey.shade600,
+            ),
           ),
           const SizedBox(height: 16),
           ...goals.map(
@@ -153,8 +165,7 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
                 goal: g,
                 branchId: branchId,
                 onAddMoney: () => unawaited(_navigateCashInForGoal(context, g)),
-                onEdit: () =>
-                    unawaited(_openGoalEditor(context, branchId, g)),
+                onEdit: () => unawaited(_openGoalEditor(context, branchId, g)),
               ),
             ),
           ),
@@ -166,11 +177,14 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
     );
   }
 
-  Future<void> _navigateCashInForGoal(BuildContext context, PersonalGoal g) async {
+  Future<void> _navigateCashInForGoal(
+    BuildContext context,
+    PersonalGoal g,
+  ) async {
     HapticFeedback.lightImpact();
-    ref.read(personalGoalCashInIntentProvider.notifier).setIntent(
-          PersonalGoalCashInIntent(goalId: g.id, goalName: g.name),
-        );
+    ref
+        .read(personalGoalCashInIntentProvider.notifier)
+        .setIntent(PersonalGoalCashInIntent(goalId: g.id, goalName: g.name));
     if (!context.mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
@@ -199,7 +213,8 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
     final id = existing?.id ?? const Uuid().v4();
     final now = DateTime.now();
     if (isTopPriority) {
-      final current = ref.read(personalGoalsStreamProvider(branchId)).value ??
+      final current =
+          ref.read(personalGoalsStreamProvider(branchId)).value ??
           <PersonalGoal>[];
       for (final g in current) {
         if (g.id != id && g.isTopPriority) {
@@ -225,10 +240,7 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
 }
 
 class _TopPriorityCard extends ConsumerWidget {
-  const _TopPriorityCard({
-    required this.goal,
-    required this.branchId,
-  });
+  const _TopPriorityCard({required this.goal, required this.branchId});
 
   final PersonalGoal goal;
   final String branchId;
@@ -345,7 +357,9 @@ class _TopPriorityCard extends ConsumerWidget {
                   onChanged: (v) async {
                     final PersonalGoal next;
                     if (v) {
-                      next = goal.copyWith(autoAllocationPercent: autoPct ?? 15);
+                      next = goal.copyWith(
+                        autoAllocationPercent: autoPct ?? 15,
+                      );
                     } else {
                       next = goal.copyWith(clearAutoAllocationPercent: true);
                     }
@@ -427,7 +441,10 @@ class _SummaryCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               subtitle,
-              style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey.shade600),
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
             ),
           ],
         ),
@@ -860,7 +877,10 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.close_rounded, color: Colors.grey.shade600),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: Colors.grey.shade600,
+                      ),
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.grey.shade100,
                         padding: const EdgeInsets.all(8),

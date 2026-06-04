@@ -1,4 +1,5 @@
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -18,7 +19,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 
 class PaymentConfirmation extends StatefulHookConsumerWidget {
   const PaymentConfirmation({Key? key, required this.transaction})
-      : super(key: key);
+    : super(key: key);
   final ITransaction transaction;
 
   @override
@@ -32,9 +33,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   final _formKey = GlobalKey<FormState>();
 
   /// Stream may be empty when opening from Transactions (historical sale).
-  ITransaction _resolveTransaction(
-    AsyncValue<List<ITransaction>> watched,
-  ) {
+  ITransaction _resolveTransaction(AsyncValue<List<ITransaction>> watched) {
     final list = watched.asData?.value;
     if (list != null && list.isNotEmpty) return list.first;
     return widget.transaction;
@@ -47,8 +46,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction =
-        ref.watch(currentTransactionsByIdStream(widget.transaction.id));
+    final currentTransaction = ref.watch(
+      currentTransactionsByIdStream(widget.transaction.id),
+    );
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -57,7 +57,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           child: Scaffold(
             appBar: CustomAppBar(
               isDividerVisible: false,
-              title: 'Payment: ${widget.transaction.paymentType}',
+              title: FLocalization.of(
+                context,
+              ).paymentTitle(widget.transaction.paymentType ?? ''),
               icon: Icons.close,
               onPop: () => _routerService.clearStackAndShow(FlipperAppRoute()),
             ),
@@ -66,8 +68,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         );
       },
       onViewModelReady: (model) {
-        WidgetsBinding.instance
-            .addPostFrameCallback((_) => showDigitalReceiptDialog(context));
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => showDigitalReceiptDialog(context),
+        );
       },
     );
   }
@@ -79,7 +82,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         builder: (BuildContext context) {
           final double height = MediaQuery.of(context).size.height * 0.8;
           return AlertDialog(
-            title: Text('Digital Receipt'),
+            title: Text(FLocalization.of(context).digitalReceipt),
             content: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: height),
               child: Form(
@@ -87,13 +90,15 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Text('Do you need a digital receipt?'),
+                    Text(FLocalization.of(context).needDigitalReceipt),
                     TextFormField(
                       controller: _controller,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Purchase Code'),
+                      decoration: InputDecoration(
+                        labelText: FLocalization.of(context).purchaseCode,
+                      ),
                       validator: (value) => value?.isEmpty ?? true
-                          ? 'Please enter a purchase code'
+                          ? FLocalization.of(context).pleaseEnterPurchaseCode
                           : null,
                       onFieldSubmitted: (value) {},
                       onSaved: (value) {},
@@ -104,7 +109,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             ),
             actions: <Widget>[
               BoxButton(
-                title: 'Submit',
+                title: FLocalization.of(context).submit,
                 busy: _busy,
                 onTap: () async {
                   if (_formKey.currentState?.validate() ?? false) {
@@ -114,13 +119,14 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                       widget.transaction.id,
                     );
                     await handleReceiptGeneration(
-                        purchaseCode: _controller.text,
-                        filterType: FilterType.NS);
+                      purchaseCode: _controller.text,
+                      filterType: FilterType.NS,
+                    );
                   }
                 },
               ),
               TextButton(
-                child: Text('Cancel'),
+                child: Text(FLocalization.of(context).cancel),
                 onPressed: () async {
                   await handleReceiptGeneration(filterType: FilterType.NS);
                 },
@@ -132,21 +138,31 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     }
   }
 
-  Future<void> handleReceiptGeneration(
-      {String? purchaseCode, required FilterType filterType}) async {
+  Future<void> handleReceiptGeneration({
+    String? purchaseCode,
+    required FilterType filterType,
+  }) async {
     try {
-      await TaxController(object: widget.transaction)
-          .handleReceipt(filterType: filterType);
+      await TaxController(
+        object: widget.transaction,
+      ).handleReceipt(filterType: filterType);
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);
-      showSnackBar(context, e.toString().split(': ').last,
-          textColor: Colors.white, backgroundColor: Colors.green);
+      showSnackBar(
+        context,
+        e.toString().split(': ').last,
+        textColor: Colors.white,
+        backgroundColor: Colors.green,
+      );
     }
   }
 
-  Widget buildBody(BuildContext context, CoreViewModel model,
-      AsyncValue<List<ITransaction>> currentTransactionWatched) {
+  Widget buildBody(
+    BuildContext context,
+    CoreViewModel model,
+    AsyncValue<List<ITransaction>> currentTransactionWatched,
+  ) {
     return SizedBox(
       width: double.infinity,
       child: Stack(
@@ -160,18 +176,23 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                   child: Icon(Icons.check, size: 44, color: Color(0xFF4CAF50)),
                 ),
                 const SizedBox(height: 51),
-                Text('Done',
-                    style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 20,
-                        color: Colors.black)),
+                Text(
+                  FLocalization.of(context).done,
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 20,
+                    color: Colors.black,
+                  ),
+                ),
                 const SizedBox(height: 40),
                 Text(
-                    '${ProxyService.box.defaultCurrency()} ${NumberFormat('#,###').format(widget.transaction.cashReceived)}',
-                    style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 18,
-                        color: Colors.black)),
+                  '${ProxyService.box.defaultCurrency()} ${NumberFormat('#,###').format(widget.transaction.cashReceived)}',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 18,
+                    color: Colors.black,
+                  ),
+                ),
               ],
             ),
           ),
@@ -179,16 +200,22 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             bottom: 20,
             right: 0,
             left: 0,
-            child:
-                buildBottomButtons(context, model, currentTransactionWatched),
+            child: buildBottomButtons(
+              context,
+              model,
+              currentTransactionWatched,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget buildBottomButtons(BuildContext context, CoreViewModel model,
-      AsyncValue<List<ITransaction>> currentTransactionWatched) {
+  Widget buildBottomButtons(
+    BuildContext context,
+    CoreViewModel model,
+    AsyncValue<List<ITransaction>> currentTransactionWatched,
+  ) {
     return Column(
       children: [
         Row(
@@ -196,24 +223,25 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           children: [
             buildOutlinedButton(
               onPressed: () async {
-                final transaction =
-                    _resolveTransaction(currentTransactionWatched);
+                final transaction = _resolveTransaction(
+                  currentTransactionWatched,
+                );
                 if (transaction.ebmSynced == true) {
                   await TaxController(object: transaction).handleReceipt(
                     skiGenerateRRAReceiptSignature: true,
                     filterType: FilterType.NS,
                   );
                 } else {
-                  toast("Please wait we are generating the receipt");
+                  toast(FLocalization.of(context).generatingReceiptWait);
                 }
               },
-              label: 'Receipt',
+              label: FLocalization.of(context).receipt,
               color: Colors.green,
               sideColor: Colors.green,
             ),
             buildOutlinedButton(
               onPressed: () {},
-              label: 'Add Note',
+              label: FLocalization.of(context).addNote,
               color: Colors.black,
               sideColor: Color(0xFF4CAF50),
             ),
@@ -227,11 +255,12 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     );
   }
 
-  Widget buildOutlinedButton(
-      {required VoidCallback onPressed,
-      required String label,
-      required Color color,
-      required Color sideColor}) {
+  Widget buildOutlinedButton({
+    required VoidCallback onPressed,
+    required String label,
+    required Color color,
+    required Color sideColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(top: 15.0),
       child: SizedBox(
@@ -241,17 +270,26 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           onPressed: onPressed,
           style: ButtonStyle(
             side: WidgetStateProperty.all<BorderSide>(
-                BorderSide(color: sideColor)),
-            shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
-                RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0))),
+              BorderSide(color: sideColor),
+            ),
+            shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
+              (states) => RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
             backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
             overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) => sideColor),
+              (Set<WidgetState> states) => sideColor,
+            ),
           ),
-          child: Text(label,
-              style: GoogleFonts.outfit(
-                  fontSize: 14, color: color, fontWeight: FontWeight.w600)),
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
     );
@@ -261,33 +299,36 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Powered By'),
+        Text(FLocalization.of(context).poweredBy),
         const SizedBox(width: 30),
         SizedBox(
-            height: 21,
-            width: 21,
-            child:
-                Image.asset("assets/logo.png", package: 'flipper_dashboard')),
+          height: 21,
+          width: 21,
+          child: Image.asset("assets/logo.png", package: 'flipper_dashboard'),
+        ),
       ],
     );
   }
 
-  Widget buildReturnToHomeButton(CoreViewModel model,
-      AsyncValue<List<ITransaction>> currentTransactionWatched) {
+  Widget buildReturnToHomeButton(
+    CoreViewModel model,
+    AsyncValue<List<ITransaction>> currentTransactionWatched,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 19.0),
       child: SizedBox(
         height: 60,
         width: double.infinity,
         child: BoxButton(
-          disabled: _streamHasLiveTransaction(currentTransactionWatched) &&
+          disabled:
+              _streamHasLiveTransaction(currentTransactionWatched) &&
               _resolveTransaction(currentTransactionWatched).ebmSynced != true,
           busy: model.handlingConfirm,
           onTap: () {
             model.handlingConfirm = true;
             _routerService.clearStackAndShow(FlipperAppRoute());
           },
-          title: "Return to Home",
+          title: FLocalization.of(context).returnToHome,
         ),
       ),
     );

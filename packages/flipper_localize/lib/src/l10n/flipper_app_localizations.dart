@@ -218,6 +218,360 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Add Members'**
   String get addMembers;
+
+  /// Log out action
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get logOut;
+
+  /// Synchronize counter action
+  ///
+  /// In en, this message translates to:
+  /// **'Sync counter'**
+  String get syncCounter;
+
+  /// Reset transaction action
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Transaction'**
+  String get resetTransaction;
+
+  /// Reset transaction confirmation title
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Transaction?'**
+  String get resetTransactionQuestion;
+
+  /// Reset transaction confirmation description
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete the current pending transaction and all its items. This action cannot be undone.'**
+  String get resetTransactionDescription;
+
+  /// Success message after resetting a transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction reset successfully'**
+  String get transactionResetSuccessfully;
+
+  /// Error message after failing to reset a transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Error resetting transaction: {error}'**
+  String errorResettingTransaction(Object error);
+
+  /// Contact picker error message
+  ///
+  /// In en, this message translates to:
+  /// **'Selected contact has no phone number'**
+  String get selectedContactHasNoPhoneNumber;
+
+  /// Contact picker permission snackbar
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts permission is required to pick a contact'**
+  String get contactsPermissionRequired;
+
+  /// Permission dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Permission Required'**
+  String get permissionRequired;
+
+  /// Contact picker permission denied dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts permission has been permanently denied. Please enable it in your device settings to use this feature.'**
+  String get contactsPermissionDeniedSettings;
+
+  /// Cancel action
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// Open device settings action
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
+
+  /// Generic error message
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorMessage(Object error);
+
+  /// Generic error title
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error;
+
+  /// Contact picker tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Pick from contacts'**
+  String get pickFromContacts;
+
+  /// Link device screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Link Device'**
+  String get linkDevice;
+
+  /// Link device screen subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Use Flipper on other Devices'**
+  String get useFlipperOnOtherDevices;
+
+  /// Link a device button
+  ///
+  /// In en, this message translates to:
+  /// **'Link A Device'**
+  String get linkADevice;
+
+  /// PIN display for linking a device
+  ///
+  /// In en, this message translates to:
+  /// **'PIN: {pin}'**
+  String pinCode(Object pin);
+
+  /// Connected devices list title
+  ///
+  /// In en, this message translates to:
+  /// **'List of connected Devices'**
+  String get listOfConnectedDevices;
+
+  /// Payment confirmation app bar title
+  ///
+  /// In en, this message translates to:
+  /// **'Payment: {paymentType}'**
+  String paymentTitle(Object paymentType);
+
+  /// Digital receipt dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Receipt'**
+  String get digitalReceipt;
+
+  /// Digital receipt prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Do you need a digital receipt?'**
+  String get needDigitalReceipt;
+
+  /// Purchase code field label
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Code'**
+  String get purchaseCode;
+
+  /// Purchase code validation message
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a purchase code'**
+  String get pleaseEnterPurchaseCode;
+
+  /// Submit action
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
+
+  /// Completion status
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// Receipt action
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get receipt;
+
+  /// Add note action
+  ///
+  /// In en, this message translates to:
+  /// **'Add Note'**
+  String get addNote;
+
+  /// Receipt generation wait message
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait we are generating the receipt'**
+  String get generatingReceiptWait;
+
+  /// Powered by label
+  ///
+  /// In en, this message translates to:
+  /// **'Powered By'**
+  String get poweredBy;
+
+  /// Return home action
+  ///
+  /// In en, this message translates to:
+  /// **'Return to Home'**
+  String get returnToHome;
+
+  /// Personal goals screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Personal goals'**
+  String get personalGoals;
+
+  /// Personal goals empty branch message
+  ///
+  /// In en, this message translates to:
+  /// **'Select a branch to manage goals.'**
+  String get selectBranchToManageGoals;
+
+  /// Personal goals load error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load goals\n{error}'**
+  String couldNotLoadGoals(Object error);
+
+  /// Personal goals section eyebrow
+  ///
+  /// In en, this message translates to:
+  /// **'PERSONAL GOALS'**
+  String get personalGoalsEyebrow;
+
+  /// Personal goals total reserved summary
+  ///
+  /// In en, this message translates to:
+  /// **'Total reserved across {count, plural, =1{1 goal} other{{count} goals}}'**
+  String totalReservedAcrossGoals(int count);
+
+  /// Personal goals saved this month label
+  ///
+  /// In en, this message translates to:
+  /// **'Saved this month'**
+  String get savedThisMonth;
+
+  /// Personal goals on track count
+  ///
+  /// In en, this message translates to:
+  /// **'{count} on track'**
+  String onTrackCount(Object count);
+
+  /// Personal goals progressing label
+  ///
+  /// In en, this message translates to:
+  /// **'Goals progressing'**
+  String get goalsProgressing;
+
+  /// All goals section title
+  ///
+  /// In en, this message translates to:
+  /// **'All goals'**
+  String get allGoals;
+
+  /// Personal goals helper text
+  ///
+  /// In en, this message translates to:
+  /// **'Flipper quietly grows each goal from your profits.'**
+  String get personalGoalsProfitGrowth;
+
+  /// Product search placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search products…'**
+  String get searchProducts;
+
+  /// Clear selected products action
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get clearSelection;
+
+  /// Selected product count
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item selected} other{{count} items selected}}'**
+  String itemsSelected(int count);
+
+  /// Product delete validation error
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete variant with stock remaining.'**
+  String get cannotDeleteVariantWithStockRemaining;
+
+  /// Bulk delete confirmation title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Multiple Items'**
+  String get deleteMultipleItems;
+
+  /// Bulk delete confirmation body
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {count, plural, =1{1 item} other{{count} items}}? This action cannot be undone.'**
+  String deleteItemsConfirmation(int count);
+
+  /// Refresh products action
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh products'**
+  String get refreshProducts;
+
+  /// Product list empty state syncing hint
+  ///
+  /// In en, this message translates to:
+  /// **'If you just opened the app, products may still be syncing — tap refresh.'**
+  String get productsSyncingHint;
+
+  /// Product loading error title
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading products'**
+  String get errorLoadingProducts;
+
+  /// Retry action
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No stock data empty state
+  ///
+  /// In en, this message translates to:
+  /// **'No stock data available'**
+  String get noStockDataAvailable;
+
+  /// Cash payment method
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get cash;
+
+  /// Credit payment method
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get credit;
+
+  /// Mobile money payer phone label
+  ///
+  /// In en, this message translates to:
+  /// **'MoMo payer phone'**
+  String get momoPayerPhone;
+
+  /// Mobile money payment request helper
+  ///
+  /// In en, this message translates to:
+  /// **'We will send a payment request to this number when you tap Charge.'**
+  String get momoPaymentRequestHint;
+
+  /// Exact cash amount shortcut
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get exact;
 }
 
 class _FlipperAppLocalizationsDelegate

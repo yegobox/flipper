@@ -74,5 +74,94 @@
     "addMembers": "Ajouter des membres",
     "@addMembers": {
         "description": "Add Members"
+    },
+    "logOut": "Se déconnecter",
+    "@logOut": {
+        "description": "Log out action"
+    },
+    "syncCounter": "Synchroniser le compteur",
+    "@syncCounter": {
+        "description": "Synchronize counter action"
+    },
+    "resetTransaction": "Réinitialiser la transaction",
+    "@resetTransaction": {
+        "description": "Reset transaction action"
+    },
+    "resetTransactionQuestion": "Réinitialiser la transaction ?",
+    "@resetTransactionQuestion": {
+        "description": "Reset transaction confirmation title"
+    },
+    "resetTransactionDescription": "Cela supprimera la transaction en attente actuelle et tous ses articles. Cette action est irréversible.",
+    "@resetTransactionDescription": {
+        "description": "Reset transaction confirmation description"
+    },
+    "transactionResetSuccessfully": "Transaction réinitialisée avec succès",
+    "@transactionResetSuccessfully": {
+        "description": "Success message after resetting a transaction"
+    },
+    "errorResettingTransaction": "Erreur lors de la réinitialisation de la transaction : {error}",
+    "@errorResettingTransaction": {
+        "description": "Error message after failing to reset a transaction",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "selectedContactHasNoPhoneNumber": "Le contact sélectionné n'a pas de numéro de téléphone",
+    "@selectedContactHasNoPhoneNumber": {
+        "description": "Contact picker error message"
+    },
+    "contactsPermissionRequired": "L'autorisation d'accéder aux contacts est requise pour choisir un contact",
+    "@contactsPermissionRequired": {
+        "description": "Contact picker permission snackbar"
+    },
+    "permissionRequired": "Autorisation requise",
+    "@permissionRequired": {
+        "description": "Permission dialog title"
+    },
+    "contactsPermissionDeniedSettings": "L'autorisation d'accéder aux contacts a été refusée définitivement. Activez-la dans les paramètres de votre appareil pour utiliser cette fonctionnalité.",
+    "@contactsPermissionDeniedSettings": {
+        "description": "Contact picker permission denied dialog body"
+    },
+    "cancel": "Annuler",
+    "@cancel": {
+        "description": "Cancel action"
+    },
+    "openSettings": "Ouvrir les paramètres",
+    "@openSettings": {
+        "description": "Open device settings action"
+    },
+    "errorMessage": "Erreur : {error}",
+    "@errorMessage": {
+        "description": "Generic error message",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "pickFromContacts": "Choisir dans les contacts",
+    "@pickFromContacts": {
+        "description": "Contact picker tooltip"
+    },
+    "linkDevice": "Lier un appareil",
+    "@linkDevice": {
+        "description": "Link device screen title"
+    },
+    "useFlipperOnOtherDevices": "Utilisez Flipper sur d'autres appareils",
+    "@useFlipperOnOtherDevices": {
+        "description": "Link device screen subtitle"
+    },
+    "linkADevice": "Lier un appareil",
+    "@linkADevice": {
+        "description": "Link a device button"
+    },
+    "pinCode": "PIN : {pin}",
+    "@pinCode": {
+        "description": "PIN display for linking a device",
+        "placeholders": {
+            "pin": {}
+        }
+    },
+    "listOfConnectedDevices": "Liste des appareils connectés",
+    "@listOfConnectedDevices": {
+        "description": "Connected devices list title"
     }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/momo_ussd_service.dart';
 
@@ -81,8 +82,10 @@ class ContactPickerButton extends StatelessWidget {
 
   void _showNoPhoneError(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Selected contact has no phone number'),
+      SnackBar(
+        content: Text(
+          FLocalization.of(context).selectedContactHasNoPhoneNumber,
+        ),
         backgroundColor: Colors.orange,
       ),
     );
@@ -90,8 +93,8 @@ class ContactPickerButton extends StatelessWidget {
 
   void _showPermissionRequiredSnackbar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Contacts permission is required to pick a contact'),
+      SnackBar(
+        content: Text(FLocalization.of(context).contactsPermissionRequired),
         backgroundColor: Colors.orange,
       ),
     );
@@ -101,22 +104,21 @@ class ContactPickerButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Permission Required'),
-        content: const Text(
-          'Contacts permission has been permanently denied. '
-          'Please enable it in your device settings to use this feature.',
+        title: Text(FLocalization.of(context).permissionRequired),
+        content: Text(
+          FLocalization.of(context).contactsPermissionDeniedSettings,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(FLocalization.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               FlutterContacts.permissions.openSettings();
             },
-            child: const Text('Open Settings'),
+            child: Text(FLocalization.of(context).openSettings),
           ),
         ],
       ),
@@ -125,7 +127,10 @@ class ContactPickerButton extends StatelessWidget {
 
   void _showErrorSnackbar(BuildContext context, String error) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $error'), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(FLocalization.of(context).errorMessage(error)),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 
@@ -136,7 +141,7 @@ class ContactPickerButton extends StatelessWidget {
     return IconButton(
       icon: Icon(icon),
       iconSize: 22,
-      tooltip: tooltip ?? 'Pick from contacts',
+      tooltip: tooltip ?? FLocalization.of(context).pickFromContacts,
       onPressed: () => _pickContact(context),
       style: IconButton.styleFrom(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,

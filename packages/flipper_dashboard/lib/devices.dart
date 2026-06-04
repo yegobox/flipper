@@ -2,6 +2,7 @@
 
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -16,7 +17,7 @@ import 'package:flutter/material.dart';
 // Define a Riverpod provider for the device list
 final deviceListProvider = FutureProvider<List<Device>>((ref) async {
   // Watch for updates from the updateStream
-//  await ref.watch(deviceUpdateProvider.); // Wait for the first event
+  //  await ref.watch(deviceUpdateProvider.); // Wait for the first event
   return ProxyService.strategy.getDevices(
     businessId: ProxyService.box.getBusinessId()!,
   );
@@ -37,7 +38,7 @@ class Devices extends ConsumerWidget {
           onPop: () async {
             _routerService.pop();
           },
-          title: 'Link Device',
+          title: FLocalization.of(context).linkDevice,
           disableButton: false,
           showActionButton: false,
         ),
@@ -46,54 +47,51 @@ class Devices extends ConsumerWidget {
             Center(
               child: Container(
                 padding: const EdgeInsets.all(16),
-                child: Icon(
-                  Icons.devices,
-                  size: 64,
-                  color: Color(0xff006AFE),
-                ),
+                child: Icon(Icons.devices, size: 64, color: Color(0xff006AFE)),
               ),
             ),
             Text(
-              "Use Flipper on other Devices",
+              FLocalization.of(context).useFlipperOnOtherDevices,
               style: GoogleFonts.outfit(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w500,
                 color: Colors.black,
               ),
             ),
-            SizedBox(
-              height: 10,
-            ),
+            SizedBox(height: 10),
             SizedBox(
               width: MediaQuery.of(context).size.width - 40,
               height: 40,
               child: OutlinedButton(
-                child: Text('Link A Device',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    )),
+                child: Text(
+                  FLocalization.of(context).linkADevice,
+                  style: GoogleFonts.outfit(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
                 style: ButtonStyle(
                   shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
                     (states) => RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                   ),
-                  backgroundColor:
-                      WidgetStateProperty.all<Color>(const Color(0xff006AFE)),
-                  overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                    (Set<WidgetState> states) {
-                      if (states.contains(WidgetState.hovered)) {
-                        return Colors.blue.withValues(alpha: 0.04);
-                      }
-                      if (states.contains(WidgetState.focused) ||
-                          states.contains(WidgetState.pressed)) {
-                        return Colors.blue.withValues(alpha: 0.12);
-                      }
-                      return null; // Defer to the widget's default.
-                    },
+                  backgroundColor: WidgetStateProperty.all<Color>(
+                    const Color(0xff006AFE),
                   ),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((
+                    Set<WidgetState> states,
+                  ) {
+                    if (states.contains(WidgetState.hovered)) {
+                      return Colors.blue.withValues(alpha: 0.04);
+                    }
+                    if (states.contains(WidgetState.focused) ||
+                        states.contains(WidgetState.pressed)) {
+                      return Colors.blue.withValues(alpha: 0.12);
+                    }
+                    return null; // Defer to the widget's default.
+                  }),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -108,9 +106,7 @@ class Devices extends ConsumerWidget {
                 },
               ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Container(
               color: Colors.white70,
               width: MediaQuery.of(context).size.width - 40,
@@ -119,12 +115,14 @@ class Devices extends ConsumerWidget {
                 width: MediaQuery.of(context).size.width - 40,
                 height: 40,
                 child: OutlinedButton(
-                  child: Text('PIN: $pin',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      )),
+                  child: Text(
+                    FLocalization.of(context).pinCode(pin ?? ''),
+                    style: GoogleFonts.outfit(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),
                   style: ButtonStyle(
                     shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
                       (states) => RoundedRectangleBorder(
@@ -132,29 +130,28 @@ class Devices extends ConsumerWidget {
                       ),
                     ),
                     backgroundColor: WidgetStateProperty.all<Color>(
-                        Color.fromARGB(255, 255, 255, 255)),
-                    overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                      (Set<WidgetState> states) {
-                        if (states.contains(WidgetState.hovered)) {
-                          return Colors.blue.withValues(alpha: 0.04);
-                        }
-                        if (states.contains(WidgetState.focused) ||
-                            states.contains(WidgetState.pressed)) {
-                          return Colors.blue.withValues(alpha: 0.12);
-                        }
-                        return null; // Defer to the widget's default.
-                      },
+                      Color.fromARGB(255, 255, 255, 255),
                     ),
+                    overlayColor: WidgetStateProperty.resolveWith<Color?>((
+                      Set<WidgetState> states,
+                    ) {
+                      if (states.contains(WidgetState.hovered)) {
+                        return Colors.blue.withValues(alpha: 0.04);
+                      }
+                      if (states.contains(WidgetState.focused) ||
+                          states.contains(WidgetState.pressed)) {
+                        return Colors.blue.withValues(alpha: 0.12);
+                      }
+                      return null; // Defer to the widget's default.
+                    }),
                   ),
                   onPressed: () {},
                 ),
               ),
             ),
-            SizedBox(
-              height: 10,
-            ),
+            SizedBox(height: 10),
             Text(
-              "List of connected Devices",
+              FLocalization.of(context).listOfConnectedDevices,
               style: GoogleFonts.outfit(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w500,
@@ -178,9 +175,10 @@ class Devices extends ConsumerWidget {
                           icon: Icon(Icons.delete),
                           onPressed: () {
                             _dialogService.showCustomDialog(
-                                variant: DialogType.logOut,
-                                title: 'Log out',
-                                data: deviceList[index]);
+                              variant: DialogType.logOut,
+                              title: FLocalization.of(context).logOut,
+                              data: deviceList[index],
+                            );
                             ref.refresh(deviceListProvider);
                           },
                         ),
@@ -193,7 +191,7 @@ class Devices extends ConsumerWidget {
                 return CircularProgressIndicator();
               },
               error: (error, stackTrace) {
-                return Text('Error: $error');
+                return Text(FLocalization.of(context).errorMessage(error));
               },
             ),
           ],

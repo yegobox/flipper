@@ -1,8 +1,10 @@
-import 'package:flipper_dashboard/services/transaction_refund_service.dart';
-import 'package:flipper_models/mixins/TaxController.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
+import 'dart:io';
+
+import 'package:flipper_dashboard/services/stored_receipt_loader.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -14,24 +16,12 @@ class TransactionReceiptException implements Exception {
   String toString() => message;
 }
 
-/// Share, download, print, and view invoice for a completed transaction.
+/// Share, download, print, and view invoice using the PDF already stored at sale time.
 class TransactionReceiptActionsService {
-  TransactionReceiptActionsService();
+  TransactionReceiptActionsService({StoredReceiptLoader? loader})
+      : _loader = loader ?? StoredReceiptLoader();
 
-  FilterType resolveCopyFilterType(ITransaction transaction) {
-    final refunded = transaction.isRefunded == true;
-    final receiptType = transaction.receiptType;
-
-    if (receiptType == 'TS') {
-      throw TransactionReceiptException(
-        'Training receipts cannot be shared or printed.',
-      );
-    }
-    if (receiptType == 'PS') {
-      return refunded ? FilterType.CR : FilterType.PS;
-    }
-    return refunded ? FilterType.CR : FilterType.CS;
-  }
+  final StoredReceiptLoader _loader;
 
   Future<void> shareReceipt(
     BuildContext context,
@@ -58,7 +48,6 @@ class TransactionReceiptActionsService {
     await _present(context, transaction, mode: _ReceiptPresentationMode.print);
   }
 
-  /// Footer "Invoice" — opens the signed receipt (copy) when available.
   Future<void> viewInvoice(
     BuildContext context,
     ITransaction transaction,
@@ -72,72 +61,59 @@ class TransactionReceiptActionsService {
     required _ReceiptPresentationMode mode,
   }) async {
     try {
-      await _validateCanPresent(transaction);
+      _validateCanPresent(transaction);
       if (!context.mounted) return;
 
-      if (!await _ensurePurchaseCodeIfNeeded(context, transaction)) return;
-      if (!context.mounted) return;
-
-      final filterType = resolveCopyFilterType(transaction);
-
-      if (mode == _ReceiptPresentationMode.view ||
-          (mode == _ReceiptPresentationMode.print &&
-              !UniversalPlatform.isDesktopOrWeb)) {
-        final result = await TaxController(object: transaction).handleReceipt(
-          filterType: filterType,
-          persistReceiptTransactionFields: false,
-        );
-        if (result.response.resultCd != '000') {
-          throw TransactionReceiptException(
-            _messageFromResponse(result.response.resultMsg),
-          );
-        }
-        return;
-      }
-
-      final skipPresentation = mode == _ReceiptPresentationMode.download;
-      final result = await TaxController(object: transaction).handleReceipt(
-        filterType: filterType,
-        persistReceiptTransactionFields: false,
-        skipPresentation: skipPresentation,
-      );
-
-      if (result.response.resultCd != '000') {
+      final stored = await _loader.load(transaction);
+      if (stored == null) {
         throw TransactionReceiptException(
-          _messageFromResponse(result.response.resultMsg),
+          _missingFileMessage(transaction),
         );
       }
-
-      final bytes = result.bytes;
       if (!context.mounted) return;
+
+      final filename = _pdfFilename(transaction);
 
       switch (mode) {
-        case _ReceiptPresentationMode.download:
-          _showSnack(context, 'Receipt saved on this device.');
         case _ReceiptPresentationMode.share:
-          if (bytes == null) {
-            throw TransactionReceiptException(
-              'Receipt file was not generated.',
-            );
-          }
           await Printing.sharePdf(
-            bytes: bytes,
-            filename: _pdfFilename(transaction),
+            bytes: stored.bytes,
+            filename: filename,
             subject: 'Receipt · ${_referenceHint(transaction)}',
             body: 'Thank you for your purchase.',
           );
+        case _ReceiptPresentationMode.download:
+          await _saveAndOpenDownload(context, stored, filename);
         case _ReceiptPresentationMode.print:
-          if (bytes == null) {
-            throw TransactionReceiptException(
-              'Receipt file was not generated.',
+          if (UniversalPlatform.isDesktopOrWeb && !kIsWeb) {
+            await Printing.layoutPdf(
+              name: filename,
+              onLayout: (_) async => stored.bytes,
+            );
+          } else if (stored.localPath != null && !kIsWeb) {
+            await OpenFilex.open(stored.localPath!);
+          } else {
+            await Printing.sharePdf(
+              bytes: stored.bytes,
+              filename: filename,
+              subject: 'Receipt',
             );
           }
-          await Printing.layoutPdf(
-            name: _pdfFilename(transaction),
-            onLayout: (_) async => bytes,
-          );
         case _ReceiptPresentationMode.view:
-          break;
+          if (UniversalPlatform.isDesktopOrWeb && !kIsWeb) {
+            await Printing.layoutPdf(
+              name: filename,
+              onLayout: (_) async => stored.bytes,
+            );
+          } else if (stored.localPath != null && !kIsWeb) {
+            await OpenFilex.open(stored.localPath!);
+          } else {
+            await Printing.sharePdf(
+              bytes: stored.bytes,
+              filename: filename,
+              subject: 'Invoice',
+            );
+          }
       }
     } on TransactionReceiptException catch (e) {
       if (context.mounted) _showSnack(context, e.message, isError: true);
@@ -148,33 +124,59 @@ class TransactionReceiptActionsService {
     }
   }
 
-  Future<void> _validateCanPresent(ITransaction transaction) async {
+  void _validateCanPresent(ITransaction transaction) {
     if (transaction.receiptType == 'TS') {
       throw TransactionReceiptException(
         'Training receipts cannot be shared or printed.',
       );
     }
-
-    final receipt = await ProxyService.strategy.getReceipt(
-      transactionId: transaction.id,
-    );
-    if (receipt == null) {
-      throw TransactionReceiptException(
-        'Receipt is not available yet. Wait for sync to finish, then try again.',
-      );
+    final fileName = transaction.receiptFileName?.trim();
+    if (fileName == null || fileName.isEmpty) {
+      throw TransactionReceiptException(_missingFileMessage(transaction));
     }
   }
 
-  Future<bool> _ensurePurchaseCodeIfNeeded(
+  String _missingFileMessage(ITransaction transaction) {
+    if (transaction.receiptFileName == null ||
+        transaction.receiptFileName!.trim().isEmpty) {
+      return 'Receipt PDF is not saved for this sale yet. '
+          'Complete checkout with a receipt first.';
+    }
+    return 'Receipt PDF could not be loaded. '
+        'Check your connection and try again.';
+  }
+
+  Future<void> _saveAndOpenDownload(
     BuildContext context,
-    ITransaction transaction,
+    StoredReceipt stored,
+    String filename,
   ) async {
-    final tin = transaction.customerTin?.trim() ?? '';
-    if (tin.isEmpty) return true;
-    return TransactionRefundService.showPurchaseCodeDialog(context);
+    if (kIsWeb) {
+      await Printing.sharePdf(bytes: stored.bytes, filename: filename);
+      if (context.mounted) {
+        _showSnack(context, 'Receipt ready to save or share.');
+      }
+      return;
+    }
+
+    String path = stored.localPath ?? '';
+    if (path.isEmpty || !await File(path).exists()) {
+      final dir = await getApplicationDocumentsDirectory();
+      path = '${dir.path}/$filename';
+      await File(path).writeAsBytes(stored.bytes, flush: true);
+    }
+
+    await OpenFilex.open(path);
+    if (context.mounted) {
+      _showSnack(context, 'Receipt saved on this device.');
+    }
   }
 
   String _pdfFilename(ITransaction transaction) {
+    final stored = transaction.receiptFileName?.trim();
+    if (stored != null && stored.isNotEmpty) {
+      return stored.toLowerCase().endsWith('.pdf') ? stored : '$stored.pdf';
+    }
     final ref = transaction.reference?.trim();
     if (ref != null && ref.isNotEmpty) {
       final safe = ref.replaceAll(RegExp(r'[^\w\-]+'), '_');
@@ -187,15 +189,6 @@ class TransactionReceiptActionsService {
     final ref = transaction.reference?.trim();
     if (ref != null && ref.isNotEmpty) return ref;
     return transaction.id;
-  }
-
-  String _messageFromResponse(String? raw) {
-    if (raw == null || raw.trim().isEmpty) {
-      return 'Could not generate the receipt.';
-    }
-    final idx = raw.indexOf(': ');
-    if (idx != -1) return raw.substring(idx + 2).trim();
-    return raw.trim();
   }
 
   String _friendlyError(Object error) {

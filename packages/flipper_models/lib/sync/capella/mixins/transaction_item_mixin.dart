@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
+import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -70,7 +71,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       final lineTotal =
           item.totAmt?.toDouble() ??
           (item.price.toDouble() * item.qty.toDouble());
-      await (capella as dynamic)._dittoAdjustTransactionSubtotalByDelta(
+      await (capella as CapellaTransactionMixin)
+          .dittoAdjustTransactionSubtotalByDelta(
         transactionId: transaction.id,
         delta: lineTotal,
       );

@@ -74,5 +74,94 @@
     "addMembers": "Ongeramo abanyamuryango",
     "@addMembers": {
         "description": "Add Members"
+    },
+    "logOut": "Sohoka",
+    "@logOut": {
+        "description": "Log out action"
+    },
+    "syncCounter": "Huza kontwa",
+    "@syncCounter": {
+        "description": "Synchronize counter action"
+    },
+    "resetTransaction": "Subizaho igurisha",
+    "@resetTransaction": {
+        "description": "Reset transaction action"
+    },
+    "resetTransactionQuestion": "Subizaho igurisha?",
+    "@resetTransactionQuestion": {
+        "description": "Reset transaction confirmation title"
+    },
+    "resetTransactionDescription": "Ibi bizasiba igurisha ritegereje n'ibicuruzwa byaryo byose. Iki gikorwa ntigisubizwa inyuma.",
+    "@resetTransactionDescription": {
+        "description": "Reset transaction confirmation description"
+    },
+    "transactionResetSuccessfully": "Igurisha ryasubijweho neza",
+    "@transactionResetSuccessfully": {
+        "description": "Success message after resetting a transaction"
+    },
+    "errorResettingTransaction": "Habaye ikosa mu gusubizaho igurisha: {error}",
+    "@errorResettingTransaction": {
+        "description": "Error message after failing to reset a transaction",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "selectedContactHasNoPhoneNumber": "Kontaki wahisemo nta nimero ya telefoni ifite",
+    "@selectedContactHasNoPhoneNumber": {
+        "description": "Contact picker error message"
+    },
+    "contactsPermissionRequired": "Uruhushya rwo kureba kontaki rurakenewe kugira ngo uhitemo kontaki",
+    "@contactsPermissionRequired": {
+        "description": "Contact picker permission snackbar"
+    },
+    "permissionRequired": "Uruhushya rurakenewe",
+    "@permissionRequired": {
+        "description": "Permission dialog title"
+    },
+    "contactsPermissionDeniedSettings": "Uruhushya rwo kureba kontaki rwanze burundu. Rubashe mu igenamiterere ry'igikoresho cyawe kugira ngo ukoreshe iki gikorwa.",
+    "@contactsPermissionDeniedSettings": {
+        "description": "Contact picker permission denied dialog body"
+    },
+    "cancel": "Kureka",
+    "@cancel": {
+        "description": "Cancel action"
+    },
+    "openSettings": "Fungura igenamiterere",
+    "@openSettings": {
+        "description": "Open device settings action"
+    },
+    "errorMessage": "Ikosa: {error}",
+    "@errorMessage": {
+        "description": "Generic error message",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "pickFromContacts": "Hitamo muri kontaki",
+    "@pickFromContacts": {
+        "description": "Contact picker tooltip"
+    },
+    "linkDevice": "Huza igikoresho",
+    "@linkDevice": {
+        "description": "Link device screen title"
+    },
+    "useFlipperOnOtherDevices": "Koresha Flipper ku bindi bikoresho",
+    "@useFlipperOnOtherDevices": {
+        "description": "Link device screen subtitle"
+    },
+    "linkADevice": "Huza igikoresho",
+    "@linkADevice": {
+        "description": "Link a device button"
+    },
+    "pinCode": "PIN: {pin}",
+    "@pinCode": {
+        "description": "PIN display for linking a device",
+        "placeholders": {
+            "pin": {}
+        }
+    },
+    "listOfConnectedDevices": "Urutonde rw'ibikoresho byahujwe",
+    "@listOfConnectedDevices": {
+        "description": "Connected devices list title"
     }
 }

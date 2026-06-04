@@ -1173,7 +1173,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
 
       if (updatePendingTransactionSubtotal && delta != 0) {
-        await _dittoAdjustTransactionSubtotalByDelta(
+        await dittoAdjustTransactionSubtotalByDelta(
           transactionId: pendingTransaction.id,
           delta: delta,
         );
@@ -1382,7 +1382,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   /// Adjust transaction subtotal (Ditto forbids `field + :param` style updates for
   /// register fields — use read + scalar SET instead).
-  Future<void> _dittoAdjustTransactionSubtotalByDelta({
+  /// Adjust transaction subtotal in Ditto (read + scalar SET). Public so
+  /// [CapellaTransactionItemMixin] can bump subtotal after inserting a line.
+  Future<void> dittoAdjustTransactionSubtotalByDelta({
     required String transactionId,
     required double delta,
   }) async {
@@ -1417,7 +1419,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required double unitPrice,
     required double qtyDelta,
   }) async {
-    await _dittoAdjustTransactionSubtotalByDelta(
+    await dittoAdjustTransactionSubtotalByDelta(
       transactionId: transactionId,
       delta: unitPrice * qtyDelta,
     );
