@@ -1,5 +1,15 @@
 # Riverpod performance — budgets and regression
 
+Agent rule: `.cursor/rules/flipper-riverpod-perf.mdc` (also in workspace `yego-project/.cursor/rules/`). Read before adding providers or heavy `ref.watch` in Flipper.
+
+## Quick checklist for new code
+
+1. Can this widget use `select()` instead of watching the full async value?
+2. Can list data be **batched** in one provider instead of N family streams per row?
+3. Does a paged UI scope streams/queries to the **current page** (not full date range)?
+4. Are side effects (`cache`, `reconciliation`) wired with `ref.listen`, not `watch`?
+5. After cart changes, run `pos_cart_tap_sync_perf_test.dart`.
+
 ## Perf budgets
 
 | Path | Budget | Test |

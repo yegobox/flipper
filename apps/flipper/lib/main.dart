@@ -7,6 +7,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_rw/state_observer.dart';
 import 'package:flipper_models/amplify_config_helper.dart';
+import 'package:flipper_models/providers/provider_perf_observer.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goal_remote_contribution_listener.dart';
@@ -316,6 +317,11 @@ class _FlipperAppState extends State<FlipperApp> {
 
     return ProviderScope(
       observers: [StateObserver()],
+      overrides: kDebugMode
+      ? [
+          providerPerfTracingEnabledProvider.overrideWith((ref) => true),
+        ]
+      : const [],
       child: OverlaySupport.global(
         child: DevicePreview(
           enabled: kFlipperDevicePreviewEnabled,
