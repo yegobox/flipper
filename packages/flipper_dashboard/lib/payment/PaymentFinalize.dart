@@ -355,11 +355,10 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                           ),
                         ],
                         const SizedBox(height: 24),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                        Material(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          clipBehavior: Clip.antiAlias,
                           child: SwitchListTile(
                             title: const Text(
                               'Use different phone number',

@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:ui';
 
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
@@ -304,7 +305,7 @@ class _AppTileState extends State<_AppTile> {
                           alignment: Alignment.center,
                           child: Text(
                             widget.badge!,
-                            style: GoogleFonts.jetBrainsMono(
+                            style: FlipperFonts.mono(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,

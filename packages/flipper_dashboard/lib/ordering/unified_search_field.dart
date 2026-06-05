@@ -169,7 +169,9 @@ class UnifiedSearchField extends HookConsumerWidget {
               ),
             ),
           ),
-          child: ListTile(
+          child: Material(
+            color: Colors.transparent,
+            child: ListTile(
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16.0,
               vertical: 8.0,
@@ -196,6 +198,7 @@ class UnifiedSearchField extends HookConsumerWidget {
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               size: 20,
             ),
+          ),
           ),
         );
       },

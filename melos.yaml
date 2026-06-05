@@ -10,6 +10,9 @@ packages:
 
 ignore:
   - "*odm*"
+  # Swift Package Manager / Xcode build caches (e.g. firebase_crashlytics example)
+  - "**/build/**"
+  - "**/SourcePackages/**"
 command:
   version:
     linkToCommits: true

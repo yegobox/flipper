@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/features/leads/widgets/add_lead_sheet.dart';
 import 'package:flipper_dashboard/features/leads/widgets/lead_detail_dialog.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
@@ -261,7 +262,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: accent,
@@ -497,7 +498,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
                   lead.estimatedValue == null
                       ? '—'
                       : 'RWF ${formatNumber(lead.estimatedValue!.toDouble())}',
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontWeight: FontWeight.w800,
                     color: _ink,
                   ),
@@ -728,7 +729,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
             ),
             Text(
               '$v',
-              style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w800),
+              style: FlipperFonts.mono(fontWeight: FontWeight.w800),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -782,7 +783,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
             const SizedBox(height: 4),
             Text(
               'RWF ${formatNumber(pipelineValue)}',
-              style: GoogleFonts.jetBrainsMono(
+              style: FlipperFonts.mono(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
               ),
@@ -816,7 +817,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
             const SizedBox(height: 18),
             Text(
               '${((s?.conversionRate ?? 0) * 100).toStringAsFixed(0)}%',
-              style: GoogleFonts.jetBrainsMono(
+              style: FlipperFonts.mono(
                 fontSize: 40,
                 fontWeight: FontWeight.w900,
                 color: const Color(0xFF16A34A),
@@ -850,7 +851,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         Expanded(
           child: Text(k, style: GoogleFonts.outfit(color: _ink3)),
         ),
-        Text(v, style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w800)),
+        Text(v, style: FlipperFonts.mono(fontWeight: FontWeight.w800)),
       ],
     );
   }

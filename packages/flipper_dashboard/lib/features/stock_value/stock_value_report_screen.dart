@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:developer';
 
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
@@ -45,7 +46,7 @@ class StockValueReportScreen extends ConsumerWidget {
                   ),
                   child: Text(
                     '${r.productsCount} products',
-                    style: GoogleFonts.jetBrainsMono(
+                    style: FlipperFonts.mono(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,

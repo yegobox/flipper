@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:math' as math;
 
 import 'package:flipper_services/utils.dart';
@@ -132,7 +133,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
                     children: [
                       Text(
                         formatNumber(profitOrLoss) + ' RWF',
-                        style: GoogleFonts.jetBrainsMono(
+                        style: FlipperFonts.mono(
                           fontSize: fontSize,
                           color: color,
                           fontWeight: FontWeight.w600,
@@ -273,7 +274,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
         const SizedBox(height: 2),
         Text(
           mainNumber,
-          style: GoogleFonts.jetBrainsMono(
+          style: FlipperFonts.mono(
             fontSize: fontSize.clamp(22, 36),
             color: numberColor,
             fontWeight: FontWeight.w600,
@@ -303,7 +304,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
       children: [
         Text(
           formatNumber(amount) + ' RWF',
-          style: GoogleFonts.jetBrainsMono(
+          style: FlipperFonts.mono(
             fontSize: 16,
             color: Colors.black87,
             fontWeight: FontWeight.w600,
@@ -333,7 +334,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
         children: [
           Text(
             formatNumber(amount),
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 22,
               fontWeight: FontWeight.w600,
               color: valueColor,

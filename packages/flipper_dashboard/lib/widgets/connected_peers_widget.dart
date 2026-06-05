@@ -62,21 +62,12 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                 'Local Device',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.laptop, size: 20, color: Colors.blue),
-                ),
-                title: Text(localPeer.deviceName),
-                subtitle: Text(
-                  shortPeerKey(localPeer.deviceName),
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                ),
+              _PeerInfoRow(
+                icon: Icons.laptop,
+                iconColor: Colors.blue,
+                iconBackgroundColor: Colors.blue.withValues(alpha: 0.1),
+                title: localPeer.deviceName,
+                subtitle: shortPeerKey(localPeer.peerKey),
                 trailing: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -146,28 +137,12 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                     itemCount: peerList.length,
                     itemBuilder: (context, index) {
                       final peer = peerList[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.devices_other,
-                            size: 20,
-                            color: Colors.green,
-                          ),
-                        ),
-                        title: Text(peer.deviceName),
-                        subtitle: Text(
-                          shortPeerKey(peer.peerKeyString),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
+                      return _PeerInfoRow(
+                        icon: Icons.devices_other,
+                        iconColor: Colors.green,
+                        iconBackgroundColor: Colors.green.withValues(alpha: 0.1),
+                        title: peer.deviceName,
+                        subtitle: shortPeerKey(peer.peerKey),
                         trailing: const Icon(
                           Icons.sync,
                           color: Colors.green,
@@ -304,6 +279,60 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
       error: (_, __) => const Tooltip(
         message: 'Network check error',
         child: Icon(Icons.error_outline, color: Colors.red, size: 20),
+      ),
+    );
+  }
+}
+
+class _PeerInfoRow extends StatelessWidget {
+  const _PeerInfoRow({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBackgroundColor,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBackgroundColor;
+  final String title;
+  final String subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconBackgroundColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: iconColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
       ),
     );
   }

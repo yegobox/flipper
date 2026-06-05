@@ -652,28 +652,6 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       context: context,
       ticket: ticket,
       onResume: (t) => _resumeOrder(t),
-      onStatusChange: (newStatus) async {
-        try {
-          await ProxyService.getStrategy(Strategy.capella).updateTransaction(
-            transaction: ticket,
-            status: newStatus,
-            updatedAt: DateTime.now().toUtc(),
-          );
-          if (mounted) setState(() {});
-          showCustomSnackBarUtil(
-            context,
-            'Ticket status updated successfully',
-            backgroundColor: Colors.green,
-          );
-        } catch (e) {
-          talker.error('Failed to update status: $e');
-          showCustomSnackBarUtil(
-            context,
-            'Failed to update status',
-            backgroundColor: Colors.red,
-          );
-        }
-      },
     );
   }
 

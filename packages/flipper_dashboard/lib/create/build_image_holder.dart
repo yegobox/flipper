@@ -5,7 +5,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'close_button.dart';
-import 'package:feather_icons/feather_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_routing/app.router.dart';
 
@@ -44,8 +43,8 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(
-              FeatherIcons.tag,
+            const Icon(
+              Icons.sell_outlined,
               size: 80,
               color: Colors.white,
             ),

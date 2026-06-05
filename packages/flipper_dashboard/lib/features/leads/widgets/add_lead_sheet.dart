@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
@@ -520,7 +521,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 padding: const EdgeInsets.only(left: 12),
                 child: Text(
                   'RWF',
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontWeight: FontWeight.w800,
                     color: _ink3,
                   ),
@@ -533,7 +534,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     hintText: '0',
-                    hintStyle: GoogleFonts.jetBrainsMono(color: _ink3),
+                    hintStyle: FlipperFonts.mono(color: _ink3),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 8,

@@ -383,7 +383,9 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                 ),
                               ),
                               margin: const EdgeInsets.symmetric(vertical: 4),
-                              child: ListTile(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: ListTile(
                                 title: Text(
                                   variant.name,
                                   style: const TextStyle(
@@ -437,6 +439,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                     ),
                                   ],
                                 ),
+                              ),
                               ),
                             );
                           },

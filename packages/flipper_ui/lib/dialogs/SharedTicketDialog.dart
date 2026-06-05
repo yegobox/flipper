@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/park_transaction_provider.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_ui/widgets/async_action_gradient_button.dart';
+import 'package:flipper_ui/widgets/sheet_dismiss_button.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 /// MPOS park-transaction sheet tokens (design_handoff_mobile_pos).
@@ -1018,22 +1020,7 @@ class _ParkHeader extends StatelessWidget {
             ],
           ),
         ),
-        Opacity(
-          opacity: onClose == null ? 0.4 : 1,
-          child: Material(
-            color: const Color(0xFFF3F4F6),
-            shape: const CircleBorder(),
-            child: InkWell(
-              onTap: onClose,
-              customBorder: const CircleBorder(),
-              child: const SizedBox(
-                width: 36,
-                height: 36,
-                child: Icon(Icons.close, size: 18, color: _kInk),
-              ),
-            ),
-          ),
-        ),
+        SheetDismissButton(onPressed: onClose),
       ],
     );
   }
@@ -1133,7 +1120,7 @@ TextStyle _monoStyle({
   FontWeight fontWeight = FontWeight.w500,
   Color color = _kInk,
 }) {
-  return GoogleFonts.jetBrainsMono(
+  return FlipperFonts.mono(
     fontSize: fontSize,
     fontWeight: fontWeight,
     color: color,

@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/export/headless_detailed_transaction_export_host.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -397,7 +398,7 @@ Widget _buildModernTransactionItem({
                           : isIncome == false
                           ? '-$amount RWF'
                           : '$amount RWF', // No prefix for unclassified
-                      style: GoogleFonts.jetBrainsMono(
+                      style: FlipperFonts.mono(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.5,

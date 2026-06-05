@@ -294,18 +294,22 @@ class IconRowState extends ConsumerState<IconRow>
           itemBuilder: (context) => [
             const PopupMenuItem(
               value: 'locations',
-              child: ListTile(
-                dense: true,
-                leading: Icon(Icons.maps_home_work_outlined),
-                title: Text('Locations'),
+              child: Row(
+                children: [
+                  Icon(Icons.maps_home_work_outlined),
+                  SizedBox(width: 12),
+                  Text('Locations'),
+                ],
               ),
             ),
             const PopupMenuItem(
               value: 'items',
-              child: ListTile(
-                dense: true,
-                leading: Icon(Icons.inventory_2_outlined),
-                title: Text('Items'),
+              child: Row(
+                children: [
+                  Icon(Icons.inventory_2_outlined),
+                  SizedBox(width: 12),
+                  Text('Items'),
+                ],
               ),
             ),
           ],

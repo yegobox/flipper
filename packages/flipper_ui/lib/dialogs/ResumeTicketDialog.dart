@@ -1,9 +1,11 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/widgets/async_action_gradient_button.dart';
+import 'package:flipper_ui/widgets/sheet_dismiss_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,7 +38,7 @@ const _monthShort = [
   'Dec',
 ];
 
-/// Space below scroll content so [UPDATE STATUS] stays above [stickyActionBar].
+/// Space below scroll content so status chips stay above [stickyActionBar].
 /// Matches footer padding (12+52+20) plus clearance and device safe area.
 double _resumeTicketScrollBottomInset(BuildContext context) {
   const footerHeight = 14.0 + 56.0 + 20.0;
@@ -49,12 +51,9 @@ Future<void> showResumeTicketDialog({
   required BuildContext context,
   required ITransaction ticket,
   required Future<void> Function(ITransaction) onResume,
-  required Function(String) onStatusChange,
 }) {
   final useBottomSheet = MediaQuery.sizeOf(context).width < 600;
   final isResuming = ValueNotifier(false);
-  final paidNotifier =
-      ValueNotifier<AsyncValue<double>>(const AsyncValue.loading());
 
   return WoltModalSheet.show(
     context: context,
@@ -68,16 +67,13 @@ Future<void> showResumeTicketDialog({
           context,
           ticket,
           onResume,
-          onStatusChange,
           isResuming,
-          paidNotifier: paidNotifier,
           useBottomSheet: useBottomSheet,
         ),
       ];
     },
   ).whenComplete(() {
     isResuming.dispose();
-    paidNotifier.dispose();
   });
 }
 
@@ -85,9 +81,7 @@ SliverWoltModalSheetPage _buildResumeTicketPage(
   BuildContext context,
   ITransaction ticket,
   Future<void> Function(ITransaction) onResume,
-  Function(String) onStatusChange,
   ValueNotifier<bool> isResuming, {
-  required ValueNotifier<AsyncValue<double>> paidNotifier,
   required bool useBottomSheet,
 }) {
   return SliverWoltModalSheetPage(
@@ -97,23 +91,18 @@ SliverWoltModalSheetPage _buildResumeTicketPage(
     pageTitle: const SizedBox.shrink(),
     mainContentSliversBuilder: (_) => [
       SliverToBoxAdapter(
-        child: _ResumeTicketPaidSync(
-          ticketId: ticket.id,
-          paidNotifier: paidNotifier,
-        ),
-      ),
-      SliverToBoxAdapter(
         child: ClipRRect(
           borderRadius: useBottomSheet
               ? const BorderRadius.vertical(top: Radius.circular(_kSheetRadius))
               : BorderRadius.zero,
-          child: ValueListenableBuilder<AsyncValue<double>>(
-            valueListenable: paidNotifier,
-            builder: (context, paidAsync, _) {
+          child: Consumer(
+            builder: (context, ref, _) {
+              final paidAsync = ref.watch(
+                transactionTotalPaidProvider(ticket.id),
+              );
               return ResumeTicketSummary(
                 ticket: ticket,
                 paidAsync: paidAsync,
-                onStatusChange: onStatusChange,
                 isResuming: isResuming,
               );
             },
@@ -121,9 +110,9 @@ SliverWoltModalSheetPage _buildResumeTicketPage(
         ),
       ),
     ],
-    stickyActionBar: ValueListenableBuilder<AsyncValue<double>>(
-      valueListenable: paidNotifier,
-      builder: (context, paidAsync, _) {
+    stickyActionBar: Consumer(
+      builder: (context, ref, _) {
+        final paidAsync = ref.watch(transactionTotalPaidProvider(ticket.id));
         return _ResumeTicketFooter(
           ticket: ticket,
           paidAsync: paidAsync,
@@ -133,26 +122,6 @@ SliverWoltModalSheetPage _buildResumeTicketPage(
       },
     ),
   );
-}
-
-/// Single subscription to [transactionTotalPaidProvider] for the whole sheet.
-class _ResumeTicketPaidSync extends ConsumerWidget {
-  const _ResumeTicketPaidSync({
-    required this.ticketId,
-    required this.paidNotifier,
-  });
-
-  final String ticketId;
-  final ValueNotifier<AsyncValue<double>> paidNotifier;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final paidAsync = ref.watch(transactionTotalPaidProvider(ticketId));
-    if (paidNotifier.value != paidAsync) {
-      paidNotifier.value = paidAsync;
-    }
-    return const SizedBox.shrink();
-  }
 }
 
 class _ResumeTicketFooter extends StatelessWidget {
@@ -259,31 +228,21 @@ class _ResumeTicketFooter extends StatelessWidget {
   }
 }
 
-class ResumeTicketSummary extends ConsumerStatefulWidget {
+class ResumeTicketSummary extends ConsumerWidget {
   const ResumeTicketSummary({
     super.key,
     required this.ticket,
     required this.paidAsync,
-    required this.onStatusChange,
     required this.isResuming,
   });
 
   final ITransaction ticket;
   final AsyncValue<double> paidAsync;
-  final Function(String) onStatusChange;
   final ValueNotifier<bool> isResuming;
 
   @override
-  ConsumerState<ResumeTicketSummary> createState() =>
-      _ResumeTicketSummaryState();
-}
-
-class _ResumeTicketSummaryState extends ConsumerState<ResumeTicketSummary> {
-  bool _isUpdating = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final ticket = widget.ticket;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ticket = this.ticket;
     final branchId = ticket.branchId ?? ProxyService.box.getBranchId()!;
     final itemsAsync = ref.watch(
       transactionItemsStreamProvider(
@@ -291,7 +250,7 @@ class _ResumeTicketSummaryState extends ConsumerState<ResumeTicketSummary> {
         branchId: branchId,
       ),
     );
-    final totalPaidAsync = widget.paidAsync;
+    final totalPaidAsync = paidAsync;
     final currency = ProxyService.box.defaultCurrency();
 
     return Padding(
@@ -306,20 +265,12 @@ class _ResumeTicketSummaryState extends ConsumerState<ResumeTicketSummary> {
         children: [
           const _SheetHandle(),
           ValueListenableBuilder<bool>(
-            valueListenable: widget.isResuming,
+            valueListenable: isResuming,
             builder: (context, isResuming, _) => _ResumeHeader(
               ticket: ticket,
               onClose: isResuming ? null : () => Navigator.of(context).pop(),
             ),
           ),
-          if (_isUpdating) ...[
-            const SizedBox(height: 12),
-            const LinearProgressIndicator(
-              minHeight: 2,
-              backgroundColor: Color(0xFFF3F4F6),
-              valueColor: AlwaysStoppedAnimation<Color>(_kPrimary),
-            ),
-          ],
           const SizedBox(height: 22),
           _sectionLabel('CUSTOMER'),
           const SizedBox(height: 8),
@@ -373,20 +324,16 @@ class _ResumeTicketSummaryState extends ConsumerState<ResumeTicketSummary> {
             ),
           ),
           const SizedBox(height: 24),
-          _sectionLabel('UPDATE STATUS'),
+          _sectionLabel('STATUS'),
           const SizedBox(height: 10),
-          _StatusRow(
-            currentStatus: ticket.status ?? PARKED,
-            isUpdating: _isUpdating,
-            onSelect: (value) async {
-              if (ticket.status == value || _isUpdating) return;
-              setState(() => _isUpdating = true);
-              try {
-                await widget.onStatusChange(value);
-              } finally {
-                if (mounted) setState(() => _isUpdating = false);
-              }
-            },
+          IgnorePointer(
+            child: Opacity(
+              opacity: 0.55,
+              child: _StatusRow(
+                currentStatus: ticket.status ?? PARKED,
+                enabled: false,
+              ),
+            ),
           ),
         ],
       ),
@@ -485,22 +432,7 @@ class _ResumeHeader extends StatelessWidget {
             ],
           ),
         ),
-        Opacity(
-          opacity: onClose == null ? 0.4 : 1,
-          child: Material(
-            color: const Color(0xFFF3F4F6),
-            shape: const CircleBorder(),
-            child: InkWell(
-              onTap: onClose,
-              customBorder: const CircleBorder(),
-              child: const SizedBox(
-                width: 36,
-                height: 36,
-                child: Icon(Icons.close, size: 18, color: _kInk),
-              ),
-            ),
-          ),
-        ),
+        SheetDismissButton(onPressed: onClose),
       ],
     );
   }
@@ -514,10 +446,9 @@ class _CustomerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
-    final phone = (ticket.customerPhone ??
-            ticket.currentSaleCustomerPhoneNumber ??
-            '')
-        .trim();
+    final phone =
+        (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
+            .trim();
     final initial = _customerInitial(name);
 
     return Column(
@@ -796,13 +727,11 @@ class _ItemRow extends StatelessWidget {
 class _StatusRow extends StatelessWidget {
   const _StatusRow({
     required this.currentStatus,
-    required this.isUpdating,
-    required this.onSelect,
+    this.enabled = true,
   });
 
   final String currentStatus;
-  final bool isUpdating;
-  final ValueChanged<String> onSelect;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -813,7 +742,8 @@ class _StatusRow extends StatelessWidget {
             label: 'Waiting',
             dotColor: _kParkedOrange,
             isSelected: _isWaitingStatus(currentStatus),
-            onTap: isUpdating ? null : () => onSelect(PARKED),
+            enabled: enabled,
+            onTap: null,
           ),
         ),
         const SizedBox(width: 8),
@@ -821,8 +751,10 @@ class _StatusRow extends StatelessWidget {
           child: _StatusCard(
             label: 'In Progress',
             dotColor: const Color(0xFF2563EB),
-            isSelected: currentStatus == IN_PROGRESS || currentStatus == ORDERING,
-            onTap: isUpdating ? null : () => onSelect(IN_PROGRESS),
+            isSelected:
+                currentStatus == IN_PROGRESS || currentStatus == ORDERING,
+            enabled: enabled,
+            onTap: null,
           ),
         ),
         const SizedBox(width: 8),
@@ -831,7 +763,8 @@ class _StatusRow extends StatelessWidget {
             label: 'Completed',
             dotColor: _kPaidGreen,
             isSelected: currentStatus == COMPLETE,
-            onTap: isUpdating ? null : () => onSelect(COMPLETE),
+            enabled: enabled,
+            onTap: null,
           ),
         ),
       ],
@@ -844,12 +777,14 @@ class _StatusCard extends StatelessWidget {
     required this.label,
     required this.dotColor,
     required this.isSelected,
+    this.enabled = true,
     required this.onTap,
   });
 
   final String label;
   final Color dotColor;
   final bool isSelected;
+  final bool enabled;
   final VoidCallback? onTap;
 
   @override
@@ -857,7 +792,8 @@ class _StatusCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
+        mouseCursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 16),
@@ -1050,7 +986,7 @@ TextStyle _monoStyle({
   FontWeight fontWeight = FontWeight.w500,
   Color color = _kInk,
 }) {
-  return GoogleFonts.jetBrainsMono(
+  return FlipperFonts.mono(
     fontSize: fontSize,
     fontWeight: fontWeight,
     color: color,
@@ -1112,7 +1048,8 @@ String _customerInitial(String name) {
 String _itemInitials(String name) {
   final trimmed = name.trim();
   if (trimmed.isEmpty) return '??';
-  final parts = trimmed.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+  final parts =
+      trimmed.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
   if (parts.length >= 2) {
     return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
   }

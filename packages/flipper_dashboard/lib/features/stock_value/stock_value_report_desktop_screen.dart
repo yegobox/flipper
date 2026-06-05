@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:async' show unawaited;
 
 import 'package:fl_chart/fl_chart.dart';
@@ -514,7 +515,7 @@ class _KpiCard extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 18,
               fontWeight: FontWeight.w800,
             ),
@@ -648,14 +649,14 @@ class _ProductDataRow extends StatelessWidget {
                 line.bcd ?? '—',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.jetBrainsMono(fontSize: 12),
+                style: FlipperFonts.mono(fontSize: 12),
               ),
             ),
             SizedBox(
               width: 100,
               child: Text(
                 'RWF ${formatNumber(line.unitPrice)}',
-                style: GoogleFonts.jetBrainsMono(fontSize: 12),
+                style: FlipperFonts.mono(fontSize: 12),
               ),
             ),
             SizedBox(
@@ -676,7 +677,7 @@ class _ProductDataRow extends StatelessWidget {
                   Text(
                     line.currentStock.toStringAsFixed(0),
                     textAlign: TextAlign.right,
-                    style: GoogleFonts.jetBrainsMono(
+                    style: FlipperFonts.mono(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -689,7 +690,7 @@ class _ProductDataRow extends StatelessWidget {
               child: Text(
                 'RWF ${formatNumber(line.lineValue)}',
                 textAlign: TextAlign.right,
-                style: GoogleFonts.jetBrainsMono(
+                style: FlipperFonts.mono(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -817,7 +818,7 @@ class _ValueByCategoryPie extends StatelessWidget {
           Center(
             child: Text(
               '${_shortM(totalValue)} RWF',
-              style: GoogleFonts.jetBrainsMono(
+              style: FlipperFonts.mono(
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
               ),
@@ -850,7 +851,7 @@ class _ValueByCategoryPie extends StatelessWidget {
                   ),
                   Text(
                     'RWF ${formatNumber(c.value)}',
-                    style: GoogleFonts.jetBrainsMono(fontSize: 12),
+                    style: FlipperFonts.mono(fontSize: 12),
                   ),
                   const SizedBox(width: 6),
                   Text(

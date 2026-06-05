@@ -21,7 +21,7 @@ try {
 
   $urls = @(
     "https://software.ditto.live/flutter/ditto/$dittoVersion/windows/x86_64/dittoffi.dll",
-    "https://software.ditto.live/flutter/ditto/4.14.4/windows/x86_64/dittoffi.dll"
+    "https://software.ditto.live/flutter/ditto/5.0.1/windows/x86_64/dittoffi.dll"
   )
 
   $downloaded = $false
