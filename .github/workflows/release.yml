@@ -272,6 +272,11 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - name: Prefetch dittoffi.dll
+        shell: pwsh
+        run: ./scripts/ci/prefetch-dittoffi.ps1
+
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
@@ -312,12 +317,6 @@ jobs:
         run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
         shell: bash
 
-      - name: Clean Flutter Build Cache
-        run: |
-          flutter clean
-          flutter pub cache clean --force
-        shell: bash
-
       - name: Get Dependencies
         run: |
           dart run melos bootstrap
@@ -341,6 +340,10 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - name: Prefetch dittoffi.dll
+        shell: pwsh
+        run: ./scripts/ci/prefetch-dittoffi.ps1
 
       - name: Build and Package
         run: |
@@ -430,6 +433,10 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - name: Prefetch dittoffi.dll
+        shell: pwsh
+        run: ./scripts/ci/prefetch-dittoffi.ps1
 
       - name: Build and Package
         run: |
