@@ -37,6 +37,13 @@ mixin StockMixin implements StockInterface {
   }
 
   @override
+  Stream<Map<String, Stock?>> watchStocksByIds(List<String> stockIds) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).watchStocksByIds(stockIds);
+  }
+
+  @override
   Future<void> updateStock({
     required String stockId,
     double? qty,

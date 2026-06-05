@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/visible_stocks_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
@@ -298,13 +300,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 child: isMobileLayout
                     ? SearchFieldWidget(
                         controller: linked,
-                        hintText: 'Search products…',
+                        hintText: FLocalization.of(context).searchProducts,
                         densePadding: true,
                         showTrailingToolbar: false,
                       )
                     : PosCatalogSearchRow(
                         controller: linked,
-                        hintText: 'Search products…',
+                        hintText: FLocalization.of(context).searchProducts,
                       ),
               ),
             ],
@@ -334,17 +336,17 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             onPressed: () {
               ref.read(selectedItemIdsProvider.notifier).clearSelection();
             },
-            tooltip: 'Clear selection',
+            tooltip: FLocalization.of(context).clearSelection,
           ),
           const SizedBox(width: 8),
           Text(
-            '${selectedIds.length} items selected',
+            FLocalization.of(context).itemsSelected(selectedIds.length),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const Spacer(),
           TextButton.icon(
             icon: const Icon(Icons.delete_outline),
-            label: const Text('Delete'),
+            label: Text(FLocalization.of(context).delete),
             style: TextButton.styleFrom(foregroundColor: colorScheme.error),
             onPressed: () =>
                 _showBulkDeleteConfirmation(context, model, selectedIds),
@@ -378,8 +380,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           final dialogService = locator<DialogService>();
           dialogService.showCustomDialog(
             variant: DialogType.info,
-            title: 'Error',
-            description: 'Cannot delete variant with stock remaining.',
+            title: FLocalization.of(context).error,
+            description: FLocalization.of(
+              context,
+            ).cannotDeleteVariantWithStockRemaining,
             data: {'status': InfoDialogStatus.error},
           );
           return;
@@ -402,10 +406,14 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final dialogService = locator<DialogService>();
     final response = await dialogService.showCustomDialog(
       variant: DialogType.info,
-      title: 'Delete Multiple Items',
-      description:
-          'Are you sure you want to delete ${selectedIds.length} items? This action cannot be undone.',
-      data: {'status': InfoDialogStatus.warning, 'mainButtonText': 'Delete'},
+      title: FLocalization.of(context).deleteMultipleItems,
+      description: FLocalization.of(
+        context,
+      ).deleteItemsConfirmation(selectedIds.length),
+      data: {
+        'status': InfoDialogStatus.warning,
+        'mainButtonText': FLocalization.of(context).delete,
+      },
     );
 
     if (response?.confirmed == true) {
@@ -495,8 +503,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           if (hasBranch) ...[
                             const SizedBox(height: 8),
                             Text(
-                              'If you just opened the app, products may still '
-                              'be syncing — tap refresh.',
+                              FLocalization.of(context).productsSyncingHint,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
@@ -513,7 +520,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                               icon: const Icon(
                                 FluentIcons.arrow_sync_20_filled,
                               ),
-                              label: const Text('Refresh products'),
+                              label: Text(
+                                FLocalization.of(context).refreshProducts,
+                              ),
                             ),
                           ],
                         ],
@@ -544,7 +553,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Error loading products',
+                        FLocalization.of(context).errorLoadingProducts,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Theme.of(context).colorScheme.error,
                           fontWeight: FontWeight.w500,
@@ -566,7 +575,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           ),
                         ),
                         icon: const Icon(FluentIcons.arrow_sync_20_filled),
-                        label: const Text('Retry'),
+                        label: Text(FLocalization.of(context).retry),
                       ),
                     ],
                   ),
@@ -833,6 +842,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     List<Variant> variants, {
     required double paneWidth,
   }) {
+    final branchId = ProxyService.box.getBranchId() ?? '';
+    final stocksById = ref
+            .watch(stocksForVisibleVariantsProvider(branchId))
+            .asData
+            ?.value ??
+        const <String, Stock?>{};
+
     final bool isMobileLayout =
         paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
@@ -848,31 +864,33 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       return ColoredBox(
         color: PosTokens.posBg,
         child: ListView.separated(
-        controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
-        itemCount: variants.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (context, index) {
-          return buildVariantRow(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
+          itemCount: variants.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            return buildVariantRow(
               forceRemoteUrl: false,
               context: context,
               model: model,
               variant: variants[index],
               isOrdering: false,
               forceListView: true,
+              stocksById: stocksById,
             );
-        },
-        physics: const AlwaysScrollableScrollPhysics(),
-        cacheExtent: 500.0,
-      ),
+          },
+          physics: const AlwaysScrollableScrollPhysics(),
+          cacheExtent: 500.0,
+        ),
       );
     }
 
     final crossAxisCount =
         PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(paneWidth);
     final spacing = PosLayoutBreakpoints.desktopGridSpacing(paneWidth);
-    final aspectRatio =
-        PosLayoutBreakpoints.desktopGridChildAspectRatioForPane(paneWidth);
+    final aspectRatio = PosLayoutBreakpoints.desktopGridChildAspectRatioForPane(
+      paneWidth,
+    );
 
     _lastGridCrossAxisCount = crossAxisCount;
     _lastGridMainAxisSpacing = spacing;
@@ -896,6 +914,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           isOrdering: false,
           forceListView: false,
           usePosCatalogTile: true,
+          stocksById: stocksById,
         );
       },
       physics: const AlwaysScrollableScrollPhysics(),
@@ -913,7 +932,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   ) {
     final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
     return variants.isEmpty
-        ? const Center(child: Text("No stock data available"))
+        ? Center(child: Text(FLocalization.of(context).noStockDataAvailable))
         : DataView(
             workBookKey: workBookKey,
             onTapRowShowRefundModal: false,

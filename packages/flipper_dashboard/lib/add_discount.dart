@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/create/build_image_holder.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -39,16 +40,19 @@ class _AddDiscountState extends State<AddDiscount> {
         builder: (context, model, child) {
           return CupertinoPageScaffold(
             navigationBar: CupertinoNavigationBar(
-              previousPageTitle: 'Back',
+              previousPageTitle: context.flipperL10n.back,
               trailing: SizedBox(
                 width: 80,
                 height: 40,
                 child: BoxButton(
                   borderRadius: 2,
-                  title: 'Save',
+                  title: context.flipperL10n.save,
                   onTap: () async {
                     if (_formKey.currentState!.validate()) {
-                      showSuccessNotification(context, 'Saved discount');
+                      showSuccessNotification(
+                        context,
+                        context.flipperL10n.savedDiscount,
+                      );
                       if (widget.discount == null) {
                         await model.save(
                           name: nameController.text,
@@ -67,7 +71,7 @@ class _AddDiscountState extends State<AddDiscount> {
                   },
                 ),
               ),
-              middle: const Text('Create Discount'),
+              middle: Text(context.flipperL10n.createDiscount),
             ),
             child: ListView(
               children: <Widget>[
@@ -86,11 +90,11 @@ class _AddDiscountState extends State<AddDiscount> {
                             if (text.length > 0) {
                               return null;
                             }
-                            return 'Name can not be null';
+                            return context.flipperL10n.nameCannotBeNull;
                           },
                           enabled: true,
                           controller: nameController,
-                          placeholder: 'Name',
+                          placeholder: context.flipperL10n.name,
                         ),
                       ),
                       Padding(
@@ -101,7 +105,7 @@ class _AddDiscountState extends State<AddDiscount> {
                             if (text.length > 0) {
                               return null;
                             }
-                            return 'Amount can not be null';
+                            return context.flipperL10n.amountCannotBeNull;
                           },
                           controller: amountController,
                           placeholder: 'RWF',

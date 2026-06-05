@@ -7,11 +7,11 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_rw/state_observer.dart';
 import 'package:flipper_models/amplify_config_helper.dart';
+import 'package:flipper_models/providers/provider_perf_observer.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goal_remote_contribution_listener.dart';
 import 'package:flipper_models/services/personal_goal_notification_service.dart';
-import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.dialogs.dart';
@@ -270,9 +270,7 @@ Future<void> main() async {
   );
 }
 
-/// Keep in sync with [DevicePreview.enabled] on [FlipperApp]. When preview is on,
-/// `MaterialApp.router` must pass the inherited `MediaQuery` flag expected by
-/// `package:device_preview` (`isWidgetsAppUsingInheritedMediaQuery` assert).
+/// Keep in sync with [DevicePreview.enabled] on [FlipperApp].
 const bool kFlipperDevicePreviewEnabled = kDebugMode;
 
 class FlipperApp extends StatefulWidget {
@@ -319,6 +317,11 @@ class _FlipperAppState extends State<FlipperApp> {
 
     return ProviderScope(
       observers: [StateObserver()],
+      overrides: kDebugMode
+      ? [
+          providerPerfTracingEnabledProvider.overrideWith((ref) => true),
+        ]
+      : const [],
       child: OverlaySupport.global(
         child: DevicePreview(
           enabled: kFlipperDevicePreviewEnabled,
@@ -329,30 +332,32 @@ class _FlipperAppState extends State<FlipperApp> {
             debugShowCheckedModeBanner: false,
             title: 'flipper',
             theme: _theme,
-            // Required by package:device_preview when enabled (assert).
-            useInheritedMediaQuery:
-                kFlipperDevicePreviewEnabled, // ignore: deprecated_member_use
-            localizationsDelegates: [
-              FirebaseUILocalizations.withDefaultOverrides(
-                const LabelOverrides(),
+            localizationsDelegates: const [
+              FirebaseUILocalizationDelegate<LabelOverrides>(
+                LabelOverrides(),
+                true,
               ),
-              const FlipperLocalizationsDelegate(),
+              FlipperLocalizationsDelegate(),
               GlobalMaterialLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
-              CountryLocalizations.delegate
+              FlipperCountryLocalizationsDelegate(),
             ],
-            supportedLocales: const [
-              Locale('en'),
-              Locale('es'),
-            ],
-            locale: const Locale('en'),
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            locale: DevicePreview.locale(context) ?? const Locale('en'),
             themeMode: ThemeMode.system,
             routerDelegate: _routerDelegate,
             routeInformationParser: _routeInformationParser,
             builder: (context, child) {
-              return LauncherShortcutRouterHost(
-                child: PersonalGoalRemoteContributionListener(
-                  child: child!,
+              final app = DevicePreview.appBuilder(context, child);
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.noScaling,
+                ),
+                child: LauncherShortcutRouterHost(
+                  child: PersonalGoalRemoteContributionListener(
+                    child: app,
+                  ),
                 ),
               );
             },
@@ -361,6 +366,32 @@ class _FlipperAppState extends State<FlipperApp> {
       ),
     );
   }
+}
+
+class FlipperCountryLocalizationsDelegate
+    extends LocalizationsDelegate<CountryLocalizations> {
+  const FlipperCountryLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) {
+    return FlipperLocalizationDelegates.supportedLocales.any(
+      (supportedLocale) => supportedLocale.languageCode == locale.languageCode,
+    );
+  }
+
+  @override
+  Future<CountryLocalizations> load(Locale locale) async {
+    // country_code_picker has no `rw`/`sw` bundle, so keep Flipper's locale
+    // active while falling country names back to English.
+    final effectiveLocale =
+        locale.languageCode == 'fr' ? const Locale('fr') : const Locale('en');
+    final localizations = CountryLocalizations(effectiveLocale);
+    await localizations.load();
+    return localizations;
+  }
+
+  @override
+  bool shouldReload(FlipperCountryLocalizationsDelegate old) => false;
 }
 
 /// Registers Android launcher shortcut callbacks after init ([MaterialApp.router] is mounted).
@@ -405,12 +436,13 @@ class _LauncherShortcutRouterHostState
     if (ctx == null || !ctx.mounted) return;
     if (!_isFlipperBusinessShellRoute()) return;
 
-    final width = MediaQuery.sizeOf(ctx).width;
-    final isBigScreen = width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    // POS/checkout layout is chosen inside [CheckOut] via [LayoutBuilder]; avoid
+    // routing with isBigScreen: true on phones — that hits the desktop pending-
+    // cart stream error UI when branchId is not ready yet.
     try {
       await navigateToDashboardAppPage(
         context: ctx,
-        isBigScreen: isBigScreen,
+        isBigScreen: false,
         page: page,
       );
       if (!mounted) return;

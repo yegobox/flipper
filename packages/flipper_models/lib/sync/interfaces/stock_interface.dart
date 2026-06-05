@@ -49,6 +49,9 @@ abstract class StockInterface {
     int limit = 50,
   });
   Stream<Stock?> watchStockByVariantId({required String stockId});
+
+  /// Live map of stock id → row for a bounded id set (single Ditto observer).
+  Stream<Map<String, Stock?>> watchStocksByIds(List<String> stockIds);
   Future<String> createStockRequest(
     List<TransactionItem> items, {
     required String mainBranchId,

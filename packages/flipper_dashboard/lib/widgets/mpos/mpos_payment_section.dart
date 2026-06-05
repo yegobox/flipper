@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -55,7 +56,9 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
 
     final payments = ref.read(paymentMethodsProvider);
     if (payments.isEmpty) {
-      ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+      ref
+          .read(paymentMethodsProvider.notifier)
+          .addPaymentMethod(
             Payment(
               amount: widget.totalPayable,
               method: _chipMethods[_chip]!,
@@ -130,7 +133,9 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
     if (widget.totalPayable <= 0) return;
     final payments = ref.read(paymentMethodsProvider);
     if (payments.isEmpty) {
-      ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+      ref
+          .read(paymentMethodsProvider.notifier)
+          .addPaymentMethod(
             Payment(
               amount: widget.totalPayable,
               method: _chipMethods[MposPayChip.credit]!,
@@ -146,7 +151,9 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
     if (p.controller.text != text) {
       p.controller.text = text;
     }
-    ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
+    ref
+        .read(paymentMethodsProvider.notifier)
+        .updatePaymentMethod(
           0,
           Payment(
             amount: widget.totalPayable,
@@ -168,12 +175,16 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
     final method = _chipMethods[chip]!;
     final payments = ref.read(paymentMethodsProvider);
     if (payments.isEmpty) {
-      ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+      ref
+          .read(paymentMethodsProvider.notifier)
+          .addPaymentMethod(
             Payment(amount: widget.totalPayable, method: method),
           );
     } else {
       final p = payments.first;
-      ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
+      ref
+          .read(paymentMethodsProvider.notifier)
+          .updatePaymentMethod(
             0,
             Payment(
               amount: p.amount,
@@ -201,7 +212,9 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
     if (p.controller.text != text) {
       p.controller.text = text;
     }
-    ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
+    ref
+        .read(paymentMethodsProvider.notifier)
+        .updatePaymentMethod(
           0,
           Payment(
             amount: amount,
@@ -220,7 +233,9 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
     final p = payments.first;
     final amount = double.tryParse(value) ?? 0.0;
     if ((p.amount - amount).abs() < 0.01) return;
-    ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
+    ref
+        .read(paymentMethodsProvider.notifier)
+        .updatePaymentMethod(
           0,
           Payment(
             amount: amount,
@@ -251,7 +266,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
             child: Row(
               children: [
                 _PayChip(
-                  label: 'Cash',
+                  label: FLocalization.of(context).cash,
                   icon: Icons.payments_outlined,
                   selected: _chip == MposPayChip.cash,
                   onTap: () => _selectChip(MposPayChip.cash),
@@ -265,7 +280,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                 ),
                 const SizedBox(width: 9),
                 _PayChip(
-                  label: 'Credit',
+                  label: FLocalization.of(context).credit,
                   icon: Icons.account_balance_wallet_outlined,
                   selected: _chip == MposPayChip.credit,
                   onTap: () => _selectChip(MposPayChip.credit),
@@ -279,8 +294,8 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'MoMo payer phone',
+                  Text(
+                    FLocalization.of(context).momoPayerPhone,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -328,8 +343,8 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'We will send a payment request to this number when you tap Charge.',
+                  Text(
+                    FLocalization.of(context).momoPaymentRequestHint,
                     style: TextStyle(fontSize: 12, color: PosTokens.ink3),
                   ),
                 ],
@@ -399,7 +414,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                   Row(
                     children: [
                       _QuickCash(
-                        label: 'Exact',
+                        label: FLocalization.of(context).exact,
                         selected: tender.round() == widget.totalPayable.round(),
                         onTap: () => _setTender(widget.totalPayable),
                       ),

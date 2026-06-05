@@ -93,7 +93,7 @@ final class AutoAddSearchProvider
   }
 }
 
-String _$autoAddSearchHash() => r'aeec42b9b6b95a8a55bc749cee8ed10a81d9be7f';
+String _$autoAddSearchHash() => r'8260f30ecf0afd82bd748f9cd03932dcb14a9f93';
 
 abstract class _$AutoAddSearch extends $Notifier<bool> {
   bool build();

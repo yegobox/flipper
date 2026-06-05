@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -11,14 +12,7 @@ class RefundReasonForm extends StatefulWidget {
 class _RefundReasonFormState extends State<RefundReasonForm> {
   String? _selectedReason;
 
-  final List<Map<String, String>> reasons = [
-    {'value': '01', 'label': 'Wait for Approval'},
-    {'value': '02', 'label': 'Approved'},
-    {'value': '03', 'label': 'Cancel Requested'},
-    {'value': '04', 'label': 'Canceled'},
-    {'value': '05', 'label': 'Refunded'},
-    {'value': '06', 'label': 'Transferred'},
-  ];
+  static const List<String> reasonValues = ['01', '02', '03', '04', '05', '06'];
 
   void _handleReasonChange(String? value) {
     setState(() {
@@ -33,18 +27,30 @@ class _RefundReasonFormState extends State<RefundReasonForm> {
   Widget build(BuildContext context) {
     return Form(
       child: DropdownButtonFormField<String>(
-        decoration: const InputDecoration(
-          labelText: 'Refund Reason',
+        decoration: InputDecoration(
+          labelText: context.flipperL10n.refundReason,
         ),
-        value: _selectedReason,
+        initialValue: _selectedReason,
         onChanged: _handleReasonChange,
-        items: reasons.map((Map<String, String> reason) {
+        items: reasonValues.map((String value) {
           return DropdownMenuItem<String>(
-            value: reason['value'],
-            child: Text(reason['label']!),
+            value: value,
+            child: Text(_reasonLabel(context, value)),
           );
         }).toList(),
       ),
     );
+  }
+
+  String _reasonLabel(BuildContext context, String value) {
+    return switch (value) {
+      '01' => context.flipperL10n.waitForApproval,
+      '02' => context.flipperL10n.approved,
+      '03' => context.flipperL10n.cancelRequested,
+      '04' => context.flipperL10n.canceled,
+      '05' => context.flipperL10n.refunded,
+      '06' => context.flipperL10n.transferred,
+      _ => value,
+    };
   }
 }

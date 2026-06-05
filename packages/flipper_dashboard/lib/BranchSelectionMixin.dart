@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
@@ -220,12 +221,12 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to log out?'),
+          title: Text(context.flipperL10n.confirmLogout),
+          content: Text(context.flipperL10n.confirmLogoutMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(context.flipperL10n.cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -234,7 +235,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                 Navigator.of(context).pop(); // Dismiss the loading dialog
                 locator<RouterService>().navigateTo(LoginRoute());
               },
-              child: const Text('Logout'),
+              child: Text(context.flipperL10n.logOut),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
           ],

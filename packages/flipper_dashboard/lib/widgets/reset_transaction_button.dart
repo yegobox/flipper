@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -40,14 +41,15 @@ class ResetTransactionButton extends ConsumerWidget {
             color: Colors.red,
             size: 20,
           ),
-          tooltip: 'Reset Transaction',
+          tooltip: FLocalization.of(context).resetTransaction,
           onPressed: () async {
             final dialogService = locator<DialogService>();
             final response = await dialogService.showCustomDialog(
               variant: DialogType.info,
-              title: 'Reset Transaction?',
-              description:
-                  'This will delete the current pending transaction and all its items. This action cannot be undone.',
+              title: FLocalization.of(context).resetTransactionQuestion,
+              description: FLocalization.of(
+                context,
+              ).resetTransactionDescription,
               data: {'status': InfoDialogStatus.warning},
             );
 
@@ -93,10 +95,10 @@ class ResetTransactionButton extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
-          children: const [
-            Icon(Icons.check_circle_outline, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Transaction reset successfully'),
+          children: [
+            const Icon(Icons.check_circle_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(FLocalization.of(context).transactionResetSuccessfully),
           ],
         ),
         backgroundColor: Colors.green[600],
@@ -114,7 +116,7 @@ class ResetTransactionButton extends ConsumerWidget {
           children: [
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 8),
-            Text('Error resetting transaction: $error'),
+            Text(FLocalization.of(context).errorResettingTransaction(error)),
           ],
         ),
         backgroundColor: Colors.red[600],

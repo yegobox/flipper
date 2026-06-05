@@ -7,6 +7,7 @@ import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
 import 'package:flipper_models/helpers/transaction_item_plu_metrics.dart';
 import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
 import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -227,7 +228,7 @@ Stream<List<ITransaction>> transactionsScreenTransactions(Ref ref) {
 // transactionReportSnapshot — paged async load (Capella SQL window + chunked payment sums).
 // Matches report scope: COMPLETE + PARKED rows in range (agent-scoped like core stream).
 // ---------------------------------------------------------------------------
-@riverpod
+@Riverpod(keepAlive: true)
 Future<TransactionReportSnapshot> transactionReportSnapshot(
   Ref ref, {
   required bool forceRealData,
@@ -380,45 +381,26 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
       )
       .startWith(const <TransactionItem>[]);
 
-  final reportSalesStream = coreTransactionsStream(
-    ref,
-    startDate: startDate,
-    endDate: endDate,
-    branchId: branchId,
-    forceRealData: forceRealData,
-    includeParked: true,
-  ).map(transactionReportScopeFilter).startWith(const <ITransaction>[]);
-
-  // Rebuild when the paged report snapshot updates so PLU ids match visible sales.
+  // Scope PLU lines to the current SQL page (not the full date-range sale set).
   ref.watch(transactionReportSnapshotProvider(forceRealData: forceRealData));
 
-  return Rx.combineLatest2<
-    List<TransactionItem>,
-    List<ITransaction>,
-    List<TransactionItem>
-  >(itemStream, reportSalesStream, (items, sales) {
+  return itemStream.map((items) {
     final snap = ref
         .read(transactionReportSnapshotProvider(forceRealData: forceRealData))
         .asData
         ?.value;
-    final allowed = sales.map((t) => t.id.toString()).toSet();
-    if (snap != null) {
-      allowed.addAll(snap.transactions.map((t) => t.id.toString()));
+    if (snap == null || snap.transactions.isEmpty) {
+      return const <TransactionItem>[];
     }
+    final allowed =
+        snap.transactions.map((t) => t.id.toString()).toSet();
     final filtered = items
         .where((i) => transactionReportLineMatchesSale(i, allowed))
         .toList();
-    if (items.isNotEmpty && filtered.isEmpty) {
-      talker.warning(
-        'transactionItemList: ${items.length} PLU rows but none matched '
-        '${allowed.length} sale id(s); sample item tx=${items.first.transactionId}',
-      );
-    } else {
-      talker.debug(
-        'transactionItemList: ${items.length} raw → ${filtered.length} '
-        'report-scoped lines (${allowed.length} sale ids)',
-      );
-    }
+    talker.debug(
+      'transactionItemList: ${items.length} raw → ${filtered.length} '
+      'page-scoped lines (${allowed.length} sale ids)',
+    );
     return filtered;
   }).handleError((Object error, StackTrace stackTrace) {
     talker.error('Error loading transaction items: $error');
@@ -445,17 +427,13 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
   final branchIdForPlu =
       ProxyService.box.branchIdString() ?? branchId;
 
-  // Recompute when the live PLU stream updates (same source as detailed grid).
-  final pluAsync = ref.watch(transactionItemListProvider);
-  var periodLines = pluAsync.asData?.value ?? const <TransactionItem>[];
-  if (periodLines.isEmpty) {
-    periodLines = await waitReportPluLinesFromStream(
-      capella: capella,
-      startDate: startDate,
-      endDate: endDate,
-      branchId: branchIdForPlu,
-    );
-  }
+  // Full-period PLU for KPIs — not tied to live [transactionItemList] stream.
+  final periodLines = await waitReportPluLinesFromStream(
+    capella: capella,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchIdForPlu,
+  );
 
   var pluLineSales = 0.0;
   var pluGrossProfit = 0.0;
@@ -669,16 +647,22 @@ Stream<ITransaction> pendingTransactionStream(
   required bool isExpense,
   bool forceRealData = true,
 }) async* {
-  String? branchId = ProxyService.box.getBranchId();
+  // Re-subscribe when the active branch changes (startup / branch switch).
+  ref.watch(activeBranchProvider);
 
-  if (branchId == null) {
+  String? branchId = ProxyService.box.getBranchId();
+  const maxAttempts = 50;
+  var attempt = 0;
+  while (branchId == null && attempt < maxAttempts) {
     await Future.delayed(const Duration(milliseconds: 100));
     branchId = ProxyService.box.getBranchId();
-    if (branchId == null) {
-      throw StateError(
-        'No default branch selected. Please select a branch first.',
-      );
-    }
+    attempt++;
+  }
+
+  if (branchId == null) {
+    throw StateError(
+      'No default branch selected. Please select a branch first.',
+    );
   }
 
   try {
@@ -807,7 +791,7 @@ final dashboardGaugeSnapshotProvider =
             endDate: end,
             branchId: branchId,
             branchIdString: branchId,
-            fetchRemote: true,
+            fetchRemote: false,
           )
           .startWith(const <TransactionItem>[]);
 

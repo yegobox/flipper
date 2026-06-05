@@ -50,7 +50,7 @@ final class OuterVariantsProvider
   }
 }
 
-String _$outerVariantsHash() => r'804f1159556a7f5cb0ebccea98c402ff323b5d68';
+String _$outerVariantsHash() => r'f15462b66bd90a081cedf569d679ff56fc04b7c9';
 
 final class OuterVariantsFamily extends $Family
     with
@@ -140,7 +140,7 @@ final class ProductsProvider
   }
 }
 
-String _$productsHash() => r'f4eb328d1fab5bdec459275da0a20f26da8acbf4';
+String _$productsHash() => r'0bfb9244dd41c09b111c193ceb32ec17b467b7c4';
 
 final class ProductsFamily extends $Family
     with

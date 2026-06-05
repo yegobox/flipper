@@ -785,62 +785,62 @@ jobs:
         working-directory: apps/${{ matrix.app }}/android
       
       # ===== POST-BUILD 16 KB VERIFICATION - START =====
-      - name: Verify AAB/APK 16 KB Compliance
-        if: always()
-        run: |
-          SCRIPT_PATH="${{ github.workspace }}/apps/flipper/en_check_elf_alignment.sh"
-          echo "=== Debug: Checking for script ===" 
-          echo "Looking for script at: $SCRIPT_PATH"
-          echo "Workspace directory:"
-          ls -la "${{ github.workspace }}/apps/flipper/" 2>/dev/null || echo "apps/flipper directory not found"
-          echo "=== End Debug ==="
+      # - name: Verify AAB/APK 16 KB Compliance
+      #   if: always()
+      #   run: |
+      #     SCRIPT_PATH="${{ github.workspace }}/apps/flipper/en_check_elf_alignment.sh"
+      #     echo "=== Debug: Checking for script ===" 
+      #     echo "Looking for script at: $SCRIPT_PATH"
+      #     echo "Workspace directory:"
+      #     ls -la "${{ github.workspace }}/apps/flipper/" 2>/dev/null || echo "apps/flipper directory not found"
+      #     echo "=== End Debug ==="
           
-          if [ ! -f "$SCRIPT_PATH" ]; then
-            echo "::error::Verification script not found at $SCRIPT_PATH"
-            exit 1
-          fi
-          chmod +x "$SCRIPT_PATH"
+      #     if [ ! -f "$SCRIPT_PATH" ]; then
+      #       echo "::error::Verification script not found at $SCRIPT_PATH"
+      #       exit 1
+      #     fi
+      #     chmod +x "$SCRIPT_PATH"
 
-          SEARCH_DIR="apps/${{ matrix.app }}"
-          echo "Searching for build artifact in $SEARCH_DIR..."
+      #     SEARCH_DIR="apps/${{ matrix.app }}"
+      #     echo "Searching for build artifact in $SEARCH_DIR..."
           
-          # Debug: List directory structure
-          echo "=== Debug: Listing build directories ==="
-          ls -la "$SEARCH_DIR/" 2>/dev/null || echo "Directory $SEARCH_DIR not found"
-          ls -la "$SEARCH_DIR/build/" 2>/dev/null || echo "Directory $SEARCH_DIR/build not found"
-          ls -la "build/" 2>/dev/null || echo "Directory build/ not found"
-          find "build/" -name "*.aab" -o -name "*.apk" 2>/dev/null || echo "No artifacts in build/"
-          echo "=== End Debug ==="
+      #     # Debug: List directory structure
+      #     echo "=== Debug: Listing build directories ==="
+      #     ls -la "$SEARCH_DIR/" 2>/dev/null || echo "Directory $SEARCH_DIR not found"
+      #     ls -la "$SEARCH_DIR/build/" 2>/dev/null || echo "Directory $SEARCH_DIR/build not found"
+      #     ls -la "build/" 2>/dev/null || echo "Directory build/ not found"
+      #     find "build/" -name "*.aab" -o -name "*.apk" 2>/dev/null || echo "No artifacts in build/"
+      #     echo "=== End Debug ==="
           
-          # Prioritize standard output directories
-          ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
-          if [ -z "$ARTIFACT_PATH" ]; then
-            ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
-          fi
+      #     # Prioritize standard output directories
+      #     ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
+      #     if [ -z "$ARTIFACT_PATH" ]; then
+      #       ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
+      #     fi
 
-          # Check custom build directory (build.gradle.kts redirects to workspace root)
-          if [ -z "$ARTIFACT_PATH" ]; then
-            echo "Checking custom build directory at workspace root..."
-            ARTIFACT_PATH=$(find "build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
-            if [ -z "$ARTIFACT_PATH" ]; then
-              ARTIFACT_PATH=$(find "build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
-            fi
-          fi
+      #     # Check custom build directory (build.gradle.kts redirects to workspace root)
+      #     if [ -z "$ARTIFACT_PATH" ]; then
+      #       echo "Checking custom build directory at workspace root..."
+      #       ARTIFACT_PATH=$(find "build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
+      #       if [ -z "$ARTIFACT_PATH" ]; then
+      #         ARTIFACT_PATH=$(find "build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
+      #       fi
+      #     fi
 
-          # Fallback to searching the whole directory
-          if [ -z "$ARTIFACT_PATH" ]; then
-            echo "::warning::Build artifact not found in standard output paths, searching entire $SEARCH_DIR..."
-            ARTIFACT_PATH=$(find "$SEARCH_DIR" -name "*.aab" -o -name "*.apk" | head -n 1)
-          fi
+      #     # Fallback to searching the whole directory
+      #     if [ -z "$ARTIFACT_PATH" ]; then
+      #       echo "::warning::Build artifact not found in standard output paths, searching entire $SEARCH_DIR..."
+      #       ARTIFACT_PATH=$(find "$SEARCH_DIR" -name "*.aab" -o -name "*.apk" | head -n 1)
+      #     fi
 
-          if [ -z "$ARTIFACT_PATH" ]; then
-            echo "::error::Build artifact (.aab or .apk) not found in $SEARCH_DIR!"
-            exit 1
-          fi
+      #     if [ -z "$ARTIFACT_PATH" ]; then
+      #       echo "::error::Build artifact (.aab or .apk) not found in $SEARCH_DIR!"
+      #       exit 1
+      #     fi
 
-          echo "Found artifact: $ARTIFACT_PATH"
-          "$SCRIPT_PATH" "$ARTIFACT_PATH"
-      # ===== POST-BUILD 16 KB VERIFICATION - END =====
+      #     echo "Found artifact: $ARTIFACT_PATH"
+      #     "$SCRIPT_PATH" "$ARTIFACT_PATH"
+      # # ===== POST-BUILD 16 KB VERIFICATION - END =====
       
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v2

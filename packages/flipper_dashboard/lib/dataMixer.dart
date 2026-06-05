@@ -88,7 +88,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required bool forceRemoteUrl,
     bool forceListView = false,
     bool usePosCatalogTile = false,
+    Map<String, Stock?>? stocksById,
   }) {
+    final stockId = variant.stockId ?? '';
     return buildRowItem(
       forceRemoteUrl: forceRemoteUrl,
       forceListView: forceListView,
@@ -98,6 +100,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       variant: variant,
       stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
       isOrdering: isOrdering,
+      liveStock: stocksById?[stockId],
     );
   }
 
@@ -190,6 +193,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required bool isOrdering,
     bool forceListView = false,
     bool usePosCatalogTile = false,
+    Stock? liveStock,
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
 
@@ -217,6 +221,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           isOrdering: isOrdering,
           color: variant.color ?? "#673AB7",
           stock: stock,
+          liveStock: liveStock,
           model: model,
           variant: variant,
           productName: variant.productName ?? "Unknown Product",
@@ -245,6 +250,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             isOrdering: isOrdering,
             color: variant.color ?? "#673AB7",
             stock: stock,
+            liveStock: liveStock,
             model: model,
             variant: variant,
             product: product,
@@ -274,6 +280,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             isOrdering: isOrdering,
             color: variant.color ?? "#673AB7",
             stock: stock,
+            liveStock: liveStock,
             model: model,
             variant: variant,
             product: product,
@@ -305,6 +312,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               isOrdering: isOrdering,
               color: variant.color ?? "#673AB7",
               stock: stock,
+              liveStock: liveStock,
               model: model,
               variant: variant,
               product: product,
@@ -340,6 +348,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               isOrdering: isOrdering,
               color: variant.color ?? "#673AB7",
               stock: stock,
+              liveStock: liveStock,
               model: model,
               variant: variant,
               product: product,

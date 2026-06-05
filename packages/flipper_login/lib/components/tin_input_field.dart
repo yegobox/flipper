@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
@@ -141,7 +142,7 @@ class _TinInputFieldState extends State<TinInputField> {
         TextFieldBlocBuilder(
           textFieldBloc: widget.tinNumberBloc,
           decoration: InputDecoration(
-            labelText: 'TIN Number',
+            labelText: FLocalization.of(context).tinNumber,
             labelStyle: const TextStyle(
               color: Colors.black87,
               fontSize: 14,
@@ -189,8 +190,9 @@ class _TinInputFieldState extends State<TinInputField> {
                                   Color(0xFF0078D4)),
                             ),
                           )
-                        : const Text('Validate',
-                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        : Text(FLocalization.of(context).validate,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
                   );
                 } else {
                   return IconButton(
@@ -206,7 +208,7 @@ class _TinInputFieldState extends State<TinInputField> {
                             color: Colors.black87,
                           ),
                     onPressed: _isLoading ? null : _pickAndProcessPdf,
-                    tooltip: 'Upload PDF with TIN',
+                    tooltip: FLocalization.of(context).uploadPdfWithTin,
                   );
                 }
               },
@@ -232,7 +234,7 @@ class _TinInputFieldState extends State<TinInputField> {
               borderSide: const BorderSide(color: Colors.red),
             ),
             errorText: _errorText,
-            hintText: 'Enter TIN number or tap the upload icon',
+            hintText: FLocalization.of(context).enterTinOrUpload,
             hintStyle: TextStyle(
               color: Colors.grey[400],
               fontSize: 14,

@@ -10,6 +10,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_models/sync/utils/stock_io_util.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
@@ -668,87 +669,12 @@ class CoreViewModel extends FlipperBaseModel
     required ITransaction transaction,
     String? customerId,
   }) async {
-    talker.info(
-      'saveTicket called for $ticketName with customerId: $customerId',
+    await ParkTransactionService.park(
+      ticketName: ticketName,
+      ticketNote: ticketNote,
+      transaction: transaction,
+      customerId: customerId,
     );
-    // Only park if a ticket name is provided.
-    if (ticketName.isNotEmpty) {
-      // Reconcile transaction.cashReceived with database records sum to handle unsaved UI edits.
-      // Exclude CREDIT payments so cashReceived reflects actual money collected.
-      try {
-        final totalRecordsAmount =
-            await ProxyService.getStrategy(
-              Strategy.capella,
-            ).getTotalPaidForTransaction(
-              transactionId: transaction.id,
-              branchId: transaction.branchId ?? ProxyService.box.getBranchId()!,
-              excludePaymentMethod: 'CREDIT',
-            );
-
-        // Only update cashReceived if getTotalPaidForTransaction succeeded (non-null)
-        if (totalRecordsAmount != null &&
-            transaction.cashReceived != totalRecordsAmount) {
-          transaction.cashReceived = totalRecordsAmount;
-        }
-      } catch (e) {
-        // Log error but don't fail the parking operation
-        talker.error(
-          'Error reconciling cashReceived, using existing value: $e',
-        );
-      }
-      // If a customer is attached, check if they already have a parked ticket.
-      if (customerId != null) {
-        final existingParkedTransactions = await ProxyService.strategy
-            .transactions(
-              customerId: customerId,
-              status: PARKED,
-              branchId: ProxyService.box.getBranchId()!,
-            );
-
-        if (existingParkedTransactions.isNotEmpty) {
-          final existingTransaction = existingParkedTransactions.first;
-
-          // Merge the new transaction into the existing one.
-          await ProxyService.strategy.mergeTransactions(
-            from: transaction,
-            to: existingTransaction,
-          );
-
-          // Create a new pending transaction for the next sale.
-          // await newTransaction(typeOfThisTransactionIsExpense: false);
-          await ProxyService.getStrategy(Strategy.capella).manageTransaction(
-            branchId: ProxyService.box.getBranchId()!,
-            transactionType: SALE,
-            isExpense: false,
-          );
-          return; // End execution.
-        }
-      }
-
-      // If no customer or no existing parked ticket, park the current transaction as new.
-      final items = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).transactionItems(transactionId: transaction.id);
-      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
-        transaction: transaction,
-        status: 'parked',
-        note: ticketNote,
-        ticketName: ticketName,
-        customerId: customerId,
-        subTotal: items.fold(
-          0.0,
-          (sum, item) => sum! + (item.price * item.qty),
-        ),
-        updatedAt: DateTime.now().toUtc(),
-      );
-
-      // Create a new pending transaction for the next sale.
-      await ProxyService.getStrategy(Strategy.capella).manageTransaction(
-        branchId: ProxyService.box.getBranchId()!,
-        transactionType: SALE,
-        isExpense: false,
-      );
-    }
   }
 
   /// the method return total amount of the transaction to be used in the payment

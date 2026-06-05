@@ -1,3 +1,4 @@
+import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,9 +18,15 @@ Future<PaymentVerificationResponse> verifyPayment(Ref ref) async {
   return await service.verifyPaymentStatus();
 }
 
-/// Provider for forcing payment verification
+/// Provider for forcing payment verification (verify only, no navigation).
 @riverpod
-Future<void> forcePaymentVerification(Ref ref) async {
+Future<PaymentVerificationResponse> forcePaymentVerification(Ref ref) async {
   final service = ref.watch(paymentVerificationProvider);
-  await service.forcePaymentVerification();
+  return service.forcePaymentVerification();
+}
+
+/// Verifies subscription status online and navigates (sales / post-signup).
+@riverpod
+Future<PaymentVerificationResponse> manualPaymentVerification(Ref ref) async {
+  return PaymentVerificationNavigator.verifyAndNavigate(userInitiated: true);
 }

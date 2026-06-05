@@ -1,4 +1,5 @@
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/db_model_export.dart';
 
@@ -14,6 +15,8 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flipper_ui/widgets/payment_verification_button.dart';
+import 'package:flipper_models/providers/payment_verification_provider.dart';
 import 'package:flipper_models/providers/device_provider.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/brick/repository/local_storage.dart';
@@ -79,16 +82,14 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
   }
 
   Future<({Tenant? tenant, Map<String, dynamic>? profileRow})>
-      _getHeaderData() async {
-    final results = await Future.wait([
-      _getTenantFuture(),
-      _fetchProfileRow(),
-    ]);
+  _getHeaderData() async {
+    final results = await Future.wait([_getTenantFuture(), _fetchProfileRow()]);
     return (
       tenant: results[0] as Tenant?,
-      profileRow: results[1] as Map<String, dynamic>?
+      profileRow: results[1] as Map<String, dynamic>?,
     );
   }
+
   @override
   void initState() {
     super.initState();
@@ -163,7 +164,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)], 
+                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
               ),
             ),
             child: const Center(
@@ -307,7 +308,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
             children: [
               Expanded(
                 child: _QuickActionCard(
-                  title: 'Scan QR',
+                  title: FLocalization.of(context).scanQr,
                   iconSvg: DashboardQuickAccessSvgs.drawerScanQrIcon(),
                   titleColor: const Color(0xFF2563EB),
                   onTap: () {
@@ -327,7 +328,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
               const SizedBox(width: 12),
               Expanded(
                 child: _QuickActionCard(
-                  title: 'Dashboard',
+                  title: FLocalization.of(context).dashboard,
                   iconSvg: DashboardQuickAccessSvgs.drawerDashboardIconGreen(),
                   titleColor: const Color(0xFF16A34A),
                   onTap: () {
@@ -347,8 +348,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
     if (userId == null) {
       return _buildEmptyState(
         icon: Icons.error_outline_rounded,
-        title: 'No User',
-        subtitle: 'Please log in to continue',
+        title: FLocalization.of(context).noUser,
+        subtitle: FLocalization.of(context).pleaseLogInToContinue,
       );
     }
 
@@ -365,12 +366,14 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
       }(),
       builder: (context, businessSnapshot) {
         if (businessSnapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingState('Loading businesses...');
+          return _buildLoadingState(
+            FLocalization.of(context).loadingBusinesses,
+          );
         }
 
         if (businessSnapshot.hasError) {
           return _buildErrorState(
-            'Error loading businesses',
+            FLocalization.of(context).errorLoadingBusinesses,
             businessSnapshot.error.toString(),
             () => (context as Element).markNeedsBuild(),
           );
@@ -380,8 +383,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
         if (businesses.isEmpty) {
           return _buildEmptyState(
             icon: Icons.business_outlined,
-            title: 'No Businesses',
-            subtitle: 'Create your first business to get started',
+            title: FLocalization.of(context).noBusinesses,
+            subtitle: FLocalization.of(context).createFirstBusiness,
           );
         }
 
@@ -491,13 +494,17 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(37, 99, 235, 0.10),
+                                  color: const Color.fromRGBO(
+                                    37,
+                                    99,
+                                    235,
+                                    0.10,
+                                  ),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Center(
                                   child: DashboardQuickAccessSvgs.icon(
-                                    DashboardQuickAccessSvgs
-                                        .drawerOnlinePrintSyncIcon(),
+                                    DashboardQuickAccessSvgs.drawerOnlinePrintSyncIcon(),
                                     width: 22,
                                     height: 22,
                                   ),
@@ -571,7 +578,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
           ),
           const SizedBox(height: 12),
           _ModernSwitchRow(
-            iconSvg: DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
+            iconSvg:
+                DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
             title: 'Background Sync',
             subtitle: 'Sync data in background',
             value: backgroundSyncEnabled,
@@ -618,6 +626,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
               }
             },
           ),
+          const SizedBox(height: 12),
+          const _CheckSubscriptionDrawerRow(),
           const SizedBox(height: 12),
           // EBM Status Indicator
           Consumer(
@@ -740,14 +750,14 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
         top: false,
         child: _ModernBaseRow(
           iconSvg: DashboardQuickAccessSvgs.drawerSignOutIcon(),
-          title: 'Sign Out',
+          title: FLocalization.of(context).signOut,
           titleColor: const Color(0xFFDC2626),
           subtitle: null,
           trailing: const SizedBox(width: 14, height: 14),
           onTap: () {
             locator<DialogService>().showCustomDialog(
               variant: DialogType.logOut,
-              title: 'Sign Out',
+              title: FLocalization.of(context).signOut,
             );
           },
         ),
@@ -959,8 +969,10 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
               onTap: () => _handleShiftAction(isShiftOpen, shift),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -975,8 +987,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                       child: Center(
                         child: isShiftOpen
                             ? DashboardQuickAccessSvgs.icon(
-                                DashboardQuickAccessSvgs
-                                    .drawerCloseShiftLockIcon(),
+                                DashboardQuickAccessSvgs.drawerCloseShiftLockIcon(),
                                 width: 24,
                                 height: 24,
                               )
@@ -1022,8 +1033,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                         ),
                         child: Center(
                           child: DashboardQuickAccessSvgs.icon(
-                            DashboardQuickAccessSvgs
-                                .drawerShiftWarningBadgeIcon(),
+                            DashboardQuickAccessSvgs.drawerShiftWarningBadgeIcon(),
                             width: 10,
                             height: 10,
                           ),
@@ -1097,6 +1107,47 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
         _loadShiftStatus();
       }
     }
+  }
+}
+
+/// Drawer row: verify subscription online and navigate (sales / post-signup).
+class _CheckSubscriptionDrawerRow extends ConsumerWidget {
+  const _CheckSubscriptionDrawerRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final verificationState = ref.watch(manualPaymentVerificationProvider);
+
+    return _ModernMenuRow(
+      iconSvg: DashboardQuickAccessSvgs.drawerUserLoggingFileIcon(),
+      title: 'Check subscription',
+      subtitle: verificationState.isLoading
+          ? 'Checking payment status…'
+          : 'Refresh after customer pays',
+      onTap: verificationState.isLoading
+          ? () {}
+          : () async {
+              Navigator.pop(context);
+              try {
+                final response = await triggerManualPaymentVerification(ref);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      paymentVerificationResultMessage(response),
+                    ),
+                  ),
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Could not check subscription: $e'),
+                  ),
+                );
+              }
+            },
+    );
   }
 }
 
@@ -1450,8 +1501,11 @@ class _ModernBaseRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child:
-                  DashboardQuickAccessSvgs.icon(iconSvg, width: 22, height: 22),
+              child: DashboardQuickAccessSvgs.icon(
+                iconSvg,
+                width: 22,
+                height: 22,
+              ),
             ),
           ),
           const SizedBox(width: 12),

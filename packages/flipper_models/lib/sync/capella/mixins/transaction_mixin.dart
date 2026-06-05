@@ -351,6 +351,109 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  @override
+  Stream<List<ITransaction>> openPosTicketsTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
+    required bool skipOriginalTransactionCheck,
+  }) {
+    if (!forceRealData) {
+      return Stream.value(
+        DummyTransactionGenerator.generateDummyTransactions(
+          count: 20,
+          branchId: branchId ?? '1',
+          status: PARKED,
+        ),
+      );
+    }
+
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized: openPosTicketsTransactionsStream');
+        return Stream.value([]);
+      }
+
+      final preparedTx = prepareDqlSyncSubscription(
+        'SELECT * FROM transactions WHERE branchId = :branchId',
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedTx.dql,
+        arguments: preparedTx.arguments,
+      );
+
+      final whereClauses = <String>[];
+      final arguments = <String, dynamic>{};
+
+      final agentId = ProxyService.box.getUserId()!;
+      whereClauses.add('agentId = :agentId');
+      arguments['agentId'] = agentId;
+
+      whereClauses.add(
+        '(status = :waiting OR status = :parked OR status = :inProgress)',
+      );
+      arguments['waiting'] = WAITING;
+      arguments['parked'] = PARKED;
+      arguments['inProgress'] = IN_PROGRESS;
+
+      whereClauses.add('subTotal > 0');
+
+      if (!skipOriginalTransactionCheck) {
+        whereClauses.add('isOriginalTransaction = :isOriginal');
+        arguments['isOriginal'] = true;
+      }
+
+      if (branchId != null) {
+        whereClauses.add('branchId = :branchId');
+        arguments['branchId'] = branchId;
+      }
+
+      if (removeAdjustmentTransactions) {
+        whereClauses.add('transactionType != :adjustmentType');
+        arguments['adjustmentType'] = 'Adjustment';
+      }
+
+      final query =
+          'SELECT * FROM transactions WHERE ${whereClauses.join(' AND ')} ORDER BY createdAt DESC';
+
+      final controller = StreamController<List<ITransaction>>.broadcast();
+      dynamic observer;
+
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (queryResult) {
+          if (controller.isClosed) return;
+
+          final transactions = <ITransaction>[];
+          for (final item in queryResult.items) {
+            try {
+              final transactionData = Map<String, dynamic>.from(item.value);
+              transactions.add(_convertFromDittoDocument(transactionData));
+            } catch (e) {
+              talker.error('Error converting open ticket transaction: $e');
+            }
+          }
+          controller.add(transactions);
+        },
+      );
+
+      controller.onCancel = () async {
+        await cancelDittoStoreObserver(observer);
+        if (!controller.isClosed) {
+          await controller.close();
+        }
+      };
+
+      return controller.stream;
+    } catch (e) {
+      talker.error('Error in openPosTicketsTransactionsStream: $e');
+      return Stream.value([]);
+    }
+  }
+
   /// Convert Ditto document to ITransaction model
   ITransaction _convertFromDittoDocument(Map<String, dynamic> data) {
     DateTime? parseDateTime(dynamic value) {
@@ -1173,7 +1276,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
 
       if (updatePendingTransactionSubtotal && delta != 0) {
-        await _dittoAdjustTransactionSubtotalByDelta(
+        await dittoAdjustTransactionSubtotalByDelta(
           transactionId: pendingTransaction.id,
           delta: delta,
         );
@@ -1382,7 +1485,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   /// Adjust transaction subtotal (Ditto forbids `field + :param` style updates for
   /// register fields — use read + scalar SET instead).
-  Future<void> _dittoAdjustTransactionSubtotalByDelta({
+  /// Adjust transaction subtotal in Ditto (read + scalar SET). Public so
+  /// [CapellaTransactionItemMixin] can bump subtotal after inserting a line.
+  Future<void> dittoAdjustTransactionSubtotalByDelta({
     required String transactionId,
     required double delta,
   }) async {
@@ -1417,7 +1522,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required double unitPrice,
     required double qtyDelta,
   }) async {
-    await _dittoAdjustTransactionSubtotalByDelta(
+    await dittoAdjustTransactionSubtotalByDelta(
       transactionId: transactionId,
       delta: unitPrice * qtyDelta,
     );
@@ -1560,14 +1665,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     addUpdate('customerId', customerId ?? transaction?.customerId);
     addUpdate('ticketName', ticketName ?? transaction?.ticketName);
     addUpdate('isLoan', isLoan ?? transaction?.isLoan);
+    addUpdate('dueDate', transaction?.dueDate);
     addUpdate(
       'remainingBalance',
       remainingBalance ?? transaction?.remainingBalance,
     );
 
-    // Crucial for resumption: update agentId if transaction object is provided
+    // Crucial for resumption: update agent/device if transaction object is provided
     if (transaction != null) {
       addUpdate('agentId', transaction.agentId);
+      addUpdate('deviceId', transaction.deviceId);
       addFieldUpdate(
         'attributedAgentUserId',
         transaction.attributedAgentUserId,

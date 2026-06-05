@@ -1,5 +1,6 @@
 library flipper_login;
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -72,7 +73,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                       height: 60,
                       child: !model.updateStart
                           ? BoxButton(
-                              title: 'Add Email',
+                              title: FLocalization.of(context).addEmail,
                               onTap: () async {
                                 if (_formKey.currentState!.validate()) {
                                   bool updated = await model.updateSettings(
@@ -80,7 +81,8 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                   );
                                   if (updated) {
                                     showSimpleNotification(
-                                      Text('Email added'),
+                                      Text(
+                                          FLocalization.of(context).emailAdded),
                                       background: Colors.green,
                                       position: NotificationPosition.bottom,
                                     );
@@ -96,7 +98,8 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                 width: double.infinity,
                                 height: 60,
                                 child: BoxButton(
-                                  title: 'Update Settings',
+                                  title:
+                                      FLocalization.of(context).updateSettings,
                                   busy: true,
                                 ),
                               ),

@@ -81,6 +81,8 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool forceListView;
   /// Desktop POS catalog grid — uses [PosCatalogGridCard] (handoff layout).
   final bool usePosCatalogTile;
+  /// Pre-loaded from [stocksForVisibleVariantsProvider]; skips per-row Ditto watch.
+  final Stock? liveStock;
 
   const RowItem({
     Key? key,
@@ -103,6 +105,7 @@ class RowItem extends StatefulHookConsumerWidget {
     this.favIndex,
     required this.isComposite,
     required this.isOrdering,
+    this.liveStock,
   }) : super(key: key);
 
   static _defaultFunction(String? id, String type) {
@@ -122,6 +125,21 @@ class _RowItemState extends ConsumerState<RowItem>
       return text;
     }
     return text.substring(0, maxLength) + '...';
+  }
+
+  int _resolveStockValue(WidgetRef ref) {
+    if (widget.liveStock != null) {
+      final raw = widget.liveStock!.currentStock ?? widget.stock;
+      return raw is int ? raw as int : raw.floor().toInt();
+    }
+    final stockId = widget.variant?.stockId ?? '';
+    if (stockId.isEmpty) {
+      final raw = widget.stock;
+      return raw is int ? raw as int : raw.floor().toInt();
+    }
+    final stockAsync = ref.watch(stockByVariantProvider(stockId));
+    final stockRaw = stockAsync.value?.currentStock ?? widget.stock;
+    return stockRaw is int ? stockRaw as int : stockRaw.floor().toInt();
   }
 
   // Constants for consistent styling
@@ -211,11 +229,7 @@ class _RowItemState extends ConsumerState<RowItem>
         ? ref.watch(posCartQtyForVariantProvider(variantId))
         : 0;
 
-    final stockAsync = ref.watch(
-      stockByVariantProvider(widget.variant?.stockId ?? ''),
-    );
-    final stockRaw = stockAsync.value?.currentStock ?? widget.stock;
-    final stockValue = stockRaw is int ? stockRaw : stockRaw.floor();
+    final stockValue = _resolveStockValue(ref);
     final visual = posStockVisual(
       currentStock: stockValue,
       lowStockThreshold: _lowStockThreshold,
@@ -538,10 +552,7 @@ class _RowItemState extends ConsumerState<RowItem>
         RepaintBoundary(
           child: Consumer(
             builder: (context, ref, child) {
-              final stockAsync = ref.watch(
-                stockByVariantProvider(widget.variant?.stockId ?? ''),
-              );
-              final stockValue = stockAsync.value?.currentStock ?? 0;
+              final stockValue = _resolveStockValue(ref);
 
               return Text(
                 '$stockValue in stock',
@@ -677,13 +688,7 @@ class _RowItemState extends ConsumerState<RowItem>
                     RepaintBoundary(
                       child: Consumer(
                         builder: (context, ref, child) {
-                          final stockAsync = ref.watch(
-                            stockByVariantProvider(
-                              widget.variant?.stockId ?? '',
-                            ),
-                          );
-                          final stockValue =
-                              stockAsync.value?.currentStock ?? 0;
+                          final stockValue = _resolveStockValue(ref);
 
                           return Text(
                             '$stockValue in stock',
@@ -909,13 +914,7 @@ class _RowItemState extends ConsumerState<RowItem>
               RepaintBoundary(
                 child: Consumer(
                   builder: (context, ref, _) {
-                    final stockAsync = ref.watch(
-                      stockByVariantProvider(widget.variant?.stockId ?? ''),
-                    );
-                    final stockRaw = stockAsync.value?.currentStock ?? 0;
-                    final stockValue = stockRaw is int
-                        ? stockRaw
-                        : stockRaw.floor();
+                    final stockValue = _resolveStockValue(ref);
 
                     final threshold = _lowStockThreshold;
                     final visual = posStockVisual(
@@ -1004,11 +1003,7 @@ class _RowItemState extends ConsumerState<RowItem>
     if (_isMposCatalogRow) {
       return Consumer(
         builder: (context, ref, _) {
-          final stockAsync = ref.watch(
-            stockByVariantProvider(widget.variant?.stockId ?? ''),
-          );
-          final stockRaw = stockAsync.value?.currentStock ?? 0;
-          final stockValue = stockRaw is int ? stockRaw : stockRaw.floor();
+          final stockValue = _resolveStockValue(ref);
           final enabled = stockValue > 0;
 
           return Material(

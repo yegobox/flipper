@@ -85,7 +85,8 @@ class CartListNotifier extends StateNotifier<List<Variant>> {
   }
 }
 
-final searchStringProvider = StateProvider<String>((ref) => '');
+/// Supplier catalog search (distinct from POS [searchStringProvider] in scan_mode).
+final supplierCatalogSearchProvider = StateProvider<String>((ref) => '');
 
 // Create a family provider to cache results by supplier and search parameters
 final productFromSupplier = FutureProvider.autoDispose
@@ -156,7 +157,7 @@ final productFromSupplierWrapper = FutureProvider.autoDispose<List<Variant>>((
   ref,
 ) async {
   final supplier = ref.watch(selectedSupplierProvider);
-  final searchString = ref.watch(searchStringProvider);
+  final searchString = ref.watch(supplierCatalogSearchProvider);
 
   return await ref.watch(
     productFromSupplier((

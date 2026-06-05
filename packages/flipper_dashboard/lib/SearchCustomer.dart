@@ -191,13 +191,17 @@ class _SearchInputWithDropdownState
   @override
   void initState() {
     super.initState();
-    _initializeSearchBox();
     _selectedCustomerType = 'Walk-in';
     _selectedSaleType = 'Outgoing- Sale';
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        _saveTransactionMetadata();
-      }
+    // Riverpod [ref] is not available until after [initState] completes.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_initializeSearchBox());
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          unawaited(_saveTransactionMetadata());
+        }
+      });
     });
   }
 
@@ -297,7 +301,7 @@ class _SearchInputWithDropdownState
       ref.invalidate(
         transactionByIdProvider(transaction.value!.id),
       );
-      ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
       setState(() => _searchController.clear());
       ref.read(customerPhoneNumberProvider.notifier).state = null;
       await ProxyService.box.remove(key: 'customerName');
@@ -305,7 +309,7 @@ class _SearchInputWithDropdownState
     }
   }
 
-  void _performSearch(String searchKey, ITransaction? transaction) {
+  void _performSearch(String searchKey) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 400), () async {
       if (searchKey.isEmpty) {
@@ -322,6 +326,10 @@ class _SearchInputWithDropdownState
           ).customers(key: searchKey, branchId: branchId);
         }
         setState(() => _searchResults = customers);
+        final pending = ref.read(
+          pendingTransactionStreamProvider(isExpense: false),
+        );
+        final transaction = pending.hasValue ? pending.requireValue : null;
         _showOverlay(transaction);
       } catch (e) {
         talker.warning('Error searching customers: $e');
@@ -392,7 +400,7 @@ class _SearchInputWithDropdownState
         description: 'Customer ${customer.custNm} added to the sale!',
         data: {'status': InfoDialogStatus.success},
       );
-      ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
       setState(() {
         _searchResults = [];
         _searchController.clear();
@@ -408,11 +416,13 @@ class _SearchInputWithDropdownState
 
   @override
   Widget build(BuildContext context) {
-    final transaction = ref.watch(
-      pendingTransactionStreamProvider(isExpense: false),
+    final customerId = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false).select(
+        (a) => a.asData?.value.customerId,
+      ),
     );
     final attachedCustomerAsync = ref.watch(
-      attachedCustomerProvider(transaction.value?.customerId),
+      attachedCustomerProvider(customerId),
     );
     final attachedCustomer = attachedCustomerAsync.maybeWhen(
       data: (customer) => customer,
@@ -423,26 +433,29 @@ class _SearchInputWithDropdownState
       padding: widget.embeddedInCheckoutPane
           ? EdgeInsets.zero
           : const EdgeInsets.fromLTRB(8, 6, 8, 2),
-      child: _buildSearchField(attachedCustomer, transaction.value),
+      child: _buildSearchField(attachedCustomer),
     );
   }
 
   /// The search text field wrapped in a [CompositedTransformTarget] so the
   /// floating results overlay can be anchored directly below it at any
   /// screen resolution.
-  Widget _buildSearchField(
-    Customer? attachedCustomer,
-    ITransaction? transaction,
-  ) {
+  Widget _buildSearchField(Customer? attachedCustomer) {
     return CompositedTransformTarget(
       link: _layerLink,
       child: TextFormField(
         readOnly: attachedCustomer != null,
         controller: _searchController,
-        onChanged: (v) => _performSearch(v, transaction),
+        onChanged: _performSearch,
         onTap: () {
-          // Re-show overlay if results already exist (e.g. user tapped away)
-          if (_searchResults.isNotEmpty) _showOverlay(transaction);
+          if (_searchResults.isNotEmpty) {
+            final pending = ref.read(
+              pendingTransactionStreamProvider(isExpense: false),
+            );
+            final transaction =
+                pending.hasValue ? pending.requireValue : null;
+            _showOverlay(transaction);
+          }
         },
         decoration: InputDecoration(
           hintText: 'Search Customer',
@@ -479,7 +492,7 @@ class _SearchInputWithDropdownState
                   label: 'Sale Type',
                   icon: FluentIcons.call_outbound_20_regular,
                 ),
-                _buildAgentSuffixControl(transaction),
+                const _SearchCustomerAgentSuffix(),
                 if (attachedCustomer != null)
                   IconButton(
                     padding: EdgeInsets.zero,
@@ -547,23 +560,54 @@ class _SearchInputWithDropdownState
       ),
     );
   }
+}
 
-  Widget _buildAgentSuffixControl(ITransaction? transaction) {
-    final uid = transaction?.attributedAgentUserId;
+class _SearchCustomerAgentSuffix extends ConsumerWidget {
+  const _SearchCustomerAgentSuffix();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final agentFields = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false).select((a) {
+        final t = a.asData?.value;
+        if (t == null) return null;
+        return (
+          transaction: t,
+          uid: t.attributedAgentUserId,
+          commissionType: t.agentCommissionType,
+          commissionValue: t.agentCommissionValue,
+          commissionAmount: t.agentCommissionAmount,
+        );
+      }),
+    );
+
+    if (agentFields == null) {
+      return IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
+        tooltip: 'Assign agent',
+        onPressed: null,
+        icon: Icon(
+          Icons.support_agent,
+          color: PosLayoutBreakpoints.posAccentBlue,
+        ),
+      );
+    }
+
+    final uid = agentFields.uid;
     final hasAgent = uid != null && uid.isNotEmpty;
+    final transaction = agentFields.transaction;
 
     if (!hasAgent) {
       return IconButton(
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
         tooltip: 'Assign agent',
-        onPressed: transaction == null
-            ? null
-            : () => showSaleAgentAssignmentSheet(
-                  context: context,
-                  ref: ref,
-                  transaction: transaction,
-                ),
+        onPressed: () => showSaleAgentAssignmentSheet(
+          context: context,
+          ref: ref,
+          transaction: transaction,
+        ),
         icon: Icon(
           Icons.support_agent,
           color: PosLayoutBreakpoints.posAccentBlue,
@@ -577,9 +621,9 @@ class _SearchInputWithDropdownState
       orElse: () => 'Agent',
     );
     final commissionLabel = formatSaleAgentCommissionLabel(
-      commissionType: transaction?.agentCommissionType,
-      commissionValue: transaction?.agentCommissionValue,
-      resolvedAmount: transaction?.agentCommissionAmount,
+      commissionType: agentFields.commissionType,
+      commissionValue: agentFields.commissionValue,
+      resolvedAmount: agentFields.commissionAmount,
     );
 
     return Padding(
@@ -592,7 +636,7 @@ class _SearchInputWithDropdownState
           onTap: () => showSaleAgentAssignmentSheet(
             context: context,
             ref: ref,
-            transaction: transaction!,
+            transaction: transaction,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -639,7 +683,7 @@ class _SearchInputWithDropdownState
                   onTap: () async {
                     await persistSaleAgentAttribution(
                       ref,
-                      transaction!,
+                      transaction,
                       clear: true,
                     );
                   },

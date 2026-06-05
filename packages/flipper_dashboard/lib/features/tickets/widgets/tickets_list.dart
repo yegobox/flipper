@@ -1,12 +1,16 @@
+import 'package:flipper_dashboard/mobile_checkout_launcher.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -101,10 +105,7 @@ class _TicketSearchBarState extends State<TicketSearchBar> {
       onChanged: widget.onChanged,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: GoogleFonts.outfit(
-          fontSize: 14,
-          color: Colors.grey[600],
-        ),
+        hintStyle: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
         prefixIcon: Icon(Icons.search, color: Colors.grey[600], size: 22),
         suffixIcon: _controller.text.isNotEmpty
             ? IconButton(
@@ -129,7 +130,10 @@ class _TicketSearchBarState extends State<TicketSearchBar> {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: _kAccentBlue, width: 1.2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
       style: GoogleFonts.outfit(fontSize: 15),
     );
@@ -137,10 +141,10 @@ class _TicketSearchBarState extends State<TicketSearchBar> {
 }
 
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
-  final _routerService = locator<RouterService>();
   final _dialogService = locator<DialogService>();
   List<ITransaction> _currentTickets = [];
   String _searchQuery = '';
+
   /// all | loan | layaway | regular — drives chip row and list filtering
   String _ticketKindFilter = 'all';
   bool _sortNewestFirst = true;
@@ -169,8 +173,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   void _sortTicketList(List<ITransaction> list) {
     list.sort((a, b) {
-      final da = a.createdAt ?? a.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final db = b.createdAt ?? b.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final da =
+          a.createdAt ?? a.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final db =
+          b.createdAt ?? b.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
       final c = db.compareTo(da);
       return _sortNewestFirst ? c : -c;
     });
@@ -276,7 +282,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       t.subTotal?.toString(),
       t.invoiceNumber?.toString(),
     ];
-    return fields.any((f) => f != null && f.toString().toLowerCase().contains(q));
+    return fields.any(
+      (f) => f != null && f.toString().toLowerCase().contains(q),
+    );
   }
 
   /// Builds the main ticket section (single-column list on all screen sizes).
@@ -284,58 +292,67 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final ticketsAsync = ref.watch(ticketsStreamProvider);
-            final column = Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_isDeleting)
-                  LinearProgressIndicator(
-                    backgroundColor: Colors.grey[200],
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.blue,
+        final column = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_isDeleting)
+              LinearProgressIndicator(
+                backgroundColor: Colors.grey[200],
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Colors.blue,
+                ),
+                value: _totalCount > 0 ? _deletedCount / _totalCount : null,
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: TicketSearchBar(
+                hintText: 'Search by customer, phone, ticket ID...',
+                onChanged: (value) => setState(() => _searchQuery = value),
+              ),
+            ),
+            if (filterChips != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: filterChips,
+              ),
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final ticketsAsync = ref.watch(ticketsStreamProvider);
+                  final paymentSumsAsync =
+                      ref.watch(ticketsPaymentSumsProvider);
+                  final paymentSums = paymentSumsAsync.hasValue
+                      ? paymentSumsAsync.requireValue
+                      : const <String, double>{};
+                  return ticketsAsync.when(
+                    data: (tickets) => _buildTicketList(
+                      context,
+                      tickets,
+                      paymentSumsByTxnId: paymentSums,
                     ),
-                    value: _totalCount > 0 ? _deletedCount / _totalCount : null,
-                  ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: TicketSearchBar(
-                    hintText:
-                        'Search by customer, phone, ticket ID...',
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                  ),
-                ),
-                if (filterChips != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: filterChips,
-                  ),
-                Expanded(
-                  child: ticketsAsync.when(
-                    data: (tickets) => _buildTicketList(context, tickets),
                     loading: () => _buildLoadingState(context),
-                    error: (error, stack) => _buildErrorState(error.toString()),
-                  ),
-                ),
-              ],
-            );
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.hasBoundedHeight) {
-                  return column;
-                }
-                final mq = MediaQuery.sizeOf(context);
-                final h = (mq.height > 0 ? mq.height : 640.0) * 0.82;
-                final w = constraints.hasBoundedWidth
-                    ? constraints.maxWidth
-                    : (mq.width > 0 ? mq.width : 360.0);
-                return SizedBox(width: w, height: h, child: column);
-              },
-            );
+                    error: (error, stack) =>
+                        _buildErrorState(error.toString()),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.hasBoundedHeight) {
+              return column;
+            }
+            final mq = MediaQuery.sizeOf(context);
+            final h = (mq.height > 0 ? mq.height : 640.0) * 0.82;
+            final w = constraints.hasBoundedWidth
+                ? constraints.maxWidth
+                : (mq.width > 0 ? mq.width : 360.0);
+            return SizedBox(width: w, height: h, child: column);
           },
         );
       },
@@ -474,68 +491,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
-  /// Single-column scrollable list (matches design on all screen sizes).
-  Widget _buildTicketList(
-    BuildContext context,
-    List<ITransaction> tickets,
-  ) {
-    final searchFiltered = tickets
-        .where((t) => _matchesSearch(t, _searchQuery))
-        .toList();
-
-    if (searchFiltered.isEmpty) {
-      return _buildEmptySearchOrNoTickets(context, tickets.isEmpty);
-    }
-
-    final typeFiltered = _applyTicketTypeFilter(searchFiltered);
-    if (typeFiltered.isEmpty) {
-      return _buildEmptyAfterFilter(context);
-    }
-
-    _sortTicketList(typeFiltered);
-    _currentTickets = typeFiltered;
-
+  List<_TicketListEntry> _flattenTicketEntries(List<ITransaction> typeFiltered) {
     final loanTickets = typeFiltered.where((t) => t.isLoan == true).toList();
     final nonLoanTickets =
         typeFiltered.where((t) => t.isLoan != true).toList();
-
-    Widget buildSection(String title, Color accentColor, List<ITransaction> list) {
-      if (list.isEmpty) return const SizedBox.shrink();
-
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-            title: title,
-            accentColor: accentColor,
-            count: list.length,
-          ),
-          for (final ticket in list)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
-              child: Consumer(
-                builder: (context, ref, _) {
-                  final isSelected = ref
-                      .watch(ticketSelectionProvider)
-                      .contains(ticket.id);
-                  return TicketCard(
-                    ticket: ticket,
-                    isSelected: isSelected,
-                    onTap: () => _handleTicketTap(context, ticket),
-                    onDelete: () => _deleteTicket(ticket),
-                    onSelectionChanged: (selected) {
-                      ref
-                          .read(ticketSelectionProvider.notifier)
-                          .toggleSelection(ticket.id);
-                    },
-                  );
-                },
-              ),
-            ),
-        ],
-      );
-    }
 
     String loanSectionTitle() {
       switch (_ticketKindFilter) {
@@ -553,49 +512,76 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       return _kLoanPurple;
     }
 
-    final List<Widget> scrollChildren = [];
+    void addSection(
+      List<_TicketListEntry> out,
+      String title,
+      Color accent,
+      List<ITransaction> list,
+    ) {
+      if (list.isEmpty) return;
+      out.add(
+        _TicketListEntry.header(
+          title: title,
+          accentColor: accent,
+          count: list.length,
+        ),
+      );
+      for (final ticket in list) {
+        out.add(_TicketListEntry.ticket(ticket));
+      }
+    }
+
+    final entries = <_TicketListEntry>[];
     switch (_ticketKindFilter) {
       case 'loan':
-        if (typeFiltered.isNotEmpty) {
-          scrollChildren.add(
-            buildSection('LOAN TICKETS', _kLoanPurple, typeFiltered),
-          );
-        }
+        addSection(entries, 'LOAN TICKETS', _kLoanPurple, typeFiltered);
         break;
       case 'layaway':
-        if (typeFiltered.isNotEmpty) {
-          scrollChildren.add(
-            buildSection('LAYAWAY TICKETS', _kLayawayTeal, typeFiltered),
-          );
-        }
+        addSection(entries, 'LAYAWAY TICKETS', _kLayawayTeal, typeFiltered);
         break;
       case 'regular':
-        if (typeFiltered.isNotEmpty) {
-          scrollChildren.add(
-            buildSection('REGULAR TICKETS', _kRegularGreen, typeFiltered),
-          );
-        }
+        addSection(entries, 'REGULAR TICKETS', _kRegularGreen, typeFiltered);
         break;
       default:
-        if (loanTickets.isNotEmpty) {
-          scrollChildren.add(
-            buildSection(
-              loanSectionTitle(),
-              loanSectionAccent(),
-              loanTickets,
-            ),
-          );
-        }
-        if (nonLoanTickets.isNotEmpty) {
-          scrollChildren.add(
-            buildSection(
-              'REGULAR TICKETS',
-              _kRegularGreen,
-              nonLoanTickets,
-            ),
-          );
-        }
+        addSection(
+          entries,
+          loanSectionTitle(),
+          loanSectionAccent(),
+          loanTickets,
+        );
+        addSection(
+          entries,
+          'REGULAR TICKETS',
+          _kRegularGreen,
+          nonLoanTickets,
+        );
     }
+    return entries;
+  }
+
+  /// Single-column scrollable list (matches design on all screen sizes).
+  Widget _buildTicketList(
+    BuildContext context,
+    List<ITransaction> tickets, {
+    required Map<String, double> paymentSumsByTxnId,
+  }) {
+    final searchFiltered = tickets
+        .where((t) => _matchesSearch(t, _searchQuery))
+        .toList();
+
+    if (searchFiltered.isEmpty) {
+      return _buildEmptySearchOrNoTickets(context, tickets.isEmpty);
+    }
+
+    final typeFiltered = _applyTicketTypeFilter(searchFiltered);
+    if (typeFiltered.isEmpty) {
+      return _buildEmptyAfterFilter(context);
+    }
+
+    _sortTicketList(typeFiltered);
+    _currentTickets = typeFiltered;
+
+    final entries = _flattenTicketEntries(typeFiltered);
 
     return Column(
       children: [
@@ -609,9 +595,48 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             minHeight: 3,
           ),
         Expanded(
-          child: ListView(
+          child: ListView.builder(
             padding: EdgeInsets.zero,
-            children: scrollChildren,
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              if (entry.isHeader) {
+                return _buildSectionHeader(
+                  title: entry.sectionTitle!,
+                  accentColor: entry.accentColor!,
+                  count: entry.sectionCount!,
+                );
+              }
+              final ticket = entry.ticket!;
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 5,
+                ),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final isSelected = ref.watch(
+                      ticketSelectionProvider.select(
+                        (s) => s.contains(ticket.id),
+                      ),
+                    );
+                    return TicketCard(
+                      key: ValueKey(ticket.id),
+                      ticket: ticket,
+                      isSelected: isSelected,
+                      paidAmount: paymentSumsByTxnId[ticket.id] ?? 0.0,
+                      onTap: () => _handleTicketTap(context, ticket),
+                      onDelete: () => _deleteTicket(ticket),
+                      onSelectionChanged: (selected) {
+                        ref
+                            .read(ticketSelectionProvider.notifier)
+                            .toggleSelection(ticket.id);
+                      },
+                    );
+                  },
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -652,11 +677,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
-  /// Park all pending except the one we're resuming
+  /// Park all pending except the one we're resuming (Ditto / Capella only).
   Future<void> _parkExistingPendingTransactions({
     required String excludeId,
   }) async {
-    final strategies = [Strategy.capella, Strategy.cloudSync];
+    const strategies = [Strategy.capella];
     for (final strategy in strategies) {
       try {
         final pending = await ProxyService.getStrategy(strategy).transactions(
@@ -687,9 +712,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       await _parkExistingPendingTransactions(excludeId: ticket.id);
 
-      // Update ticket to belong to current agent and be pending
+      // Pending-cart queries are scoped to this device's [deviceId]; tickets saved
+      // on desktop must be reassigned or mobile checkout shows an empty cart.
+      final saleDeviceId = await resolveSaleDeviceId();
       ticket.status = PENDING;
       ticket.agentId = ProxyService.box.getUserId();
+      ticket.deviceId = saleDeviceId;
 
       await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: ticket,
@@ -697,17 +725,55 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         updatedAt: DateTime.now().toUtc(),
         lastTouched: DateTime.now().toUtc(),
       );
+
+      final branchId = ProxyService.box.getBranchId() ?? ticket.branchId ?? '';
+      primePosCartForTransactionWidget(
+        ref,
+        isExpense: false,
+        transaction: ticket,
+      );
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      if (branchId.isNotEmpty) {
+        ref.invalidate(
+          transactionItemsStreamProvider(
+            transactionId: ticket.id,
+            branchId: branchId,
+          ),
+        );
+        final lineItems = await ProxyService.getStrategy(Strategy.capella)
+            .transactionItems(
+          transactionId: ticket.id,
+          branchId: branchId,
+          active: true,
+        );
+        if (lineItems.isEmpty) {
+          talker.warning('Resume: no line items for ticket ${ticket.id}');
+          if (mounted) {
+            showCustomSnackBarUtil(
+              context,
+              'Could not load ticket items. Try again.',
+              backgroundColor: Colors.orange,
+            );
+          }
+          return;
+        }
+      }
+
       final isMobile = MediaQuery.sizeOf(context).width < 600;
       if (isMobile) {
-        await _routerService.navigateTo(CheckOutRoute(isBigScreen: !isMobile));
+        if (mounted) {
+          await openMobileCheckoutForTransaction(context, ref, ticket);
+        }
       } else {
         if (mounted) Navigator.of(context).pop();
       }
-      showCustomSnackBarUtil(
-        context,
-        'Order resumed successfully',
-        backgroundColor: Colors.green,
-      );
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Order resumed successfully',
+          backgroundColor: Colors.green,
+        );
+      }
     } catch (e, st) {
       talker.error('Resume failed: $e', st);
       if (mounted) {
@@ -862,7 +928,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           const SizedBox(height: 8),
           Text(
             'Something went wrong',
-            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500),
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -882,9 +951,43 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 }
 
+class _TicketListEntry {
+  const _TicketListEntry._({
+    required this.isHeader,
+    this.sectionTitle,
+    this.accentColor,
+    this.sectionCount,
+    this.ticket,
+  });
+
+  factory _TicketListEntry.header({
+    required String title,
+    required Color accentColor,
+    required int count,
+  }) {
+    return _TicketListEntry._(
+      isHeader: true,
+      sectionTitle: title,
+      accentColor: accentColor,
+      sectionCount: count,
+    );
+  }
+
+  factory _TicketListEntry.ticket(ITransaction ticket) {
+    return _TicketListEntry._(isHeader: false, ticket: ticket);
+  }
+
+  final bool isHeader;
+  final String? sectionTitle;
+  final Color? accentColor;
+  final int? sectionCount;
+  final ITransaction? ticket;
+}
+
 class TicketCard extends StatelessWidget {
   final ITransaction ticket;
   final bool isSelected;
+  final double paidAmount;
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final ValueChanged<bool> onSelectionChanged;
@@ -892,6 +995,7 @@ class TicketCard extends StatelessWidget {
     super.key,
     required this.ticket,
     required this.isSelected,
+    required this.paidAmount,
     required this.onTap,
     required this.onDelete,
     required this.onSelectionChanged,
@@ -906,9 +1010,7 @@ class TicketCard extends StatelessWidget {
     if (ticket.isLoan != true) return const SizedBox.shrink();
     final layaway = _isLayawayTicket(ticket);
     final fg = layaway ? _kLayawayTeal : _kLoanPurple;
-    final bg = layaway
-        ? const Color(0xFFE0F2F1)
-        : const Color(0xFFF3E5F5);
+    final bg = layaway ? const Color(0xFFE0F2F1) : const Color(0xFFF3E5F5);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -929,51 +1031,44 @@ class TicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusExt = TicketStatusExtension.fromString(ticket.status ?? PARKED);
-    final phone = (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
+    final phone =
+        (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
+            .trim();
+    final displayName = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
         .trim();
-    final displayName =
-        (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
+
+    final total = ticket.subTotal ?? 0.0;
+    final paid = paidAmount;
+    final remaining = (total - paid);
+    final remClamped = remaining < 0 ? 0.0 : remaining;
+    final partial = paid > 0 && remClamped > 0;
+
+    final String statusLabel;
+    final Color statusFg;
+    final Color statusBg;
+    if (partial) {
+      statusLabel = 'Partial';
+      statusFg = const Color(0xFFC62828);
+      statusBg = const Color(0xFFFFEBEE);
+    } else {
+      statusLabel = statusExt.displayName;
+      statusFg = statusExt.color;
+      final raw = (ticket.status ?? PARKED).toLowerCase();
+      if (raw == PARKED) {
+        statusBg = const Color(0xFFFFF9E6);
+      } else {
+        statusBg = statusExt.color.withValues(alpha: 0.15);
+      }
+    }
+
+    final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
+    final fullyPaid =
+        total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
+    final progressColor = fullyPaid ? _kRegularGreen : _kProgressOrange;
 
     return Material(
       color: Colors.transparent,
-      child: FutureBuilder<double?>(
-        future: ProxyService.getStrategy(Strategy.capella).getTotalPaidForTransaction(
-          transactionId: ticket.id,
-          branchId: ticket.branchId ?? '',
-          excludePaymentMethod: 'CREDIT',
-        ),
-        builder: (context, snapshot) {
-          final total = ticket.subTotal ?? 0.0;
-          final paid = snapshot.data ?? 0.0;
-          final remaining = (total - paid);
-          final remClamped = remaining < 0 ? 0.0 : remaining;
-          final partial = paid > 0 && remClamped > 0;
-
-          final String statusLabel;
-          final Color statusFg;
-          final Color statusBg;
-          if (partial) {
-            statusLabel = 'Partial';
-            statusFg = const Color(0xFFC62828);
-            statusBg = const Color(0xFFFFEBEE);
-          } else {
-            statusLabel = statusExt.displayName;
-            statusFg = statusExt.color;
-            final raw = (ticket.status ?? PARKED).toLowerCase();
-            if (raw == PARKED) {
-              statusBg = const Color(0xFFFFF9E6);
-            } else {
-              statusBg = statusExt.color.withValues(alpha: 0.15);
-            }
-          }
-
-          final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
-          final fullyPaid =
-              total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
-          final progressColor =
-              fullyPaid ? _kRegularGreen : _kProgressOrange;
-
-          return InkWell(
+      child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: Container(
@@ -999,230 +1094,234 @@ class TicketCard extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Checkbox(
-                                  value: isSelected,
-                                  onChanged: (v) =>
-                                      onSelectionChanged(v ?? false),
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    'Ticket #${_ticketDisplayRef(ticket)}',
-                                    style: GoogleFonts.outfit(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Checkbox(
+                                    value: isSelected,
+                                    onChanged: (v) =>
+                                        onSelectionChanged(v ?? false),
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    visualDensity: VisualDensity.compact,
                                   ),
-                                ),
-                                if (ticket.isLoan == true) ...[
-                                  const SizedBox(width: 4),
-                                  _typePill(),
-                                ],
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: statusBg,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
+                                  Expanded(
+                                    flex: 2,
                                     child: Text(
-                                      statusLabel,
+                                      'Ticket #${_ticketDisplayRef(ticket)}',
                                       style: GoogleFonts.outfit(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: statusFg,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                        color: Colors.black87,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  if (ticket.isLoan == true) ...[
+                                    const SizedBox(width: 4),
+                                    _typePill(),
+                                  ],
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: statusBg,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        statusLabel,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: statusFg,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (ticket.ticketName != null &&
+                                  ticket.ticketName!.trim().isNotEmpty &&
+                                  ticket.customerName != null &&
+                                  ticket.ticketName!.trim() !=
+                                      ticket.customerName!.trim()) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  ticket.ticketName!,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[700],
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
-                            ),
-                            if (ticket.ticketName != null &&
-                                ticket.ticketName!.trim().isNotEmpty &&
-                                ticket.customerName != null &&
-                                ticket.ticketName!.trim() !=
-                                    ticket.customerName!.trim()) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                ticket.ticketName!,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[700],
+                              if (ticket.note != null &&
+                                  ticket.note!.trim().isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.note_alt_outlined,
+                                      size: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        ticket.note!,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          color: Colors.grey[800],
+                                          height: 1.35,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                            if (ticket.note != null &&
-                                ticket.note!.trim().isNotEmpty) ...[
-                              const SizedBox(height: 4),
+                              ],
+                              const SizedBox(height: 10),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.note_alt_outlined,
-                                      size: 14, color: Colors.grey[600]),
-                                  const SizedBox(width: 6),
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: _leftAccent(),
+                                    child: Text(
+                                      _customerInitials(ticket),
+                                      style: GoogleFonts.outfit(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      ticket.note!,
+                                      displayName,
                                       style: GoogleFonts.outfit(
-                                        fontSize: 12,
-                                        color: Colors.grey[800],
-                                        height: 1.35,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: _kAccentBlue,
                                       ),
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (phone.isNotEmpty)
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.phone,
+                                          size: 15,
+                                          color: Colors.grey[600],
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          phone,
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 12,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _moneyCol(
+                                      'TOTAL',
+                                      (ticket.subTotal ?? 0)
+                                          .toCurrencyFormatted(),
+                                      valueColor: Colors.black87,
+                                      emphasize: true,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _moneyCol(
+                                      'PAID',
+                                      paid.toCurrencyFormatted(),
+                                      valueColor: paid > 0
+                                          ? const Color(0xFF2E7D32)
+                                          : Colors.grey.shade400,
+                                      emphasize: paid > 0,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _moneyCol(
+                                      'REMAINING',
+                                      remClamped.toCurrencyFormatted(),
+                                      valueColor: remClamped > 0
+                                          ? const Color(0xFFC62828)
+                                          : Colors.grey.shade400,
+                                      emphasize: remClamped > 0,
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                            const SizedBox(height: 10),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: _leftAccent(),
-                                  child: Text(
-                                    _customerInitials(ticket),
-                                    style: GoogleFonts.outfit(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
-                                    ),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: progress.isNaN ? 0 : progress,
+                                  minHeight: 6,
+                                  backgroundColor: Colors.grey[200],
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    progressColor,
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    displayName,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: _kAccentBlue,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (phone.isNotEmpty)
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.phone,
-                                          size: 15, color: Colors.grey[600]),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        phone,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _moneyCol(
-                                    'TOTAL',
-                                    (ticket.subTotal ?? 0)
-                                        .toCurrencyFormatted(),
-                                    valueColor: Colors.black87,
-                                    emphasize: true,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _moneyCol(
-                                    'PAID',
-                                    paid.toCurrencyFormatted(),
-                                    valueColor: paid > 0
-                                        ? const Color(0xFF2E7D32)
-                                        : Colors.grey.shade400,
-                                    emphasize: paid > 0,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _moneyCol(
-                                    'REMAINING',
-                                    remClamped.toCurrencyFormatted(),
-                                    valueColor: remClamped > 0
-                                        ? const Color(0xFFC62828)
-                                        : Colors.grey.shade400,
-                                    emphasize: remClamped > 0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: LinearProgressIndicator(
-                                value: progress.isNaN ? 0 : progress,
-                                minHeight: 6,
-                                backgroundColor: Colors.grey[200],
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  progressColor,
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Created ${_formatDate(ticket.createdAt)}',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 11,
-                                      color: Colors.grey[600],
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Created ${_formatDate(ticket.createdAt)}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
                                   ),
-                                ),
-                                _squareIconBtn(
-                                  icon: Icons.play_arrow,
-                                  color: _kAccentBlue,
-                                  onPressed: onTap,
-                                  tooltip: 'Resume Order',
-                                ),
-                                const SizedBox(width: 8),
-                                _squareIconBtn(
-                                  icon: Icons.delete_outline,
-                                  color: Colors.red[700]!,
-                                  onPressed: onDelete,
-                                  tooltip: 'Delete Ticket',
-                                ),
-                              ],
-                            ),
-                          ],
+                                  _squareIconBtn(
+                                    icon: Icons.play_arrow,
+                                    color: _kAccentBlue,
+                                    onPressed: onTap,
+                                    tooltip: 'Resume Order',
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _squareIconBtn(
+                                    icon: Icons.delete_outline,
+                                    color: Colors.red[700]!,
+                                    onPressed: onDelete,
+                                    tooltip: 'Delete Ticket',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-            ),
-          );
-        },
-      ),
+          ),
     );
   }
 

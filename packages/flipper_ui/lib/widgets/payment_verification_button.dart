@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/payment_verification_provider.dart';
+import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 
-/// A button widget that triggers payment verification when pressed
+Future<PaymentVerificationResponse> triggerManualPaymentVerification(
+  WidgetRef ref,
+) async {
+  talker.info('Manual payment verification triggered');
+  try {
+    return await ref.refresh(manualPaymentVerificationProvider.future);
+  } catch (e, st) {
+    talker.error('Manual payment verification failed: $e', st);
+    rethrow;
+  }
+}
+
+/// A button widget that checks subscription status and navigates when pressed.
 class PaymentVerificationButton extends ConsumerWidget {
   final String label;
   final IconData icon;
@@ -11,25 +24,21 @@ class PaymentVerificationButton extends ConsumerWidget {
   final bool showLoading;
 
   const PaymentVerificationButton({
-    Key? key,
-    this.label = 'Verify Payment',
+    super.key,
+    this.label = 'Check subscription',
     this.icon = Icons.payment,
     this.color,
     this.showLoading = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final verificationState = ref.watch(verifyPaymentProvider);
+    final verificationState = ref.watch(manualPaymentVerificationProvider);
 
     return ElevatedButton.icon(
       onPressed: verificationState.isLoading
           ? null
-          : () {
-              talker.info('Manual payment verification triggered');
-              // Refresh the provider and ignore the result since we don't need it
-              final _ = ref.refresh(forcePaymentVerificationProvider);
-            },
+          : () => triggerManualPaymentVerification(ref),
       icon: verificationState.isLoading && showLoading
           ? const SizedBox(
               width: 20,
@@ -46,27 +55,50 @@ class PaymentVerificationButton extends ConsumerWidget {
   }
 }
 
-/// A menu item that triggers payment verification when selected
+/// A menu item that checks subscription status and navigates when selected.
 class PaymentVerificationMenuItem extends ConsumerWidget {
   final String label;
+  final String? subtitle;
   final IconData icon;
 
   const PaymentVerificationMenuItem({
-    Key? key,
-    this.label = 'Verify Payment Status',
+    super.key,
+    this.label = 'Check subscription',
+    this.subtitle = 'Refresh status after payment',
     this.icon = Icons.payment,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final verificationState = ref.watch(manualPaymentVerificationProvider);
+
     return ListTile(
-      leading: Icon(icon),
+      leading: verificationState.isLoading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(icon),
       title: Text(label),
-      onTap: () {
-        talker.info('Manual payment verification triggered from menu');
-        // Refresh the provider and ignore the result since we don't need it
-        final _ = ref.refresh(forcePaymentVerificationProvider);
-      },
+      subtitle: subtitle != null ? Text(subtitle!) : null,
+      enabled: !verificationState.isLoading,
+      onTap: verificationState.isLoading
+          ? null
+          : () => triggerManualPaymentVerification(ref),
     );
+  }
+}
+
+String paymentVerificationResultMessage(PaymentVerificationResponse response) {
+  switch (response.result) {
+    case PaymentVerificationResult.active:
+      return 'Subscription is active.';
+    case PaymentVerificationResult.noPlan:
+      return 'No plan found — opening payment setup.';
+    case PaymentVerificationResult.planExistsButInactive:
+      return 'Plan found but not active — opening payment screen.';
+    case PaymentVerificationResult.error:
+      return response.errorMessage ?? 'Could not verify payment status.';
   }
 }

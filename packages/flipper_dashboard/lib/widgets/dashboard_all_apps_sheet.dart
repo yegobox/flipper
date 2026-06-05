@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_dashboard/widgets/dashboard_app_access.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class DashboardAllAppsSheet {
     return showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'All apps',
+      barrierLabel: context.flipperL10n.allApps,
       barrierColor: Colors.transparent,
       transitionDuration: _sheetDuration,
       pageBuilder: (context, animation, secondaryAnimation) {
@@ -45,25 +46,24 @@ class DashboardAllAppsSheet {
                 onTap: () => Navigator.of(context).pop(),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                  child: Container(
-                    color: const Color(0x6B0B1220),
-                  ),
+                  child: Container(color: const Color(0x6B0B1220)),
                 ),
               ),
             ),
             Align(
               alignment: Alignment.bottomCenter,
               child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: sheetCurve,
-                    reverseCurve: sheetCurve,
-                  ),
-                ),
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(0, 1),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: sheetCurve,
+                        reverseCurve: sheetCurve,
+                      ),
+                    ),
                 child: child,
               ),
             ),
@@ -84,19 +84,17 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sections = filterDashboardAllAppsCatalog(ref);
-    final branchName = ref.watch(activeBranchProvider).maybeWhen(
-          data: (b) => b.name?.trim(),
-          orElse: () => null,
-        );
+    final sections = filterDashboardAllAppsCatalog(context, ref);
+    final branchName = ref
+        .watch(activeBranchProvider)
+        .maybeWhen(data: (b) => b.name?.trim(), orElse: () => null);
     final subtitle = branchName != null && branchName.isNotEmpty
         ? branchName
         : 'your business';
 
-    final stockSummary = ref.watch(stockValueSummaryProvider).maybeWhen(
-          data: (s) => s,
-          orElse: () => null,
-        );
+    final stockSummary = ref
+        .watch(stockValueSummaryProvider)
+        .maybeWhen(data: (s) => s, orElse: () => null);
     final lowStockCount = stockSummary?.needsRestockCount ?? 0;
 
     final screenHeight = MediaQuery.sizeOf(context).height;
@@ -201,11 +199,11 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 4,
-                        childAspectRatio: 0.78,
-                      ),
+                            crossAxisCount: 4,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 4,
+                            childAspectRatio: 0.78,
+                          ),
                       itemCount: sections[i].apps.length,
                       itemBuilder: (context, index) {
                         final tile = sections[i].apps[index];
@@ -239,11 +237,7 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
 }
 
 class _AppTile extends StatefulWidget {
-  const _AppTile({
-    required this.tile,
-    required this.onTap,
-    this.badge,
-  });
+  const _AppTile({required this.tile, required this.onTap, this.badge});
 
   final DashboardAllAppTile tile;
   final VoidCallback onTap;
@@ -256,10 +250,8 @@ class _AppTile extends StatefulWidget {
 class _AppTileState extends State<_AppTile> {
   bool _pressed = false;
 
-  Color get _iconBg => Color.alphaBlend(
-        widget.tile.color.withValues(alpha: 0.13),
-        Colors.white,
-      );
+  Color get _iconBg =>
+      Color.alphaBlend(widget.tile.color.withValues(alpha: 0.13), Colors.white);
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/mobile_checkout_screen.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
@@ -19,15 +20,19 @@ class QuickSellingMobile {
   }) async {
     if (transaction == null) return;
 
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => MobileCheckoutScreen(
-          transaction: transaction,
-          doneDelete: doneDelete,
-          onCharge: onCharge,
+    try {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => MobileCheckoutScreen(
+            transaction: transaction,
+            doneDelete: doneDelete,
+            onCharge: onCharge,
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      clearPinnedPosCartTransactionContainer(ref.container);
+    }
   }
 
   @Deprecated('Use openCheckout')

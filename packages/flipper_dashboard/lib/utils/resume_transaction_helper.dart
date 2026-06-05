@@ -22,10 +22,11 @@ class TransactionInitializationHelper {
     WidgetRef ref,
     ITransaction transaction,
   ) async {
+    final container = ref.container;
     // 1. Try to fetch live customer data if ID exists
     if (transaction.customerId != null) {
       try {
-        final customer = await ref.read(
+        final customer = await container.read(
           oldProvider.attachedCustomerProvider(transaction.customerId).future,
         );
 
@@ -39,7 +40,7 @@ class TransactionInitializationHelper {
             );
             // Defer state update to avoid StateController error during initState
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.read(customerPhoneNumberProvider.notifier).state =
+              container.read(customerPhoneNumberProvider.notifier).state =
                   customer.telNo;
             });
           }
@@ -65,7 +66,7 @@ class TransactionInitializationHelper {
     }
 
     // Fallback logic for basic resume (if fetch failed or no ID)
-    final currentPhone = ref.read(customerPhoneNumberProvider);
+    final currentPhone = container.read(customerPhoneNumberProvider);
     String? phoneToUse = transaction.customerPhone;
 
     if ((currentPhone == null || currentPhone.isEmpty) &&
@@ -79,7 +80,7 @@ class TransactionInitializationHelper {
 
       // Defer state update to avoid StateController error during initState
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(customerPhoneNumberProvider.notifier).state = phoneToUse;
+        container.read(customerPhoneNumberProvider.notifier).state = phoneToUse;
       });
 
       talker.info(
@@ -94,6 +95,17 @@ class TransactionInitializationHelper {
     WidgetRef ref,
     ITransaction transaction,
   ) {
+    final container = ref.container;
+    // Payment providers must not be written during widget mount.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyPaymentWithRemainder(container, transaction);
+    });
+  }
+
+  static void _applyPaymentWithRemainder(
+    ProviderContainer container,
+    ITransaction transaction,
+  ) {
     // Logic standardized to match shared behavior
     final total = transaction.subTotal ?? 0.0;
     final paid = transaction.cashReceived ?? 0.0;
@@ -102,13 +114,13 @@ class TransactionInitializationHelper {
 
     if (displayRemainder <= 0) return;
 
-    final payments = ref.read(oldProvider.paymentMethodsProvider);
+    final payments = container.read(oldProvider.paymentMethodsProvider);
 
     if (payments.isEmpty) {
       final controller = TextEditingController(
         text: displayRemainder.toString(),
       );
-      ref
+      container
           .read(oldProvider.paymentMethodsProvider.notifier)
           .addPaymentMethod(
             oldProvider.Payment(
@@ -122,7 +134,7 @@ class TransactionInitializationHelper {
       // Sync logic matches the mixin's intent
       if (firstPayment.amount == 0 ||
           (firstPayment.amount - total).abs() < 0.01) {
-        ref
+        container
             .read(oldProvider.paymentMethodsProvider.notifier)
             .updatePaymentMethod(
               0,

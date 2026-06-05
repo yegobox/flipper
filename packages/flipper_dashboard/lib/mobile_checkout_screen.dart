@@ -69,6 +69,7 @@ class MobileCheckoutScreen extends ConsumerStatefulWidget {
 
 class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     with TransactionComputationMixin {
+  ProviderContainer? _container;
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   bool _isImmediateCompletion = false;
   String? _lastTransactionId;
@@ -77,14 +78,38 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
   String get _transactionId => widget.transaction.id;
 
+  String get _branchId {
+    final fromTxn = widget.transaction.branchId?.trim();
+    if (fromTxn != null && fromTxn.isNotEmpty) return fromTxn;
+    return ProxyService.box.getBranchId() ?? '0';
+  }
+
+  @override
+  void dispose() {
+    final container = _container;
+    if (container != null) {
+      clearPinnedPosCartTransactionContainer(container);
+    }
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    // Riverpod [ref] is not available until after [initState] completes.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
-      TransactionInitializationHelper.initializeSession(
-        ref: ref,
+      if (!mounted) return;
+      _container = ref.container;
+      primePosCartForTransactionWidget(
+        ref,
+        isExpense: false,
         transaction: widget.transaction,
+      );
+      unawaited(
+        TransactionInitializationHelper.initializeSession(
+          ref: ref,
+          transaction: widget.transaction,
+        ),
       );
     });
   }
@@ -93,7 +118,6 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     await showSharedTicketDialog(
       context: context,
       transaction: widget.transaction,
-      model: CoreViewModel(),
     );
     if (mounted) Navigator.of(context).pop();
   }
@@ -256,7 +280,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final items = await ref.read(
       transactionItemsStreamProvider(
         transactionId: _transactionId,
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: _branchId,
       ).future,
     );
     final txn =
@@ -325,7 +349,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       ref.invalidate(
         transactionItemsStreamProvider(
           transactionId: _transactionId,
-          branchId: ProxyService.box.getBranchId()!,
+          branchId: _branchId,
         ),
       );
     } catch (e) {
@@ -365,7 +389,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       ref.invalidate(
         transactionItemsStreamProvider(
           transactionId: _transactionId,
-          branchId: ProxyService.box.getBranchId()!,
+          branchId: _branchId,
         ),
       );
       widget.doneDelete();
@@ -404,7 +428,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       ref.invalidate(
         transactionItemsStreamProvider(
           transactionId: _transactionId,
-          branchId: ProxyService.box.getBranchId()!,
+          branchId: _branchId,
         ),
       );
     } catch (e) {
@@ -531,9 +555,22 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           final txn =
               ref.read(transactionByIdProvider(_transactionId)).value ??
               widget.transaction;
-          final merged = posCartDisplayItemsForTransaction(
-            ref.read(posCartDisplayItemsProvider),
-            _transactionId,
+          final streamItems = ref
+              .read(
+                transactionItemsStreamProvider(
+                  transactionId: _transactionId,
+                  branchId: _branchId,
+                ),
+              )
+              .asData
+              ?.value;
+          final merged = resolveMobileCheckoutLineItems(
+            transactionId: _transactionId,
+            mergedCart: ref.read(posCartDisplayItemsProvider),
+            scopedStreamItems: streamItems,
+            hasOptimisticPendingForTxn: ref
+                .read(optimisticCartProvider.notifier)
+                .hasPendingFor(_transactionId),
           );
           final total = calculateTransactionTotal(
             items: merged,
@@ -547,12 +584,24 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final streamAsync = ref.watch(
       transactionItemsStreamProvider(
         transactionId: _transactionId,
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: _branchId,
       ),
     );
     final mergedAll = ref.watch(posCartDisplayItemsProvider);
+    final hasOptimisticPending = ref.watch(
+      optimisticCartProvider.select(
+        (s) =>
+            s.activeTransactionId == _transactionId &&
+            s.pendingQtyByVariantId.values.any((q) => q > 0),
+      ),
+    );
     final items = List<TransactionItem>.from(
-      posCartDisplayItemsForTransaction(mergedAll, _transactionId),
+      resolveMobileCheckoutLineItems(
+        transactionId: _transactionId,
+        mergedCart: mergedAll,
+        scopedStreamItems: streamAsync.asData?.value,
+        hasOptimisticPendingForTxn: hasOptimisticPending,
+      ),
     )
       ..removeWhere((i) => _optimisticallyDeletedItemIds.contains(i.id))
       ..sort((a, b) {
@@ -598,8 +647,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           builder: (context) {
 
             final alreadyPaid = txn.cashReceived ?? 0.0;
-            final payments = ref.watch(oldProvider.paymentMethodsProvider);
-            final pendingPayment = calculateTotalPaid(payments);
+            final paymentsList =
+                ref.watch(oldProvider.paymentMethodsProvider);
+            final pendingPayment = calculateTotalPaid(paymentsList);
             final totalPaid = alreadyPaid + pendingPayment;
             final total = calculateTransactionTotal(
               items: items,
@@ -644,7 +694,6 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
               attached: attachedCustomer,
             );
 
-            final paymentsList = ref.watch(oldProvider.paymentMethodsProvider);
             final isCash = paymentsList.isNotEmpty &&
                 paymentsList.first.method.toUpperCase() == 'CASH';
             final isMomo = _isMomoPayment(paymentsList);

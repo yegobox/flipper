@@ -76,6 +76,14 @@ abstract class TransactionInterface {
     bool includeZeroSubTotal = false,
   });
 
+  /// WAITING + PARKED + IN_PROGRESS for the POS tickets screen (single observer).
+  Stream<List<ITransaction>> openPosTicketsTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
+    required bool skipOriginalTransactionCheck,
+  });
+
   Future<List<Configurations>> taxes({required String branchId});
 
   Future<Configurations> saveTax({

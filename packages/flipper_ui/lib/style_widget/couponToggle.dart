@@ -1,4 +1,5 @@
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/riverpod.dart';
 import 'package:flipper_ui/style_widget/CouponTextField.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class NumberOfPaymentsToggle extends HookConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Number of Payments'),
+            Text(FLocalization.of(context).numberOfPayments),
             Switch(
               value: isToggled.value,
               onChanged: _toggleSwitch,
@@ -57,7 +58,7 @@ class NumberOfPaymentsToggle extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: CustomizableTextField(
-              wording: "Number of Payments",
+              wording: FLocalization.of(context).numberOfPayments,
               controller: paymentController,
               validateState: numberOfPaymentState,
               onCouponChanged: _onNumberOfPaymentChanged,
@@ -111,7 +112,7 @@ class CouponToggle extends HookConsumerWidget {
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: const Text('Apply Discount Code'),
+                child: Text(FLocalization.of(context).applyDiscountCode),
               ),
             ),
             Switch(
@@ -140,7 +141,7 @@ class CouponToggle extends HookConsumerWidget {
                   controller: couponController,
                   validateState: couponValidationState,
                   onCouponChanged: _onCouponChanged,
-                  wording: 'Discount Code',
+                  wording: FLocalization.of(context).discountCode,
                 ),
                 if (isValidating == true)
                   Padding(
@@ -154,7 +155,7 @@ class CouponToggle extends HookConsumerWidget {
                         ),
                         SizedBox(width: 8),
                         Text(
-                          'Validating code...',
+                          FLocalization.of(context).validatingCode,
                           style:
                               TextStyle(fontSize: 12, color: Colors.grey[600]),
                         ),

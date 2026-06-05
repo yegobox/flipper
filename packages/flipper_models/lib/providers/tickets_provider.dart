@@ -1,88 +1,49 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:rxdart/rxdart.dart';
 
 part 'tickets_provider.g.dart';
+
+/// Batch payment sums for all visible tickets (one query per stream update).
+@riverpod
+Future<Map<String, double>> ticketsPaymentSums(Ref ref) async {
+  final tickets = await ref.watch(ticketsStreamProvider.future);
+  final ids = tickets.map((t) => t.id).where((id) => id.isNotEmpty).toList();
+  if (ids.isEmpty) return {};
+
+  final branchId = ProxyService.box.getBranchId() ?? '';
+  if (branchId.isEmpty) return {};
+
+  final sums = await getPaymentSumsByTransactionIdsChunked(
+    ids,
+    branchId: branchId,
+  );
+  return {for (final e in sums.entries) e.key: e.value.byHand};
+}
 
 @riverpod
 Stream<List<ITransaction>> ticketsStream(Ref ref) {
   final capellaStrategy = ProxyService.getStrategy(Strategy.capella);
   final branchId = ProxyService.box.getBranchId();
 
-  final waitingStream = capellaStrategy
-      .transactionsStream(
-        status: WAITING,
+  return capellaStrategy
+      .openPosTicketsTransactionsStream(
         branchId: branchId,
         removeAdjustmentTransactions: true,
         forceRealData: true,
         skipOriginalTransactionCheck: false,
       )
       .map((tickets) {
-        // Mark all tickets as coming from Capella
-        return tickets.map((ticket) {
+        final marked = tickets.map((ticket) {
           ticket.dataSource = Strategy.capella;
           return ticket;
         }).toList();
-      })
-      .startWith(const <ITransaction>[]);
 
-  final parkedStream = capellaStrategy
-      .transactionsStream(
-        status: PARKED,
-        removeAdjustmentTransactions: true,
-        forceRealData: true,
-        branchId: branchId,
-        skipOriginalTransactionCheck: false,
-      )
-      .map((tickets) {
-        // Mark all tickets as coming from Capella
-        return tickets.map((ticket) {
-          ticket.dataSource = Strategy.capella;
-          return ticket;
-        }).toList();
-      })
-      .startWith(const <ITransaction>[]);
-
-  final inProgressStream = capellaStrategy
-      .transactionsStream(
-        status: IN_PROGRESS,
-        removeAdjustmentTransactions: true,
-        forceRealData: true,
-        branchId: branchId,
-        skipOriginalTransactionCheck: false,
-      )
-      .map((tickets) {
-        // Mark all tickets as coming from Capella
-        return tickets.map((ticket) {
-          ticket.dataSource = Strategy.capella;
-          return ticket;
-        }).toList();
-      })
-      .startWith(const <ITransaction>[]);
-
-  return Rx.combineLatest3<
-        List<ITransaction>,
-        List<ITransaction>,
-        List<ITransaction>,
-        List<ITransaction>
-      >(waitingStream, parkedStream, inProgressStream, (
-        waiting,
-        parked,
-        inProgress,
-      ) {
-        // Combine all transactions
-        final allTickets = <ITransaction>[
-          ...waiting,
-          ...parked,
-          ...inProgress,
-        ];
-
-        // Sort by priority and creation date
-        allTickets.sort((a, b) {
+        marked.sort((a, b) {
           final priority = <String, int>{
             WAITING: 3,
             PARKED: 2,
@@ -97,7 +58,7 @@ Stream<List<ITransaction>> ticketsStream(Ref ref) {
           return bDate.compareTo(aDate);
         });
 
-        return allTickets;
+        return marked;
       })
       .handleError((e, st) {
         talker.error('Ticket stream error: $e', st);
