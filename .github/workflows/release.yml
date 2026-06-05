@@ -346,9 +346,12 @@ jobs:
         run: ./scripts/ci/prefetch-dittoffi.ps1
 
       - name: Build and Package
+        shell: pwsh
         run: |
-          cd apps/flipper
+          Set-Location apps/flipper
           flutter clean
+          flutter pub get
+          & "$env:GITHUB_WORKSPACE/scripts/ci/patch-windows-plugins.ps1"
           dart run msix:create -v --install-certificate false --signtool-options "/td SHA256"
 
       - name: Extract msix_version
@@ -439,9 +442,12 @@ jobs:
         run: ./scripts/ci/prefetch-dittoffi.ps1
 
       - name: Build and Package
+        shell: pwsh
         run: |
-          cd apps/flipper
+          Set-Location apps/flipper
           flutter clean
+          flutter pub get
+          & "$env:GITHUB_WORKSPACE/scripts/ci/patch-windows-plugins.ps1"
           dart run msix:create --store
 
       - name: Extract msix_version

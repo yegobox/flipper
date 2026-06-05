@@ -59,12 +59,15 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - name: Build and Package
+        shell: pwsh
         run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
           melos run generate:icons
-          cd apps/flipper
+          Set-Location apps/flipper
           flutter clean
+          flutter pub get
+          & "$env:GITHUB_WORKSPACE/scripts/ci/patch-windows-plugins.ps1"
           dart run msix:create -v --install-certificate false
 
       - name: Extract msix_version
