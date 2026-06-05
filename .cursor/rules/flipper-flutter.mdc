@@ -12,3 +12,4 @@ Part of **yego-project** workspace. Full context: `../../AGENTS.md` at workspace
 - Brick + Ditto sync: `docs/ditto_sync.md`
 - Bulk RRA: prefer data-connector when “Register via server (RRA first)” toggle is on
 - Reports pagination: repo root `QUICK_REFERENCE.md` (parent workspace)
+- Riverpod perf: `.cursor/rules/flipper-riverpod-perf.mdc` + `docs/riverpod_perf.md` — `select()`, batched Ditto observers, page-scoped reports; preserve optimistic cart tap
