@@ -10,12 +10,14 @@ class MposCustomerSection extends StatelessWidget {
     required this.customerPhone,
     required this.onAttach,
     required this.onClear,
+    this.isClearing = false,
   });
 
   final String? customerName;
   final String? customerPhone;
   final VoidCallback onAttach;
   final VoidCallback onClear;
+  final bool isClearing;
 
   bool get _hasCustomer {
     final name = customerName?.trim();
@@ -26,6 +28,16 @@ class MposCustomerSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isClearing) {
+      return MposCard(
+        child: _WalkInRow(
+          onAttach: null,
+          subtitle: 'Removing customer…',
+          showProgress: true,
+        ),
+      );
+    }
+
     return MposCard(
       child: _hasCustomer
           ? _AttachedRow(
@@ -39,16 +51,24 @@ class MposCustomerSection extends StatelessWidget {
 }
 
 class _WalkInRow extends StatelessWidget {
-  const _WalkInRow({required this.onAttach});
+  const _WalkInRow({
+    required this.onAttach,
+    this.subtitle = 'Tap to attach a customer (optional)',
+    this.showProgress = false,
+  });
 
-  final VoidCallback onAttach;
+  final VoidCallback? onAttach;
+  final String subtitle;
+  final bool showProgress;
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onAttach != null;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onAttach,
+        onTap: enabled ? onAttach : null,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -66,14 +86,22 @@ class _WalkInRow extends StatelessWidget {
                     style: BorderStyle.solid,
                   ),
                 ),
-                child: const Icon(
-                  Icons.person_outline_rounded,
-                  size: 20,
-                  color: PosTokens.ink3,
-                ),
+                child: showProgress
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: PosTokens.blue,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.person_outline_rounded,
+                        size: 20,
+                        color: PosTokens.ink3,
+                      ),
               ),
               const SizedBox(width: 13),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -82,35 +110,41 @@ class _WalkInRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: PosTokens.ink1,
+                        color: showProgress ? PosTokens.ink3 : PosTokens.ink1,
                       ),
                     ),
-                    SizedBox(height: 1),
+                    const SizedBox(height: 1),
                     Text(
-                      'Tap to attach a customer (optional)',
-                      style: TextStyle(fontSize: 12.5, color: PosTokens.ink3),
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: showProgress ? PosTokens.blue : PosTokens.ink3,
+                        fontWeight:
+                            showProgress ? FontWeight.w600 : FontWeight.w400,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Add',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
+              if (!showProgress)
+                const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Add',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: PosTokens.blue,
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 18,
                       color: PosTokens.blue,
                     ),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 18,
-                    color: PosTokens.blue,
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -182,12 +216,32 @@ class _AttachedRow extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: onClear,
-            icon: const Icon(Icons.close_rounded, size: 18),
-            color: PosTokens.ink3,
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          Semantics(
+            button: true,
+            label: 'Remove customer',
+            child: TextButton(
+              onPressed: onClear,
+              style: TextButton.styleFrom(
+                foregroundColor: PosTokens.ink3,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                minimumSize: const Size(44, 44),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.close_rounded, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    'Remove',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

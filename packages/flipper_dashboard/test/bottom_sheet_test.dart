@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import '../lib/QuickSellingMobile.dart';
+
 // flutter test test/bottom_sheet_test.dart
 void main() {
   group('ChargeButtonState Enum Tests', () {
@@ -251,7 +252,7 @@ void main() {
       ]) {
         if (isEmpty) return 'Add items to charge';
         final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
-        if (!hasCustomer) return 'Add customer to continue';
+        if (!hasCustomer) return 'Add customer';
         switch (chargeState) {
           case ChargeButtonState.initial:
             return remainingBalance > 0 ? 'Record Payment' : 'Charge Now';
@@ -280,7 +281,7 @@ void main() {
       ]) {
         if (isEmpty) return 'Add items to charge';
         final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
-        if (!hasCustomer) return 'Add customer to continue';
+        if (!hasCustomer) return 'Add customer';
         switch (chargeState) {
           case ChargeButtonState.initial:
             return remainingBalance > 0 ? 'Record Payment' : 'Charge Now';
@@ -295,11 +296,11 @@ void main() {
 
       expect(
         getButtonText(false, 100.0, null, ChargeButtonState.initial),
-        equals('Add customer to continue'),
+        equals('Add customer'),
       );
       expect(
         getButtonText(false, 100.0, '', ChargeButtonState.initial),
-        equals('Add customer to continue'),
+        equals('Add customer'),
       );
     });
 
@@ -313,7 +314,7 @@ void main() {
       ]) {
         if (isEmpty) return 'Add items to charge';
         final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
-        if (!hasCustomer) return 'Add customer to continue';
+        if (!hasCustomer) return 'Add customer';
         switch (chargeState) {
           case ChargeButtonState.initial:
             return remainingBalance > 0 ? 'Record Payment' : 'Charge Now';
@@ -342,7 +343,7 @@ void main() {
       ]) {
         if (isEmpty) return 'Add items to charge';
         final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
-        if (!hasCustomer) return 'Add customer to continue';
+        if (!hasCustomer) return 'Add customer';
         switch (chargeState) {
           case ChargeButtonState.initial:
             return remainingBalance > 0 ? 'Record Payment' : 'Charge Now';
@@ -377,7 +378,7 @@ void main() {
       ]) {
         if (isEmpty) return 'Add items to charge';
         final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
-        if (!hasCustomer) return 'Add customer to continue';
+        if (!hasCustomer) return 'Add customer';
         switch (chargeState) {
           case ChargeButtonState.initial:
             return remainingBalance > 0 ? 'Record Payment' : 'Charge Now';
@@ -411,7 +412,7 @@ void main() {
       ]) {
         if (isEmpty) return 'Add items to charge';
         final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
-        if (!hasCustomer) return 'Add customer to continue';
+        if (!hasCustomer) return 'Add customer';
         switch (chargeState) {
           case ChargeButtonState.initial:
             return remainingBalance > 0 ? 'Record Payment' : 'Charge Now';
@@ -445,7 +446,7 @@ void main() {
       ]) {
         if (isEmpty) return 'Add items to charge';
         final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
-        if (!hasCustomer) return 'Add customer to continue';
+        if (!hasCustomer) return 'Add customer';
         switch (chargeState) {
           case ChargeButtonState.initial:
             return remainingBalance > 0 ? 'Record Payment' : 'Charge Now';

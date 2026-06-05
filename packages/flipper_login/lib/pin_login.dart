@@ -533,14 +533,86 @@ class _PinLoginState extends State<PinLogin>
   }
 
   Widget _buildCompactSignInLayout(BoxConstraints constraints) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: constraints.maxHeight - 56,
+      child: _buildSignInLeftColumn(constraints, compact: true),
+    );
+  }
+
+  Widget _buildSignInFormContent({required bool compact}) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxWidth: SignInTokens.formMaxWidth,
+      ),
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Welcome back',
+                style: context.signInText(
+                  fontSize: compact ? 32 : 40,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.2,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Enter your PIN to manage your business securely.',
+                style: context.signInText(
+                  fontSize: compact ? 15 : 16,
+                  height: 1.5,
+                  color: SignInTokens.ink2,
+                ),
+              ),
+              SizedBox(height: compact ? 28 : 36),
+              if (_localPin != null) ...[
+                SignInAccountChip(
+                  initial: _accountInitial,
+                  name: _accountName,
+                  subtitle: _accountSubtitle,
+                  onNotYou: _switchAccount,
+                ),
+                const SizedBox(height: 24),
+              ],
+              _buildPinEntrySection(compact: compact),
+              if (_showOtpField) ...[
+                const SizedBox(height: 24),
+                _buildMethodToggle(compact),
+                const SizedBox(height: 16),
+                _buildOtpField(compact),
+              ],
+              const SizedBox(height: 26),
+              FlipperGradientButton(
+                key: const Key('pinLoginButton'),
+                text: _isDone
+                    ? 'Signed in ✓'
+                    : (_isProcessing ? 'Verifying…' : 'Sign in'),
+                icon: _isDone ? null : Icons.arrow_outward_rounded,
+                isLoading: false,
+                onPressed: (_isProcessing || _isDone) ? null : _handleLogin,
+              ),
+              const SizedBox(height: 18),
+              Center(
+                child: TextButton(
+                  onPressed: _showHelpDialog,
+                  child: Text(
+                    'Trouble signing in?',
+                    style: context.signInText(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: SignInTokens.blue,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        child: _buildSignInLeftColumn(constraints, compact: true),
       ),
     );
   }
@@ -549,6 +621,10 @@ class _PinLoginState extends State<PinLogin>
     BoxConstraints constraints, {
     required bool compact,
   }) {
+    final formContent = Center(
+      child: _buildSignInFormContent(compact: compact),
+    );
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 0 : 48,
@@ -558,86 +634,24 @@ class _PinLoginState extends State<PinLogin>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SignInBrandHeader(),
-          Expanded(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: SignInTokens.formMaxWidth,
-                ),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Welcome back',
-                          style: context.signInText(
-                            fontSize: compact ? 32 : 40,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Enter your PIN to manage your business securely.',
-                          style: context.signInText(
-                            fontSize: compact ? 15 : 16,
-                            height: 1.5,
-                            color: SignInTokens.ink2,
-                          ),
-                        ),
-                        SizedBox(height: compact ? 28 : 36),
-                        if (_localPin != null) ...[
-                          SignInAccountChip(
-                            initial: _accountInitial,
-                            name: _accountName,
-                            subtitle: _accountSubtitle,
-                            onNotYou: _switchAccount,
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                        _buildPinEntrySection(compact: compact),
-                        if (_showOtpField) ...[
-                          const SizedBox(height: 24),
-                          _buildMethodToggle(compact),
-                          const SizedBox(height: 16),
-                          _buildOtpField(compact),
-                        ],
-                        const SizedBox(height: 26),
-                        FlipperGradientButton(
-                          key: const Key('pinLoginButton'),
-                          text: _isDone
-                              ? 'Signed in ✓'
-                              : (_isProcessing ? 'Verifying…' : 'Sign in'),
-                          icon: _isDone ? null : Icons.arrow_outward_rounded,
-                          isLoading: false,
-                          onPressed:
-                              (_isProcessing || _isDone) ? null : _handleLogin,
-                        ),
-                        const SizedBox(height: 18),
-                        Center(
-                          child: TextButton(
-                            onPressed: _showHelpDialog,
-                            child: Text(
-                              'Trouble signing in?',
-                              style: context.signInText(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: SignInTokens.blue,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+          if (compact)
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, scrollConstraints) {
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: scrollConstraints.maxHeight,
+                      ),
+                      child: formContent,
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
-            ),
-          ),
+            )
+          else
+            Expanded(child: formContent),
           if (!compact) const SignInBottomBar(),
         ],
       ),
