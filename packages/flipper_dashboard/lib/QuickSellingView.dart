@@ -38,6 +38,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
+import 'package:flipper_dashboard/widgets/checkout_error_recovery_screen.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_table_host.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
@@ -796,53 +797,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       );
     }
 
-    // Handle transaction async value error state early
     if (transactionAsyncValue.hasError) {
-      final errorMessage =
-          transactionAsyncValue.error?.toString() ?? 'Unknown error';
-
-      // If it's a branch selection error, just show loading while we wait for branch to be set
-      if (errorMessage.contains('No default branch selected')) {
-        // Auto-retry after a short delay
-        Future.delayed(Duration(milliseconds: 300), () {
-          if (mounted) {
-            ref.invalidate(pendingTransactionStreamProvider);
-          }
-        });
-
-        return Scaffold(body: Center(child: CircularProgressIndicator()));
-      }
-
+      final error = transactionAsyncValue.error!;
       talker.error(
         'Error loading pending transaction',
-        transactionAsyncValue.error,
+        error,
         transactionAsyncValue.stackTrace,
       );
-
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.red),
-              SizedBox(height: 16),
-              Text('Error loading transaction'),
-              SizedBox(height: 8),
-              Text(
-                errorMessage,
-                style: TextStyle(fontSize: 12),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.invalidate(pendingTransactionStreamProvider);
-                },
-                child: Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+      final isExpense = ProxyService.box.isOrdering() ?? false;
+      return CheckoutErrorRecoveryScreen(
+        error: error,
+        isExpense: isExpense,
+        onRecovered: () async {
+          ref.invalidate(
+            pendingTransactionStreamProvider(isExpense: isExpense),
+          );
+        },
       );
     }
 
@@ -2594,7 +2564,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     await showSharedTicketDialog(
       context: context,
       transaction: transaction,
-      model: model,
     );
   }
 }

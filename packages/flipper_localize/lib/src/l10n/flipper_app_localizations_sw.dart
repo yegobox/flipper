@@ -288,4 +288,201 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get exact => 'Exact';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get numberOfPayments => 'Number of Payments';
+
+  @override
+  String get applyDiscountCode => 'Apply Discount Code';
+
+  @override
+  String get discountCode => 'Discount Code';
+
+  @override
+  String get validatingCode => 'Validating code...';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get signIn => 'SIGN IN';
+
+  @override
+  String get setDeviceTimeAutomatic =>
+      'Please set your device time to automatic';
+
+  @override
+  String get continueWithPhone => 'Continue with Phone';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get continueWithMicrosoft => 'Continue with Microsoft';
+
+  @override
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get or => 'OR';
+
+  @override
+  String get pinLogin => 'PIN Login';
+
+  @override
+  String get languagesTitle => 'Languages';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get kinyarwanda => 'Kinyarwanda';
+
+  @override
+  String get swahili => 'Swahili';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get sales => 'Sales';
+
+  @override
+  String get inventory => 'Inventory';
+
+  @override
+  String get more => 'More';
+
+  @override
+  String get scanQr => 'Scan QR';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get noUser => 'No User';
+
+  @override
+  String get pleaseLogInToContinue => 'Please log in to continue';
+
+  @override
+  String get loadingBusinesses => 'Loading businesses...';
+
+  @override
+  String get errorLoadingBusinesses => 'Error loading businesses';
+
+  @override
+  String get noBusinesses => 'No Businesses';
+
+  @override
+  String get createFirstBusiness => 'Create your first business to get started';
+
+  @override
+  String get signOut => 'Sign Out';
+
+  @override
+  String get phoneNumber => 'Phone Number';
+
+  @override
+  String get sendingCode => 'Sending code...';
+
+  @override
+  String get continueAction => 'Continue';
+
+  @override
+  String get enterSixDigitCodeSentTo => 'Enter the 6-digit code sent to ';
+
+  @override
+  String get codeExpiredTapToResend => 'Code Expired - Tap to Resend';
+
+  @override
+  String get resendCode => 'Resend Code';
+
+  @override
+  String get resendCodeIn => 'Resend code in ';
+
+  @override
+  String get seconds => 'seconds';
+
+  @override
+  String get verifying => 'Verifying...';
+
+  @override
+  String get verifyCode => 'Verify Code';
+
+  @override
+  String get troubleSigningIn => 'Trouble Signing In?';
+
+  @override
+  String get troubleSigningInHelp =>
+      'If you are having trouble signing in, please ensure your PIN and OTP (if applicable) are correct.\n\nFor further assistance, please contact support.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get welcomeBack => 'Welcome back';
+
+  @override
+  String get tinNumber => 'TIN Number';
+
+  @override
+  String get validate => 'Validate';
+
+  @override
+  String get uploadPdfWithTin => 'Upload PDF with TIN';
+
+  @override
+  String get enterTinOrUpload => 'Enter TIN number or tap the upload icon';
+
+  @override
+  String get addEmail => 'Add Email';
+
+  @override
+  String get emailAdded => 'Email added';
+
+  @override
+  String get updateSettings => 'Update Settings';
+
+  @override
+  String get invite => 'Invite';
+
+  @override
+  String get sendRequest => 'Send Request';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get accessibility => 'Accessibility';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get reports => 'Reports';
+
+  @override
+  String get enableReport => 'Enable Report';
+
+  @override
+  String get backups => 'BackUps';
+
+  @override
+  String get addBackup => 'Add Backup';
+
+  @override
+  String get restoreData => 'Restore Data';
+
+  @override
+  String get dataRestored => 'Data restored';
+
+  @override
+  String get errorRestoringBackup => 'Error Restoring backup';
 }

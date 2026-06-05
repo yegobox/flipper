@@ -60,6 +60,11 @@ Future<void> navigateToDashboardAppPage({
     case 'Transactions':
       await routerService.navigateTo(TransactionsRoute());
       break;
+    case 'Tickets':
+      await routerService.navigateTo(
+        TicketsListRoute(transaction: null),
+      );
+      break;
     case 'Contacts':
       await routerService.navigateTo(CustomersRoute());
       break;

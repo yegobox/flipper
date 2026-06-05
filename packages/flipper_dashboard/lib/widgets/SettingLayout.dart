@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/payment_verification_provider.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_ui/widgets/payment_verification_button.dart';
 
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -29,6 +35,14 @@ Widget SettingLayout({
         _routerService.navigateTo(TenantManagementRoute());
       },
     ),
+    if (isDesktopOrWeb)
+      _SettingsItem(
+        icon: FluentIcons.payment_24_regular,
+        iconColor: Colors.white,
+        iconBgColor: const Color(0xFF34C759),
+        title: 'Check subscription',
+        onTap: () {},
+      ),
   ];
 
   return Container(
@@ -91,6 +105,7 @@ Widget SettingLayout({
                 textColor: textColor,
                 dividerColor: dividerColor,
                 items: settingsItems,
+                context: context,
               ),
               const SizedBox(height: 40),
             ],
@@ -122,6 +137,7 @@ Widget _buildSettingsGroup({
   required Color textColor,
   required Color dividerColor,
   required List<_SettingsItem> items,
+  required BuildContext context,
 }) {
   return Container(
     decoration: BoxDecoration(
@@ -145,7 +161,9 @@ Widget _buildSettingsGroup({
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: item.onTap,
+                onTap: item.title == 'Check subscription'
+                    ? () => _onCheckSubscriptionTap(context)
+                    : item.onTap,
                 borderRadius: BorderRadius.vertical(
                   top: index == 0 ? const Radius.circular(16) : Radius.zero,
                   bottom: index == items.length - 1
@@ -200,4 +218,24 @@ Widget _buildSettingsGroup({
       }).toList(),
     ),
   );
+}
+
+void _onCheckSubscriptionTap(BuildContext context) {
+  final container = ProviderScope.containerOf(context);
+  unawaited(() async {
+    try {
+      final response = await container.refresh(
+        manualPaymentVerificationProvider.future,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(paymentVerificationResultMessage(response))),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not check subscription: $e')),
+      );
+    }
+  }());
 }

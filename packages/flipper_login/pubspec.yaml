@@ -25,6 +25,7 @@ dependencies:
   flipper_routing: ^1.0.0
   connectivity_plus: ^7.0.0
   firebase_ui_localizations: ^2.0.0
+  flipper_localize: ^1.0.0-dev
   firebase_ui_oauth: ^2.0.0
   firebase_ui_oauth_google: ^2.0.0
   flutter_svg: ^2.0.0

@@ -1562,14 +1562,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     addUpdate('customerId', customerId ?? transaction?.customerId);
     addUpdate('ticketName', ticketName ?? transaction?.ticketName);
     addUpdate('isLoan', isLoan ?? transaction?.isLoan);
+    addUpdate('dueDate', transaction?.dueDate);
     addUpdate(
       'remainingBalance',
       remainingBalance ?? transaction?.remainingBalance,
     );
 
-    // Crucial for resumption: update agentId if transaction object is provided
+    // Crucial for resumption: update agent/device if transaction object is provided
     if (transaction != null) {
       addUpdate('agentId', transaction.agentId);
+      addUpdate('deviceId', transaction.deviceId);
       addFieldUpdate(
         'attributedAgentUserId',
         transaction.attributedAgentUserId,

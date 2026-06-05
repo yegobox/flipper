@@ -14,6 +14,12 @@ bool _posCartIsExpense() => ProxyService.box.isOrdering() ?? false;
 /// Bumped on every cart tap so [posCartDisplayItemsProvider] recomputes same frame.
 final posCartDisplayEpochProvider = StateProvider<int>((ref) => 0);
 
+/// When set, pending-cart cache/stream reconciliation must not switch to another txn.
+///
+/// Used by mobile checkout and ticket resume so [posCartStreamReconciliationProvider]
+/// does not replace the sale with a freshly auto-created empty pending cart.
+final pinnedPosCartTransactionIdProvider = StateProvider<String?>((ref) => null);
+
 void bumpPosCartDisplayEpoch(Ref ref) {
   ref.read(posCartDisplayEpochProvider.notifier).update((n) => n + 1);
 }
@@ -23,6 +29,9 @@ final posCartPendingTransactionIdProvider = Provider.family<String?, bool>((
   ref,
   isExpense,
 ) {
+  final pinned = ref.watch(pinnedPosCartTransactionIdProvider);
+  if (pinned != null && pinned.isNotEmpty) return pinned;
+
   final cacheId = ref.watch(
     cachedPendingCartTransactionProvider(isExpense).select((t) => t?.id),
   );
@@ -70,6 +79,10 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
 
   void syncPendingTransaction(ITransaction txn) {
+    final pinned = ref.read(pinnedPosCartTransactionIdProvider);
+    if (pinned != null && pinned.isNotEmpty && txn.id != pinned) {
+      return;
+    }
     scheduleWriteCachedPendingCartTransaction(
       ref,
       isExpense: isExpense,
@@ -93,9 +106,14 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
     return;
   }
 
+  final cachedTxn = readCachedPendingCartTransaction(ref, isExpense: isExpense);
+  final cachedBranch = cachedTxn?.branchId?.trim();
+  final itemsBranchId = cachedBranch != null && cachedBranch.isNotEmpty
+      ? cachedBranch
+      : (ProxyService.box.getBranchId() ?? '0');
   final itemsProv = transactionItemsStreamProvider(
     transactionId: pendingId,
-    branchId: ProxyService.box.getBranchId() ?? '0',
+    branchId: itemsBranchId,
   );
 
   ref.listen(itemsProv, (_, next) {
@@ -121,7 +139,12 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
 
   final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));
   final mergeTxnId = ref.watch(posCartMergeTxnIdProvider(isExpense));
+  final pinnedTxnId = ref.watch(pinnedPosCartTransactionIdProvider);
   final branchId = ProxyService.box.getBranchId() ?? '0';
+  final mergeBranchId = pinnedTxnId != null && pinnedTxnId.isNotEmpty
+      ? (readCachedPendingCartTransaction(ref, isExpense: isExpense)?.branchId ??
+          branchId)
+      : branchId;
 
   final txnIdForMerge = (pendingId != null && pendingId.isNotEmpty)
       ? pendingId
@@ -138,7 +161,7 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
                 .read(
                   transactionItemsStreamProvider(
                     transactionId: txnIdForMerge,
-                    branchId: branchId,
+                    branchId: mergeBranchId,
                   ),
                 )
                 .value ??
@@ -155,7 +178,7 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   final streamAsync = ref.watch(
     transactionItemsStreamProvider(
       transactionId: mergeTxnId,
-      branchId: branchId,
+      branchId: mergeBranchId,
     ),
   );
 
@@ -303,6 +326,118 @@ List<TransactionItem> posCartDisplayItemsForTransaction(
                 OptimisticCartIds.isOptimistic(i.id)),
       )
       .toList();
+}
+
+/// Checkout lines for a known transaction: merged cart first, then Ditto stream.
+///
+/// After resuming a parked ticket, [posCartDisplayItemsProvider] can still point
+/// at another pending row until the stream catches up; the stream for
+/// [transactionId] is the source of truth for that sale.
+List<TransactionItem> checkoutLineItemsForTransaction({
+  required List<TransactionItem> mergedCart,
+  required String transactionId,
+  List<TransactionItem>? streamItems,
+}) {
+  final fromMerged =
+      posCartDisplayItemsForTransaction(mergedCart, transactionId);
+  if (fromMerged.isNotEmpty) return fromMerged;
+  if (streamItems == null || streamItems.isEmpty) return const [];
+  final active = streamItems.where((i) => i.active != false).toList();
+  if (active.isEmpty) return const [];
+  final linked = active
+      .where(
+        (i) =>
+            i.transactionId == null ||
+            i.transactionId!.isEmpty ||
+            i.transactionId == transactionId,
+      )
+      .toList();
+  return linked.isNotEmpty ? linked : active;
+}
+
+/// Line items for [MobileCheckoutScreen]: stream-first unless optimistic taps pending.
+List<TransactionItem> resolveMobileCheckoutLineItems({
+  required String transactionId,
+  required List<TransactionItem> mergedCart,
+  required List<TransactionItem>? scopedStreamItems,
+  required bool hasOptimisticPendingForTxn,
+}) {
+  if (transactionId.isEmpty) return const [];
+  if (hasOptimisticPendingForTxn) {
+    return checkoutLineItemsForTransaction(
+      mergedCart: mergedCart,
+      transactionId: transactionId,
+      streamItems: scopedStreamItems,
+    );
+  }
+  final stream = scopedStreamItems ?? const <TransactionItem>[];
+  final activeStream = stream.where((i) => i.active != false).toList();
+  if (activeStream.isNotEmpty) return activeStream;
+  return checkoutLineItemsForTransaction(
+    mergedCart: mergedCart,
+    transactionId: transactionId,
+    streamItems: scopedStreamItems,
+  );
+}
+
+/// Pins pending-cart providers to [transaction] (resume / dedicated checkout).
+///
+/// Deferred to the next microtask so callers in [initState] / build do not trip
+/// Riverpod's "modify provider while building" guard on [cachedPendingCartTransactionProvider].
+void _primePosCartForTransactionContainer(
+  ProviderContainer container, {
+  required bool isExpense,
+  required ITransaction transaction,
+}) {
+  final id = transaction.id;
+  final txn = transaction;
+  Future.microtask(() {
+    container.read(pinnedPosCartTransactionIdProvider.notifier).state = id;
+    writeCachedPendingCartTransactionContainer(
+      container,
+      isExpense: isExpense,
+      transaction: txn,
+    );
+    container.read(optimisticCartProvider.notifier).bindPendingTransaction(id);
+  });
+}
+
+void primePosCartForTransaction(
+  Ref ref, {
+  required bool isExpense,
+  required ITransaction transaction,
+}) {
+  _primePosCartForTransactionContainer(
+    ref.container,
+    isExpense: isExpense,
+    transaction: transaction,
+  );
+}
+
+/// [WidgetRef] variant — not assignable to [Ref] in this Riverpod version.
+void primePosCartForTransactionWidget(
+  WidgetRef ref, {
+  required bool isExpense,
+  required ITransaction transaction,
+}) {
+  _primePosCartForTransactionContainer(
+    ref.container,
+    isExpense: isExpense,
+    transaction: transaction,
+  );
+}
+
+/// Clears the resume/checkout cart pin without a live [WidgetRef] (safe in [dispose]).
+void clearPinnedPosCartTransactionContainer(ProviderContainer container) {
+  container.read(pinnedPosCartTransactionIdProvider.notifier).state = null;
+}
+
+void clearPinnedPosCartTransaction(Ref ref) {
+  clearPinnedPosCartTransactionContainer(ref.container);
+}
+
+void clearPinnedPosCartTransactionWidget(WidgetRef ref) {
+  clearPinnedPosCartTransactionContainer(ref.container);
 }
 
 /// Synchronous txn id for grid tap (no stream subscription).

@@ -343,5 +343,265 @@
     "exact": "Exact",
     "@exact": {
         "description": "Exact cash amount shortcut"
+    },
+    "confirm": "Confirm",
+    "@confirm": {
+        "description": "Confirm action"
+    },
+    "numberOfPayments": "Number of Payments",
+    "@numberOfPayments": {
+        "description": "Number of payments field label"
+    },
+    "applyDiscountCode": "Apply Discount Code",
+    "@applyDiscountCode": {
+        "description": "Apply discount code toggle label"
+    },
+    "discountCode": "Discount Code",
+    "@discountCode": {
+        "description": "Discount code field label"
+    },
+    "validatingCode": "Validating code...",
+    "@validatingCode": {
+        "description": "Discount code validation progress"
+    },
+    "createAccount": "Create Account",
+    "@createAccount": {
+        "description": "Create account action"
+    },
+    "signIn": "SIGN IN",
+    "@signIn": {
+        "description": "Sign in action"
+    },
+    "setDeviceTimeAutomatic": "Please set your device time to automatic",
+    "@setDeviceTimeAutomatic": {
+        "description": "Warning to enable automatic device time"
+    },
+    "continueWithPhone": "Continue with Phone",
+    "@continueWithPhone": {
+        "description": "Phone auth button"
+    },
+    "continueWithGoogle": "Continue with Google",
+    "@continueWithGoogle": {
+        "description": "Google auth button"
+    },
+    "continueWithMicrosoft": "Continue with Microsoft",
+    "@continueWithMicrosoft": {
+        "description": "Microsoft auth button"
+    },
+    "continueWithApple": "Continue with Apple",
+    "@continueWithApple": {
+        "description": "Apple auth button"
+    },
+    "or": "OR",
+    "@or": {
+        "description": "Authentication divider"
+    },
+    "pinLogin": "PIN Login",
+    "@pinLogin": {
+        "description": "PIN login action"
+    },
+    "languagesTitle": "Languages",
+    "@languagesTitle": {
+        "description": "Languages settings title"
+    },
+    "english": "English",
+    "@english": {
+        "description": "English language name"
+    },
+    "kinyarwanda": "Kinyarwanda",
+    "@kinyarwanda": {
+        "description": "Kinyarwanda language name"
+    },
+    "swahili": "Swahili",
+    "@swahili": {
+        "description": "Swahili language name"
+    },
+    "settings": "Settings",
+    "@settings": {
+        "description": "Settings screen title"
+    },
+    "home": "Home",
+    "@home": {
+        "description": "Home navigation label"
+    },
+    "sales": "Sales",
+    "@sales": {
+        "description": "Sales navigation label"
+    },
+    "inventory": "Inventory",
+    "@inventory": {
+        "description": "Inventory navigation label"
+    },
+    "more": "More",
+    "@more": {
+        "description": "More navigation label"
+    },
+    "scanQr": "Scan QR",
+    "@scanQr": {
+        "description": "Scan QR action"
+    },
+    "dashboard": "Dashboard",
+    "@dashboard": {
+        "description": "Dashboard navigation label"
+    },
+    "noUser": "No User",
+    "@noUser": {
+        "description": "No user empty state title"
+    },
+    "pleaseLogInToContinue": "Please log in to continue",
+    "@pleaseLogInToContinue": {
+        "description": "No user empty state subtitle"
+    },
+    "loadingBusinesses": "Loading businesses...",
+    "@loadingBusinesses": {
+        "description": "Loading businesses status"
+    },
+    "errorLoadingBusinesses": "Error loading businesses",
+    "@errorLoadingBusinesses": {
+        "description": "Business list loading error"
+    },
+    "noBusinesses": "No Businesses",
+    "@noBusinesses": {
+        "description": "No businesses empty state title"
+    },
+    "createFirstBusiness": "Create your first business to get started",
+    "@createFirstBusiness": {
+        "description": "No businesses empty state subtitle"
+    },
+    "signOut": "Sign Out",
+    "@signOut": {
+        "description": "Sign out action"
+    },
+    "phoneNumber": "Phone Number",
+    "@phoneNumber": {
+        "description": "Phone number field label"
+    },
+    "sendingCode": "Sending code...",
+    "@sendingCode": {
+        "description": "Phone auth sending code progress"
+    },
+    "continueAction": "Continue",
+    "@continueAction": {
+        "description": "Continue action"
+    },
+    "enterSixDigitCodeSentTo": "Enter the 6-digit code sent to ",
+    "@enterSixDigitCodeSentTo": {
+        "description": "OTP instruction prefix"
+    },
+    "codeExpiredTapToResend": "Code Expired - Tap to Resend",
+    "@codeExpiredTapToResend": {
+        "description": "Expired OTP resend action"
+    },
+    "resendCode": "Resend Code",
+    "@resendCode": {
+        "description": "Resend OTP action"
+    },
+    "resendCodeIn": "Resend code in ",
+    "@resendCodeIn": {
+        "description": "Resend OTP countdown prefix"
+    },
+    "seconds": "seconds",
+    "@seconds": {
+        "description": "Seconds unit"
+    },
+    "verifying": "Verifying...",
+    "@verifying": {
+        "description": "OTP verification progress"
+    },
+    "verifyCode": "Verify Code",
+    "@verifyCode": {
+        "description": "Verify OTP action"
+    },
+    "troubleSigningIn": "Trouble Signing In?",
+    "@troubleSigningIn": {
+        "description": "PIN login help dialog title"
+    },
+    "troubleSigningInHelp": "If you are having trouble signing in, please ensure your PIN and OTP (if applicable) are correct.\n\nFor further assistance, please contact support.",
+    "@troubleSigningInHelp": {
+        "description": "PIN login help dialog body"
+    },
+    "ok": "OK",
+    "@ok": {
+        "description": "OK action"
+    },
+    "welcomeBack": "Welcome back",
+    "@welcomeBack": {
+        "description": "Default returning user greeting"
+    },
+    "tinNumber": "TIN Number",
+    "@tinNumber": {
+        "description": "TIN number field label"
+    },
+    "validate": "Validate",
+    "@validate": {
+        "description": "Validate action"
+    },
+    "uploadPdfWithTin": "Upload PDF with TIN",
+    "@uploadPdfWithTin": {
+        "description": "Upload PDF containing TIN tooltip"
+    },
+    "enterTinOrUpload": "Enter TIN number or tap the upload icon",
+    "@enterTinOrUpload": {
+        "description": "TIN field hint"
+    },
+    "addEmail": "Add Email",
+    "@addEmail": {
+        "description": "Add email action"
+    },
+    "emailAdded": "Email added",
+    "@emailAdded": {
+        "description": "Email added success message"
+    },
+    "updateSettings": "Update Settings",
+    "@updateSettings": {
+        "description": "Update settings action"
+    },
+    "invite": "Invite",
+    "@invite": {
+        "description": "Invite members action"
+    },
+    "sendRequest": "Send Request",
+    "@sendRequest": {
+        "description": "Send invitation request action"
+    },
+    "preferences": "Preferences",
+    "@preferences": {
+        "description": "Preferences settings title"
+    },
+    "accessibility": "Accessibility",
+    "@accessibility": {
+        "description": "Accessibility settings title"
+    },
+    "language": "Language",
+    "@language": {
+        "description": "Language settings label"
+    },
+    "reports": "Reports",
+    "@reports": {
+        "description": "Reports settings title"
+    },
+    "enableReport": "Enable Report",
+    "@enableReport": {
+        "description": "Enable report setting"
+    },
+    "backups": "BackUps",
+    "@backups": {
+        "description": "Backups settings title"
+    },
+    "addBackup": "Add Backup",
+    "@addBackup": {
+        "description": "Add backup title"
+    },
+    "restoreData": "Restore Data",
+    "@restoreData": {
+        "description": "Restore data action"
+    },
+    "dataRestored": "Data restored",
+    "@dataRestored": {
+        "description": "Backup restore success message"
+    },
+    "errorRestoringBackup": "Error Restoring backup",
+    "@errorRestoringBackup": {
+        "description": "Backup restore error message"
     }
 }

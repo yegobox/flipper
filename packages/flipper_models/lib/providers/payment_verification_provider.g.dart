@@ -107,17 +107,24 @@ final class VerifyPaymentProvider
 
 String _$verifyPaymentHash() => r'463b7d0bab65e08288e436d021f283cfa124fdc5';
 
-/// Provider for forcing payment verification
+/// Provider for forcing payment verification (verify only, no navigation).
 
 @ProviderFor(forcePaymentVerification)
 const forcePaymentVerificationProvider = ForcePaymentVerificationProvider._();
 
-/// Provider for forcing payment verification
+/// Provider for forcing payment verification (verify only, no navigation).
 
 final class ForcePaymentVerificationProvider
-    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
-    with $FutureModifier<void>, $FutureProvider<void> {
-  /// Provider for forcing payment verification
+    extends
+        $FunctionalProvider<
+          AsyncValue<PaymentVerificationResponse>,
+          PaymentVerificationResponse,
+          FutureOr<PaymentVerificationResponse>
+        >
+    with
+        $FutureModifier<PaymentVerificationResponse>,
+        $FutureProvider<PaymentVerificationResponse> {
+  /// Provider for forcing payment verification (verify only, no navigation).
   const ForcePaymentVerificationProvider._()
     : super(
         from: null,
@@ -134,14 +141,62 @@ final class ForcePaymentVerificationProvider
 
   @$internal
   @override
-  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $FutureProviderElement<PaymentVerificationResponse> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<void> create(Ref ref) {
+  FutureOr<PaymentVerificationResponse> create(Ref ref) {
     return forcePaymentVerification(ref);
   }
 }
 
 String _$forcePaymentVerificationHash() =>
-    r'7a890ae6ebc168065408e7702ee00a72418a8d43';
+    r'3fd15b27236b6e9dd54c17ec416d2ab45b6773b7';
+
+/// Verifies subscription status online and navigates (sales / post-signup).
+
+@ProviderFor(manualPaymentVerification)
+const manualPaymentVerificationProvider = ManualPaymentVerificationProvider._();
+
+/// Verifies subscription status online and navigates (sales / post-signup).
+
+final class ManualPaymentVerificationProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<PaymentVerificationResponse>,
+          PaymentVerificationResponse,
+          FutureOr<PaymentVerificationResponse>
+        >
+    with
+        $FutureModifier<PaymentVerificationResponse>,
+        $FutureProvider<PaymentVerificationResponse> {
+  /// Verifies subscription status online and navigates (sales / post-signup).
+  const ManualPaymentVerificationProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'manualPaymentVerificationProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$manualPaymentVerificationHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<PaymentVerificationResponse> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<PaymentVerificationResponse> create(Ref ref) {
+    return manualPaymentVerification(ref);
+  }
+}
+
+String _$manualPaymentVerificationHash() =>
+    r'417c33231e5f951ab06d701ca561d80bbe8e3057';

@@ -1,12 +1,16 @@
+import 'package:flipper_dashboard/mobile_checkout_launcher.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -101,10 +105,7 @@ class _TicketSearchBarState extends State<TicketSearchBar> {
       onChanged: widget.onChanged,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: GoogleFonts.outfit(
-          fontSize: 14,
-          color: Colors.grey[600],
-        ),
+        hintStyle: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
         prefixIcon: Icon(Icons.search, color: Colors.grey[600], size: 22),
         suffixIcon: _controller.text.isNotEmpty
             ? IconButton(
@@ -129,7 +130,10 @@ class _TicketSearchBarState extends State<TicketSearchBar> {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: _kAccentBlue, width: 1.2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
       style: GoogleFonts.outfit(fontSize: 15),
     );
@@ -137,10 +141,10 @@ class _TicketSearchBarState extends State<TicketSearchBar> {
 }
 
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
-  final _routerService = locator<RouterService>();
   final _dialogService = locator<DialogService>();
   List<ITransaction> _currentTickets = [];
   String _searchQuery = '';
+
   /// all | loan | layaway | regular — drives chip row and list filtering
   String _ticketKindFilter = 'all';
   bool _sortNewestFirst = true;
@@ -169,8 +173,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   void _sortTicketList(List<ITransaction> list) {
     list.sort((a, b) {
-      final da = a.createdAt ?? a.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final db = b.createdAt ?? b.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final da =
+          a.createdAt ?? a.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final db =
+          b.createdAt ?? b.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
       final c = db.compareTo(da);
       return _sortNewestFirst ? c : -c;
     });
@@ -276,7 +282,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       t.subTotal?.toString(),
       t.invoiceNumber?.toString(),
     ];
-    return fields.any((f) => f != null && f.toString().toLowerCase().contains(q));
+    return fields.any(
+      (f) => f != null && f.toString().toLowerCase().contains(q),
+    );
   }
 
   /// Builds the main ticket section (single-column list on all screen sizes).
@@ -304,8 +312,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                     vertical: 8.0,
                   ),
                   child: TicketSearchBar(
-                    hintText:
-                        'Search by customer, phone, ticket ID...',
+                    hintText: 'Search by customer, phone, ticket ID...',
                     onChanged: (value) => setState(() => _searchQuery = value),
                   ),
                 ),
@@ -475,10 +482,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Single-column scrollable list (matches design on all screen sizes).
-  Widget _buildTicketList(
-    BuildContext context,
-    List<ITransaction> tickets,
-  ) {
+  Widget _buildTicketList(BuildContext context, List<ITransaction> tickets) {
     final searchFiltered = tickets
         .where((t) => _matchesSearch(t, _searchQuery))
         .toList();
@@ -496,10 +500,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     _currentTickets = typeFiltered;
 
     final loanTickets = typeFiltered.where((t) => t.isLoan == true).toList();
-    final nonLoanTickets =
-        typeFiltered.where((t) => t.isLoan != true).toList();
+    final nonLoanTickets = typeFiltered.where((t) => t.isLoan != true).toList();
 
-    Widget buildSection(String title, Color accentColor, List<ITransaction> list) {
+    Widget buildSection(
+      String title,
+      Color accentColor,
+      List<ITransaction> list,
+    ) {
       if (list.isEmpty) return const SizedBox.shrink();
 
       return Column(
@@ -513,7 +520,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           for (final ticket in list)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 5,
+              ),
               child: Consumer(
                 builder: (context, ref, _) {
                   final isSelected = ref
@@ -579,20 +589,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       default:
         if (loanTickets.isNotEmpty) {
           scrollChildren.add(
-            buildSection(
-              loanSectionTitle(),
-              loanSectionAccent(),
-              loanTickets,
-            ),
+            buildSection(loanSectionTitle(), loanSectionAccent(), loanTickets),
           );
         }
         if (nonLoanTickets.isNotEmpty) {
           scrollChildren.add(
-            buildSection(
-              'REGULAR TICKETS',
-              _kRegularGreen,
-              nonLoanTickets,
-            ),
+            buildSection('REGULAR TICKETS', _kRegularGreen, nonLoanTickets),
           );
         }
     }
@@ -609,10 +611,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             minHeight: 3,
           ),
         Expanded(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: scrollChildren,
-          ),
+          child: ListView(padding: EdgeInsets.zero, children: scrollChildren),
         ),
       ],
     );
@@ -652,11 +651,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
-  /// Park all pending except the one we're resuming
+  /// Park all pending except the one we're resuming (Ditto / Capella only).
   Future<void> _parkExistingPendingTransactions({
     required String excludeId,
   }) async {
-    final strategies = [Strategy.capella, Strategy.cloudSync];
+    const strategies = [Strategy.capella];
     for (final strategy in strategies) {
       try {
         final pending = await ProxyService.getStrategy(strategy).transactions(
@@ -687,9 +686,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       await _parkExistingPendingTransactions(excludeId: ticket.id);
 
-      // Update ticket to belong to current agent and be pending
+      // Pending-cart queries are scoped to this device's [deviceId]; tickets saved
+      // on desktop must be reassigned or mobile checkout shows an empty cart.
+      final saleDeviceId = await resolveSaleDeviceId();
       ticket.status = PENDING;
       ticket.agentId = ProxyService.box.getUserId();
+      ticket.deviceId = saleDeviceId;
 
       await ProxyService.getStrategy(Strategy.capella).updateTransaction(
         transaction: ticket,
@@ -697,17 +699,55 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         updatedAt: DateTime.now().toUtc(),
         lastTouched: DateTime.now().toUtc(),
       );
+
+      final branchId = ProxyService.box.getBranchId() ?? ticket.branchId ?? '';
+      primePosCartForTransactionWidget(
+        ref,
+        isExpense: false,
+        transaction: ticket,
+      );
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      if (branchId.isNotEmpty) {
+        ref.invalidate(
+          transactionItemsStreamProvider(
+            transactionId: ticket.id,
+            branchId: branchId,
+          ),
+        );
+        final lineItems = await ProxyService.getStrategy(Strategy.capella)
+            .transactionItems(
+          transactionId: ticket.id,
+          branchId: branchId,
+          active: true,
+        );
+        if (lineItems.isEmpty) {
+          talker.warning('Resume: no line items for ticket ${ticket.id}');
+          if (mounted) {
+            showCustomSnackBarUtil(
+              context,
+              'Could not load ticket items. Try again.',
+              backgroundColor: Colors.orange,
+            );
+          }
+          return;
+        }
+      }
+
       final isMobile = MediaQuery.sizeOf(context).width < 600;
       if (isMobile) {
-        await _routerService.navigateTo(CheckOutRoute(isBigScreen: !isMobile));
+        if (mounted) {
+          await openMobileCheckoutForTransaction(context, ref, ticket);
+        }
       } else {
         if (mounted) Navigator.of(context).pop();
       }
-      showCustomSnackBarUtil(
-        context,
-        'Order resumed successfully',
-        backgroundColor: Colors.green,
-      );
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Order resumed successfully',
+          backgroundColor: Colors.green,
+        );
+      }
     } catch (e, st) {
       talker.error('Resume failed: $e', st);
       if (mounted) {
@@ -862,7 +902,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           const SizedBox(height: 8),
           Text(
             'Something went wrong',
-            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500),
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -906,9 +949,7 @@ class TicketCard extends StatelessWidget {
     if (ticket.isLoan != true) return const SizedBox.shrink();
     final layaway = _isLayawayTicket(ticket);
     final fg = layaway ? _kLayawayTeal : _kLoanPurple;
-    final bg = layaway
-        ? const Color(0xFFE0F2F1)
-        : const Color(0xFFF3E5F5);
+    final bg = layaway ? const Color(0xFFE0F2F1) : const Color(0xFFF3E5F5);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -929,19 +970,21 @@ class TicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusExt = TicketStatusExtension.fromString(ticket.status ?? PARKED);
-    final phone = (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
+    final phone =
+        (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
+            .trim();
+    final displayName = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
         .trim();
-    final displayName =
-        (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
 
     return Material(
       color: Colors.transparent,
       child: FutureBuilder<double?>(
-        future: ProxyService.getStrategy(Strategy.capella).getTotalPaidForTransaction(
-          transactionId: ticket.id,
-          branchId: ticket.branchId ?? '',
-          excludePaymentMethod: 'CREDIT',
-        ),
+        future: ProxyService.getStrategy(Strategy.capella)
+            .getTotalPaidForTransaction(
+              transactionId: ticket.id,
+              branchId: ticket.branchId ?? '',
+              excludePaymentMethod: 'CREDIT',
+            ),
         builder: (context, snapshot) {
           final total = ticket.subTotal ?? 0.0;
           final paid = snapshot.data ?? 0.0;
@@ -970,8 +1013,7 @@ class TicketCard extends StatelessWidget {
           final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
           final fullyPaid =
               total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
-          final progressColor =
-              fullyPaid ? _kRegularGreen : _kProgressOrange;
+          final progressColor = fullyPaid ? _kRegularGreen : _kProgressOrange;
 
           return InkWell(
             onTap: onTap,
@@ -999,226 +1041,232 @@ class TicketCard extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Checkbox(
-                                  value: isSelected,
-                                  onChanged: (v) =>
-                                      onSelectionChanged(v ?? false),
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    'Ticket #${_ticketDisplayRef(ticket)}',
-                                    style: GoogleFonts.outfit(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Checkbox(
+                                    value: isSelected,
+                                    onChanged: (v) =>
+                                        onSelectionChanged(v ?? false),
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    visualDensity: VisualDensity.compact,
                                   ),
-                                ),
-                                if (ticket.isLoan == true) ...[
-                                  const SizedBox(width: 4),
-                                  _typePill(),
-                                ],
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: statusBg,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
+                                  Expanded(
+                                    flex: 2,
                                     child: Text(
-                                      statusLabel,
+                                      'Ticket #${_ticketDisplayRef(ticket)}',
                                       style: GoogleFonts.outfit(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: statusFg,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                        color: Colors.black87,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  if (ticket.isLoan == true) ...[
+                                    const SizedBox(width: 4),
+                                    _typePill(),
+                                  ],
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: statusBg,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        statusLabel,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: statusFg,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (ticket.ticketName != null &&
+                                  ticket.ticketName!.trim().isNotEmpty &&
+                                  ticket.customerName != null &&
+                                  ticket.ticketName!.trim() !=
+                                      ticket.customerName!.trim()) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  ticket.ticketName!,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[700],
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
-                            ),
-                            if (ticket.ticketName != null &&
-                                ticket.ticketName!.trim().isNotEmpty &&
-                                ticket.customerName != null &&
-                                ticket.ticketName!.trim() !=
-                                    ticket.customerName!.trim()) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                ticket.ticketName!,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[700],
+                              if (ticket.note != null &&
+                                  ticket.note!.trim().isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.note_alt_outlined,
+                                      size: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        ticket.note!,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          color: Colors.grey[800],
+                                          height: 1.35,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                            if (ticket.note != null &&
-                                ticket.note!.trim().isNotEmpty) ...[
-                              const SizedBox(height: 4),
+                              ],
+                              const SizedBox(height: 10),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.note_alt_outlined,
-                                      size: 14, color: Colors.grey[600]),
-                                  const SizedBox(width: 6),
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: _leftAccent(),
+                                    child: Text(
+                                      _customerInitials(ticket),
+                                      style: GoogleFonts.outfit(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      ticket.note!,
+                                      displayName,
                                       style: GoogleFonts.outfit(
-                                        fontSize: 12,
-                                        color: Colors.grey[800],
-                                        height: 1.35,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: _kAccentBlue,
                                       ),
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (phone.isNotEmpty)
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.phone,
+                                          size: 15,
+                                          color: Colors.grey[600],
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          phone,
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 12,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _moneyCol(
+                                      'TOTAL',
+                                      (ticket.subTotal ?? 0)
+                                          .toCurrencyFormatted(),
+                                      valueColor: Colors.black87,
+                                      emphasize: true,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _moneyCol(
+                                      'PAID',
+                                      paid.toCurrencyFormatted(),
+                                      valueColor: paid > 0
+                                          ? const Color(0xFF2E7D32)
+                                          : Colors.grey.shade400,
+                                      emphasize: paid > 0,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _moneyCol(
+                                      'REMAINING',
+                                      remClamped.toCurrencyFormatted(),
+                                      valueColor: remClamped > 0
+                                          ? const Color(0xFFC62828)
+                                          : Colors.grey.shade400,
+                                      emphasize: remClamped > 0,
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                            const SizedBox(height: 10),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: _leftAccent(),
-                                  child: Text(
-                                    _customerInitials(ticket),
-                                    style: GoogleFonts.outfit(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
-                                    ),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: progress.isNaN ? 0 : progress,
+                                  minHeight: 6,
+                                  backgroundColor: Colors.grey[200],
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    progressColor,
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    displayName,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: _kAccentBlue,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (phone.isNotEmpty)
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.phone,
-                                          size: 15, color: Colors.grey[600]),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        phone,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _moneyCol(
-                                    'TOTAL',
-                                    (ticket.subTotal ?? 0)
-                                        .toCurrencyFormatted(),
-                                    valueColor: Colors.black87,
-                                    emphasize: true,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _moneyCol(
-                                    'PAID',
-                                    paid.toCurrencyFormatted(),
-                                    valueColor: paid > 0
-                                        ? const Color(0xFF2E7D32)
-                                        : Colors.grey.shade400,
-                                    emphasize: paid > 0,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _moneyCol(
-                                    'REMAINING',
-                                    remClamped.toCurrencyFormatted(),
-                                    valueColor: remClamped > 0
-                                        ? const Color(0xFFC62828)
-                                        : Colors.grey.shade400,
-                                    emphasize: remClamped > 0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: LinearProgressIndicator(
-                                value: progress.isNaN ? 0 : progress,
-                                minHeight: 6,
-                                backgroundColor: Colors.grey[200],
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  progressColor,
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Created ${_formatDate(ticket.createdAt)}',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 11,
-                                      color: Colors.grey[600],
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Created ${_formatDate(ticket.createdAt)}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
                                   ),
-                                ),
-                                _squareIconBtn(
-                                  icon: Icons.play_arrow,
-                                  color: _kAccentBlue,
-                                  onPressed: onTap,
-                                  tooltip: 'Resume Order',
-                                ),
-                                const SizedBox(width: 8),
-                                _squareIconBtn(
-                                  icon: Icons.delete_outline,
-                                  color: Colors.red[700]!,
-                                  onPressed: onDelete,
-                                  tooltip: 'Delete Ticket',
-                                ),
-                              ],
-                            ),
-                          ],
+                                  _squareIconBtn(
+                                    icon: Icons.play_arrow,
+                                    color: _kAccentBlue,
+                                    onPressed: onTap,
+                                    tooltip: 'Resume Order',
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _squareIconBtn(
+                                    icon: Icons.delete_outline,
+                                    color: Colors.red[700]!,
+                                    onPressed: onDelete,
+                                    tooltip: 'Delete Ticket',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
             ),
           );
         },

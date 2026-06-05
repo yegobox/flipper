@@ -129,7 +129,14 @@ class AppIconsGrid extends ConsumerWidget {
         'label': "Production",
         'feature': 'ProductionOutput',
       },
-      if (!isBigScreen)
+      if (!isBigScreen) ...[
+        {
+          'icon': FluentIcons.clipboard_text_edit_24_regular,
+          'color': const Color(0xFF006AFE),
+          'page': "Tickets",
+          'label': "Tickets",
+          'feature': 'Tickets',
+        },
         {
           'icon': FluentIcons.clipboard_letter_24_regular,
           'color': Colors.blue,
@@ -137,6 +144,7 @@ class AppIconsGrid extends ConsumerWidget {
           'label': "Orders",
           'feature': 'Orders',
         },
+      ],
     ];
 
     // Filtering out apps the user does not have access to

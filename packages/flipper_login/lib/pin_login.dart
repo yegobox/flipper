@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_login/mfa_provider.dart';
 import 'package:flipper_login/pin_login_brand_panel.dart';
 import 'package:flipper_login/pin_login_signin_motion.dart';
@@ -266,115 +267,113 @@ class _PinLoginState extends State<PinLogin>
     HapticFeedback.lightImpact();
 
     try {
-        if (_showOtpField) {
-          final pinRecord = await _getPin();
-          if (_authMethod == AuthMethod.authenticator) {
-            final otpCode = _otpController.text;
+      if (_showOtpField) {
+        final pinRecord = await _getPin();
+        if (_authMethod == AuthMethod.authenticator) {
+          final otpCode = _otpController.text;
 
-            if (pinRecord == null) {
-              setState(() {
-                _hasError = true;
-                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
-              });
-              _pinController.clear();
-              _playPinShake();
-              return;
-            }
+          if (pinRecord == null) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+            });
+            _pinController.clear();
+            _playPinShake();
+            return;
+          }
 
-            final ok = await _mfa.validateTotpThenLogin(
-              pin: pinRecord,
-              code: otpCode,
-            );
-            if (!ok) {
-              setState(() {
-                _hasError = true;
-                _errorMessage = 'Invalid authenticator code. Please try again.';
-              });
-            } else {
-              _markSignInSuccess();
-            }
+          final ok = await _mfa.validateTotpThenLogin(
+            pin: pinRecord,
+            code: otpCode,
+          );
+          if (!ok) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid authenticator code. Please try again.';
+            });
           } else {
-            if (_otpController.text.isEmpty) {
-              await _requestSmsOtp();
-              return;
-            }
-            if (pinRecord == null) {
-              setState(() {
-                _hasError = true;
-                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
-              });
-              _pinController.clear();
-              _playPinShake();
-              return;
-            }
-            await _mfa
-                .verifySmsOtpThenLogin(
-                  otp: _otpController.text,
-                  pin: pinRecord,
-                )
-                .timeout(
-                  const Duration(seconds: 90),
-                  onTimeout: () => throw TimeoutException(
-                    'Sign-in timed out. Check your connection and try again.',
-                  ),
-                );
             _markSignInSuccess();
           }
         } else {
-          if (_authMethod == AuthMethod.sms) {
-            final response =
-                await _mfa.requestSmsOtp(pinString: _pinController.text);
-            if (response['requiresOtp']) {
-              setState(() {
-                _showOtpField = true;
-                _otpFocusNode.requestFocus();
-              });
-            } else {
-              final pinRecord = await _getPin();
-              if (pinRecord != null) {
-                _markSignInSuccess();
-                await ProxyService.strategy.login(
-                  userPhone: pinRecord.phoneNumber,
-                  isInSignUpProgress: false,
-                  skipDefaultAppSetup: false,
-                  pin: Pin(
-                    userId: pinRecord.userId,
-                    pin: pinRecord.pin,
-                    businessId: pinRecord.businessId,
-                    branchId: pinRecord.branchId,
-                    ownerName: pinRecord.ownerName ?? '',
-                    phoneNumber: pinRecord.phoneNumber,
-                  ),
-                  flipperHttpClient: ProxyService.http,
-                );
-              } else {
-                setState(() {
-                  _hasError = true;
-                  _errorMessage =
-                      'Invalid PIN. Please re-enter and try again.';
-                });
-                _pinController.clear();
-                _playPinShake();
-              }
-            }
-          } else {
-            final pinRecord = await _getPin();
-            if (pinRecord == null) {
-              setState(() {
-                _hasError = true;
-                _errorMessage =
-                    'Invalid PIN. Please re-enter and try again.';
-              });
-              _pinController.clear();
-              _playPinShake();
-              return;
-            }
+          if (_otpController.text.isEmpty) {
+            await _requestSmsOtp();
+            return;
+          }
+          if (pinRecord == null) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+            });
+            _pinController.clear();
+            _playPinShake();
+            return;
+          }
+          await _mfa
+              .verifySmsOtpThenLogin(
+                otp: _otpController.text,
+                pin: pinRecord,
+              )
+              .timeout(
+                const Duration(seconds: 90),
+                onTimeout: () => throw TimeoutException(
+                  'Sign-in timed out. Check your connection and try again.',
+                ),
+              );
+          _markSignInSuccess();
+        }
+      } else {
+        if (_authMethod == AuthMethod.sms) {
+          final response =
+              await _mfa.requestSmsOtp(pinString: _pinController.text);
+          if (response['requiresOtp']) {
             setState(() {
               _showOtpField = true;
               _otpFocusNode.requestFocus();
             });
+          } else {
+            final pinRecord = await _getPin();
+            if (pinRecord != null) {
+              _markSignInSuccess();
+              await ProxyService.strategy.login(
+                userPhone: pinRecord.phoneNumber,
+                isInSignUpProgress: false,
+                skipDefaultAppSetup: false,
+                pin: Pin(
+                  userId: pinRecord.userId,
+                  pin: pinRecord.pin,
+                  businessId: pinRecord.businessId,
+                  branchId: pinRecord.branchId,
+                  ownerName: pinRecord.ownerName ?? '',
+                  phoneNumber: pinRecord.phoneNumber,
+                ),
+                flipperHttpClient: ProxyService.http,
+              );
+            } else {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              });
+              _pinController.clear();
+              _playPinShake();
+            }
           }
+        } else {
+          final pinRecord = await _getPin();
+          if (pinRecord == null) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+            });
+            _pinController.clear();
+            _playPinShake();
+            return;
+          }
+          setState(() {
+            _showOtpField = true;
+            _otpFocusNode.requestFocus();
+          });
         }
+      }
     } catch (e, s) {
       await _handleLoginError(e, s);
     } finally {
@@ -461,14 +460,12 @@ class _PinLoginState extends State<PinLogin>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Trouble Signing In?'),
-          content: const Text(
-            'If you are having trouble signing in, please ensure your PIN and OTP (if applicable) are correct.\n\nFor further assistance, please contact support.',
-          ),
+          title: Text(FLocalization.of(context).troubleSigningIn),
+          content: Text(FLocalization.of(context).troubleSigningInHelp),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(FLocalization.of(context).ok),
             ),
           ],
         );
@@ -481,7 +478,7 @@ class _PinLoginState extends State<PinLogin>
     if (owner != null && owner.isNotEmpty) return owner;
     final phone = _localPin?.phoneNumber?.trim();
     if (phone != null && phone.isNotEmpty) return phone;
-    return 'Welcome back';
+    return FLocalization.of(context).welcomeBack;
   }
 
   String get _accountSubtitle {
@@ -617,9 +614,8 @@ class _PinLoginState extends State<PinLogin>
                               : (_isProcessing ? 'Verifying…' : 'Sign in'),
                           icon: _isDone ? null : Icons.arrow_outward_rounded,
                           isLoading: false,
-                          onPressed: (_isProcessing || _isDone)
-                              ? null
-                              : _handleLogin,
+                          onPressed:
+                              (_isProcessing || _isDone) ? null : _handleLogin,
                         ),
                         const SizedBox(height: 18),
                         Center(
@@ -729,7 +725,8 @@ class _PinLoginState extends State<PinLogin>
             enabled: !_isProcessing && !_isDone,
             onDigit: _appendPinDigit,
             onBackspace: _backspacePin,
-            onToggleShow: () => setState(() => _showPinDigits = !_showPinDigits),
+            onToggleShow: () =>
+                setState(() => _showPinDigits = !_showPinDigits),
           ),
         ],
       ],
@@ -852,7 +849,8 @@ class _PinLoginState extends State<PinLogin>
             filled: true,
             fillColor: SignInTokens.surface2,
             hintText: '000000',
-            hintStyle: context.signInPinDigit(fontSize: compact ? 16 : 18)
+            hintStyle: context
+                .signInPinDigit(fontSize: compact ? 16 : 18)
                 .copyWith(color: SignInTokens.ink3),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(SignInTokens.radiusMd),

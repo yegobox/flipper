@@ -17,6 +17,7 @@ dependencies:
   # adding this because I need constants from it,
   # maybe it is time to move all constants to its own package
   flipper_services: any
+  flipper_localize: ^1.0.0-dev
   easy_localization: ^3.0.7
   flipper_design_system: any
   flipper_infra: any

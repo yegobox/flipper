@@ -7,6 +7,7 @@ import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
 import 'package:flipper_models/helpers/transaction_item_plu_metrics.dart';
 import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
 import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -669,16 +670,22 @@ Stream<ITransaction> pendingTransactionStream(
   required bool isExpense,
   bool forceRealData = true,
 }) async* {
-  String? branchId = ProxyService.box.getBranchId();
+  // Re-subscribe when the active branch changes (startup / branch switch).
+  ref.watch(activeBranchProvider);
 
-  if (branchId == null) {
+  String? branchId = ProxyService.box.getBranchId();
+  const maxAttempts = 50;
+  var attempt = 0;
+  while (branchId == null && attempt < maxAttempts) {
     await Future.delayed(const Duration(milliseconds: 100));
     branchId = ProxyService.box.getBranchId();
-    if (branchId == null) {
-      throw StateError(
-        'No default branch selected. Please select a branch first.',
-      );
-    }
+    attempt++;
+  }
+
+  if (branchId == null) {
+    throw StateError(
+      'No default branch selected. Please select a branch first.',
+    );
   }
 
   try {

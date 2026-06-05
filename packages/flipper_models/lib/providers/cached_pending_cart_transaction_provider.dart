@@ -106,8 +106,8 @@ ITransaction? readCachedPendingCartTransactionWidget(
 }) =>
     ref.read(cachedPendingCartTransactionProvider(isExpense));
 
-void writeCachedPendingCartTransactionWidget(
-  WidgetRef ref, {
+void writeCachedPendingCartTransactionContainer(
+  ProviderContainer container, {
   required bool isExpense,
   required ITransaction? transaction,
 }) {
@@ -116,8 +116,21 @@ void writeCachedPendingCartTransactionWidget(
       transaction.status != PENDING) {
     return;
   }
-  ref.read(cachedPendingCartTransactionProvider(isExpense).notifier).state =
-      transaction;
+  container
+      .read(cachedPendingCartTransactionProvider(isExpense).notifier)
+      .state = transaction;
+}
+
+void writeCachedPendingCartTransactionWidget(
+  WidgetRef ref, {
+  required bool isExpense,
+  required ITransaction? transaction,
+}) {
+  writeCachedPendingCartTransactionContainer(
+    ref.container,
+    isExpense: isExpense,
+    transaction: transaction,
+  );
 }
 
 void clearCachedPendingCartTransactionWidget(

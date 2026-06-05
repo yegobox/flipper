@@ -51,6 +51,13 @@ const List<DashboardAllAppSection> dashboardAllAppsCatalog = [
         feature: 'Transactions',
       ),
       DashboardAllAppTile(
+        page: 'Tickets',
+        label: 'Tickets',
+        icon: FluentIcons.clipboard_text_edit_24_regular,
+        color: Color(0xFF006AFE),
+        feature: 'Tickets',
+      ),
+      DashboardAllAppTile(
         page: 'POS',
         label: 'Pricing',
         icon: FluentIcons.tag_24_regular,

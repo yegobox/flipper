@@ -564,7 +564,7 @@ final class TransactionItemListProvider
 }
 
 String _$transactionItemListHash() =>
-    r'758507fb0f05599ae51cff6b9a722ab034c6175b';
+    r'a0aef588ea09c9a934c6fcc139c15b70e856384b';
 
 @ProviderFor(transactionReportKpiTotals)
 const transactionReportKpiTotalsProvider =
@@ -607,7 +607,7 @@ final class TransactionReportKpiTotalsProvider
 }
 
 String _$transactionReportKpiTotalsHash() =>
-    r'178f19ab372a10726e3376087641856ee5288bbb';
+    r'c4544106307c60df644474c4418a137151f27527';
 
 @ProviderFor(expensesStream)
 const expensesStreamProvider = ExpensesStreamFamily._();
@@ -1114,7 +1114,7 @@ final class PendingTransactionStreamProvider
 }
 
 String _$pendingTransactionStreamHash() =>
-    r'a51674b9bf99fdf1099f32966f04879c3af0957f';
+    r'ba4310e70e5333652db5a7a40fb4471e9c2e8193';
 
 final class PendingTransactionStreamFamily extends $Family
     with

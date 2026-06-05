@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -53,12 +54,12 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                 key: const Key('createAccountButton'),
                 padding: const EdgeInsets.only(left: 18, right: 18, top: 0),
                 child: BoxButton(
-                  title: 'Create Account',
+                  title: FLocalization.of(context).createAccount,
                   onTap: () {
                     if (!widget.isSystemTimeSet) {
                       showSimpleNotification(
-                          const Text(
-                              "Please set your device time to automatic"),
+                          Text(
+                              FLocalization.of(context).setDeviceTimeAutomatic),
                           background: Colors.green,
                           duration: const Duration(minutes: 2));
                     } else {
@@ -78,12 +79,12 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                       width: double.infinity,
                       height: 50,
                       child: BoxButton.outline(
-                        title: 'SIGN IN',
+                        title: FLocalization.of(context).signIn,
                         onTap: () {
                           if (!widget.isSystemTimeSet) {
                             showSimpleNotification(
-                                const Text(
-                                    "Please set your device time to automatic"),
+                                Text(FLocalization.of(context)
+                                    .setDeviceTimeAutomatic),
                                 background: Colors.green,
                                 duration: const Duration(minutes: 2));
                           } else {

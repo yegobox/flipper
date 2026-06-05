@@ -572,6 +572,396 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Exact'**
   String get exact;
+
+  /// Confirm action
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// Number of payments field label
+  ///
+  /// In en, this message translates to:
+  /// **'Number of Payments'**
+  String get numberOfPayments;
+
+  /// Apply discount code toggle label
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Discount Code'**
+  String get applyDiscountCode;
+
+  /// Discount code field label
+  ///
+  /// In en, this message translates to:
+  /// **'Discount Code'**
+  String get discountCode;
+
+  /// Discount code validation progress
+  ///
+  /// In en, this message translates to:
+  /// **'Validating code...'**
+  String get validatingCode;
+
+  /// Create account action
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get createAccount;
+
+  /// Sign in action
+  ///
+  /// In en, this message translates to:
+  /// **'SIGN IN'**
+  String get signIn;
+
+  /// Warning to enable automatic device time
+  ///
+  /// In en, this message translates to:
+  /// **'Please set your device time to automatic'**
+  String get setDeviceTimeAutomatic;
+
+  /// Phone auth button
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Phone'**
+  String get continueWithPhone;
+
+  /// Google auth button
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// Microsoft auth button
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Microsoft'**
+  String get continueWithMicrosoft;
+
+  /// Apple auth button
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get continueWithApple;
+
+  /// Authentication divider
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get or;
+
+  /// PIN login action
+  ///
+  /// In en, this message translates to:
+  /// **'PIN Login'**
+  String get pinLogin;
+
+  /// Languages settings title
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get languagesTitle;
+
+  /// English language name
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// Kinyarwanda language name
+  ///
+  /// In en, this message translates to:
+  /// **'Kinyarwanda'**
+  String get kinyarwanda;
+
+  /// Swahili language name
+  ///
+  /// In en, this message translates to:
+  /// **'Swahili'**
+  String get swahili;
+
+  /// Settings screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// Home navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// Sales navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get sales;
+
+  /// Inventory navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory'**
+  String get inventory;
+
+  /// More navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get more;
+
+  /// Scan QR action
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get scanQr;
+
+  /// Dashboard navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboard;
+
+  /// No user empty state title
+  ///
+  /// In en, this message translates to:
+  /// **'No User'**
+  String get noUser;
+
+  /// No user empty state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in to continue'**
+  String get pleaseLogInToContinue;
+
+  /// Loading businesses status
+  ///
+  /// In en, this message translates to:
+  /// **'Loading businesses...'**
+  String get loadingBusinesses;
+
+  /// Business list loading error
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading businesses'**
+  String get errorLoadingBusinesses;
+
+  /// No businesses empty state title
+  ///
+  /// In en, this message translates to:
+  /// **'No Businesses'**
+  String get noBusinesses;
+
+  /// No businesses empty state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first business to get started'**
+  String get createFirstBusiness;
+
+  /// Sign out action
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOut;
+
+  /// Phone number field label
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get phoneNumber;
+
+  /// Phone auth sending code progress
+  ///
+  /// In en, this message translates to:
+  /// **'Sending code...'**
+  String get sendingCode;
+
+  /// Continue action
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAction;
+
+  /// OTP instruction prefix
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code sent to '**
+  String get enterSixDigitCodeSentTo;
+
+  /// Expired OTP resend action
+  ///
+  /// In en, this message translates to:
+  /// **'Code Expired - Tap to Resend'**
+  String get codeExpiredTapToResend;
+
+  /// Resend OTP action
+  ///
+  /// In en, this message translates to:
+  /// **'Resend Code'**
+  String get resendCode;
+
+  /// Resend OTP countdown prefix
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code in '**
+  String get resendCodeIn;
+
+  /// Seconds unit
+  ///
+  /// In en, this message translates to:
+  /// **'seconds'**
+  String get seconds;
+
+  /// OTP verification progress
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying...'**
+  String get verifying;
+
+  /// Verify OTP action
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Code'**
+  String get verifyCode;
+
+  /// PIN login help dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Trouble Signing In?'**
+  String get troubleSigningIn;
+
+  /// PIN login help dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'If you are having trouble signing in, please ensure your PIN and OTP (if applicable) are correct.\n\nFor further assistance, please contact support.'**
+  String get troubleSigningInHelp;
+
+  /// OK action
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// Default returning user greeting
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get welcomeBack;
+
+  /// TIN number field label
+  ///
+  /// In en, this message translates to:
+  /// **'TIN Number'**
+  String get tinNumber;
+
+  /// Validate action
+  ///
+  /// In en, this message translates to:
+  /// **'Validate'**
+  String get validate;
+
+  /// Upload PDF containing TIN tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Upload PDF with TIN'**
+  String get uploadPdfWithTin;
+
+  /// TIN field hint
+  ///
+  /// In en, this message translates to:
+  /// **'Enter TIN number or tap the upload icon'**
+  String get enterTinOrUpload;
+
+  /// Add email action
+  ///
+  /// In en, this message translates to:
+  /// **'Add Email'**
+  String get addEmail;
+
+  /// Email added success message
+  ///
+  /// In en, this message translates to:
+  /// **'Email added'**
+  String get emailAdded;
+
+  /// Update settings action
+  ///
+  /// In en, this message translates to:
+  /// **'Update Settings'**
+  String get updateSettings;
+
+  /// Invite members action
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get invite;
+
+  /// Send invitation request action
+  ///
+  /// In en, this message translates to:
+  /// **'Send Request'**
+  String get sendRequest;
+
+  /// Preferences settings title
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferences;
+
+  /// Accessibility settings title
+  ///
+  /// In en, this message translates to:
+  /// **'Accessibility'**
+  String get accessibility;
+
+  /// Language settings label
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// Reports settings title
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get reports;
+
+  /// Enable report setting
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Report'**
+  String get enableReport;
+
+  /// Backups settings title
+  ///
+  /// In en, this message translates to:
+  /// **'BackUps'**
+  String get backups;
+
+  /// Add backup title
+  ///
+  /// In en, this message translates to:
+  /// **'Add Backup'**
+  String get addBackup;
+
+  /// Restore data action
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Data'**
+  String get restoreData;
+
+  /// Backup restore success message
+  ///
+  /// In en, this message translates to:
+  /// **'Data restored'**
+  String get dataRestored;
+
+  /// Backup restore error message
+  ///
+  /// In en, this message translates to:
+  /// **'Error Restoring backup'**
+  String get errorRestoringBackup;
 }
 
 class _FlipperAppLocalizationsDelegate

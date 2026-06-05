@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/dashboard_mobile_pos_navigation.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,13 +49,13 @@ class DashboardMobileBottomNav extends ConsumerWidget {
               children: [
                 _NavItem(
                   icon: FluentIcons.home_24_regular,
-                  label: 'Home',
+                  label: FLocalization.of(context).home,
                   selected: activeTab == DashboardMobileTab.home,
                   onTap: () => onTabSelected(DashboardMobileTab.home),
                 ),
                 _NavItem(
                   icon: FluentIcons.cart_24_regular,
-                  label: 'Sales',
+                  label: FLocalization.of(context).sales,
                   selected: activeTab == DashboardMobileTab.sales,
                   onTap: () async {
                     onTabSelected(DashboardMobileTab.sales);
@@ -68,7 +69,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                 const SizedBox(width: 72),
                 _NavItem(
                   icon: FluentIcons.box_24_regular,
-                  label: 'Inventory',
+                  label: FLocalization.of(context).inventory,
                   selected: activeTab == DashboardMobileTab.inventory,
                   onTap: () async {
                     onTabSelected(DashboardMobileTab.inventory);
@@ -81,7 +82,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                 ),
                 _NavItem(
                   icon: FluentIcons.grid_24_regular,
-                  label: 'More',
+                  label: FLocalization.of(context).more,
                   selected: activeTab == DashboardMobileTab.more,
                   onTap: () async {
                     onTabSelected(DashboardMobileTab.more);

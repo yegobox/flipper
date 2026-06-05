@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_login/LoadingDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -574,7 +575,8 @@ class _AuthState extends State<Auth> {
                             onPressed:
                                 _isLoading ? null : _handlePhoneNumberLogin,
                             icon: Icon(Icons.phone, size: 20),
-                            label: Text("Continue with Phone",
+                            label: Text(
+                                FLocalization.of(context).continueWithPhone,
                                 style: AppStyles.buttonText),
                           ),
                         ),
@@ -586,7 +588,7 @@ class _AuthState extends State<Auth> {
                           key: Key("googleLogin"),
                           onPressed: _isLoading ? null : _handleGoogleLogin,
                           iconPath: 'assets/google.svg',
-                          text: 'Continue with Google',
+                          text: FLocalization.of(context).continueWithGoogle,
                         ),
 
                         SizedBox(height: 16),
@@ -596,7 +598,7 @@ class _AuthState extends State<Auth> {
                           key: Key("microsoftLogin"),
                           onPressed: _isLoading ? null : _handleMicrosoftLogin,
                           iconPath: 'assets/microsoft.svg',
-                          text: 'Continue with Microsoft',
+                          text: FLocalization.of(context).continueWithMicrosoft,
                         ),
 
                         SizedBox(height: 16),
@@ -612,7 +614,7 @@ class _AuthState extends State<Auth> {
                               painter: AppleLogoPainter(color: Colors.black),
                             ),
                           ),
-                          text: 'Continue with Apple',
+                          text: FLocalization.of(context).continueWithApple,
                         ),
 
                         SizedBox(height: 24),
@@ -624,7 +626,7 @@ class _AuthState extends State<Auth> {
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: 16),
                               child: Text(
-                                "OR",
+                                FLocalization.of(context).or,
                                 style: TextStyle(color: AppColors.textLight),
                               ),
                             ),
@@ -642,7 +644,7 @@ class _AuthState extends State<Auth> {
                             style: AppButtons.outlinedButton,
                             onPressed: _isLoading ? null : _handlePinLogin,
                             icon: Icon(Icons.pin_outlined, size: 20),
-                            label: Text('PIN Login',
+                            label: Text(FLocalization.of(context).pinLogin,
                                 style: AppStyles.secondaryButtonText),
                           ),
                         ),

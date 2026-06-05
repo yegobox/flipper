@@ -200,6 +200,136 @@ class FLocalization {
   String get momoPaymentRequestHint => _localizations.momoPaymentRequestHint;
 
   String get exact => _localizations.exact;
+
+  String get confirm => _localizations.confirm;
+
+  String get numberOfPayments => _localizations.numberOfPayments;
+
+  String get applyDiscountCode => _localizations.applyDiscountCode;
+
+  String get discountCode => _localizations.discountCode;
+
+  String get validatingCode => _localizations.validatingCode;
+
+  String get createAccount => _localizations.createAccount;
+
+  String get signIn => _localizations.signIn;
+
+  String get setDeviceTimeAutomatic => _localizations.setDeviceTimeAutomatic;
+
+  String get continueWithPhone => _localizations.continueWithPhone;
+
+  String get continueWithGoogle => _localizations.continueWithGoogle;
+
+  String get continueWithMicrosoft => _localizations.continueWithMicrosoft;
+
+  String get continueWithApple => _localizations.continueWithApple;
+
+  String get or => _localizations.or;
+
+  String get pinLogin => _localizations.pinLogin;
+
+  String get languagesTitle => _localizations.languagesTitle;
+
+  String get english => _localizations.english;
+
+  String get kinyarwanda => _localizations.kinyarwanda;
+
+  String get swahili => _localizations.swahili;
+
+  String get settings => _localizations.settings;
+
+  String get home => _localizations.home;
+
+  String get sales => _localizations.sales;
+
+  String get inventory => _localizations.inventory;
+
+  String get more => _localizations.more;
+
+  String get scanQr => _localizations.scanQr;
+
+  String get dashboard => _localizations.dashboard;
+
+  String get noUser => _localizations.noUser;
+
+  String get pleaseLogInToContinue => _localizations.pleaseLogInToContinue;
+
+  String get loadingBusinesses => _localizations.loadingBusinesses;
+
+  String get errorLoadingBusinesses => _localizations.errorLoadingBusinesses;
+
+  String get noBusinesses => _localizations.noBusinesses;
+
+  String get createFirstBusiness => _localizations.createFirstBusiness;
+
+  String get signOut => _localizations.signOut;
+
+  String get phoneNumber => _localizations.phoneNumber;
+
+  String get sendingCode => _localizations.sendingCode;
+
+  String get continueAction => _localizations.continueAction;
+
+  String get enterSixDigitCodeSentTo => _localizations.enterSixDigitCodeSentTo;
+
+  String get codeExpiredTapToResend => _localizations.codeExpiredTapToResend;
+
+  String get resendCode => _localizations.resendCode;
+
+  String get resendCodeIn => _localizations.resendCodeIn;
+
+  String get seconds => _localizations.seconds;
+
+  String get verifying => _localizations.verifying;
+
+  String get verifyCode => _localizations.verifyCode;
+
+  String get troubleSigningIn => _localizations.troubleSigningIn;
+
+  String get troubleSigningInHelp => _localizations.troubleSigningInHelp;
+
+  String get ok => _localizations.ok;
+
+  String get welcomeBack => _localizations.welcomeBack;
+
+  String get tinNumber => _localizations.tinNumber;
+
+  String get validate => _localizations.validate;
+
+  String get uploadPdfWithTin => _localizations.uploadPdfWithTin;
+
+  String get enterTinOrUpload => _localizations.enterTinOrUpload;
+
+  String get addEmail => _localizations.addEmail;
+
+  String get emailAdded => _localizations.emailAdded;
+
+  String get updateSettings => _localizations.updateSettings;
+
+  String get invite => _localizations.invite;
+
+  String get sendRequest => _localizations.sendRequest;
+
+  String get preferences => _localizations.preferences;
+
+  String get accessibility => _localizations.accessibility;
+
+  String get language => _localizations.language;
+
+  String get reports => _localizations.reports;
+
+  String get enableReport => _localizations.enableReport;
+
+  String get backups => _localizations.backups;
+
+  String get addBackup => _localizations.addBackup;
+
+  String get restoreData => _localizations.restoreData;
+
+  String get dataRestored => _localizations.dataRestored;
+
+  String get errorRestoringBackup => _localizations.errorRestoringBackup;
 }
 
 class FlipperLocalizationsDelegate

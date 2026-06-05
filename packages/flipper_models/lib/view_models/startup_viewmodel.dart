@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -6,8 +7,8 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -36,9 +37,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   // Internet connection service instance
   final _internetConnectionService = InternetConnectionService();
-
-  // Flag to track if we're currently on a payment screen
-  bool _isOnPaymentScreen = false;
 
   // Track last user activity to avoid interrupting active users
   DateTime? _lastUserActivity;
@@ -114,9 +112,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _progress = 0.6;
       notifyListeners();
 
-      _paymentVerificationService.setPaymentStatusChangeCallback(
-        _handlePaymentStatusChange,
-      );
+      _paymentVerificationService.setPaymentStatusChangeCallback((response) {
+        unawaited(_handlePaymentStatusChange(response));
+      });
       _paymentVerificationService.startPeriodicVerification(
         intervalMinutes: kDebugMode ? 20 : 240,
       );
@@ -149,52 +147,17 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   }
 
   /// Handle payment status changes from periodic verification
-  void _handlePaymentStatusChange(PaymentVerificationResponse response) {
-    // Check if user is currently on a modal or critical page
-    final currentRoute = _routerService.router.current.name;
-    final criticalRoutes = [
-      'AddProductView',
-      'Sell',
-      'Payments',
-      'PaymentConfirmation',
-      'TransactionDetail',
-      'CheckOut',
-      'NewTicket',
-      'CheckOut',
-    ];
-
-    // Don't interrupt user during critical operations
-    if (criticalRoutes.contains(currentRoute)) {
-      talker.info(
-        'Skipping payment verification navigation - user on critical page: $currentRoute',
-      );
-      return;
-    }
-
-    // Don't interrupt if user was recently active (but allow during initial startup)
-    if (!_isInitialStartup &&
-        _lastUserActivity != null &&
-        DateTime.now().difference(_lastUserActivity!) <
-            _userActivityThreshold) {
-      talker.info(
-        'Skipping payment verification navigation - user recently active',
-      );
-      return;
-    }
-
-    switch (response.result) {
-      case PaymentVerificationResult.active:
-        _handleActiveSubscription();
-        break;
-      case PaymentVerificationResult.noPlan:
-        _handleNoPlan();
-        break;
-      case PaymentVerificationResult.planExistsButInactive:
-        _handleInactivePlan(response);
-        break;
-      case PaymentVerificationResult.error:
-        _handleVerificationError(response);
-        break;
+  Future<void> _handlePaymentStatusChange(
+    PaymentVerificationResponse response,
+  ) async {
+    await PaymentVerificationNavigator.handle(
+      response,
+      isInitialStartup: _isInitialStartup,
+      lastUserActivity: _lastUserActivity,
+      userActivityThreshold: _userActivityThreshold,
+    );
+    if (response.result == PaymentVerificationResult.active) {
+      _isInitialStartup = false;
     }
   }
 
@@ -206,122 +169,17 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     } catch (e) {
       // If payment verification itself throws an exception, create a response and handle it
       talker.error("Exception during initial payment verification: $e");
-      _handleVerificationError(
+      await PaymentVerificationNavigator.handle(
         PaymentVerificationResponse(
           result: PaymentVerificationResult.error,
           errorMessage: 'Payment verification failed: $e',
           exception: Exception(e),
         ),
+        isInitialStartup: _isInitialStartup,
+        lastUserActivity: _lastUserActivity,
+        userActivityThreshold: _userActivityThreshold,
       );
     }
-  }
-
-  void _handleActiveSubscription() async {
-    talker.info('Payment verification successful: Subscription is active');
-
-    if (_isOnPaymentScreen) {
-      talker.info(
-        'Returning to main app after successful payment verification',
-      );
-      _clearPaymentScreenFlag();
-    }
-
-    await _navigateToAuthenticatedHome();
-  }
-
-  void _handleNoPlan() async {
-    if (await _navigateCommissionOnlyIfNeeded()) return;
-
-    talker.warning('No payment plan found, directing to payment plan screen');
-    _setOnPaymentScreen();
-    _routerService.navigateTo(PaymentPlanUIRoute());
-  }
-
-  void _handleInactivePlan(PaymentVerificationResponse response) async {
-    if (await _navigateCommissionOnlyIfNeeded()) return;
-
-    talker.error(
-      'Payment plan exists but is not active: ${response.errorMessage}',
-    );
-    _setOnPaymentScreen();
-    _routerService.navigateTo(FailedPaymentRoute());
-  }
-
-  void _handleVerificationError(PaymentVerificationResponse response) async {
-    talker.error('Error during payment verification: ${response.errorMessage}');
-
-    if (await _navigateCommissionOnlyIfNeeded()) return;
-
-    // Check if we should navigate to personal app for individual businesses
-    final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
-
-    if (shouldGoToPersonal) {
-      talker.info(
-        'Navigating to personal app for individual business despite payment verification error',
-      );
-      _routerService.navigateTo(PersonalHomeRoute());
-      return;
-    }
-
-    // Handle specific error types
-    if (response.exception is NoPaymentPlanFound) {
-      _setOnPaymentScreen();
-      _routerService.navigateTo(PaymentPlanUIRoute());
-    } else if (response.exception is PaymentIncompleteException ||
-        response.exception is FailedPaymentException) {
-      _setOnPaymentScreen();
-      _routerService.navigateTo(FailedPaymentRoute());
-    } else {
-      // For other errors, still allow access to main app but log the issue
-      talker.warning(
-        "Proceeding to main app despite payment verification error",
-      );
-      await _navigateToAuthenticatedHome(skipPersonalCheck: true);
-    }
-  }
-
-  /// Routes commission-only agents to [AgentCommissionRoute]; returns true if navigated.
-  Future<bool> _navigateCommissionOnlyIfNeeded() async {
-    final commissionOnly = await refreshCommissionOnlySession();
-    if (!commissionOnly) return false;
-
-    talker.info(
-      'Navigating to agent commission screen for commission-only session',
-    );
-    _routerService.navigateTo(const AgentCommissionRoute());
-    _isInitialStartup = false;
-    return true;
-  }
-
-  /// Post-auth destination when business and branch are already persisted (app reopen).
-  Future<void> _navigateToAuthenticatedHome({
-    bool skipPersonalCheck = false,
-  }) async {
-    if (!skipPersonalCheck) {
-      final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
-      if (shouldGoToPersonal) {
-        talker.info('Navigating to personal app for individual business');
-        _routerService.navigateTo(PersonalHomeRoute());
-        _isInitialStartup = false;
-        return;
-      }
-    }
-
-    if (await _navigateCommissionOnlyIfNeeded()) return;
-
-    _routerService.navigateTo(FlipperAppRoute());
-    talker.warning("StartupViewModel navigateTo(FlipperAppRoute)");
-    _isInitialStartup = false;
-  }
-
-  void _setOnPaymentScreen() {
-    _isOnPaymentScreen = true;
-    talker.info('Payment screen flag set to true');
-  }
-
-  void _clearPaymentScreenFlag() {
-    _isOnPaymentScreen = false;
-    talker.info('Payment screen flag set to false');
   }
 
   /// Call this method whenever user interacts with the app
@@ -330,24 +188,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     _isInitialStartup = false;
   }
 
-  /// Force payment verification with navigation handling
+  /// Force payment verification with navigation (e.g. sales / support).
   Future<void> forcePaymentVerification() async {
-    final response = await _paymentVerificationService
-        .forcePaymentVerification();
-    _handlePaymentStatusChange(response);
-  }
-
-  /// Check if we should navigate to personal app for individual businesses
-  Future<bool> _shouldNavigateToPersonalApp() async {
-    try {
-      final activeBusiness = await ProxyService.strategy.activeBusiness();
-      return activeBusiness != null &&
-          activeBusiness.businessTypeId == 2 &&
-          activeBusiness.isDefault == true;
-    } catch (e) {
-      talker.warning('Error checking if should navigate to personal app: $e');
-      return false;
-    }
+    await PaymentVerificationNavigator.verifyAndNavigate(userInitiated: true);
   }
 
   /// Ensures the specified user has all required admin access for all features.
@@ -494,7 +337,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// Clean up resources when the view model is disposed
   @override
   void dispose() {
-    _paymentVerificationService.dispose();
     _internetConnectionService.stopPeriodicConnectionCheck();
     super.dispose();
   }
