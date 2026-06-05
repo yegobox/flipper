@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -21,18 +23,21 @@ class ParkTransactionService {
     final capella = ProxyService.getStrategy(Strategy.capella);
     final branchId = transaction.branchId ?? ProxyService.box.getBranchId()!;
 
-    try {
-      final totalRecordsAmount = await capella.getTotalPaidForTransaction(
-        transactionId: transaction.id,
-        branchId: branchId,
-        excludePaymentMethod: 'CREDIT',
-      );
-      if (totalRecordsAmount != null &&
-          transaction.cashReceived != totalRecordsAmount) {
-        transaction.cashReceived = totalRecordsAmount;
+    // Reconcile payments only when cashReceived was never set — avoids an extra
+    // Ditto round-trip on the common checkout park path.
+    if (transaction.cashReceived == null) {
+      try {
+        final totalRecordsAmount = await capella.getTotalPaidForTransaction(
+          transactionId: transaction.id,
+          branchId: branchId,
+          excludePaymentMethod: 'CREDIT',
+        );
+        if (totalRecordsAmount != null) {
+          transaction.cashReceived = totalRecordsAmount;
+        }
+      } catch (e) {
+        talker.error('park: cashReceived reconcile failed, continuing: $e');
       }
-    } catch (e) {
-      talker.error('park: cashReceived reconcile failed, continuing: $e');
     }
 
     if (customerId != null) {
@@ -50,16 +55,32 @@ class ParkTransactionService {
           from: transaction,
           to: otherParked.first,
         );
-        await capella.manageTransaction(
-          branchId: branchId,
-          transactionType: SALE,
-          isExpense: false,
+        // Fresh pending cart can be created after the sheet closes.
+        unawaited(
+          capella.manageTransaction(
+            branchId: branchId,
+            transactionType: SALE,
+            isExpense: false,
+          ),
         );
         return;
       }
     }
 
-    final items = await capella.transactionItems(transactionId: transaction.id);
+    final existingSubTotal = transaction.subTotal;
+    final double subTotal;
+    if (existingSubTotal != null && existingSubTotal > 0) {
+      subTotal = existingSubTotal;
+    } else {
+      final items = await capella.transactionItems(
+        transactionId: transaction.id,
+      );
+      subTotal = items.fold<double>(
+        0.0,
+        (sum, item) => sum + (item.price * item.qty),
+      );
+    }
+
     await capella.updateTransaction(
       transaction: transaction,
       status: PARKED,
@@ -67,17 +88,9 @@ class ParkTransactionService {
       ticketName: ticketName.trim(),
       customerId: customerId,
       isLoan: transaction.isLoan,
-      subTotal: items.fold<double>(
-        0.0,
-        (sum, item) => sum + (item.price * item.qty),
-      ),
+      subTotal: subTotal,
       updatedAt: DateTime.now().toUtc(),
-    );
-
-    await capella.manageTransaction(
-      branchId: branchId,
-      transactionType: SALE,
-      isExpense: false,
+      deferEnsureNextPendingCart: true,
     );
   }
 }

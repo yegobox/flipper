@@ -37,6 +37,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
@@ -111,11 +113,21 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   }
 
   Future<void> _showParkDialog() async {
+    var parked = false;
     await showSharedTicketDialog(
       context: context,
       transaction: widget.transaction,
+      onParked: () => parked = true,
     );
-    if (mounted) Navigator.of(context).pop();
+    if (!parked || !mounted) return;
+
+    final rootNav = Navigator.of(context, rootNavigator: true);
+    if (rootNav.canPop()) {
+      await rootNav.maybePop();
+    }
+    await locator<RouterService>().navigateTo(
+      TicketsListRoute(transaction: widget.transaction),
+    );
   }
 
   Future<void> _clearCustomer(ITransaction txn) async {

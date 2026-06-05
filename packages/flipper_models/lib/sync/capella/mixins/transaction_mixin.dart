@@ -1868,6 +1868,63 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for clearPendingSaleCartsExcept');
+        return;
+      }
+
+      final args = <String, dynamic>{
+        'branchId': branchId,
+        'status': PENDING,
+        'agentId': agentId,
+        'isExpense': false,
+        'isOriginal': true,
+        'excludeId': excludeTransactionId,
+      };
+
+      final result = await ditto.store.execute(
+        'SELECT id FROM transactions WHERE branchId = :branchId '
+        'AND status = :status AND agentId = :agentId '
+        'AND (isExpense = :isExpense OR isExpense IS NULL) '
+        'AND isOriginalTransaction = :isOriginal '
+        'AND id != :excludeId',
+        arguments: args,
+      );
+
+      if (result.items.isEmpty) return;
+
+      await Future.wait(
+        result.items.map((item) async {
+          final data = Map<String, dynamic>.from(item.value);
+          final id = data['id']?.toString() ?? data['_id']?.toString();
+          if (id == null || id.isEmpty) return;
+          await ditto.store.execute(
+            'DELETE FROM transaction_items WHERE transactionId = :id',
+            arguments: {'id': id},
+          );
+          await ditto.store.execute(
+            'DELETE FROM transactions WHERE _id = :id OR id = :id',
+            arguments: {'id': id},
+          );
+        }),
+      );
+
+      talker.info(
+        'clearPendingSaleCartsExcept: removed ${result.items.length} pending cart(s)',
+      );
+    } catch (e, s) {
+      talker.error('clearPendingSaleCartsExcept: $e', s);
+    }
+  }
+
+  @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
     try {
       final ditto = dittoService.dittoInstance;

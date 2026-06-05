@@ -27,6 +27,7 @@ enum _DuePreset { oneWeek, twoWeeks, oneMonth, custom }
 Future<void> showSharedTicketDialog({
   required BuildContext context,
   required ITransaction transaction,
+  VoidCallback? onParked,
 }) {
   final formKey = GlobalKey<SharedTicketFormState>();
   final isSaving = ValueNotifier(false);
@@ -45,6 +46,7 @@ Future<void> showSharedTicketDialog({
           transaction,
           formKey,
           isSaving,
+          onParked: onParked,
           useBottomSheet: useBottomSheet,
         ),
       ];
@@ -63,6 +65,7 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
   ITransaction transaction,
   GlobalKey<SharedTicketFormState> formKey,
   ValueNotifier<bool> isSaving, {
+  VoidCallback? onParked,
   required bool useBottomSheet,
 }) {
   return SliverWoltModalSheetPage(
@@ -89,6 +92,7 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
       transaction: transaction,
       formKey: formKey,
       isSavingNotifier: isSaving,
+      onParked: onParked,
     ),
   );
 }
@@ -98,11 +102,13 @@ class _ParkTicketFooter extends StatelessWidget {
     required this.transaction,
     required this.formKey,
     required this.isSavingNotifier,
+    this.onParked,
   });
 
   final ITransaction transaction;
   final GlobalKey<SharedTicketFormState> formKey;
   final ValueNotifier<bool> isSavingNotifier;
+  final VoidCallback? onParked;
 
   @override
   Widget build(BuildContext context) {
@@ -170,8 +176,13 @@ class _ParkTicketFooter extends StatelessWidget {
                         syncNotifier: isSavingNotifier,
                         canStart: () =>
                             formKey.currentState?.validate() ?? false,
-                        onPressed: () =>
-                            formKey.currentState?.submit() ?? Future.value(),
+                        onPressed: () async {
+                          final ok =
+                              await formKey.currentState?.submit() ?? false;
+                          if (!ok || !context.mounted) return;
+                          onParked?.call();
+                          Navigator.of(context).pop();
+                        },
                       ),
                     ),
                   ],
@@ -229,7 +240,6 @@ class _SharedTicketDialogState extends State<SharedTicketDialog> {
                 child: SharedTicketForm(
                   key: _formKey,
                   transaction: widget.transaction,
-                  onSuccess: widget.onClose,
                   isSavingNotifier: _isSaving,
                   scrollBottomInset: 8,
                 ),
@@ -343,9 +353,9 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
 
   bool validate() => _formKey.currentState?.validate() ?? false;
 
-  Future<void> submit() async {
+  Future<bool> submit() async {
     final saving = widget.isSavingNotifier;
-    if (saving == null) return;
+    if (saving == null) return false;
 
     try {
       widget.transaction.isLoan = _isLoan;
@@ -357,10 +367,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
         ticketNote: _noteController.text.trim(),
         customerId: _selectedCustomer?.id,
       );
-      widget.onSuccess?.call();
-      if (mounted && widget.onSuccess == null) {
-        Navigator.of(context).pop();
-      }
+      return true;
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -371,6 +378,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
           ),
         );
       }
+      return false;
     }
   }
 
@@ -555,13 +563,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
             _ParkHeader(
               onClose: isSaving
                   ? null
-                  : () {
-                      if (widget.onSuccess != null) {
-                        widget.onSuccess!();
-                      } else {
-                        Navigator.of(context).pop();
-                      }
-                    },
+                  : () => Navigator.of(context).pop(),
             ),
             if (isSaving) ...[
               const SizedBox(height: 12),

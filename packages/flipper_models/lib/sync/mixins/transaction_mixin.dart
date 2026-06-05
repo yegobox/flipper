@@ -1275,6 +1275,21 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  }) async {
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).clearPendingSaleCartsExcept(
+      branchId: branchId,
+      agentId: agentId,
+      excludeTransactionId: excludeTransactionId,
+    );
+  }
+
+  @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
     try {
       return await repository.delete<ITransaction>(transaction);

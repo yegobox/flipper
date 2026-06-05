@@ -14,6 +14,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -298,9 +299,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             if (_isDeleting)
               LinearProgressIndicator(
                 backgroundColor: Colors.grey[200],
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  Colors.blue,
-                ),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
                 value: _totalCount > 0 ? _deletedCount / _totalCount : null,
               ),
             Padding(
@@ -322,8 +321,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               child: Consumer(
                 builder: (context, ref, _) {
                   final ticketsAsync = ref.watch(ticketsStreamProvider);
-                  final paymentSumsAsync =
-                      ref.watch(ticketsPaymentSumsProvider);
+                  final paymentSumsAsync = ref.watch(
+                    ticketsPaymentSumsProvider,
+                  );
                   final paymentSums = paymentSumsAsync.hasValue
                       ? paymentSumsAsync.requireValue
                       : const <String, double>{};
@@ -334,8 +334,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       paymentSumsByTxnId: paymentSums,
                     ),
                     loading: () => _buildLoadingState(context),
-                    error: (error, stack) =>
-                        _buildErrorState(error.toString()),
+                    error: (error, stack) => _buildErrorState(error.toString()),
                   );
                 },
               ),
@@ -491,10 +490,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
-  List<_TicketListEntry> _flattenTicketEntries(List<ITransaction> typeFiltered) {
+  List<_TicketListEntry> _flattenTicketEntries(
+    List<ITransaction> typeFiltered,
+  ) {
     final loanTickets = typeFiltered.where((t) => t.isLoan == true).toList();
-    final nonLoanTickets =
-        typeFiltered.where((t) => t.isLoan != true).toList();
+    final nonLoanTickets = typeFiltered.where((t) => t.isLoan != true).toList();
 
     String loanSectionTitle() {
       switch (_ticketKindFilter) {
@@ -549,12 +549,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           loanSectionAccent(),
           loanTickets,
         );
-        addSection(
-          entries,
-          'REGULAR TICKETS',
-          _kRegularGreen,
-          nonLoanTickets,
-        );
+        addSection(entries, 'REGULAR TICKETS', _kRegularGreen, nonLoanTickets);
     }
     return entries;
   }
@@ -648,53 +643,42 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     BuildContext context,
     ITransaction ticket,
   ) async {
+    var resumeSucceeded = false;
     await showResumeTicketDialog(
       context: context,
       ticket: ticket,
-      onResume: (t) => _resumeOrder(t),
+      onResume: (t) async {
+        resumeSucceeded = await _resumeOrder(t);
+      },
     );
-  }
-
-  /// Park all pending except the one we're resuming (Ditto / Capella only).
-  Future<void> _parkExistingPendingTransactions({
-    required String excludeId,
-  }) async {
-    const strategies = [Strategy.capella];
-    for (final strategy in strategies) {
-      try {
-        final pending = await ProxyService.getStrategy(strategy).transactions(
-          branchId: ProxyService.box.getBranchId()!,
-          status: PENDING,
-          includeZeroSubTotal: true,
-          agentId: ProxyService.box.getUserId()!,
-        );
-        talker.debug('Pending to park ($strategy): ${pending.length}');
-        for (final tx in pending) {
-          if (tx.id == excludeId) continue;
-          await ProxyService.getStrategy(
-            strategy,
-          ).deleteTransaction(transaction: tx);
-          talker.info(
-            'Deleted pending transaction to clear cart ($strategy): ${tx.id}',
-          );
-        }
-      } catch (e) {
-        talker.error('Error parking pending for $strategy: $e');
-        // Don't rethrow, just try the next strategy
-      }
+    if (!resumeSucceeded || !mounted) return;
+    if (MediaQuery.sizeOf(context).width < 600) {
+      await openMobileCheckoutForTransaction(context, ref, ticket);
     }
   }
 
-  /// Resume a parked ticket
-  Future<void> _resumeOrder(ITransaction ticket) async {
+  /// Resume a parked ticket (target: under 3s before UI handoff).
+  Future<bool> _resumeOrder(ITransaction ticket) async {
     try {
-      await _parkExistingPendingTransactions(excludeId: ticket.id);
+      final branchId = ProxyService.box.getBranchId() ?? ticket.branchId ?? '';
+      final agentId = ProxyService.box.getUserId();
+      if (branchId.isEmpty || agentId == null || agentId.isEmpty) {
+        throw Exception('Missing branch or agent for resume');
+      }
+
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).clearPendingSaleCartsExcept(
+        branchId: branchId,
+        agentId: agentId,
+        excludeTransactionId: ticket.id,
+      );
 
       // Pending-cart queries are scoped to this device's [deviceId]; tickets saved
       // on desktop must be reassigned or mobile checkout shows an empty cart.
       final saleDeviceId = await resolveSaleDeviceId();
       ticket.status = PENDING;
-      ticket.agentId = ProxyService.box.getUserId();
+      ticket.agentId = agentId;
       ticket.deviceId = saleDeviceId;
 
       await ProxyService.getStrategy(Strategy.capella).updateTransaction(
@@ -704,7 +688,6 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         lastTouched: DateTime.now().toUtc(),
       );
 
-      final branchId = ProxyService.box.getBranchId() ?? ticket.branchId ?? '';
       primePosCartForTransactionWidget(
         ref,
         isExpense: false,
@@ -718,33 +701,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             branchId: branchId,
           ),
         );
-        final lineItems = await ProxyService.getStrategy(Strategy.capella)
-            .transactionItems(
-          transactionId: ticket.id,
-          branchId: branchId,
-          active: true,
-        );
-        if (lineItems.isEmpty) {
-          talker.warning('Resume: no line items for ticket ${ticket.id}');
-          if (mounted) {
-            showCustomSnackBarUtil(
-              context,
-              'Could not load ticket items. Try again.',
-              backgroundColor: Colors.orange,
-            );
-          }
-          return;
-        }
       }
 
-      final isMobile = MediaQuery.sizeOf(context).width < 600;
-      if (isMobile) {
-        if (mounted) {
-          await openMobileCheckoutForTransaction(context, ref, ticket);
-        }
-      } else {
-        if (mounted) Navigator.of(context).pop();
-      }
       if (mounted) {
         showCustomSnackBarUtil(
           context,
@@ -752,6 +710,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           backgroundColor: Colors.green,
         );
       }
+      return true;
     } catch (e, st) {
       talker.error('Resume failed: $e', st);
       if (mounted) {
@@ -769,6 +728,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
         );
       }
+      return false;
     }
   }
 
@@ -789,25 +749,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       confirmed =
           await showDialog<bool>(
             context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Delete Ticket?'),
-              content: Text(
-                'Are you sure you want to delete ticket #${ticket.id.substring(0, 6)}? This cannot be undone.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-              ],
-            ),
+            barrierColor: PosTokens.ink1.withValues(alpha: 0.58),
+            builder: (ctx) => _DeleteTicketDialog(ticket: ticket),
           ) ??
           false;
     }
@@ -929,6 +872,248 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 }
 
+class _DeleteTicketDialog extends StatelessWidget {
+  const _DeleteTicketDialog({required this.ticket});
+
+  final ITransaction ticket;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayRef = _ticketDisplayRef(ticket);
+    final customer = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
+        .trim();
+    final total = (ticket.subTotal ?? 0).toCurrencyFormatted();
+    final media = MediaQuery.sizeOf(context);
+    final maxWidth = media.width < 460 ? media.width - 48 : 420.0;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: PosTokens.line),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33103240),
+                offset: Offset(0, 24),
+                blurRadius: 48,
+                spreadRadius: -18,
+              ),
+              BoxShadow(
+                color: Color(0x14103240),
+                offset: Offset(0, 8),
+                blurRadius: 18,
+                spreadRadius: -8,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: PosTokens.lossTint,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        color: PosTokens.lossInk,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Delete ticket?',
+                            style: GoogleFonts.outfit(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              color: PosTokens.ink1,
+                              height: 1.12,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'This removes the parked sale and its local ticket history.',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              height: 1.35,
+                              color: PosTokens.ink2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: PosTokens.surface2,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: PosTokens.line),
+                  ),
+                  child: Column(
+                    children: [
+                      _DeleteTicketDetailRow(
+                        label: 'Ticket',
+                        value: '#$displayRef',
+                      ),
+                      const SizedBox(height: 10),
+                      _DeleteTicketDetailRow(
+                        label: 'Customer',
+                        value: customer.isEmpty ? 'Walk-in' : customer,
+                      ),
+                      const SizedBox(height: 10),
+                      _DeleteTicketDetailRow(label: 'Total', value: total),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7ED),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFED7AA)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        size: 20,
+                        color: Color(0xFFC2410C),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'This action cannot be undone.',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF9A3412),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: PosTokens.ink1,
+                          side: const BorderSide(color: PosTokens.lineStrong),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          minimumSize: const Size.fromHeight(50),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        icon: const Icon(Icons.delete_outline, size: 19),
+                        label: Text(
+                          'Delete',
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: PosTokens.loss,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          minimumSize: const Size.fromHeight(50),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeleteTicketDetailRow extends StatelessWidget {
+  const _DeleteTicketDetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.outfit(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: PosTokens.ink3,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: PosTokens.ink1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _TicketListEntry {
   const _TicketListEntry._({
     required this.isHeader,
@@ -1040,266 +1225,264 @@ class TicketCard extends StatelessWidget {
     }
 
     final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
-    final fullyPaid =
-        total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
+    final fullyPaid = total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
     final progressColor = fullyPaid ? _kRegularGreen : _kProgressOrange;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-            onTap: onTap,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFE8F1FF) : Colors.white,
             borderRadius: BorderRadius.circular(12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFE8F1FF) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected ? _kAccentBlue : Colors.grey[300]!,
-                  width: isSelected ? 1.5 : 1,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(11),
-                child: IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(width: 4, color: _leftAccent()),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 12, 12, 10),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+            border: Border.all(
+              color: isSelected ? _kAccentBlue : Colors.grey[300]!,
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(width: 4, color: _leftAccent()),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 12, 12, 10),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Checkbox(
+                                value: isSelected,
+                                onChanged: (v) =>
+                                    onSelectionChanged(v ?? false),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Ticket #${_ticketDisplayRef(ticket)}',
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (ticket.isLoan == true) ...[
+                                const SizedBox(width: 4),
+                                _typePill(),
+                              ],
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: statusBg,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    statusLabel,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: statusFg,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (ticket.ticketName != null &&
+                              ticket.ticketName!.trim().isNotEmpty &&
+                              ticket.customerName != null &&
+                              ticket.ticketName!.trim() !=
+                                  ticket.customerName!.trim()) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              ticket.ticketName!,
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                          if (ticket.note != null &&
+                              ticket.note!.trim().isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.note_alt_outlined,
+                                  size: 14,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    ticket.note!,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      color: Colors.grey[800],
+                                      height: 1.35,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 10),
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Checkbox(
-                                    value: isSelected,
-                                    onChanged: (v) =>
-                                        onSelectionChanged(v ?? false),
-                                    materialTapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      'Ticket #${_ticketDisplayRef(ticket)}',
-                                      style: GoogleFonts.outfit(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14,
-                                        color: Colors.black87,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (ticket.isLoan == true) ...[
-                                    const SizedBox(width: 4),
-                                    _typePill(),
-                                  ],
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: statusBg,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        statusLabel,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: statusFg,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (ticket.ticketName != null &&
-                                  ticket.ticketName!.trim().isNotEmpty &&
-                                  ticket.customerName != null &&
-                                  ticket.ticketName!.trim() !=
-                                      ticket.customerName!.trim()) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  ticket.ticketName!,
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: _leftAccent(),
+                                child: Text(
+                                  _customerInitials(ticket),
                                   style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  displayName,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: _kAccentBlue,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              ],
-                              if (ticket.note != null &&
-                                  ticket.note!.trim().isNotEmpty) ...[
-                                const SizedBox(height: 4),
+                              ),
+                              if (phone.isNotEmpty)
                                 Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      Icons.note_alt_outlined,
-                                      size: 14,
+                                      Icons.phone,
+                                      size: 15,
                                       color: Colors.grey[600],
                                     ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        ticket.note!,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12,
-                                          color: Colors.grey[800],
-                                          height: 1.35,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      phone,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        color: Colors.grey[700],
                                       ),
                                     ),
                                   ],
                                 ),
-                              ],
-                              const SizedBox(height: 10),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: _leftAccent(),
-                                    child: Text(
-                                      _customerInitials(ticket),
-                                      style: GoogleFonts.outfit(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      displayName,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: _kAccentBlue,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (phone.isNotEmpty)
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.phone,
-                                          size: 15,
-                                          color: Colors.grey[600],
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          phone,
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 12,
-                                            color: Colors.grey[700],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _moneyCol(
-                                      'TOTAL',
-                                      (ticket.subTotal ?? 0)
-                                          .toCurrencyFormatted(),
-                                      valueColor: Colors.black87,
-                                      emphasize: true,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _moneyCol(
-                                      'PAID',
-                                      paid.toCurrencyFormatted(),
-                                      valueColor: paid > 0
-                                          ? const Color(0xFF2E7D32)
-                                          : Colors.grey.shade400,
-                                      emphasize: paid > 0,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _moneyCol(
-                                      'REMAINING',
-                                      remClamped.toCurrencyFormatted(),
-                                      valueColor: remClamped > 0
-                                          ? const Color(0xFFC62828)
-                                          : Colors.grey.shade400,
-                                      emphasize: remClamped > 0,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
-                                  value: progress.isNaN ? 0 : progress,
-                                  minHeight: 6,
-                                  backgroundColor: Colors.grey[200],
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    progressColor,
-                                  ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _moneyCol(
+                                  'TOTAL',
+                                  (ticket.subTotal ?? 0).toCurrencyFormatted(),
+                                  valueColor: Colors.black87,
+                                  emphasize: true,
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'Created ${_formatDate(ticket.createdAt)}',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 11,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ),
-                                  _squareIconBtn(
-                                    icon: Icons.play_arrow,
-                                    color: _kAccentBlue,
-                                    onPressed: onTap,
-                                    tooltip: 'Resume Order',
-                                  ),
-                                  const SizedBox(width: 8),
-                                  _squareIconBtn(
-                                    icon: Icons.delete_outline,
-                                    color: Colors.red[700]!,
-                                    onPressed: onDelete,
-                                    tooltip: 'Delete Ticket',
-                                  ),
-                                ],
+                              Expanded(
+                                child: _moneyCol(
+                                  'PAID',
+                                  paid.toCurrencyFormatted(),
+                                  valueColor: paid > 0
+                                      ? const Color(0xFF2E7D32)
+                                      : Colors.grey.shade400,
+                                  emphasize: paid > 0,
+                                ),
+                              ),
+                              Expanded(
+                                child: _moneyCol(
+                                  'REMAINING',
+                                  remClamped.toCurrencyFormatted(),
+                                  valueColor: remClamped > 0
+                                      ? const Color(0xFFC62828)
+                                      : Colors.grey.shade400,
+                                  emphasize: remClamped > 0,
+                                ),
                               ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: progress.isNaN ? 0 : progress,
+                              minHeight: 6,
+                              backgroundColor: Colors.grey[200],
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                progressColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Created ${_formatDate(ticket.createdAt)}',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
+                              _squareIconBtn(
+                                icon: Icons.play_arrow,
+                                color: _kAccentBlue,
+                                onPressed: onTap,
+                                tooltip: 'Resume Order',
+                              ),
+                              const SizedBox(width: 8),
+                              _squareIconBtn(
+                                icon: Icons.delete_outline,
+                                color: Colors.red[700]!,
+                                onPressed: onDelete,
+                                tooltip: 'Delete Ticket',
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
+        ),
+      ),
     );
   }
 

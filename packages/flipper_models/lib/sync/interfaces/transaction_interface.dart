@@ -249,4 +249,12 @@ abstract class TransactionInterface {
   });
 
   FutureOr<void> deletePaymentRecords({required String transactionId});
+
+  /// Fast Ditto path for resume: drop other pending sale carts for [agentId]
+  /// without registering broad transaction sync subscriptions.
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  });
 }

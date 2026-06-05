@@ -312,9 +312,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                               builder: (context) {
                                 return NewTicket(
                                   transaction: transaction!,
-                                  onClose: () {
-                                    Navigator.of(context).pop();
-                                  },
+                                  onClose: () {},
                                 );
                               },
                             );
