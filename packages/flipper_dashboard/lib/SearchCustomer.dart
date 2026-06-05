@@ -191,13 +191,17 @@ class _SearchInputWithDropdownState
   @override
   void initState() {
     super.initState();
-    _initializeSearchBox();
     _selectedCustomerType = 'Walk-in';
     _selectedSaleType = 'Outgoing- Sale';
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        _saveTransactionMetadata();
-      }
+    // Riverpod [ref] is not available until after [initState] completes.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_initializeSearchBox());
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          unawaited(_saveTransactionMetadata());
+        }
+      });
     });
   }
 
