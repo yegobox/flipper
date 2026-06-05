@@ -1,9 +1,10 @@
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/services/park_transaction_service.dart';
+import 'package:flipper_models/providers/park_transaction_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_ui/widgets/async_action_gradient_button.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
@@ -244,7 +245,7 @@ class _SharedTicketDialogState extends State<SharedTicketDialog> {
   }
 }
 
-class SharedTicketForm extends StatefulWidget {
+class SharedTicketForm extends ConsumerStatefulWidget {
   const SharedTicketForm({
     super.key,
     required this.transaction,
@@ -262,7 +263,7 @@ class SharedTicketForm extends StatefulWidget {
   SharedTicketFormState createState() => SharedTicketFormState();
 }
 
-class SharedTicketFormState extends State<SharedTicketForm> {
+class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _ticketNameController;
   late TextEditingController _noteController;
@@ -348,12 +349,16 @@ class SharedTicketFormState extends State<SharedTicketForm> {
       widget.transaction.isLoan = _isLoan;
       widget.transaction.dueDate = _isLoan ? _dueDate?.toUtc() : null;
 
-      await ParkTransactionService.park(
+      await ref.read(parkTransactionProvider.notifier).park(
         ticketName: _ticketNameController.text.trim(),
         transaction: widget.transaction,
         ticketNote: _noteController.text.trim(),
         customerId: _selectedCustomer?.id,
       );
+      final parkState = ref.read(parkTransactionProvider);
+      if (parkState.hasError) {
+        throw parkState.error!;
+      }
       widget.onSuccess?.call();
       if (mounted && widget.onSuccess == null) {
         Navigator.of(context).pop();

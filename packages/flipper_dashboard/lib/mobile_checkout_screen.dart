@@ -647,8 +647,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           builder: (context) {
 
             final alreadyPaid = txn.cashReceived ?? 0.0;
-            final payments = ref.watch(oldProvider.paymentMethodsProvider);
-            final pendingPayment = calculateTotalPaid(payments);
+            final paymentsList =
+                ref.watch(oldProvider.paymentMethodsProvider);
+            final pendingPayment = calculateTotalPaid(paymentsList);
             final totalPaid = alreadyPaid + pendingPayment;
             final total = calculateTransactionTotal(
               items: items,
@@ -693,7 +694,6 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
               attached: attachedCustomer,
             );
 
-            final paymentsList = ref.watch(oldProvider.paymentMethodsProvider);
             final isCash = paymentsList.isNotEmpty &&
                 paymentsList.first.method.toUpperCase() == 'CASH';
             final isMomo = _isMomoPayment(paymentsList);

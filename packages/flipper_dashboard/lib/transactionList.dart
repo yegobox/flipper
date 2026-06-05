@@ -230,6 +230,8 @@ class TransactionListState extends ConsumerState<TransactionList>
 
     final baseTransactions =
         baseSnapAsync.asData?.value.transactions ?? const <ITransaction>[];
+    final totalRows = filteredSnapAsync.asData?.value.totalRowCount ?? 0;
+    final pageIdx = ref.watch(transactionReportPageIndexProvider);
 
     return _buildReportScaffold(
       context,
@@ -246,6 +248,8 @@ class TransactionListState extends ConsumerState<TransactionList>
       businessCashiers: businessCashiers,
       cashierDirectory: cashierDirectory,
       cashiersLoading: cashiersAsync.isLoading,
+      totalRows: totalRows,
+      pageIndex: pageIdx,
     );
   }
 
@@ -264,6 +268,8 @@ class TransactionListState extends ConsumerState<TransactionList>
     required List<TransactionReportCashierProfile> businessCashiers,
     required Map<String, TransactionReportCashierProfile>? cashierDirectory,
     required bool cashiersLoading,
+    required int totalRows,
+    required int pageIndex,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -354,6 +360,9 @@ class TransactionListState extends ConsumerState<TransactionList>
                             endDate,
                             showDetailed,
                             filters,
+                            totalRows: totalRows,
+                            pageIndex: pageIndex,
+                            rowsPerPage: rowsPerPage,
                             cashierDirectory: cashierDirectory,
                           ),
                         ),
@@ -962,6 +971,9 @@ class TransactionListState extends ConsumerState<TransactionList>
     DateTime? endDate,
     bool showDetailed,
     TransactionReportFilters filters, {
+    required int totalRows,
+    required int pageIndex,
+    required int rowsPerPage,
     Map<String, TransactionReportCashierProfile>? cashierDirectory,
   }) {
     final forceRealData = !(ProxyService.box.enableDebug() ?? false);
@@ -1021,12 +1033,6 @@ class TransactionListState extends ConsumerState<TransactionList>
           );
         }
 
-        final filteredSnap = ref.watch(
-          filteredTransactionReportSnapshotProvider(forceRealData),
-        );
-        final totalRows = filteredSnap.asData?.value.totalRowCount ?? 0;
-        final pageIdx = ref.watch(transactionReportPageIndexProvider);
-
         return DataView(
           key: dataViewKey,
           transactions: transactions,
@@ -1034,7 +1040,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           paymentSumsByTransactionId: paymentSumsByTransactionId,
           startDate: validStartDate,
           endDate: validEndDate,
-          rowsPerPage: ref.watch(rowsPerPageProvider),
+          rowsPerPage: rowsPerPage,
           showDetailedReport: showDetailed,
           showDetailed: showDetailed,
           showActionsRow: false,
@@ -1046,7 +1052,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           disablePagination: false,
           serverSidePaging: totalRows > 0,
           serverSideTotalRowCount: totalRows > 0 ? totalRows : null,
-          externalPageIndex: pageIdx,
+          externalPageIndex: pageIndex,
           onServerSidePageChange: ref
               .read(transactionReportPageIndexProvider.notifier)
               .setPage,

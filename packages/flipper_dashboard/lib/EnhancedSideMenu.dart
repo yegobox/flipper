@@ -17,10 +17,6 @@ import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
-import 'package:flipper_models/providers/access_provider.dart';
-import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
-import 'package:flipper_services/constants.dart';
-
 class EnhancedSideMenu extends ConsumerWidget {
   const EnhancedSideMenu({super.key});
 
@@ -38,23 +34,17 @@ class EnhancedSideMenu extends ConsumerWidget {
           TargetPlatform.linux,
         }.contains(defaultTargetPlatform);
 
-    final showKds = ref.watch(sideMenuShowKdsProvider);
-    final showItems = ref.watch(sideMenuShowItemsProvider);
-    final showDailyReportFiles = ref.watch(
-      sideMenuShowDailyReportFilesProvider,
-    );
-    final showStockRecount = ref.watch(sideMenuShowStockRecountProvider);
-    final showIncomingOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
-    final showProduction = ref.watch(sideMenuShowProductionProvider);
-    final showShiftHistory = ref.watch(sideMenuShowShiftHistoryProvider);
-    final showDelegations = ref.watch(sideMenuShowDelegationsProvider);
-    final uid = ProxyService.box.getUserId() ?? '';
-    final showLeads = uid.isNotEmpty
-        ? ref.watch(
-            featureAccessProvider(userId: uid, featureName: AppFeature.Leads),
-          )
-        : false;
-    final showAgentCommission = ref.watch(sideMenuShowAgentCommissionProvider);
+    final menu = ref.watch(sideMenuVisibilityProvider);
+    final showKds = menu.kds;
+    final showItems = menu.items;
+    final showDailyReportFiles = menu.dailyReportFiles;
+    final showStockRecount = menu.stockRecount;
+    final showIncomingOrders = menu.incomingOrders;
+    final showProduction = menu.production;
+    final showShiftHistory = menu.shiftHistory;
+    final showDelegations = menu.delegations;
+    final showLeads = menu.leads;
+    final showAgentCommission = menu.agentCommission;
 
     final menuItems = [
       _SideMenuItem(

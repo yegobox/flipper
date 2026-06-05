@@ -57,7 +57,6 @@ bool featureAccess(
         [];
     final now = DateTime.now();
 
-    talker.info("User wants to access!: $featureName");
     if (isCommissionOnlySession()) {
       return featureName == AppFeature.Commission;
     }

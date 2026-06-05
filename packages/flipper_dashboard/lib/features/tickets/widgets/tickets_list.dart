@@ -292,57 +292,67 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final ticketsAsync = ref.watch(ticketsStreamProvider);
-            final column = Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_isDeleting)
-                  LinearProgressIndicator(
-                    backgroundColor: Colors.grey[200],
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.blue,
+        final column = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_isDeleting)
+              LinearProgressIndicator(
+                backgroundColor: Colors.grey[200],
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Colors.blue,
+                ),
+                value: _totalCount > 0 ? _deletedCount / _totalCount : null,
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: TicketSearchBar(
+                hintText: 'Search by customer, phone, ticket ID...',
+                onChanged: (value) => setState(() => _searchQuery = value),
+              ),
+            ),
+            if (filterChips != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: filterChips,
+              ),
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final ticketsAsync = ref.watch(ticketsStreamProvider);
+                  final paymentSumsAsync =
+                      ref.watch(ticketsPaymentSumsProvider);
+                  final paymentSums = paymentSumsAsync.hasValue
+                      ? paymentSumsAsync.requireValue
+                      : const <String, double>{};
+                  return ticketsAsync.when(
+                    data: (tickets) => _buildTicketList(
+                      context,
+                      tickets,
+                      paymentSumsByTxnId: paymentSums,
                     ),
-                    value: _totalCount > 0 ? _deletedCount / _totalCount : null,
-                  ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: TicketSearchBar(
-                    hintText: 'Search by customer, phone, ticket ID...',
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                  ),
-                ),
-                if (filterChips != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: filterChips,
-                  ),
-                Expanded(
-                  child: ticketsAsync.when(
-                    data: (tickets) => _buildTicketList(context, tickets),
                     loading: () => _buildLoadingState(context),
-                    error: (error, stack) => _buildErrorState(error.toString()),
-                  ),
-                ),
-              ],
-            );
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.hasBoundedHeight) {
-                  return column;
-                }
-                final mq = MediaQuery.sizeOf(context);
-                final h = (mq.height > 0 ? mq.height : 640.0) * 0.82;
-                final w = constraints.hasBoundedWidth
-                    ? constraints.maxWidth
-                    : (mq.width > 0 ? mq.width : 360.0);
-                return SizedBox(width: w, height: h, child: column);
-              },
-            );
+                    error: (error, stack) =>
+                        _buildErrorState(error.toString()),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.hasBoundedHeight) {
+              return column;
+            }
+            final mq = MediaQuery.sizeOf(context);
+            final h = (mq.height > 0 ? mq.height : 640.0) * 0.82;
+            final w = constraints.hasBoundedWidth
+                ? constraints.maxWidth
+                : (mq.width > 0 ? mq.width : 360.0);
+            return SizedBox(width: w, height: h, child: column);
           },
         );
       },
@@ -481,71 +491,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
-  /// Single-column scrollable list (matches design on all screen sizes).
-  Widget _buildTicketList(BuildContext context, List<ITransaction> tickets) {
-    final searchFiltered = tickets
-        .where((t) => _matchesSearch(t, _searchQuery))
-        .toList();
-
-    if (searchFiltered.isEmpty) {
-      return _buildEmptySearchOrNoTickets(context, tickets.isEmpty);
-    }
-
-    final typeFiltered = _applyTicketTypeFilter(searchFiltered);
-    if (typeFiltered.isEmpty) {
-      return _buildEmptyAfterFilter(context);
-    }
-
-    _sortTicketList(typeFiltered);
-    _currentTickets = typeFiltered;
-
+  List<_TicketListEntry> _flattenTicketEntries(List<ITransaction> typeFiltered) {
     final loanTickets = typeFiltered.where((t) => t.isLoan == true).toList();
-    final nonLoanTickets = typeFiltered.where((t) => t.isLoan != true).toList();
-
-    Widget buildSection(
-      String title,
-      Color accentColor,
-      List<ITransaction> list,
-    ) {
-      if (list.isEmpty) return const SizedBox.shrink();
-
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-            title: title,
-            accentColor: accentColor,
-            count: list.length,
-          ),
-          for (final ticket in list)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 5,
-              ),
-              child: Consumer(
-                builder: (context, ref, _) {
-                  final isSelected = ref
-                      .watch(ticketSelectionProvider)
-                      .contains(ticket.id);
-                  return TicketCard(
-                    ticket: ticket,
-                    isSelected: isSelected,
-                    onTap: () => _handleTicketTap(context, ticket),
-                    onDelete: () => _deleteTicket(ticket),
-                    onSelectionChanged: (selected) {
-                      ref
-                          .read(ticketSelectionProvider.notifier)
-                          .toggleSelection(ticket.id);
-                    },
-                  );
-                },
-              ),
-            ),
-        ],
-      );
-    }
+    final nonLoanTickets =
+        typeFiltered.where((t) => t.isLoan != true).toList();
 
     String loanSectionTitle() {
       switch (_ticketKindFilter) {
@@ -563,41 +512,76 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       return _kLoanPurple;
     }
 
-    final List<Widget> scrollChildren = [];
+    void addSection(
+      List<_TicketListEntry> out,
+      String title,
+      Color accent,
+      List<ITransaction> list,
+    ) {
+      if (list.isEmpty) return;
+      out.add(
+        _TicketListEntry.header(
+          title: title,
+          accentColor: accent,
+          count: list.length,
+        ),
+      );
+      for (final ticket in list) {
+        out.add(_TicketListEntry.ticket(ticket));
+      }
+    }
+
+    final entries = <_TicketListEntry>[];
     switch (_ticketKindFilter) {
       case 'loan':
-        if (typeFiltered.isNotEmpty) {
-          scrollChildren.add(
-            buildSection('LOAN TICKETS', _kLoanPurple, typeFiltered),
-          );
-        }
+        addSection(entries, 'LOAN TICKETS', _kLoanPurple, typeFiltered);
         break;
       case 'layaway':
-        if (typeFiltered.isNotEmpty) {
-          scrollChildren.add(
-            buildSection('LAYAWAY TICKETS', _kLayawayTeal, typeFiltered),
-          );
-        }
+        addSection(entries, 'LAYAWAY TICKETS', _kLayawayTeal, typeFiltered);
         break;
       case 'regular':
-        if (typeFiltered.isNotEmpty) {
-          scrollChildren.add(
-            buildSection('REGULAR TICKETS', _kRegularGreen, typeFiltered),
-          );
-        }
+        addSection(entries, 'REGULAR TICKETS', _kRegularGreen, typeFiltered);
         break;
       default:
-        if (loanTickets.isNotEmpty) {
-          scrollChildren.add(
-            buildSection(loanSectionTitle(), loanSectionAccent(), loanTickets),
-          );
-        }
-        if (nonLoanTickets.isNotEmpty) {
-          scrollChildren.add(
-            buildSection('REGULAR TICKETS', _kRegularGreen, nonLoanTickets),
-          );
-        }
+        addSection(
+          entries,
+          loanSectionTitle(),
+          loanSectionAccent(),
+          loanTickets,
+        );
+        addSection(
+          entries,
+          'REGULAR TICKETS',
+          _kRegularGreen,
+          nonLoanTickets,
+        );
     }
+    return entries;
+  }
+
+  /// Single-column scrollable list (matches design on all screen sizes).
+  Widget _buildTicketList(
+    BuildContext context,
+    List<ITransaction> tickets, {
+    required Map<String, double> paymentSumsByTxnId,
+  }) {
+    final searchFiltered = tickets
+        .where((t) => _matchesSearch(t, _searchQuery))
+        .toList();
+
+    if (searchFiltered.isEmpty) {
+      return _buildEmptySearchOrNoTickets(context, tickets.isEmpty);
+    }
+
+    final typeFiltered = _applyTicketTypeFilter(searchFiltered);
+    if (typeFiltered.isEmpty) {
+      return _buildEmptyAfterFilter(context);
+    }
+
+    _sortTicketList(typeFiltered);
+    _currentTickets = typeFiltered;
+
+    final entries = _flattenTicketEntries(typeFiltered);
 
     return Column(
       children: [
@@ -611,7 +595,49 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             minHeight: 3,
           ),
         Expanded(
-          child: ListView(padding: EdgeInsets.zero, children: scrollChildren),
+          child: ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              if (entry.isHeader) {
+                return _buildSectionHeader(
+                  title: entry.sectionTitle!,
+                  accentColor: entry.accentColor!,
+                  count: entry.sectionCount!,
+                );
+              }
+              final ticket = entry.ticket!;
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 5,
+                ),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final isSelected = ref.watch(
+                      ticketSelectionProvider.select(
+                        (s) => s.contains(ticket.id),
+                      ),
+                    );
+                    return TicketCard(
+                      key: ValueKey(ticket.id),
+                      ticket: ticket,
+                      isSelected: isSelected,
+                      paidAmount: paymentSumsByTxnId[ticket.id] ?? 0.0,
+                      onTap: () => _handleTicketTap(context, ticket),
+                      onDelete: () => _deleteTicket(ticket),
+                      onSelectionChanged: (selected) {
+                        ref
+                            .read(ticketSelectionProvider.notifier)
+                            .toggleSelection(ticket.id);
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -925,9 +951,43 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 }
 
+class _TicketListEntry {
+  const _TicketListEntry._({
+    required this.isHeader,
+    this.sectionTitle,
+    this.accentColor,
+    this.sectionCount,
+    this.ticket,
+  });
+
+  factory _TicketListEntry.header({
+    required String title,
+    required Color accentColor,
+    required int count,
+  }) {
+    return _TicketListEntry._(
+      isHeader: true,
+      sectionTitle: title,
+      accentColor: accentColor,
+      sectionCount: count,
+    );
+  }
+
+  factory _TicketListEntry.ticket(ITransaction ticket) {
+    return _TicketListEntry._(isHeader: false, ticket: ticket);
+  }
+
+  final bool isHeader;
+  final String? sectionTitle;
+  final Color? accentColor;
+  final int? sectionCount;
+  final ITransaction? ticket;
+}
+
 class TicketCard extends StatelessWidget {
   final ITransaction ticket;
   final bool isSelected;
+  final double paidAmount;
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final ValueChanged<bool> onSelectionChanged;
@@ -935,6 +995,7 @@ class TicketCard extends StatelessWidget {
     super.key,
     required this.ticket,
     required this.isSelected,
+    required this.paidAmount,
     required this.onTap,
     required this.onDelete,
     required this.onSelectionChanged,
@@ -976,46 +1037,38 @@ class TicketCard extends StatelessWidget {
     final displayName = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
         .trim();
 
+    final total = ticket.subTotal ?? 0.0;
+    final paid = paidAmount;
+    final remaining = (total - paid);
+    final remClamped = remaining < 0 ? 0.0 : remaining;
+    final partial = paid > 0 && remClamped > 0;
+
+    final String statusLabel;
+    final Color statusFg;
+    final Color statusBg;
+    if (partial) {
+      statusLabel = 'Partial';
+      statusFg = const Color(0xFFC62828);
+      statusBg = const Color(0xFFFFEBEE);
+    } else {
+      statusLabel = statusExt.displayName;
+      statusFg = statusExt.color;
+      final raw = (ticket.status ?? PARKED).toLowerCase();
+      if (raw == PARKED) {
+        statusBg = const Color(0xFFFFF9E6);
+      } else {
+        statusBg = statusExt.color.withValues(alpha: 0.15);
+      }
+    }
+
+    final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
+    final fullyPaid =
+        total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
+    final progressColor = fullyPaid ? _kRegularGreen : _kProgressOrange;
+
     return Material(
       color: Colors.transparent,
-      child: FutureBuilder<double?>(
-        future: ProxyService.getStrategy(Strategy.capella)
-            .getTotalPaidForTransaction(
-              transactionId: ticket.id,
-              branchId: ticket.branchId ?? '',
-              excludePaymentMethod: 'CREDIT',
-            ),
-        builder: (context, snapshot) {
-          final total = ticket.subTotal ?? 0.0;
-          final paid = snapshot.data ?? 0.0;
-          final remaining = (total - paid);
-          final remClamped = remaining < 0 ? 0.0 : remaining;
-          final partial = paid > 0 && remClamped > 0;
-
-          final String statusLabel;
-          final Color statusFg;
-          final Color statusBg;
-          if (partial) {
-            statusLabel = 'Partial';
-            statusFg = const Color(0xFFC62828);
-            statusBg = const Color(0xFFFFEBEE);
-          } else {
-            statusLabel = statusExt.displayName;
-            statusFg = statusExt.color;
-            final raw = (ticket.status ?? PARKED).toLowerCase();
-            if (raw == PARKED) {
-              statusBg = const Color(0xFFFFF9E6);
-            } else {
-              statusBg = statusExt.color.withValues(alpha: 0.15);
-            }
-          }
-
-          final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
-          final fullyPaid =
-              total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
-          final progressColor = fullyPaid ? _kRegularGreen : _kProgressOrange;
-
-          return InkWell(
+      child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: Container(
@@ -1268,9 +1321,7 @@ class TicketCard extends StatelessWidget {
                 ),
               ),
             ),
-          );
-        },
-      ),
+          ),
     );
   }
 

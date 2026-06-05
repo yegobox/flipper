@@ -53,6 +53,8 @@ Future<void> showResumeTicketDialog({
 }) {
   final useBottomSheet = MediaQuery.sizeOf(context).width < 600;
   final isResuming = ValueNotifier(false);
+  final paidNotifier =
+      ValueNotifier<AsyncValue<double>>(const AsyncValue.loading());
 
   return WoltModalSheet.show(
     context: context,
@@ -68,11 +70,15 @@ Future<void> showResumeTicketDialog({
           onResume,
           onStatusChange,
           isResuming,
+          paidNotifier: paidNotifier,
           useBottomSheet: useBottomSheet,
         ),
       ];
     },
-  ).whenComplete(isResuming.dispose);
+  ).whenComplete(() {
+    isResuming.dispose();
+    paidNotifier.dispose();
+  });
 }
 
 SliverWoltModalSheetPage _buildResumeTicketPage(
@@ -81,6 +87,7 @@ SliverWoltModalSheetPage _buildResumeTicketPage(
   Future<void> Function(ITransaction) onResume,
   Function(String) onStatusChange,
   ValueNotifier<bool> isResuming, {
+  required ValueNotifier<AsyncValue<double>> paidNotifier,
   required bool useBottomSheet,
 }) {
   return SliverWoltModalSheetPage(
@@ -90,56 +97,89 @@ SliverWoltModalSheetPage _buildResumeTicketPage(
     pageTitle: const SizedBox.shrink(),
     mainContentSliversBuilder: (_) => [
       SliverToBoxAdapter(
+        child: _ResumeTicketPaidSync(
+          ticketId: ticket.id,
+          paidNotifier: paidNotifier,
+        ),
+      ),
+      SliverToBoxAdapter(
         child: ClipRRect(
           borderRadius: useBottomSheet
               ? const BorderRadius.vertical(top: Radius.circular(_kSheetRadius))
               : BorderRadius.zero,
-          child: ResumeTicketSummary(
-            ticket: ticket,
-            onStatusChange: onStatusChange,
-            isResuming: isResuming,
+          child: ValueListenableBuilder<AsyncValue<double>>(
+            valueListenable: paidNotifier,
+            builder: (context, paidAsync, _) {
+              return ResumeTicketSummary(
+                ticket: ticket,
+                paidAsync: paidAsync,
+                onStatusChange: onStatusChange,
+                isResuming: isResuming,
+              );
+            },
           ),
         ),
       ),
     ],
-    stickyActionBar: _ResumeTicketFooter(
-      ticket: ticket,
-      onResume: onResume,
-      isResumingNotifier: isResuming,
+    stickyActionBar: ValueListenableBuilder<AsyncValue<double>>(
+      valueListenable: paidNotifier,
+      builder: (context, paidAsync, _) {
+        return _ResumeTicketFooter(
+          ticket: ticket,
+          paidAsync: paidAsync,
+          onResume: onResume,
+          isResumingNotifier: isResuming,
+        );
+      },
     ),
   );
 }
 
-class _ResumeTicketFooter extends ConsumerStatefulWidget {
+/// Single subscription to [transactionTotalPaidProvider] for the whole sheet.
+class _ResumeTicketPaidSync extends ConsumerWidget {
+  const _ResumeTicketPaidSync({
+    required this.ticketId,
+    required this.paidNotifier,
+  });
+
+  final String ticketId;
+  final ValueNotifier<AsyncValue<double>> paidNotifier;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paidAsync = ref.watch(transactionTotalPaidProvider(ticketId));
+    if (paidNotifier.value != paidAsync) {
+      paidNotifier.value = paidAsync;
+    }
+    return const SizedBox.shrink();
+  }
+}
+
+class _ResumeTicketFooter extends StatelessWidget {
   const _ResumeTicketFooter({
     required this.ticket,
+    required this.paidAsync,
     required this.onResume,
     required this.isResumingNotifier,
   });
 
   final ITransaction ticket;
+  final AsyncValue<double> paidAsync;
   final Future<void> Function(ITransaction) onResume;
   final ValueNotifier<bool> isResumingNotifier;
 
   @override
-  ConsumerState<_ResumeTicketFooter> createState() => _ResumeTicketFooterState();
-}
-
-class _ResumeTicketFooterState extends ConsumerState<_ResumeTicketFooter> {
-  @override
   Widget build(BuildContext context) {
     final currency = ProxyService.box.defaultCurrency();
-    final totalPaidAsync =
-        ref.watch(transactionTotalPaidProvider(widget.ticket.id));
 
-    return totalPaidAsync.when(
+    return paidAsync.when(
       data: (paid) {
-        final total = widget.ticket.subTotal ?? 0.0;
+        final total = ticket.subTotal ?? 0.0;
         final due = (total - paid).clamp(0.0, double.infinity);
         final dueText = due.toCurrencyFormatted(symbol: currency);
 
         return ValueListenableBuilder<bool>(
-          valueListenable: widget.isResumingNotifier,
+          valueListenable: isResumingNotifier,
           builder: (context, isResuming, _) {
             return Container(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
@@ -195,9 +235,9 @@ class _ResumeTicketFooterState extends ConsumerState<_ResumeTicketFooter> {
                             idleLabel: 'Resume order',
                             loadingLabel: 'Resuming…',
                             icon: Icons.replay_rounded,
-                            syncNotifier: widget.isResumingNotifier,
+                            syncNotifier: isResumingNotifier,
                             onPressed: () async {
-                              await widget.onResume(widget.ticket);
+                              await onResume(ticket);
                               if (context.mounted) {
                                 Navigator.of(context).pop();
                               }
@@ -223,11 +263,13 @@ class ResumeTicketSummary extends ConsumerStatefulWidget {
   const ResumeTicketSummary({
     super.key,
     required this.ticket,
+    required this.paidAsync,
     required this.onStatusChange,
     required this.isResuming,
   });
 
   final ITransaction ticket;
+  final AsyncValue<double> paidAsync;
   final Function(String) onStatusChange;
   final ValueNotifier<bool> isResuming;
 
@@ -242,12 +284,14 @@ class _ResumeTicketSummaryState extends ConsumerState<ResumeTicketSummary> {
   @override
   Widget build(BuildContext context) {
     final ticket = widget.ticket;
-    final itemsAsync = ref.watch(transactionItemsStreamProvider(
-      transactionId: ticket.id,
-      branchId: ticket.branchId ?? ProxyService.box.getBranchId()!,
-    ));
-    final totalPaidAsync =
-        ref.watch(transactionTotalPaidProvider(ticket.id));
+    final branchId = ticket.branchId ?? ProxyService.box.getBranchId()!;
+    final itemsAsync = ref.watch(
+      transactionItemsStreamProvider(
+        transactionId: ticket.id,
+        branchId: branchId,
+      ),
+    );
+    final totalPaidAsync = widget.paidAsync;
     final currency = ProxyService.box.defaultCurrency();
 
     return Padding(

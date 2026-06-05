@@ -788,15 +788,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ),
     );
     if (kDebugMode) {
-      final readPending = ref.read(
-        pendingTransactionStreamProvider(
-          isExpense: ProxyService.box.isOrdering() ?? false,
-        ),
-      );
       tv_talk.talker.debug(
         'QuickSellingView.build pending '
-        'watch=${_qsvPendingLabel(transactionAsyncValue)} '
-        'read=${_qsvPendingLabel(readPending)}',
+        'watch=${_qsvPendingLabel(transactionAsyncValue)}',
       );
     }
 

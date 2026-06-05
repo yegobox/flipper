@@ -281,11 +281,12 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   String getCartText({required String transactionId}) {
-    final items = ref.watch(posCartDisplayItemsProvider);
-    final count = posCartDisplayItemsForTransaction(
-      items,
-      transactionId,
-    ).length;
+    final count = ref.watch(
+      posCartDisplayItemsProvider.select(
+        (items) =>
+            posCartDisplayItemsForTransaction(items, transactionId).length,
+      ),
+    );
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 

@@ -310,7 +310,7 @@ final class TransactionReportSnapshotProvider
   }) : super(
          retry: null,
          name: r'transactionReportSnapshotProvider',
-         isAutoDispose: true,
+         isAutoDispose: false,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -350,7 +350,7 @@ final class TransactionReportSnapshotProvider
 }
 
 String _$transactionReportSnapshotHash() =>
-    r'31d805c913f62127c26da4686183c68e6c84248a';
+    r'cc65fa567e169a6f7d9b36e458d7f3400595d1e0';
 
 final class TransactionReportSnapshotFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<TransactionReportSnapshot>, bool> {
@@ -360,7 +360,7 @@ final class TransactionReportSnapshotFamily extends $Family
         name: r'transactionReportSnapshotProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: true,
+        isAutoDispose: false,
       );
 
   TransactionReportSnapshotProvider call({required bool forceRealData}) =>
@@ -564,7 +564,7 @@ final class TransactionItemListProvider
 }
 
 String _$transactionItemListHash() =>
-    r'a0aef588ea09c9a934c6fcc139c15b70e856384b';
+    r'a92a56eb487bbf334c9b8022177e1bc50df7372d';
 
 @ProviderFor(transactionReportKpiTotals)
 const transactionReportKpiTotalsProvider =
@@ -607,7 +607,7 @@ final class TransactionReportKpiTotalsProvider
 }
 
 String _$transactionReportKpiTotalsHash() =>
-    r'c4544106307c60df644474c4418a137151f27527';
+    r'62b56a2c7b1b05e533dd53c97aee3b748e411177';
 
 @ProviderFor(expensesStream)
 const expensesStreamProvider = ExpensesStreamFamily._();

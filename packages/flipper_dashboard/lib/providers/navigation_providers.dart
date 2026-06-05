@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -103,6 +104,53 @@ final sideMenuShowProductionProvider = Provider<bool>((ref) {
 final sideMenuShowDailyReportFilesProvider = Provider<bool>((ref) {
   if (!ref.watch(hasFeatureProvider('INVENTORY'))) return false;
   return userHasFeatureWriteAccess(ref, AppFeature.Reports);
+});
+
+/// Single watch for [EnhancedSideMenu] — avoids 10+ independent feature evaluations.
+class SideMenuVisibility {
+  const SideMenuVisibility({
+    required this.kds,
+    required this.items,
+    required this.dailyReportFiles,
+    required this.stockRecount,
+    required this.incomingOrders,
+    required this.production,
+    required this.shiftHistory,
+    required this.delegations,
+    required this.leads,
+    required this.agentCommission,
+  });
+
+  final bool kds;
+  final bool items;
+  final bool dailyReportFiles;
+  final bool stockRecount;
+  final bool incomingOrders;
+  final bool production;
+  final bool shiftHistory;
+  final bool delegations;
+  final bool leads;
+  final bool agentCommission;
+}
+
+final sideMenuVisibilityProvider = Provider<SideMenuVisibility>((ref) {
+  final uid = ProxyService.box.getUserId() ?? '';
+  return SideMenuVisibility(
+    kds: ref.watch(sideMenuShowKdsProvider),
+    items: ref.watch(sideMenuShowItemsProvider),
+    dailyReportFiles: ref.watch(sideMenuShowDailyReportFilesProvider),
+    stockRecount: ref.watch(sideMenuShowStockRecountProvider),
+    incomingOrders: ref.watch(sideMenuShowIncomingOrdersProvider),
+    production: ref.watch(sideMenuShowProductionProvider),
+    shiftHistory: ref.watch(sideMenuShowShiftHistoryProvider),
+    delegations: ref.watch(sideMenuShowDelegationsProvider),
+    leads: uid.isNotEmpty
+        ? ref.watch(
+            featureAccessProvider(userId: uid, featureName: AppFeature.Leads),
+          )
+        : false,
+    agentCommission: ref.watch(sideMenuShowAgentCommissionProvider),
+  );
 });
 
 final sideMenuShowShiftHistoryProvider = Provider<bool>((ref) {

@@ -17,6 +17,7 @@ import 'package:riverpod/riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart'
     show ChangeNotifierProvider, StateProvider;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 
 final coreViewModelProvider = ChangeNotifierProvider((ref) => CoreViewModel());
@@ -24,21 +25,33 @@ final unsavedProductProvider = NotifierProvider<ProductNotifier, Product?>(
   ProductNotifier.new,
 );
 
-final connectivityStreamProvider = StreamProvider<bool>((ref) {
-  return Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
+final connectivityStreamProvider = StreamProvider<bool>((ref) async* {
+  final connectivity = Connectivity();
+  final initial = await connectivity.checkConnectivity();
+  yield _connectivityListHasNetwork(initial);
+
+  await for (final result in connectivity.onConnectivityChanged) {
+    final online = _connectivityListHasNetwork(result);
+    if (!online) {
+      yield false;
+      continue;
+    }
+    // HTTP probe only after network interface comes back (not every 5s).
     try {
       final url =
-          await ProxyService.box.getServerUrl() ?? "https://turbo.yegobox.com/";
+          await ProxyService.box.getServerUrl() ??
+          'https://turbo.yegobox.com/';
       final response = await http.get(Uri.parse(url));
-
-      print('Connectivity check!: ${response.statusCode == 200}');
-      return response.statusCode == 200;
+      yield response.statusCode == 200;
     } catch (e) {
-      print('Connectivity check failed: $e');
-      return false;
+      yield false;
     }
-  });
+  }
 });
+
+bool _connectivityListHasNetwork(List<ConnectivityResult> results) {
+  return results.any((r) => r != ConnectivityResult.none);
+}
 
 final customersStreamProvider = StreamProvider.autoDispose
     .family<List<Customer>, ({String? branchId, String? id})>((ref, params) {
@@ -147,7 +160,10 @@ class PaginatedVariantsNotifier extends Notifier<AsyncValue<List<Variant>>> {
 
   @override
   AsyncValue<List<Variant>> build() {
-    futureLoad(productId);
+    if (_allVariants.isNotEmpty) {
+      return AsyncValue.data(List<Variant>.from(_allVariants));
+    }
+    Future.microtask(() => futureLoad(productId));
     return const AsyncValue.loading();
   }
 

@@ -819,6 +819,71 @@ WHERE _id = :stockId
   }
 
   @override
+  Stream<Map<String, Stock?>> watchStocksByIds(List<String> stockIds) {
+    final unique = stockIds
+        .where((id) => id.trim().isNotEmpty)
+        .map((id) => id.trim())
+        .toSet()
+        .toList();
+    if (unique.isEmpty) {
+      return Stream.value(const {});
+    }
+
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized watchStocksByIds');
+        return Stream.value(const {});
+      }
+
+      final placeholders = unique
+          .asMap()
+          .entries
+          .map((e) => ':s${e.key}')
+          .join(', ');
+      final arguments = <String, dynamic>{
+        for (var i = 0; i < unique.length; i++) 's$i': unique[i],
+      };
+      final query =
+          'SELECT * FROM stocks WHERE _id IN ($placeholders) OR id IN ($placeholders)';
+
+      final controller = StreamController<Map<String, Stock?>>.broadcast();
+      dynamic observer;
+
+      final prepared = prepareDqlSyncSubscription(query, arguments);
+      ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (queryResult) {
+          if (controller.isClosed) return;
+          final out = <String, Stock?>{for (final id in unique) id: null};
+          for (final doc in queryResult.items) {
+            final stock = _convertFromDittoDocument(
+              Map<String, dynamic>.from(doc.value),
+            );
+            out[stock.id] = stock;
+          }
+          controller.add(out);
+        },
+      );
+
+      controller.onCancel = () async {
+        await observer?.cancel();
+        await controller.close();
+      };
+
+      return controller.stream;
+    } catch (e) {
+      talker.error('Error watching stocks by ids: $e');
+      return Stream.value(const {});
+    }
+  }
+
+  @override
   Stream<Stock?> watchStockByVariantId({required String stockId}) {
     try {
       final ditto = dittoService.dittoInstance;

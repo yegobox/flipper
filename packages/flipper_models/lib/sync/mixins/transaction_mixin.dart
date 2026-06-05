@@ -1258,6 +1258,23 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
+  Stream<List<ITransaction>> openPosTicketsTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
+    required bool skipOriginalTransactionCheck,
+  }) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).openPosTicketsTransactionsStream(
+      branchId: branchId,
+      removeAdjustmentTransactions: removeAdjustmentTransactions,
+      forceRealData: forceRealData,
+      skipOriginalTransactionCheck: skipOriginalTransactionCheck,
+    );
+  }
+
+  @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
     try {
       return await repository.delete<ITransaction>(transaction);

@@ -5,6 +5,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/visible_stocks_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
@@ -841,6 +842,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     List<Variant> variants, {
     required double paneWidth,
   }) {
+    final branchId = ProxyService.box.getBranchId() ?? '';
+    final stocksById = ref
+            .watch(stocksForVisibleVariantsProvider(branchId))
+            .asData
+            ?.value ??
+        const <String, Stock?>{};
+
     final bool isMobileLayout =
         paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
@@ -868,6 +876,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
               variant: variants[index],
               isOrdering: false,
               forceListView: true,
+              stocksById: stocksById,
             );
           },
           physics: const AlwaysScrollableScrollPhysics(),
@@ -905,6 +914,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           isOrdering: false,
           forceListView: false,
           usePosCatalogTile: true,
+          stocksById: stocksById,
         );
       },
       physics: const AlwaysScrollableScrollPhysics(),

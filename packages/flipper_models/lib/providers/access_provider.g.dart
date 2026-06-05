@@ -371,7 +371,7 @@ final class FeatureAccessProvider extends $FunctionalProvider<bool, bool, bool>
   }
 }
 
-String _$featureAccessHash() => r'5de738e71a808791d3c1556fff81f43c4b4ee732';
+String _$featureAccessHash() => r'c121cc25251a15877612316e61192190d993dd89';
 
 final class FeatureAccessFamily extends $Family
     with

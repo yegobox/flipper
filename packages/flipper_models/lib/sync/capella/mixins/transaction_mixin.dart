@@ -351,6 +351,109 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  @override
+  Stream<List<ITransaction>> openPosTicketsTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
+    required bool skipOriginalTransactionCheck,
+  }) {
+    if (!forceRealData) {
+      return Stream.value(
+        DummyTransactionGenerator.generateDummyTransactions(
+          count: 20,
+          branchId: branchId ?? '1',
+          status: PARKED,
+        ),
+      );
+    }
+
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized: openPosTicketsTransactionsStream');
+        return Stream.value([]);
+      }
+
+      final preparedTx = prepareDqlSyncSubscription(
+        'SELECT * FROM transactions WHERE branchId = :branchId',
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedTx.dql,
+        arguments: preparedTx.arguments,
+      );
+
+      final whereClauses = <String>[];
+      final arguments = <String, dynamic>{};
+
+      final agentId = ProxyService.box.getUserId()!;
+      whereClauses.add('agentId = :agentId');
+      arguments['agentId'] = agentId;
+
+      whereClauses.add(
+        '(status = :waiting OR status = :parked OR status = :inProgress)',
+      );
+      arguments['waiting'] = WAITING;
+      arguments['parked'] = PARKED;
+      arguments['inProgress'] = IN_PROGRESS;
+
+      whereClauses.add('subTotal > 0');
+
+      if (!skipOriginalTransactionCheck) {
+        whereClauses.add('isOriginalTransaction = :isOriginal');
+        arguments['isOriginal'] = true;
+      }
+
+      if (branchId != null) {
+        whereClauses.add('branchId = :branchId');
+        arguments['branchId'] = branchId;
+      }
+
+      if (removeAdjustmentTransactions) {
+        whereClauses.add('transactionType != :adjustmentType');
+        arguments['adjustmentType'] = 'Adjustment';
+      }
+
+      final query =
+          'SELECT * FROM transactions WHERE ${whereClauses.join(' AND ')} ORDER BY createdAt DESC';
+
+      final controller = StreamController<List<ITransaction>>.broadcast();
+      dynamic observer;
+
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (queryResult) {
+          if (controller.isClosed) return;
+
+          final transactions = <ITransaction>[];
+          for (final item in queryResult.items) {
+            try {
+              final transactionData = Map<String, dynamic>.from(item.value);
+              transactions.add(_convertFromDittoDocument(transactionData));
+            } catch (e) {
+              talker.error('Error converting open ticket transaction: $e');
+            }
+          }
+          controller.add(transactions);
+        },
+      );
+
+      controller.onCancel = () async {
+        await cancelDittoStoreObserver(observer);
+        if (!controller.isClosed) {
+          await controller.close();
+        }
+      };
+
+      return controller.stream;
+    } catch (e) {
+      talker.error('Error in openPosTicketsTransactionsStream: $e');
+      return Stream.value([]);
+    }
+  }
+
   /// Convert Ditto document to ITransaction model
   ITransaction _convertFromDittoDocument(Map<String, dynamic> data) {
     DateTime? parseDateTime(dynamic value) {
