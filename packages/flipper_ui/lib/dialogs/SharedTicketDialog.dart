@@ -357,10 +357,6 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
         ticketNote: _noteController.text.trim(),
         customerId: _selectedCustomer?.id,
       );
-      final parkState = ref.read(parkTransactionProvider);
-      if (parkState.hasError) {
-        throw parkState.error!;
-      }
       widget.onSuccess?.call();
       if (mounted && widget.onSuccess == null) {
         Navigator.of(context).pop();
