@@ -3,6 +3,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/widgets/async_action_gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,21 +20,6 @@ const Color _kPaidGreen = Color(0xFF16A34A);
 const Color _kParkedOrange = Color(0xFFD97706);
 const Color _kParkedBg = Color(0xFFFFF7ED);
 const double _kSheetRadius = 26;
-
-const LinearGradient _kPrimaryGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Color(0xFF2C6BF0), Color(0xFF1D4ED8)],
-);
-
-const List<BoxShadow> _kPrimaryShadow = [
-  BoxShadow(
-    color: Color(0x402563EB),
-    offset: Offset(0, 8),
-    blurRadius: 20,
-    spreadRadius: -4,
-  ),
-];
 
 const _monthShort = [
   'Jan',
@@ -140,18 +126,6 @@ class _ResumeTicketFooter extends ConsumerStatefulWidget {
 }
 
 class _ResumeTicketFooterState extends ConsumerState<_ResumeTicketFooter> {
-  Future<void> _handleResume() async {
-    if (widget.isResumingNotifier.value) return;
-    widget.isResumingNotifier.value = true;
-    await Future<void>.delayed(Duration.zero);
-    try {
-      await widget.onResume(widget.ticket);
-      if (mounted) Navigator.of(context).pop();
-    } finally {
-      if (mounted) widget.isResumingNotifier.value = false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final currency = ProxyService.box.defaultCurrency();
@@ -217,10 +191,17 @@ class _ResumeTicketFooterState extends ConsumerState<_ResumeTicketFooter> {
                         const SizedBox(width: 12),
                         Expanded(
                           flex: 6,
-                          child: _ResumeGradientButton(
-                            label: isResuming ? 'Resuming…' : 'Resume order',
-                            loading: isResuming,
-                            onPressed: isResuming ? null : _handleResume,
+                          child: AsyncActionGradientButton(
+                            idleLabel: 'Resume order',
+                            loadingLabel: 'Resuming…',
+                            icon: Icons.replay_rounded,
+                            syncNotifier: widget.isResumingNotifier,
+                            onPressed: () async {
+                              await widget.onResume(widget.ticket);
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
+                            },
                           ),
                         ),
                       ],
@@ -234,90 +215,6 @@ class _ResumeTicketFooterState extends ConsumerState<_ResumeTicketFooter> {
       },
       loading: () => const SizedBox(height: 88),
       error: (_, __) => const SizedBox(height: 88),
-    );
-  }
-}
-
-class _ResumeGradientButton extends StatelessWidget {
-  const _ResumeGradientButton({
-    required this.label,
-    required this.onPressed,
-    this.loading = false,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-  final bool loading;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: _kPrimaryGradient,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: _kPrimaryShadow,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: loading ? null : onPressed,
-          borderRadius: BorderRadius.circular(16),
-          child: SizedBox(
-            height: 56,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 150),
-                  opacity: loading ? 0 : 1,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.replay_rounded,
-                          color: Colors.white, size: 22),
-                      const SizedBox(width: 8),
-                      Text(
-                        label,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 150),
-                  opacity: loading ? 1 : 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        label,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flipper_ui/widgets/async_action_gradient_button.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 /// MPOS park-transaction sheet tokens (design_handoff_mobile_pos).
@@ -16,21 +17,6 @@ const Color _kLoanPurple = Color(0xFF6B4EA2);
 const Color _kLoanBg = Color(0xFFF5F9FF);
 const double _kSheetRadius = 26;
 const double _kFieldRadius = 14;
-
-const LinearGradient _kPrimaryGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Color(0xFF2C6BF0), Color(0xFF1D4ED8)],
-);
-
-const List<BoxShadow> _kPrimaryShadow = [
-  BoxShadow(
-    color: Color(0x402563EB),
-    offset: Offset(0, 8),
-    blurRadius: 20,
-    spreadRadius: -4,
-  ),
-];
 
 enum _DuePreset { oneWeek, twoWeeks, oneMonth, custom }
 
@@ -174,13 +160,15 @@ class _ParkTicketFooter extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       flex: 6,
-                      child: _PrimaryGradientButton(
-                        label: isSaving ? 'Parking…' : 'Park transaction',
+                      child: AsyncActionGradientButton(
+                        idleLabel: 'Park transaction',
+                        loadingLabel: 'Parking…',
                         icon: Icons.bookmark_rounded,
-                        loading: isSaving,
-                        onPressed: isSaving
-                            ? null
-                            : () => formKey.currentState?.submit(),
+                        syncNotifier: isSavingNotifier,
+                        canStart: () =>
+                            formKey.currentState?.validate() ?? false,
+                        onPressed: () =>
+                            formKey.currentState?.submit() ?? Future.value(),
                       ),
                     ),
                   ],
@@ -190,91 +178,6 @@ class _ParkTicketFooter extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _PrimaryGradientButton extends StatelessWidget {
-  const _PrimaryGradientButton({
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-    this.loading = false,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback? onPressed;
-  final bool loading;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: _kPrimaryGradient,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: _kPrimaryShadow,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: loading ? null : onPressed,
-          borderRadius: BorderRadius.circular(16),
-          child: SizedBox(
-            height: 56,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 150),
-                  opacity: loading ? 0 : 1,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(icon, color: Colors.white, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        label,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 150),
-                  opacity: loading ? 1 : 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        label,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -368,7 +271,6 @@ class SharedTicketFormState extends State<SharedTicketForm> {
   DateTime? _dueDate;
   _DuePreset _duePreset = _DuePreset.twoWeeks;
   Customer? _selectedCustomer;
-  bool _isSaving = false;
   List<Customer> _customers = [];
   bool _loadingCustomers = true;
 
@@ -434,12 +336,14 @@ class SharedTicketFormState extends State<SharedTicketForm> {
     });
   }
 
-  Future<void> submit() async {
-    if (_isSaving) return;
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+  bool get _isSaving => widget.isSavingNotifier?.value ?? false;
 
-    _setSaving(true);
-    await Future<void>.delayed(Duration.zero);
+  bool validate() => _formKey.currentState?.validate() ?? false;
+
+  Future<void> submit() async {
+    final saving = widget.isSavingNotifier;
+    if (saving == null) return;
+
     try {
       widget.transaction.isLoan = _isLoan;
       widget.transaction.dueDate = _isLoan ? _dueDate?.toUtc() : null;
@@ -464,14 +368,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
           ),
         );
       }
-    } finally {
-      if (mounted) _setSaving(false);
     }
-  }
-
-  void _setSaving(bool value) {
-    widget.isSavingNotifier?.value = value;
-    if (mounted) setState(() => _isSaving = value);
   }
 
   Future<void> _pickCustomer() async {
@@ -628,6 +525,17 @@ class SharedTicketFormState extends State<SharedTicketForm> {
 
   @override
   Widget build(BuildContext context) {
+    final saving = widget.isSavingNotifier;
+    if (saving == null) {
+      return _buildForm(context, isSaving: false);
+    }
+    return ValueListenableBuilder<bool>(
+      valueListenable: saving,
+      builder: (context, isSaving, _) => _buildForm(context, isSaving: isSaving),
+    );
+  }
+
+  Widget _buildForm(BuildContext context, {required bool isSaving}) {
     return Form(
       key: _formKey,
       child: Padding(
@@ -642,7 +550,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
           children: [
             const _SheetHandle(),
             _ParkHeader(
-              onClose: _isSaving
+              onClose: isSaving
                   ? null
                   : () {
                       if (widget.onSuccess != null) {
@@ -652,7 +560,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
                       }
                     },
             ),
-            if (_isSaving) ...[
+            if (isSaving) ...[
               const SizedBox(height: 12),
               const LinearProgressIndicator(
                 minHeight: 2,
@@ -665,7 +573,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
             const SizedBox(height: 8),
             _borderedField(
               controller: _ticketNameController,
-              enabled: !_isSaving,
+              enabled: !isSaving,
               icon: Icons.local_offer_outlined,
               hint: 'Ticket name',
               validator: (v) => (v == null || v.trim().isEmpty)
@@ -677,7 +585,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
             const SizedBox(height: 8),
             _borderedField(
               controller: _noteController,
-              enabled: !_isSaving,
+              enabled: !isSaving,
               icon: Icons.dehaze_rounded,
               hint: 'Add notes',
               maxLines: 3,
@@ -686,9 +594,9 @@ class SharedTicketFormState extends State<SharedTicketForm> {
             const SizedBox(height: 18),
             _fieldLabel('Attach customer', trailing: 'Optional'),
             const SizedBox(height: 8),
-            _customerField(),
+            _customerField(isSaving: isSaving),
             const SizedBox(height: 18),
-            _loanSection(),
+            _loanSection(isSaving: isSaving),
             AnimatedSize(
               duration: const Duration(milliseconds: 280),
               curve: Curves.easeOutCubic,
@@ -700,9 +608,9 @@ class SharedTicketFormState extends State<SharedTicketForm> {
                         const SizedBox(height: 18),
                         _fieldLabel('Payment due'),
                         const SizedBox(height: 10),
-                        _duePresetRow(),
+                        _duePresetRow(isSaving: isSaving),
                         const SizedBox(height: 10),
-                        _dueDateRow(),
+                        _dueDateRow(isSaving: isSaving),
                       ],
                     )
                   : const SizedBox.shrink(),
@@ -713,7 +621,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
     );
   }
 
-  Widget _customerField() {
+  Widget _customerField({required bool isSaving}) {
     if (_loadingCustomers) {
       return _surfaceBox(
         minHeight: 64,
@@ -736,7 +644,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _isSaving ? null : _pickCustomer,
+        onTap: isSaving ? null : _pickCustomer,
         borderRadius: BorderRadius.circular(_kFieldRadius),
         child: _surfaceBox(
           minHeight: 64,
@@ -796,7 +704,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
     );
   }
 
-  Widget _loanSection() {
+  Widget _loanSection({required bool isSaving}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
@@ -850,7 +758,7 @@ class SharedTicketFormState extends State<SharedTicketForm> {
             child: CupertinoSwitch(
               value: _isLoan,
               activeTrackColor: _kPrimary,
-              onChanged: _isSaving
+              onChanged: isSaving
                   ? null
                   : (val) {
                       setState(() {
@@ -867,24 +775,35 @@ class SharedTicketFormState extends State<SharedTicketForm> {
     );
   }
 
-  Widget _duePresetRow() {
+  Widget _duePresetRow({required bool isSaving}) {
     return Row(
       children: [
-        Expanded(child: _presetChip('1 week', _DuePreset.oneWeek)),
+        Expanded(
+          child: _presetChip('1 week', _DuePreset.oneWeek, isSaving: isSaving),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: _presetChip('2 weeks', _DuePreset.twoWeeks)),
+        Expanded(
+          child:
+              _presetChip('2 weeks', _DuePreset.twoWeeks, isSaving: isSaving),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: _presetChip('1 month', _DuePreset.oneMonth)),
+        Expanded(
+          child: _presetChip('1 month', _DuePreset.oneMonth, isSaving: isSaving),
+        ),
       ],
     );
   }
 
-  Widget _presetChip(String label, _DuePreset preset) {
+  Widget _presetChip(
+    String label,
+    _DuePreset preset, {
+    required bool isSaving,
+  }) {
     final selected = _duePreset == preset;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _isSaving ? null : () => _applyPreset(preset),
+        onTap: isSaving ? null : () => _applyPreset(preset),
         borderRadius: BorderRadius.circular(22),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 11),
@@ -910,14 +829,14 @@ class SharedTicketFormState extends State<SharedTicketForm> {
     );
   }
 
-  Widget _dueDateRow() {
+  Widget _dueDateRow({required bool isSaving}) {
     final dateText =
         _dueDate != null ? _formatIsoDate(_dueDate!.toLocal()) : 'Select date';
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _isSaving ? null : _pickDueDate,
+        onTap: isSaving ? null : _pickDueDate,
         borderRadius: BorderRadius.circular(_kFieldRadius),
         child: _surfaceBox(
           minHeight: 56,

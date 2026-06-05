@@ -5,6 +5,10 @@ import 'package:flipper_localize/src/l10n/flipper_app_localizations.dart';
 
 export 'src/l10n/flipper_app_localizations.dart';
 
+extension FlipperLocalizationContext on BuildContext {
+  FlipperAppLocalizations get flipperL10n => FlipperAppLocalizations.of(this);
+}
+
 class LabelOverrides extends DefaultLocalizations {
   const LabelOverrides();
 

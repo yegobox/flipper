@@ -486,4 +486,434 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get errorRestoringBackup => 'Error Restoring backup';
+
+  @override
+  String get transactionIdCopiedToClipboard =>
+      'Transaction ID copied to clipboard';
+
+  @override
+  String get transactionIdShortLabel => 'Txn ID: ';
+
+  @override
+  String get invoiceNumberLabel => 'Invoice No: ';
+
+  @override
+  String get parkSaleAsTicket => 'Park this sale as a ticket';
+
+  @override
+  String get saveTicketAction => 'Save ticket';
+
+  @override
+  String get remainingBalanceLabel => 'Remaining Balance: ';
+
+  @override
+  String get amountToChangeLabel => 'Amount to Change: ';
+
+  @override
+  String get allApps => 'All apps';
+
+  @override
+  String get sell => 'Sell';
+
+  @override
+  String get quickSell => 'Quick Sell';
+
+  @override
+  String get invoices => 'Invoices';
+
+  @override
+  String get pricing => 'Pricing';
+
+  @override
+  String get payments => 'Payments';
+
+  @override
+  String get manage => 'Manage';
+
+  @override
+  String get purchases => 'Purchases';
+
+  @override
+  String get customers => 'Customers';
+
+  @override
+  String get leads => 'Leads';
+
+  @override
+  String get insights => 'Insights';
+
+  @override
+  String get dailyReports => 'Daily Reports';
+
+  @override
+  String get commissions => 'Commissions';
+
+  @override
+  String get production => 'Production';
+
+  @override
+  String get business => 'Business';
+
+  @override
+  String get servicesHub => 'Services hub';
+
+  @override
+  String get goals => 'Goals';
+
+  @override
+  String get aiChat => 'AI Chat';
+
+  @override
+  String get errorLoadingTransactionView => 'Error loading transaction view';
+
+  @override
+  String get customer => 'Customer';
+
+  @override
+  String get payment => 'Payment';
+
+  @override
+  String get delivery => 'Delivery';
+
+  @override
+  String get transactionSummary => 'Transaction summary';
+
+  @override
+  String get transactionSummaryHint =>
+      'Shows the total amount and transaction ID for the current sale';
+
+  @override
+  String get totalAmount => 'Total Amount';
+
+  @override
+  String get cannotDeletePartialPaymentItems =>
+      'Cannot delete items from a transaction with partial payments';
+
+  @override
+  String get deleteAllItems => 'Delete All Items';
+
+  @override
+  String get confirmRemoveAllTransactionItems =>
+      'Are you sure you want to remove all items from this transaction?';
+
+  @override
+  String get deleteAll => 'Delete All';
+
+  @override
+  String get allItemsRemovedSuccessfully => 'All items removed successfully';
+
+  @override
+  String errorRemovingItems(String error) {
+    return 'Error removing items: $error';
+  }
+
+  @override
+  String get noItemsAdded => 'No items added';
+
+  @override
+  String get tapAddFirstItem => 'Tap the + button to add your first item';
+
+  @override
+  String cartItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String itemSemanticLabel(String itemName) {
+    return 'Item: $itemName';
+  }
+
+  @override
+  String cartItemSemanticHint(
+    String quantity,
+    String unitPrice,
+    String subtotal,
+  ) {
+    return 'Quantity: $quantity, Unit price: $unitPrice, Subtotal: $subtotal';
+  }
+
+  @override
+  String get removeItem => 'Remove item';
+
+  @override
+  String get unitPrice => 'Unit Price';
+
+  @override
+  String get decreaseQuantityByOne => 'Decrease quantity by 1';
+
+  @override
+  String get increaseQuantityByOne => 'Increase quantity by 1';
+
+  @override
+  String get subtotal => 'Subtotal';
+
+  @override
+  String get deliveryDate => 'Delivery Date';
+
+  @override
+  String get transactionSummaryPaymentActions =>
+      'Transaction summary and payment actions';
+
+  @override
+  String completeSaleTotalHint(String total) {
+    return 'Complete sale with total amount $total';
+  }
+
+  @override
+  String errorWithValue(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String confirmRemoveItemFromTransaction(String itemName) {
+    return 'Are you sure you want to remove \"$itemName\" from this transaction?';
+  }
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get cannotModifyPartialPaymentItems =>
+      'Cannot modify items in a transaction with partial payments';
+
+  @override
+  String get failedToRemoveItem => 'Failed to remove item';
+
+  @override
+  String get failedToUpdateItemQuantity => 'Failed to update item quantity';
+
+  @override
+  String get transactionItemsList => 'Transaction items list';
+
+  @override
+  String get transactionItemsListHint =>
+      'List of items in the current transaction with quantities and prices';
+
+  @override
+  String get deliveryNote => 'Delivery Note';
+
+  @override
+  String get deliveryNoteSemantic => 'Delivery note';
+
+  @override
+  String get deliveryNoteHint => 'Add any special instructions for delivery';
+
+  @override
+  String get deliveryInstructionsHint =>
+      'Enter any special instructions for delivery';
+
+  @override
+  String get discount => 'Discount';
+
+  @override
+  String get pleaseEnterValidNumber => 'Please enter a valid number';
+
+  @override
+  String get discountRangeError => 'Discount must be between 0 and 100';
+
+  @override
+  String get digitalReceiptTitle => 'Digital receipt';
+
+  @override
+  String get digitalReceiptSmsSubtitle =>
+      'Send receipt by SMS instead of opening a PDF';
+
+  @override
+  String receivedAmountInCurrency(String currency) {
+    return 'Received amount in $currency';
+  }
+
+  @override
+  String get receivedAmountHint =>
+      'Enter the amount received from the customer';
+
+  @override
+  String get receivedAmount => 'Received Amount';
+
+  @override
+  String get pleaseEnterReceivedAmount => 'Please enter received amount';
+
+  @override
+  String get customerName => 'Customer name';
+
+  @override
+  String get customerNameHint => 'Enter the full name of the customer';
+
+  @override
+  String get pleaseEnterCustomerName => 'Please enter customer name';
+
+  @override
+  String get customerPhoneNumber => 'Customer phone number';
+
+  @override
+  String get customerPhoneNumberHint =>
+      'Enter the customer\'s phone number for contact and billing purposes';
+
+  @override
+  String get items => 'Items';
+
+  @override
+  String get transactionId => 'Transaction ID';
+
+  @override
+  String get amountPaid => 'Amount Paid';
+
+  @override
+  String get remainingBalance => 'Remaining Balance';
+
+  @override
+  String recordPaymentWithAmount(String amount) {
+    return 'Record Payment • $amount';
+  }
+
+  @override
+  String payWithAmount(String amount) {
+    return 'Pay • $amount';
+  }
+
+  @override
+  String get phoneRequiredWhenTinMissing =>
+      'Phone number is required when customer TIN is not available';
+
+  @override
+  String get invalidNumber => 'Invalid Number';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get managementDashboard => 'Management Dashboard';
+
+  @override
+  String get quickActions => 'Quick Actions';
+
+  @override
+  String get posDefault => 'POS Default';
+
+  @override
+  String get setPosAsDefaultApp => 'Set POS as default app';
+
+  @override
+  String get ordersDefault => 'Orders Default';
+
+  @override
+  String get setOrdersAsDefaultApp => 'Set Orders as default app';
+
+  @override
+  String get accountManagement => 'Account Management';
+
+  @override
+  String get userManagement => 'User Management';
+
+  @override
+  String get manageUsersAndPermissions => 'Manage users and permissions';
+
+  @override
+  String get branchManagement => 'Branch Management';
+
+  @override
+  String get manageBranchLocations => 'Manage Branch (Locations)';
+
+  @override
+  String get financialControls => 'Financial Controls';
+
+  @override
+  String get taxSettings => 'Tax Settings';
+
+  @override
+  String get configureTaxRulesAndRates => 'Configure tax rules and rates';
+
+  @override
+  String get ebmSettings => 'EBM Settings';
+
+  @override
+  String get electronicBillingMachineSettings =>
+      'Electronic Billing Machine settings';
+
+  @override
+  String get smsConfiguration => 'SMS Configuration';
+
+  @override
+  String get enableSmsNotifications => 'Enable SMS Notifications';
+
+  @override
+  String get systemSettings => 'System Settings';
+
+  @override
+  String get debugMode => 'Debug Mode';
+
+  @override
+  String get enableDebugFeatures => 'Enable debug features';
+
+  @override
+  String get forceUpdate => 'Force Update';
+
+  @override
+  String get forceUpdateAllData => 'Force update all data';
+
+  @override
+  String get taxService => 'Tax Service';
+
+  @override
+  String get toggleTaxService => 'Toggle tax service';
+
+  @override
+  String get savedDiscount => 'Saved discount';
+
+  @override
+  String get createDiscount => 'Create Discount';
+
+  @override
+  String get nameCannotBeNull => 'Name can not be null';
+
+  @override
+  String get amountCannotBeNull => 'Amount can not be null';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String saveTransactionTitle(String transactionType) {
+    return 'Save $transactionType transaction';
+  }
+
+  @override
+  String get confirmSaveTransaction =>
+      'Are you sure you want to save this transaction?';
+
+  @override
+  String get categoryMustBeSelected => 'A category must be selected';
+
+  @override
+  String get confirmLogout => 'Confirm Logout';
+
+  @override
+  String get confirmLogoutMessage => 'Are you sure you want to log out?';
+
+  @override
+  String get refundReason => 'Refund Reason';
+
+  @override
+  String get waitForApproval => 'Wait for Approval';
+
+  @override
+  String get approved => 'Approved';
+
+  @override
+  String get cancelRequested => 'Cancel Requested';
+
+  @override
+  String get canceled => 'Canceled';
+
+  @override
+  String get refunded => 'Refunded';
+
+  @override
+  String get transferred => 'Transferred';
 }

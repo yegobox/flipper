@@ -962,6 +962,778 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Error Restoring backup'**
   String get errorRestoringBackup;
+
+  /// Transaction ID copied success message
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID copied to clipboard'**
+  String get transactionIdCopiedToClipboard;
+
+  /// Short transaction ID label
+  ///
+  /// In en, this message translates to:
+  /// **'Txn ID: '**
+  String get transactionIdShortLabel;
+
+  /// Invoice number label
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice No: '**
+  String get invoiceNumberLabel;
+
+  /// Save ticket tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Park this sale as a ticket'**
+  String get parkSaleAsTicket;
+
+  /// Save current sale as ticket action
+  ///
+  /// In en, this message translates to:
+  /// **'Save ticket'**
+  String get saveTicketAction;
+
+  /// Remaining balance label
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Balance: '**
+  String get remainingBalanceLabel;
+
+  /// Amount to change label
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to Change: '**
+  String get amountToChangeLabel;
+
+  /// All apps launcher title
+  ///
+  /// In en, this message translates to:
+  /// **'All apps'**
+  String get allApps;
+
+  /// All apps sell section
+  ///
+  /// In en, this message translates to:
+  /// **'Sell'**
+  String get sell;
+
+  /// Quick sell app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Sell'**
+  String get quickSell;
+
+  /// Invoices app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices'**
+  String get invoices;
+
+  /// Pricing app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Pricing'**
+  String get pricing;
+
+  /// Payments app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get payments;
+
+  /// All apps manage section
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get manage;
+
+  /// Purchases app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases'**
+  String get purchases;
+
+  /// Customers app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get customers;
+
+  /// Leads app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Leads'**
+  String get leads;
+
+  /// All apps insights section
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insights;
+
+  /// Daily reports app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Reports'**
+  String get dailyReports;
+
+  /// Commissions app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Commissions'**
+  String get commissions;
+
+  /// Production app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Production'**
+  String get production;
+
+  /// All apps business section
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get business;
+
+  /// Services hub app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Services hub'**
+  String get servicesHub;
+
+  /// Goals app tile
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get goals;
+
+  /// AI chat app tile
+  ///
+  /// In en, this message translates to:
+  /// **'AI Chat'**
+  String get aiChat;
+
+  /// Fallback message when the quick selling transaction view fails to render
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading transaction view'**
+  String get errorLoadingTransactionView;
+
+  /// Customer section label
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customer;
+
+  /// Payment section label
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get payment;
+
+  /// Delivery section label
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get delivery;
+
+  /// Accessibility label for transaction summary
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction summary'**
+  String get transactionSummary;
+
+  /// Accessibility hint for transaction summary
+  ///
+  /// In en, this message translates to:
+  /// **'Shows the total amount and transaction ID for the current sale'**
+  String get transactionSummaryHint;
+
+  /// Total amount label
+  ///
+  /// In en, this message translates to:
+  /// **'Total Amount'**
+  String get totalAmount;
+
+  /// Error shown when trying to delete items after partial payment
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete items from a transaction with partial payments'**
+  String get cannotDeletePartialPaymentItems;
+
+  /// Dialog title for deleting all cart items
+  ///
+  /// In en, this message translates to:
+  /// **'Delete All Items'**
+  String get deleteAllItems;
+
+  /// Confirmation message for deleting all transaction items
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove all items from this transaction?'**
+  String get confirmRemoveAllTransactionItems;
+
+  /// Delete all action
+  ///
+  /// In en, this message translates to:
+  /// **'Delete All'**
+  String get deleteAll;
+
+  /// Success notification after deleting all items
+  ///
+  /// In en, this message translates to:
+  /// **'All items removed successfully'**
+  String get allItemsRemovedSuccessfully;
+
+  /// Error notification after failing to remove all items
+  ///
+  /// In en, this message translates to:
+  /// **'Error removing items: {error}'**
+  String errorRemovingItems(String error);
+
+  /// Empty cart title
+  ///
+  /// In en, this message translates to:
+  /// **'No items added'**
+  String get noItemsAdded;
+
+  /// Empty cart helper text
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button to add your first item'**
+  String get tapAddFirstItem;
+
+  /// Cart item count
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String cartItemCount(int count);
+
+  /// Accessibility label for a cart item
+  ///
+  /// In en, this message translates to:
+  /// **'Item: {itemName}'**
+  String itemSemanticLabel(String itemName);
+
+  /// Accessibility hint for a cart item
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity: {quantity}, Unit price: {unitPrice}, Subtotal: {subtotal}'**
+  String cartItemSemanticHint(
+    String quantity,
+    String unitPrice,
+    String subtotal,
+  );
+
+  /// Remove item action
+  ///
+  /// In en, this message translates to:
+  /// **'Remove item'**
+  String get removeItem;
+
+  /// Unit price label
+  ///
+  /// In en, this message translates to:
+  /// **'Unit Price'**
+  String get unitPrice;
+
+  /// Quantity decrement tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease quantity by 1'**
+  String get decreaseQuantityByOne;
+
+  /// Quantity increment tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Increase quantity by 1'**
+  String get increaseQuantityByOne;
+
+  /// Subtotal label
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get subtotal;
+
+  /// Delivery date field label
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Date'**
+  String get deliveryDate;
+
+  /// Accessibility label for payment action area
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction summary and payment actions'**
+  String get transactionSummaryPaymentActions;
+
+  /// Accessibility hint for payment action area
+  ///
+  /// In en, this message translates to:
+  /// **'Complete sale with total amount {total}'**
+  String completeSaleTotalHint(String total);
+
+  /// Generic error label with value
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorWithValue(String error);
+
+  /// Confirmation message before removing a cart item
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove \"{itemName}\" from this transaction?'**
+  String confirmRemoveItemFromTransaction(String itemName);
+
+  /// Remove action
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// Error shown when changing item quantity after partial payment
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot modify items in a transaction with partial payments'**
+  String get cannotModifyPartialPaymentItems;
+
+  /// Error notification after failing to remove an item
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove item'**
+  String get failedToRemoveItem;
+
+  /// Error notification after failing to update item quantity
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update item quantity'**
+  String get failedToUpdateItemQuantity;
+
+  /// Accessibility label for cart item list
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction items list'**
+  String get transactionItemsList;
+
+  /// Accessibility hint for cart item list
+  ///
+  /// In en, this message translates to:
+  /// **'List of items in the current transaction with quantities and prices'**
+  String get transactionItemsListHint;
+
+  /// Delivery note field label
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Note'**
+  String get deliveryNote;
+
+  /// Accessibility label for delivery note
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery note'**
+  String get deliveryNoteSemantic;
+
+  /// Accessibility hint for delivery note
+  ///
+  /// In en, this message translates to:
+  /// **'Add any special instructions for delivery'**
+  String get deliveryNoteHint;
+
+  /// Delivery note text field hint
+  ///
+  /// In en, this message translates to:
+  /// **'Enter any special instructions for delivery'**
+  String get deliveryInstructionsHint;
+
+  /// Discount field label
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get discount;
+
+  /// Validation error for invalid numeric input
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid number'**
+  String get pleaseEnterValidNumber;
+
+  /// Validation error for invalid discount percentage
+  ///
+  /// In en, this message translates to:
+  /// **'Discount must be between 0 and 100'**
+  String get discountRangeError;
+
+  /// Digital receipt toggle title
+  ///
+  /// In en, this message translates to:
+  /// **'Digital receipt'**
+  String get digitalReceiptTitle;
+
+  /// Digital receipt toggle subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Send receipt by SMS instead of opening a PDF'**
+  String get digitalReceiptSmsSubtitle;
+
+  /// Accessibility label for received amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Received amount in {currency}'**
+  String receivedAmountInCurrency(String currency);
+
+  /// Accessibility hint for received amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the amount received from the customer'**
+  String get receivedAmountHint;
+
+  /// Received amount field hint
+  ///
+  /// In en, this message translates to:
+  /// **'Received Amount'**
+  String get receivedAmount;
+
+  /// Validation error for empty received amount
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter received amount'**
+  String get pleaseEnterReceivedAmount;
+
+  /// Customer name field label
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name'**
+  String get customerName;
+
+  /// Accessibility hint for customer name field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the full name of the customer'**
+  String get customerNameHint;
+
+  /// Validation error for empty customer name
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter customer name'**
+  String get pleaseEnterCustomerName;
+
+  /// Accessibility label for customer phone number field
+  ///
+  /// In en, this message translates to:
+  /// **'Customer phone number'**
+  String get customerPhoneNumber;
+
+  /// Accessibility hint for customer phone number field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the customer\'s phone number for contact and billing purposes'**
+  String get customerPhoneNumberHint;
+
+  /// Items section label
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get items;
+
+  /// Transaction ID label
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID'**
+  String get transactionId;
+
+  /// Amount paid label
+  ///
+  /// In en, this message translates to:
+  /// **'Amount Paid'**
+  String get amountPaid;
+
+  /// Remaining balance label
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Balance'**
+  String get remainingBalance;
+
+  /// Payment button label when recording a partial payment
+  ///
+  /// In en, this message translates to:
+  /// **'Record Payment • {amount}'**
+  String recordPaymentWithAmount(String amount);
+
+  /// Payment button label
+  ///
+  /// In en, this message translates to:
+  /// **'Pay • {amount}'**
+  String payWithAmount(String amount);
+
+  /// Validation error when phone number is required because TIN is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number is required when customer TIN is not available'**
+  String get phoneRequiredWhenTinMissing;
+
+  /// Validation error for invalid phone number
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Number'**
+  String get invalidNumber;
+
+  /// Back navigation tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// Admin management dashboard title
+  ///
+  /// In en, this message translates to:
+  /// **'Management Dashboard'**
+  String get managementDashboard;
+
+  /// Quick actions section title
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get quickActions;
+
+  /// POS default setting title
+  ///
+  /// In en, this message translates to:
+  /// **'POS Default'**
+  String get posDefault;
+
+  /// POS default setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Set POS as default app'**
+  String get setPosAsDefaultApp;
+
+  /// Orders default setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Orders Default'**
+  String get ordersDefault;
+
+  /// Orders default setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Set Orders as default app'**
+  String get setOrdersAsDefaultApp;
+
+  /// Account management section title
+  ///
+  /// In en, this message translates to:
+  /// **'Account Management'**
+  String get accountManagement;
+
+  /// User management setting title
+  ///
+  /// In en, this message translates to:
+  /// **'User Management'**
+  String get userManagement;
+
+  /// User management setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Manage users and permissions'**
+  String get manageUsersAndPermissions;
+
+  /// Branch management setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Management'**
+  String get branchManagement;
+
+  /// Branch management setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Branch (Locations)'**
+  String get manageBranchLocations;
+
+  /// Financial controls section title
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Controls'**
+  String get financialControls;
+
+  /// Tax settings title
+  ///
+  /// In en, this message translates to:
+  /// **'Tax Settings'**
+  String get taxSettings;
+
+  /// Tax settings subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Configure tax rules and rates'**
+  String get configureTaxRulesAndRates;
+
+  /// EBM settings title
+  ///
+  /// In en, this message translates to:
+  /// **'EBM Settings'**
+  String get ebmSettings;
+
+  /// EBM settings subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic Billing Machine settings'**
+  String get electronicBillingMachineSettings;
+
+  /// SMS configuration section title
+  ///
+  /// In en, this message translates to:
+  /// **'SMS Configuration'**
+  String get smsConfiguration;
+
+  /// SMS notification toggle title
+  ///
+  /// In en, this message translates to:
+  /// **'Enable SMS Notifications'**
+  String get enableSmsNotifications;
+
+  /// System settings section title
+  ///
+  /// In en, this message translates to:
+  /// **'System Settings'**
+  String get systemSettings;
+
+  /// Debug mode setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Mode'**
+  String get debugMode;
+
+  /// Debug mode setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Enable debug features'**
+  String get enableDebugFeatures;
+
+  /// Force update setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Force Update'**
+  String get forceUpdate;
+
+  /// Force update setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Force update all data'**
+  String get forceUpdateAllData;
+
+  /// Tax service setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Tax Service'**
+  String get taxService;
+
+  /// Tax service setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle tax service'**
+  String get toggleTaxService;
+
+  /// Success notification after saving a discount
+  ///
+  /// In en, this message translates to:
+  /// **'Saved discount'**
+  String get savedDiscount;
+
+  /// Create discount page title
+  ///
+  /// In en, this message translates to:
+  /// **'Create Discount'**
+  String get createDiscount;
+
+  /// Validation error for empty name
+  ///
+  /// In en, this message translates to:
+  /// **'Name can not be null'**
+  String get nameCannotBeNull;
+
+  /// Validation error for empty amount
+  ///
+  /// In en, this message translates to:
+  /// **'Amount can not be null'**
+  String get amountCannotBeNull;
+
+  /// Name field label
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// Confirmation dialog title for saving a transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Save {transactionType} transaction'**
+  String saveTransactionTitle(String transactionType);
+
+  /// Confirmation dialog message for saving a transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to save this transaction?'**
+  String get confirmSaveTransaction;
+
+  /// Warning shown when saving without category
+  ///
+  /// In en, this message translates to:
+  /// **'A category must be selected'**
+  String get categoryMustBeSelected;
+
+  /// Logout confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Logout'**
+  String get confirmLogout;
+
+  /// Logout confirmation dialog message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to log out?'**
+  String get confirmLogoutMessage;
+
+  /// Refund reason field label
+  ///
+  /// In en, this message translates to:
+  /// **'Refund Reason'**
+  String get refundReason;
+
+  /// Refund status reason
+  ///
+  /// In en, this message translates to:
+  /// **'Wait for Approval'**
+  String get waitForApproval;
+
+  /// Refund status reason
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get approved;
+
+  /// Refund status reason
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Requested'**
+  String get cancelRequested;
+
+  /// Refund status reason
+  ///
+  /// In en, this message translates to:
+  /// **'Canceled'**
+  String get canceled;
+
+  /// Refund status reason
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get refunded;
+
+  /// Refund status reason
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred'**
+  String get transferred;
 }
 
 class _FlipperAppLocalizationsDelegate

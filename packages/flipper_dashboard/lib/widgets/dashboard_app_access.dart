@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Whether a dashboard app tile should be visible for the signed-in user.
@@ -32,14 +33,15 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
     return canSell || canAddProduct;
   }
 
-  return ref.watch(
-    featureAccessProvider(userId: uid, featureName: feature),
-  );
+  return ref.watch(featureAccessProvider(userId: uid, featureName: feature));
 }
 
 /// Filter catalog sections to tiles the user can access.
-List<DashboardAllAppSection> filterDashboardAllAppsCatalog(WidgetRef ref) {
-  return dashboardAllAppsCatalog
+List<DashboardAllAppSection> filterDashboardAllAppsCatalog(
+  BuildContext context,
+  WidgetRef ref,
+) {
+  return dashboardAllAppsCatalog(context)
       .map((section) {
         final apps = section.apps
             .where((tile) => dashboardAppTileVisible(ref, tile))

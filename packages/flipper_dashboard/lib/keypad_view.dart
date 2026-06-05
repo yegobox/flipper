@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/create/category_selector.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -59,7 +60,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final bid = ProxyService.box.getBranchId();
         if (bid != null && bid.isNotEmpty) {
-          unawaited(UtilityCashVariantCache.prefetch(ProxyService.strategy, bid));
+          unawaited(
+            UtilityCashVariantCache.prefetch(ProxyService.strategy, bid),
+          );
         }
       });
     }
@@ -312,15 +315,17 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Save ${widget.transactionType} transaction'),
-          content: Text('Are you sure you want to save this transaction?'),
+          title: Text(
+            context.flipperL10n.saveTransactionTitle(widget.transactionType),
+          ),
+          content: Text(context.flipperL10n.confirmSaveTransaction),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: Text(context.flipperL10n.cancel),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             TextButton(
-              child: Text('Confirm'),
+              child: Text(context.flipperL10n.confirm),
               onPressed: () async {
                 final bool isIncome =
                     (widget.transactionType == TransactionType.cashIn ||
@@ -330,7 +335,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 if (activeCat == null) {
                   showWarningNotification(
                     context,
-                    'A category must be selected',
+                    context.flipperL10n.categoryMustBeSelected,
                   );
                   return;
                 }
@@ -421,9 +426,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           return;
         }
         ref.refresh(transactionItemsProvider(transactionId: updated.id));
-        ref.refresh(
-          pendingTransactionStreamProvider(isExpense: !isIncome),
-        );
+        ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
         SchedulerBinding.instance.scheduleTask(() {
           if (context.mounted) {
             ref.invalidate(dashboardTransactionsProvider);

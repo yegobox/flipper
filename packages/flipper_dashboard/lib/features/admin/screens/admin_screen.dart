@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -41,14 +42,14 @@ class _AdminScreenContent extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => navigator.navigateTo(FlipperAppRoute()),
-          tooltip: 'Back',
+          tooltip: context.flipperL10n.back,
         ),
         title: Text(
-          'Management Dashboard',
+          context.flipperL10n.managementDashboard,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
@@ -71,8 +72,10 @@ class _AdminScreenContent extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -89,14 +92,14 @@ class _AdminScreenContent extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context, AdminController controller) {
     return SettingsSection(
-      title: 'Quick Actions',
+      title: context.flipperL10n.quickActions,
       children: [
         Row(
           children: [
             Expanded(
               child: SwitchSettingsCard(
-                title: 'POS Default',
-                subtitle: 'Set POS as default app',
+                title: context.flipperL10n.posDefault,
+                subtitle: context.flipperL10n.setPosAsDefaultApp,
                 icon: Icons.point_of_sale,
                 value: controller.isPosDefault,
                 onChanged: controller.togglePos,
@@ -106,8 +109,8 @@ class _AdminScreenContent extends StatelessWidget {
             const SizedBox(width: 16),
             Expanded(
               child: SwitchSettingsCard(
-                title: 'Orders Default',
-                subtitle: 'Set Orders as default app',
+                title: context.flipperL10n.ordersDefault,
+                subtitle: context.flipperL10n.setOrdersAsDefaultApp,
                 icon: Icons.receipt_long,
                 value: controller.isOrdersDefault,
                 onChanged: controller.toggleOrders,
@@ -126,26 +129,18 @@ class _AdminScreenContent extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildAccountManagement(context),
-            ),
+            Expanded(child: _buildAccountManagement(context)),
             const SizedBox(width: 24),
-            Expanded(
-              child: _buildFinancialControls(context),
-            ),
+            Expanded(child: _buildFinancialControls(context)),
           ],
         ),
         const SizedBox(height: 24),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildSmsConfig(context, controller),
-            ),
+            Expanded(child: _buildSmsConfig(context, controller)),
             const SizedBox(width: 24),
-            Expanded(
-              child: _buildSystemSettings(context, controller),
-            ),
+            Expanded(child: _buildSystemSettings(context, controller)),
           ],
         ),
       ],
@@ -154,11 +149,11 @@ class _AdminScreenContent extends StatelessWidget {
 
   Widget _buildAccountManagement(BuildContext context) {
     return SettingsSection(
-      title: 'Account Management',
+      title: context.flipperL10n.accountManagement,
       children: [
         SettingsCard(
-          title: 'User Management',
-          subtitle: 'Manage users and permissions',
+          title: context.flipperL10n.userManagement,
+          subtitle: context.flipperL10n.manageUsersAndPermissions,
           icon: Icons.people,
           onTap: () {
             showDialog(
@@ -170,8 +165,8 @@ class _AdminScreenContent extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SettingsCard(
-          title: 'Branch Management',
-          subtitle: 'Manage Branch (Locations)',
+          title: context.flipperL10n.branchManagement,
+          subtitle: context.flipperL10n.manageBranchLocations,
           icon: Icons.business,
           onTap: () {
             locator<RouterService>().navigateTo(AddBranchRoute());
@@ -184,26 +179,25 @@ class _AdminScreenContent extends StatelessWidget {
 
   Widget _buildFinancialControls(BuildContext context) {
     return SettingsSection(
-      title: 'Financial Controls',
+      title: context.flipperL10n.financialControls,
       children: [
         SettingsCard(
-          title: 'Tax Settings',
-          subtitle: 'Configure tax rules and rates',
+          title: context.flipperL10n.taxSettings,
+          subtitle: context.flipperL10n.configureTaxRulesAndRates,
           icon: Icons.account_balance,
           onTap: () {
             showDialog(
               context: context,
-              builder: (context) => TaxSettingsModal(
-                branchId: ProxyService.box.getBranchId()!,
-              ),
+              builder: (context) =>
+                  TaxSettingsModal(branchId: ProxyService.box.getBranchId()!),
             );
           },
           color: Colors.purple,
         ),
         const SizedBox(height: 16),
         SettingsCard(
-          title: 'EBM Settings',
-          subtitle: 'Electronic Billing Machine settings',
+          title: context.flipperL10n.ebmSettings,
+          subtitle: context.flipperL10n.electronicBillingMachineSettings,
           icon: Icons.receipt,
           onTap: () {
             showDialog(
@@ -219,12 +213,13 @@ class _AdminScreenContent extends StatelessWidget {
 
   Widget _buildSmsConfig(BuildContext context, AdminController controller) {
     return SettingsSection(
-      title: 'SMS Configuration',
+      title: context.flipperL10n.smsConfiguration,
       children: [
         Card(
           elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -232,7 +227,7 @@ class _AdminScreenContent extends StatelessWidget {
               children: [
                 TextField(
                   decoration: InputDecoration(
-                    labelText: 'Phone Number',
+                    labelText: context.flipperL10n.phoneNumber,
                     hintText: '+250783054874',
                     errorText: controller.phoneError,
                   ),
@@ -241,7 +236,7 @@ class _AdminScreenContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile.adaptive(
-                  title: const Text('Enable SMS Notifications'),
+                  title: Text(context.flipperL10n.enableSmsNotifications),
                   value: controller.enableSmsNotification,
                   onChanged: (value) =>
                       controller.updateSmsConfig(enable: value),
@@ -255,13 +250,15 @@ class _AdminScreenContent extends StatelessWidget {
   }
 
   Widget _buildSystemSettings(
-      BuildContext context, AdminController controller) {
+    BuildContext context,
+    AdminController controller,
+  ) {
     return SettingsSection(
-      title: 'System Settings',
+      title: context.flipperL10n.systemSettings,
       children: [
         SwitchSettingsCard(
-          title: 'Debug Mode',
-          subtitle: 'Enable debug features',
+          title: context.flipperL10n.debugMode,
+          subtitle: context.flipperL10n.enableDebugFeatures,
           icon: Icons.bug_report,
           value: controller.enableDebug,
           onChanged: (_) => controller.toggleDebug(),
@@ -269,8 +266,8 @@ class _AdminScreenContent extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SwitchSettingsCard(
-          title: 'Force Update',
-          subtitle: 'Force update all data',
+          title: context.flipperL10n.forceUpdate,
+          subtitle: context.flipperL10n.forceUpdateAllData,
           icon: Icons.update,
           value: controller.forceUPSERT,
           onChanged: (_) => controller.toggleForceUPSERT(),
@@ -278,8 +275,8 @@ class _AdminScreenContent extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SwitchSettingsCard(
-          title: 'Tax Service',
-          subtitle: 'Toggle tax service',
+          title: context.flipperL10n.taxService,
+          subtitle: context.flipperL10n.toggleTaxService,
           icon: Icons.receipt_long,
           value: controller.stopTaxService,
           onChanged: (_) => controller.toggleTaxService(),

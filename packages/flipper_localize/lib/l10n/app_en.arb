@@ -603,5 +603,578 @@
     "errorRestoringBackup": "Error Restoring backup",
     "@errorRestoringBackup": {
         "description": "Backup restore error message"
+    },
+    "transactionIdCopiedToClipboard": "Transaction ID copied to clipboard",
+    "@transactionIdCopiedToClipboard": {
+        "description": "Transaction ID copied success message"
+    },
+    "transactionIdShortLabel": "Txn ID: ",
+    "@transactionIdShortLabel": {
+        "description": "Short transaction ID label"
+    },
+    "invoiceNumberLabel": "Invoice No: ",
+    "@invoiceNumberLabel": {
+        "description": "Invoice number label"
+    },
+    "parkSaleAsTicket": "Park this sale as a ticket",
+    "@parkSaleAsTicket": {
+        "description": "Save ticket tooltip"
+    },
+    "saveTicketAction": "Save ticket",
+    "@saveTicketAction": {
+        "description": "Save current sale as ticket action"
+    },
+    "remainingBalanceLabel": "Remaining Balance: ",
+    "@remainingBalanceLabel": {
+        "description": "Remaining balance label"
+    },
+    "amountToChangeLabel": "Amount to Change: ",
+    "@amountToChangeLabel": {
+        "description": "Amount to change label"
+    },
+    "allApps": "All apps",
+    "@allApps": {
+        "description": "All apps launcher title"
+    },
+    "sell": "Sell",
+    "@sell": {
+        "description": "All apps sell section"
+    },
+    "quickSell": "Quick Sell",
+    "@quickSell": {
+        "description": "Quick sell app tile"
+    },
+    "invoices": "Invoices",
+    "@invoices": {
+        "description": "Invoices app tile"
+    },
+    "pricing": "Pricing",
+    "@pricing": {
+        "description": "Pricing app tile"
+    },
+    "payments": "Payments",
+    "@payments": {
+        "description": "Payments app tile"
+    },
+    "manage": "Manage",
+    "@manage": {
+        "description": "All apps manage section"
+    },
+    "purchases": "Purchases",
+    "@purchases": {
+        "description": "Purchases app tile"
+    },
+    "customers": "Customers",
+    "@customers": {
+        "description": "Customers app tile"
+    },
+    "leads": "Leads",
+    "@leads": {
+        "description": "Leads app tile"
+    },
+    "insights": "Insights",
+    "@insights": {
+        "description": "All apps insights section"
+    },
+    "dailyReports": "Daily Reports",
+    "@dailyReports": {
+        "description": "Daily reports app tile"
+    },
+    "commissions": "Commissions",
+    "@commissions": {
+        "description": "Commissions app tile"
+    },
+    "production": "Production",
+    "@production": {
+        "description": "Production app tile"
+    },
+    "business": "Business",
+    "@business": {
+        "description": "All apps business section"
+    },
+    "servicesHub": "Services hub",
+    "@servicesHub": {
+        "description": "Services hub app tile"
+    },
+    "goals": "Goals",
+    "@goals": {
+        "description": "Goals app tile"
+    },
+    "aiChat": "AI Chat",
+    "@aiChat": {
+        "description": "AI chat app tile"
+    },
+    "errorLoadingTransactionView": "Error loading transaction view",
+    "@errorLoadingTransactionView": {
+        "description": "Fallback message when the quick selling transaction view fails to render"
+    },
+    "customer": "Customer",
+    "@customer": {
+        "description": "Customer section label"
+    },
+    "payment": "Payment",
+    "@payment": {
+        "description": "Payment section label"
+    },
+    "delivery": "Delivery",
+    "@delivery": {
+        "description": "Delivery section label"
+    },
+    "transactionSummary": "Transaction summary",
+    "@transactionSummary": {
+        "description": "Accessibility label for transaction summary"
+    },
+    "transactionSummaryHint": "Shows the total amount and transaction ID for the current sale",
+    "@transactionSummaryHint": {
+        "description": "Accessibility hint for transaction summary"
+    },
+    "totalAmount": "Total Amount",
+    "@totalAmount": {
+        "description": "Total amount label"
+    },
+    "cannotDeletePartialPaymentItems": "Cannot delete items from a transaction with partial payments",
+    "@cannotDeletePartialPaymentItems": {
+        "description": "Error shown when trying to delete items after partial payment"
+    },
+    "deleteAllItems": "Delete All Items",
+    "@deleteAllItems": {
+        "description": "Dialog title for deleting all cart items"
+    },
+    "confirmRemoveAllTransactionItems": "Are you sure you want to remove all items from this transaction?",
+    "@confirmRemoveAllTransactionItems": {
+        "description": "Confirmation message for deleting all transaction items"
+    },
+    "deleteAll": "Delete All",
+    "@deleteAll": {
+        "description": "Delete all action"
+    },
+    "allItemsRemovedSuccessfully": "All items removed successfully",
+    "@allItemsRemovedSuccessfully": {
+        "description": "Success notification after deleting all items"
+    },
+    "errorRemovingItems": "Error removing items: {error}",
+    "@errorRemovingItems": {
+        "description": "Error notification after failing to remove all items",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "noItemsAdded": "No items added",
+    "@noItemsAdded": {
+        "description": "Empty cart title"
+    },
+    "tapAddFirstItem": "Tap the + button to add your first item",
+    "@tapAddFirstItem": {
+        "description": "Empty cart helper text"
+    },
+    "cartItemCount": "{count, plural, =1{1 item} other{{count} items}}",
+    "@cartItemCount": {
+        "description": "Cart item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "itemSemanticLabel": "Item: {itemName}",
+    "@itemSemanticLabel": {
+        "description": "Accessibility label for a cart item",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
+    "cartItemSemanticHint": "Quantity: {quantity}, Unit price: {unitPrice}, Subtotal: {subtotal}",
+    "@cartItemSemanticHint": {
+        "description": "Accessibility hint for a cart item",
+        "placeholders": {
+            "quantity": {
+                "type": "String"
+            },
+            "unitPrice": {
+                "type": "String"
+            },
+            "subtotal": {
+                "type": "String"
+            }
+        }
+    },
+    "removeItem": "Remove item",
+    "@removeItem": {
+        "description": "Remove item action"
+    },
+    "unitPrice": "Unit Price",
+    "@unitPrice": {
+        "description": "Unit price label"
+    },
+    "decreaseQuantityByOne": "Decrease quantity by 1",
+    "@decreaseQuantityByOne": {
+        "description": "Quantity decrement tooltip"
+    },
+    "increaseQuantityByOne": "Increase quantity by 1",
+    "@increaseQuantityByOne": {
+        "description": "Quantity increment tooltip"
+    },
+    "subtotal": "Subtotal",
+    "@subtotal": {
+        "description": "Subtotal label"
+    },
+    "deliveryDate": "Delivery Date",
+    "@deliveryDate": {
+        "description": "Delivery date field label"
+    },
+    "transactionSummaryPaymentActions": "Transaction summary and payment actions",
+    "@transactionSummaryPaymentActions": {
+        "description": "Accessibility label for payment action area"
+    },
+    "completeSaleTotalHint": "Complete sale with total amount {total}",
+    "@completeSaleTotalHint": {
+        "description": "Accessibility hint for payment action area",
+        "placeholders": {
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "errorWithValue": "Error: {error}",
+    "@errorWithValue": {
+        "description": "Generic error label with value",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "confirmRemoveItemFromTransaction": "Are you sure you want to remove \"{itemName}\" from this transaction?",
+    "@confirmRemoveItemFromTransaction": {
+        "description": "Confirmation message before removing a cart item",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
+    "remove": "Remove",
+    "@remove": {
+        "description": "Remove action"
+    },
+    "cannotModifyPartialPaymentItems": "Cannot modify items in a transaction with partial payments",
+    "@cannotModifyPartialPaymentItems": {
+        "description": "Error shown when changing item quantity after partial payment"
+    },
+    "failedToRemoveItem": "Failed to remove item",
+    "@failedToRemoveItem": {
+        "description": "Error notification after failing to remove an item"
+    },
+    "failedToUpdateItemQuantity": "Failed to update item quantity",
+    "@failedToUpdateItemQuantity": {
+        "description": "Error notification after failing to update item quantity"
+    },
+    "transactionItemsList": "Transaction items list",
+    "@transactionItemsList": {
+        "description": "Accessibility label for cart item list"
+    },
+    "transactionItemsListHint": "List of items in the current transaction with quantities and prices",
+    "@transactionItemsListHint": {
+        "description": "Accessibility hint for cart item list"
+    },
+    "deliveryNote": "Delivery Note",
+    "@deliveryNote": {
+        "description": "Delivery note field label"
+    },
+    "deliveryNoteSemantic": "Delivery note",
+    "@deliveryNoteSemantic": {
+        "description": "Accessibility label for delivery note"
+    },
+    "deliveryNoteHint": "Add any special instructions for delivery",
+    "@deliveryNoteHint": {
+        "description": "Accessibility hint for delivery note"
+    },
+    "deliveryInstructionsHint": "Enter any special instructions for delivery",
+    "@deliveryInstructionsHint": {
+        "description": "Delivery note text field hint"
+    },
+    "discount": "Discount",
+    "@discount": {
+        "description": "Discount field label"
+    },
+    "pleaseEnterValidNumber": "Please enter a valid number",
+    "@pleaseEnterValidNumber": {
+        "description": "Validation error for invalid numeric input"
+    },
+    "discountRangeError": "Discount must be between 0 and 100",
+    "@discountRangeError": {
+        "description": "Validation error for invalid discount percentage"
+    },
+    "digitalReceiptTitle": "Digital receipt",
+    "@digitalReceiptTitle": {
+        "description": "Digital receipt toggle title"
+    },
+    "digitalReceiptSmsSubtitle": "Send receipt by SMS instead of opening a PDF",
+    "@digitalReceiptSmsSubtitle": {
+        "description": "Digital receipt toggle subtitle"
+    },
+    "receivedAmountInCurrency": "Received amount in {currency}",
+    "@receivedAmountInCurrency": {
+        "description": "Accessibility label for received amount field",
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "receivedAmountHint": "Enter the amount received from the customer",
+    "@receivedAmountHint": {
+        "description": "Accessibility hint for received amount field"
+    },
+    "receivedAmount": "Received Amount",
+    "@receivedAmount": {
+        "description": "Received amount field hint"
+    },
+    "pleaseEnterReceivedAmount": "Please enter received amount",
+    "@pleaseEnterReceivedAmount": {
+        "description": "Validation error for empty received amount"
+    },
+    "customerName": "Customer name",
+    "@customerName": {
+        "description": "Customer name field label"
+    },
+    "customerNameHint": "Enter the full name of the customer",
+    "@customerNameHint": {
+        "description": "Accessibility hint for customer name field"
+    },
+    "pleaseEnterCustomerName": "Please enter customer name",
+    "@pleaseEnterCustomerName": {
+        "description": "Validation error for empty customer name"
+    },
+    "customerPhoneNumber": "Customer phone number",
+    "@customerPhoneNumber": {
+        "description": "Accessibility label for customer phone number field"
+    },
+    "customerPhoneNumberHint": "Enter the customer's phone number for contact and billing purposes",
+    "@customerPhoneNumberHint": {
+        "description": "Accessibility hint for customer phone number field"
+    },
+    "items": "Items",
+    "@items": {
+        "description": "Items section label"
+    },
+    "transactionId": "Transaction ID",
+    "@transactionId": {
+        "description": "Transaction ID label"
+    },
+    "amountPaid": "Amount Paid",
+    "@amountPaid": {
+        "description": "Amount paid label"
+    },
+    "remainingBalance": "Remaining Balance",
+    "@remainingBalance": {
+        "description": "Remaining balance label"
+    },
+    "recordPaymentWithAmount": "Record Payment • {amount}",
+    "@recordPaymentWithAmount": {
+        "description": "Payment button label when recording a partial payment",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "payWithAmount": "Pay • {amount}",
+    "@payWithAmount": {
+        "description": "Payment button label",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "phoneRequiredWhenTinMissing": "Phone number is required when customer TIN is not available",
+    "@phoneRequiredWhenTinMissing": {
+        "description": "Validation error when phone number is required because TIN is missing"
+    },
+    "invalidNumber": "Invalid Number",
+    "@invalidNumber": {
+        "description": "Validation error for invalid phone number"
+    },
+    "back": "Back",
+    "@back": {
+        "description": "Back navigation tooltip"
+    },
+    "managementDashboard": "Management Dashboard",
+    "@managementDashboard": {
+        "description": "Admin management dashboard title"
+    },
+    "quickActions": "Quick Actions",
+    "@quickActions": {
+        "description": "Quick actions section title"
+    },
+    "posDefault": "POS Default",
+    "@posDefault": {
+        "description": "POS default setting title"
+    },
+    "setPosAsDefaultApp": "Set POS as default app",
+    "@setPosAsDefaultApp": {
+        "description": "POS default setting subtitle"
+    },
+    "ordersDefault": "Orders Default",
+    "@ordersDefault": {
+        "description": "Orders default setting title"
+    },
+    "setOrdersAsDefaultApp": "Set Orders as default app",
+    "@setOrdersAsDefaultApp": {
+        "description": "Orders default setting subtitle"
+    },
+    "accountManagement": "Account Management",
+    "@accountManagement": {
+        "description": "Account management section title"
+    },
+    "userManagement": "User Management",
+    "@userManagement": {
+        "description": "User management setting title"
+    },
+    "manageUsersAndPermissions": "Manage users and permissions",
+    "@manageUsersAndPermissions": {
+        "description": "User management setting subtitle"
+    },
+    "branchManagement": "Branch Management",
+    "@branchManagement": {
+        "description": "Branch management setting title"
+    },
+    "manageBranchLocations": "Manage Branch (Locations)",
+    "@manageBranchLocations": {
+        "description": "Branch management setting subtitle"
+    },
+    "financialControls": "Financial Controls",
+    "@financialControls": {
+        "description": "Financial controls section title"
+    },
+    "taxSettings": "Tax Settings",
+    "@taxSettings": {
+        "description": "Tax settings title"
+    },
+    "configureTaxRulesAndRates": "Configure tax rules and rates",
+    "@configureTaxRulesAndRates": {
+        "description": "Tax settings subtitle"
+    },
+    "ebmSettings": "EBM Settings",
+    "@ebmSettings": {
+        "description": "EBM settings title"
+    },
+    "electronicBillingMachineSettings": "Electronic Billing Machine settings",
+    "@electronicBillingMachineSettings": {
+        "description": "EBM settings subtitle"
+    },
+    "smsConfiguration": "SMS Configuration",
+    "@smsConfiguration": {
+        "description": "SMS configuration section title"
+    },
+    "enableSmsNotifications": "Enable SMS Notifications",
+    "@enableSmsNotifications": {
+        "description": "SMS notification toggle title"
+    },
+    "systemSettings": "System Settings",
+    "@systemSettings": {
+        "description": "System settings section title"
+    },
+    "debugMode": "Debug Mode",
+    "@debugMode": {
+        "description": "Debug mode setting title"
+    },
+    "enableDebugFeatures": "Enable debug features",
+    "@enableDebugFeatures": {
+        "description": "Debug mode setting subtitle"
+    },
+    "forceUpdate": "Force Update",
+    "@forceUpdate": {
+        "description": "Force update setting title"
+    },
+    "forceUpdateAllData": "Force update all data",
+    "@forceUpdateAllData": {
+        "description": "Force update setting subtitle"
+    },
+    "taxService": "Tax Service",
+    "@taxService": {
+        "description": "Tax service setting title"
+    },
+    "toggleTaxService": "Toggle tax service",
+    "@toggleTaxService": {
+        "description": "Tax service setting subtitle"
+    },
+    "savedDiscount": "Saved discount",
+    "@savedDiscount": {
+        "description": "Success notification after saving a discount"
+    },
+    "createDiscount": "Create Discount",
+    "@createDiscount": {
+        "description": "Create discount page title"
+    },
+    "nameCannotBeNull": "Name can not be null",
+    "@nameCannotBeNull": {
+        "description": "Validation error for empty name"
+    },
+    "amountCannotBeNull": "Amount can not be null",
+    "@amountCannotBeNull": {
+        "description": "Validation error for empty amount"
+    },
+    "name": "Name",
+    "@name": {
+        "description": "Name field label"
+    },
+    "saveTransactionTitle": "Save {transactionType} transaction",
+    "@saveTransactionTitle": {
+        "description": "Confirmation dialog title for saving a transaction",
+        "placeholders": {
+            "transactionType": {
+                "type": "String"
+            }
+        }
+    },
+    "confirmSaveTransaction": "Are you sure you want to save this transaction?",
+    "@confirmSaveTransaction": {
+        "description": "Confirmation dialog message for saving a transaction"
+    },
+    "categoryMustBeSelected": "A category must be selected",
+    "@categoryMustBeSelected": {
+        "description": "Warning shown when saving without category"
+    },
+    "confirmLogout": "Confirm Logout",
+    "@confirmLogout": {
+        "description": "Logout confirmation dialog title"
+    },
+    "confirmLogoutMessage": "Are you sure you want to log out?",
+    "@confirmLogoutMessage": {
+        "description": "Logout confirmation dialog message"
+    },
+    "refundReason": "Refund Reason",
+    "@refundReason": {
+        "description": "Refund reason field label"
+    },
+    "waitForApproval": "Wait for Approval",
+    "@waitForApproval": {
+        "description": "Refund status reason"
+    },
+    "approved": "Approved",
+    "@approved": {
+        "description": "Refund status reason"
+    },
+    "cancelRequested": "Cancel Requested",
+    "@cancelRequested": {
+        "description": "Refund status reason"
+    },
+    "canceled": "Canceled",
+    "@canceled": {
+        "description": "Refund status reason"
+    },
+    "refunded": "Refunded",
+    "@refunded": {
+        "description": "Refund status reason"
+    },
+    "transferred": "Transferred",
+    "@transferred": {
+        "description": "Refund status reason"
     }
 }

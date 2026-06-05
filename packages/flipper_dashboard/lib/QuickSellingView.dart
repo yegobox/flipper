@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_quick_cash_row.dart';
@@ -204,14 +205,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               if (!mounted) return;
               showSuccessNotification(
                 context,
-                'Transaction ID copied to clipboard',
+                context.flipperL10n.transactionIdCopiedToClipboard,
                 duration: const Duration(seconds: 2),
               );
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Txn ID: ', style: body),
+                Text(context.flipperL10n.transactionIdShortLabel, style: body),
                 Text(
                   txnId,
                   key: const Key('pending-transaction-id-text'),
@@ -222,7 +223,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
           const SizedBox(width: 12),
         ],
-        Text('Invoice No: ', style: body),
+        Text(context.flipperL10n.invoiceNumberLabel, style: body),
         Text(
           '$highestInvoiceNumber',
           key: const Key('invoice-number-text'),
@@ -326,7 +327,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     const accent = PosLayoutBreakpoints.posAccentBlue;
 
     return Tooltip(
-      message: 'Park this sale as a ticket',
+      message: context.flipperL10n.parkSaleAsTicket,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -349,7 +350,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   Icon(FluentIcons.bookmark_16_filled, size: 15, color: accent),
                   const SizedBox(width: 6),
                   Text(
-                    'Save ticket',
+                    context.flipperL10n.saveTicketAction,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: accent,
@@ -393,7 +394,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            isRemaining ? 'Remaining Balance: ' : 'Amount to Change: ',
+            isRemaining
+                ? context.flipperL10n.remainingBalanceLabel
+                : context.flipperL10n.amountToChangeLabel,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
               color: labelColor,
               fontWeight: FontWeight.w600,
@@ -867,7 +870,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               children: [
                 Icon(Icons.error_outline, size: 48, color: Colors.red),
                 SizedBox(height: 16),
-                Text('Error loading transaction view'),
+                Text(context.flipperL10n.errorLoadingTransactionView),
                 SizedBox(height: 8),
                 Text(e.toString(), style: TextStyle(fontSize: 12)),
                 SizedBox(height: 16),
@@ -876,7 +879,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     // Force refresh
                     ref.invalidate(pendingTransactionStreamProvider);
                   },
-                  child: Text('Retry'),
+                  child: Text(context.flipperL10n.retry),
                 ),
               ],
             ),
@@ -926,7 +929,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         // Items Section
         SliverToBoxAdapter(
           child: _buildSectionHeader(
-            'Items',
+            context.flipperL10n.items,
             Icons.shopping_basket_outlined,
             key: Key('items-section'),
           ),
@@ -937,10 +940,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         // Customer & Payment Section
         if (!isOrdering) ...[
           SliverToBoxAdapter(
-            child: _buildSectionHeader('Customer', Icons.person_outline),
+            child: _buildSectionHeader(
+              context.flipperL10n.customer,
+              Icons.person_outline,
+            ),
           ),
           SliverToBoxAdapter(
-            child: _buildSectionHeader('Payment', Icons.payment_outlined),
+            child: _buildSectionHeader(
+              context.flipperL10n.payment,
+              Icons.payment_outlined,
+            ),
           ),
         ],
 
@@ -948,7 +957,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         if (isOrdering) ...[
           SliverToBoxAdapter(
             child: _buildSectionHeader(
-              'Delivery',
+              context.flipperL10n.delivery,
               Icons.local_shipping_outlined,
             ),
           ),
@@ -966,8 +975,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     CoreViewModel model,
   ) {
     return Semantics(
-      label: 'Transaction summary',
-      hint: 'Shows the total amount and transaction ID for the current sale',
+      label: context.flipperL10n.transactionSummary,
+      hint: context.flipperL10n.transactionSummaryHint,
       child: Container(
         margin: EdgeInsets.all(16),
         padding: EdgeInsets.all(20),
@@ -984,7 +993,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total Amount',
+                  context.flipperL10n.totalAmount,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
@@ -1007,7 +1016,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Transaction ID',
+                  context.flipperL10n.transactionId,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(
                       context,
@@ -1031,7 +1040,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Amount Paid',
+                    context.flipperL10n.amountPaid,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
@@ -1053,7 +1062,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Remaining Balance',
+                    context.flipperL10n.remainingBalance,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.redAccent,
                       fontWeight: FontWeight.bold,
@@ -1121,7 +1130,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
       showErrorNotification(
         context,
-        'Cannot delete items from a transaction with partial payments',
+        context.flipperL10n.cannotDeletePartialPaymentItems,
       );
       return;
     }
@@ -1129,19 +1138,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete All Items'),
-        content: Text(
-          'Are you sure you want to remove all items from this transaction?',
-        ),
+        title: Text(context.flipperL10n.deleteAllItems),
+        content: Text(context.flipperL10n.confirmRemoveAllTransactionItems),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('Delete All'),
+            child: Text(context.flipperL10n.deleteAll),
           ),
         ],
       ),
@@ -1175,7 +1182,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
 
         if (mounted) {
-          showSuccessNotification(context, 'All items removed successfully');
+          showSuccessNotification(
+            context,
+            context.flipperL10n.allItemsRemovedSuccessfully,
+          );
         }
       } catch (e) {
         if (mounted) {
@@ -1186,7 +1196,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           });
           showErrorNotification(
             context,
-            'Error removing items: ${e.toString()}',
+            context.flipperL10n.errorRemovingItems(e.toString()),
           );
         }
       }
@@ -1203,26 +1213,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         builder: (context, ref, _) {
           final items = ref
               .watch(posCartDisplayItemsProvider)
-              .where(
-                (item) => !_optimisticallyDeletedItemIds.contains(item.id),
-              )
+              .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
               .toList();
           if (items.isEmpty) {
             return _buildEmptyStateCard(
-              'No items added',
-              'Tap the + button to add your first item',
+              context.flipperL10n.noItemsAdded,
+              context.flipperL10n.tapAddFirstItem,
               Icons.add_shopping_cart_outlined,
             );
           }
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${items.length} item${items.length > 1 ? 's' : ''}',
+                      context.flipperL10n.cartItemCount(items.length),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -1235,7 +1246,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           ? null
                           : () => _deleteAllItems(transactionAsyncValue),
                       icon: const Icon(Icons.delete_sweep, size: 18),
-                      label: const Text('Delete All'),
+                      label: Text(context.flipperL10n.deleteAll),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.red,
                         disabledForegroundColor: Colors.grey,
@@ -1259,10 +1270,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     AsyncValue<ITransaction> transactionAsyncValue,
   ) {
     final displayQty = _displayQtyFor(item);
+    final currency = ProxyService.box.defaultCurrency();
+    final unitPrice = item.price.toCurrencyFormatted(symbol: currency);
+    final subtotal = (item.price * displayQty).toCurrencyFormatted(
+      symbol: currency,
+    );
     return Semantics(
-      label: 'Item: ${item.name}',
-      hint:
-          'Quantity: $displayQty, Unit price: ${item.price.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}, Subtotal: ${(item.price * displayQty).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+      label: context.flipperL10n.itemSemanticLabel(item.name),
+      hint: context.flipperL10n.cartItemSemanticHint(
+        _formatQty(displayQty),
+        unitPrice,
+        subtotal,
+      ),
       child: Container(
         key: Key('item-card-${item.id}'), // Add a key to the item card
         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -1310,7 +1329,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       ).colorScheme.onErrorContainer,
                       minimumSize: Size(32, 32),
                     ),
-                    tooltip: 'Remove item',
+                    tooltip: context.flipperL10n.removeItem,
                   ),
                 ],
               ),
@@ -1326,7 +1345,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Unit Price',
+                          context.flipperL10n.unitPrice,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(context)
@@ -1368,7 +1387,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                   transactionAsyncValue,
                                 )
                               : null,
-                          tooltip: 'Decrease quantity by 1',
+                          tooltip: context.flipperL10n.decreaseQuantityByOne,
                           style: IconButton.styleFrom(
                             minimumSize: Size(32, 32),
                           ),
@@ -1391,7 +1410,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                               transactionAsyncValue,
                             );
                           },
-                          tooltip: 'Increase quantity by 1',
+                          tooltip: context.flipperL10n.increaseQuantityByOne,
                           style: IconButton.styleFrom(
                             minimumSize: Size(32, 32),
                           ),
@@ -1418,7 +1437,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Subtotal',
+                      context.flipperL10n.subtotal,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
@@ -1459,7 +1478,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               Icon(Icons.calendar_today_outlined, size: 20),
               SizedBox(width: 8),
               Text(
-                "Delivery Date",
+                context.flipperL10n.deliveryDate,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Spacer(),
@@ -1545,81 +1564,107 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     child: Padding(
                       padding: EdgeInsets.all(16),
                       child: Semantics(
-                        label: 'Transaction summary and payment actions',
-                        hint:
-                            'Complete sale with total amount ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+                        label: context
+                            .flipperL10n
+                            .transactionSummaryPaymentActions,
+                        hint: context.flipperL10n.completeSaleTotalHint(
+                          getSumOfItems(
+                            transactionId: transactionAsyncValue.value?.id,
+                          ).toCurrencyFormatted(
+                            symbol: ProxyService.box.defaultCurrency(),
+                          ),
+                        ),
                         child: Consumer(
                           builder: (context, ref, _) {
                             ref.watch(posCartPaymentRefreshSignalProvider);
-                            final payWording = (_remainingBalance(alreadyPaid) > 0)
-                                ? "Record Payment • ${(ref.watch(paymentMethodsProvider).fold<double>(0, (sum, p) => sum + p.amount)).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}"
-                                : "Pay • ${(_calculateTotal() - alreadyPaid).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}";
+                            final paymentAmount = ref
+                                .watch(paymentMethodsProvider)
+                                .fold<double>(0, (sum, p) => sum + p.amount)
+                                .toCurrencyFormatted(
+                                  symbol: ProxyService.box.defaultCurrency(),
+                                );
+                            final dueAmount = (_calculateTotal() - alreadyPaid)
+                                .toCurrencyFormatted(
+                                  symbol: ProxyService.box.defaultCurrency(),
+                                );
+                            final payWording =
+                                (_remainingBalance(alreadyPaid) > 0)
+                                ? context.flipperL10n.recordPaymentWithAmount(
+                                    paymentAmount,
+                                  )
+                                : context.flipperL10n.payWithAmount(dueAmount);
                             return PayableView(
-                          transactionId: transactionAsyncValue.value?.id ?? "",
-                          wording: payWording,
-                          mode: SellingMode.forSelling,
-                          completeTransaction:
-                              (
-                                immediateCompleteTransaction, [
-                                onPaymentConfirmed,
-                                onPaymentFailed,
-                              ]) async {
-                                talker.warning(
-                                  "We are about to complete a sale",
-                                );
-                                return transactionAsyncValue.when(
-                                  data: (ITransaction transaction) async {
-                                    await ProxyService.box.writeBool(
-                                      key: 'transactionCompleting',
-                                      value: true,
+                              transactionId:
+                                  transactionAsyncValue.value?.id ?? "",
+                              wording: payWording,
+                              mode: SellingMode.forSelling,
+                              completeTransaction:
+                                  (
+                                    immediateCompleteTransaction, [
+                                    onPaymentConfirmed,
+                                    onPaymentFailed,
+                                  ]) async {
+                                    talker.warning(
+                                      "We are about to complete a sale",
                                     );
-                                    try {
-                                      await startCompleteTransactionFlow(
-                                        immediateCompletion:
-                                            immediateCompleteTransaction,
-                                        completeTransaction: () async {
-                                          await _onQuickSellComplete(
-                                            transaction,
-                                          );
-                                        },
-                                        transactionId: transaction.id,
-                                        transactionHint: transaction,
-                                        transactionItemsHint:
-                                            _transactionItemsHintForCompletion(
-                                              transaction.id,
+                                    return transactionAsyncValue.when(
+                                      data: (ITransaction transaction) async {
+                                        await ProxyService.box.writeBool(
+                                          key: 'transactionCompleting',
+                                          value: true,
+                                        );
+                                        try {
+                                          await startCompleteTransactionFlow(
+                                            immediateCompletion:
+                                                immediateCompleteTransaction,
+                                            completeTransaction: () async {
+                                              await _onQuickSellComplete(
+                                                transaction,
+                                              );
+                                            },
+                                            transactionId: transaction.id,
+                                            transactionHint: transaction,
+                                            transactionItemsHint:
+                                                _transactionItemsHintForCompletion(
+                                                  transaction.id,
+                                                ),
+                                            paymentMethods: ref.watch(
+                                              paymentMethodsProvider,
                                             ),
-                                        paymentMethods: ref.watch(
-                                          paymentMethodsProvider,
-                                        ),
-                                        onPaymentConfirmed: onPaymentConfirmed,
-                                        onPaymentFailed: onPaymentFailed,
-                                      );
-                                    } catch (e) {
-                                      await ProxyService.box.writeBool(
-                                        key: 'transactionCompleting',
-                                        value: false,
-                                      );
-                                      rethrow;
-                                    }
-                                    ref.read(previewingCart.notifier).state =
-                                        false;
-                                    return true;
+                                            onPaymentConfirmed:
+                                                onPaymentConfirmed,
+                                            onPaymentFailed: onPaymentFailed,
+                                          );
+                                        } catch (e) {
+                                          await ProxyService.box.writeBool(
+                                            key: 'transactionCompleting',
+                                            value: false,
+                                          );
+                                          rethrow;
+                                        }
+                                        ref
+                                                .read(previewingCart.notifier)
+                                                .state =
+                                            false;
+                                        return true;
+                                      },
+                                      loading: () async => false,
+                                      error: (error, stack) async => false,
+                                    );
                                   },
-                                  loading: () async => false,
-                                  error: (error, stack) async => false,
+                              model: model,
+                              ticketHandler: () {
+                                talker.warning(
+                                  "We are about to complete a ticket",
                                 );
+                                transactionAsyncValue.whenData((
+                                  ITransaction transaction,
+                                ) {
+                                  handleTicketNavigation(transaction);
+                                });
+                                ref.read(toggleProvider.notifier).state = false;
                               },
-                          model: model,
-                          ticketHandler: () {
-                            talker.warning("We are about to complete a ticket");
-                            transactionAsyncValue.whenData((
-                              ITransaction transaction,
-                            ) {
-                              handleTicketNavigation(transaction);
-                            });
-                            ref.read(toggleProvider.notifier).state = false;
-                          },
-                          digitalPaymentEnabled: digitalPaymentEnabled,
+                              digitalPaymentEnabled: digitalPaymentEnabled,
                             );
                           },
                         ),
@@ -1636,7 +1681,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
           error: (error, stack) => Container(
             height: 80,
-            child: Center(child: Text('Error: $error')),
+            child: Center(
+              child: Text(context.flipperL10n.errorWithValue(error.toString())),
+            ),
           ),
         );
       },
@@ -1651,7 +1698,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
       showErrorNotification(
         context,
-        'Cannot delete items from a transaction with partial payments',
+        context.flipperL10n.cannotDeletePartialPaymentItems,
       );
       return;
     }
@@ -1659,14 +1706,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Remove Item'),
+        title: Text(context.flipperL10n.removeItem),
         content: Text(
-          'Are you sure you want to remove "${item.name}" from this transaction?',
+          context.flipperL10n.confirmRemoveItemFromTransaction(item.name),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -1687,11 +1734,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 talker.error('Failed to remove item', e, stackTrace);
                 if (mounted) {
                   setState(() => _optimisticallyDeletedItemIds.remove(item.id));
-                  showErrorNotification(context, 'Failed to remove item');
+                  showErrorNotification(
+                    context,
+                    context.flipperL10n.failedToRemoveItem,
+                  );
                 }
               }
             },
-            child: Text('Remove'),
+            child: Text(context.flipperL10n.remove),
           ),
         ],
       ),
@@ -1707,7 +1757,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
       showErrorNotification(
         context,
-        'Cannot modify items in a transaction with partial payments',
+        context.flipperL10n.cannotModifyPartialPaymentItems,
       );
       return;
     }
@@ -1731,7 +1781,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             _optimisticQtyByItemId[item.id] = previousDisplayQty;
           }
         });
-        showErrorNotification(context, 'Failed to update item quantity');
+        showErrorNotification(
+          context,
+          context.flipperL10n.failedToUpdateItemQuantity,
+        );
       }
     }
   }
@@ -1780,9 +1833,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         if (pinGrandTotal)
           Expanded(
             child: Semantics(
-              label: 'Transaction items list',
-              hint:
-                  'List of items in the current transaction with quantities and prices',
+              label: context.flipperL10n.transactionItemsList,
+              hint: context.flipperL10n.transactionItemsListHint,
               child: PosCartTableHost(
                 builder: (lines) => buildTransactionItemsTable(
                   isOrdering,
@@ -1794,9 +1846,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           )
         else
           Semantics(
-            label: 'Transaction items list',
-            hint:
-                'List of items in the current transaction with quantities and prices',
+            label: context.flipperL10n.transactionItemsList,
+            hint: context.flipperL10n.transactionItemsListHint,
             child: PosCartTableHost(
               builder: (lines) => buildTransactionItemsTable(
                 isOrdering,
@@ -1812,7 +1863,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             padding: const EdgeInsets.all(6.0),
             child: Column(
               children: [
-                Row(children: [Text("Delivery Date"), datePicker()]),
+                Row(
+                  children: [
+                    Text(context.flipperL10n.deliveryDate),
+                    datePicker(),
+                  ],
+                ),
                 _deliveryNote(),
               ],
             ),
@@ -2140,14 +2196,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Widget _deliveryNote() {
     return Semantics(
-      label: 'Delivery note',
-      hint: 'Add any special instructions for delivery',
+      label: context.flipperL10n.deliveryNoteSemantic,
+      hint: context.flipperL10n.deliveryNoteHint,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 18.0),
         child: StyledTextFormField.create(
           context: context,
-          labelText: 'Delivery Note',
-          hintText: 'Enter any special instructions for delivery',
+          labelText: context.flipperL10n.deliveryNote,
+          hintText: context.flipperL10n.deliveryInstructionsHint,
           controller: widget.deliveryNoteCotroller,
           focusNode: _deliveryNoteFocusNode,
           keyboardType: TextInputType.multiline,
@@ -2174,7 +2230,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       controller: widget.discountController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        labelText: 'Discount',
+        labelText: context.flipperL10n.discount,
         labelStyle: const TextStyle(color: Colors.black),
         suffixIcon: Icon(
           FluentIcons.shopping_bag_percent_24_regular,
@@ -2199,14 +2255,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         final number = double.tryParse(value);
         if (number == null) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          return 'Please enter a valid number';
+          return context.flipperL10n.pleaseEnterValidNumber;
         }
 
         /// this is a percentage not amount as this percenage will be applicable
         /// to the whole item on cart, currently we only support discount on whole total
         if (number < 0 || number > 100) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          return 'Discount must be between 0 and 100';
+          return context.flipperL10n.discountRangeError;
         }
         return null;
       },
@@ -2229,16 +2285,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             ),
             child: SwitchListTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              title: const Text(
-                'Digital receipt',
-                style: TextStyle(
+              title: Text(
+                context.flipperL10n.digitalReceiptTitle,
+                style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF111827),
                 ),
               ),
-              subtitle: const Text(
-                'Send receipt by SMS instead of opening a PDF',
-                style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              subtitle: Text(
+                context.flipperL10n.digitalReceiptSmsSubtitle,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
               ),
               value: useDigital,
               activeTrackColor: PosLayoutBreakpoints.posAccentBlue,
@@ -2262,12 +2318,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // Auto-update logic moved to _updateReceivedAmountIfNeeded and triggered via listeners
 
     return Semantics(
-      label: 'Received amount in ${ProxyService.box.defaultCurrency()}',
-      hint: 'Enter the amount received from the customer',
+      label: context.flipperL10n.receivedAmountInCurrency(
+        ProxyService.box.defaultCurrency(),
+      ),
+      hint: context.flipperL10n.receivedAmountHint,
       child: StyledTextFormField.create(
         context: context,
         labelText: null,
-        hintText: 'Received Amount',
+        hintText: context.flipperL10n.receivedAmount,
         controller: widget.receivedAmountController,
         focusNode: _receivedAmountFocusNode,
         keyboardType: TextInputType.number,
@@ -2330,12 +2388,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         validator: (String? value) {
           if (value == null || value.isEmpty) {
             ref.read(payButtonStateProvider.notifier).stopLoading();
-            return 'Please enter received amount';
+            return context.flipperL10n.pleaseEnterReceivedAmount;
           }
           final number = double.tryParse(value);
           if (number == null) {
             ref.read(payButtonStateProvider.notifier).stopLoading();
-            return 'Please enter a valid number';
+            return context.flipperL10n.pleaseEnterValidNumber;
           }
           // We allow partial payments, so this is valid.
           return null;
@@ -2347,12 +2405,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget _customerNameField() {
     final customerNameController = ref.watch(customerNameControllerProvider);
     return Semantics(
-      label: 'Customer name',
-      hint: 'Enter the full name of the customer',
+      label: context.flipperL10n.customerName,
+      hint: context.flipperL10n.customerNameHint,
       child: StyledTextFormField.create(
         context: context,
         labelText: null,
-        hintText: 'Customer Name',
+        hintText: context.flipperL10n.customerName,
         controller: customerNameController,
         focusNode: _customerNameFocusNode,
         keyboardType: TextInputType.text,
@@ -2369,7 +2427,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         validator: (String? value) {
           if (value == null || value.isEmpty) {
             ref.read(payButtonStateProvider.notifier).stopLoading();
-            return 'Please enter customer name';
+            return context.flipperL10n.pleaseEnterCustomerName;
           }
           return null;
         },
@@ -2415,9 +2473,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Widget _buildCustomerPhoneField() {
     return Semantics(
-      label: 'Customer phone number',
-      hint:
-          'Enter the customer\'s phone number for contact and billing purposes',
+      label: context.flipperL10n.customerPhoneNumber,
+      hint: context.flipperL10n.customerPhoneNumberHint,
       child: Container(
         height: 50,
         decoration: BoxDecoration(
@@ -2470,7 +2527,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               child: StyledTextFormField.create(
                 context: context,
                 labelText: null,
-                hintText: 'Phone number',
+                hintText: context.flipperL10n.phoneNumber,
                 controller: widget.customerPhoneNumberController,
                 focusNode: _customerPhoneFocusNode,
                 keyboardType: TextInputType.number,
@@ -2536,14 +2593,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   if ((customerTin == null || customerTin.isEmpty) &&
                       (value == null || value.isEmpty)) {
                     ref.read(payButtonStateProvider.notifier).stopLoading();
-                    return 'Phone number is required when customer TIN is not available';
+                    return context.flipperL10n.phoneRequiredWhenTinMissing;
                   }
 
                   if (value != null && value.isEmpty) {
                     final phoneExp = RegExp(r'^[1-9]\d{8}$');
                     if (!phoneExp.hasMatch(value)) {
                       ref.read(payButtonStateProvider.notifier).stopLoading();
-                      return 'Invalid Number';
+                      return context.flipperL10n.invalidNumber;
                     }
                   }
 
@@ -2561,9 +2618,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ITransaction transaction,
     CoreViewModel model,
   ) async {
-    await showSharedTicketDialog(
-      context: context,
-      transaction: transaction,
-    );
+    await showSharedTicketDialog(context: context, transaction: transaction);
   }
 }
