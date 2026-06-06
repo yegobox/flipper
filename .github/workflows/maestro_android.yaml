@@ -82,13 +82,24 @@ jobs:
       - name: Add Maestro to PATH
         run: echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
+      # Required for hardware-accelerated emulators on ubuntu-latest runners.
+      # Without KVM the emulator falls back to software rendering and often hits
+      # the boot timeout (see android-emulator-runner README).
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Run Maestro flows
         uses: reactivecircus/android-emulator-runner@v2
         env:
           FLOW_PATH: .maestro/00_landing_to_pin_smoke.yaml
         with:
-          api-level: 35
+          api-level: 34
           arch: x86_64
           profile: pixel_6
           target: google_apis
+          cores: 4
+          emulator-boot-timeout: 900
           script: ./scripts/maestro/ci_android.sh
