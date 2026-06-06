@@ -71,7 +71,9 @@ include(flutter/generated_plugins.cmake)
 function(APPLY_LEGACY_COROUTINE_AWAIT TARGET)
   target_compile_options(${TARGET} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:/await>")
 endfunction()
+# Match coroutine ABI on runner + static wrappers (LNK4078 .voltbl).
 apply_legacy_coroutine_await(${BINARY_NAME})
+apply_legacy_coroutine_await(flutter_wrapper_app)
 if(TARGET desktop_webview_auth_plugin)
   apply_legacy_coroutine_await(desktop_webview_auth_plugin)
 endif()
@@ -106,19 +108,23 @@ if(PLUGIN_BUNDLED_LIBRARIES)
 endif()
 
 # Copy the native assets provided by the build.dart from all packages.
-# Flutter may skip native_assets when no FFI assets exist; install only if present.
+# Check at install time: Flutter may skip native_assets after flutter clean while
+# CMake still registered install(DIRECTORY) from an earlier configure (MSB3073).
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
-if(EXISTS "${NATIVE_ASSETS_DIR}")
-  install(DIRECTORY "${NATIVE_ASSETS_DIR}"
-     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-     COMPONENT Runtime)
-endif()
+install(CODE "
+  if(EXISTS \"${NATIVE_ASSETS_DIR}\")
+    file(INSTALL \"${NATIVE_ASSETS_DIR}\"
+         DESTINATION \"\${CMAKE_INSTALL_PREFIX}\"
+         TYPE DIRECTORY
+         FILES_MATCHING PATTERN \"*\")
+  endif()
+" COMPONENT Runtime)
 
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.
 set(FLUTTER_ASSET_DIR_NAME "flutter_assets")
 install(CODE "
-  file(REMOVE_RECURSE \"${INSTALL_BUNDLE_DATA_DIR}/${FLUTTER_ASSET_DIR_NAME}\")
+  file(REMOVE_RECURSE \"\${CMAKE_INSTALL_PREFIX}/data/${FLUTTER_ASSET_DIR_NAME}\")
   " COMPONENT Runtime)
 install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
   DESTINATION "${INSTALL_BUNDLE_DATA_DIR}" COMPONENT Runtime)
