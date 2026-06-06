@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.14)
 project(flipper LANGUAGES CXX)
 
 # MSVC 18.6+ (STL1011): plugins using /await + <experimental/coroutine> fail to compile.
+# /await keeps one legacy coroutine ABI across app + WebView2/cppwinrt plugins (LNK4078 .voltbl).
 add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS /await")
 
 # The target_link_libraries call can stay the same since it will use
 # whichever sqlite3 target exists
@@ -47,7 +48,7 @@ add_definitions(-DUNICODE -D_UNICODE)
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
   target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
-  target_compile_options(${TARGET} PRIVATE /EHsc)
+  target_compile_options(${TARGET} PRIVATE /EHsc /await)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()

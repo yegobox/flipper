@@ -67,7 +67,7 @@ jobs:
           Set-Location apps/flipper
           flutter clean
           flutter pub get
-          & "$env:GITHUB_WORKSPACE/scripts/ci/patch-windows-plugins.ps1"
+          & "$env:GITHUB_WORKSPACE/scripts/ci/patch-windows-plugins.ps1" -AppDir "$env:GITHUB_WORKSPACE/apps/flipper"
           dart run msix:create -v --install-certificate false
 
       - name: Extract msix_version

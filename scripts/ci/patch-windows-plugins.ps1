@@ -1,24 +1,47 @@
 param(
-  [string]$AppDir = "apps/flipper"
+  [string]$AppDir = ""
 )
 
 $ErrorActionPreference = "Stop"
 
-$pluginCmake = Join-Path $AppDir "windows/flutter/ephemeral/.plugin_symlinks/desktop_webview_auth/windows/CMakeLists.txt"
-if (-not (Test-Path $pluginCmake)) {
-  Write-Host "desktop_webview_auth CMakeLists not found at $pluginCmake; skipping patch"
-  exit 0
+if (-not $AppDir) {
+  if ($env:GITHUB_WORKSPACE) {
+    $AppDir = Join-Path $env:GITHUB_WORKSPACE "apps/flipper"
+  } else {
+    $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "../..")
+    $AppDir = Join-Path $repoRoot "apps/flipper"
+  }
 }
 
-$content = Get-Content -Path $pluginCmake -Raw
-$original = $content
+$AppDir = (Resolve-Path $AppDir).Path
+$symlinksDir = Join-Path $AppDir "windows/flutter/ephemeral/.plugin_symlinks"
 
-# CMP0175: DEPENDS is invalid on add_custom_command(TARGET ...).
-$content = $content -replace '(?m)^\s*DEPENDS \$\{NUGET\}\s*\r?\n', ''
+if (-not (Test-Path $symlinksDir)) {
+  throw "Plugin symlinks not found at $symlinksDir. Run 'flutter pub get' in apps/flipper first."
+}
 
-if ($content -ne $original) {
-  Set-Content -Path $pluginCmake -Value $content -NoNewline
-  Write-Host "Patched desktop_webview_auth windows/CMakeLists.txt (removed invalid DEPENDS)"
+$patched = 0
+Get-ChildItem -Path $symlinksDir -Directory | ForEach-Object {
+  $pluginCmake = Join-Path $_.FullName "windows/CMakeLists.txt"
+  if (-not (Test-Path $pluginCmake)) {
+    return
+  }
+
+  $content = Get-Content -Path $pluginCmake -Raw
+  $original = $content
+
+  # CMP0175: DEPENDS is invalid on add_custom_command(TARGET ...).
+  $content = $content -replace '(?m)^\s*DEPENDS \$\{NUGET\}\s*\r?\n', ''
+
+  if ($content -ne $original) {
+    Set-Content -Path $pluginCmake -Value $content -NoNewline
+    Write-Host "Patched $($_.Name)/windows/CMakeLists.txt (removed invalid DEPENDS)"
+    $patched++
+  }
+}
+
+if ($patched -eq 0) {
+  Write-Host "No Windows plugin CMakeLists required patching under $symlinksDir"
 } else {
-  Write-Host "desktop_webview_auth windows/CMakeLists.txt already patched or unchanged"
+  Write-Host "Patched $patched Windows plugin CMakeLists file(s)"
 }
