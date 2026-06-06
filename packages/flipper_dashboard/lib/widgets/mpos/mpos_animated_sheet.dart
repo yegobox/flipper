@@ -15,9 +15,16 @@ Future<T?> showMposAnimatedSheet<T>({
     barrierColor: Colors.transparent,
     transitionDuration: reduced ? MposMotion.scrimFade : MposMotion.sheetSlide,
     pageBuilder: (ctx, animation, secondaryAnimation) {
+      final bottomInset = MediaQuery.viewInsetsOf(ctx).bottom;
       return Align(
         alignment: Alignment.bottomCenter,
-        child: builder(ctx),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomInset),
+            child: builder(ctx),
+          ),
+        ),
       );
     },
     transitionBuilder: (ctx, animation, secondaryAnimation, child) {

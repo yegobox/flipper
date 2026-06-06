@@ -23,6 +23,29 @@ const double _kFieldRadius = 14;
 
 enum _DuePreset { oneWeek, twoWeeks, oneMonth, custom }
 
+String _defaultTicketName(ITransaction txn, {Customer? customer}) {
+  final existing = txn.ticketName?.trim();
+  if (existing != null && existing.isNotEmpty) return existing;
+
+  final customerName = txn.customerName?.trim();
+  if (customerName != null && customerName.isNotEmpty) return customerName;
+
+  final custNm = customer?.custNm?.trim();
+  if (custNm != null && custNm.isNotEmpty) return custNm;
+
+  final boxName = ProxyService.box.customerName()?.trim();
+  if (boxName != null && boxName.isNotEmpty) return boxName;
+
+  return '';
+}
+
+void _applyTicketNameIfEmpty(TextEditingController controller, String name) {
+  if (controller.text.trim().isNotEmpty) return;
+  final trimmed = name.trim();
+  if (trimmed.isEmpty) return;
+  controller.text = trimmed;
+}
+
 /// Park-transaction sheet (bottom sheet on mobile, centered dialog on wide).
 Future<void> showSharedTicketDialog({
   required BuildContext context,
@@ -291,7 +314,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
   void initState() {
     super.initState();
     _ticketNameController = TextEditingController(
-      text: widget.transaction.ticketName ?? '',
+      text: _defaultTicketName(widget.transaction),
     );
     _noteController = TextEditingController(
       text: widget.transaction.note ?? '',
@@ -322,6 +345,13 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
             );
           } catch (_) {}
         }
+        _applyTicketNameIfEmpty(
+          _ticketNameController,
+          _defaultTicketName(
+            widget.transaction,
+            customer: _selectedCustomer,
+          ),
+        );
       });
     } catch (_) {
       if (mounted) setState(() => _loadingCustomers = false);

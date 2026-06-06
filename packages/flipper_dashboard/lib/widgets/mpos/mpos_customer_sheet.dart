@@ -140,7 +140,11 @@ class _MposCustomerSheetBodyState extends ConsumerState<_MposCustomerSheetBody> 
 
   @override
   Widget build(BuildContext context) {
-    final maxH = MediaQuery.sizeOf(context).height * 0.88;
+    final media = MediaQuery.of(context);
+    final bottomSafe = media.padding.bottom;
+    final keyboardInset = media.viewInsets.bottom;
+    final maxH = (media.size.height * 0.88)
+        .clamp(0.0, media.size.height - media.padding.top - keyboardInset - 16);
     return Material(
       color: PosTokens.surface,
       borderRadius: const BorderRadius.vertical(
@@ -218,7 +222,7 @@ class _MposCustomerSheetBodyState extends ConsumerState<_MposCustomerSheetBody> 
           Flexible(
             child: ListView(
               shrinkWrap: true,
-              padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+              padding: EdgeInsets.fromLTRB(18, 0, 18, 18 + bottomSafe),
               children: [
                 Material(
                   color: PosTokens.surface2,
