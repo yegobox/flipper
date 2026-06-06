@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:async';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -481,7 +482,7 @@ class _CheckoutErrorRecoveryScreenState
                       const SizedBox(height: 2),
                       Text(
                         '$diagnostic — ${isNoBranch ? "checkout couldn't resolve a location for this device." : widget.error.toString()}',
-                        style: GoogleFonts.jetBrainsMono(
+                        style: FlipperFonts.mono(
                           fontSize: 11.5,
                           color: _ink3,
                           height: 1.35,

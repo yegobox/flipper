@@ -1,13 +1,14 @@
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:async/async.dart'; // Import Async package for StreamZip
 
 class KitchenDisplayScreen extends ConsumerStatefulWidget {
   const KitchenDisplayScreen({Key? key}) : super(key: key);
@@ -18,89 +19,46 @@ class KitchenDisplayScreen extends ConsumerStatefulWidget {
 }
 
 class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
-  // Refactored: Use a single shared kitchenOrdersStreamProvider
+  bool _pendingDrag = false;
+
+  /// Same Capella observer as the tickets screen (WAITING + PARKED + IN_PROGRESS).
   static final kitchenOrdersStreamProvider = StreamProvider<List<ITransaction>>((
     ref,
   ) {
-    // Create a single broadcast stream for each status (shared across all consumers)
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
       return Stream.value([]);
     }
 
-    final parkedStream = ProxyService.strategy
-        .transactionsStream(
-          status: PARKED,
-          branchId: branchId,
-          removeAdjustmentTransactions: true,
-          skipOriginalTransactionCheck: true,
-          forceRealData: true,
-        )
-        .asBroadcastStream();
-    final inProgressStream = ProxyService.strategy
-        .transactionsStream(
-          skipOriginalTransactionCheck: true,
-          status: IN_PROGRESS,
+    return ProxyService.getStrategy(Strategy.capella)
+        .openPosTicketsTransactionsStream(
           branchId: branchId,
           removeAdjustmentTransactions: true,
           forceRealData: true,
-        )
-        .asBroadcastStream();
-    final waitingStream = ProxyService.strategy
-        .transactionsStream(
           skipOriginalTransactionCheck: true,
-          status: WAITING,
-          branchId: branchId,
-          removeAdjustmentTransactions: true,
-          forceRealData: true,
         )
-        .asBroadcastStream();
-
-    // Instead of polling with Stream.periodic and .first, merge the streams and yield on any update
-    return StreamZip<List<ITransaction>>([
-      waitingStream,
-      parkedStream,
-      inProgressStream,
-    ]).map((lists) {
-      // Combine all transactions - use the same order as tickets_list.dart for consistency
-      final allOrders = [
-        ...lists[0], // waiting
-        ...lists[1], // parked
-        ...lists[2], // in progress
-      ];
-      // FILTER: Only show non-loan tickets in the kitchen display
-      final filteredOrders = allOrders.where((t) => t.isLoan != true).toList();
-      // Sort by status priority and then by creation date (newest first)
-      filteredOrders.sort((a, b) {
-        final statusA = a.status;
-        final statusB = b.status;
-        if (statusA == WAITING && statusB != WAITING) return -1;
-        if (statusA != WAITING && statusB == WAITING) return 1;
-        if (statusA == PARKED && statusB == IN_PROGRESS) return -1;
-        if (statusA == IN_PROGRESS && statusB == PARKED) return 1;
-        final dateA = a.createdAt ?? DateTime(1970);
-        final dateB = b.createdAt ?? DateTime(1970);
-        return dateB.compareTo(dateA);
-      });
-      return filteredOrders;
-    });
+        .map((allOrders) {
+          final filteredOrders =
+              allOrders.where((t) => t.isLoan != true).toList();
+          filteredOrders.sort((a, b) {
+            final statusA = a.status;
+            final statusB = b.status;
+            if (statusA == WAITING && statusB != WAITING) return -1;
+            if (statusA != WAITING && statusB == WAITING) return 1;
+            if (statusA == PARKED && statusB == IN_PROGRESS) return -1;
+            if (statusA == IN_PROGRESS && statusB == PARKED) return 1;
+            final dateA = a.createdAt ?? DateTime(1970);
+            final dateB = b.createdAt ?? DateTime(1970);
+            return dateB.compareTo(dateA);
+          });
+          return filteredOrders;
+        });
   });
 
   @override
   Widget build(BuildContext context) {
     final kitchenOrdersStream = ref.watch(kitchenOrdersStreamProvider);
-    final kitchenOrders = ref.watch(kitchenOrdersProvider);
-
-    // Listen to kitchen orders changes - must be in build method
-    ref.listen(kitchenOrdersStreamProvider, (previous, next) {
-      next.whenData((transactions) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            ref.read(kitchenOrdersProvider.notifier).updateOrders(transactions);
-          }
-        });
-      });
-    });
+    final optimisticOrders = ref.watch(kitchenOrdersProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -117,6 +75,22 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       ),
       body: kitchenOrdersStream.when(
         data: (transactions) {
+          final streamOrders = categorizeKitchenOrders(transactions);
+          if (_pendingDrag &&
+              !kitchenDisplayOrdersDiffer(streamOrders, optimisticOrders)) {
+            _pendingDrag = false;
+            Future.microtask(() {
+              if (mounted) {
+                ref.read(kitchenOrdersProvider.notifier).clearOrders();
+              }
+            });
+          }
+
+          final kitchenOrders = _pendingDrag &&
+                  kitchenDisplayOrdersDiffer(streamOrders, optimisticOrders)
+              ? optimisticOrders
+              : streamOrders;
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -171,88 +145,50 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     OrderStatus fromStatus,
     OrderStatus toStatus,
   ) async {
-    // toStatus is now directly passed from the OrderColumn, representing the column where the order was dropped
+    if (fromStatus == toStatus) return;
 
-    // Track order progress event
-    await PosthogService.instance.capture(
-      'kitchen_order_status_changed',
-      properties: {
-        'order_id': order.id,
-        'from_status': fromStatus.toString(),
-        'to_status': toStatus.toString(),
-        'is_loan': order.isLoan == true,
-        'business_id': ProxyService.box.getBusinessId()!,
-        'branch_id': ProxyService.box.getBranchId()!,
-        'timestamp': DateTime.now().toIso8601String(),
-        'source': 'kitchen_display',
-      },
-    );
-
-    // Update the UI immediately
+    setState(() => _pendingDrag = true);
     ref
         .read(kitchenOrdersProvider.notifier)
         .moveOrder(order, fromStatus, toStatus);
 
-    // Update the order status in the database
-    try {
-      // Get the new status string based on the destination column
-      final status = _getStatusString(toStatus);
+    final status = _getStatusString(toStatus);
+    final clearDueDate =
+        toStatus == OrderStatus.incoming && order.isLoan != true;
+    DateTime? dueDate;
+    if (!clearDueDate &&
+        toStatus == OrderStatus.inProgress &&
+        order.isLoan != true) {
+      dueDate =
+          order.dueDate ?? DateTime.now().toUtc().add(const Duration(minutes: 30));
+    } else if (!clearDueDate) {
+      dueDate = order.dueDate?.toUtc();
+    }
 
-      // Update the transaction properties using a new instance (do not mutate original)
-      final updatedOrder = ITransaction(
-        agentId: order.agentId,
-        id: order.id,
-        ticketName: order.ticketName,
-        categoryId: order.categoryId,
-        transactionNumber: order.transactionNumber,
-        currentSaleCustomerPhoneNumber: order.currentSaleCustomerPhoneNumber,
-        reference: order.reference,
-        branchId: order.branchId,
-        status: status, // updated status
-        transactionType: order.transactionType,
-        subTotal: order.subTotal,
-        paymentType: order.paymentType,
-        cashReceived: order.cashReceived,
-        customerChangeDue: order.customerChangeDue,
-        createdAt: order.createdAt,
-        receiptType: order.receiptType,
-        updatedAt: DateTime.now().toUtc(),
-        customerId: order.customerId,
-        customerType: order.customerType,
-        note: order.note,
-        lastTouched: DateTime.now().toUtc(),
-        supplierId: order.supplierId,
-        ebmSynced: order.ebmSynced,
-        isIncome: order.isIncome,
-        isExpense: order.isExpense,
-        isRefunded: order.isRefunded,
-        customerName: order.customerName,
-        customerTin: order.customerTin,
-        remark: order.remark,
-        customerBhfId: order.customerBhfId,
-        receiptFileName: order.receiptFileName,
-        sarTyCd: order.sarTyCd,
-        receiptNumber: order.receiptNumber,
-        totalReceiptNumber: order.totalReceiptNumber,
-        isDigitalReceiptGenerated: order.isDigitalReceiptGenerated,
-        invoiceNumber: order.invoiceNumber,
-        sarNo: order.sarNo,
-        orgSarNo: order.orgSarNo,
-        isLoan: order.isLoan,
-        dueDate: (toStatus == OrderStatus.incoming && order.isLoan != true)
-            ? null
-            : (toStatus == OrderStatus.inProgress && order.isLoan != true
-                  ? (order.dueDate ??
-                        DateTime.now().toUtc().add(const Duration(minutes: 30)))
-                  : order.dueDate?.toUtc()),
+    try {
+      await ProxyService.getStrategy(Strategy.capella)
+          .updateKitchenOrderStatusFast(
+        transactionId: order.id,
+        status: status,
+        dueDate: dueDate,
+        clearDueDate: clearDueDate,
       );
 
-      // Use the same approach as in transaction_mixin.dart to update the transaction
-      // This is how transactions are updated throughout the Flipper codebase
-      await ProxyService.getStrategy(Strategy.capella).updateTransaction(transaction: updatedOrder);
-
-      // Force refresh the stream to reflect changes
-      ref.invalidate(kitchenOrdersStreamProvider);
+      unawaited(
+        PosthogService.instance.capture(
+          'kitchen_order_status_changed',
+          properties: {
+            'order_id': order.id,
+            'from_status': fromStatus.toString(),
+            'to_status': toStatus.toString(),
+            'is_loan': order.isLoan == true,
+            'business_id': ProxyService.box.getBusinessId()!,
+            'branch_id': ProxyService.box.getBranchId()!,
+            'timestamp': DateTime.now().toIso8601String(),
+            'source': 'kitchen_display',
+          },
+        ),
+      );
     } catch (e) {
       // Track error event
       await PosthogService.instance.capture(
@@ -267,12 +203,12 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         },
       );
 
-      // Show error if update fails
       if (mounted) {
+        setState(() => _pendingDrag = false);
+        ref.read(kitchenOrdersProvider.notifier).clearOrders();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Failed to update order: $e')));
-        // Revert the UI change since the database update failed
         ref.invalidate(kitchenOrdersStreamProvider);
       }
     }

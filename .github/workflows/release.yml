@@ -21,7 +21,7 @@ on:
       - main
       - dev
       - re-design
-      - v4
+      - v5
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -272,6 +272,11 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - name: Prefetch dittoffi.dll
+        shell: pwsh
+        run: ./scripts/ci/prefetch-dittoffi.ps1
+
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
@@ -312,12 +317,6 @@ jobs:
         run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
         shell: bash
 
-      - name: Clean Flutter Build Cache
-        run: |
-          flutter clean
-          flutter pub cache clean --force
-        shell: bash
-
       - name: Get Dependencies
         run: |
           dart run melos bootstrap
@@ -342,10 +341,17 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
+      - name: Prefetch dittoffi.dll
+        shell: pwsh
+        run: ./scripts/ci/prefetch-dittoffi.ps1
+
       - name: Build and Package
+        shell: pwsh
         run: |
-          cd apps/flipper
+          Set-Location apps/flipper
           flutter clean
+          flutter pub get
+          & "$env:GITHUB_WORKSPACE/scripts/ci/patch-windows-plugins.ps1" -AppDir "$env:GITHUB_WORKSPACE/apps/flipper"
           dart run msix:create -v --install-certificate false --signtool-options "/td SHA256"
 
       - name: Extract msix_version
@@ -431,10 +437,17 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
+      - name: Prefetch dittoffi.dll
+        shell: pwsh
+        run: ./scripts/ci/prefetch-dittoffi.ps1
+
       - name: Build and Package
+        shell: pwsh
         run: |
-          cd apps/flipper
+          Set-Location apps/flipper
           flutter clean
+          flutter pub get
+          & "$env:GITHUB_WORKSPACE/scripts/ci/patch-windows-plugins.ps1" -AppDir "$env:GITHUB_WORKSPACE/apps/flipper"
           dart run msix:create --store
 
       - name: Extract msix_version

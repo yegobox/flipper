@@ -287,17 +287,22 @@ class _MiniChartCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Revenue · this week',
-                style: context.signInText(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: SignInTokens.ink3,
+              Expanded(
+                child: Text(
+                  'Revenue · this week',
+                  style: context.signInText(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: SignInTokens.ink3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 4),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.trending_up, size: 11, color: SignInTokens.win),
                   Text(

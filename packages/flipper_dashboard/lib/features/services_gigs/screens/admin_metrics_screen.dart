@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -168,7 +169,7 @@ class _MetricRow extends StatelessWidget {
         ),
         Text(
           value,
-          style: GoogleFonts.jetBrainsMono(
+          style: FlipperFonts.mono(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.3,

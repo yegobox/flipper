@@ -2271,11 +2271,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         final useDigital = ref.watch(digitalReceiptToggleProvider);
         return Padding(
           padding: const EdgeInsets.only(bottom: 10.0),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.white,
+          child: Material(
+            color: Colors.white,
+            elevation: 0,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+              side: const BorderSide(color: Color(0xFFE5E7EB)),
             ),
             child: SwitchListTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 12),

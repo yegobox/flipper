@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/screens/mpos_success_screen.dart';
@@ -26,7 +27,6 @@ import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
-import 'package:flipper_models/view_models/coreViewModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_services/proxy.dart';
@@ -37,17 +37,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
-enum ChargeButtonState {
-  initial,
-  waitingForPayment,
-  printingReceipt,
-  failed,
-}
+enum ChargeButtonState { initial, waitingForPayment, printingReceipt, failed }
 
 /// Full-screen mobile checkout ([design_handoff_mobile_pos/mpos-checkout.jsx]).
 class MobileCheckoutScreen extends ConsumerStatefulWidget {
@@ -75,6 +72,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   String? _lastTransactionId;
   final Map<String, double> _optimisticQtyByItemId = {};
   final Set<String> _optimisticallyDeletedItemIds = {};
+  bool _isClearingCustomer = false;
 
   String get _transactionId => widget.transaction.id;
 
@@ -115,38 +113,58 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   }
 
   Future<void> _showParkDialog() async {
+    var parked = false;
     await showSharedTicketDialog(
       context: context,
       transaction: widget.transaction,
+      onParked: () => parked = true,
     );
-    if (mounted) Navigator.of(context).pop();
+    if (!parked || !mounted) return;
+
+    final rootNav = Navigator.of(context, rootNavigator: true);
+    if (rootNav.canPop()) {
+      await rootNav.maybePop();
+    }
+    await locator<RouterService>().navigateTo(
+      TicketsListRoute(transaction: widget.transaction),
+    );
   }
 
   Future<void> _clearCustomer(ITransaction txn) async {
+    if (_isClearingCustomer) return;
+    HapticFeedback.lightImpact();
+
     final oldCustomerId = txn.customerId;
+    setState(() => _isClearingCustomer = true);
+    ref.read(customerPhoneNumberProvider.notifier).state = null;
+    ref.read(mposMomoPhoneProvider.notifier).state = null;
+
     try {
       // Pending cart lives in Ditto (Capella); cloudSync brick-only clears do not
       // update what checkout UI watches.
       await ProxyService.getStrategy(
         Strategy.capella,
       ).removeCustomerFromTransaction(transaction: txn);
+      if (oldCustomerId != null) {
+        ref.invalidate(oldProvider.attachedCustomerProvider(oldCustomerId));
+      }
+      ref.invalidate(transactionByIdProvider(txn.id));
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      await ProxyService.box.remove(key: 'customerTin');
+      await ProxyService.box.remove(key: 'customerName');
+      await ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber');
     } catch (e, s) {
       tv_talk.talker.error('Failed to remove customer from sale: $e', s);
+      ref.invalidate(transactionByIdProvider(txn.id));
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
       if (mounted) {
         showErrorNotification(context, 'Could not remove customer');
       }
-      return;
+    } finally {
+      if (mounted) {
+        setState(() => _isClearingCustomer = false);
+      }
     }
-    if (oldCustomerId != null) {
-      ref.invalidate(oldProvider.attachedCustomerProvider(oldCustomerId));
-    }
-    ref.invalidate(transactionByIdProvider(txn.id));
-    ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
-    ref.read(customerPhoneNumberProvider.notifier).state = null;
-    ref.read(mposMomoPhoneProvider.notifier).state = null;
-    await ProxyService.box.remove(key: 'customerTin');
-    await ProxyService.box.remove(key: 'customerName');
-    await ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber');
   }
 
   Future<void> _handleCharge(
@@ -156,7 +174,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     HapticFeedback.lightImpact();
 
     final payments = ref.read(oldProvider.paymentMethodsProvider);
-    final txn = ref.read(transactionByIdProvider(_transactionId)).value ??
+    final txn =
+        ref.read(transactionByIdProvider(_transactionId)).value ??
         widget.transaction;
     final attached = txn.customerId == null
         ? null
@@ -184,7 +203,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           ref.read(mposMomoPhoneProvider) ??
           ProxyService.box.currentSaleCustomerPhoneNumber() ??
           customerPhone;
-      if (momoPhone == null || momoPhone.replaceAll(RegExp(r'\D'), '').length < 9) {
+      if (momoPhone == null ||
+          momoPhone.replaceAll(RegExp(r'\D'), '').length < 9) {
         showErrorNotification(
           context,
           'Enter a valid MoMo phone number to request payment',
@@ -201,11 +221,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       (p) => p.method == 'CREDIT' && p.amount > 0,
     );
     if (hasCreditPayment) {
-      if (!_hasCustomerForCharge(
-        txn,
-        saleCustomerPhone,
-        momoPayment: false,
-      )) {
+      if (!_hasCustomerForCharge(txn, saleCustomerPhone, momoPayment: false)) {
         showErrorNotification(
           context,
           'A customer name or phone is required for credit/loan payments.',
@@ -287,9 +303,11 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         ref.read(transactionByIdProvider(_transactionId)).value ??
         widget.transaction;
     final payments = ref.read(oldProvider.paymentMethodsProvider);
-    final itemCount = items.fold<double>(0, (s, i) => s + i.qty.toDouble()).round();
-    final isCash = payments.isNotEmpty &&
-        payments.first.method.toUpperCase() == 'CASH';
+    final itemCount = items
+        .fold<double>(0, (s, i) => s + i.qty.toDouble())
+        .round();
+    final isCash =
+        payments.isNotEmpty && payments.first.method.toUpperCase() == 'CASH';
     final tender = isCash && payments.isNotEmpty
         ? double.tryParse(payments.first.controller.text) ?? total
         : total;
@@ -451,8 +469,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     return optimistic;
   }
 
-  String _phoneDigits(String? raw) =>
-      (raw ?? '').replaceAll(RegExp(r'\D'), '');
+  String _phoneDigits(String? raw) => (raw ?? '').replaceAll(RegExp(r'\D'), '');
 
   /// Phone for charge gating — provider alone misses Ditto-only customer fields.
   String? _resolveSaleCustomerPhone(
@@ -525,8 +542,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     double remaining,
   ) {
     if (isEmpty) return 'Add items to charge';
-    if (!_hasCustomerForCharge(txn, saleCustomerPhone, momoPayment: momoPayment)) {
-      return 'Add customer to continue';
+    if (!_hasCustomerForCharge(
+      txn,
+      saleCustomerPhone,
+      momoPayment: momoPayment,
+    )) {
+      return 'Add customer';
     }
     switch (_chargeState) {
       case ChargeButtonState.initial:
@@ -595,20 +616,21 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             s.pendingQtyByVariantId.values.any((q) => q > 0),
       ),
     );
-    final items = List<TransactionItem>.from(
-      resolveMobileCheckoutLineItems(
-        transactionId: _transactionId,
-        mergedCart: mergedAll,
-        scopedStreamItems: streamAsync.asData?.value,
-        hasOptimisticPendingForTxn: hasOptimisticPending,
-      ),
-    )
-      ..removeWhere((i) => _optimisticallyDeletedItemIds.contains(i.id))
-      ..sort((a, b) {
-        final ad = a.createdAt ?? DateTime(2000);
-        final bd = b.createdAt ?? DateTime(2000);
-        return bd.compareTo(ad);
-      });
+    final items =
+        List<TransactionItem>.from(
+            resolveMobileCheckoutLineItems(
+              transactionId: _transactionId,
+              mergedCart: mergedAll,
+              scopedStreamItems: streamAsync.asData?.value,
+              hasOptimisticPendingForTxn: hasOptimisticPending,
+            ),
+          )
+          ..removeWhere((i) => _optimisticallyDeletedItemIds.contains(i.id))
+          ..sort((a, b) {
+            final ad = a.createdAt ?? DateTime(2000);
+            final bd = b.createdAt ?? DateTime(2000);
+            return bd.compareTo(ad);
+          });
 
     final transactionAsync = ref.watch(transactionByIdProvider(_transactionId));
     final customerPhone = ref.watch(customerPhoneNumberProvider);
@@ -633,9 +655,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     if (items.isEmpty && streamAsync.isLoading && !pendingOptimistic) {
       return const Scaffold(
         backgroundColor: MposTokens.bg,
-        body: SafeArea(
-          child: Center(child: CircularProgressIndicator()),
-        ),
+        body: SafeArea(child: Center(child: CircularProgressIndicator())),
       );
     }
 
@@ -645,10 +665,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         bottom: false,
         child: Builder(
           builder: (context) {
-
             final alreadyPaid = txn.cashReceived ?? 0.0;
-            final paymentsList =
-                ref.watch(oldProvider.paymentMethodsProvider);
+            final paymentsList = ref.watch(oldProvider.paymentMethodsProvider);
             final pendingPayment = calculateTotalPaid(paymentsList);
             final totalPaid = alreadyPaid + pendingPayment;
             final total = calculateTransactionTotal(
@@ -667,8 +685,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             );
 
             final currentId = txn.id;
-            if (transactionAsync.hasValue &&
-                _lastTransactionId != currentId) {
+            if (transactionAsync.hasValue && _lastTransactionId != currentId) {
               _lastTransactionId = currentId;
               WidgetsBinding.instance.addPostFrameCallback((_) async {
                 if (!mounted) return;
@@ -693,8 +710,15 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
               providerPhone: customerPhone,
               attached: attachedCustomer,
             );
+            final displayCustomerName = _isClearingCustomer
+                ? null
+                : customerName;
+            final displaySaleCustomerPhone = _isClearingCustomer
+                ? null
+                : saleCustomerPhone;
 
-            final isCash = paymentsList.isNotEmpty &&
+            final isCash =
+                paymentsList.isNotEmpty &&
                 paymentsList.first.method.toUpperCase() == 'CASH';
             final isMomo = _isMomoPayment(paymentsList);
             final tender = isCash ? _cashTenderAmount(paymentsList) : 0.0;
@@ -708,33 +732,32 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             final cashOk = !isCash || tender >= saleOutstanding - 0.01;
             final momoPhone =
                 ref.watch(mposMomoPhoneProvider) ??
-                saleCustomerPhone ??
+                displaySaleCustomerPhone ??
                 ProxyService.box.currentSaleCustomerPhoneNumber();
-            final momoOk =
-                !isMomo || _phoneDigits(momoPhone).length >= 9;
+            final momoOk = !isMomo || _phoneDigits(momoPhone).length >= 9;
             final canCharge = _canTapCharge(
               itemsNotEmpty: items.isNotEmpty,
               txn: txn,
-              saleCustomerPhone: saleCustomerPhone,
+              saleCustomerPhone: displaySaleCustomerPhone,
               momoPayment: isMomo,
             );
-            final ready = total > 0 &&
+            final ready =
+                total > 0 &&
                 canCharge &&
                 cashOk &&
                 momoOk &&
                 _chargeState == ChargeButtonState.initial;
 
-            final itemCount = items.fold<double>(
-              0,
-              (s, i) => s + _displayQtyFor(i),
-            ).round();
+            final itemCount = items
+                .fold<double>(0, (s, i) => s + _displayQtyFor(i))
+                .round();
 
             var footerPrimaryLabel = digitalEnabled && items.isNotEmpty
                 ? (remaining > 0.01 ? 'Record Payment' : 'Complete Now')
                 : _primaryLabel(
                     items.isEmpty,
                     txn,
-                    saleCustomerPhone,
+                    displaySaleCustomerPhone,
                     isMomo,
                     remaining,
                   );
@@ -743,162 +766,177 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                   'Enter ${mposMoneyLabel(saleOutstanding)} received';
             }
 
-            return Column(
-              children: [
-                MposCheckoutHeader(
-                  itemCount: itemCount,
-                  timeLabel: mposCheckoutTimeLabel(txn.createdAt),
-                  status: txn.status ?? 'PENDING',
-                  onBack: () {
-                    ref
-                        .read(oldProvider.loadingProvider.notifier)
-                        .stopLoading();
-                    Navigator.of(context).pop();
-                  },
-                ),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    children: [
-                      const MposSectionLabel('Customer'),
-                      const SizedBox(height: 8),
-                      MposCustomerSection(
-                        customerName: customerName,
-                        customerPhone: saleCustomerPhone,
-                        onAttach: () => MposCustomerSheet.show(
-                          context: context,
-                          ref: ref,
-                          transaction: txn,
-                        ),
-                        onClear: () => _clearCustomer(txn),
-                      ),
-                      const SizedBox(height: 14),
-                      const MposSectionLabel('Items'),
-                      const SizedBox(height: 8),
-                      if (items.isEmpty)
-                        const MposCard(
-                          padding: EdgeInsets.all(32),
-                          child: Center(
-                            child: Text(
-                              'No items in cart',
-                              style: TextStyle(color: PosTokens.ink3),
-                            ),
-                          ),
-                        )
-                      else
-                        MposCard(
-                          clipBehavior: Clip.antiAlias,
-                          child: Column(
-                            children: [
-                              for (var i = 0; i < items.length; i++) ...[
-                                if (i > 0)
-                                  const Divider(
-                                    height: 1,
-                                    color: PosTokens.line,
-                                  ),
-                                MposItemLine(
-                                  name: items[i].name,
-                                  unitPrice: items[i].price.toDouble(),
-                                  baseUnitPrice:
-                                      (items[i].retailPrice ?? items[i].price)
-                                          .toDouble(),
-                                  qty: _displayQtyFor(items[i]),
-                                  canEdit: _canModifyItems(txn),
-                                  onDecrement: () => _updateQuantity(
-                                    items[i],
-                                    _displayQtyFor(items[i]) - 1,
-                                    txn,
-                                  ),
-                                  onIncrement: () => _updateQuantity(
-                                    items[i],
-                                    _displayQtyFor(items[i]) + 1,
-                                    txn,
-                                  ),
-                                  onDelete: () => _deleteItem(items[i]),
-                                  onPriceChanged: (p) =>
-                                      _updatePrice(items[i], p),
-                                  onPriceReset: () => _resetPrice(items[i]),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                          foregroundColor: PosTokens.blue,
-                          side: const BorderSide(
-                            color: PosTokens.lineStrong,
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              MposTokens.radiusMd,
-                            ),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add_rounded, size: 17),
-                        label: const Text(
-                          'Add more items',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const MposSectionLabel('Payment method'),
-                      const SizedBox(height: 8),
-                      MposPaymentSection(
-                        transactionId: _transactionId,
-                        totalPayable:
-                            saleOutstanding > 0 ? saleOutstanding : total,
-                      ),
-                      const SizedBox(height: 14),
-                      const MposSectionLabel('Totals'),
-                      const SizedBox(height: 8),
-                      MposTotalsCard(
-                        subtotal: total,
-                        tax: 0,
-                        total: total,
-                        alreadyPaid: alreadyPaid,
-                        pendingPayment: pendingPayment,
-                        remainingBalance: remaining,
-                        change: change != null && change > 0 ? change : null,
-                        balanceDue: due != null && due > 0 ? due : null,
-                      ),
-                    ],
+            return MaestroSemantics(
+              id: MaestroIds.mposCheckoutScreen,
+              label: 'Mobile checkout',
+              value: '$itemCount items, RWF ${mposMoneyLabel(total)}',
+              child: Column(
+                children: [
+                  MposCheckoutHeader(
+                    itemCount: itemCount,
+                    timeLabel: mposCheckoutTimeLabel(txn.createdAt),
+                    status: txn.status ?? 'PENDING',
+                    onBack: () {
+                      ref
+                          .read(oldProvider.loadingProvider.notifier)
+                          .stopLoading();
+                      Navigator.of(context).pop();
+                    },
                   ),
-                ),
-                MposCheckoutFooter(
-                  total: total,
-                  ready: ready,
-                  isLoading: _isImmediateCompletion && _shouldShowSpinner(),
-                  primaryLabel: footerPrimaryLabel,
-                  onSaveTicket: items.isEmpty ? null : _showParkDialog,
-                  onPrimary: canCharge
-                      ? () => _handleCharge(
-                          total,
-                          immediateCompletion:
-                              !digitalEnabled || remaining <= 0.01,
-                        )
-                      : null,
-                  // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
-                  secondaryLabel: digitalEnabled && items.isNotEmpty
-                      ? _primaryLabel(
-                          items.isEmpty,
-                          txn,
-                          saleCustomerPhone,
-                          isMomo,
-                          remaining,
-                        )
-                      : null,
-                  onSecondary: digitalEnabled && items.isNotEmpty && canCharge
-                      ? () => _handleCharge(total, immediateCompletion: false)
-                      : null,
-                  secondaryLoading:
-                      !_isImmediateCompletion && _shouldShowSpinner(),
-                ),
-              ],
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      children: [
+                        const MposSectionLabel('Customer'),
+                        const SizedBox(height: 8),
+                        MposCustomerSection(
+                          customerName: displayCustomerName,
+                          customerPhone: displaySaleCustomerPhone,
+                          isClearing: _isClearingCustomer,
+                          onAttach: () => MposCustomerSheet.show(
+                            context: context,
+                            ref: ref,
+                            transaction: txn,
+                          ),
+                          onClear: () => _clearCustomer(txn),
+                        ),
+                        const SizedBox(height: 14),
+                        const MposSectionLabel('Items'),
+                        const SizedBox(height: 8),
+                        if (items.isEmpty)
+                          const MposCard(
+                            padding: EdgeInsets.all(32),
+                            child: Center(
+                              child: Text(
+                                'No items in cart',
+                                style: TextStyle(color: PosTokens.ink3),
+                              ),
+                            ),
+                          )
+                        else
+                          MposCard(
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
+                              children: [
+                                for (var i = 0; i < items.length; i++) ...[
+                                  if (i > 0)
+                                    const Divider(
+                                      height: 1,
+                                      color: PosTokens.line,
+                                    ),
+                                  MposItemLine(
+                                    semanticId:
+                                        '${MaestroIds.mposItemLinePrefix}.${items[i].id}',
+                                    name: items[i].name,
+                                    unitPrice: items[i].price.toDouble(),
+                                    baseUnitPrice:
+                                        (items[i].retailPrice ?? items[i].price)
+                                            .toDouble(),
+                                    qty: _displayQtyFor(items[i]),
+                                    canEdit: _canModifyItems(txn),
+                                    onDecrement: () => _updateQuantity(
+                                      items[i],
+                                      _displayQtyFor(items[i]) - 1,
+                                      txn,
+                                    ),
+                                    onIncrement: () => _updateQuantity(
+                                      items[i],
+                                      _displayQtyFor(items[i]) + 1,
+                                      txn,
+                                    ),
+                                    onDelete: () => _deleteItem(items[i]),
+                                    onPriceChanged: (p) =>
+                                        _updatePrice(items[i], p),
+                                    onPriceReset: () => _resetPrice(items[i]),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 10),
+                        MaestroSemantics(
+                          id: MaestroIds.mposAddMoreItems,
+                          label: 'Add more items',
+                          button: true,
+                          enabled: true,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              foregroundColor: PosTokens.blue,
+                              side: const BorderSide(
+                                color: PosTokens.lineStrong,
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  MposTokens.radiusMd,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_rounded, size: 17),
+                            label: const Text(
+                              'Add more items',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        const MposSectionLabel('Payment method'),
+                        const SizedBox(height: 8),
+                        MposPaymentSection(
+                          transactionId: _transactionId,
+                          totalPayable: saleOutstanding > 0
+                              ? saleOutstanding
+                              : total,
+                        ),
+                        const SizedBox(height: 14),
+                        const MposSectionLabel('Totals'),
+                        const SizedBox(height: 8),
+                        MposTotalsCard(
+                          subtotal: total,
+                          tax: 0,
+                          total: total,
+                          alreadyPaid: alreadyPaid,
+                          pendingPayment: pendingPayment,
+                          remainingBalance: remaining,
+                          change: change != null && change > 0 ? change : null,
+                          balanceDue: due != null && due > 0 ? due : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  MposCheckoutFooter(
+                    total: total,
+                    ready: ready,
+                    isLoading: _isImmediateCompletion && _shouldShowSpinner(),
+                    primaryLabel: footerPrimaryLabel,
+                    onSaveTicket: items.isEmpty ? null : _showParkDialog,
+                    onPrimary: canCharge
+                        ? () => _handleCharge(
+                            total,
+                            immediateCompletion:
+                                !digitalEnabled || remaining <= 0.01,
+                          )
+                        : null,
+                    // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
+                    secondaryLabel: digitalEnabled && items.isNotEmpty
+                        ? _primaryLabel(
+                            items.isEmpty,
+                            txn,
+                            displaySaleCustomerPhone,
+                            isMomo,
+                            remaining,
+                          )
+                        : null,
+                    onSecondary: digitalEnabled && items.isNotEmpty && canCharge
+                        ? () => _handleCharge(total, immediateCompletion: false)
+                        : null,
+                    secondaryLoading:
+                        !_isImmediateCompletion && _shouldShowSpinner(),
+                  ),
+                ],
+              ),
             );
           },
         ),

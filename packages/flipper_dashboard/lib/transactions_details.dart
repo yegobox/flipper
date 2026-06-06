@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
@@ -594,7 +595,7 @@ class _TxHeroCard extends StatelessWidget {
                       children: [
                         Text(
                           heroPalette.sign,
-                          style: GoogleFonts.jetBrainsMono(
+                          style: FlipperFonts.mono(
                             fontSize: 40,
                             fontWeight: FontWeight.w600,
                             color: fullRefundStrike
@@ -609,7 +610,7 @@ class _TxHeroCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           currency,
-                          style: GoogleFonts.jetBrainsMono(
+                          style: FlipperFonts.mono(
                             fontSize: 19,
                             fontWeight: FontWeight.w600,
                             color: fullRefundStrike
@@ -624,7 +625,7 @@ class _TxHeroCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           amount,
-                          style: GoogleFonts.jetBrainsMono(
+                          style: FlipperFonts.mono(
                             fontSize: 52,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.03,
@@ -906,7 +907,7 @@ class _MetaCell extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: mono
-                      ? GoogleFonts.jetBrainsMono(
+                      ? FlipperFonts.mono(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: _TxDetailColors.ink1,
@@ -1112,7 +1113,7 @@ class _ProductsSectionBody extends StatelessWidget {
               const Spacer(),
               Text(
                 '$currency ${NumberFormat('#,###').format(subtotal)}',
-                style: GoogleFonts.jetBrainsMono(
+                style: FlipperFonts.mono(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: _TxDetailColors.ink1,
@@ -1175,7 +1176,7 @@ class _ProductRow extends StatelessWidget {
                 ),
                 Text(
                   '${item.qty.toInt()} × $currency ${NumberFormat('#,###').format(item.price)}',
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontSize: 12.5,
                     color: _TxDetailColors.ink3,
                   ),
@@ -1185,7 +1186,7 @@ class _ProductRow extends StatelessWidget {
           ),
           Text(
             '$currency ${NumberFormat('#,###').format(lineTotal)}',
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 14.5,
               fontWeight: FontWeight.w700,
               color: _TxDetailColors.ink1,
@@ -1324,7 +1325,7 @@ class _TimelineRow extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       DateFormat('MMM dd, yyyy · h:mm a').format(event.time!),
-                      style: GoogleFonts.jetBrainsMono(
+                      style: FlipperFonts.mono(
                         fontSize: 11.5,
                         color: _TxDetailColors.ink4,
                       ),

@@ -35,9 +35,11 @@ abstract final class FlipperTheme {
       surface: isLight ? FlipperColors.surface : FlipperColors.surfaceDark,
     );
 
-    final textTheme = GoogleFonts.outfitTextTheme(
-      ThemeData(brightness: brightness).textTheme,
-    );
+    final textTheme = allowRuntimeFontFetching
+        ? GoogleFonts.outfitTextTheme(
+            ThemeData(brightness: brightness).textTheme,
+          )
+        : ThemeData(brightness: brightness).textTheme;
 
     return ThemeData(
       useMaterial3: true,

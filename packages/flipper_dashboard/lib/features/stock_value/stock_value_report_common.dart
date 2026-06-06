@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +45,7 @@ class StockValueSummaryTile extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: valueColor,
@@ -225,7 +226,7 @@ class StockValueLowCriticalList extends StatelessWidget {
                   children: [
                     Text(
                       '${item.currentStock.toStringAsFixed(0)} units',
-                      style: GoogleFonts.jetBrainsMono(
+                      style: FlipperFonts.mono(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: isCritical
@@ -310,7 +311,7 @@ class StockValueCategoryBreakdownList extends StatelessWidget {
                       children: [
                         Text(
                           'RWF ${formatNumber(c.value)}',
-                          style: GoogleFonts.jetBrainsMono(
+                          style: FlipperFonts.mono(
                             fontWeight: FontWeight.w700,
                             fontSize: 12,
                           ),

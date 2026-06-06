@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/all_providers.dart';
@@ -633,7 +634,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                 Text(
                   proformaRef,
                   textAlign: TextAlign.right,
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF9499A5),
                     fontSize: 12,
@@ -670,7 +671,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               children: [
                 Text(
                   proformaRef,
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF9499A5),
                   ),
@@ -1211,7 +1212,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                     idLine,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.jetBrainsMono(
+                    style: FlipperFonts.mono(
                       fontSize: 11,
                       color: const Color(0xFF9499A5),
                       fontWeight: FontWeight.w600,
@@ -1232,7 +1233,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                       alignment: Alignment.center,
                       child: Text(
                         '${line.qty}',
-                        style: GoogleFonts.jetBrainsMono(
+                        style: FlipperFonts.mono(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
                         ),
@@ -1279,7 +1280,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.right,
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontWeight: FontWeight.w800,
                     fontSize: 13,
                     color: const Color(0xFF0D0E12),
@@ -1291,7 +1292,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.right,
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontWeight: FontWeight.w800,
                     fontSize: 12,
                     color: const Color(0xFF0D0E12),
@@ -1355,7 +1356,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               alignment: Alignment.centerRight,
               child: Text(
                 formatNumber(line.unitPrice),
-                style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w900),
+                style: FlipperFonts.mono(fontWeight: FontWeight.w900),
               ),
             ),
           ),
@@ -1376,7 +1377,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                     alignment: Alignment.center,
                     child: Text(
                       '${line.qty}',
-                      style: GoogleFonts.jetBrainsMono(
+                      style: FlipperFonts.mono(
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -1396,7 +1397,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               alignment: Alignment.centerRight,
               child: Text(
                 '0',
-                style: GoogleFonts.jetBrainsMono(
+                style: FlipperFonts.mono(
                   fontWeight: FontWeight.w900,
                   color: const Color(0xFF9499A5),
                 ),
@@ -1415,7 +1416,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                       'RWF ${formatNumber(total)}',
                       textAlign: TextAlign.right,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.jetBrainsMono(
+                      style: FlipperFonts.mono(
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -1503,12 +1504,12 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
                 style: strong
-                    ? GoogleFonts.jetBrainsMono(
+                    ? FlipperFonts.mono(
                         fontWeight: FontWeight.w900,
                         fontSize: narrow ? 20 : 18,
                         color: valueColor ?? Colors.black,
                       )
-                    : GoogleFonts.jetBrainsMono(
+                    : FlipperFonts.mono(
                         fontWeight: FontWeight.w900,
                         fontSize: narrow ? 14 : 13,
                         color: valueColor ?? Colors.black,
@@ -1740,11 +1741,11 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           Text(
             v,
             style: strong
-                ? GoogleFonts.jetBrainsMono(
+                ? FlipperFonts.mono(
                     fontWeight: FontWeight.w900,
                     color: valueColor ?? Colors.black,
                   )
-                : GoogleFonts.jetBrainsMono(
+                : FlipperFonts.mono(
                     fontWeight: FontWeight.w900,
                     color: valueColor ?? Colors.black,
                   ),

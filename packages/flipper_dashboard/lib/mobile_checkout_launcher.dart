@@ -30,7 +30,7 @@ Future<void> openMobileCheckoutForTransaction(
     transaction: transaction,
   );
   try {
-    await Navigator.of(context).push<void>(
+    await Navigator.of(context, rootNavigator: true).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => _MobileCheckoutLauncherHost(transaction: transaction),
       ),

@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_dashboard/features/leads/widgets/proforma_invoice_screen.dart';
 import 'package:flipper_models/leads/lead_ui_utils.dart';
@@ -239,7 +240,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
                 : Text(
                     'RWF ${formatNumber(lead.estimatedValue!.toDouble())}',
                     textAlign: TextAlign.right,
-                    style: GoogleFonts.jetBrainsMono(
+                    style: FlipperFonts.mono(
                       fontWeight: FontWeight.w900,
                       color: const Color(0xFF2563EB),
                     ),

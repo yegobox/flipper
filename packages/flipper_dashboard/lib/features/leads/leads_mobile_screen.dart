@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/features/leads/widgets/add_lead_sheet.dart';
 import 'package:flipper_dashboard/features/leads/widgets/lead_detail_dialog.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
@@ -350,7 +351,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: accent,
@@ -662,7 +663,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                     lead.estimatedValue == null
                         ? '—'
                         : 'RWF ${formatNumber(lead.estimatedValue!.toDouble())}',
-                    style: GoogleFonts.jetBrainsMono(
+                    style: FlipperFonts.mono(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
                       color: _ink,

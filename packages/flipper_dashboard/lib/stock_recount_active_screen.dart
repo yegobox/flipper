@@ -924,23 +924,20 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
             ),
           ),
         if (_searchResults.isNotEmpty && !_isSearching)
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            constraints: const BoxConstraints(maxHeight: 280),
-            decoration: BoxDecoration(
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Material(
               color: Colors.white,
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
+              elevation: 4,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: Colors.grey[300]!),
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 280),
+                child: ListView.separated(
+                  shrinkWrap: true,
               itemCount: _searchResults.length,
               separatorBuilder: (context, index) =>
                   Divider(height: 1, color: Colors.grey[200]),
@@ -988,6 +985,8 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
                   },
                 );
               },
+                ),
+              ),
             ),
           ),
       ],

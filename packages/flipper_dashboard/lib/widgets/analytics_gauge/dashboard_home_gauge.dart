@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
@@ -161,7 +162,7 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
                                             )!;
                                 return Text(
                                   formatNumber(displayed),
-                                  style: GoogleFonts.jetBrainsMono(
+                                  style: FlipperFonts.mono(
                                     fontSize: 38,
                                     fontWeight: FontWeight.w700,
                                     color: widget.isEmpty
@@ -266,7 +267,7 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
           const SizedBox(width: 2),
           Text(
             '${isUp ? '' : ''}${delta.abs()}% vs ${widget.comparisonLabel ?? 'last period'}',
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: _gainInk,
@@ -315,7 +316,7 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
           const SizedBox(height: 6),
           Text(
             widget.isEmpty ? '0' : formatNumber(value),
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: valueColor,

@@ -6,6 +6,18 @@
   "deno.enablePaths": [
     "packages/edges/supabase/functions"
   ],
+  "dart.analysisExcludedFolders": [
+    "**/build",
+    "**/.dart_tool"
+  ],
+  "files.watcherExclude": {
+    "**/build/**": true,
+    "**/.dart_tool/**": true
+  },
+  "search.exclude": {
+    "**/build": true,
+    "**/.dart_tool": true
+  },
   "deno.lint": true,
   "deno.unstable": [
     "bare-node-builtins",

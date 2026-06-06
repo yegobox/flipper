@@ -46,7 +46,7 @@ dependencies:
   google_sign_in: ^6.2.2
   firebase_ui_oauth_apple: ^2.0.0
   pin_code_fields: ^8.0.1
-  sign_in_with_apple: ^7.0.1
+  sign_in_with_apple: ^8.1.0
   
 dependency_overrides:
   google_sign_in: ^6.2.2

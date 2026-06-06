@@ -16,14 +16,29 @@ class ParkTransaction extends _$ParkTransaction {
     required ITransaction transaction,
     String? customerId,
   }) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => ParkTransactionService.park(
-        ticketName: ticketName,
-        ticketNote: ticketNote,
-        transaction: transaction,
-        customerId: customerId,
-      ),
-    );
+    // Park can take several seconds (Ditto); keep alive until complete so
+    // autoDispose does not tear down [ref] mid-flight.
+    final keepAliveLink = ref.keepAlive();
+    try {
+      if (ref.mounted) {
+        state = const AsyncLoading();
+      }
+      final result = await AsyncValue.guard(
+        () => ParkTransactionService.park(
+          ticketName: ticketName,
+          ticketNote: ticketNote,
+          transaction: transaction,
+          customerId: customerId,
+        ),
+      );
+      if (!ref.mounted) {
+        if (result.hasError) throw result.error!;
+        return;
+      }
+      state = result;
+      if (result.hasError) throw result.error!;
+    } finally {
+      keepAliveLink.close();
+    }
   }
 }

@@ -4,7 +4,7 @@ publish_to: "none"
 #  ios : 1.184
 # macos : 1.181
 
-version: 1.185.4252223235319+1756529324
+version: 1.185.4252223235341+1756529346
 
 
 environment:
@@ -28,8 +28,7 @@ dependencies:
   mime: ^2.0.0
   open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
-  ditto_live: ^4.14.4
-  feather_icons: ^1.1.0-nullsafety.0
+  ditto_live: ^5.0.1
   flex_color_scheme: ^4.2.0
   image_picker: ^1.2.1
   file_picker: 10.3.7
@@ -54,7 +53,7 @@ dependencies:
   gap: ^2.0.0
   barcode: ">=2.2.3 <3.0.0"
   flutter_native_splash: ^2.3.2
-  permission_handler: ^12.0.1
+  permission_handler: ^12.0.3
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
@@ -101,7 +100,7 @@ dependencies:
   firebase_ui_localizations: ^2.0.1
   flutter_localizations:
     sdk: flutter
-  flutter_localization: ^0.2.2
+  flutter_localization: ^0.4.0
   get_storage: ^2.1.1
   flutter_web_plugins:
     sdk: flutter
@@ -218,7 +217,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5212.0
+  msix_version: 1.170.5234.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE

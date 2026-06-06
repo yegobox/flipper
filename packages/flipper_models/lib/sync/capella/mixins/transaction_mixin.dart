@@ -1714,7 +1714,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
     final newStatus = arguments['status'] as String?;
     Map<String, dynamic>? priorRowForEnsure;
-    if (!skipDittoSync && newStatus != null && newStatus != PENDING) {
+    if (!skipDittoSync &&
+        !deferEnsureNextPendingCart &&
+        newStatus != null &&
+        newStatus != PENDING) {
       try {
         final pre = await ditto.store.execute(
           'SELECT * FROM transactions WHERE _id = :id OR id = :id',
@@ -1742,7 +1745,25 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           'Updated transaction $targetId with ${updates.length} fields',
         );
 
-        if (priorRowForEnsure != null) {
+        if (deferEnsureNextPendingCart &&
+            newStatus != null &&
+            newStatus != PENDING &&
+            transaction != null) {
+          final branchId = transaction.branchId;
+          final tt = transaction.transactionType;
+          if (branchId != null &&
+              branchId.isNotEmpty &&
+              tt != null &&
+              _isPosCartTransactionType(tt)) {
+            unawaited(
+              _ensureNextPendingCartIfNeeded(
+                branchId: branchId,
+                transactionType: tt,
+                isExpense: transaction.isExpense ?? false,
+              ),
+            );
+          }
+        } else if (priorRowForEnsure != null) {
           final priorRow = priorRowForEnsure;
           Future<void> ensureNextCart() async {
             try {
@@ -1770,11 +1791,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             }
           }
 
-          if (deferEnsureNextPendingCart) {
-            unawaited(ensureNextCart());
-          } else {
-            await ensureNextCart();
-          }
+          await ensureNextCart();
         }
       } else {
         // Still update local SQLite when skipping Ditto
@@ -1865,6 +1882,309 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       talker.error('Error in Capella getTransaction: $e', s);
       return null;
     }
+  }
+
+  static const _pendingSaleCartWhere =
+      'branchId = :branchId AND status = :status AND agentId = :agentId '
+      'AND (isExpense = :isExpense OR isExpense IS NULL) '
+      'AND isOriginalTransaction = :isOriginal AND id != :excludeId';
+
+  Map<String, dynamic> _pendingSaleCartArgs({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  }) {
+    return {
+      'branchId': branchId,
+      'status': PENDING,
+      'agentId': agentId,
+      'isExpense': false,
+      'isOriginal': true,
+      'excludeId': excludeTransactionId,
+    };
+  }
+
+  @override
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for clearPendingSaleCartsExcept');
+        return;
+      }
+
+      final args = _pendingSaleCartArgs(
+        branchId: branchId,
+        agentId: agentId,
+        excludeTransactionId: excludeTransactionId,
+      );
+
+      try {
+        await ditto.store.execute(
+          'DELETE FROM transaction_items WHERE transactionId IN ('
+          'SELECT id FROM transactions WHERE $_pendingSaleCartWhere)',
+          arguments: args,
+        );
+        await ditto.store.execute(
+          'DELETE FROM transactions WHERE $_pendingSaleCartWhere',
+          arguments: args,
+        );
+      } catch (bulkError) {
+        talker.warning(
+          'clearPendingSaleCartsExcept bulk delete failed, falling back: $bulkError',
+        );
+        final result = await ditto.store.execute(
+          'SELECT id FROM transactions WHERE $_pendingSaleCartWhere',
+          arguments: args,
+        );
+        for (final item in result.items) {
+          final data = Map<String, dynamic>.from(item.value);
+          final id = _dittoDocumentId(data);
+          if (id == null || id.isEmpty) continue;
+          await ditto.store.execute(
+            'DELETE FROM transaction_items WHERE transactionId = :id',
+            arguments: {'id': id},
+          );
+          await ditto.store.execute(
+            'DELETE FROM transactions WHERE _id = :id OR id = :id',
+            arguments: {'id': id},
+          );
+        }
+      }
+
+      talker.info('clearPendingSaleCartsExcept: cleared pending sale carts');
+    } catch (e, s) {
+      talker.error('clearPendingSaleCartsExcept: $e', s);
+    }
+  }
+
+  Future<double> _sumLineItemsSubTotal(String transactionId) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return 0.0;
+
+    final result = await ditto.store.execute(
+      'SELECT * FROM transaction_items WHERE transactionId = :id',
+      arguments: {'id': transactionId},
+    );
+    var sum = 0.0;
+    for (final item in result.items) {
+      final data = Map<String, dynamic>.from(item.value);
+      final price = (data['price'] as num?)?.toDouble() ?? 0.0;
+      final qty = (data['qty'] as num?)?.toDouble() ?? 0.0;
+      sum += data['totAmt'] as num? ?? (price * qty);
+    }
+    return sum;
+  }
+
+  Future<String?> _otherParkedTicketIdForCustomer({
+    required String customerId,
+    required String branchId,
+    required String excludeId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return null;
+
+    final result = await ditto.store.execute(
+      'SELECT id FROM transactions WHERE customerId = :customerId '
+      'AND status = :status AND branchId = :branchId AND id != :excludeId '
+      'LIMIT 1',
+      arguments: {
+        'customerId': customerId,
+        'status': PARKED,
+        'branchId': branchId,
+        'excludeId': excludeId,
+      },
+    );
+    if (result.items.isEmpty) return null;
+    final data = Map<String, dynamic>.from(result.items.first.value);
+    return _dittoDocumentId(data);
+  }
+
+  @override
+  Future<void> parkSaleTicketFast({
+    required ITransaction transaction,
+    required String ticketName,
+    required String ticketNote,
+    String? customerId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for parkSaleTicketFast');
+      return;
+    }
+
+    final targetId = transaction.id;
+    final branchId = transaction.branchId ?? ProxyService.box.getBranchId()!;
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+
+    if (customerId != null && customerId.isNotEmpty) {
+      final otherId = await _otherParkedTicketIdForCustomer(
+        customerId: customerId,
+        branchId: branchId,
+        excludeId: targetId,
+      );
+      if (otherId != null) {
+        final other = await getTransaction(id: otherId, branchId: branchId);
+        if (other != null) {
+          await mergeTransactions(from: transaction, to: other);
+          unawaited(
+            manageTransaction(
+              branchId: branchId,
+              transactionType: SALE,
+              isExpense: false,
+            ),
+          );
+          return;
+        }
+      }
+    }
+
+    transaction.status = PARKED;
+    transaction.ticketName = ticketName.trim();
+    transaction.note = ticketNote;
+
+    // Do not write subTotal=0 when the in-memory cart is stale — KDS/tickets
+    // streams filter on `subTotal > 0` and would hide the parked ticket.
+    var subTotal = transaction.subTotal ?? 0.0;
+    if (subTotal <= 0) {
+      subTotal = await _sumLineItemsSubTotal(targetId);
+      if (subTotal > 0) {
+        transaction.subTotal = subTotal;
+      }
+    }
+
+    final setClauses = <String>[
+      'status = :status',
+      'ticketName = :ticketName',
+      'note = :note',
+      'isLoan = :isLoan',
+      'updatedAt = :updatedAt',
+      'lastTouched = :lastTouched',
+      'createdAt = :lastTouched',
+    ];
+    final args = <String, dynamic>{
+      'id': targetId,
+      'status': PARKED,
+      'ticketName': ticketName.trim(),
+      'note': ticketNote,
+      'isLoan': transaction.isLoan ?? false,
+      'updatedAt': nowIso,
+      'lastTouched': nowIso,
+    };
+
+    if (subTotal > 0) {
+      setClauses.add('subTotal = :subTotal');
+      args['subTotal'] = subTotal;
+    }
+    if (transaction.cashReceived != null) {
+      setClauses.add('cashReceived = :cashReceived');
+      args['cashReceived'] = transaction.cashReceived;
+    }
+    if (customerId != null) {
+      setClauses.add('customerId = :customerId');
+      args['customerId'] = customerId;
+    }
+    if (transaction.dueDate != null) {
+      setClauses.add('dueDate = :dueDate');
+      args['dueDate'] = transaction.dueDate!.toUtc().toIso8601String();
+    }
+
+    await ditto.store.execute(
+      'UPDATE transactions SET ${setClauses.join(', ')} '
+      'WHERE _id = :id OR id = :id',
+      arguments: args,
+    );
+
+    final transactionType = transaction.transactionType ?? SALE;
+    if (_isPosCartTransactionType(transactionType)) {
+      unawaited(
+        _ensureNextPendingCartIfNeeded(
+          branchId: branchId,
+          transactionType: transactionType,
+          isExpense: transaction.isExpense ?? false,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<void> resumeSaleTicketFast({
+    required ITransaction ticket,
+    required String agentId,
+    required String deviceId,
+    required String branchId,
+  }) async {
+    await clearPendingSaleCartsExcept(
+      branchId: branchId,
+      agentId: agentId,
+      excludeTransactionId: ticket.id,
+    );
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for resumeSaleTicketFast');
+      return;
+    }
+
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    await ditto.store.execute(
+      'UPDATE transactions SET '
+      'status = :status, agentId = :agentId, deviceId = :deviceId, '
+      'updatedAt = :updatedAt, lastTouched = :lastTouched, createdAt = :lastTouched '
+      'WHERE _id = :id OR id = :id',
+      arguments: {
+        'id': ticket.id,
+        'status': PENDING,
+        'agentId': agentId,
+        'deviceId': deviceId,
+        'updatedAt': nowIso,
+        'lastTouched': nowIso,
+      },
+    );
+  }
+
+  @override
+  Future<void> updateKitchenOrderStatusFast({
+    required String transactionId,
+    required String status,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for updateKitchenOrderStatusFast');
+      return;
+    }
+
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    final setClauses = <String>[
+      'status = :status',
+      'updatedAt = :updatedAt',
+      'lastTouched = :lastTouched',
+    ];
+    final args = <String, dynamic>{
+      'id': transactionId,
+      'status': status,
+      'updatedAt': nowIso,
+      'lastTouched': nowIso,
+    };
+
+    if (clearDueDate) {
+      setClauses.add('dueDate = NULL');
+    } else if (dueDate != null) {
+      setClauses.add('dueDate = :dueDate');
+      args['dueDate'] = dueDate.toUtc().toIso8601String();
+    }
+
+    await ditto.store.execute(
+      'UPDATE transactions SET ${setClauses.join(', ')} '
+      'WHERE _id = :id OR id = :id',
+      arguments: args,
+    );
   }
 
   @override

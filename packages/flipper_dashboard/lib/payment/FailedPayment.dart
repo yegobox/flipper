@@ -1465,18 +1465,20 @@ class _FailedPaymentState extends State<FailedPayment>
             ),
           ),
           const SizedBox(height: 20),
-          SwitchListTile(
-            title: Text(
-              'Use different phone number',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
+          Material(
+            color: Colors.transparent,
+            child: SwitchListTile(
+              title: Text(
+                'Use different phone number',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            subtitle: Text(
-              'Try with another MTN number if the current one failed',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
-              ),
+              subtitle: Text(
+                'Try with another MTN number if the current one failed',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                ),
             ),
             value: _usePhoneNumber,
             onChanged: (value) {
@@ -1487,8 +1489,9 @@ class _FailedPaymentState extends State<FailedPayment>
                 }
               });
             },
-            activeThumbColor: Theme.of(context).colorScheme.primary,
-            contentPadding: EdgeInsets.zero,
+              activeThumbColor: Theme.of(context).colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
           ),
           if (_usePhoneNumber) ...[
             const SizedBox(height: 12),

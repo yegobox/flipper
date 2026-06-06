@@ -1275,6 +1275,66 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  }) async {
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).clearPendingSaleCartsExcept(
+      branchId: branchId,
+      agentId: agentId,
+      excludeTransactionId: excludeTransactionId,
+    );
+  }
+
+  @override
+  Future<void> parkSaleTicketFast({
+    required ITransaction transaction,
+    required String ticketName,
+    required String ticketNote,
+    String? customerId,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).parkSaleTicketFast(
+      transaction: transaction,
+      ticketName: ticketName,
+      ticketNote: ticketNote,
+      customerId: customerId,
+    );
+  }
+
+  @override
+  Future<void> resumeSaleTicketFast({
+    required ITransaction ticket,
+    required String agentId,
+    required String deviceId,
+    required String branchId,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).resumeSaleTicketFast(
+      ticket: ticket,
+      agentId: agentId,
+      deviceId: deviceId,
+      branchId: branchId,
+    );
+  }
+
+  @override
+  Future<void> updateKitchenOrderStatusFast({
+    required String transactionId,
+    required String status,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).updateKitchenOrderStatusFast(
+      transactionId: transactionId,
+      status: status,
+      dueDate: dueDate,
+      clearDueDate: clearDueDate,
+    );
+  }
+
+  @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
     try {
       return await repository.delete<ITransaction>(transaction);

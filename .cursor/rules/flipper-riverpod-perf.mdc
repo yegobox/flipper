@@ -1,0 +1,70 @@
+---
+description: Flipper Riverpod performance — fast UI, minimal main-thread work
+globs: "**/*"
+alwaysApply: false
+---
+
+# Flipper Riverpod performance
+
+Read **`docs/riverpod_perf.md`** for regression tests and tracing. Apply these rules when adding or changing providers/widgets in Flipper.
+
+## Mental model
+
+Riverpod slowness here is usually **rebuild fan-out** and **too many Ditto observers**, not Riverpod itself. Ditto/Capella I/O runs on the **main isolate** — you cannot fix that with `compute()`. Win by: fewer watches, narrower rebuilds, batched streams, paged data.
+
+```
+Bad:  N widgets × stockByVariantProvider(id)     → N Ditto observers
+Good: stocksForVisibleVariantsProvider(page)    → 1 observer, pass Stock? into rows
+
+Bad:  ref.watch(pendingTransactionStreamProvider) → whole checkout rebuilds
+Good: ref.watch(pending...select((a) => a.asData?.value.customerId))
+```
+
+## Provider design
+
+- **One stream hub, derive in memory** — e.g. `coreTransactionsStream` + filter; avoid duplicate Ditto subscriptions for the same query args.
+- **Page-scoped data for paged UIs** — reports: SQL `LIMIT`/`OFFSET` for transactions; scope PLU/items to **current page sale ids**, not full `dateRange`.
+- **Batch at list level** — payment sums (`getPaymentSumsByTransactionIdsChunked`), stocks (`watchStocksByIds`), tickets (`openPosTicketsTransactionsStream` with `status IN (...)`).
+- **`ref.listen` for side effects** — cache sync, reconciliation (`posCartStreamReconciliationProvider`); do not `watch` these in widgets.
+- **`select()` on every derived UI field** — cart count, selection boolean, customer id, agent id.
+- **`keepAlive` sparingly** — report snapshot/page index while screen mounted; default stay `autoDispose`.
+- **Codegen** — new providers in `packages/flipper_models/lib/providers/` with `@riverpod`; avoid growing `riverpod_states.dart`.
+- **Riverpod 3** — `StateProvider` from `package:flutter_riverpod/legacy.dart`; `ProviderBase` from `package:flutter_riverpod/misc.dart`.
+
+## Widget design
+
+- **Split `Consumer` trees** — header/filters separate from list body; payment footer separate from cart lines.
+- **Lists** — `ListView.builder` + stable keys; never `ref.watch` full collections inside `itemBuilder` without `select`.
+- **Per-row selection** — `ticketSelectionProvider.select((s) => s.contains(id))`, not full `Set` watch on every card.
+- **No per-row `FutureBuilder` for DB** — lift batch fetch to parent provider; pass primitives into stateless children.
+- **Prefer `invalidate` over `refresh`** on hot paths unless stream re-subscribe is required.
+
+## Preserve (do not regress)
+
+- Cart tap path: `optimisticCartProvider`, `posCartDisplayEpochProvider`, `posCartQtyForVariantProvider`, `posCartStreamReconciliationProvider` via `ref.listen`.
+- Budget: `kPosCartTapDisplayMaxMicroseconds` in `pos_cart_sync_tap.dart` — run `pos_cart_tap_sync_perf_test.dart` after cart changes.
+
+## Avoid
+
+- Full-period Ditto streams feeding SQL-paged grids.
+- KPI/totals providers `watch`ing live PLU streams (recompute on dedicated SQL or debounced future).
+- `talker.info` / `debugPrint` in provider `build` hot paths (e.g. `featureAccess`).
+- `providerPerfTracingEnabledProvider` always-on in committed `main.dart` (debug profiling only).
+- Duplicate provider names (`searchStringProvider` — POS uses codegen; supplier catalog uses `supplierCatalogSearchProvider`).
+
+## Dev tracing
+
+```dart
+// ProviderScope override in main.dart — debug only, do not ship always-on
+providerPerfTracingEnabledProvider.overrideWith((ref) => true);
+// Or inside any Consumer under ProviderScope:
+ref.read(providerPerfTracingEnabledProvider.notifier).state = true;
+```
+
+Allowlist: `kProviderPerfTraceAllowlist` in `provider_perf_observer.dart`.
+
+## Remaining hotspots (only if profiling shows jank)
+
+- `QuickSellingView` — many full `pendingTransactionStream` / `posCartDisplayItems` watches; narrow with `select`.
+- `dashboardGaugeSnapshotProvider` — 3 streams × 2 periods; consolidate.
+- Favorites/alternate grids — pass `stocksById` like `product_view` (fallback still uses `stockByVariantProvider`).

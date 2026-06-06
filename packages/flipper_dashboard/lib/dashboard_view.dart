@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:developer';
 
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
@@ -607,7 +608,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                         ),
                         TextSpan(
                           text: formatNumber(summary.totalValue),
-                          style: GoogleFonts.jetBrainsMono(
+                          style: FlipperFonts.mono(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
                             color: Colors.black87,
@@ -817,7 +818,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 ),
                 TextSpan(
                   text: valueText,
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
                     color: valueColor,
@@ -839,7 +840,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 const SizedBox(width: 2),
                 Text(
                   '${deltaPercent.abs()}% ${isUp ? 'up' : 'up'}',
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: isUp ? _summaryRevenueStroke : _summaryExpenseStroke,

@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_service.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
@@ -709,7 +710,7 @@ class _RefundSegment extends StatelessWidget {
                 detail,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.jetBrainsMono(
+                style: FlipperFonts.mono(
                   fontSize: 12,
                   color: _SheetColors.ink3,
                 ),
@@ -763,7 +764,7 @@ class _PartialAmountField extends StatelessWidget {
               autofocus: true,
               keyboardType: TextInputType.number,
               controller: controller,
-              style: GoogleFonts.jetBrainsMono(
+              style: FlipperFonts.mono(
                 fontSize: 21,
                 fontWeight: FontWeight.w700,
               ),
@@ -882,7 +883,7 @@ class _RefundSummary extends StatelessWidget {
               textAlign: TextAlign.end,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: (mono ? GoogleFonts.jetBrainsMono : GoogleFonts.outfit)(
+              style: (mono ? FlipperFonts.mono : GoogleFonts.outfit)(
                 fontSize: big ? 20 : 14,
                 fontWeight: FontWeight.w700,
                 color: big ? _SheetColors.loss : _SheetColors.ink1,
@@ -1091,7 +1092,7 @@ class _RefundProcessingOverlayState extends State<_RefundProcessingOverlay>
                 const SizedBox(height: 10),
                 Text(
                   amountLabel,
-                  style: GoogleFonts.jetBrainsMono(
+                  style: FlipperFonts.mono(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: _SheetColors.loss,
@@ -1380,7 +1381,7 @@ class _RefundDoneOverlayState extends State<_RefundDoneOverlay>
                     children: [
                       TextSpan(
                         text: amountLabel,
-                        style: GoogleFonts.jetBrainsMono(
+                        style: FlipperFonts.mono(
                           fontWeight: FontWeight.w700,
                           color: _SheetColors.loss,
                         ),

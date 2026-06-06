@@ -249,4 +249,36 @@ abstract class TransactionInterface {
   });
 
   FutureOr<void> deletePaymentRecords({required String transactionId});
+
+  /// Fast Ditto path for resume: drop other pending sale carts for [agentId]
+  /// without registering broad transaction sync subscriptions.
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  });
+
+  /// Single targeted Ditto UPDATE for park — no pre-read, ensure-next-cart deferred.
+  Future<void> parkSaleTicketFast({
+    required ITransaction transaction,
+    required String ticketName,
+    required String ticketNote,
+    String? customerId,
+  });
+
+  /// Clear other pending carts + minimal Ditto UPDATE to resume on this device.
+  Future<void> resumeSaleTicketFast({
+    required ITransaction ticket,
+    required String agentId,
+    required String deviceId,
+    required String branchId,
+  });
+
+  /// Kitchen display column moves — status/timestamps only, no POS cart side effects.
+  Future<void> updateKitchenOrderStatusFast({
+    required String transactionId,
+    required String status,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  });
 }

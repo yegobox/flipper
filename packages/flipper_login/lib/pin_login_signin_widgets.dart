@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_login/login_semantics.dart';
 import 'package:flipper_login/pin_login_signin_motion.dart';
 import 'package:flipper_login/pin_login_signin_text.dart';
 import 'package:flipper_login/signin_tokens.dart';
@@ -93,20 +94,27 @@ class SignInAccountChip extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(
-            onPressed: onNotYou,
-            style: TextButton.styleFrom(
-              foregroundColor: SignInTokens.blue,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              'Not you?',
-              style: context.signInText(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: SignInTokens.blue,
+          Semantics(
+            key: const Key(LoginMaestroIds.pinAccountSwitch),
+            identifier: LoginMaestroIds.pinAccountSwitch,
+            label: 'Switch account',
+            button: true,
+            enabled: onNotYou != null,
+            child: TextButton(
+              onPressed: onNotYou,
+              style: TextButton.styleFrom(
+                foregroundColor: SignInTokens.blue,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Not you?',
+                style: context.signInText(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: SignInTokens.blue,
+                ),
               ),
             ),
           ),
@@ -138,30 +146,40 @@ class SignInPinCells extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cellHeight =
-        compact ? SignInTokens.pinCellHeightCompact : SignInTokens.pinCellHeight;
+    final cellHeight = compact
+        ? SignInTokens.pinCellHeightCompact
+        : SignInTokens.pinCellHeight;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        children: List.generate(SignInTokens.pinCellCount, (i) {
-          return Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(
-                right: i < SignInTokens.pinCellCount - 1 ? (compact ? 7 : 10) : 0,
+    return Semantics(
+      key: const Key(LoginMaestroIds.pinCells),
+      identifier: LoginMaestroIds.pinCells,
+      label: 'PIN entry cells',
+      button: true,
+      value: '${pin.length} digits entered',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Row(
+          children: List.generate(SignInTokens.pinCellCount, (i) {
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: i < SignInTokens.pinCellCount - 1
+                      ? (compact ? 7 : 10)
+                      : 0,
+                ),
+                child: _SignInPinCell(
+                  index: i,
+                  digit: i < pin.length ? pin[i] : null,
+                  showDigit: showDigits,
+                  isActive: pinFocused && i == activeIndex && !hasError,
+                  hasError: hasError,
+                  height: cellHeight,
+                ),
               ),
-              child: _SignInPinCell(
-                index: i,
-                digit: i < pin.length ? pin[i] : null,
-                showDigit: showDigits,
-                isActive: pinFocused && i == activeIndex && !hasError,
-                hasError: hasError,
-                height: cellHeight,
-              ),
-            ),
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -366,11 +384,15 @@ class SignInPinKeypad extends StatelessWidget {
       children: [
         for (final d in ['1', '2', '3', '4', '5', '6', '7', '8', '9'])
           _SignInKeypadKey(
+            semanticId: '${LoginMaestroIds.keypadDigitPrefix}.$d',
+            semanticLabel: d,
             enabled: enabled,
             onTap: () => onDigit(d),
             child: Text(d, style: keyStyle),
           ),
         _SignInKeypadKey(
+          semanticId: LoginMaestroIds.keypadShowToggle,
+          semanticLabel: 'Show or hide PIN',
           enabled: enabled,
           onTap: onToggleShow,
           isAction: true,
@@ -378,11 +400,15 @@ class SignInPinKeypad extends StatelessWidget {
               color: SignInTokens.ink3, size: 20),
         ),
         _SignInKeypadKey(
+          semanticId: '${LoginMaestroIds.keypadDigitPrefix}.0',
+          semanticLabel: '0',
           enabled: enabled,
           onTap: () => onDigit('0'),
           child: Text('0', style: keyStyle),
         ),
         _SignInKeypadKey(
+          semanticId: LoginMaestroIds.keypadBackspace,
+          semanticLabel: 'Backspace',
           enabled: enabled,
           onTap: onBackspace,
           isAction: true,
@@ -396,12 +422,16 @@ class SignInPinKeypad extends StatelessWidget {
 
 class _SignInKeypadKey extends StatefulWidget {
   final Widget child;
+  final String semanticId;
+  final String semanticLabel;
   final VoidCallback onTap;
   final bool isAction;
   final bool enabled;
 
   const _SignInKeypadKey({
     required this.child,
+    required this.semanticId,
+    required this.semanticLabel,
     required this.onTap,
     this.isAction = false,
     this.enabled = true,
@@ -420,35 +450,39 @@ class _SignInKeypadKeyState extends State<_SignInKeypadKey> {
         ? SignInTokens.blueTint
         : (widget.isAction ? Colors.transparent : SignInTokens.surface2);
 
-    return Listener(
-      onPointerDown: widget.enabled
-          ? (_) => setState(() => _pressed = true)
-          : null,
-      onPointerUp: widget.enabled
-          ? (_) => setState(() => _pressed = false)
-          : null,
-      onPointerCancel: widget.enabled
-          ? (_) => setState(() => _pressed = false)
-          : null,
-      child: AnimatedScale(
-        scale: _pressed && widget.enabled ? SignInMotion.pressScale : 1,
-        duration: SignInMotion.pressFeedback,
-        curve: SignInMotion.pressCurve,
-        child: Material(
-          color: bg,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
-            side: widget.isAction
-                ? BorderSide.none
-                : const BorderSide(color: SignInTokens.line),
-          ),
-          child: InkWell(
-            onTap: widget.enabled ? widget.onTap : null,
-            borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
-            splashColor: SignInTokens.blueTint.withValues(alpha: 0.5),
-            child: SizedBox(
-              height: 56,
-              child: Center(child: widget.child),
+    return Semantics(
+      key: Key(widget.semanticId),
+      identifier: widget.semanticId,
+      label: widget.semanticLabel,
+      button: true,
+      enabled: widget.enabled,
+      child: Listener(
+        onPointerDown:
+            widget.enabled ? (_) => setState(() => _pressed = true) : null,
+        onPointerUp:
+            widget.enabled ? (_) => setState(() => _pressed = false) : null,
+        onPointerCancel:
+            widget.enabled ? (_) => setState(() => _pressed = false) : null,
+        child: AnimatedScale(
+          scale: _pressed && widget.enabled ? SignInMotion.pressScale : 1,
+          duration: SignInMotion.pressFeedback,
+          curve: SignInMotion.pressCurve,
+          child: Material(
+            color: bg,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
+              side: widget.isAction
+                  ? BorderSide.none
+                  : const BorderSide(color: SignInTokens.line),
+            ),
+            child: InkWell(
+              onTap: widget.enabled ? widget.onTap : null,
+              borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
+              splashColor: SignInTokens.blueTint.withValues(alpha: 0.5),
+              child: SizedBox(
+                height: 56,
+                child: Center(child: widget.child),
+              ),
             ),
           ),
         ),
@@ -476,7 +510,8 @@ class SignInBottomBar extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               'Secured with end-to-end encryption',
-              style: context.signInText(fontSize: 12.5, color: SignInTokens.ink3),
+              style:
+                  context.signInText(fontSize: 12.5, color: SignInTokens.ink3),
             ),
           ],
         ),

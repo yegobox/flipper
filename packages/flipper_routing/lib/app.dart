@@ -916,3 +916,35 @@ class App {}
 // rm -f ~/develop/flutter/bin/cache/macos-sdk.stamp
 // flutter precache --macos
 // 1.185.4252223235305
+// The following plugins do not support Swift Package Manager for ios:
+// - patrol
+//   - permission_handler_apple
+//   - location
+//   - printing
+//   - open_filex
+//   - amplify_secure_storage
+//   - amplify_auth_cognito
+//   - ditto_live
+//   - sign_in_with_apple
+//   - pasteboard
+//   - flutter_keyboard_visibility
+//   - desktop_webview_auth
+//   - flutter_localization
+// This will become an error in a future version of Flutter. Please contact the plugin maintainers to request Swift Package Manager adoption.
+// The following plugins do not support Swift Package Manager for macos:
+//   - patrol
+//   - tray_manager
+//   - window_manager
+//   - screen_retriever_macos
+//   - location
+//   - printing
+//   - amplify_secure_storage
+//   - amplify_auth_cognito
+//   - ditto_live
+//   - sign_in_with_apple
+//   - pasteboard
+//   - desktop_webview_auth
+//   - flutter_localization
+
+
+// I verified with flutter pub get. Remaining latest packages still do not include Package.swift, so they cannot be fixed just by upgrading today: patrol, location, printing, open_filex, amplify_secure_storage, amplify_auth_cognito, ditto_live, flutter_keyboard_visibility, desktop_webview_auth, plus macOS tray_manager and screen_retriever_maco

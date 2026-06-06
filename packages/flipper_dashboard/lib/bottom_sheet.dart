@@ -14,21 +14,18 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 Widget header({required String title, required BuildContext context}) {
   return Material(
-    child: Container(
-      child: ListTile(
-        leading: const Icon(Icons.arrow_back_ios),
-        title: Text(title),
-        onTap: () {
-          Navigator.maybePop(context);
-        },
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(18.0),
-          topRight: Radius.circular(18.0),
-        ),
-      ),
+    color: Colors.white,
+    borderRadius: const BorderRadius.only(
+      topLeft: Radius.circular(18.0),
+      topRight: Radius.circular(18.0),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: ListTile(
+      leading: const Icon(Icons.arrow_back_ios),
+      title: Text(title),
+      onTap: () {
+        Navigator.maybePop(context);
+      },
     ),
   );
 }

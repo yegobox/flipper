@@ -1,3 +1,4 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:async' show unawaited;
 import 'dart:math' as math;
 
@@ -440,7 +441,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
           const SizedBox(height: 8),
           Text(
             valueText,
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: valueColor,
@@ -706,7 +707,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.jetBrainsMono(
+            style: FlipperFonts.mono(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: color,

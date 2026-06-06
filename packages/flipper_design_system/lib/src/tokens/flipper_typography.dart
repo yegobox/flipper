@@ -1,3 +1,5 @@
+import 'dart:ui' show FontFeature;
+
 import 'package:flutter/cupertino.dart';
 
 /// Font size scale (formerly in flipper_infra `size.dart`).
@@ -58,3 +60,39 @@ const TextStyle captionStyle = TextStyle(
   fontSize: 12,
   fontWeight: FontWeight.w400,
 );
+
+/// Monospace labels (amounts, IDs, codes) using platform fonts — no bundled TTFs.
+abstract final class FlipperFonts {
+  static const List<String> _monoFallback = <String>[
+    'Menlo',
+    'SF Mono',
+    'Roboto Mono',
+    'Courier New',
+    'Courier',
+    'monospace',
+  ];
+
+  static TextStyle mono({
+    double? fontSize,
+    FontWeight? fontWeight,
+    Color? color,
+    double? letterSpacing,
+    FontStyle? fontStyle,
+    double? height,
+    TextDecoration? decoration,
+    List<FontFeature>? fontFeatures,
+  }) {
+    return TextStyle(
+      fontFamily: 'monospace',
+      fontFamilyFallback: _monoFallback,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      letterSpacing: letterSpacing,
+      fontStyle: fontStyle,
+      height: height,
+      decoration: decoration,
+      fontFeatures: fontFeatures,
+    );
+  }
+}
