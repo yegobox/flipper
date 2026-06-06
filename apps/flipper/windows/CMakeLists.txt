@@ -70,15 +70,10 @@ include(flutter/generated_plugins.cmake)
 
 # VS 2026: flutter_soloud bundles stb_vorbis/miniaudio with many /W4 warnings. /WX- on the
 # command line is not always enough; COMPILE_WARNING_AS_ERROR OFF + /W0 stops CI whack-a-mole.
-if(MSVC)
-  foreach(_plugin ${FLUTTER_PLUGIN_LIST} ${FLUTTER_FFI_PLUGIN_LIST})
-    set(_target "${_plugin}_plugin")
-    if(TARGET ${_target})
-      set_target_properties(${_target} PROPERTIES COMPILE_WARNING_AS_ERROR OFF)
-    endif()
-  endforeach()
-
-  if(TARGET flutter_soloud_plugin)
+# Do not loop all *_plugin targets: sentry_flutter_plugin is an ALIAS (sentry).
+if(MSVC AND TARGET flutter_soloud_plugin)
+  get_target_property(_soloud_type flutter_soloud_plugin TYPE)
+  if(NOT _soloud_type STREQUAL "ALIAS")
     set_target_properties(flutter_soloud_plugin PROPERTIES COMPILE_WARNING_AS_ERROR OFF)
     target_compile_options(flutter_soloud_plugin PRIVATE /W0 /WX-)
   endif()
