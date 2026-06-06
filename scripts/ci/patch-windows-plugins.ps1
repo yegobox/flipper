@@ -33,9 +33,24 @@ Get-ChildItem -Path $symlinksDir -Directory | ForEach-Object {
   # CMP0175: DEPENDS is invalid on add_custom_command(TARGET ...).
   $content = $content -replace '(?m)^\s*DEPENDS \$\{NUGET\}\s*\r?\n', ''
 
+  # dittoffi bundled path is embedded in cmake_install.cmake; backslashes are escapes (D:\a\...).
+  if ($_.Name -eq "ditto_live" -and $content -notmatch 'string\(REPLACE "\\\\" "/" DITTOFFI_LIB_PATH') {
+    $content = $content -replace '(?m)^set\(ditto_live_bundled_libraries)', @'
+# CMake install() embeds literal paths; normalize so D:/a/... does not parse \a as escape.
+string(REPLACE "\\" "/" DITTOFFI_LIB_PATH "${DITTOFFI_LIB_PATH}")
+set(ditto_live_bundled_libraries
+'@
+  }
+
   if ($content -ne $original) {
     Set-Content -Path $pluginCmake -Value $content -NoNewline
-    Write-Host "Patched $($_.Name)/windows/CMakeLists.txt (removed invalid DEPENDS)"
+    $reasons = @()
+    if ($original -match '(?m)^\s*DEPENDS \$\{NUGET\}') { $reasons += "removed invalid DEPENDS" }
+    if ($_.Name -eq "ditto_live" -and $content -match 'string\(REPLACE "\\\\" "/" DITTOFFI_LIB_PATH') {
+      $reasons += "normalized dittoffi path slashes"
+    }
+    $summary = if ($reasons.Count -gt 0) { ($reasons -join "; ") } else { "updated" }
+    Write-Host "Patched $($_.Name)/windows/CMakeLists.txt ($summary)"
     $patched++
   }
 }
