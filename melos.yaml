@@ -36,6 +36,9 @@ dependency_overrides:
   path_provider_android: ">=2.2.5 <2.3.0"
   # Align with sentry/receipt; do not use jni ^1.0 until the whole workspace migrates together.
   jni: ^0.14.2
+  # No native Windows/macOS/Linux plugin — Flipper uses QR login on desktop, not OAuth webview.
+  desktop_webview_auth:
+    path: packages/desktop_webview_auth
 
 scripts:
   generate:icons:

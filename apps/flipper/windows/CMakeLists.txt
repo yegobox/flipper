@@ -19,7 +19,7 @@ set(BINARY_NAME "flipper")
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
-# CMP0175 (CMake 3.31+): desktop_webview_auth uses DEPENDS on add_custom_command(TARGET).
+# CMP0175 (CMake 3.31+): some plugins use DEPENDS on add_custom_command(TARGET).
 cmake_policy(SET CMP0175 OLD)
 
 # Define build configuration option.
@@ -74,9 +74,6 @@ endfunction()
 # Match coroutine ABI on runner + static wrappers (LNK4078 .voltbl).
 apply_legacy_coroutine_await(${BINARY_NAME})
 apply_legacy_coroutine_await(flutter_wrapper_app)
-if(TARGET desktop_webview_auth_plugin)
-  apply_legacy_coroutine_await(desktop_webview_auth_plugin)
-endif()
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
@@ -102,9 +99,21 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 if(PLUGIN_BUNDLED_LIBRARIES)
-  install(FILES "${PLUGIN_BUNDLED_LIBRARIES}"
-    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
+  foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
+    # Generator expressions ($<TARGET_FILE:...>) are fine; literal Windows paths
+    # must use forward slashes or cmake_install.cmake treats \a etc. as escapes.
+    if(bundled_library MATCHES "^\\$<")
+      install(FILES "${bundled_library}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
+    else()
+      file(TO_CMAKE_PATH "${bundled_library}" bundled_library)
+      string(REPLACE "\\" "/" bundled_library "${bundled_library}")
+      install(FILES "${bundled_library}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
+    endif()
+  endforeach()
 endif()
 
 # Copy the native assets provided by the build.dart from all packages.
