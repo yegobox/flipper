@@ -257,4 +257,20 @@ abstract class TransactionInterface {
     required String agentId,
     required String excludeTransactionId,
   });
+
+  /// Single targeted Ditto UPDATE for park — no pre-read, ensure-next-cart deferred.
+  Future<void> parkSaleTicketFast({
+    required ITransaction transaction,
+    required String ticketName,
+    required String ticketNote,
+    String? customerId,
+  });
+
+  /// Clear other pending carts + minimal Ditto UPDATE to resume on this device.
+  Future<void> resumeSaleTicketFast({
+    required ITransaction ticket,
+    required String agentId,
+    required String deviceId,
+    required String branchId,
+  });
 }

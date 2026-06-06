@@ -1290,6 +1290,36 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
+  Future<void> parkSaleTicketFast({
+    required ITransaction transaction,
+    required String ticketName,
+    required String ticketNote,
+    String? customerId,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).parkSaleTicketFast(
+      transaction: transaction,
+      ticketName: ticketName,
+      ticketNote: ticketNote,
+      customerId: customerId,
+    );
+  }
+
+  @override
+  Future<void> resumeSaleTicketFast({
+    required ITransaction ticket,
+    required String agentId,
+    required String deviceId,
+    required String branchId,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).resumeSaleTicketFast(
+      ticket: ticket,
+      agentId: agentId,
+      deviceId: deviceId,
+      branchId: branchId,
+    );
+  }
+
+  @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
     try {
       return await repository.delete<ITransaction>(transaction);

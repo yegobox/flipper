@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/mobile_checkout_launcher.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_models/SyncStrategy.dart';
-import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/services/resume_transaction_service.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -653,8 +655,15 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
     if (!resumeSucceeded || !mounted) return;
     if (MediaQuery.sizeOf(context).width < 600) {
-      await openMobileCheckoutForTransaction(context, ref, ticket);
+      unawaited(
+        openMobileCheckoutForTransaction(context, ref, ticket),
+      );
     }
+    showCustomSnackBarUtil(
+      context,
+      'Order resumed successfully',
+      backgroundColor: Colors.green,
+    );
   }
 
   /// Resume a parked ticket (target: under 3s before UI handoff).
@@ -666,26 +675,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         throw Exception('Missing branch or agent for resume');
       }
 
-      await ProxyService.getStrategy(
-        Strategy.capella,
-      ).clearPendingSaleCartsExcept(
+      await ResumeTransactionService.resume(
+        ticket: ticket,
         branchId: branchId,
         agentId: agentId,
-        excludeTransactionId: ticket.id,
-      );
-
-      // Pending-cart queries are scoped to this device's [deviceId]; tickets saved
-      // on desktop must be reassigned or mobile checkout shows an empty cart.
-      final saleDeviceId = await resolveSaleDeviceId();
-      ticket.status = PENDING;
-      ticket.agentId = agentId;
-      ticket.deviceId = saleDeviceId;
-
-      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
-        transaction: ticket,
-        status: PENDING,
-        updatedAt: DateTime.now().toUtc(),
-        lastTouched: DateTime.now().toUtc(),
       );
 
       primePosCartForTransactionWidget(
@@ -693,23 +686,19 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         isExpense: false,
         transaction: ticket,
       );
-      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
-      if (branchId.isNotEmpty) {
-        ref.invalidate(
-          transactionItemsStreamProvider(
-            transactionId: ticket.id,
-            branchId: branchId,
-          ),
-        );
-      }
 
-      if (mounted) {
-        showCustomSnackBarUtil(
-          context,
-          'Order resumed successfully',
-          backgroundColor: Colors.green,
-        );
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+        if (branchId.isNotEmpty) {
+          ref.invalidate(
+            transactionItemsStreamProvider(
+              transactionId: ticket.id,
+              branchId: branchId,
+            ),
+          );
+        }
+      });
+
       return true;
     } catch (e, st) {
       talker.error('Resume failed: $e', st);

@@ -1,7 +1,7 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/providers/park_transaction_provider.dart';
+import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -361,7 +361,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       widget.transaction.isLoan = _isLoan;
       widget.transaction.dueDate = _isLoan ? _dueDate?.toUtc() : null;
 
-      await ref.read(parkTransactionProvider.notifier).park(
+      await ParkTransactionService.park(
         ticketName: _ticketNameController.text.trim(),
         transaction: widget.transaction,
         ticketNote: _noteController.text.trim(),
