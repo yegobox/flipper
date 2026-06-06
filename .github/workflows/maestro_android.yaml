@@ -11,6 +11,9 @@ on:
       - "packages/flipper_login/**"
       - "packages/flipper_models/**"
       - "packages/flipper_services/**"
+      
+permissions:
+   contents: read
 
 env:
   FLUTTER_VERSION: "3.41.9"
