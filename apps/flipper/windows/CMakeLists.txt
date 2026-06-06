@@ -47,7 +47,8 @@ add_definitions(-DUNICODE -D_UNICODE)
 # Compilation settings that should be applied to most targets.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
-  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
+  # No /WX: third-party plugins (flutter_soloud/stb_vorbis, etc.) fail on VS 2026.
+  target_compile_options(${TARGET} PRIVATE /W4 /wd"4100" /wd"4244" /wd"4701")
   target_compile_options(${TARGET} PRIVATE /EHsc /await)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
