@@ -33,9 +33,14 @@ Get-ChildItem -Path $symlinksDir -Directory | ForEach-Object {
   # CMP0175: DEPENDS is invalid on add_custom_command(TARGET ...).
   $content = $content -replace '(?m)^\s*DEPENDS \$\{NUGET\}\s*\r?\n', ''
 
+  # flutter_soloud: skip parent /W4 apply_standard_settings; app CMakeLists sets /W0 /WX-.
+  if ($_.Name -eq 'flutter_soloud') {
+    $content = $content -replace '(?m)^apply_standard_settings\(\$\{PLUGIN_NAME\}\)\s*\r?\n', "# apply_standard_settings skipped (VS 2026 third-party soloud warnings)`n"
+  }
+
   if ($content -ne $original) {
     Set-Content -Path $pluginCmake -Value $content -NoNewline
-    Write-Host "Patched $($_.Name)/windows/CMakeLists.txt (removed invalid DEPENDS)"
+    Write-Host "Patched $($_.Name)/windows/CMakeLists.txt"
     $patched++
   }
 }

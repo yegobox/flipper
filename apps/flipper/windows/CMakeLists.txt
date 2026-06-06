@@ -6,7 +6,7 @@ project(flipper LANGUAGES CXX)
 # /await keeps one legacy coroutine ABI across app + WebView2/cppwinrt plugins (LNK4078 .voltbl).
 add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS /await /WX-")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX-")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX- /wd4100 /wd4189 /wd4244 /wd4245 /wd4456 /wd4459 /wd4701 /wd4702")
 
 # The target_link_libraries call can stay the same since it will use
 # whichever sqlite3 target exists
@@ -49,8 +49,9 @@ add_definitions(-DUNICODE -D_UNICODE)
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
   # No /WX: third-party plugins (flutter_soloud, stb_vorbis, etc.) fail on VS 2026.
-  target_compile_options(${TARGET} PRIVATE /W4 /WX- /wd"4100" /wd"4244" /wd"4456" /wd"4701" /wd"4702")
-  target_compile_options(${TARGET} PRIVATE /EHsc /await)
+  set_target_properties(${TARGET} PROPERTIES COMPILE_WARNING_AS_ERROR OFF)
+  target_compile_options(${TARGET} PRIVATE /W4 /WX- /wd"4100" /wd"4189" /wd"4244" /wd"4245" /wd"4456" /wd"4459" /wd"4701" /wd"4702")
+  target_compile_options(${TARGET} PRIVATE /EHsc "$<$<COMPILE_LANGUAGE:CXX>:/await>")
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()
@@ -67,6 +68,21 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# VS 2026: flutter_soloud bundles stb_vorbis/miniaudio with many /W4 warnings. /WX- on the
+# command line is not always enough; COMPILE_WARNING_AS_ERROR OFF + /W0 stops CI whack-a-mole.
+if(MSVC)
+  foreach(_plugin ${FLUTTER_PLUGIN_LIST} ${FLUTTER_FFI_PLUGIN_LIST})
+    set(_target "${_plugin}_plugin")
+    if(TARGET ${_target})
+      set_target_properties(${_target} PROPERTIES COMPILE_WARNING_AS_ERROR OFF)
+    endif()
+  endforeach()
+
+  if(TARGET flutter_soloud_plugin)
+    set_target_properties(flutter_soloud_plugin PROPERTIES COMPILE_WARNING_AS_ERROR OFF)
+    target_compile_options(flutter_soloud_plugin PRIVATE /W0 /WX-)
+  endif()
+endif()
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
