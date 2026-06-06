@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_login/login_semantics.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -177,94 +178,164 @@ class _LandingState extends State<Landing> {
   }
 
   Widget _buildMobileLanding(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F8FD),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 430),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(28, 18, 28, 0),
-                  child: Row(
-                    children: [
-                      const _FlipperGlyph(size: 34),
-                      const SizedBox(width: 14),
-                      Text(
-                        'Flipper',
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF0B1220),
+    return Semantics(
+      key: const Key(LoginMaestroIds.landingScreen),
+      identifier: LoginMaestroIds.landingScreen,
+      label: 'Flipper landing',
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F8FD),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(28, 18, 28, 0),
+                    child: Row(
+                      children: [
+                        const _FlipperGlyph(size: 34),
+                        const SizedBox(width: 14),
+                        Text(
+                          'Flipper',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF0B1220),
+                              ),
+                        ),
+                        const Spacer(),
+                        Semantics(
+                          key: const Key(LoginMaestroIds.landingSignIn),
+                          identifier: LoginMaestroIds.landingSignIn,
+                          label: 'Sign in',
+                          button: true,
+                          child: TextButton(
+                            key: signInButtonKey,
+                            onPressed: _goToSignIn,
+                            child: const Text(
+                              'Sign in',
+                              style: TextStyle(
+                                color: Color(0xFF7E8AA0),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: CarouselView(
+                      scrollDirection: Axis.horizontal,
+                      controller: _pageController,
+                      children: _pagesContent
+                          .map((page) => _buildCarouselItem(page))
+                          .toList(),
+                    ),
+                  ),
+                  PageIndicator(
+                    count: _pagesContent.length,
+                    currentIndex: _currentPage,
+                    activeColor: const Color(0xFF4F46E5),
+                    inactiveColor: const Color(0xFFD6DEEA),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(28, 22, 28, 30),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Semantics(
+                          key: Key(
+                            _currentPage < _pagesContent.length - 1
+                                ? LoginMaestroIds.landingNext
+                                : LoginMaestroIds.landingCreateAccount,
+                          ),
+                          identifier: _currentPage < _pagesContent.length - 1
+                              ? LoginMaestroIds.landingNext
+                              : LoginMaestroIds.landingCreateAccount,
+                          label: _currentPage < _pagesContent.length - 1
+                              ? 'Next'
+                              : 'Create account',
+                          button: true,
+                          child: FlipperGradientButton(
+                            text: _currentPage < _pagesContent.length - 1
+                                ? 'Next'
+                                : 'Create account',
+                            icon: _currentPage < _pagesContent.length - 1
+                                ? Icons.chevron_right_rounded
+                                : Icons.person_add_alt_1_rounded,
+                            onPressed: _currentPage < _pagesContent.length - 1
+                                ? _goToNextPage
+                                : _goToCreateAccount,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        if (_currentPage < _pagesContent.length - 1) ...[
+                          Semantics(
+                            key: const Key(
+                              LoginMaestroIds.landingSkipCreateAccount,
+                            ),
+                            identifier:
+                                LoginMaestroIds.landingSkipCreateAccount,
+                            label: 'Skip intro and create account',
+                            button: true,
+                            child: TextButton(
+                              onPressed: _goToCreateAccount,
+                              child: const Text(
+                                'Skip intro - Create account',
+                                style: TextStyle(
+                                  color: Color(0xFF4F46E5),
+                                  fontWeight: FontWeight.w800,
                                 ),
-                      ),
-                      const Spacer(),
-                      TextButton(
-                        key: signInButtonKey,
-                        onPressed: _goToSignIn,
-                        child: const Text(
-                          'Skip',
-                          style: TextStyle(
-                            color: Color(0xFF7E8AA0),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: CarouselView(
-                    scrollDirection: Axis.horizontal,
-                    controller: _pageController,
-                    children: _pagesContent
-                        .map((page) => _buildCarouselItem(page))
-                        .toList(),
-                  ),
-                ),
-                PageIndicator(
-                  count: _pagesContent.length,
-                  currentIndex: _currentPage,
-                  activeColor: const Color(0xFF4F46E5),
-                  inactiveColor: const Color(0xFFD6DEEA),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(28, 22, 28, 30),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FlipperGradientButton(
-                        text: _currentPage < _pagesContent.length - 1
-                            ? 'Next'
-                            : 'Create account',
-                        icon: _currentPage < _pagesContent.length - 1
-                            ? Icons.chevron_right_rounded
-                            : Icons.person_add_alt_1_rounded,
-                        onPressed: _currentPage < _pagesContent.length - 1
-                            ? _goToNextPage
-                            : _goToCreateAccount,
-                      ),
-                      const SizedBox(height: 14),
-                      TextButton(
-                        onPressed: _currentPage < _pagesContent.length - 1
-                            ? _goToCreateAccount
-                            : _goToSignIn,
-                        child: Text(
-                          _currentPage < _pagesContent.length - 1
-                              ? 'Skip intro - Create account'
-                              : 'Already selling on Flipper? Sign in',
-                          style: const TextStyle(
-                            color: Color(0xFF4F46E5),
-                            fontWeight: FontWeight.w800,
+                          Semantics(
+                            key: const Key(
+                              LoginMaestroIds.landingSecondarySignIn,
+                            ),
+                            identifier: LoginMaestroIds.landingSecondarySignIn,
+                            label: 'Already selling on Flipper? Sign in',
+                            button: true,
+                            child: TextButton(
+                              onPressed: _goToSignIn,
+                              child: const Text(
+                                'Already selling on Flipper? Sign in',
+                                style: TextStyle(
+                                  color: Color(0xFF4F46E5),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
+                        ] else
+                          Semantics(
+                            key: const Key(
+                              LoginMaestroIds.landingSecondarySignIn,
+                            ),
+                            identifier: LoginMaestroIds.landingSecondarySignIn,
+                            label: 'Already selling on Flipper? Sign in',
+                            button: true,
+                            child: TextButton(
+                              onPressed: _goToSignIn,
+                              child: const Text(
+                                'Already selling on Flipper? Sign in',
+                                style: TextStyle(
+                                  color: Color(0xFF4F46E5),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -278,8 +349,11 @@ class _LandingState extends State<Landing> {
       child: Column(
         children: [
           Expanded(
-            child: _ProductCardsHero(layout: page.heroLayout),
+            child: ClipRect(
+              child: _ProductCardsHero(layout: page.heroLayout),
+            ),
           ),
+          const SizedBox(height: 12),
           _LandingSlideTitle(
             title: page.title,
             highlight: page.highlight,
@@ -421,7 +495,7 @@ class _ProductCardsHeroState extends State<_ProductCardsHero>
           width: width,
           height: height,
           child: Stack(
-            clipBehavior: Clip.none,
+            clipBehavior: Clip.hardEdge,
             alignment: Alignment.center,
             children: [
               Positioned.fill(
@@ -556,7 +630,7 @@ class _ProductCardsHeroState extends State<_ProductCardsHero>
       _ => [
           _FloatPositioned(
             controller: _floatController,
-            top: height * .10,
+            top: height * .08,
             left: width * .16,
             angle: -0.06,
             phase: .00,
@@ -564,7 +638,7 @@ class _ProductCardsHeroState extends State<_ProductCardsHero>
           ),
           _FloatPositioned(
             controller: _floatController,
-            top: height * .46,
+            top: height * .36,
             left: width * .02,
             angle: 0.07,
             phase: .20,
@@ -572,7 +646,7 @@ class _ProductCardsHeroState extends State<_ProductCardsHero>
           ),
           _FloatPositioned(
             controller: _floatController,
-            top: height * .55,
+            top: height * .42,
             right: width * .00,
             angle: -0.08,
             phase: .10,

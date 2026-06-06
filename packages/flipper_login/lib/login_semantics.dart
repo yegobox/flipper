@@ -1,4 +1,12 @@
 abstract final class LoginMaestroIds {
+  static const landingScreen = 'flipper.login.landing.screen';
+  static const landingNext = 'flipper.login.landing.next';
+  static const landingCreateAccount = 'flipper.login.landing.createAccount';
+  static const landingSkipCreateAccount =
+      'flipper.login.landing.skipCreateAccount';
+  static const landingSignIn = 'flipper.login.landing.signIn';
+  static const landingSecondarySignIn = 'flipper.login.landing.secondarySignIn';
+
   static const pinScreen = 'flipper.login.pin.screen';
   static const pinField = 'flipper.login.pin.field';
   static const pinCells = 'flipper.login.pin.cells';
