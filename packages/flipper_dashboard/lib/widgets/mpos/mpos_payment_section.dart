@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
@@ -266,6 +267,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
             child: Row(
               children: [
                 _PayChip(
+                  semanticId: MaestroIds.mposPaymentCash,
                   label: FLocalization.of(context).cash,
                   icon: Icons.payments_outlined,
                   selected: _chip == MposPayChip.cash,
@@ -273,6 +275,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                 ),
                 const SizedBox(width: 9),
                 _PayChip(
+                  semanticId: MaestroIds.mposPaymentMomo,
                   label: 'MoMo',
                   icon: Icons.phone_android_rounded,
                   selected: _chip == MposPayChip.momo,
@@ -280,6 +283,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                 ),
                 const SizedBox(width: 9),
                 _PayChip(
+                  semanticId: MaestroIds.mposPaymentCredit,
                   label: FLocalization.of(context).credit,
                   icon: Icons.account_balance_wallet_outlined,
                   selected: _chip == MposPayChip.credit,
@@ -321,22 +325,32 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                           ),
                         ),
                         Expanded(
-                          child: TextField(
-                            controller: _momoPhoneController,
-                            keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(
-                              hintText: '078X XXX XXX',
-                              border: InputBorder.none,
+                          child: MaestroSemantics(
+                            id: MaestroIds.mposPaymentMomoPhone,
+                            label: 'MoMo phone number',
+                            textField: true,
+                            enabled: true,
+                            child: TextField(
+                              key: const Key(MaestroIds.mposPaymentMomoPhone),
+                              controller: _momoPhoneController,
+                              keyboardType: TextInputType.phone,
+                              decoration: const InputDecoration(
+                                hintText: '078X XXX XXX',
+                                border: InputBorder.none,
+                              ),
+                              onChanged: (v) {
+                                final digits = v.replaceAll(
+                                  RegExp(r'\D'),
+                                  '',
+                                );
+                                ref.read(mposMomoPhoneProvider.notifier).state =
+                                    digits;
+                                ProxyService.box.writeString(
+                                  key: 'currentSaleCustomerPhoneNumber',
+                                  value: digits,
+                                );
+                              },
                             ),
-                            onChanged: (v) {
-                              final digits = v.replaceAll(RegExp(r'\D'), '');
-                              ref.read(mposMomoPhoneProvider.notifier).state =
-                                  digits;
-                              ProxyService.box.writeString(
-                                key: 'currentSaleCustomerPhoneNumber',
-                                value: digits,
-                              );
-                            },
                           ),
                         ),
                       ],
@@ -384,27 +398,35 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                           ),
                         ),
                         Expanded(
-                          child: TextField(
-                            controller: payments.isNotEmpty
-                                ? payments.first.controller
-                                : null,
-                            focusNode: _cashAmountFocus,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            style: mposMonoStyle(
-                              Theme.of(context).textTheme,
-                              fontSize: 20,
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: '0',
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 14,
+                          child: MaestroSemantics(
+                            id: MaestroIds.mposPaymentCashAmount,
+                            label: 'Cash received amount',
+                            textField: true,
+                            enabled: true,
+                            child: TextField(
+                              key:
+                                  const Key(MaestroIds.mposPaymentCashAmount),
+                              controller: payments.isNotEmpty
+                                  ? payments.first.controller
+                                  : null,
+                              focusNode: _cashAmountFocus,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              style: mposMonoStyle(
+                                Theme.of(context).textTheme,
+                                fontSize: 20,
                               ),
+                              decoration: const InputDecoration(
+                                hintText: '0',
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                ),
+                              ),
+                              onChanged: _onCashAmountChanged,
                             ),
-                            onChanged: _onCashAmountChanged,
                           ),
                         ),
                       ],
@@ -414,24 +436,28 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                   Row(
                     children: [
                       _QuickCash(
+                        semanticId: MaestroIds.mposPaymentQuickExact,
                         label: FLocalization.of(context).exact,
                         selected: tender.round() == widget.totalPayable.round(),
                         onTap: () => _setTender(widget.totalPayable),
                       ),
                       const SizedBox(width: 8),
                       _QuickCash(
+                        semanticId: MaestroIds.mposPaymentQuick5000,
                         label: mposMoneyLabel(5000),
                         selected: tender.round() == 5000,
                         onTap: () => _setTender(5000),
                       ),
                       const SizedBox(width: 8),
                       _QuickCash(
+                        semanticId: MaestroIds.mposPaymentQuick10000,
                         label: mposMoneyLabel(10000),
                         selected: tender.round() == 10000,
                         onTap: () => _setTender(10000),
                       ),
                       const SizedBox(width: 8),
                       _QuickCash(
+                        semanticId: MaestroIds.mposPaymentQuick20000,
                         label: mposMoneyLabel(20000),
                         selected: tender.round() == 20000,
                         onTap: () => _setTender(20000),
@@ -482,12 +508,14 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
 
 class _PayChip extends StatelessWidget {
   const _PayChip({
+    required this.semanticId,
     required this.label,
     required this.icon,
     required this.selected,
     required this.onTap,
   });
 
+  final String semanticId;
   final String label;
   final IconData icon;
   final bool selected;
@@ -496,38 +524,45 @@ class _PayChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Material(
-        color: selected ? PosTokens.blueTint : PosTokens.surface,
-        borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-        child: InkWell(
-          onTap: onTap,
+      child: MaestroSemantics(
+        id: semanticId,
+        label: label,
+        button: true,
+        enabled: true,
+        selected: selected,
+        child: Material(
+          color: selected ? PosTokens.blueTint : PosTokens.surface,
           borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 13),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-              border: Border.all(
-                color: selected ? PosTokens.blue : PosTokens.line,
-                width: 1.5,
-              ),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: selected ? PosTokens.blue : PosTokens.ink2,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+                border: Border.all(
+                  color: selected ? PosTokens.blue : PosTokens.line,
+                  width: 1.5,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    icon,
+                    size: 20,
                     color: selected ? PosTokens.blue : PosTokens.ink2,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: selected ? PosTokens.blue : PosTokens.ink2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -538,11 +573,13 @@ class _PayChip extends StatelessWidget {
 
 class _QuickCash extends StatelessWidget {
   const _QuickCash({
+    required this.semanticId,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
+  final String semanticId;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -550,28 +587,35 @@ class _QuickCash extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Material(
-        color: selected ? PosTokens.blueTint : PosTokens.surface,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          onTap: onTap,
+      child: MaestroSemantics(
+        id: semanticId,
+        label: label,
+        button: true,
+        enabled: true,
+        selected: selected,
+        child: Material(
+          color: selected ? PosTokens.blueTint : PosTokens.surface,
           borderRadius: BorderRadius.circular(10),
-          child: Container(
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: selected ? PosTokens.blue : PosTokens.line,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: selected ? PosTokens.blue : PosTokens.line,
+                ),
               ),
-            ),
-            child: Text(
-              label,
-              style: mposMonoStyle(
-                Theme.of(context).textTheme,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: selected ? PosTokens.blue : PosTokens.ink2,
+              child: Text(
+                label,
+                style: mposMonoStyle(
+                  Theme.of(context).textTheme,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? PosTokens.blue : PosTokens.ink2,
+                ),
               ),
             ),
           ),

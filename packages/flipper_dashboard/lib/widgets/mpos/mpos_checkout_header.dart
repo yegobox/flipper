@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_status_pill.dart';
@@ -68,23 +69,29 @@ class _MposBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: PosTokens.surface2,
-      borderRadius: BorderRadius.circular(11),
-      child: InkWell(
-        onTap: onPressed,
+    return MaestroSemantics(
+      id: MaestroIds.mposCheckoutBack,
+      label: 'Back from checkout',
+      button: true,
+      enabled: true,
+      child: Material(
+        color: PosTokens.surface2,
         borderRadius: BorderRadius.circular(11),
-        child: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
-            border: Border.all(color: PosTokens.line),
-          ),
-          child: const Icon(
-            Icons.chevron_left_rounded,
-            size: 22,
-            color: PosTokens.ink1,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(11),
+          child: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: PosTokens.line),
+            ),
+            child: const Icon(
+              Icons.chevron_left_rounded,
+              size: 22,
+              color: PosTokens.ink1,
+            ),
           ),
         ),
       ),

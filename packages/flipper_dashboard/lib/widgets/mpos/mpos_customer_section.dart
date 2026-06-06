@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/mpos_helpers.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_card.dart';
@@ -65,87 +66,94 @@ class _WalkInRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onAttach != null;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: enabled ? onAttach : null,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: PosTokens.surface2,
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(
-                    color: PosTokens.lineStrong,
-                    width: 1.5,
-                    style: BorderStyle.solid,
+    return MaestroSemantics(
+      id: MaestroIds.mposCustomerAttach,
+      label: 'Attach customer',
+      button: true,
+      enabled: enabled,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: enabled ? onAttach : null,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: PosTokens.surface2,
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: PosTokens.lineStrong,
+                      width: 1.5,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: showProgress
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: PosTokens.blue,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.person_outline_rounded,
+                          size: 20,
+                          color: PosTokens.ink3,
+                        ),
+                ),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Walk-in customer',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color:
+                              showProgress ? PosTokens.ink3 : PosTokens.ink1,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: showProgress ? PosTokens.blue : PosTokens.ink3,
+                          fontWeight:
+                              showProgress ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: showProgress
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                if (!showProgress)
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Add',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
                           color: PosTokens.blue,
                         ),
-                      )
-                    : const Icon(
-                        Icons.person_outline_rounded,
-                        size: 20,
-                        color: PosTokens.ink3,
                       ),
-              ),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Walk-in customer',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: showProgress ? PosTokens.ink3 : PosTokens.ink1,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: showProgress ? PosTokens.blue : PosTokens.ink3,
-                        fontWeight:
-                            showProgress ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (!showProgress)
-                const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Add',
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
                         color: PosTokens.blue,
                       ),
-                    ),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                      color: PosTokens.blue,
-                    ),
-                  ],
-                ),
-            ],
+                    ],
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -216,9 +224,11 @@ class _AttachedRow extends StatelessWidget {
               ],
             ),
           ),
-          Semantics(
-            button: true,
+          MaestroSemantics(
+            id: MaestroIds.mposCustomerRemove,
             label: 'Remove customer',
+            button: true,
+            enabled: true,
             child: TextButton(
               onPressed: onClear,
               style: TextButton.styleFrom(
