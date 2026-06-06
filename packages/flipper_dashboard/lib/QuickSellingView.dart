@@ -2614,6 +2614,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ITransaction transaction,
     CoreViewModel model,
   ) async {
-    await showSharedTicketDialog(context: context, transaction: transaction);
+    final txn =
+        ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
+        transaction;
+    await showSharedTicketDialog(context: context, transaction: txn);
   }
 }

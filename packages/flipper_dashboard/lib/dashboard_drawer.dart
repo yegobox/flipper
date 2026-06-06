@@ -28,14 +28,15 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
-class MyDrawer extends ConsumerStatefulWidget {
-  const MyDrawer({Key? key}) : super(key: key);
+class DashboardDrawer extends ConsumerStatefulWidget {
+  const DashboardDrawer({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<MyDrawer> createState() => _MyDrawerState();
+  ConsumerState<DashboardDrawer> createState() => _DashboardDrawerState();
 }
 
-class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
+class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
+    with BranchSelectionMixin {
   String? _switchingBranchId;
   bool userLoggingEnabled = false;
   bool backgroundSyncEnabled = false;

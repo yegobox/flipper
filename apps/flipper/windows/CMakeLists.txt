@@ -48,9 +48,9 @@ add_definitions(-DUNICODE -D_UNICODE)
 # Compilation settings that should be applied to most targets.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
-  # No /WX: third-party plugins (flutter_soloud, stb_vorbis, etc.) fail on VS 2026.
-  target_compile_options(${TARGET} PRIVATE /W4 /WX- /wd"4100" /wd"4244" /wd"4456" /wd"4701" /wd"4702")
-  target_compile_options(${TARGET} PRIVATE /EHsc /await)
+  set_target_properties(${TARGET} PROPERTIES COMPILE_WARNING_AS_ERROR OFF)
+  target_compile_options(${TARGET} PRIVATE /W4 /WX- /wd"4100")
+  target_compile_options(${TARGET} PRIVATE /EHsc "$<$<COMPILE_LANGUAGE:CXX>:/await>")
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()
@@ -66,7 +66,6 @@ add_subdirectory("runner")
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
-
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can

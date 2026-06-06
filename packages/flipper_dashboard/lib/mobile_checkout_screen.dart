@@ -114,9 +114,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
   Future<void> _showParkDialog() async {
     var parked = false;
+    final txn =
+        ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
+        widget.transaction;
     await showSharedTicketDialog(
       context: context,
-      transaction: widget.transaction,
+      transaction: txn,
       onParked: () => parked = true,
     );
     if (!parked || !mounted) return;

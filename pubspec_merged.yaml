@@ -266,7 +266,6 @@ dependencies:
   record: ^6.1.2
   markdown_widget: ^2.3.2
   flipper_auth: any
-  flutter_soloud: ^4.0.6
   ditto_live: ^5.0.1
   flipper_personal: any
   # just_audio: ^0.10.5

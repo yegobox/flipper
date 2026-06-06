@@ -1,22 +1,19 @@
 import 'dart:async';
 
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_scanner/scanner_actions.dart';
+import 'package:flipper_scanner/scanner_beep.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_soloud/flutter_soloud.dart';
-import 'package:flipper_models/src/platform.dart' as platform;
 
 class DashboardScannerActions implements ScannerActions {
   final BuildContext context;
   final WidgetRef ref;
 
-  SoLoud? _soloud;
-  AudioSource? _soundSource;
   Timer? _autoPop;
   bool _isClosed = false;
 
@@ -25,21 +22,8 @@ class DashboardScannerActions implements ScannerActions {
   @override
   void onBarcodeDetected(barcode) async {
     try {
-      // Initialize SoLoud only on mobile platforms
-      if (platform.isMobile && _soloud == null) {
-        _soloud = SoLoud.instance;
-        await _soloud!.init();
-        _soundSource = await _soloud!.loadAsset(
-          'packages/flipper_dashboard/assets/sound.mp3',
-        );
-      }
-
       ProxyService.productService.setBarcode(barcode.rawValue);
-
-      // Play sound on successful barcode detection (mobile only)
-      if (platform.isMobile && _soundSource != null) {
-        _soloud!.play(_soundSource!);
-      }
+      await ScannerBeep.playSuccess();
     } catch (e) {
       // Continue even if sound fails
     }
@@ -76,30 +60,12 @@ class DashboardScannerActions implements ScannerActions {
     if (!Navigator.canPop(context)) return;
 
     _isClosed = true;
-
-    // Dispose SoLoud resources when the scanner view is popped (mobile only)
-    if (platform.isMobile && _soloud != null) {
-      if (_soundSource != null) {
-        _soloud!.disposeSource(_soundSource!);
-        _soundSource = null;
-      }
-      _soloud!.deinit();
-      _soloud = null;
-    }
     Navigator.of(context).pop();
   }
 
   void dispose() {
     _autoPop?.cancel();
     _autoPop = null;
-    if (platform.isMobile && _soloud != null) {
-      if (_soundSource != null) {
-        _soloud!.disposeSource(_soundSource!);
-        _soundSource = null;
-      }
-      _soloud!.deinit();
-      _soloud = null;
-    }
   }
 
   @override

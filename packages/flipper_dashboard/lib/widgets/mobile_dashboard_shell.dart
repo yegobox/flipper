@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/ProfileFutureWidget.dart';
 import 'package:flipper_dashboard/dashboard_mobile_pos_navigation.dart';
 import 'package:flipper_dashboard/dashboard_view.dart';
-import 'package:flipper_dashboard/drawerB.dart';
+import 'package:flipper_dashboard/dashboard_drawer.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_app_bar_leading.dart';
 import 'package:flipper_dashboard/widgets/dashboard_mobile_bottom_nav.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -52,7 +52,7 @@ class _MobileDashboardShellState extends ConsumerState<MobileDashboardShell> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: _pageBg,
-      drawer: const MyDrawer(),
+      drawer: const DashboardDrawer(),
       body: Column(
         children: [
           Material(
