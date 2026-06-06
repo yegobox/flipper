@@ -1,0 +1,21 @@
+appId: ${APP_ID}
+name: Landing to PIN smoke
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "flipper.login.landing.screen"
+    timeout: 60000
+- assertVisible:
+    id: "flipper.login.landing.signIn"
+- tapOn:
+    id: "flipper.login.landing.signIn"
+- extendedWaitUntil:
+    visible:
+      id: "flipper.login.pin.screen"
+    timeout: 30000
+- assertVisible:
+    id: "flipper.login.pin.field"
+- assertVisible:
+    id: "flipper.login.pin.submit"
