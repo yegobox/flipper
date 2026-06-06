@@ -52,8 +52,10 @@ try {
     throw "Failed to download dittoffi.dll"
   }
 
-  Add-Content -Path $env:GITHUB_ENV -Value "LIBDITTOFFI_PATH=$dllPath"
-  Write-Host "dittoffi.dll ready at $dllPath (ditto_live $dittoVersion)"
+  # CMake install scripts treat \ as escapes (D:\a\... → invalid \a). Use forward slashes.
+  $dllPathForCmake = $dllPath -replace '\\', '/'
+  Add-Content -Path $env:GITHUB_ENV -Value "LIBDITTOFFI_PATH=$dllPathForCmake"
+  Write-Host "dittoffi.dll ready at $dllPathForCmake (ditto_live $dittoVersion)"
 } finally {
   Pop-Location
 }
