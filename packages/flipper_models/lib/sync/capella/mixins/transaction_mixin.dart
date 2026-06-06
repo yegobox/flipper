@@ -1962,6 +1962,24 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  Future<double> _sumLineItemsSubTotal(String transactionId) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return 0.0;
+
+    final result = await ditto.store.execute(
+      'SELECT * FROM transaction_items WHERE transactionId = :id',
+      arguments: {'id': transactionId},
+    );
+    var sum = 0.0;
+    for (final item in result.items) {
+      final data = Map<String, dynamic>.from(item.value);
+      final price = (data['price'] as num?)?.toDouble() ?? 0.0;
+      final qty = (data['qty'] as num?)?.toDouble() ?? 0.0;
+      sum += data['totAmt'] as num? ?? (price * qty);
+    }
+    return sum;
+  }
+
   Future<String?> _otherParkedTicketIdForCustomer({
     required String customerId,
     required String branchId,
@@ -2029,26 +2047,56 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     transaction.ticketName = ticketName.trim();
     transaction.note = ticketNote;
 
+    // Do not write subTotal=0 when the in-memory cart is stale — KDS/tickets
+    // streams filter on `subTotal > 0` and would hide the parked ticket.
+    var subTotal = transaction.subTotal ?? 0.0;
+    if (subTotal <= 0) {
+      subTotal = await _sumLineItemsSubTotal(targetId);
+      if (subTotal > 0) {
+        transaction.subTotal = subTotal;
+      }
+    }
+
+    final setClauses = <String>[
+      'status = :status',
+      'ticketName = :ticketName',
+      'note = :note',
+      'isLoan = :isLoan',
+      'updatedAt = :updatedAt',
+      'lastTouched = :lastTouched',
+      'createdAt = :lastTouched',
+    ];
+    final args = <String, dynamic>{
+      'id': targetId,
+      'status': PARKED,
+      'ticketName': ticketName.trim(),
+      'note': ticketNote,
+      'isLoan': transaction.isLoan ?? false,
+      'updatedAt': nowIso,
+      'lastTouched': nowIso,
+    };
+
+    if (subTotal > 0) {
+      setClauses.add('subTotal = :subTotal');
+      args['subTotal'] = subTotal;
+    }
+    if (transaction.cashReceived != null) {
+      setClauses.add('cashReceived = :cashReceived');
+      args['cashReceived'] = transaction.cashReceived;
+    }
+    if (customerId != null) {
+      setClauses.add('customerId = :customerId');
+      args['customerId'] = customerId;
+    }
+    if (transaction.dueDate != null) {
+      setClauses.add('dueDate = :dueDate');
+      args['dueDate'] = transaction.dueDate!.toUtc().toIso8601String();
+    }
+
     await ditto.store.execute(
-      'UPDATE transactions SET '
-      'status = :status, ticketName = :ticketName, note = :note, '
-      'subTotal = :subTotal, cashReceived = :cashReceived, '
-      'customerId = :customerId, isLoan = :isLoan, dueDate = :dueDate, '
-      'updatedAt = :updatedAt, lastTouched = :lastTouched, createdAt = :lastTouched '
+      'UPDATE transactions SET ${setClauses.join(', ')} '
       'WHERE _id = :id OR id = :id',
-      arguments: {
-        'id': targetId,
-        'status': PARKED,
-        'ticketName': ticketName.trim(),
-        'note': ticketNote,
-        'subTotal': transaction.subTotal ?? 0.0,
-        'cashReceived': transaction.cashReceived ?? 0.0,
-        'customerId': customerId,
-        'isLoan': transaction.isLoan ?? false,
-        'dueDate': transaction.dueDate?.toUtc().toIso8601String(),
-        'updatedAt': nowIso,
-        'lastTouched': nowIso,
-      },
+      arguments: args,
     );
 
     final transactionType = transaction.transactionType ?? SALE;
@@ -2096,6 +2144,46 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'updatedAt': nowIso,
         'lastTouched': nowIso,
       },
+    );
+  }
+
+  @override
+  Future<void> updateKitchenOrderStatusFast({
+    required String transactionId,
+    required String status,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for updateKitchenOrderStatusFast');
+      return;
+    }
+
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    final setClauses = <String>[
+      'status = :status',
+      'updatedAt = :updatedAt',
+      'lastTouched = :lastTouched',
+    ];
+    final args = <String, dynamic>{
+      'id': transactionId,
+      'status': status,
+      'updatedAt': nowIso,
+      'lastTouched': nowIso,
+    };
+
+    if (clearDueDate) {
+      setClauses.add('dueDate = NULL');
+    } else if (dueDate != null) {
+      setClauses.add('dueDate = :dueDate');
+      args['dueDate'] = dueDate.toUtc().toIso8601String();
+    }
+
+    await ditto.store.execute(
+      'UPDATE transactions SET ${setClauses.join(', ')} '
+      'WHERE _id = :id OR id = :id',
+      arguments: args,
     );
   }
 

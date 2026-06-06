@@ -273,4 +273,12 @@ abstract class TransactionInterface {
     required String deviceId,
     required String branchId,
   });
+
+  /// Kitchen display column moves — status/timestamps only, no POS cart side effects.
+  Future<void> updateKitchenOrderStatusFast({
+    required String transactionId,
+    required String status,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  });
 }

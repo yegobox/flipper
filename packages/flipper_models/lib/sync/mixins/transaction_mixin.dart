@@ -1320,6 +1320,21 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
+  Future<void> updateKitchenOrderStatusFast({
+    required String transactionId,
+    required String status,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).updateKitchenOrderStatusFast(
+      transactionId: transactionId,
+      status: status,
+      dueDate: dueDate,
+      clearDueDate: clearDueDate,
+    );
+  }
+
+  @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
     try {
       return await repository.delete<ITransaction>(transaction);
