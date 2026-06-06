@@ -33,25 +33,9 @@ Get-ChildItem -Path $symlinksDir -Directory | ForEach-Object {
   # CMP0175: DEPENDS is invalid on add_custom_command(TARGET ...).
   $content = $content -replace '(?m)^\s*DEPENDS \$\{NUGET\}\s*\r?\n', ''
 
-  if ($_.Name -eq 'flutter_soloud') {
-    # Parent APPLY_STANDARD_SETTINGS uses /W4; soloud third-party sources fail on VS 2026.
-    $content = $content -replace '(?m)^apply_standard_settings\(\$\{PLUGIN_NAME\}\)\s*\r?\n', "# apply_standard_settings skipped (VS 2026 CI)`n"
-
-    # copy_pdbs runs on every build and fails when PDB is missing (copy_if_different error).
-    $content = $content -replace '(?ms)\r?\n\s*# Create a custom target for copying PDB files.*?VERBATIM\s*\)\s*\r?\n', "`n"
-
-    # /GL + /LTCG are fragile on GitHub VS 2026 runners.
-    $content = $content -replace '(?m)^\s*/GL\s*# Whole program optimization\s*\r?\n', ''
-    $content = $content -replace '(?m)^\s*set\(CMAKE_EXE_LINKER_FLAGS "\$\{CMAKE_EXE_LINKER_FLAGS\} /LTCG /OPT:REF /OPT:ICF"\)\s*\r?\n', ''
-    $content = $content -replace '(?m)^\s*set\(CMAKE_SHARED_LINKER_FLAGS "\$\{CMAKE_SHARED_LINKER_FLAGS\} /LTCG /OPT:REF /OPT:ICF"\)\s*\r?\n', ''
-
-    # Downgrade plugin warning level; app CMakeLists.txt also forces /W0 /WX- on this target.
-    $content = $content -replace '/W4\s*# Warning level 4', '/W0 # Warning level disabled for CI'
-  }
-
   if ($content -ne $original) {
     Set-Content -Path $pluginCmake -Value $content -NoNewline
-    Write-Host "Patched $($_.Name)/windows/CMakeLists.txt"
+    Write-Host "Patched $($_.Name)/windows/CMakeLists.txt (removed invalid DEPENDS)"
     $patched++
   }
 }

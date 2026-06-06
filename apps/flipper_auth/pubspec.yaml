@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.447+1541
+version: 1.0.449+1543
 
 
 environment:
@@ -50,7 +50,6 @@ dependency_overrides:
   jni: ^0.14.2
   path_provider_android: ">=2.2.5 <2.3.0"
   meta: ^1.16.0
-  flutter_soloud: ^4.0.3
   source_gen: ">=3.1.0 <4.0.0"  # allow compatible version with json_serializable
 
 dev_dependencies:
