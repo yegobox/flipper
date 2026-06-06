@@ -2,10 +2,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(flipper LANGUAGES CXX)
 
-# MSVC 18.6+ (STL1011): plugins using /await + <experimental/coroutine> fail to compile.
-# /await keeps one legacy coroutine ABI across app + WebView2/cppwinrt plugins (LNK4078 .voltbl).
+# MSVC 18.6+ (STL1011): silence deprecated <experimental/coroutine> headers in older plugins.
+# Do not set /await globally — geolocator_windows uses /await:strict (D8016 if both are set).
 add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS /await /WX-")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS /WX-")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX-")
 
 # The target_link_libraries call can stay the same since it will use
@@ -50,7 +50,7 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
   set_target_properties(${TARGET} PROPERTIES COMPILE_WARNING_AS_ERROR OFF)
   target_compile_options(${TARGET} PRIVATE /W4 /WX- /wd"4100")
-  target_compile_options(${TARGET} PRIVATE /EHsc "$<$<COMPILE_LANGUAGE:CXX>:/await>")
+  target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()
@@ -66,6 +66,15 @@ add_subdirectory("runner")
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
+
+# Legacy /await for WebView2/cppwinrt (LNK4078 .voltbl). Per-target only — not in APPLY_STANDARD_SETTINGS.
+function(APPLY_LEGACY_COROUTINE_AWAIT TARGET)
+  target_compile_options(${TARGET} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:/await>")
+endfunction()
+apply_legacy_coroutine_await(${BINARY_NAME})
+if(TARGET desktop_webview_auth_plugin)
+  apply_legacy_coroutine_await(desktop_webview_auth_plugin)
+endif()
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
