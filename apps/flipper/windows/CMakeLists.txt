@@ -5,7 +5,8 @@ project(flipper LANGUAGES CXX)
 # MSVC 18.6+ (STL1011): plugins using /await + <experimental/coroutine> fail to compile.
 # /await keeps one legacy coroutine ABI across app + WebView2/cppwinrt plugins (LNK4078 .voltbl).
 add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS /await")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS /await /WX-")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX-")
 
 # The target_link_libraries call can stay the same since it will use
 # whichever sqlite3 target exists
@@ -47,8 +48,8 @@ add_definitions(-DUNICODE -D_UNICODE)
 # Compilation settings that should be applied to most targets.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
-  # No /WX: third-party plugins (flutter_soloud/stb_vorbis, etc.) fail on VS 2026.
-  target_compile_options(${TARGET} PRIVATE /W4 /wd"4100" /wd"4244" /wd"4701")
+  # No /WX: third-party plugins (flutter_soloud, stb_vorbis, etc.) fail on VS 2026.
+  target_compile_options(${TARGET} PRIVATE /W4 /WX- /wd"4100" /wd"4244" /wd"4456" /wd"4701" /wd"4702")
   target_compile_options(${TARGET} PRIVATE /EHsc /await)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
