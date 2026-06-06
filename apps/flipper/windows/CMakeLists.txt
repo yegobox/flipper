@@ -102,9 +102,21 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 if(PLUGIN_BUNDLED_LIBRARIES)
-  install(FILES "${PLUGIN_BUNDLED_LIBRARIES}"
-    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
+  foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
+    # Generator expressions ($<TARGET_FILE:...>) are fine; literal Windows paths
+    # must use forward slashes or cmake_install.cmake treats \a etc. as escapes.
+    if(bundled_library MATCHES "^\\$<")
+      install(FILES "${bundled_library}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
+    else()
+      file(TO_CMAKE_PATH "${bundled_library}" bundled_library)
+      string(REPLACE "\\" "/" bundled_library "${bundled_library}")
+      install(FILES "${bundled_library}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
+    endif()
+  endforeach()
 endif()
 
 # Copy the native assets provided by the build.dart from all packages.

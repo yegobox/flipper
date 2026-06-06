@@ -67,7 +67,6 @@ jobs:
           Set-Location apps/flipper
           flutter clean
           flutter pub get
-          & "$env:GITHUB_WORKSPACE/scripts/ci/patch-windows-plugins.ps1" -AppDir "$env:GITHUB_WORKSPACE/apps/flipper"
           flutter build windows -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dart run msix:create -v --build-windows false --install-certificate false
