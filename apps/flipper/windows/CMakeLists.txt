@@ -108,23 +108,19 @@ if(PLUGIN_BUNDLED_LIBRARIES)
 endif()
 
 # Copy the native assets provided by the build.dart from all packages.
-# Check at install time: Flutter may skip native_assets after flutter clean while
-# CMake still registered install(DIRECTORY) from an earlier configure (MSB3073).
+# Skip when absent (Flutter may skip native_assets after flutter clean).
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
-install(CODE "
-  if(EXISTS \"${NATIVE_ASSETS_DIR}\")
-    file(INSTALL \"${NATIVE_ASSETS_DIR}\"
-         DESTINATION \"\${CMAKE_INSTALL_PREFIX}\"
-         TYPE DIRECTORY
-         FILES_MATCHING PATTERN \"*\")
-  endif()
-" COMPONENT Runtime)
+if(EXISTS "${NATIVE_ASSETS_DIR}")
+  install(DIRECTORY "${NATIVE_ASSETS_DIR}"
+     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+     COMPONENT Runtime)
+endif()
 
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.
 set(FLUTTER_ASSET_DIR_NAME "flutter_assets")
 install(CODE "
-  file(REMOVE_RECURSE \"\${CMAKE_INSTALL_PREFIX}/data/${FLUTTER_ASSET_DIR_NAME}\")
+  file(REMOVE_RECURSE \"${INSTALL_BUNDLE_DATA_DIR}/${FLUTTER_ASSET_DIR_NAME}\")
   " COMPONENT Runtime)
 install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
   DESTINATION "${INSTALL_BUNDLE_DATA_DIR}" COMPONENT Runtime)
