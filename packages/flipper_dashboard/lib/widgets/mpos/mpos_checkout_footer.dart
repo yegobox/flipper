@@ -30,8 +30,7 @@ class MposCheckoutFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasSecondary =
-        secondaryLabel != null && onSecondary != null;
+    final hasSecondary = secondaryLabel != null && onSecondary != null;
 
     return Container(
       decoration: const BoxDecoration(
@@ -55,8 +54,10 @@ class MposCheckoutFooter extends StatelessWidget {
               child: TextButton(
                 onPressed: onSaveTicket,
                 style: TextButton.styleFrom(
-                  minimumSize:
-                      const Size(110, MposTokens.checkoutPrimaryHeight),
+                  minimumSize: const Size(
+                    110,
+                    MposTokens.checkoutPrimaryHeight,
+                  ),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   backgroundColor: PosTokens.surface2,
                   foregroundColor: PosTokens.ink2,

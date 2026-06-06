@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_login/login_semantics.dart';
 import 'package:flipper_login/mfa_provider.dart';
 import 'package:flipper_login/pin_login_brand_panel.dart';
 import 'package:flipper_login/pin_login_signin_motion.dart';
@@ -504,17 +505,22 @@ class _PinLoginState extends State<PinLogin>
     return ViewModelBuilder<LoginViewModel>.reactive(
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
-        return Scaffold(
-          key: const Key('PinLogin'),
-          backgroundColor: SignInTokens.surface,
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (_useSignInDesktopLayout(constraints)) {
-                  return _buildDesktopSignInLayout(constraints);
-                }
-                return _buildCompactSignInLayout(constraints);
-              },
+        return Semantics(
+          key: const Key(LoginMaestroIds.pinScreen),
+          identifier: LoginMaestroIds.pinScreen,
+          label: 'PIN login',
+          child: Scaffold(
+            key: const Key('PinLogin'),
+            backgroundColor: SignInTokens.surface,
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (_useSignInDesktopLayout(constraints)) {
+                    return _buildDesktopSignInLayout(constraints);
+                  }
+                  return _buildCompactSignInLayout(constraints);
+                },
+              ),
             ),
           ),
         );
@@ -587,25 +593,41 @@ class _PinLoginState extends State<PinLogin>
                 _buildOtpField(compact),
               ],
               const SizedBox(height: 26),
-              FlipperGradientButton(
-                key: const Key('pinLoginButton'),
-                text: _isDone
-                    ? 'Signed in ✓'
-                    : (_isProcessing ? 'Verifying…' : 'Sign in'),
-                icon: _isDone ? null : Icons.arrow_outward_rounded,
-                isLoading: false,
-                onPressed: (_isProcessing || _isDone) ? null : _handleLogin,
+              Semantics(
+                key: const Key(LoginMaestroIds.pinSubmit),
+                identifier: LoginMaestroIds.pinSubmit,
+                label: _isDone
+                    ? 'Signed in'
+                    : (_isProcessing ? 'Verifying' : 'Sign in'),
+                button: true,
+                enabled: !_isProcessing && !_isDone,
+                child: FlipperGradientButton(
+                  key: const Key('pinLoginButton'),
+                  text: _isDone
+                      ? 'Signed in ✓'
+                      : (_isProcessing ? 'Verifying…' : 'Sign in'),
+                  icon: _isDone ? null : Icons.arrow_outward_rounded,
+                  isLoading: false,
+                  onPressed: (_isProcessing || _isDone) ? null : _handleLogin,
+                ),
               ),
               const SizedBox(height: 18),
               Center(
-                child: TextButton(
-                  onPressed: _showHelpDialog,
-                  child: Text(
-                    'Trouble signing in?',
-                    style: context.signInText(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: SignInTokens.blue,
+                child: Semantics(
+                  key: const Key(LoginMaestroIds.pinHelp),
+                  identifier: LoginMaestroIds.pinHelp,
+                  label: 'Trouble signing in',
+                  button: true,
+                  enabled: true,
+                  child: TextButton(
+                    onPressed: _showHelpDialog,
+                    child: Text(
+                      'Trouble signing in?',
+                      style: context.signInText(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: SignInTokens.blue,
+                      ),
                     ),
                   ),
                 ),
@@ -673,30 +695,37 @@ class _PinLoginState extends State<PinLogin>
               ),
             ),
             const Spacer(),
-            TextButton.icon(
-              onPressed: () {
-                setState(() => _showPinDigits = !_showPinDigits);
-                HapticFeedback.selectionClick();
-              },
-              icon: Icon(
-                _showPinDigits
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                size: 15,
-                color: SignInTokens.ink3,
-              ),
-              label: Text(
-                _showPinDigits ? 'Hide' : 'Show',
-                style: context.signInText(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
+            Semantics(
+              key: const Key(LoginMaestroIds.pinShowToggle),
+              identifier: LoginMaestroIds.pinShowToggle,
+              label: _showPinDigits ? 'Hide PIN' : 'Show PIN',
+              button: true,
+              enabled: true,
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() => _showPinDigits = !_showPinDigits);
+                  HapticFeedback.selectionClick();
+                },
+                icon: Icon(
+                  _showPinDigits
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  size: 15,
                   color: SignInTokens.ink3,
                 ),
-              ),
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                label: Text(
+                  _showPinDigits ? 'Hide' : 'Show',
+                  style: context.signInText(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: SignInTokens.ink3,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
             ),
           ],
@@ -752,28 +781,36 @@ class _PinLoginState extends State<PinLogin>
       opacity: 0,
       child: SizedBox(
         height: 0,
-        child: TextFormField(
-          key: const Key('pinField'),
-          controller: _pinController,
-          focusNode: _pinFocusNode,
-          autofocus: true,
+        child: Semantics(
+          key: const Key(LoginMaestroIds.pinField),
+          identifier: LoginMaestroIds.pinField,
+          label: 'PIN',
+          textField: true,
           enabled: !_isProcessing && !_isDone,
-          keyboardType: TextInputType.number,
-          textInputAction:
-              _showOtpField ? TextInputAction.next : TextInputAction.done,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(SignInTokens.pinCellCount),
-          ],
-          onFieldSubmitted: (_) =>
-              _showOtpField ? _otpFocusNode.requestFocus() : _handleLogin(),
-          style: const TextStyle(fontSize: 1, height: 0),
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.zero,
-            isDense: true,
+          value: '${_pinController.text.length} digits entered',
+          child: TextFormField(
+            key: const Key('pinField'),
+            controller: _pinController,
+            focusNode: _pinFocusNode,
+            autofocus: true,
+            enabled: !_isProcessing && !_isDone,
+            keyboardType: TextInputType.number,
+            textInputAction:
+                _showOtpField ? TextInputAction.next : TextInputAction.done,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(SignInTokens.pinCellCount),
+            ],
+            onFieldSubmitted: (_) =>
+                _showOtpField ? _otpFocusNode.requestFocus() : _handleLogin(),
+            style: const TextStyle(fontSize: 1, height: 0),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
+            ),
+            validator: (text) => _pinInputError(text ?? ''),
           ),
-          validator: (text) => _pinInputError(text ?? ''),
         ),
       ),
     );
@@ -806,31 +843,43 @@ class _PinLoginState extends State<PinLogin>
 
   Widget _buildToggleItem(String label, AuthMethod method, bool compact) {
     final isSelected = _authMethod == method;
-    return GestureDetector(
-      onTap: () => _setAuthMethod(method),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? SignInTokens.surface : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF102040).withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: context.signInText(
-            fontSize: compact ? 12 : 13,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? SignInTokens.ink1 : SignInTokens.ink3,
+    final semanticId = method == AuthMethod.authenticator
+        ? LoginMaestroIds.authAuthenticator
+        : LoginMaestroIds.authSms;
+
+    return Semantics(
+      key: Key(semanticId),
+      identifier: semanticId,
+      label: label,
+      button: true,
+      selected: isSelected,
+      enabled: true,
+      child: GestureDetector(
+        onTap: () => _setAuthMethod(method),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? SignInTokens.surface : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF102040).withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: context.signInText(
+              fontSize: compact ? 12 : 13,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? SignInTokens.ink1 : SignInTokens.ink3,
+            ),
           ),
         ),
       ),
@@ -851,45 +900,52 @@ class _PinLoginState extends State<PinLogin>
           ),
         ),
         const SizedBox(height: 10),
-        TextFormField(
-          key: const Key('otpField'),
-          controller: _otpController,
-          focusNode: _otpFocusNode,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => _handleLogin(),
-          style: context.signInPinDigit(fontSize: compact ? 16 : 18),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: SignInTokens.surface2,
-            hintText: '000000',
-            hintStyle: context
-                .signInPinDigit(fontSize: compact ? 16 : 18)
-                .copyWith(color: SignInTokens.ink3),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
-              borderSide: BorderSide(
-                color: _hasError ? SignInTokens.danger : SignInTokens.blue,
-                width: 2,
+        Semantics(
+          key: const Key(LoginMaestroIds.otpField),
+          identifier: LoginMaestroIds.otpField,
+          label: isAuthenticator ? 'Authenticator code' : 'SMS code',
+          textField: true,
+          enabled: true,
+          child: TextFormField(
+            key: const Key('otpField'),
+            controller: _otpController,
+            focusNode: _otpFocusNode,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => _handleLogin(),
+            style: context.signInPinDigit(fontSize: compact ? 16 : 18),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: SignInTokens.surface2,
+              hintText: '000000',
+              hintStyle: context
+                  .signInPinDigit(fontSize: compact ? 16 : 18)
+                  .copyWith(color: SignInTokens.ink3),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
+                borderSide: BorderSide(
+                  color: _hasError ? SignInTokens.danger : SignInTokens.blue,
+                  width: 2,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: compact ? 14 : 18,
               ),
             ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: compact ? 14 : 18,
-            ),
+            validator: (text) {
+              if (text == null || text.isEmpty) {
+                return isAuthenticator
+                    ? 'Authenticator code is required'
+                    : 'OTP is required';
+              }
+              return null;
+            },
           ),
-          validator: (text) {
-            if (text == null || text.isEmpty) {
-              return isAuthenticator
-                  ? 'Authenticator code is required'
-                  : 'OTP is required';
-            }
-            return null;
-          },
         ),
       ],
     );

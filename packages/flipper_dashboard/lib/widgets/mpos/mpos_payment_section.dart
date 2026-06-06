@@ -339,10 +339,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                                 border: InputBorder.none,
                               ),
                               onChanged: (v) {
-                                final digits = v.replaceAll(
-                                  RegExp(r'\D'),
-                                  '',
-                                );
+                                final digits = v.replaceAll(RegExp(r'\D'), '');
                                 ref.read(mposMomoPhoneProvider.notifier).state =
                                     digits;
                                 ProxyService.box.writeString(
@@ -404,8 +401,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                             textField: true,
                             enabled: true,
                             child: TextField(
-                              key:
-                                  const Key(MaestroIds.mposPaymentCashAmount),
+                              key: const Key(MaestroIds.mposPaymentCashAmount),
                               controller: payments.isNotEmpty
                                   ? payments.first.controller
                                   : null,

@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/screens/mpos_success_screen.dart';
@@ -26,7 +27,6 @@ import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
-import 'package:flipper_models/view_models/coreViewModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_services/proxy.dart';
@@ -710,10 +710,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
               providerPhone: customerPhone,
               attached: attachedCustomer,
             );
-            final displayCustomerName =
-                _isClearingCustomer ? null : customerName;
-            final displaySaleCustomerPhone =
-                _isClearingCustomer ? null : saleCustomerPhone;
+            final displayCustomerName = _isClearingCustomer
+                ? null
+                : customerName;
+            final displaySaleCustomerPhone = _isClearingCustomer
+                ? null
+                : saleCustomerPhone;
 
             final isCash =
                 paymentsList.isNotEmpty &&
@@ -764,164 +766,177 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                   'Enter ${mposMoneyLabel(saleOutstanding)} received';
             }
 
-            return Column(
-              children: [
-                MposCheckoutHeader(
-                  itemCount: itemCount,
-                  timeLabel: mposCheckoutTimeLabel(txn.createdAt),
-                  status: txn.status ?? 'PENDING',
-                  onBack: () {
-                    ref
-                        .read(oldProvider.loadingProvider.notifier)
-                        .stopLoading();
-                    Navigator.of(context).pop();
-                  },
-                ),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    children: [
-                      const MposSectionLabel('Customer'),
-                      const SizedBox(height: 8),
-                      MposCustomerSection(
-                        customerName: displayCustomerName,
-                        customerPhone: displaySaleCustomerPhone,
-                        isClearing: _isClearingCustomer,
-                        onAttach: () => MposCustomerSheet.show(
-                          context: context,
-                          ref: ref,
-                          transaction: txn,
-                        ),
-                        onClear: () => _clearCustomer(txn),
-                      ),
-                      const SizedBox(height: 14),
-                      const MposSectionLabel('Items'),
-                      const SizedBox(height: 8),
-                      if (items.isEmpty)
-                        const MposCard(
-                          padding: EdgeInsets.all(32),
-                          child: Center(
-                            child: Text(
-                              'No items in cart',
-                              style: TextStyle(color: PosTokens.ink3),
-                            ),
-                          ),
-                        )
-                      else
-                        MposCard(
-                          clipBehavior: Clip.antiAlias,
-                          child: Column(
-                            children: [
-                              for (var i = 0; i < items.length; i++) ...[
-                                if (i > 0)
-                                  const Divider(
-                                    height: 1,
-                                    color: PosTokens.line,
-                                  ),
-                                MposItemLine(
-                                  name: items[i].name,
-                                  unitPrice: items[i].price.toDouble(),
-                                  baseUnitPrice:
-                                      (items[i].retailPrice ?? items[i].price)
-                                          .toDouble(),
-                                  qty: _displayQtyFor(items[i]),
-                                  canEdit: _canModifyItems(txn),
-                                  onDecrement: () => _updateQuantity(
-                                    items[i],
-                                    _displayQtyFor(items[i]) - 1,
-                                    txn,
-                                  ),
-                                  onIncrement: () => _updateQuantity(
-                                    items[i],
-                                    _displayQtyFor(items[i]) + 1,
-                                    txn,
-                                  ),
-                                  onDelete: () => _deleteItem(items[i]),
-                                  onPriceChanged: (p) =>
-                                      _updatePrice(items[i], p),
-                                  onPriceReset: () => _resetPrice(items[i]),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                          foregroundColor: PosTokens.blue,
-                          side: const BorderSide(
-                            color: PosTokens.lineStrong,
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              MposTokens.radiusMd,
-                            ),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add_rounded, size: 17),
-                        label: const Text(
-                          'Add more items',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const MposSectionLabel('Payment method'),
-                      const SizedBox(height: 8),
-                      MposPaymentSection(
-                        transactionId: _transactionId,
-                        totalPayable: saleOutstanding > 0
-                            ? saleOutstanding
-                            : total,
-                      ),
-                      const SizedBox(height: 14),
-                      const MposSectionLabel('Totals'),
-                      const SizedBox(height: 8),
-                      MposTotalsCard(
-                        subtotal: total,
-                        tax: 0,
-                        total: total,
-                        alreadyPaid: alreadyPaid,
-                        pendingPayment: pendingPayment,
-                        remainingBalance: remaining,
-                        change: change != null && change > 0 ? change : null,
-                        balanceDue: due != null && due > 0 ? due : null,
-                      ),
-                    ],
+            return MaestroSemantics(
+              id: MaestroIds.mposCheckoutScreen,
+              label: 'Mobile checkout',
+              value: '$itemCount items, RWF ${mposMoneyLabel(total)}',
+              child: Column(
+                children: [
+                  MposCheckoutHeader(
+                    itemCount: itemCount,
+                    timeLabel: mposCheckoutTimeLabel(txn.createdAt),
+                    status: txn.status ?? 'PENDING',
+                    onBack: () {
+                      ref
+                          .read(oldProvider.loadingProvider.notifier)
+                          .stopLoading();
+                      Navigator.of(context).pop();
+                    },
                   ),
-                ),
-                MposCheckoutFooter(
-                  total: total,
-                  ready: ready,
-                  isLoading: _isImmediateCompletion && _shouldShowSpinner(),
-                  primaryLabel: footerPrimaryLabel,
-                  onSaveTicket: items.isEmpty ? null : _showParkDialog,
-                  onPrimary: canCharge
-                      ? () => _handleCharge(
-                          total,
-                          immediateCompletion:
-                              !digitalEnabled || remaining <= 0.01,
-                        )
-                      : null,
-                  // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
-                  secondaryLabel: digitalEnabled && items.isNotEmpty
-                      ? _primaryLabel(
-                          items.isEmpty,
-                          txn,
-                          displaySaleCustomerPhone,
-                          isMomo,
-                          remaining,
-                        )
-                      : null,
-                  onSecondary: digitalEnabled && items.isNotEmpty && canCharge
-                      ? () => _handleCharge(total, immediateCompletion: false)
-                      : null,
-                  secondaryLoading:
-                      !_isImmediateCompletion && _shouldShowSpinner(),
-                ),
-              ],
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      children: [
+                        const MposSectionLabel('Customer'),
+                        const SizedBox(height: 8),
+                        MposCustomerSection(
+                          customerName: displayCustomerName,
+                          customerPhone: displaySaleCustomerPhone,
+                          isClearing: _isClearingCustomer,
+                          onAttach: () => MposCustomerSheet.show(
+                            context: context,
+                            ref: ref,
+                            transaction: txn,
+                          ),
+                          onClear: () => _clearCustomer(txn),
+                        ),
+                        const SizedBox(height: 14),
+                        const MposSectionLabel('Items'),
+                        const SizedBox(height: 8),
+                        if (items.isEmpty)
+                          const MposCard(
+                            padding: EdgeInsets.all(32),
+                            child: Center(
+                              child: Text(
+                                'No items in cart',
+                                style: TextStyle(color: PosTokens.ink3),
+                              ),
+                            ),
+                          )
+                        else
+                          MposCard(
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
+                              children: [
+                                for (var i = 0; i < items.length; i++) ...[
+                                  if (i > 0)
+                                    const Divider(
+                                      height: 1,
+                                      color: PosTokens.line,
+                                    ),
+                                  MposItemLine(
+                                    semanticId:
+                                        '${MaestroIds.mposItemLinePrefix}.${items[i].id}',
+                                    name: items[i].name,
+                                    unitPrice: items[i].price.toDouble(),
+                                    baseUnitPrice:
+                                        (items[i].retailPrice ?? items[i].price)
+                                            .toDouble(),
+                                    qty: _displayQtyFor(items[i]),
+                                    canEdit: _canModifyItems(txn),
+                                    onDecrement: () => _updateQuantity(
+                                      items[i],
+                                      _displayQtyFor(items[i]) - 1,
+                                      txn,
+                                    ),
+                                    onIncrement: () => _updateQuantity(
+                                      items[i],
+                                      _displayQtyFor(items[i]) + 1,
+                                      txn,
+                                    ),
+                                    onDelete: () => _deleteItem(items[i]),
+                                    onPriceChanged: (p) =>
+                                        _updatePrice(items[i], p),
+                                    onPriceReset: () => _resetPrice(items[i]),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 10),
+                        MaestroSemantics(
+                          id: MaestroIds.mposAddMoreItems,
+                          label: 'Add more items',
+                          button: true,
+                          enabled: true,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              foregroundColor: PosTokens.blue,
+                              side: const BorderSide(
+                                color: PosTokens.lineStrong,
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  MposTokens.radiusMd,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_rounded, size: 17),
+                            label: const Text(
+                              'Add more items',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        const MposSectionLabel('Payment method'),
+                        const SizedBox(height: 8),
+                        MposPaymentSection(
+                          transactionId: _transactionId,
+                          totalPayable: saleOutstanding > 0
+                              ? saleOutstanding
+                              : total,
+                        ),
+                        const SizedBox(height: 14),
+                        const MposSectionLabel('Totals'),
+                        const SizedBox(height: 8),
+                        MposTotalsCard(
+                          subtotal: total,
+                          tax: 0,
+                          total: total,
+                          alreadyPaid: alreadyPaid,
+                          pendingPayment: pendingPayment,
+                          remainingBalance: remaining,
+                          change: change != null && change > 0 ? change : null,
+                          balanceDue: due != null && due > 0 ? due : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  MposCheckoutFooter(
+                    total: total,
+                    ready: ready,
+                    isLoading: _isImmediateCompletion && _shouldShowSpinner(),
+                    primaryLabel: footerPrimaryLabel,
+                    onSaveTicket: items.isEmpty ? null : _showParkDialog,
+                    onPrimary: canCharge
+                        ? () => _handleCharge(
+                            total,
+                            immediateCompletion:
+                                !digitalEnabled || remaining <= 0.01,
+                          )
+                        : null,
+                    // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
+                    secondaryLabel: digitalEnabled && items.isNotEmpty
+                        ? _primaryLabel(
+                            items.isEmpty,
+                            txn,
+                            displaySaleCustomerPhone,
+                            isMomo,
+                            remaining,
+                          )
+                        : null,
+                    onSecondary: digitalEnabled && items.isNotEmpty && canCharge
+                        ? () => _handleCharge(total, immediateCompletion: false)
+                        : null,
+                    secondaryLoading:
+                        !_isImmediateCompletion && _shouldShowSpinner(),
+                  ),
+                ],
+              ),
             );
           },
         ),

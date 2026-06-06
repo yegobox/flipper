@@ -116,8 +116,7 @@ class _WalkInRow extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color:
-                              showProgress ? PosTokens.ink3 : PosTokens.ink1,
+                          color: showProgress ? PosTokens.ink3 : PosTokens.ink1,
                         ),
                       ),
                       const SizedBox(height: 1),
@@ -126,8 +125,9 @@ class _WalkInRow extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12.5,
                           color: showProgress ? PosTokens.blue : PosTokens.ink3,
-                          fontWeight:
-                              showProgress ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: showProgress
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                         ),
                       ),
                     ],
@@ -233,7 +233,10 @@ class _AttachedRow extends StatelessWidget {
               onPressed: onClear,
               style: TextButton.styleFrom(
                 foregroundColor: PosTokens.ink3,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
                 minimumSize: const Size(44, 44),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -244,10 +247,7 @@ class _AttachedRow extends StatelessWidget {
                   SizedBox(width: 4),
                   Text(
                     'Remove',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),

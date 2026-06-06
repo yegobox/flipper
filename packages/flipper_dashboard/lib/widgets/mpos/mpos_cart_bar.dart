@@ -111,8 +111,7 @@ class MposCartBar extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w600,
-                                    color:
-                                        Colors.white.withValues(alpha: 0.85),
+                                    color: Colors.white.withValues(alpha: 0.85),
                                   ),
                                 ),
                                 Text(
