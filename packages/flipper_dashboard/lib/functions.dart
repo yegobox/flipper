@@ -97,7 +97,7 @@ onWillPop({
                       );
                       Navigator.pop(context);
                       final rootNav = Navigator.of(context, rootNavigator: true);
-                      // Mobile New sale uses [Navigator.push] above the dashboard.
+                      // Mobile POS uses stacked [CheckOutRoute] like Inventory tab.
                       if (rootNav.canPop()) {
                         rootNav.pop();
                       } else {

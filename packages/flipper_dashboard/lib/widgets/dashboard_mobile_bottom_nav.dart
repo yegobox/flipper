@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/dashboard_mobile_pos_navigation.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_sheet.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -92,9 +91,19 @@ class DashboardMobileBottomNav extends ConsumerWidget {
               ],
             ),
             Positioned(
+              left: 0,
+              right: 0,
               top: -28,
-              child: _NewSaleFab(
-                onTap: () => openMobilePosCheckout(context, ref),
+              child: Center(
+                child: _NewSaleFab(
+                  onTap: () async {
+                    await navigateToDashboardAppPage(
+                      context: context,
+                      isBigScreen: false,
+                      page: 'Inventory',
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -148,63 +157,22 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class _NewSaleFab extends StatefulWidget {
+class _NewSaleFab extends StatelessWidget {
   const _NewSaleFab({required this.onTap});
 
-  final Future<void> Function() onTap;
-
-  @override
-  State<_NewSaleFab> createState() => _NewSaleFabState();
-}
-
-class _NewSaleFabState extends State<_NewSaleFab> {
-  bool _pressed = false;
-  bool _opening = false;
-
-  Future<void> _open() async {
-    if (_opening) return;
-    setState(() {
-      _opening = true;
-      _pressed = true;
-    });
-
-    await WidgetsBinding.instance.endOfFrame;
-    if (!mounted) return;
-
-    try {
-      await widget.onTap();
-    } finally {
-      if (mounted) {
-        setState(() {
-          _opening = false;
-          _pressed = false;
-        });
-      }
-    }
-  }
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (_) {
-            if (!_opening) setState(() => _pressed = true);
-          },
-          onTapUp: (_) {
-            if (!_opening) setState(() => _pressed = false);
-          },
-          onTapCancel: () {
-            if (!_opening) setState(() => _pressed = false);
-          },
-          onTap: _open,
-          child: AnimatedScale(
-            scale: _pressed ? 0.94 : 1,
-            duration: const Duration(milliseconds: 120),
-            curve: Curves.ease,
-            child: Container(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
               width: 58,
               height: 58,
               decoration: BoxDecoration(
@@ -227,29 +195,20 @@ class _NewSaleFabState extends State<_NewSaleFab> {
                 ],
                 border: Border.all(color: const Color(0xFFF4F6FB), width: 4),
               ),
-              child: _opening
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.6,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.add, color: Colors.white, size: 26),
+              child: const Icon(Icons.add, color: Colors.white, size: 26),
             ),
-          ),
+            const SizedBox(height: 4),
+            Text(
+              'New sale',
+              style: GoogleFonts.outfit(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          'New sale',
-          style: GoogleFonts.outfit(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
