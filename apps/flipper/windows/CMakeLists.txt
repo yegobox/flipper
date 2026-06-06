@@ -68,9 +68,8 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
-# VS 2026: flutter_soloud bundles stb_vorbis/miniaudio with many /W4 warnings. /WX- on the
-# command line is not always enough; COMPILE_WARNING_AS_ERROR OFF + /W0 stops CI whack-a-mole.
-# Do not loop all *_plugin targets: sentry_flutter_plugin is an ALIAS (sentry).
+# VS 2026: flutter_soloud bundles stb_vorbis/miniaudio with many /W4 warnings. scripts/ci/
+# patch-windows-plugins.ps1 also strips copy_pdbs, /GL, and /LTCG from the plugin CMake.
 if(MSVC AND TARGET flutter_soloud_plugin)
   get_target_property(_soloud_type flutter_soloud_plugin TYPE)
   if(NOT _soloud_type STREQUAL "ALIAS")
