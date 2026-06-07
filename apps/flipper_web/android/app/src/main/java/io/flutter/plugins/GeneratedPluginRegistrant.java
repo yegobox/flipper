@@ -51,11 +51,6 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin desktop_drop, one.mixin.desktop.drop.DesktopDropPlugin", e);
     }
     try {
-      flutterEngine.getPlugins().add(new com.example.desktop_webview_auth.DesktopWebviewAuthPlugin());
-    } catch (Exception e) {
-      Log.e(TAG, "Error registering plugin desktop_webview_auth, com.example.desktop_webview_auth.DesktopWebviewAuthPlugin", e);
-    }
-    try {
       flutterEngine.getPlugins().add(new dev.fluttercommunity.plus.device_info.DeviceInfoPlusPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin device_info_plus, dev.fluttercommunity.plus.device_info.DeviceInfoPlusPlugin", e);

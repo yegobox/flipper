@@ -8,7 +8,6 @@
 import 'dart:ui' as _i8;
 
 import 'package:firebase_auth/firebase_auth.dart' as _i7;
-import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i6;
 import 'package:flipper_dashboard/QuickSellingView.dart' as _i2;
 import 'package:flipper_models/db_model_export.dart' as _i9;
 import 'package:flutter/material.dart' as _i5;
@@ -117,7 +116,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         routeData: routeData,
         child: _i1.PhoneInputScreen(
           key: args.key,
-          action: args.action,
+          countryCode: args.countryCode,
           subtitleBuilder: args.subtitleBuilder,
           footerBuilder: args.footerBuilder,
         ),
@@ -1031,44 +1030,17 @@ class CreditAppRoute extends _i4.PageRouteInfo<void> {
 class PhoneInputScreenRoute extends _i4.PageRouteInfo<PhoneInputScreenArgs> {
   PhoneInputScreenRoute({
     _i5.Key? key,
-    _i6.AuthAction? action,
-    List<_i6.FirebaseUIAction>? actions,
-    _i7.FirebaseAuth? auth,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-      double,
-    )? headerBuilder,
-    double? headerMaxExtent,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-    )? sideBuilder,
-    _i8.TextDirection? desktopLayoutDirection,
-    double breakpoint = 500,
-    _i7.MultiFactorSession? multiFactorSession,
-    _i7.PhoneMultiFactorInfo? mfaHint,
   }) : super(
           PhoneInputScreenRoute.name,
           path: '/phone-input-screen',
           args: PhoneInputScreenArgs(
             key: key,
-            action: action,
-            actions: actions,
-            auth: auth,
             countryCode: countryCode,
             subtitleBuilder: subtitleBuilder,
             footerBuilder: footerBuilder,
-            headerBuilder: headerBuilder,
-            headerMaxExtent: headerMaxExtent,
-            sideBuilder: sideBuilder,
-            desktopLayoutDirection: desktopLayoutDirection,
-            breakpoint: breakpoint,
-            multiFactorSession: multiFactorSession,
-            mfaHint: mfaHint,
           ),
         );
 
@@ -1078,28 +1050,12 @@ class PhoneInputScreenRoute extends _i4.PageRouteInfo<PhoneInputScreenArgs> {
 class PhoneInputScreenArgs {
   const PhoneInputScreenArgs({
     this.key,
-    this.action,
-    this.actions,
-    this.auth,
     required this.countryCode,
     this.subtitleBuilder,
     this.footerBuilder,
-    this.headerBuilder,
-    this.headerMaxExtent,
-    this.sideBuilder,
-    this.desktopLayoutDirection,
-    this.breakpoint = 500,
-    this.multiFactorSession,
-    this.mfaHint,
   });
 
   final _i5.Key? key;
-
-  final _i6.AuthAction? action;
-
-  final List<_i6.FirebaseUIAction>? actions;
-
-  final _i7.FirebaseAuth? auth;
 
   final String countryCode;
 
@@ -1107,30 +1063,22 @@ class PhoneInputScreenArgs {
 
   final _i5.Widget Function(_i5.BuildContext)? footerBuilder;
 
-  final _i5.Widget Function(
-    _i5.BuildContext,
-    _i5.BoxConstraints,
-    double,
-  )? headerBuilder;
-
-  final double? headerMaxExtent;
-
-  final _i5.Widget Function(
-    _i5.BuildContext,
-    _i5.BoxConstraints,
-  )? sideBuilder;
-
-  final _i8.TextDirection? desktopLayoutDirection;
-
-  final double breakpoint;
-
-  final _i7.MultiFactorSession? multiFactorSession;
-
-  final _i7.PhoneMultiFactorInfo? mfaHint;
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PhoneInputScreenArgs &&
+        other.key == key &&
+        other.countryCode == countryCode &&
+        other.subtitleBuilder == subtitleBuilder &&
+        other.footerBuilder == footerBuilder;
+  }
 
   @override
-  String toString() {
-    return 'PhoneInputScreenArgs{key: $key, action: $action, actions: $actions, auth: $auth, countryCode: $countryCode, subtitleBuilder: $subtitleBuilder, footerBuilder: $footerBuilder, headerBuilder: $headerBuilder, headerMaxExtent: $headerMaxExtent, sideBuilder: $sideBuilder, desktopLayoutDirection: $desktopLayoutDirection, breakpoint: $breakpoint, multiFactorSession: $multiFactorSession, mfaHint: $mfaHint}';
+  int get hashCode {
+    return key.hashCode ^
+        countryCode.hashCode ^
+        subtitleBuilder.hashCode ^
+        footerBuilder.hashCode;
   }
 }
 
@@ -2502,44 +2450,17 @@ extension RouterStateExtension on _i3.RouterService {
 
   Future<dynamic> navigateToPhoneInputScreen({
     _i5.Key? key,
-    _i6.AuthAction? action,
-    List<_i6.FirebaseUIAction>? actions,
-    _i7.FirebaseAuth? auth,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-      double,
-    )? headerBuilder,
-    double? headerMaxExtent,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-    )? sideBuilder,
-    _i8.TextDirection? desktopLayoutDirection,
-    double breakpoint = 500,
-    _i7.MultiFactorSession? multiFactorSession,
-    _i7.PhoneMultiFactorInfo? mfaHint,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PhoneInputScreenRoute(
         key: key,
-        action: action,
-        actions: actions,
-        auth: auth,
         countryCode: countryCode,
         subtitleBuilder: subtitleBuilder,
         footerBuilder: footerBuilder,
-        headerBuilder: headerBuilder,
-        headerMaxExtent: headerMaxExtent,
-        sideBuilder: sideBuilder,
-        desktopLayoutDirection: desktopLayoutDirection,
-        breakpoint: breakpoint,
-        multiFactorSession: multiFactorSession,
-        mfaHint: mfaHint,
       ),
       onFailure: onFailure,
     );
@@ -3219,44 +3140,17 @@ extension RouterStateExtension on _i3.RouterService {
 
   Future<dynamic> replaceWithPhoneInputScreen({
     _i5.Key? key,
-    _i6.AuthAction? action,
-    List<_i6.FirebaseUIAction>? actions,
-    _i7.FirebaseAuth? auth,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-      double,
-    )? headerBuilder,
-    double? headerMaxExtent,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-    )? sideBuilder,
-    _i8.TextDirection? desktopLayoutDirection,
-    double breakpoint = 500,
-    _i7.MultiFactorSession? multiFactorSession,
-    _i7.PhoneMultiFactorInfo? mfaHint,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PhoneInputScreenRoute(
         key: key,
-        action: action,
-        actions: actions,
-        auth: auth,
         countryCode: countryCode,
         subtitleBuilder: subtitleBuilder,
         footerBuilder: footerBuilder,
-        headerBuilder: headerBuilder,
-        headerMaxExtent: headerMaxExtent,
-        sideBuilder: sideBuilder,
-        desktopLayoutDirection: desktopLayoutDirection,
-        breakpoint: breakpoint,
-        multiFactorSession: multiFactorSession,
-        mfaHint: mfaHint,
       ),
       onFailure: onFailure,
     );

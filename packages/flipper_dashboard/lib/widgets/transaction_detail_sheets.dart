@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_service.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
@@ -102,7 +103,7 @@ class _TransactionActionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final refunded = transaction.isRefunded == true;
+    final refunded = isTransactionRefunded(transaction);
     return _SheetScaffold(
       fillHeight: false,
       child: Column(

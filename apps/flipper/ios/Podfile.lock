@@ -4,7 +4,7 @@ PODS:
     - FlutterMacOS
   - amplify_secure_storage (0.0.1):
     - Flutter
-  - app_links (6.4.1):
+  - app_links (7.0.0):
     - Flutter
   - AppAuth (1.7.6):
     - AppAuth/Core (= 1.7.6)
@@ -19,14 +19,12 @@ PODS:
   - CocoaAsyncSocket (7.6.5)
   - connectivity_plus (0.0.1):
     - Flutter
-  - desktop_webview_auth (0.0.1):
-    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
-  - ditto_live (4.14.4):
-    - DittoFlutter (= 4.14.4)
+  - ditto_live (5.0.1):
+    - DittoFlutter (= 5.0.1)
     - Flutter
-  - DittoFlutter (4.14.4)
+  - DittoFlutter (5.0.1)
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -172,8 +170,6 @@ PODS:
     - Flutter
   - flutter_native_splash (2.4.3):
     - Flutter
-  - flutter_soloud (0.0.1):
-    - Flutter
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
@@ -280,11 +276,11 @@ PODS:
     - CocoaAsyncSocket (~> 7.6)
     - Flutter
     - FlutterMacOS
-  - permission_handler_apple (9.3.0):
+  - permission_handler_apple (9.4.8):
     - Flutter
   - pointer_interceptor_ios (0.0.1):
     - Flutter
-  - PostHog (3.58.1)
+  - PostHog (3.59.3)
   - posthog_flutter (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -312,6 +308,7 @@ PODS:
     - FlutterMacOS
   - sign_in_with_apple (0.0.1):
     - Flutter
+    - FlutterMacOS
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
@@ -324,7 +321,6 @@ DEPENDENCIES:
   - amplify_secure_storage (from `.symlinks/plugins/amplify_secure_storage/ios`)
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
-  - desktop_webview_auth (from `.symlinks/plugins/desktop_webview_auth/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - ditto_live (from `.symlinks/plugins/ditto_live/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
@@ -339,7 +335,6 @@ DEPENDENCIES:
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_localization (from `.symlinks/plugins/flutter_localization/ios`)
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
-  - flutter_soloud (from `.symlinks/plugins/flutter_soloud/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
@@ -359,7 +354,7 @@ DEPENDENCIES:
   - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
+  - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
@@ -409,8 +404,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/app_links/ios"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
-  desktop_webview_auth:
-    :path: ".symlinks/plugins/desktop_webview_auth/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   ditto_live:
@@ -439,8 +432,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_localization/ios"
   flutter_native_splash:
     :path: ".symlinks/plugins/flutter_native_splash/ios"
-  flutter_soloud:
-    :path: ".symlinks/plugins/flutter_soloud/ios"
   geolocator_apple:
     :path: ".symlinks/plugins/geolocator_apple/darwin"
   google_sign_in_ios:
@@ -480,7 +471,7 @@ EXTERNAL SOURCES:
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sign_in_with_apple:
-    :path: ".symlinks/plugins/sign_in_with_apple/ios"
+    :path: ".symlinks/plugins/sign_in_with_apple/darwin"
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
   url_launcher_ios:
@@ -489,15 +480,14 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   amplify_auth_cognito: b76a0e367489da2b9a3c6e5a8ec74a72a0a7cc2f
   amplify_secure_storage: ede2a5027299bab196b8baa030ed3f4cf50ce9a9
-  app_links: 585674be3c6661708e6cd794ab4f39fb9d8356f9
+  app_links: 6d01271b3907b0ee7325c5297c75d697c4226c4d
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   connectivity_plus: 2a701ffec2c0ae28a48cf7540e279787e77c447d
-  desktop_webview_auth: d645139460ef203d50bd0cdb33356785dd939cce
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
-  ditto_live: 5d4885e104156b5f31fa98fd77b9354c74db82c0
-  DittoFlutter: 31cbc02a685eec1bc7e9c9e3589458fe574f3f66
+  ditto_live: d2fd5530410d3202ec8ec47039821ae352ab106d
+  DittoFlutter: 50a9461a32c813badafefffe52768035fc2cf9c2
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
@@ -523,9 +513,8 @@ SPEC CHECKSUMS:
   flutter_contacts: 8d2ecfb85b529297c9924aefd4699ded455dea8a
   flutter_keyboard_visibility: 0339d06371254c3eb25eeb90ba8d17dca8f9c069
   flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f
-  flutter_localization: f43b18844a2b3d2c71fd64f04ffd6b1e64dd54d4
+  flutter_localization: 3b341c97420e7cf580e25b63c3a537609d1e2f12
   flutter_native_splash: f71420956eb811e6d310720fee915f1d42852e7a
-  flutter_soloud: 86b611ec552abaa532d0090e9d702fdcfa1fcdba
   geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   google_sign_in_ios: 7411fab6948df90490dc4620ecbcabdc3ca04017
   GoogleAdsOnDeviceConversion: 02fc8fe599acd867e328321effb0d9b2d023a38a
@@ -543,11 +532,11 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   open_filex: 6e26e659846ec990262224a12ef1c528bb4edbe4
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
-  pasteboard: 982969ebaa7c78af3e6cc7761e8f5e77565d9ce0
+  pasteboard: bfa22da3a15aff2c2cd3d5d17bc595439b172895
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
-  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
+  permission_handler_apple: ee2fe0fd04551b304eb002714ff067c371c822ed
   pointer_interceptor_ios: a78ffe95ad3c6cd52c42ad362c116d92355c3d42
-  PostHog: 162c013c6a8e442382f6804076bf3ad072c8778a
+  PostHog: 6c74cc84f3872f4335108ff363aecdeb7c278052
   posthog_flutter: 91cc329875300250370eb806ac7286329a75e9cd
   printing: 233e1b73bd1f4a05615548e9b5a324c98588640b
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
@@ -559,7 +548,7 @@ SPEC CHECKSUMS:
   sentry_flutter: aafdf112550e9550972852e71f44994bd4239254
   share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
-  sign_in_with_apple: f3bf75217ea4c2c8b91823f225d70230119b8440
+  sign_in_with_apple: fb98447f3dfb81e2926945ea43a8c9c7205eaca9
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa

@@ -10,7 +10,6 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  firebase_ui_auth: ^3.0.0
   flutter_form_bloc: 0.31.0-dev
   firebase_core: ^4.2.1
   flipper_services: any
@@ -24,10 +23,7 @@ dependencies:
   firebase_auth: ^6.1.0
   flipper_routing: ^1.0.0
   connectivity_plus: ^7.0.0
-  firebase_ui_localizations: ^2.0.0
   flipper_localize: ^1.0.0-dev
-  firebase_ui_oauth: ^2.0.0
-  firebase_ui_oauth_google: ^2.0.0
   flutter_svg: ^2.0.0
   gap: ^2.0.0
   qr_flutter: ^4.1.0
@@ -44,7 +40,6 @@ dependencies:
   sentry_flutter: ^9.18.0
   flipper_models: any
   google_sign_in: ^6.2.2
-  firebase_ui_oauth_apple: ^2.0.0
   pin_code_fields: ^8.0.1
   sign_in_with_apple: ^8.1.0
   

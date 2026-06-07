@@ -1,4 +1,3 @@
-import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,6 @@ import 'phone_auth_state.dart';
 class PhoneInputUI extends StatelessWidget {
   final PhoneAuthState state;
   final ColorScheme colorScheme;
-  final FirebaseUILocalizations l;
   final Function(BuildContext, String) onVerifyPhone;
   final WidgetBuilder? subtitleBuilder;
   final WidgetBuilder? footerBuilder;
@@ -20,7 +18,6 @@ class PhoneInputUI extends StatelessWidget {
     Key? key,
     required this.state,
     required this.colorScheme,
-    required this.l,
     required this.onVerifyPhone,
     this.subtitleBuilder,
     this.footerBuilder,
