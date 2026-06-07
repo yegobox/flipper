@@ -20,7 +20,6 @@ import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -333,10 +332,6 @@ class _FlipperAppState extends State<FlipperApp> {
             title: 'flipper',
             theme: _theme,
             localizationsDelegates: const [
-              FirebaseUILocalizationDelegate<LabelOverrides>(
-                LabelOverrides(),
-                true,
-              ),
               FlipperLocalizationsDelegate(),
               GlobalMaterialLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,

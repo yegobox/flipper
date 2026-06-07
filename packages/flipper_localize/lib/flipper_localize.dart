@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flipper_localize/src/l10n/flipper_app_localizations.dart';
 
@@ -7,16 +6,6 @@ export 'src/l10n/flipper_app_localizations.dart';
 
 extension FlipperLocalizationContext on BuildContext {
   FlipperAppLocalizations get flipperL10n => FlipperAppLocalizations.of(this);
-}
-
-class LabelOverrides extends DefaultLocalizations {
-  const LabelOverrides();
-
-  @override
-  String get emailInputLabel => 'Enter your email';
-
-  @override
-  String get passwordInputLabel => 'Enter your password';
 }
 
 class FLocalization {

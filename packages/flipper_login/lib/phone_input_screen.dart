@@ -1,5 +1,3 @@
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter/material.dart';
 import 'internal/responsive_page.dart' as b;
 
@@ -11,13 +9,13 @@ import 'phone_auth/verification_ui.dart';
 import 'phone_auth/timer_service.dart';
 
 class PhoneInputScreen extends StatefulWidget {
-  final AuthAction? action;
+  final String countryCode;
   final WidgetBuilder? subtitleBuilder;
   final WidgetBuilder? footerBuilder;
 
   const PhoneInputScreen({
     Key? key,
-    this.action,
+    required this.countryCode,
     this.subtitleBuilder,
     this.footerBuilder,
   }) : super(key: key);
@@ -118,7 +116,6 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   @override
   Widget build(BuildContext context) {
-    final localizations = FirebaseUILocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -143,7 +140,6 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                     : PhoneInputUI(
                         state: _state,
                         colorScheme: colorScheme,
-                        l: localizations,
                         onVerifyPhone: _verifyPhoneNumber,
                         subtitleBuilder: widget.subtitleBuilder,
                         footerBuilder: widget.footerBuilder,

@@ -1,8 +1,4 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
-import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
-import 'package:flipper_login/LoadingDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:stacked/stacked.dart';
@@ -103,51 +99,6 @@ class _LoginState extends State<Login> {
 
   /// Builds the web-specific login screen with multiple authentication providers
   Widget _buildWebLoginScreen() {
-    return SignInScreen(
-      showAuthActionSwitch: true,
-      sideBuilder: _buildWebLoginLogo,
-      providers: [
-        EmailAuthProvider(),
-        PhoneAuthProvider(),
-        GoogleProvider(clientId: 'YOUR_GOOGLE_CLIENT_ID'),
-        AppleProvider()
-      ],
-      actions: [
-        AuthStateChangeAction<SignedIn>((context, state) {
-          // Show loading dialog immediately for better UX
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return const LoadingDialog(
-                  message: 'Finalizing authentication...');
-            },
-          );
-
-          // Pop back to Login widget where Firebase auth state changes will be detected
-          // by the centralized handler in AuthWithMultipleProviders
-          Navigator.of(context).pop();
-
-          // Email verification handling if needed
-          if (!state.user!.emailVerified) {
-            // Handle email verification if needed
-          }
-        }),
-      ],
-    );
-  }
-
-  /// Builds the logo section for the web login screen
-  Widget _buildWebLoginLogo(BuildContext context, BoxConstraints constraints) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: Image.asset(
-          'assets/logo.png',
-          package: 'flipper_login',
-        ),
-      ),
-    );
+    return Auth();
   }
 }

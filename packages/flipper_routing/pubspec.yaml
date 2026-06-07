@@ -18,7 +18,6 @@ dependencies:
   stacked_services: ^1.6.0
   stacked: ^3.5.0
   logger: ^2.5.0
-  firebase_ui_auth: ^3.0.0
   flipper_actionable: 0.0.1
   flipper_accounting: any
   flipper_personal: any

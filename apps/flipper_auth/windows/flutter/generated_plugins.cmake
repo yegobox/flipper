@@ -7,7 +7,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   connectivity_plus
   desktop_drop
-  desktop_webview_auth
   file_selector_windows
   firebase_auth
   firebase_core

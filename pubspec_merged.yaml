@@ -346,7 +346,7 @@ dependencies:
   posthog_flutter: ^5.25.1
   otp: ^3.1.4
   base32: ^2.1.3
-  app_links: ^6.3.2
+  app_links: ^7.1.1
   go_router: ^16.2.2
   example_receipt: any
   # realm: ^20.1.1
