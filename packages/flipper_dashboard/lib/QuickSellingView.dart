@@ -54,6 +54,16 @@ String _qsvPendingLabel(AsyncValue<ITransaction> v) {
   return 'id=${t.id} status=${t.status} invoiceNo=${t.invoiceNumber}';
 }
 
+const _kShortTransactionIdLength = 5;
+
+String _shortTransactionId(String id) {
+  if (id.isEmpty) return '-----';
+  final short = id.length <= _kShortTransactionIdLength
+      ? id
+      : id.substring(0, _kShortTransactionIdLength);
+  return short.toUpperCase();
+}
+
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController discountController;
@@ -213,10 +223,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(context.flipperL10n.transactionIdShortLabel, style: body),
-                Text(
-                  txnId,
-                  key: const Key('pending-transaction-id-text'),
-                  style: bodyBold,
+                Tooltip(
+                  message: txnId,
+                  child: Text(
+                    _shortTransactionId(txnId),
+                    key: const Key('pending-transaction-id-text'),
+                    style: bodyBold,
+                  ),
                 ),
               ],
             ),
@@ -234,7 +247,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   /// Desktop shared view: stays **above** the scrolling line items (not inside the list).
-  /// Balance → Save ticket → Transaction ID → Invoice; toolbar styling + horizontal scroll if tight.
+  /// Remaining/change → Save ticket → Invoice; toolbar styling + horizontal scroll if tight.
   Widget _buildTopBarCheckoutSummary({
     required double alreadyPaid,
     required AsyncValue<ITransaction> transactionAsyncValue,
@@ -272,16 +285,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         return _buildCompactAmountSummary(alreadyPaid);
                       },
                     ),
-                    if (branchId != null) ...[
-                      _checkoutToolbarDivider(),
-                      _buildTopBarInvoiceChip(branchId: branchId),
-                    ],
                     if (showSaveTicket) ...[
-                      _checkoutToolbarDivider(),
+                      const SizedBox(width: 8),
                       _buildTopBarSaveTicketButton(
                         transaction: transaction,
                         model: model,
                       ),
+                    ],
+                    if (branchId != null) ...[
+                      _checkoutToolbarDivider(),
+                      _buildTopBarInvoiceChip(branchId: branchId),
                     ],
                   ],
                 ),
@@ -1018,7 +1031,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ),
                 ),
                 Text(
-                  '#${transactionAsyncValue.value?.id.substring(0, 8) ?? "--------"}',
+                  '#${_shortTransactionId(transactionAsyncValue.value?.id ?? '')}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontFamily: 'monospace',
                     color: Theme.of(
