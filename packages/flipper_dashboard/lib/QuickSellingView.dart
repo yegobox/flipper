@@ -181,35 +181,82 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [_buildInvoiceNumberRow(branchId: branchId)],
-      ),
+      child: _buildCheckoutHeaderMeta(branchId: branchId),
     );
   }
 
-  /// Invoice number + current pending cart transaction id (mobile / desktop chip).
+  /// Eyebrow label + value column for invoice / txn id in the checkout header.
+  Widget _buildCheckoutMetaColumn({
+    required String label,
+    required String value,
+    Key? valueKey,
+    String? tooltip,
+    VoidCallback? onTap,
+  }) {
+    const labelStyle = TextStyle(
+      fontSize: 10,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.55,
+      color: PosTokens.ink3,
+    );
+    final valueStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
+      fontWeight: FontWeight.w700,
+      color: PosTokens.ink1,
+      letterSpacing: -0.2,
+      height: 1.15,
+    );
+
+    Widget valueWidget = Text(value, key: valueKey, style: valueStyle);
+    if (tooltip != null) {
+      valueWidget = Tooltip(message: tooltip, child: valueWidget);
+    }
+
+    final column = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label.toUpperCase(), style: labelStyle),
+        const SizedBox(height: 2),
+        valueWidget,
+      ],
+    );
+
+    if (onTap == null) return column;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: column,
+    );
+  }
+
+  /// Invoice number + current pending cart transaction id.
   ///
   /// **Note:** [highestCounterProvider] is the next invoice sequence, not the
   /// Ditto transaction `_id`. The **Txn ID** label is the live pending cart from
   /// [pendingTransactionStreamProvider].
-  Widget _buildInvoiceNumberRow({required String branchId}) {
+  Widget _buildCheckoutHeaderMeta({required String branchId}) {
     final isExpense = ProxyService.box.isOrdering() ?? false;
     final pendingTxn = ref
         .watch(pendingTransactionStreamProvider(isExpense: isExpense))
         .value;
     final txnId = pendingTxn?.id;
-
     final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
-    final body = Theme.of(context).textTheme.bodyMedium;
-    final bodyBold = body?.copyWith(fontWeight: FontWeight.bold);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        _buildCheckoutMetaColumn(
+          label: 'Invoice',
+          value: 'No. $highestInvoiceNumber',
+          valueKey: const Key('invoice-number-text'),
+        ),
         if (txnId != null && txnId.isNotEmpty) ...[
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          const SizedBox(width: 24),
+          _buildCheckoutMetaColumn(
+            label: 'Txn ID',
+            value: _shortTransactionId(txnId),
+            valueKey: const Key('pending-transaction-id-text'),
+            tooltip: txnId,
             onTap: () async {
               await Clipboard.setData(ClipboardData(text: txnId));
               if (!mounted) return;
@@ -219,37 +266,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 duration: const Duration(seconds: 2),
               );
             },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(context.flipperL10n.transactionIdShortLabel, style: body),
-                Tooltip(
-                  message: txnId,
-                  child: Text(
-                    _shortTransactionId(txnId),
-                    key: const Key('pending-transaction-id-text'),
-                    style: bodyBold,
-                  ),
-                ),
-              ],
-            ),
           ),
-          const SizedBox(width: 12),
         ],
-        Text(context.flipperL10n.invoiceNumberLabel, style: body),
-        Text(
-          '$highestInvoiceNumber',
-          key: const Key('invoice-number-text'),
-          style: bodyBold,
-        ),
       ],
     );
   }
 
   /// Desktop shared view: stays **above** the scrolling line items (not inside the list).
-  /// Remaining/change → Save ticket → Invoice; toolbar styling + horizontal scroll if tight.
+  /// Invoice / Txn ID columns + Save ticket; balance due lives above payment input.
   Widget _buildTopBarCheckoutSummary({
-    required double alreadyPaid,
     required AsyncValue<ITransaction> transactionAsyncValue,
     required CoreViewModel model,
   }) {
@@ -269,67 +294,25 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           border: Border.all(color: PosTokens.line),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: SizedBox(
-            width: double.infinity,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Consumer(
-                      builder: (context, ref, _) {
-                        ref.watch(posCartPaymentRefreshSignalProvider);
-                        return _buildCompactAmountSummary(alreadyPaid);
-                      },
-                    ),
-                    if (showSaveTicket) ...[
-                      const SizedBox(width: 8),
-                      _buildTopBarSaveTicketButton(
-                        transaction: transaction,
-                        model: model,
-                      ),
-                    ],
-                    if (branchId != null) ...[
-                      _checkoutToolbarDivider(),
-                      _buildTopBarInvoiceChip(branchId: branchId),
-                    ],
-                  ],
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (branchId != null)
+                Expanded(child: _buildCheckoutHeaderMeta(branchId: branchId))
+              else
+                const Spacer(),
+              if (showSaveTicket) ...[
+                const SizedBox(width: 12),
+                _buildTopBarSaveTicketButton(
+                  transaction: transaction,
+                  model: model,
                 ),
-              ),
-            ),
+              ],
+            ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _checkoutToolbarDivider() {
-    final outline = Theme.of(context).colorScheme.outline;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: SizedBox(
-        height: 22,
-        child: VerticalDivider(
-          width: 1,
-          thickness: 1,
-          color: outline.withValues(alpha: 0.35),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopBarInvoiceChip({required String branchId}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: _buildInvoiceNumberRow(branchId: branchId),
     );
   }
 
@@ -345,28 +328,28 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _showParkDialog(transaction, model),
-          borderRadius: BorderRadius.circular(8),
-          hoverColor: accent.withValues(alpha: 0.08),
-          splashColor: accent.withValues(alpha: 0.14),
-          highlightColor: accent.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          hoverColor: PosTokens.ink4.withValues(alpha: 0.12),
+          splashColor: PosTokens.ink4.withValues(alpha: 0.18),
+          highlightColor: PosTokens.ink4.withValues(alpha: 0.08),
           child: Ink(
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFBFDBFE)),
+              color: PosTokens.surface,
+              borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+              border: Border.all(color: PosTokens.lineStrong),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(FluentIcons.bookmark_16_filled, size: 15, color: accent),
+                  const Icon(FluentIcons.bookmark_16_filled, size: 15, color: accent),
                   const SizedBox(width: 6),
                   Text(
                     context.flipperL10n.saveTicketAction,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: accent,
+                      color: PosTokens.ink1,
                       letterSpacing: -0.1,
                       height: 1.1,
                     ),
@@ -380,54 +363,104 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildCompactAmountSummary(double alreadyPaid) {
-    final remaining = _remainingBalance(alreadyPaid);
-    final change = _amountToChange(alreadyPaid);
-    final isRemaining = remaining > 0;
-    final labelColor = isRemaining
-        ? Colors.red.shade700
-        : PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.9);
-    final valueColor = isRemaining
-        ? Colors.red.shade700
-        : PosLayoutBreakpoints.posAccentBlue;
+  /// Full-width balance / change banner between Grand Total and payment input.
+  Widget _buildBalanceDueBanner(double alreadyPaid) {
+    return Consumer(
+      builder: (context, ref, _) {
+        ref.watch(posCartPaymentRefreshSignalProvider);
+        final total = _calculateTotal();
+        if (total <= 0) return const SizedBox.shrink();
 
-    return Container(
-      height: PosTokens.chipHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 13),
-      decoration: BoxDecoration(
-        color: isRemaining ? PosTokens.lossTint : PosTokens.blueTint,
-        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-        border: Border.all(
-          color: isRemaining
-              ? PosTokens.loss.withValues(alpha: 0.28)
-              : Colors.transparent,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            isRemaining
+        final remaining = _remainingBalance(alreadyPaid);
+        final change = _amountToChange(alreadyPaid);
+        final tendered =
+            alreadyPaid + calculateTotalPaid(ref.watch(paymentMethodsProvider));
+        final currency = ProxyService.box.defaultCurrency();
+
+        final isRemaining = remaining > 0;
+        if (!isRemaining && change <= 0) return const SizedBox.shrink();
+
+        final inkColor = isRemaining ? PosTokens.lossInk : PosTokens.gainInk;
+        final accentColor = isRemaining ? PosTokens.loss : PosTokens.gain;
+        final bgColor = isRemaining ? PosTokens.lossTint : PosTokens.blueTint;
+        final headline = isRemaining ? 'BALANCE DUE' : 'CHANGE';
+        final amount = isRemaining ? remaining : change;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Semantics(
+            label: isRemaining
                 ? context.flipperL10n.remainingBalanceLabel
                 : context.flipperL10n.amountToChangeLabel,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: labelColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+            value: amount.toCurrencyFormatted(symbol: currency),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+                border: Border.all(color: accentColor.withValues(alpha: 0.22)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          headline,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.45,
+                            color: inkColor,
+                          ),
+                        ),
+                        if (tendered > 0) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            'Tendered ${tendered.toCurrencyFormatted(symbol: currency)}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: PosTokens.ink3,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Text(
+                    amount.toCurrencyFormatted(symbol: currency),
+                    style: PosTokens.posPriceStyle(
+                      Theme.of(context).textTheme,
+                      fontSize: 22,
+                      color: inkColor,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Material(
+                    color: accentColor.withValues(alpha: 0.12),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => _receivedAmountFocusNode.requestFocus(),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 18,
+                          color: inkColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          Text(
-            (isRemaining ? remaining : change).toCurrencyFormatted(
-              symbol: ProxyService.box.defaultCurrency(),
-            ),
-            style: PosTokens.posMonoStyle(
-              Theme.of(context).textTheme,
-              fontSize: 13,
-              color: valueColor,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1828,7 +1861,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildTopBarCheckoutSummary(
-          alreadyPaid: alreadyPaid,
           transactionAsyncValue: transactionAsyncValue,
           model: model,
         ),
@@ -2135,6 +2167,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           children: [
             // Customer Information Section (only shown when not ordering)
             if (!isOrdering) ...[
+              _buildBalanceDueBanner(alreadyPaid),
               _buildDigitalReceiptToggle(),
               _buildReceivedAmountField(
                 transactionId: transactionId,
