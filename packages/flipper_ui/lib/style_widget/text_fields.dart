@@ -158,6 +158,8 @@ class StyledTextFormField {
     Color? labelColor,
     Color? fillColor,
     TextStyle? style,
+    TextInputAction? textInputAction,
+    void Function(String)? onFieldSubmitted,
   }) {
     return TextFormField(
       key: key, // Pass the key to the TextFormField
@@ -166,6 +168,8 @@ class StyledTextFormField {
       keyboardType: keyboardType,
       maxLines: maxLines,
       minLines: minLines,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
       onChanged: onChanged,
       validator: validator,
       style: style ?? AppInputDecoration.inputStyle(context),

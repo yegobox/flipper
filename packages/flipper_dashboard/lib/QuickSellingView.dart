@@ -623,7 +623,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   KeyEventResult _handleReceivedAmountKey(FocusNode node, KeyEvent event) {
     if (_isPlainEnter(event)) {
-      _customerNameFocusNode.requestFocus();
+      _focusCustomerNameAfterAmount();
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -631,7 +631,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   KeyEventResult _handleCustomerNameKey(FocusNode node, KeyEvent event) {
     if (_isPlainEnter(event)) {
-      _customerPhoneFocusNode.requestFocus();
+      _focusCustomerPhoneAfterName();
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -662,6 +662,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
+  }
+
+  /// Enter on amount must skip quick-cash chips and land on customer name.
+  void _focusCustomerNameAfterAmount() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _customerNameFocusNode.requestFocus();
+      }
+    });
+  }
+
+  /// Enter on customer name must skip country picker and land on phone digits.
+  void _focusCustomerPhoneAfterName() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _customerPhoneFocusNode.requestFocus();
+      }
+    });
   }
 
   @override
@@ -2147,9 +2165,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               !HardwareKeyboard.instance.isMetaPressed) {
             // Determine which field currently has focus and move to the next one
             if (_receivedAmountFocusNode.hasFocus && !isOrdering) {
-              _customerNameFocusNode.requestFocus();
+              _focusCustomerNameAfterAmount();
             } else if (_customerNameFocusNode.hasFocus && !isOrdering) {
-              _customerPhoneFocusNode.requestFocus();
+              _focusCustomerPhoneAfterName();
             } else if (_customerPhoneFocusNode.hasFocus) {
               if (isOrdering) {
                 _deliveryNoteFocusNode.requestFocus();
@@ -2178,20 +2196,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 builder: (context, ref, _) {
                   ref.watch(posCartPaymentRefreshSignalProvider);
                   final total = _calculateTotal();
-                  return PosQuickCashRow(
-                    exactAmount: total,
-                    enabled: total > 0,
-                    onSelect: (amount) {
-                      widget.receivedAmountController.text =
-                          amount == amount.truncateToDouble()
-                          ? amount.toStringAsFixed(0)
-                          : amount.toStringAsFixed(2);
-                      ProxyService.box.writeDouble(
-                        key: 'getCashReceived',
-                        value: amount,
-                      );
-                      setState(() {});
-                    },
+                  return ExcludeFocus(
+                    child: PosQuickCashRow(
+                      exactAmount: total,
+                      enabled: total > 0,
+                      onSelect: (amount) {
+                        widget.receivedAmountController.text =
+                            amount == amount.truncateToDouble()
+                            ? amount.toStringAsFixed(0)
+                            : amount.toStringAsFixed(2);
+                        ProxyService.box.writeDouble(
+                          key: 'getCashReceived',
+                          value: amount,
+                        );
+                        setState(() {});
+                      },
+                    ),
                   );
                 },
               ),
@@ -2371,6 +2391,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         controller: widget.receivedAmountController,
         focusNode: _receivedAmountFocusNode,
         keyboardType: TextInputType.number,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) => _focusCustomerNameAfterAmount(),
         maxLines: 1,
         minLines: 1,
         key: const Key('received-amount-field'), // Add this line
@@ -2456,7 +2478,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         controller: customerNameController,
         focusNode: _customerNameFocusNode,
         keyboardType: TextInputType.text,
-        maxLines: 3,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) => _focusCustomerPhoneAfterName(),
+        maxLines: 1,
         minLines: 1,
         outlineColor: PosLayoutBreakpoints.posAccentBlue,
         borderRadius: 8,
@@ -2538,26 +2562,29 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 ),
               ),
               child: Center(
-                child: DefaultTextStyle(
-                  style: const TextStyle(
-                    color: PosLayoutBreakpoints.posAccentBlue,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  child: CountryCodePicker(
-                    onChanged: (countryCode) {
-                      widget.countryCodeController.text = countryCode.dialCode!;
-                    },
-                    initialSelection: 'RW',
-                    favorite: const ['+250', 'RW'],
-                    showCountryOnly: false,
-                    showOnlyCountryWhenClosed: false,
-                    alignLeft: false,
-                    padding: EdgeInsets.zero,
-                    textStyle: const TextStyle(
+                child: ExcludeFocus(
+                  child: DefaultTextStyle(
+                    style: const TextStyle(
                       color: PosLayoutBreakpoints.posAccentBlue,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                    ),
+                    child: CountryCodePicker(
+                      onChanged: (countryCode) {
+                        widget.countryCodeController.text =
+                            countryCode.dialCode!;
+                      },
+                      initialSelection: 'RW',
+                      favorite: const ['+250', 'RW'],
+                      showCountryOnly: false,
+                      showOnlyCountryWhenClosed: false,
+                      alignLeft: false,
+                      padding: EdgeInsets.zero,
+                      textStyle: const TextStyle(
+                        color: PosLayoutBreakpoints.posAccentBlue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -2573,6 +2600,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 controller: widget.customerPhoneNumberController,
                 focusNode: _customerPhoneFocusNode,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) {
+                  final isOrdering = ProxyService.box.isOrdering() ?? false;
+                  if (isOrdering) {
+                    _deliveryNoteFocusNode.requestFocus();
+                  } else {
+                    FocusScope.of(context).nextFocus();
+                  }
+                },
                 maxLines: 1,
                 minLines: 1,
                 outlineColor: PosLayoutBreakpoints.posAccentBlue,
