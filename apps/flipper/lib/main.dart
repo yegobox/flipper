@@ -185,7 +185,7 @@ Future<void> main() async {
             if (snapshot.stackTrace != null) {
               debugPrint('Stack trace: ${snapshot.stackTrace}');
             }
-
+//
             // Report to telemetry systems
             try {
               final stackTrace = snapshot.stackTrace ?? StackTrace.current;
@@ -317,10 +317,10 @@ class _FlipperAppState extends State<FlipperApp> {
     return ProviderScope(
       observers: [StateObserver()],
       overrides: kDebugMode
-      ? [
-          providerPerfTracingEnabledProvider.overrideWith((ref) => true),
-        ]
-      : const [],
+          ? [
+              providerPerfTracingEnabledProvider.overrideWith((ref) => true),
+            ]
+          : const [],
       child: OverlaySupport.global(
         child: DevicePreview(
           enabled: kFlipperDevicePreviewEnabled,
