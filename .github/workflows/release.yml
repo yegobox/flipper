@@ -273,9 +273,9 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
-      - name: Prefetch dittoffi.dll
-        shell: pwsh
-        run: ./scripts/ci/prefetch-dittoffi.ps1
+      # - name: Prefetch dittoffi.dll
+      #   shell: pwsh
+      #   run: ./scripts/ci/prefetch-dittoffi.ps1
 
       - run: |
           cd apps/flipper
@@ -341,9 +341,9 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
-      - name: Prefetch dittoffi.dll
-        shell: pwsh
-        run: ./scripts/ci/prefetch-dittoffi.ps1
+      # - name: Prefetch dittoffi.dll
+      #   shell: pwsh
+      #   run: ./scripts/ci/prefetch-dittoffi.ps1
 
       - name: Build and Package
         shell: pwsh
