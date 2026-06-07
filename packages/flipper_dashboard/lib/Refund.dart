@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/RefundReasonForm.dart';
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
+import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/services/transaction_refund_service.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -72,17 +73,22 @@ class Refund extends StatefulHookConsumerWidget {
 class _RefundState extends ConsumerState<Refund> {
   bool isRefundProcessing = false;
   bool isPrintingCopy = false;
+  bool _refundBlocked = false;
   final talker = TalkerFlutter.init();
   late final _refundService = TransactionRefundService(talker: talker);
 
-  bool get _alreadyRefunded => widget.transaction?.isRefunded == true;
+  ITransaction? get _transaction => widget.transaction;
+
+  bool get _alreadyRefunded =>
+      _refundBlocked ||
+      (_transaction != null && isTransactionRefunded(_transaction!));
 
   String get _currency =>
       widget.currency ?? ProxyService.box.defaultCurrency();
 
   @override
   Widget build(BuildContext context) {
-    final tx = widget.transaction;
+    final tx = _transaction;
     final amountText = NumberFormat('#,##0.00').format(widget.refundAmount);
     final taxAmount = tx != null ? TransactionSummaryTax.taxColumn(tx) : 0.0;
     final taxText = NumberFormat('#,##0.00').format(taxAmount);
@@ -153,13 +159,12 @@ class _RefundState extends ConsumerState<Refund> {
   }
 
   Future<void> _onRefundTap(BuildContext context) async {
+    if (_alreadyRefunded) return;
+
     setState(() => isRefundProcessing = true);
     try {
-      final tx = widget.transaction!;
-      if (tx.isRefunded ?? false) {
-        toast('This is already refunded');
-        return;
-      }
+      final tx = _transaction!;
+      _refundService.validateCanRefund(tx);
 
       final needsPurchaseCode =
           tx.customerTin != null && tx.customerTin!.isNotEmpty;
@@ -176,13 +181,10 @@ class _RefundState extends ConsumerState<Refund> {
           refundAmount: widget.refundAmount,
           receiptType: 'TR',
         );
-        return;
-      }
-      if (tx.receiptType == 'PS') {
+      } else if (tx.receiptType == 'PS') {
         toast('Can not refund a proforma');
         return;
-      }
-      if (tx.receiptType == 'NS') {
+      } else if (tx.receiptType == 'NS') {
         await _refundService.executeLegacyFullRefund(
           transaction: tx,
           refundAmount: widget.refundAmount,
@@ -194,7 +196,12 @@ class _RefundState extends ConsumerState<Refund> {
           refundAmount: widget.refundAmount,
           receiptType: 'CR',
         );
+      } else {
+        toast('This receipt cannot be refunded');
+        return;
       }
+
+      if (mounted) setState(() => _refundBlocked = true);
     } catch (e, s) {
       toast(e.toString());
       talker.error(s);
@@ -204,7 +211,7 @@ class _RefundState extends ConsumerState<Refund> {
   }
 
   Future<void> _onPrintCopyTap(BuildContext context) async {
-    final tx = widget.transaction!;
+    final tx = _transaction!;
     if (tx.receiptType == 'TS') {
       toast('This receipt does not have a copy to print');
       return;
@@ -222,14 +229,14 @@ class _RefundState extends ConsumerState<Refund> {
       if (tx.receiptType == 'PS') {
         await _refundService.handleReceiptCopy(
           transaction: tx,
-          filterType: (tx.isRefunded ?? false)
+          filterType: isTransactionRefunded(tx)
               ? FilterType.PR
               : FilterType.CP,
         );
       } else {
         await _refundService.handleReceiptCopy(
           transaction: tx,
-          filterType: (tx.isRefunded ?? false)
+          filterType: isTransactionRefunded(tx)
               ? FilterType.CR
               : FilterType.CS,
         );
@@ -750,10 +757,8 @@ _PreviewStatus _statusFor(ITransaction? tx) {
     );
   }
 
-  final normalized = (tx.status ?? 'unknown').toLowerCase();
-  if (tx.isRefunded == true ||
-      normalized == 'refunded' ||
-      normalized == 'partially_refunded') {
+  if (isTransactionRefunded(tx)) {
+    final normalized = (tx.status ?? '').toLowerCase();
     if (normalized == 'partially_refunded') {
       return const _PreviewStatus(
         label: 'PARTIALLY REFUNDED',
@@ -770,6 +775,7 @@ _PreviewStatus _statusFor(ITransaction? tx) {
     );
   }
 
+  final normalized = (tx.status ?? 'unknown').toLowerCase();
   switch (normalized) {
     case 'pending':
     case 'waiting':

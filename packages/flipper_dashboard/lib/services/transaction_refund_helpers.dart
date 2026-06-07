@@ -47,3 +47,23 @@ String? resolveVatRefundReceiptType(ITransaction transaction) {
   if (rt == 'CS') return 'CR';
   return null;
 }
+
+const _refundReceiptTypes = {'NR', 'CR', 'TR'};
+
+/// Whether a transaction must not be refunded again (UI + service guard).
+bool isTransactionRefunded(ITransaction transaction) {
+  if (transaction.isRefunded == true) return true;
+
+  final status = (transaction.status ?? '').toLowerCase();
+  if (status == 'refunded' || status == 'partially_refunded') return true;
+
+  final receiptType = transaction.receiptType ?? '';
+  if (_refundReceiptTypes.contains(receiptType)) return true;
+
+  if (transaction.isOriginalTransaction == false &&
+      (transaction.originalTransactionId?.isNotEmpty ?? false)) {
+    return true;
+  }
+
+  return false;
+}
