@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:badges/badges.dart' as badges;
 import 'package:flipper_dashboard/BranchPerformance.dart';
-import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/import_purchase_dialog.dart';
 import 'package:flipper_dashboard/umusada_helper.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -17,13 +16,8 @@ import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/features/transaction_reports/transaction_reports_desktop_screen.dart';
-import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
-    show
-        branchSelectionProvider,
-        businessesProvider,
-        buttonIndexProvider,
-        selectedBranchProvider;
+    show buttonIndexProvider, selectedBranchProvider;
 import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -35,7 +29,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class IconRow extends StatefulHookConsumerWidget {
@@ -45,20 +38,18 @@ class IconRow extends StatefulHookConsumerWidget {
   ConsumerState<IconRow> createState() => IconRowState();
 }
 
-class IconRowState extends ConsumerState<IconRow>
-    with CoreMiscellaneous, BranchSelectionMixin {
-  /// Selection for main ribbon tabs: Home, Transactions, EOD, Analytics.
-  final List<bool> _selectedMain = [true, false, false, false];
-  String? _loadingItemId;
-  bool _isLoading = false;
+class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
+  /// Selection for main ribbon tabs: Home, Transactions, Analytics.
+  final List<bool> _selectedMain = [true, false, false];
 
   String _getDeviceType(BuildContext context) {
     return DeviceType.getDeviceType(context);
   }
 
   int _legacyButtonIndexForUi(int uiIndex) {
-    if (uiIndex < 0 || uiIndex > 3) return 0;
-    return uiIndex;
+    if (uiIndex < 0 || uiIndex > 2) return 0;
+    // Analytics was legacy index 3 before EOD was removed from the ribbon.
+    return uiIndex == 2 ? 3 : uiIndex;
   }
 
   void _onMainTabPressed(int uiIndex) {
@@ -86,7 +77,7 @@ class IconRowState extends ConsumerState<IconRow>
         .read(buttonIndexProvider.notifier)
         .setIndex(_legacyButtonIndexForUi(uiIndex));
     setState(() {
-      for (var i = 0; i < 4; i++) {
+      for (var i = 0; i < 3; i++) {
         _selectedMain[i] = i == uiIndex;
       }
     });
@@ -147,48 +138,6 @@ class IconRowState extends ConsumerState<IconRow>
         _showReport(context);
         break;
       case 2:
-        showBranchSwitchDialog(
-          context: context,
-          branches: null,
-          loadingItemId: _loadingItemId,
-          setDefaultBranch: (branch) async {
-            setState(() {
-              _isLoading = true;
-            });
-            handleBranchSelection(
-              branch,
-              context,
-              setLoadingState: (String? id) {
-                setState(() {
-                  _loadingItemId = id;
-                });
-              },
-              setDefaultBranch: _setDefaultBranch,
-              onComplete: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  _isLoading = false;
-                });
-              },
-              setIsLoading: (bool value) {
-                setState(() {
-                  _isLoading = value;
-                });
-              },
-            );
-          },
-          handleBranchSelection: handleBranchSelection,
-          onLogout: () async {
-            await showLogoutConfirmationDialog(context);
-          },
-          setLoadingState: (String? id) {
-            setState(() {
-              _loadingItemId = id;
-            });
-          },
-        );
-        break;
-      case 3:
         ref.invalidate(stockValueReportProvider);
         Navigator.of(context).push(
           MaterialPageRoute<void>(
@@ -249,16 +198,9 @@ class IconRowState extends ConsumerState<IconRow>
         ),
         _buildMainTab(
           context,
-          iconName: 'wallet',
-          label: 'EOD',
-          uiIndex: 2,
-          key: const Key('eod_desktop'),
-        ),
-        _buildMainTab(
-          context,
           iconName: 'chart',
           label: 'Analytics',
-          uiIndex: 3,
+          uiIndex: 2,
           key: const Key('analytics_desktop'),
         ),
         _buildSalesUmusadaButton(),
@@ -352,17 +294,6 @@ class IconRowState extends ConsumerState<IconRow>
     ref.read(buttonIndexProvider.notifier).setIndex(5);
     final dialogService = locator<DialogService>();
     dialogService.showCustomDialog(variant: DialogType.items);
-  }
-
-  Future<void> _setDefaultBranch(Branch branch) async {
-    ref.read(branchSelectionProvider.notifier).setLoading(true);
-    _refreshBusinessAndBranchProviders();
-    return Future.value();
-  }
-
-  void _refreshBusinessAndBranchProviders() {
-    ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
   }
 
   void _showBranchPerformanceMobile(BuildContext context) {

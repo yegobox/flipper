@@ -647,6 +647,38 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         await locator<AppService>().setDefaultBranch(branches.first);
         // Small delay to allow Hive writes to complete
         await Future.delayed(const Duration(milliseconds: 100));
+
+        // For non-mobile: prompt app choice if not yet set
+        if (!isMobileDevice) {
+          String? defaultApp = ProxyService.box.getDefaultApp();
+          if (defaultApp == null) {
+            final dialogService = locator<DialogService>();
+            final response = await dialogService.showCustomDialog(
+              variant: DialogType.appChoice,
+              title: 'Choose Your Default App',
+            );
+            if (response?.confirmed != true || response?.data == null) {
+              setState(() {
+                _loadingItemId = null;
+              });
+              return;
+            }
+          }
+        }
+
+        // For POS, ensure a shift is open before navigating
+        final effectiveApp = ProxyService.box.getDefaultApp() ?? 'POS';
+        if (effectiveApp == 'POS') {
+          final shiftReady =
+              await ProxyService.app.checkAndStartShift(userId: userId);
+          if (!shiftReady) {
+            setState(() {
+              _loadingItemId = null;
+            });
+            return;
+          }
+        }
+
         await _completeAuthenticationFlow();
         _invalidateProviders();
       } else {
@@ -730,9 +762,17 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         }
       }
 
+      // Step 4: For POS, ensure a shift is open before navigating
       if (userId != null) {
-        // Step 4: Check and start shift (deferred to avoid blocking)
-        unawaited(ProxyService.app.checkAndStartShift(userId: userId));
+        final effectiveApp = ProxyService.box.getDefaultApp() ?? 'POS';
+        if (effectiveApp == 'POS') {
+          final shiftReady =
+              await ProxyService.app.checkAndStartShift(userId: userId);
+          if (!shiftReady) {
+            setState(() => _isLoading = false);
+            return;
+          }
+        }
       }
 
       // Final delay before navigation

@@ -97,6 +97,21 @@ Future<bool> prepareSessionExitAfterShiftHandling({
     if (!context.mounted) return false;
 
     if (currentShift != null) {
+      final cashSales = currentShift.cashSales ?? 0.0;
+
+      // Shift has no sales — close it silently, no reconciliation needed
+      if (cashSales <= 0) {
+        try {
+          await ProxyService.strategy.endShift(
+            shiftId: currentShift.id,
+            closingBalance: currentShift.openingBalance.toDouble(),
+          );
+        } catch (_) {
+          // Proceed to logout even if close fails — no transactions to reconcile
+        }
+        return true;
+      }
+
       final dialogResponse = await dialogService.showCustomDialog(
         variant: DialogType.closeShift,
         title: 'Close shift to sign out',

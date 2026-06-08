@@ -1,30 +1,121 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
+import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    show
+        branchSelectionProvider,
+        businessesProvider,
+        buttonIndexProvider;
+import 'package:flipper_dashboard/logout/shift_before_logout.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
 
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'providers/navigation_providers.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
-import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
-class EnhancedSideMenu extends ConsumerWidget {
+
+class EnhancedSideMenu extends ConsumerStatefulWidget {
   const EnhancedSideMenu({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EnhancedSideMenu> createState() => _EnhancedSideMenuState();
+}
+
+class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
+    with BranchSelectionMixin {
+  String? _loadingItemId;
+
+  Future<bool> _verifyAdminPinIfRequired(BuildContext context) async {
+    final settingsService = ProxyService.settings;
+    if (!settingsService.isAdminPinEnabled) return true;
+    final setting = await settingsService.settings();
+    final confirmed = await showAdminPinDialog(
+      context: context,
+      mode: AdminPinMode.verify,
+      expectedPin: setting?.adminPin,
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _setDefaultBranch(Branch branch) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+    _refreshBusinessAndBranchProviders();
+  }
+
+  void _refreshBusinessAndBranchProviders() {
+    // ignore: unused_result
+    ref.refresh(businessesProvider);
+    // ignore: unused_result
+    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
+  }
+
+  Future<void> _openEodBranchSwitchDialog() async {
+    final ok = await _verifyAdminPinIfRequired(context);
+    if (!ok || !mounted) return;
+
+    ref.read(buttonIndexProvider.notifier).setIndex(2);
+    await showBranchSwitchDialog(
+      context: context,
+      branches: null,
+      loadingItemId: _loadingItemId,
+      setDefaultBranch: (branch) async {
+        await handleBranchSelection(
+          branch,
+          context,
+          setLoadingState: (String? id) {
+            setState(() {
+              _loadingItemId = id;
+            });
+          },
+          setDefaultBranch: _setDefaultBranch,
+          onComplete: () {
+            Navigator.of(context).pop();
+          },
+          setIsLoading: (_) {},
+        );
+      },
+      handleBranchSelection: handleBranchSelection,
+      onLogout: () async {
+        final dialogService = locator<DialogService>();
+        final routerService = locator<RouterService>();
+        final proceed = await prepareSessionExitAfterShiftHandling(
+          context: context,
+          dialogService: dialogService,
+          loaderUseRootNavigator: false,
+        );
+        if (!proceed || !mounted) return;
+
+        await handleLogout(
+          context: context,
+          onLogout: CoreMiscellaneous.logoutStatic,
+          routerService: routerService,
+        );
+      },
+      setLoadingState: (String? id) {
+        setState(() {
+          _loadingItemId = id;
+        });
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedItem = ref.watch(selectedMenuItemProvider);
     final _dialogService = locator<DialogService>();
-    final _routerService = locator<RouterService>();
 
     final isDesktop =
         kIsWeb ||
@@ -238,32 +329,11 @@ class EnhancedSideMenu extends ConsumerWidget {
           tooltip: 'Agent commission',
         ),
       _SideMenuItem(
+        key: const Key('eod_desktop'),
         iconBuilder: (_) =>
             SvgPicture.string(_SideMenuSvgs.logout, width: 24, height: 24),
         isSelected: selectedItem == 4,
-        onTap: () async {
-          final userId = ProxyService.box.getUserId();
-          if (userId == null) {
-            _routerService.replaceWith(const LoginRoute());
-            return;
-          }
-          try {
-            final proceed = await prepareSessionExitAfterShiftHandling(
-              context: context,
-              dialogService: _dialogService,
-            );
-            if (proceed) {
-              _routerService.replaceWith(const LoginRoute());
-            }
-          } catch (e) {
-            print('Error during logout flow: $e');
-            await _dialogService.showCustomDialog(
-              variant: DialogType.info,
-              title: 'Error',
-              description: 'An error occurred during logout: $e',
-            );
-          }
-        },
+        onTap: () => _openEodBranchSwitchDialog(),
         tooltip: 'Log Out Shift',
         isLogout: true,
       ),
@@ -384,6 +454,7 @@ class _SideMenuItem extends StatelessWidget {
   final bool isLogout;
 
   const _SideMenuItem({
+    super.key,
     required this.iconBuilder,
     required this.isSelected,
     required this.onTap,

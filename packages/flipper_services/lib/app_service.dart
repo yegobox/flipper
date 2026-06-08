@@ -478,32 +478,31 @@ class AppService with ListenableServiceMixin {
     });
   }
 
-  Future<void> checkAndStartShift({required String userId}) async {
+  /// Returns `true` if a shift is open (or was just started), `false` if the
+  /// user cancelled the start-shift dialog.
+  Future<bool> checkAndStartShift({required String userId}) async {
     final currentShift = await ProxyService.strategy.getCurrentShift(
       userId: userId,
     );
     if (currentShift == null) {
-      // No active shift, show dialog to start one
       final dialogService = locator<DialogService>();
       final response = await dialogService.showCustomDialog(
         variant: DialogType.startShift,
         title: 'Start New Shift',
       );
       if (response == null || !response.confirmed) {
-        // User cancelled starting shift, prevent proceeding
-        throw Exception('Shift not started. Please start a shift to proceed.');
-      } else {
-        // Start the shift now that we have confirmation and data
-        final openingBalance =
-            response.data['openingBalance'] as double? ?? 0.0;
-        final notes = response.data['notes'] as String?;
-        await ProxyService.strategy.startShift(
-          userId: userId,
-          openingBalance: openingBalance,
-          note: notes,
-        );
+        return false;
       }
+      final openingBalance =
+          response.data['openingBalance'] as double? ?? 0.0;
+      final notes = response.data['notes'] as String?;
+      await ProxyService.strategy.startShift(
+        userId: userId,
+        openingBalance: openingBalance,
+        note: notes,
+      );
     }
+    return true;
   }
 
   // NFCManager nfc = NFCManager();
