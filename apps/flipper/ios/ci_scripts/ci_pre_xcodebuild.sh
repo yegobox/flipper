@@ -106,7 +106,13 @@ if ! command -v pod &>/dev/null; then
 fi
 
 cd "$IOS_DIR"
-run_with_heartbeat "pod install" pod install
+
+# Xcode Cloud images ship with a stale CocoaPods specs cache; refresh during install.
+if ! run_with_heartbeat "pod install --repo-update" pod install --repo-update; then
+  echo "pod install --repo-update failed; running pod repo update and retrying..."
+  run_with_heartbeat "pod repo update" pod repo update
+  run_with_heartbeat "pod install" pod install
+fi
 
 if [[ ! -f Podfile.lock || ! -f Pods/Manifest.lock ]]; then
   echo "ERROR: pod install did not produce lockfiles"
