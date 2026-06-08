@@ -67,6 +67,16 @@ fi
 echo "FLUTTER_ROOT from Generated.xcconfig:"
 grep '^FLUTTER_ROOT=' "$GENERATED_XCCONFIG" || true
 
+# Marker file read by Xcode Run Script phases on Xcode Cloud.
+mkdir -p "$IOS_DIR/Flutter"
+echo "$FLUTTER_DIR" > "$IOS_DIR/Flutter/.ci_flutter_root"
+echo "Wrote $IOS_DIR/Flutter/.ci_flutter_root -> $FLUTTER_DIR"
+
+log_step "ci_pre_xcodebuild: compile Flutter iOS release (fail here, not in Xcode)"
+# Compile before xcodebuild so Dart errors appear in Pre-Xcodebuild logs instead of
+# the generic "PhaseScriptExecution failed" wrapper during archive.
+flutter build ios --release --no-codesign
+
 log_step "ci_pre_xcodebuild: ensure firebase_app_id_file.json exists"
 if [[ -f "$PLIST_PATH" ]]; then
   GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$PLIST_PATH" 2>/dev/null || true)
@@ -86,18 +96,18 @@ EOF
   fi
 fi
 
-log_step "ci_pre_xcodebuild: verify CocoaPods manifest"
+log_step "ci_pre_xcodebuild: install CocoaPods (always, after melos/flutter)"
 cd "$IOS_DIR"
-if [[ -f Podfile.lock && -f Pods/Manifest.lock ]]; then
-  if ! diff Podfile.lock Pods/Manifest.lock >/dev/null; then
-    echo "Podfile.lock and Pods/Manifest.lock differ; running pod install..."
-    pod install
-  else
-    echo "Pods manifest is in sync"
-  fi
-else
-  echo "WARNING: Podfile.lock or Pods/Manifest.lock missing; running pod install..."
-  pod install
+pod install
+if [[ ! -f Podfile.lock || ! -f Pods/Manifest.lock ]]; then
+  echo "ERROR: pod install did not create Podfile.lock and Pods/Manifest.lock"
+  exit 1
 fi
+if ! diff Podfile.lock Pods/Manifest.lock >/dev/null; then
+  echo "ERROR: Podfile.lock and Pods/Manifest.lock still differ after pod install"
+  diff Podfile.lock Pods/Manifest.lock || true
+  exit 1
+fi
+echo "Pods manifest is in sync"
 
 echo "ci_pre_xcodebuild completed successfully"
