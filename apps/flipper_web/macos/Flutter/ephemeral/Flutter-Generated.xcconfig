@@ -1,10 +1,11 @@
 // This is a generated file; do not edit or check into version control.
 FLUTTER_ROOT=/Users/richard/develop/flutter
 FLUTTER_APPLICATION_PATH=/Users/richard/Developer/yego-project/flipper/apps/flipper_web
+FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/richard/Developer/yego-project/flipper/apps/flipper_web/macos/Flutter/ephemeral/Packages/.packages/FlutterFramework
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_BUILD_DIR=build
-FLUTTER_BUILD_NAME=1.0.411
-FLUTTER_BUILD_NUMBER=1327
+FLUTTER_BUILD_NAME=1.0.477
+FLUTTER_BUILD_NUMBER=1393
 DART_OBFUSCATION=false
 TRACK_WIDGET_CREATION=true
 TREE_SHAKE_ICONS=false
