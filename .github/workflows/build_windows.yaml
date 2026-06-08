@@ -58,6 +58,14 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
       - name: Build and Package
         shell: pwsh
         run: |
@@ -67,6 +75,10 @@ jobs:
           Set-Location apps/flipper
           flutter clean
           flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+          Set-Location apps/flipper
           flutter build windows -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dart run msix:create -v --build-windows false --install-certificate false
