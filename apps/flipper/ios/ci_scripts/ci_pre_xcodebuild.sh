@@ -14,19 +14,47 @@ log_heartbeat() {
   echo "[ci_pre_xcodebuild heartbeat] $1 at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 
-run_with_heartbeat() {
+start_heartbeat() {
+  local label="$1"
+  (
+    while true; do
+      sleep "$HEARTBEAT_INTERVAL"
+      log_heartbeat "$label"
+    done
+  ) &
+  echo $!
+}
+
+stop_heartbeat() {
+  local pid="$1"
+  if [[ -n "$pid" ]]; then
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+  fi
+}
+
+run_pod_command() {
   local label="$1"
   shift
-  echo "Starting: $label"
-  "$@" &
-  local cmd_pid=$!
-  while kill -0 "$cmd_pid" 2>/dev/null; do
-    sleep "$HEARTBEAT_INTERVAL"
-    if kill -0 "$cmd_pid" 2>/dev/null; then
-      log_heartbeat "$label"
-    fi
-  done
-  wait "$cmd_pid"
+  local log_file="$1"
+  shift
+
+  echo "Running: $*"
+  local hb_pid
+  hb_pid="$(start_heartbeat "$label")"
+  set +e
+  "$@" 2>&1 | tee "$log_file"
+  local exit_code="${PIPESTATUS[0]}"
+  set -e
+  stop_heartbeat "$hb_pid"
+
+  if [[ "$exit_code" -ne 0 ]]; then
+    echo "ERROR: $label failed with exit code $exit_code"
+    echo "Last 60 lines of $log_file:"
+    tail -60 "$log_file" || true
+    return "$exit_code"
+  fi
+  return 0
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -55,6 +83,8 @@ export LANG="${LANG:-en_US.UTF-8}"
 export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
 PLIST_PATH="$IOS_DIR/GoogleService-Info.plist"
+POD_LOG_DIR="$IOS_DIR/ci_scripts/pod-logs"
+mkdir -p "$POD_LOG_DIR"
 
 log_step "ci_pre_xcodebuild: paths"
 echo "REPO_ROOT=$REPO_ROOT"
@@ -69,9 +99,8 @@ flutter --version
 
 log_step "ci_pre_xcodebuild: Flutter iOS config"
 cd "$FLUTTER_APP_DIR"
-run_with_heartbeat "flutter pub get" flutter pub get
-run_with_heartbeat "flutter build ios --config-only --release" \
-  flutter build ios --config-only --release
+flutter pub get
+flutter build ios --config-only --release
 
 GENERATED_XCCONFIG="$IOS_DIR/Flutter/Generated.xcconfig"
 if [[ ! -f "$GENERATED_XCCONFIG" ]]; then
@@ -102,16 +131,31 @@ fi
 
 log_step "ci_pre_xcodebuild: CocoaPods"
 if ! command -v pod &>/dev/null; then
-  run_with_heartbeat "brew install cocoapods" env HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
+  echo "Installing CocoaPods via Homebrew..."
+  env HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
 fi
 
-cd "$IOS_DIR"
+# Match Podfile.lock (COCOAPODS: 1.16.2) when possible.
+gem install cocoapods -v 1.16.2 -N --user-install 2>/dev/null || true
+export PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"
 
-# Xcode Cloud images ship with a stale CocoaPods specs cache; refresh during install.
-if ! run_with_heartbeat "pod install --repo-update" pod install --repo-update; then
-  echo "pod install --repo-update failed; running pod repo update and retrying..."
-  run_with_heartbeat "pod repo update" pod repo update
-  run_with_heartbeat "pod install" pod install
+echo "pod version: $(pod --version)"
+pod repo list || true
+# Legacy git-based master repo conflicts with CDN trunk on fresh CI images.
+pod repo remove master 2>/dev/null || true
+
+cd "$IOS_DIR"
+rm -rf Pods
+
+if run_pod_command "pod install --repo-update" "$POD_LOG_DIR/install.log" \
+  pod install --repo-update --verbose; then
+  echo "pod install succeeded"
+elif run_pod_command "pod update --repo-update" "$POD_LOG_DIR/update.log" \
+  pod update --repo-update --verbose; then
+  echo "pod update succeeded"
+else
+  echo "ERROR: All CocoaPods install strategies failed"
+  exit 1
 fi
 
 if [[ ! -f Podfile.lock || ! -f Pods/Manifest.lock ]]; then

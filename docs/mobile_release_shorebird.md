@@ -126,7 +126,7 @@ In App Store Connect → Xcode Cloud → failed build → **Logs** → expand th
 
 `ci_post_clone.sh` writes secrets, initializes submodules, installs Flutter, and runs `melos bootstrap` (skipping other apps and `*example*` packages). It prints a **heartbeat** every 90s during slow commands so Xcode Cloud does not hit the 15-minute no-output timeout.
 
-`ci_pre_xcodebuild.sh` runs `flutter pub get`, `flutter build ios --config-only`, and `pod install --repo-update` (CocoaPods specs on Xcode Cloud are often stale; retries with `pod repo update` if needed).
+`ci_pre_xcodebuild.sh` runs `flutter pub get`, `flutter build ios --config-only`, then `pod install --repo-update --verbose` in the **foreground** (background `pod` caused silent failures). The `Podfile` uses `source 'https://cdn.cocoapods.org/'`. On failure it retries with `pod update --repo-update` and prints the last 60 log lines.
 
 If post-clone still times out, check which heartbeat label was last printed (submodules, Flutter download, melos, etc.).
 
