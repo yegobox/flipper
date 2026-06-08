@@ -74,7 +74,6 @@ https://github.com/yegobox/flutter.widgets.git
 https://github.com/yegobox/flutter_slidable.git
 https://github.com/yegobox/form_bloc.git
 https://github.com/yegobox/brick.git
-https://github.com/yegobox/looma.git
 ```
 
 Also ensure the GitHub integration can read public Git package dependencies used during `melos bootstrap`, especially:
