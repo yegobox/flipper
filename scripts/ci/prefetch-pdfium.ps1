@@ -33,6 +33,7 @@ try {
   $pdfiumVersion = Get-PdfiumVersion -PrintingCmake $printingCmake
   $archiveName = "pdfium-win-$Arch.tgz"
   $cacheDir = Join-Path $env:RUNNER_TEMP "pdfium"
+  $extractDir = Join-Path $cacheDir "src"
   New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
   $archivePath = Join-Path $cacheDir $archiveName
 
@@ -76,10 +77,24 @@ try {
     }
   }
 
+  if (-not (Test-Path (Join-Path $extractDir "PDFiumConfig.cmake"))) {
+    if (Test-Path $extractDir) {
+      Remove-Item $extractDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
+    Write-Host "Extracting $archiveName to $extractDir..."
+    tar -xzf $archivePath -C $extractDir
+    if (-not (Test-Path (Join-Path $extractDir "PDFiumConfig.cmake"))) {
+      throw "Extracted pdfium archive is missing PDFiumConfig.cmake at $extractDir"
+    }
+  } else {
+    Write-Host "Reusing extracted pdfium at $extractDir"
+  }
+
   # CMake install scripts treat \ as escapes (D:\a\... -> invalid \a). Use forward slashes.
-  $archivePathForCmake = $archivePath -replace '\\', '/'
-  Add-Content -Path $env:GITHUB_ENV -Value "PDFIUM_TGZ_PATH=$archivePathForCmake"
-  Write-Host "pdfium archive ready at $archivePathForCmake (version $pdfiumVersion)"
+  $extractDirForCmake = $extractDir -replace '\\', '/'
+  Add-Content -Path $env:GITHUB_ENV -Value "PDFIUM_SOURCE_DIR=$extractDirForCmake"
+  Write-Host "pdfium source ready at $extractDirForCmake (version $pdfiumVersion)"
 } finally {
   Pop-Location
 }
