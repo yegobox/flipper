@@ -277,6 +277,23 @@ jobs:
       #   shell: pwsh
       #   run: ./scripts/ci/prefetch-dittoffi.ps1
 
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
+      - name: Prefetch pdfium for printing plugin
+        shell: pwsh
+        run: |
+          Set-Location apps/flipper
+          flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
@@ -345,12 +362,28 @@ jobs:
       #   shell: pwsh
       #   run: ./scripts/ci/prefetch-dittoffi.ps1
 
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
+      - name: Prefetch pdfium for printing plugin
+        shell: pwsh
+        run: ./scripts/ci/prefetch-pdfium.ps1
+
       - name: Build and Package
         shell: pwsh
         run: |
           Set-Location apps/flipper
           flutter clean
           flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+          Set-Location apps/flipper
           flutter build windows -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dart run msix:create -v --build-windows false --install-certificate false --signtool-options "/td SHA256"
@@ -442,12 +475,28 @@ jobs:
       #   shell: pwsh
       #   run: ./scripts/ci/prefetch-dittoffi.ps1
 
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
+      - name: Prefetch pdfium for printing plugin
+        shell: pwsh
+        run: ./scripts/ci/prefetch-pdfium.ps1
+
       - name: Build and Package
         shell: pwsh
         run: |
           Set-Location apps/flipper
           flutter clean
           flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+          Set-Location apps/flipper
           flutter build windows -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dart run msix:create --store --build-windows false

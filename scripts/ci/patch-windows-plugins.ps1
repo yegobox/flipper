@@ -42,12 +42,29 @@ set(ditto_live_bundled_libraries
 '@
   }
 
+  # printing downloads pdfium from GitHub during cmake configure; use CI prefetch instead.
+  if ($_.Name -eq "printing" -and $env:PDFIUM_TGZ_PATH -and $content -notmatch 'PDFIUM_TGZ_PATH') {
+    $content = $content -replace '(?m)^# Download pdfium\r?\n', @'
+# Use CI-prefetched pdfium archive when available (avoids flaky GitHub 504s in cmake).
+if(DEFINED ENV{PDFIUM_TGZ_PATH} AND NOT "$ENV{PDFIUM_TGZ_PATH}" STREQUAL "")
+  file(TO_CMAKE_PATH "$ENV{PDFIUM_TGZ_PATH}" _pdfium_tgz)
+  string(REPLACE "\\" "/" _pdfium_tgz "${_pdfium_tgz}")
+  set(PDFIUM_URL "file:///${_pdfium_tgz}")
+endif()
+
+# Download pdfium
+'@
+  }
+
   if ($content -ne $original) {
     Set-Content -Path $pluginCmake -Value $content -NoNewline
     $reasons = @()
     if ($original -match '(?m)^\s*DEPENDS \$\{NUGET\}') { $reasons += "removed invalid DEPENDS" }
     if ($_.Name -eq "ditto_live" -and $content -match 'string\(REPLACE "\\\\" "/" DITTOFFI_LIB_PATH') {
       $reasons += "normalized dittoffi path slashes"
+    }
+    if ($_.Name -eq "printing" -and $content -match 'PDFIUM_TGZ_PATH') {
+      $reasons += "use prefetched pdfium archive"
     }
     $summary = if ($reasons.Count -gt 0) { ($reasons -join "; ") } else { "updated" }
     Write-Host "Patched $($_.Name)/windows/CMakeLists.txt ($summary)"
