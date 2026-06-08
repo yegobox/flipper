@@ -461,8 +461,8 @@ class _CompactQtyStepper extends StatelessWidget {
   }
 }
 
-/// Large qty stepper for the expanded panel.
-class PosCartExpandedQtyStepper extends StatelessWidget {
+/// Large qty stepper for the expanded panel (center value is typeable).
+class PosCartExpandedQtyStepper extends StatefulWidget {
   const PosCartExpandedQtyStepper({
     super.key,
     required this.qtyText,
@@ -470,6 +470,11 @@ class PosCartExpandedQtyStepper extends StatelessWidget {
     required this.onIncrement,
     this.decrementEnabled = true,
     this.incrementEnabled = true,
+    this.controller,
+    this.focusNode,
+    this.onChanged,
+    this.onSubmitted,
+    this.enabled = true,
   });
 
   final String qtyText;
@@ -477,14 +482,58 @@ class PosCartExpandedQtyStepper extends StatelessWidget {
   final VoidCallback? onIncrement;
   final bool decrementEnabled;
   final bool incrementEnabled;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final bool enabled;
+
+  @override
+  State<PosCartExpandedQtyStepper> createState() =>
+      _PosCartExpandedQtyStepperState();
+}
+
+class _PosCartExpandedQtyStepperState extends State<PosCartExpandedQtyStepper> {
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode?.addListener(_onFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(covariant PosCartExpandedQtyStepper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode?.removeListener(_onFocusChange);
+      widget.focusNode?.addListener(_onFocusChange);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode?.removeListener(_onFocusChange);
+    super.dispose();
+  }
+
+  void _onFocusChange() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
+    final focused = widget.focusNode?.hasFocus ?? false;
+    final qtyStyle = PosTokens.posMonoStyle(
+      Theme.of(context).textTheme,
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+    );
+
     return Container(
       height: 48,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: PosTokens.line),
+        border: Border.all(
+          color: focused ? PosTokens.blue : PosTokens.line,
+          width: focused ? 2 : 1,
+        ),
         color: PosTokens.surface,
       ),
       child: Row(
@@ -492,28 +541,39 @@ class PosCartExpandedQtyStepper extends StatelessWidget {
           Expanded(
             child: _StepperSide(
               icon: FluentIcons.subtract_24_regular,
-              onPressed: decrementEnabled ? onDecrement : null,
+              onPressed: widget.decrementEnabled ? widget.onDecrement : null,
               width: 48,
               height: 48,
             ),
           ),
           Expanded(
             flex: 2,
-            child: Center(
-              child: Text(
-                qtyText,
-                style: PosTokens.posMonoStyle(
-                  Theme.of(context).textTheme,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            child: widget.controller != null
+                ? TextField(
+                    controller: widget.controller,
+                    focusNode: widget.focusNode,
+                    enabled: widget.enabled,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                    ],
+                    textAlign: TextAlign.center,
+                    style: qtyStyle,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onChanged: widget.onChanged,
+                    onSubmitted: widget.onSubmitted,
+                  )
+                : Center(child: Text(widget.qtyText, style: qtyStyle)),
           ),
           Expanded(
             child: _StepperSide(
               icon: FluentIcons.add_24_regular,
-              onPressed: incrementEnabled ? onIncrement : null,
+              onPressed: widget.incrementEnabled ? widget.onIncrement : null,
               width: 48,
               height: 48,
             ),
