@@ -28,7 +28,10 @@ echo "🚀 Starting ci_post_clone.sh for flipper ---"
 log_step "Determining Base Path"
 
 # Adjust the base path to the correct root folder
-if [[ -n "$CI_WORKSPACE" ]]; then
+if [[ -n "${CI_PRIMARY_REPOSITORY_PATH:-}" ]]; then
+  BASE_PATH="$CI_PRIMARY_REPOSITORY_PATH"
+  echo "Using CI_PRIMARY_REPOSITORY_PATH as BASE_PATH: $BASE_PATH"
+elif [[ -n "${CI_WORKSPACE:-}" ]]; then
   BASE_PATH="$CI_WORKSPACE"
   echo "Using CI_WORKSPACE as BASE_PATH: $BASE_PATH"
 else
@@ -237,6 +240,9 @@ cd "$IOS_DIR"
 echo "📂 Back in iOS directory: $(pwd)"
 
 log_step "Installing CocoaPods"
+
+export LANG="${LANG:-en_US.UTF-8}"
+export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
 # Install CocoaPods if not present (removed env var requirement for better reliability)
 if ! command -v pod &> /dev/null; then

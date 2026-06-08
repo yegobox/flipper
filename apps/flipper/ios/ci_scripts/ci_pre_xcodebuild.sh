@@ -9,7 +9,9 @@ log_step() {
   echo "==> $1"
 }
 
-if [[ -n "$CI_WORKSPACE" ]]; then
+if [[ -n "${CI_PRIMARY_REPOSITORY_PATH:-}" ]]; then
+  BASE_PATH="$CI_PRIMARY_REPOSITORY_PATH"
+elif [[ -n "${CI_WORKSPACE:-}" ]]; then
   BASE_PATH="$CI_WORKSPACE"
 else
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,10 +20,27 @@ fi
 
 FLUTTER_DIR="${FLUTTER_DIR:-$HOME/flutter}"
 export PATH="$FLUTTER_DIR/bin:$HOME/.pub-cache/bin:$PATH"
+export LANG="${LANG:-en_US.UTF-8}"
+export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
 FLUTTER_APP_DIR="$BASE_PATH/apps/flipper"
 IOS_DIR="$FLUTTER_APP_DIR/ios"
 PLIST_PATH="$IOS_DIR/GoogleService-Info.plist"
+
+log_step "ci_pre_xcodebuild: verify required generated files"
+required_files=(
+  "$BASE_PATH/packages/flipper_models/lib/secrets.dart"
+  "$BASE_PATH/packages/flipper_models/lib/firebase_options.dart"
+  "$FLUTTER_APP_DIR/lib/firebase_options.dart"
+  "$PLIST_PATH"
+)
+for file in "${required_files[@]}"; do
+  if [[ ! -s "$file" ]]; then
+    echo "ERROR: Required file is missing or empty: $file"
+    echo "Set Xcode Cloud secrets: SECRETS2, FIREBASE1, FIREBASE2, GOOGLE_SERVICE_INFO_PLIST_CONTENT"
+    exit 1
+  fi
+done
 
 log_step "ci_pre_xcodebuild: verify Flutter SDK"
 if ! command -v flutter &>/dev/null; then
@@ -29,6 +48,11 @@ if ! command -v flutter &>/dev/null; then
   exit 1
 fi
 flutter --version
+
+log_step "ci_pre_xcodebuild: refresh workspace dependencies"
+cd "$BASE_PATH"
+dart pub global activate melos 6.3.2
+melos bootstrap
 
 log_step "ci_pre_xcodebuild: refresh Generated.xcconfig"
 cd "$FLUTTER_APP_DIR"
