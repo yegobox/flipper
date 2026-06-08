@@ -124,15 +124,13 @@ In App Store Connect → Xcode Cloud → failed build → **Logs** → expand th
 | Dart compile errors (`secrets.dart`, `firebase_options.dart`) | Run Script (`xcode_backend.sh build`) | Set Xcode Cloud secrets: `SECRETS1`, `SECRETS2`, `FIREBASE1`, `FIREBASE2`, `GOOGLE_SERVICE_INFO_PLIST_CONTENT` |
 | `upload-symbols` / Crashlytics | `[firebase_crashlytics] Crashlytics Upload Symbols` | Keep `firebase_app_id_file.json` (written from `GoogleService-Info.plist` in CI scripts) |
 
-`apps/flipper/ios/ci_scripts/ci_pre_xcodebuild.sh` runs before `xcodebuild` to:
+`ci_post_clone.sh` does heavy setup (secrets, submodules, Flutter install, melos, first `pod install`).
 
-- validate secrets / Firebase files exist
-- run `melos bootstrap`
-- run `flutter build ios --release --no-codesign` (Dart errors show here, not as generic PhaseScriptExecution)
-- run `pod install` and verify `Podfile.lock` matches `Pods/Manifest.lock`
-- write `ios/Flutter/.ci_flutter_root` for Xcode Run Script phases
+`ci_pre_xcodebuild.sh` is intentionally lightweight before archive: refresh `Generated.xcconfig`, write `Flutter/.ci_flutter_root`, recreate `firebase_app_id_file.json`, and re-run `pod install` so `Podfile.lock` matches `Pods/Manifest.lock`.
 
-In App Store Connect, open the failed build → **Logs** → expand **Pre-Xcodebuild** and **xcodebuild** (not only the final summary). Search for `error:` or `PhaseScriptExecution`. Download the `.xcresult` artifact if needed.
+Do not remove `ci_pre_xcodebuild.sh` unless you also fix `FLUTTER_ROOT` and Pods sync another way. If Pre-Xcodebuild fails, read that log section first — it is clearer than `PhaseScriptExecution` during archive.
+
+In App Store Connect, open the failed build → **Logs** → expand **Post-Clone**, **Pre-Xcodebuild**, and **xcodebuild**. Search for `error:`.
 
 ## Predicting iOS success before pushing
 

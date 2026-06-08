@@ -1,21 +1,34 @@
 #!/bin/bash
 set -e
 
-# Runs immediately before xcodebuild on Xcode Cloud.
-# Refreshes Flutter iOS config so build phases see a valid FLUTTER_ROOT.
+# Lightweight pre-xcodebuild hook for Xcode Cloud.
+# Heavy setup (Flutter install, melos, first pod install) stays in ci_post_clone.sh.
+# This script only refreshes paths Flutter/Xcode need immediately before archive.
 
 log_step() {
   echo ""
   echo "==> $1"
 }
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+IOS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 if [[ -n "${CI_PRIMARY_REPOSITORY_PATH:-}" ]]; then
-  BASE_PATH="$CI_PRIMARY_REPOSITORY_PATH"
+  REPO_ROOT="$CI_PRIMARY_REPOSITORY_PATH"
 elif [[ -n "${CI_WORKSPACE:-}" ]]; then
-  BASE_PATH="$CI_WORKSPACE"
+  REPO_ROOT="$CI_WORKSPACE"
 else
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  BASE_PATH="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+  REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+fi
+
+if [[ -f "$REPO_ROOT/apps/flipper/pubspec.yaml" ]]; then
+  FLUTTER_APP_DIR="$REPO_ROOT/apps/flipper"
+elif [[ -f "$REPO_ROOT/pubspec.yaml" ]]; then
+  FLUTTER_APP_DIR="$REPO_ROOT"
+  REPO_ROOT="$(cd "$FLUTTER_APP_DIR/../.." && pwd)"
+else
+  echo "ERROR: Could not locate apps/flipper from REPO_ROOT=$REPO_ROOT"
+  exit 1
 fi
 
 FLUTTER_DIR="${FLUTTER_DIR:-$HOME/flutter}"
@@ -23,61 +36,39 @@ export PATH="$FLUTTER_DIR/bin:$HOME/.pub-cache/bin:$PATH"
 export LANG="${LANG:-en_US.UTF-8}"
 export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
-FLUTTER_APP_DIR="$BASE_PATH/apps/flipper"
-IOS_DIR="$FLUTTER_APP_DIR/ios"
 PLIST_PATH="$IOS_DIR/GoogleService-Info.plist"
 
-log_step "ci_pre_xcodebuild: verify required generated files"
-required_files=(
-  "$BASE_PATH/packages/flipper_models/lib/secrets.dart"
-  "$BASE_PATH/packages/flipper_models/lib/firebase_options.dart"
-  "$FLUTTER_APP_DIR/lib/firebase_options.dart"
-  "$PLIST_PATH"
-)
-for file in "${required_files[@]}"; do
-  if [[ ! -s "$file" ]]; then
-    echo "ERROR: Required file is missing or empty: $file"
-    echo "Set Xcode Cloud secrets: SECRETS2, FIREBASE1, FIREBASE2, GOOGLE_SERVICE_INFO_PLIST_CONTENT"
+log_step "ci_pre_xcodebuild: paths"
+echo "REPO_ROOT=$REPO_ROOT"
+echo "FLUTTER_APP_DIR=$FLUTTER_APP_DIR"
+echo "IOS_DIR=$IOS_DIR"
+echo "FLUTTER_DIR=$FLUTTER_DIR"
+
+log_step "ci_pre_xcodebuild: ensure Flutter SDK"
+if ! command -v flutter &>/dev/null; then
+  if [[ ! -x "$FLUTTER_DIR/bin/flutter" ]]; then
+    echo "ERROR: flutter not found. ci_post_clone.sh should install it to $FLUTTER_DIR"
     exit 1
   fi
-done
-
-log_step "ci_pre_xcodebuild: verify Flutter SDK"
-if ! command -v flutter &>/dev/null; then
-  echo "ERROR: flutter not found on PATH (expected $FLUTTER_DIR/bin)"
-  exit 1
+  export PATH="$FLUTTER_DIR/bin:$PATH"
 fi
 flutter --version
 
-log_step "ci_pre_xcodebuild: refresh workspace dependencies"
-cd "$BASE_PATH"
-dart pub global activate melos 6.3.2
-melos bootstrap
-
-log_step "ci_pre_xcodebuild: refresh Generated.xcconfig"
+log_step "ci_pre_xcodebuild: refresh Flutter iOS config"
 cd "$FLUTTER_APP_DIR"
 flutter pub get
 flutter build ios --config-only --release
 
 GENERATED_XCCONFIG="$IOS_DIR/Flutter/Generated.xcconfig"
 if [[ ! -f "$GENERATED_XCCONFIG" ]]; then
-  echo "ERROR: $GENERATED_XCCONFIG was not created"
+  echo "ERROR: Missing $GENERATED_XCCONFIG after flutter pub get"
   exit 1
 fi
-echo "FLUTTER_ROOT from Generated.xcconfig:"
 grep '^FLUTTER_ROOT=' "$GENERATED_XCCONFIG" || true
 
-# Marker file read by Xcode Run Script phases on Xcode Cloud.
 mkdir -p "$IOS_DIR/Flutter"
 echo "$FLUTTER_DIR" > "$IOS_DIR/Flutter/.ci_flutter_root"
-echo "Wrote $IOS_DIR/Flutter/.ci_flutter_root -> $FLUTTER_DIR"
 
-log_step "ci_pre_xcodebuild: compile Flutter iOS release (fail here, not in Xcode)"
-# Compile before xcodebuild so Dart errors appear in Pre-Xcodebuild logs instead of
-# the generic "PhaseScriptExecution failed" wrapper during archive.
-flutter build ios --release --no-codesign
-
-log_step "ci_pre_xcodebuild: ensure firebase_app_id_file.json exists"
 if [[ -f "$PLIST_PATH" ]]; then
   GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$PLIST_PATH" 2>/dev/null || true)
   FIREBASE_PROJECT_ID=$(plutil -extract PROJECT_ID raw -o - "$PLIST_PATH" 2>/dev/null || true)
@@ -92,22 +83,25 @@ if [[ -f "$PLIST_PATH" ]]; then
   "GCM_SENDER_ID": "$GCM_SENDER_ID"
 }
 EOF
-    echo "Wrote $IOS_DIR/firebase_app_id_file.json"
   fi
 fi
 
-log_step "ci_pre_xcodebuild: install CocoaPods (always, after melos/flutter)"
+log_step "ci_pre_xcodebuild: sync CocoaPods"
 cd "$IOS_DIR"
+if ! command -v pod &>/dev/null; then
+  echo "ERROR: pod not found. ci_post_clone.sh should install CocoaPods."
+  exit 1
+fi
 pod install
+
 if [[ ! -f Podfile.lock || ! -f Pods/Manifest.lock ]]; then
-  echo "ERROR: pod install did not create Podfile.lock and Pods/Manifest.lock"
+  echo "ERROR: pod install did not produce Podfile.lock and Pods/Manifest.lock"
   exit 1
 fi
 if ! diff Podfile.lock Pods/Manifest.lock >/dev/null; then
-  echo "ERROR: Podfile.lock and Pods/Manifest.lock still differ after pod install"
+  echo "ERROR: Podfile.lock and Pods/Manifest.lock differ after pod install"
   diff Podfile.lock Pods/Manifest.lock || true
   exit 1
 fi
-echo "Pods manifest is in sync"
 
 echo "ci_pre_xcodebuild completed successfully"
