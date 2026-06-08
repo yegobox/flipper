@@ -1,16 +1,9 @@
-[submodule "Features"]
-	path = Features
-	url =https://github.com/yegobox/designDocs.git
-	branch = main
 [submodule "open-sources/qr.flutter"]
 	path = open-sources/qr.flutter
 	url = https://github.com/yegobox/qr.flutter.git
 [submodule "open-sources/receipt"]
 	path = open-sources/receipt
 	url = https://github.com/yegobox/receipt.git
-[submodule "open-sources/system_time_check"]
-	path = open-sources/system_time_check
-	url = https://github.com/yegobox/system_time_check.git
 [submodule "open-sources/flutter.widgets"]
 	path = open-sources/flutter.widgets
 	url = https://github.com/yegobox/flutter.widgets.git

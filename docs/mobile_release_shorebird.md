@@ -68,10 +68,8 @@ The current error, `An additional repository requires authorization`, is expecte
 Authorize these repositories in App Store Connect / Xcode Cloud for the workflow:
 
 ```text
-https://github.com/yegobox/designDocs.git
 https://github.com/yegobox/qr.flutter.git
 https://github.com/yegobox/receipt.git
-https://github.com/yegobox/system_time_check.git
 https://github.com/yegobox/flutter.widgets.git
 https://github.com/yegobox/flutter_slidable.git
 https://github.com/yegobox/form_bloc.git
@@ -83,7 +81,6 @@ Also ensure the GitHub integration can read public Git package dependencies used
 
 ```text
 https://github.com/justkawal/excel.git
-https://github.com/firebase/flutterfire.git
 ```
 
 If App Store Connect does not show one of the `yegobox/*` repositories, install or reconfigure the Apple Xcode Cloud GitHub app on the `yegobox` organization and grant access to all repositories above. A personal GitHub token inside `ci_post_clone.sh` cannot fix this specific pre-clone authorization error, because the failure happens before scripts execute.

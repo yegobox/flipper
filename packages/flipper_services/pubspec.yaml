@@ -74,20 +74,6 @@ dependency_overrides:
   cbor: ^6.3.7
   jni: ^0.14.2
 
-# Conditional dependency: firebase_remote_config only for non-Windows platforms
-firebase_remote_config:
-  git:
-    url: https://github.com/firebase/flutterfire.git
-    ref: firebase_remote_config-6.2.0
-    path: packages/firebase_remote_config/firebase_remote_config
-  platforms:
-    - android
-    - ios
-    - macos
-    - web
-    - linux
-  
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
