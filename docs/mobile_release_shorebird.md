@@ -132,6 +132,24 @@ Do not remove `ci_pre_xcodebuild.sh` unless you also fix `FLUTTER_ROOT` and Pods
 
 In App Store Connect, open the failed build → **Logs** → expand **Post-Clone**, **Pre-Xcodebuild**, and **xcodebuild**. Search for `error:`.
 
+## Xcode Cloud: xcodebuild archive exit code 65
+
+Exit code **65** means the **archive build failed**. Post-clone and pre-xcodebuild already passed; the failure is inside `xcodebuild archive`.
+
+In the **xcodebuild** log section, search for:
+
+- `error:` / `** ARCHIVE FAILED **`
+- `Code Sign error` / `Provisioning profile` / `doesn't match the entitlements`
+- `PhaseScriptExecution`
+- `CFBundleShortVersionString` / `CFBundleVersion`
+
+Common fixes for Flipper:
+
+1. **Push entitlements** — Release archive must use `aps-environment: production` (`RunnerRelease.entitlements`), not `development`.
+2. **Xcode Cloud signing** — App Store Connect → your app → **Xcode Cloud** → ensure the workflow can manage signing for bundle id `rw.flipper` and team `PA9F44QG38` (Push Notifications, Sign in with Apple, Keychain Sharing enabled on the App ID).
+3. **Version strings** — `pubspec.yaml` `version:` becomes `FLUTTER_BUILD_NAME` / `FLUTTER_BUILD_NUMBER`. App Store expects a normal `x.y.z` marketing version (max 3 dot-separated integers).
+4. **Script phase** — if you still see `PhaseScriptExecution`, scroll up for `Using FLUTTER_ROOT=` or Dart compile errors.
+
 ## Predicting iOS success before pushing
 
 You can predict most Xcode Cloud failures locally with:
