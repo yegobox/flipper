@@ -178,9 +178,6 @@ log_step "Installing Melos"
 export PATH="$HOME/.pub-cache/bin:$PATH"
 dart pub global activate melos 6.3.2
 
-# Cleanup temp file at exit
-trap 'rm -f "$BASE_PATH/apps/flipper/ios/firebase_app_id_file.json"' EXIT
-
 log_step "Running Network Diagnostics"
 
 # Network diagnostics

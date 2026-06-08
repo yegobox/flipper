@@ -111,6 +111,21 @@ AMPLIFY_TEAM_PROVIDER
 
 Use Xcode Cloud for iOS verification/TestFlight once repository access is fixed. Use Shorebird release artifacts as the source of truth for production store submissions when you need over-the-air patches.
 
+## Xcode Cloud: PhaseScriptExecution failed
+
+`Command PhaseScriptExecution failed with a nonzero exit code` is a generic Xcode wrapper. The real error is always a few lines **above** it in the build log.
+
+In App Store Connect → Xcode Cloud → failed build → **Logs** → expand the **xcodebuild** step, then search for:
+
+| Log line | Failing script phase | Usual fix |
+|----------|---------------------|-----------|
+| `xcode_backend.sh: No such file or directory` | Run Script / Thin Binary | `ci_pre_xcodebuild.sh` refreshes `Generated.xcconfig`; Flutter must be installed in `ci_post_clone.sh` to `$HOME/flutter` |
+| `The sandbox is not in sync with the Podfile.lock` | `[CP] Check Pods Manifest.lock` | Re-run `pod install` in `ci_post_clone.sh` or `ci_pre_xcodebuild.sh` |
+| Dart compile errors (`secrets.dart`, `firebase_options.dart`) | Run Script (`xcode_backend.sh build`) | Set Xcode Cloud secrets: `SECRETS1`, `SECRETS2`, `FIREBASE1`, `FIREBASE2`, `GOOGLE_SERVICE_INFO_PLIST_CONTENT` |
+| `upload-symbols` / Crashlytics | `[firebase_crashlytics] Crashlytics Upload Symbols` | Keep `firebase_app_id_file.json` (written from `GoogleService-Info.plist` in CI scripts) |
+
+`apps/flipper/ios/ci_scripts/ci_pre_xcodebuild.sh` runs before `xcodebuild` to regenerate Flutter config and verify Pods.
+
 ## Predicting iOS success before pushing
 
 You can predict most Xcode Cloud failures locally with:
