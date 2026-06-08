@@ -35,7 +35,7 @@ Get-ChildItem -Path $symlinksDir -Directory | ForEach-Object {
 
   # dittoffi bundled path is embedded in cmake_install.cmake; backslashes are escapes (D:\a\...).
   if ($_.Name -eq "ditto_live" -and $content -notmatch 'string\(REPLACE "\\\\" "/" DITTOFFI_LIB_PATH') {
-    $content = $content -replace '(?m)^set\(ditto_live_bundled_libraries\r?\n)', @'
+    $content = $content -replace '(?m)^set\(ditto_live_bundled_libraries\r?\n', @'
 # CMake install() embeds literal paths; normalize so D:/a/... does not parse \a as escape.
 string(REPLACE "\\" "/" DITTOFFI_LIB_PATH "${DITTOFFI_LIB_PATH}")
 set(ditto_live_bundled_libraries
