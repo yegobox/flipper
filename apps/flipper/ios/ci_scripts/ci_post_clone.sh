@@ -125,13 +125,35 @@ log_step "Configuring Git Settings"
 # Prevent Git from changing line endings
 git config --global core.autocrlf false
 
+log_step "Checking Git Submodule Access"
+
+cd "$BASE_PATH"
+if [[ -f ".gitmodules" ]]; then
+  echo "Submodule repositories required by the Flutter workspace:"
+  git config --file .gitmodules --get-regexp 'submodule\..*\.url' || true
+  git submodule sync --recursive
+  if ! git submodule update --init --force --recursive; then
+    echo "❌ ERROR: Could not initialize one or more submodules."
+    echo "Authorize the yegobox submodule repositories in App Store Connect → Xcode Cloud."
+    echo "A PAT inside ci_post_clone.sh cannot fix the pre-clone 'additional repository requires authorization' error."
+    exit 1
+  fi
+else
+  echo "No .gitmodules file found at $BASE_PATH"
+fi
+
 log_step "Installing Flutter"
 
 # Install Flutter if missing
 FLUTTER_DIR="$HOME/flutter"
 if ! command -v flutter &> /dev/null; then
   echo "📦 Installing Flutter..."
-  git clone --depth 1 --branch "stable" https://github.com/flutter/flutter.git "$FLUTTER_DIR"
+  FLUTTER_VERSION="${FLUTTER_VERSION:-3.41.9}"
+  FLUTTER_ARCHIVE="flutter_macos_${FLUTTER_VERSION}-stable.zip"
+  FLUTTER_URL="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/$FLUTTER_ARCHIVE"
+  echo "Downloading Flutter SDK $FLUTTER_VERSION from $FLUTTER_URL"
+  curl -fL "$FLUTTER_URL" -o "/tmp/$FLUTTER_ARCHIVE"
+  unzip -q "/tmp/$FLUTTER_ARCHIVE" -d "$HOME"
   export PATH="$FLUTTER_DIR/bin:$PATH"
   # Only precache iOS artifacts to avoid downloading Android build tools
   flutter precache --ios

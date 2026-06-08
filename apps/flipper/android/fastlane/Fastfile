@@ -1,11 +1,19 @@
 default_platform(:android)
 
+def build_release_bundle
+  if ENV['USE_SHOREBIRD'] == 'true'
+    sh "cd .. && shorebird release android -- --no-android-gradle-daemon"
+  else
+    sh "cd .. && flutter build appbundle --no-android-gradle-daemon"
+  end
+end
+
 platform :android do
 
   desc "Submit a new internal build to Google Play"
   lane :internal do 
   
-    sh "flutter build appbundle"
+    build_release_bundle
 
     upload_to_play_store(
       package_name: 'rw.flipper',
@@ -33,7 +41,7 @@ platform :android do
 
   desc "Submit a new beta build to Google Play"
   lane :beta do
-    sh "flutter build appbundle"
+    build_release_bundle
 
     upload_to_play_store(
       track: 'beta',
@@ -48,7 +56,7 @@ platform :android do
 
   desc "Submit a new production build to Google Play"
   lane :production do
-    sh "flutter build appbundle"
+    build_release_bundle
 
     upload_to_play_store(
       track: 'production',
