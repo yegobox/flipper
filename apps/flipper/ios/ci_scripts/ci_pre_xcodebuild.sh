@@ -144,14 +144,19 @@ pod repo list || true
 # Legacy git-based master repo conflicts with CDN trunk on fresh CI images.
 pod repo remove master 2>/dev/null || true
 
+# Ensure CDN trunk source exists and is current on fresh CI runners.
+pod repo add trunk https://cdn.cocoapods.org/ 2>/dev/null || true
+run_pod_command "pod repo update trunk" "$POD_LOG_DIR/repo-update.log" \
+  pod repo update trunk --verbose
+
 cd "$IOS_DIR"
 rm -rf Pods
 
-if run_pod_command "pod install --repo-update" "$POD_LOG_DIR/install.log" \
-  pod install --repo-update --verbose; then
+if run_pod_command "pod install" "$POD_LOG_DIR/install.log" \
+  pod install --verbose; then
   echo "pod install succeeded"
-elif run_pod_command "pod update --repo-update" "$POD_LOG_DIR/update.log" \
-  pod update --repo-update --verbose; then
+elif run_pod_command "pod update" "$POD_LOG_DIR/update.log" \
+  pod update --verbose; then
   echo "pod update succeeded"
 else
   echo "ERROR: All CocoaPods install strategies failed"

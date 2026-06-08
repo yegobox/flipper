@@ -946,6 +946,7 @@ class App {}
 //   - pasteboard
 //   - desktop_webview_auth
 //   - flutter_localization
-
+// tail data-connector logs: so we understand why a given report were not sent.
+// ssh root@yegobox.com 'journalctl -u container-data-connector -f'
 
 // I verified with flutter pub get. Remaining latest packages still do not include Package.swift, so they cannot be fixed just by upgrading today: patrol, location, printing, open_filex, amplify_secure_storage, amplify_auth_cognito, ditto_live, flutter_keyboard_visibility, desktop_webview_auth, plus macOS tray_manager and screen_retriever_maco
