@@ -28,7 +28,10 @@ echo "🚀 Starting ci_post_clone.sh for flipper ---"
 log_step "Determining Base Path"
 
 # Adjust the base path to the correct root folder
-if [[ -n "$CI_WORKSPACE" ]]; then
+if [[ -n "${CI_PRIMARY_REPOSITORY_PATH:-}" ]]; then
+  BASE_PATH="$CI_PRIMARY_REPOSITORY_PATH"
+  echo "Using CI_PRIMARY_REPOSITORY_PATH as BASE_PATH: $BASE_PATH"
+elif [[ -n "${CI_WORKSPACE:-}" ]]; then
   BASE_PATH="$CI_WORKSPACE"
   echo "Using CI_WORKSPACE as BASE_PATH: $BASE_PATH"
 else
@@ -125,13 +128,35 @@ log_step "Configuring Git Settings"
 # Prevent Git from changing line endings
 git config --global core.autocrlf false
 
+log_step "Checking Git Submodule Access"
+
+cd "$BASE_PATH"
+if [[ -f ".gitmodules" ]]; then
+  echo "Submodule repositories required by the Flutter workspace:"
+  git config --file .gitmodules --get-regexp 'submodule\..*\.url' || true
+  git submodule sync --recursive
+  if ! git submodule update --init --force --recursive; then
+    echo "❌ ERROR: Could not initialize one or more submodules."
+    echo "Authorize the yegobox submodule repositories in App Store Connect → Xcode Cloud."
+    echo "A PAT inside ci_post_clone.sh cannot fix the pre-clone 'additional repository requires authorization' error."
+    exit 1
+  fi
+else
+  echo "No .gitmodules file found at $BASE_PATH"
+fi
+
 log_step "Installing Flutter"
 
 # Install Flutter if missing
 FLUTTER_DIR="$HOME/flutter"
 if ! command -v flutter &> /dev/null; then
   echo "📦 Installing Flutter..."
-  git clone --depth 1 --branch "stable" https://github.com/flutter/flutter.git "$FLUTTER_DIR"
+  FLUTTER_VERSION="${FLUTTER_VERSION:-3.41.9}"
+  FLUTTER_ARCHIVE="flutter_macos_${FLUTTER_VERSION}-stable.zip"
+  FLUTTER_URL="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/$FLUTTER_ARCHIVE"
+  echo "Downloading Flutter SDK $FLUTTER_VERSION from $FLUTTER_URL"
+  curl -fL "$FLUTTER_URL" -o "/tmp/$FLUTTER_ARCHIVE"
+  unzip -q "/tmp/$FLUTTER_ARCHIVE" -d "$HOME"
   export PATH="$FLUTTER_DIR/bin:$PATH"
   # Only precache iOS artifacts to avoid downloading Android build tools
   flutter precache --ios
@@ -155,9 +180,6 @@ log_step "Installing Melos"
 # Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
 dart pub global activate melos 6.3.2
-
-# Cleanup temp file at exit
-trap 'rm -f "$BASE_PATH/apps/flipper/ios/firebase_app_id_file.json"' EXIT
 
 log_step "Running Network Diagnostics"
 
@@ -218,6 +240,9 @@ cd "$IOS_DIR"
 echo "📂 Back in iOS directory: $(pwd)"
 
 log_step "Installing CocoaPods"
+
+export LANG="${LANG:-en_US.UTF-8}"
+export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
 # Install CocoaPods if not present (removed env var requirement for better reliability)
 if ! command -v pod &> /dev/null; then

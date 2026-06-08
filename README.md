@@ -18,6 +18,12 @@
 </div>
 
 <div align="center">
+
+[![Crowdin](https://badges.crowdin.net/flipper/localized.svg)](https://crowdin.com/project/flipper)
+
+</div>
+
+<div align="center">
   [WhatsApp]()
 </div>
 
@@ -100,6 +106,7 @@ We welcome contributions from the community! If you're interested in helping imp
 2.  **Fork & Pull Request**: Use the standard GitHub workflow. Fork the repository, create a new branch for your feature or fix, and submit a pull request.
 3.  **Follow Code Style**: Adhere to the existing code style and patterns within the project to maintain consistency.
 4.  **Write Tests**: Ensure your changes include appropriate tests and that all existing tests pass.
+5.  **Help Translate**: Join the [Flipper Crowdin project](https://crowdin.com/project/flipper) to improve translations for the community.
 
 ## 🛡️ Security
 
@@ -124,4 +131,3 @@ Our next funding round will accelerate:
 This project is source-available. The source code is public on GitHub to promote transparency and build trust with our users and partners. However, it is not "open source" in the conventional sense.
 
 Usage of this source code is subject to specific terms. You may use, modify, and distribute the code only if you have a valid agreement with YEGOBOX LTD, or if you are an acknowledged investor, contributor, or partner. Unauthorized use is strictly prohibited. For licensing inquiries, please contact `info@yegobox.com`.
-

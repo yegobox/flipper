@@ -68,8 +68,43 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   void _ensureController(TransactionItem item) {
-    if (_quantityControllers.containsKey(item.id)) return;
-    _initController(item);
+    final id = item.id;
+    if (!_quantityControllers.containsKey(id)) {
+      _initController(item);
+      return;
+    }
+    if (_quantityFieldHasFocus(id)) return;
+    final formatted = _formatQty(_displayQtyFor(item));
+    if (_quantityControllers[id]!.text != formatted) {
+      _quantityControllers[id]!.text = formatted;
+    }
+  }
+
+  bool _quantityFieldHasFocus(String itemId) =>
+      _quantityFocusNodes[itemId]?.hasFocus == true;
+
+  /// Empty or trailing-dot values are mid-edit (e.g. clearing "1" to type "4.6").
+  bool _isIncompleteQuantityInput(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return true;
+    if (trimmed.endsWith('.')) return true;
+    return false;
+  }
+
+  void _onQuantityFieldChanged(
+    TransactionItem item,
+    String value,
+    bool isOrdering,
+  ) {
+    setState(() {
+      _hasItemChanged[item.id] = true;
+      _itemErrors.remove(item.id);
+    });
+    _debounceTimers[item.id]?.cancel();
+    if (_isIncompleteQuantityInput(value)) return;
+    _debounceTimers[item.id] = Timer(_debounceDuration, () {
+      _updateQuantityFromTextField(item, value, isOrdering);
+    });
   }
 
   void _initController(TransactionItem item) {
@@ -93,9 +128,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
     // Update controller text only if not focused to avoid input issues
     // and if the backend value is different (e.g., after a refresh)
-    if (!_quantityFocusNodes[id]!.hasFocus &&
-        _quantityControllers[id]!.text != displayQty.toString()) {
-      _quantityControllers[id]!.text = displayQty.toString();
+    final formattedQty = _formatQty(displayQty);
+    if (!_quantityFieldHasFocus(id) &&
+        _quantityControllers[id]!.text != formattedQty) {
+      _quantityControllers[id]!.text = formattedQty;
     }
     if (!_priceFocusNodes[id]!.hasFocus &&
         _priceControllers[id]!.text != price.toStringAsFixed(2)) {
@@ -525,21 +561,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                   qtyText: qtyFormatted,
                   controller: _quantityControllers[item.id]!,
                   focusNode: _quantityFocusNodes[item.id]!,
-                  enabled: !isSaving && !qtyLocked,
+                  enabled: !qtyLocked,
                   decrementEnabled: displayQty > 0 && !qtyLocked,
                   incrementEnabled: !qtyLocked,
                   onDecrement: () => _decrementQuantity(item, isOrdering),
                   onIncrement: () => _incrementQuantity(item, isOrdering),
-                  onChanged: (value) {
-                    setState(() {
-                      _hasItemChanged[item.id] = true;
-                      _itemErrors.remove(item.id);
-                    });
-                    _debounceTimers[item.id]?.cancel();
-                    _debounceTimers[item.id] = Timer(_debounceDuration, () {
-                      _updateQuantityFromTextField(item, value, isOrdering);
-                    });
-                  },
+                  onChanged: (value) =>
+                      _onQuantityFieldChanged(item, value, isOrdering),
                   onSubmitted: (value) {
                     _debounceTimers[item.id]?.cancel();
                     _updateQuantityFromTextField(item, value, isOrdering);
@@ -905,16 +933,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         filled: true,
         fillColor: Colors.white,
       ),
-      onChanged: (value) {
-        setState(() {
-          _hasItemChanged[item.id] = true;
-          _itemErrors.remove(item.id);
-        });
-        _debounceTimers[item.id]?.cancel();
-        _debounceTimers[item.id] = Timer(_debounceDuration, () {
-          _updateQuantityFromTextField(item, value, isOrdering);
-        });
-      },
+      onChanged: (value) => _onQuantityFieldChanged(item, value, isOrdering),
       onFieldSubmitted: (value) {
         _debounceTimers[item.id]?.cancel();
         _updateQuantityFromTextField(item, value, isOrdering);
@@ -1309,7 +1328,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _setOptimisticQty(TransactionItem item, double qty) {
     _optimisticQtyByItemId[item.id] = qty;
-    _quantityControllers[item.id]?.text = qty.toString();
+    if (!_quantityFieldHasFocus(item.id)) {
+      _quantityControllers[item.id]?.text = _formatQty(qty);
+    }
     _hasItemChanged[item.id] = true;
     _lineQtyListenable(item).value = qty;
     _bumpCartTotals();
@@ -1547,6 +1568,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     if (item.partOfComposite ?? false) return;
 
     final trimmedValue = value.trim();
+    if (_isIncompleteQuantityInput(trimmedValue)) return;
+
     final doubleValue = double.tryParse(trimmedValue);
 
     if (doubleValue != null && doubleValue >= 0) {
@@ -1556,10 +1579,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         qty: doubleValue,
         isOrdering: isOrdering,
       );
-    } else {
+    } else if (!_quantityFieldHasFocus(item.id)) {
       setState(() {
         _itemErrors[item.id] = 'Invalid quantity';
-        _quantityControllers[item.id]?.text = item.qty.toString();
+        _quantityControllers[item.id]?.text =
+            _formatQty(_displayQtyFor(item));
         _hasItemChanged[item.id] = false;
       });
     }

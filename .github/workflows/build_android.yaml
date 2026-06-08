@@ -117,6 +117,10 @@ jobs:
           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
+      - name: Install Shorebird
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
+          echo "$HOME/.shorebird/bin" >> "$GITHUB_PATH"
       - name: Calculate Version
         run: |
           VERSION_CODE=$(( ${{ github.run_number }} + 1800000000 ))
@@ -129,6 +133,8 @@ jobs:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          USE_SHOREBIRD: "true"
         working-directory: apps/flipper/android
 
   
