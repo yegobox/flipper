@@ -2,6 +2,34 @@ import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 
+ITransaction _txn({
+  String id = '1',
+  String? status,
+  String? receiptType,
+  bool? isRefunded,
+  String? originalTransactionId,
+  bool? isOriginalTransaction,
+}) {
+  final now = DateTime.now().toUtc();
+  return ITransaction(
+    id: id,
+    branchId: 'branch-1',
+    agentId: 'agent-1',
+    status: status ?? 'completed',
+    transactionType: 'Sale',
+    paymentType: 'CASH',
+    cashReceived: 0,
+    customerChangeDue: 0,
+    updatedAt: now,
+    isIncome: true,
+    isExpense: false,
+    isRefunded: isRefunded,
+    receiptType: receiptType,
+    originalTransactionId: originalTransactionId,
+    isOriginalTransaction: isOriginalTransaction,
+  );
+}
+
 void main() {
   group('stockRestoreQtyForLine', () {
     test('returns full qty for full refund', () {
@@ -60,40 +88,23 @@ void main() {
 
   group('isTransactionRefunded', () {
     test('detects isRefunded flag', () {
-      expect(
-        isTransactionRefunded(ITransaction(id: '1', isRefunded: true)),
-        isTrue,
-      );
+      expect(isTransactionRefunded(_txn(isRefunded: true)), isTrue);
     });
 
     test('detects refunded status without flag', () {
-      expect(
-        isTransactionRefunded(ITransaction(id: '1', status: 'refunded')),
-        isTrue,
-      );
-      expect(
-        isTransactionRefunded(
-          ITransaction(id: '1', status: 'partially_refunded'),
-        ),
-        isTrue,
-      );
+      expect(isTransactionRefunded(_txn(status: 'refunded')), isTrue);
+      expect(isTransactionRefunded(_txn(status: 'partially_refunded')), isTrue);
     });
 
     test('detects refund receipt types', () {
-      expect(
-        isTransactionRefunded(ITransaction(id: '1', receiptType: 'NR')),
-        isTrue,
-      );
-      expect(
-        isTransactionRefunded(ITransaction(id: '1', receiptType: 'CR')),
-        isTrue,
-      );
+      expect(isTransactionRefunded(_txn(receiptType: 'NR')), isTrue);
+      expect(isTransactionRefunded(_txn(receiptType: 'CR')), isTrue);
     });
 
     test('detects linked refund copy rows', () {
       expect(
         isTransactionRefunded(
-          ITransaction(
+          _txn(
             id: '2',
             originalTransactionId: '1',
             isOriginalTransaction: false,
@@ -105,9 +116,7 @@ void main() {
 
     test('allows refundable normal sale', () {
       expect(
-        isTransactionRefunded(
-          ITransaction(id: '1', receiptType: 'NS', status: 'completed'),
-        ),
+        isTransactionRefunded(_txn(receiptType: 'NS', status: 'completed')),
         isFalse,
       );
     });

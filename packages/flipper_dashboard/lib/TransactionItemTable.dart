@@ -523,10 +523,27 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           expandedQuantityStepper: isExpanded
               ? PosCartExpandedQtyStepper(
                   qtyText: qtyFormatted,
+                  controller: _quantityControllers[item.id]!,
+                  focusNode: _quantityFocusNodes[item.id]!,
+                  enabled: !isSaving && !qtyLocked,
                   decrementEnabled: displayQty > 0 && !qtyLocked,
                   incrementEnabled: !qtyLocked,
                   onDecrement: () => _decrementQuantity(item, isOrdering),
                   onIncrement: () => _incrementQuantity(item, isOrdering),
+                  onChanged: (value) {
+                    setState(() {
+                      _hasItemChanged[item.id] = true;
+                      _itemErrors.remove(item.id);
+                    });
+                    _debounceTimers[item.id]?.cancel();
+                    _debounceTimers[item.id] = Timer(_debounceDuration, () {
+                      _updateQuantityFromTextField(item, value, isOrdering);
+                    });
+                  },
+                  onSubmitted: (value) {
+                    _debounceTimers[item.id]?.cancel();
+                    _updateQuantityFromTextField(item, value, isOrdering);
+                  },
                 )
               : null,
           expandedPriceField: isExpanded
