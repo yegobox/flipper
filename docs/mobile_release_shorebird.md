@@ -124,9 +124,11 @@ In App Store Connect → Xcode Cloud → failed build → **Logs** → expand th
 | Dart compile errors (`secrets.dart`, `firebase_options.dart`) | Run Script (`xcode_backend.sh build`) | Set Xcode Cloud secrets: `SECRETS1`, `SECRETS2`, `FIREBASE1`, `FIREBASE2`, `GOOGLE_SERVICE_INFO_PLIST_CONTENT` |
 | `upload-symbols` / Crashlytics | `[firebase_crashlytics] Crashlytics Upload Symbols` | Keep `firebase_app_id_file.json` (written from `GoogleService-Info.plist` in CI scripts) |
 
-`ci_post_clone.sh` does heavy setup (secrets, submodules, Flutter install, melos, first `pod install`).
+`ci_post_clone.sh` writes secrets, initializes submodules, installs Flutter, and runs `melos bootstrap` (skipping other apps and `*example*` packages). It prints a **heartbeat** every 90s during slow commands so Xcode Cloud does not hit the 15-minute no-output timeout.
 
-`ci_pre_xcodebuild.sh` is intentionally lightweight before archive: refresh `Generated.xcconfig`, write `Flutter/.ci_flutter_root`, recreate `firebase_app_id_file.json`, and re-run `pod install` so `Podfile.lock` matches `Pods/Manifest.lock`.
+`ci_pre_xcodebuild.sh` runs `flutter pub get`, `flutter build ios --config-only`, and `pod install` (also with heartbeats).
+
+If post-clone still times out, check which heartbeat label was last printed (submodules, Flutter download, melos, etc.).
 
 Do not remove `ci_pre_xcodebuild.sh` unless you also fix `FLUTTER_ROOT` and Pods sync another way. If Pre-Xcodebuild fails, read that log section first — it is clearer than `PhaseScriptExecution` during archive.
 

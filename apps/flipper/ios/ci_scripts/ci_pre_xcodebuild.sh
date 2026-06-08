@@ -1,13 +1,32 @@
 #!/bin/bash
 set -e
 
-# Lightweight pre-xcodebuild hook for Xcode Cloud.
-# Heavy setup (Flutter install, melos, first pod install) stays in ci_post_clone.sh.
-# This script only refreshes paths Flutter/Xcode need immediately before archive.
+# Runs before xcodebuild. Does iOS-specific prep that is too slow for post-clone.
+
+HEARTBEAT_INTERVAL="${HEARTBEAT_INTERVAL:-90}"
 
 log_step() {
   echo ""
   echo "==> $1"
+}
+
+log_heartbeat() {
+  echo "[ci_pre_xcodebuild heartbeat] $1 at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+
+run_with_heartbeat() {
+  local label="$1"
+  shift
+  echo "Starting: $label"
+  "$@" &
+  local cmd_pid=$!
+  while kill -0 "$cmd_pid" 2>/dev/null; do
+    sleep "$HEARTBEAT_INTERVAL"
+    if kill -0 "$cmd_pid" 2>/dev/null; then
+      log_heartbeat "$label"
+    fi
+  done
+  wait "$cmd_pid"
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,7 +44,6 @@ if [[ -f "$REPO_ROOT/apps/flipper/pubspec.yaml" ]]; then
   FLUTTER_APP_DIR="$REPO_ROOT/apps/flipper"
 elif [[ -f "$REPO_ROOT/pubspec.yaml" ]]; then
   FLUTTER_APP_DIR="$REPO_ROOT"
-  REPO_ROOT="$(cd "$FLUTTER_APP_DIR/../.." && pwd)"
 else
   echo "ERROR: Could not locate apps/flipper from REPO_ROOT=$REPO_ROOT"
   exit 1
@@ -42,26 +60,22 @@ log_step "ci_pre_xcodebuild: paths"
 echo "REPO_ROOT=$REPO_ROOT"
 echo "FLUTTER_APP_DIR=$FLUTTER_APP_DIR"
 echo "IOS_DIR=$IOS_DIR"
-echo "FLUTTER_DIR=$FLUTTER_DIR"
 
-log_step "ci_pre_xcodebuild: ensure Flutter SDK"
-if ! command -v flutter &>/dev/null; then
-  if [[ ! -x "$FLUTTER_DIR/bin/flutter" ]]; then
-    echo "ERROR: flutter not found. ci_post_clone.sh should install it to $FLUTTER_DIR"
-    exit 1
-  fi
-  export PATH="$FLUTTER_DIR/bin:$PATH"
+if [[ ! -x "$FLUTTER_DIR/bin/flutter" ]]; then
+  echo "ERROR: Flutter not found at $FLUTTER_DIR (ci_post_clone.sh should install it)"
+  exit 1
 fi
 flutter --version
 
-log_step "ci_pre_xcodebuild: refresh Flutter iOS config"
+log_step "ci_pre_xcodebuild: Flutter iOS config"
 cd "$FLUTTER_APP_DIR"
-flutter pub get
-flutter build ios --config-only --release
+run_with_heartbeat "flutter pub get" flutter pub get
+run_with_heartbeat "flutter build ios --config-only --release" \
+  flutter build ios --config-only --release
 
 GENERATED_XCCONFIG="$IOS_DIR/Flutter/Generated.xcconfig"
 if [[ ! -f "$GENERATED_XCCONFIG" ]]; then
-  echo "ERROR: Missing $GENERATED_XCCONFIG after flutter pub get"
+  echo "ERROR: Missing $GENERATED_XCCONFIG"
   exit 1
 fi
 grep '^FLUTTER_ROOT=' "$GENERATED_XCCONFIG" || true
@@ -86,16 +100,16 @@ EOF
   fi
 fi
 
-log_step "ci_pre_xcodebuild: sync CocoaPods"
-cd "$IOS_DIR"
+log_step "ci_pre_xcodebuild: CocoaPods"
 if ! command -v pod &>/dev/null; then
-  echo "ERROR: pod not found. ci_post_clone.sh should install CocoaPods."
-  exit 1
+  run_with_heartbeat "brew install cocoapods" env HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
 fi
-pod install
+
+cd "$IOS_DIR"
+run_with_heartbeat "pod install" pod install
 
 if [[ ! -f Podfile.lock || ! -f Pods/Manifest.lock ]]; then
-  echo "ERROR: pod install did not produce Podfile.lock and Pods/Manifest.lock"
+  echo "ERROR: pod install did not produce lockfiles"
   exit 1
 fi
 if ! diff Podfile.lock Pods/Manifest.lock >/dev/null; then
@@ -105,3 +119,4 @@ if ! diff Podfile.lock Pods/Manifest.lock >/dev/null; then
 fi
 
 echo "ci_pre_xcodebuild completed successfully"
+log_heartbeat "script finished"
