@@ -2,7 +2,7 @@ import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/widgets/flipper_logo.dart';
 import 'package:flutter/material.dart';
 
-enum BooksBrandVariant { desktop, mobile }
+enum BooksBrandVariant { desktop, mobile, topbar }
 
 class BooksBrandRow extends StatelessWidget {
   const BooksBrandRow({
@@ -69,20 +69,29 @@ class _BooksBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mobile = variant == BooksBrandVariant.mobile;
+    final topbar = variant == BooksBrandVariant.topbar;
+    final label = (mobile || topbar) ? 'BOOKS' : 'Books';
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: mobile ? 7 : 8, vertical: mobile ? 2 : 3),
+      padding: EdgeInsets.symmetric(
+        horizontal: topbar ? 8 : (mobile ? 7 : 8),
+        vertical: topbar ? 3 : (mobile ? 2 : 3),
+      ),
       decoration: BoxDecoration(
         color: mobile ? const Color(0xFFF3F4F6) : AccountingTokens.accentTint,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: mobile ? const Color(0xFFE5E7EB) : AccountingTokens.accent.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(topbar ? 999 : 6),
+        border: Border.all(
+          color: mobile
+              ? const Color(0xFFE5E7EB)
+              : AccountingTokens.accent.withValues(alpha: topbar ? 0.25 : 0.2),
+        ),
       ),
       child: Text(
-        mobile ? 'BOOKS' : 'Books',
+        label,
         style: AccountingTokens.sans(
-          fontSize: mobile ? 10 : 10.5,
-          fontWeight: FontWeight.w600,
-          color: mobile ? AccountingTokens.ink4 : AccountingTokens.accent,
-          letterSpacing: mobile ? 0.06 * 10 : 0.06 * 10.5,
+          fontSize: topbar ? 10 : (mobile ? 10 : 10.5),
+          fontWeight: FontWeight.w700,
+          color: topbar || !mobile ? AccountingTokens.accent : AccountingTokens.ink4,
+          letterSpacing: 0.08 * (topbar ? 10 : (mobile ? 10 : 10.5)),
         ),
       ),
     );

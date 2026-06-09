@@ -3,6 +3,8 @@
 ## Overview
 A full **SAP-style accounting module** added to **Flipper** (a business OS / POS app; primary market Rwanda, currency **RWF**). It is **double-entry under the hood but approachable on the surface** — usable by both a business **owner** (who reads the numbers and approves) and a **bookkeeper** (who records entries).
 
+> **Updated June 2026.** Two changes since the previous handoff: (1) the desktop **sidebar was re-skinned from deep-navy to the light/white Flipper house style** (matching POS, Daily Reports, Income) — see *Shell layout* and *Design tokens*; (2) a **9-dot app launcher** was added to the topbar that opens an app-switcher grid linking to the other Flipper surfaces. All buttons across every view are wired.
+
 It ships as **two linked surfaces**:
 
 | Surface | File | Role |
@@ -127,20 +129,20 @@ Rows of `{ name, inv, current, d30, d60, d90 }` (RWF per bucket). Buckets: **Cur
 ## Shell layout
 ```
 ┌────────────┬──────────────────────────────────────────────────────────┐
-│            │ Daybook › Journal entries   [⌘K search] [📅May 2026] 🔔 📱 │  topbar 60px
+│            │ Daybook › Journal entries  [⌘K search] [📅May 2026] 🔔 ▦ 📱│  topbar 60px
 │  SIDEBAR   ├──────────────────────────────────────────────────────────┤
 │  248px     │                                                          │
-│  (navy)    │   ← scroll area, content max-width 1080px, centered →     │
+│  (white)   │   ← scroll area, content max-width 1080px, centered →     │
 │            │                                                          │
 └────────────┴──────────────────────────────────────────────────────────┘
 ```
 The whole thing is a fixed **1440×912** canvas, JS-scaled to fit the viewport (`scale = min(vw/1440, vh/912)`), letterboxed on `#060912`. (In a real app this is just a responsive desktop layout — drop the scaler.)
 
-**Sidebar** (`--acc-side #0E1626` navy):
-- Brand row: logo + "Flipper" + "BOOKS" pill.
-- **Entity switcher** card (`DS` mark, "Demo Shop Ltd", "FY 2026 · RWF", chevron).
-- **Grouped nav** (section label uppercase `#5E6E8C`, then items). Active item = solid `#2563EB` pill with blue glow shadow. Pending badge = amber pill on "Journal entries".
-- Footer: user card ("Diane E. · Owner · Bookkeeper") + cog.
+**Sidebar** — **light Flipper house style** (`--surface` white, right hairline `--line`; matches POS / Daily Reports / Income). Was deep-navy in the prior version; now:
+- Brand row: logo + "Flipper" + a blue "BOOKS" pill (`--blue` on `--blue-tint`).
+- **Entity switcher** card (`DS` gradient mark, "Demo Shop Ltd", "FY 2026 · RWF", chevron) on `--surface-2` with `--line` border; hover lifts with `--sh-1`.
+- **Grouped nav** (section label uppercase `--ink-4`, then items). Default item text `--ink-2`; hover → `--surface-2` bg + `--ink-1`. **Active item = `--blue-tint` bg with `--blue` text** (no more solid-blue glow pill). Pending badge = amber pill (`--warn-tint`/`--warnamber`); on the active row it inverts to solid blue.
+- Footer: user card ("Diane E. · Owner · Bookkeeper", gradient avatar) — hover → `--surface-2`.
 
 Nav groups & items (icon from `onboarding/icons.jsx`):
 | Group | Items (icon) |
@@ -151,7 +153,9 @@ Nav groups & items (icon from `onboarding/icons.jsx`):
 | Reports | Financial statements (Chart) · Trial balance (Group) |
 | Setup | Chart of accounts (Building) |
 
-**Topbar:** breadcrumb (`section › view`), spacer, search field with `⌘K` kbd, period button "May 2026", bell with red dot, **phone-icon link to the mobile file**.
+**Topbar:** breadcrumb (`section › view`), spacer, search field with `⌘K` kbd, period button "May 2026", bell with red dot, **9-dot app launcher**, **phone-icon link to the mobile file**.
+
+**App launcher (▦):** the 9-dot grid icon opens a 284px dropdown — a 3-column grid of Flipper apps (Point of Sale, **Books = current/highlighted**, Dashboard, Daily Reports, Income, Commissions, Customers, Inventory, Settings). Each tile = a rounded color-chip icon + label. Tiles with a real screen in the bundle are `<a href>` links (POS, Dashboard, Daily Reports, Income, Commissions); the rest pop an "Opening …" toast as placeholders. Config is the `FLIPPER_APPS` array at the top of `accounting/app.jsx` — repoint `href`s at your real routes. Styles: `.acc-applaunch*` in `accounting.css`.
 
 ## Views (10)
 
@@ -263,8 +267,7 @@ Shared Flipper tokens live in `onboarding/styles.css` (`--ink-1..4`, `--line*`, 
 | Token | Value | Use |
 |---|---|---|
 | `--acc-bg` | `#F1F4FA` | workspace background |
-| `--acc-side` | `#0E1626` | sidebar navy |
-| `--acc-side-2` | `#16213A` | entity card / hover |
+| ~~`--acc-side`~~ | ~~`#0E1626`~~ | **removed** — sidebar now uses `--surface` (white). Active nav uses `--blue-tint`/`--blue`. |
 | `--gain` / `--gain-ink` / `--gain-tint` | `#16A34A` / `#15803D` / `#E7F6EE` | positive money, green |
 | `--loss` / `--loss-ink` / `--loss-tint` | `#DC2626` / `#B42318` / `#FCECEC` | negative money, red |
 | `--warnamber` / `--warn-tint` | `#B45309` / `#FEF3E2` | pending / due, amber |
@@ -296,7 +299,9 @@ accounting/
   charts.jsx     TrendChart (bars/area/line), Donut, MiniBar
   views.jsx      Dashboard, Chart of Accounts, Statements, Trial Balance, Aging (AR/AP), Tax, General Ledger
   journal.jsx    Journal list + AccountPicker + Composer (the double-entry composer)
-  app.jsx        desktop shell: sidebar, topbar, view router, Bank reconciliation view
+  app.jsx        desktop shell: sidebar, topbar (+ 9-dot app launcher), view router, Bank reconciliation view
+  interactions.jsx  Dropdown/Menu primitives, ToastHost, search \u2014 used by topbar menus & app launcher
+  interactions.css  styles for the above (menus, toasts)
   mobile.jsx     mobile shell + Snapshot, Approvals, Reports, StatementDetail, More
   accounting.css desktop styles + tokens
   mobile.css     mobile styles + tokens

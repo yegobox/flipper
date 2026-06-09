@@ -5,6 +5,7 @@ import 'package:flipper_web/modules/accounting/shell/desktop/accounting_topbar.d
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/views/desktop/dashboard_view.dart';
 import 'package:flipper_web/modules/accounting/views/desktop/journal_view.dart';
+import 'package:flipper_web/modules/accounting/views/desktop/aging_view.dart';
 import 'package:flipper_web/modules/accounting/views/desktop/other_desktop_views.dart';
 import 'package:flipper_web/modules/accounting/widgets/journal_composer.dart';
 import 'package:flutter/material.dart';
@@ -36,8 +37,13 @@ class AccountingDesktopShell extends ConsumerWidget {
                       child: Align(
                         alignment: Alignment.topCenter,
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: AccountingTokens.contentMaxWidth),
-                          child: _DesktopViewRouter(view: view, onNewEntry: openComposer),
+                          constraints: const BoxConstraints(
+                            maxWidth: AccountingTokens.contentMaxWidth,
+                          ),
+                          child: _DesktopViewRouter(
+                            view: view,
+                            onNewEntry: openComposer,
+                          ),
                         ),
                       ),
                     ),
@@ -67,8 +73,8 @@ class _DesktopViewRouter extends StatelessWidget {
       AccountingView.journal => AccountingJournalView(onNewEntry: onNewEntry),
       AccountingView.ledger => const AccountingGeneralLedgerView(),
       AccountingView.bankRec => const AccountingBankRecView(),
-      AccountingView.ar => const AccountingAgingView(kind: 'ar'),
-      AccountingView.ap => const AccountingAgingView(kind: 'ap'),
+      AccountingView.ar => AccountingAgingView(kind: 'ar', onNewEntry: onNewEntry),
+      AccountingView.ap => AccountingAgingView(kind: 'ap', onNewEntry: onNewEntry),
       AccountingView.tax => const AccountingTaxVatView(),
       AccountingView.statements => const AccountingFinancialStatementsView(),
       AccountingView.trial => const AccountingTrialBalanceView(),

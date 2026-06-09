@@ -4,6 +4,7 @@ import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_aging_seed.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
@@ -53,6 +54,17 @@ enum ApprovalAction { approve, reject }
 
 final approvalActionsProvider =
     StateProvider<Map<String, ApprovalAction>>((ref) => {});
+
+/// Local bank-rec lines (design handoff seed or user edits). Falls back to ledger stream.
+final bankRecLocalLinesProvider = StateProvider<List<BankLine>?>((ref) => null);
+
+final bankRecFinishedProvider = StateProvider<bool>((ref) => false);
+
+final coaTypeFilterProvider = StateProvider<AccountType?>((ref) => null);
+
+final journalSourceFilterProvider = StateProvider<String?>((ref) => null);
+
+final notificationsReadProvider = StateProvider<bool>((ref) => false);
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
 
@@ -271,12 +283,14 @@ final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
 
 final accountingArAgingProvider = Provider<List<AgingRow>>((ref) {
   final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
-  return deriveArAging(txns);
+  final derived = deriveArAging(txns);
+  return derived.isNotEmpty ? derived : accountingArSeedRows;
 });
 
 final accountingApAgingProvider = Provider<List<AgingRow>>((ref) {
   final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
-  return deriveApAging(txns);
+  final derived = deriveApAging(txns);
+  return derived.isNotEmpty ? derived : accountingApSeedRows;
 });
 
 final accountingVatProvider = Provider<VatInfo?>((ref) {
@@ -314,6 +328,8 @@ final accountingVatProvider = Provider<VatInfo?>((ref) {
 });
 
 final accountingBankLinesProvider = Provider<List<BankLine>>((ref) {
+  final local = ref.watch(bankRecLocalLinesProvider);
+  if (local != null) return local;
   return ref.watch(bankLinesStreamProvider).value ?? [];
 });
 

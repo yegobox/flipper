@@ -1,10 +1,13 @@
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
+import 'package:flipper_web/modules/accounting/shell/mobile/accounting_mobile_header.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Light rail styling aligned with [EnhancedSideMenu] in flipper_dashboard.
 class AccountingSidebar extends ConsumerWidget {
@@ -33,53 +36,71 @@ class AccountingSidebar extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Padding(
-            padding: EdgeInsets.fromLTRB(20, 20, 20, 16),
+            padding: EdgeInsets.fromLTRB(18, 18, 18, 16),
             child: BooksBrandRow(),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AccountingTokens.sidebarBg2,
-                borderRadius: BorderRadius.circular(AccountingTokens.radiusSm),
-                border: Border.all(color: AccountingTokens.line),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+            child: Material(
+              color: AccountingTokens.sidebarBg2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: AccountingTokens.line),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      gradient: AccountingTokens.brandGradient,
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                    child: Text(
-                      entityName.isNotEmpty ? entityName.substring(0, 1).toUpperCase() : 'D',
-                      style: AccountingTokens.sans(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          entityName,
-                          style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w700, color: AccountingTokens.ink1),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+              child: InkWell(
+                onTap: () => context.goNamed(AppRoute.businessSelection.name),
+                borderRadius: BorderRadius.circular(12),
+                hoverColor: AccountingTokens.surface2,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          gradient: AccountingTokens.brandGradient,
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
-                        Text(
-                          '$fiscalYear · $currency',
-                          style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink3),
+                        child: Text(
+                          accountingEntityInitials(entityName),
+                          style: AccountingTokens.sans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entityName,
+                              style: AccountingTokens.sans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AccountingTokens.ink1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '$fiscalYear · $currency',
+                              style: AccountingTokens.sans(
+                                fontSize: 11,
+                                color: AccountingTokens.ink3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.expand_more, color: AccountingTokens.ink4, size: 18),
+                    ],
                   ),
-                  const Icon(Icons.expand_more, color: AccountingTokens.ink4, size: 18),
-                ],
+                ),
               ),
             ),
           ),
@@ -113,25 +134,75 @@ class AccountingSidebar extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(12),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => showAccountingToast(
+                  context,
+                  'Preferences',
+                  icon: Icons.settings_outlined,
+                ),
+                borderRadius: BorderRadius.circular(10),
+                hoverColor: AccountingTokens.surface2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  child: Row(
                     children: [
-                      Text(userName.isNotEmpty ? userName : '—', style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w700, color: AccountingTokens.ink1)),
-                      if (userRole.isNotEmpty)
-                        Text(userRole, style: AccountingTokens.sans(fontSize: 11, color: AccountingTokens.ink3)),
+                      Container(
+                        width: 38,
+                        height: 38,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          gradient: AccountingTokens.brandGradient,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          accountingEntityInitials(
+                            userName.isNotEmpty ? userName : entityName,
+                          ),
+                          style: AccountingTokens.sans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userName.isNotEmpty ? userName : '—',
+                              style: AccountingTokens.sans(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: AccountingTokens.ink1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (userRole.isNotEmpty)
+                              Text(
+                                userRole,
+                                style: AccountingTokens.sans(
+                                  fontSize: 11.5,
+                                  color: AccountingTokens.ink3,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.settings_outlined,
+                        color: AccountingTokens.ink3,
+                        size: 18,
+                      ),
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.settings_outlined, color: AccountingTokens.ink3, size: 20),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -156,67 +227,55 @@ class _NavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconColor = selected ? AccountingTokens.accent : AccountingTokens.ink3;
-    final labelColor = selected ? AccountingTokens.ink1 : AccountingTokens.ink2;
+    final labelColor = selected ? AccountingTokens.accent : AccountingTokens.ink2;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: 2),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AccountingTokens.radiusSm),
         hoverColor: AccountingTokens.surface2,
-        child: Row(
-          children: [
-            if (selected)
-              Container(
-                width: 4,
-                height: 32,
-                margin: const EdgeInsets.only(right: 4),
-                decoration: BoxDecoration(
-                  color: AccountingTokens.accent,
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(4),
-                    bottomRight: Radius.circular(4),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.ease,
+          height: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: selected ? AccountingTokens.accentTint : Colors.transparent,
+            borderRadius: BorderRadius.circular(AccountingTokens.radiusSm),
+          ),
+          child: Row(
+            children: [
+              Icon(item.icon, size: 19, color: iconColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  item.view.label,
+                  style: AccountingTokens.sans(
+                    fontSize: 14,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: labelColor,
                   ),
                 ),
-              )
-            else
-              const SizedBox(width: 8),
-            Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                curve: Curves.ease,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                decoration: BoxDecoration(
-                  color: selected ? AccountingTokens.accentTint : Colors.transparent,
-                  borderRadius: BorderRadius.circular(AccountingTokens.radiusSm),
-                ),
-                child: Row(
-                  children: [
-                    Icon(item.icon, size: 19, color: iconColor),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        item.view.label,
-                        style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600, color: labelColor),
-                      ),
-                    ),
-                    if (badge != null && badge! > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AccountingTokens.warnTint,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          '$badge',
-                          style: AccountingTokens.mono(fontSize: 11, color: AccountingTokens.warnAmber, fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                  ],
-                ),
               ),
-            ),
-          ],
+              if (badge != null && badge! > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: selected ? AccountingTokens.accent : AccountingTokens.warnTint,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$badge',
+                    style: AccountingTokens.mono(
+                      fontSize: 11,
+                      color: selected ? Colors.white : AccountingTokens.warnAmber,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

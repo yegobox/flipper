@@ -23,7 +23,7 @@ function Delta({ v, invert }) {
 }
 
 // ───────────────────────────── Overview / Dashboard ────────────────────────
-function OverviewView({ tweaks, onNewEntry }) {
+function OverviewView({ tweaks, onNewEntry, onView, onLedger, onEntry, period, entity }) {
   const pl = incomeStatement();
   const bs = balanceSheet();
   const cashBank = ACCT['1010'].bal + ACCT['1020'].bal + ACCT['1030'].bal;
@@ -39,32 +39,48 @@ function OverviewView({ tweaks, onNewEntry }) {
         <div className="acc-pagehead-l">
           <div className="acc-eyebrow">Financial overview</div>
           <h1 className="acc-h1">Books at a glance</h1>
-          <div className="acc-sub">Demo Shop Ltd · fiscal period May 2026 · all amounts in RWF</div>
+          <div className="acc-sub">{(entity && entity.name) || 'Demo Shop Ltd'} · fiscal period {period || 'May 2026'} · all amounts in RWF</div>
         </div>
         <div className="acc-pagehead-r">
-          <button className="acc-btn acc-btn-ghost"><Icons.Download size={17} />Export</button>
+          <Dropdown align="right" width={200}
+            trigger={({ toggle }) => (
+              <button className="acc-btn acc-btn-ghost" onClick={toggle}><Icons.Download size={17} />Export</button>
+            )}>
+            {({ close }) => (
+              <>
+                <MenuLabel>Export books as</MenuLabel>
+                <MenuItem icon="Download" label="Excel workbook (.xlsx)" onClick={() => { close(); toast('Exporting to Excel', { sub: 'Books · ' + (period || 'May 2026'), icon: 'Download', tone: 'success' }); }} />
+                <MenuItem icon="Print" label="PDF report" onClick={() => { close(); toast('Generating PDF', { sub: 'Financial overview', icon: 'Print', tone: 'info' }); }} />
+                <MenuItem icon="Receipt" label="CSV (raw ledger)" onClick={() => { close(); toast('Exporting CSV', { sub: 'General ledger lines', icon: 'Receipt', tone: 'info' }); }} />
+              </>
+            )}
+          </Dropdown>
           <button className="acc-btn acc-btn-primary" onClick={onNewEntry}><Icons.Plus size={17} />New journal entry</button>
         </div>
       </div>
 
       {/* KPIs */}
       <div className="acc-grid cols-4 mb16">
-        <div className="acc-card acc-kpi">
+        <div className="acc-card acc-kpi clickable" onClick={() => onView('statements')}>
+          <span className="kpi-go"><Icons.ArrowUpRight size={16} /></span>
           <div className="acc-kpi-top"><span className="acc-kpi-ic green"><Icons.TrendUp size={20} /></span><span className="acc-kpi-lbl">Net income</span></div>
           <div className="acc-kpi-val"><small>RWF</small> {money(pl.netIncome)}</div>
           <div className="acc-kpi-foot"><Delta v={18} /><span className="acc-kpi-note">vs April</span></div>
         </div>
-        <div className="acc-card acc-kpi">
+        <div className="acc-card acc-kpi clickable" onClick={() => onLedger('1020')}>
+          <span className="kpi-go"><Icons.ArrowUpRight size={16} /></span>
           <div className="acc-kpi-top"><span className="acc-kpi-ic blue"><Icons.Wallet size={20} /></span><span className="acc-kpi-lbl">Cash &amp; bank</span></div>
           <div className="acc-kpi-val"><small>RWF</small> {money(cashBank)}</div>
           <div className="acc-kpi-foot"><Delta v={6} /><span className="acc-kpi-note">across 3 accounts</span></div>
         </div>
-        <div className="acc-card acc-kpi">
+        <div className="acc-card acc-kpi clickable" onClick={() => onView('ar')}>
+          <span className="kpi-go"><Icons.ArrowUpRight size={16} /></span>
           <div className="acc-kpi-top"><span className="acc-kpi-ic amber"><Icons.ArrowUpRight size={20} /></span><span className="acc-kpi-lbl">Receivable</span></div>
           <div className="acc-kpi-val"><small>RWF</small> {money(arAge.total)}</div>
           <div className="acc-kpi-foot"><span className="acc-kpi-delta down"><Icons.Clock size={11} />{money(arAge.buckets.d90)}</span><span className="acc-kpi-note">overdue 60+</span></div>
         </div>
-        <div className="acc-card acc-kpi">
+        <div className="acc-card acc-kpi clickable" onClick={() => onView('ap')}>
+          <span className="kpi-go"><Icons.ArrowUpRight size={16} /></span>
           <div className="acc-kpi-top"><span className="acc-kpi-ic red"><Icons.ArrowDown size={20} /></span><span className="acc-kpi-lbl">Payable</span></div>
           <div className="acc-kpi-val"><small>RWF</small> {money(apAge.total)}</div>
           <div className="acc-kpi-foot"><span className="acc-kpi-note">{AP.length} open bills</span></div>
@@ -89,7 +105,7 @@ function OverviewView({ tweaks, onNewEntry }) {
           </div>
         </div>
         <div className="acc-card">
-          <div className="acc-card-head"><div className="acc-card-title">Where money went</div><span className="acc-card-link">Operating · May</span></div>
+          <div className="acc-card-head"><div className="acc-card-title">Where money went</div><button className="acc-card-link" onClick={() => onView('statements')}>Operating · May</button></div>
           <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 18 }}>
             <Donut segments={opexSegs} size={148} center={
               <div><div className="num" style={{ fontSize: 18, fontWeight: 700 }}>{compact(pl.totalOpex)}</div><div style={{ fontSize: 10.5, color: 'var(--ink-3)' }}>opex</div></div>
@@ -110,7 +126,7 @@ function OverviewView({ tweaks, onNewEntry }) {
       {/* P&L mini + recent entries */}
       <div className="acc-grid split-7-5">
         <div className="acc-card">
-          <div className="acc-card-head"><div className="acc-card-title">Recent journal entries</div><span className="acc-card-link">View daybook <Icons.ChevRight size={14} /></span></div>
+          <div className="acc-card-head"><div className="acc-card-title">Recent journal entries</div><button className="acc-card-link" onClick={() => onView('journal')}>View daybook <Icons.ChevRight size={14} /></button></div>
           <div className="acc-tablewrap">
             <table className="acc-table">
               <thead><tr><th>Entry</th><th>Memo</th><th>Status</th><th className="r">Amount</th></tr></thead>
@@ -118,7 +134,7 @@ function OverviewView({ tweaks, onNewEntry }) {
                 {JOURNAL.slice(0, 5).map((e) => {
                   const t = jeTotals(e);
                   return (
-                    <tr key={e.id}>
+                    <tr key={e.id} className="acc-row-click" onClick={() => onEntry(e)}>
                       <td><span className="je-id">{e.id}</span><div className="muted" style={{ fontSize: 11.5, marginTop: 2 }}>{e.date}</div></td>
                       <td><div className="je-memo">{e.memo}</div></td>
                       <td><span className={`pill ${e.status}`}><span className="pdot" />{e.status}</span></td>
@@ -131,7 +147,7 @@ function OverviewView({ tweaks, onNewEntry }) {
           </div>
         </div>
         <div className="acc-card">
-          <div className="acc-card-head"><div className="acc-card-title">Profit &amp; loss</div><span className="acc-card-link">May 2026</span></div>
+          <div className="acc-card-head"><div className="acc-card-title">Profit &amp; loss</div><button className="acc-card-link" onClick={() => onView('statements')}>May 2026</button></div>
           <div style={{ padding: '8px 20px 18px' }}>
             <PLRow label="Net revenue" val={pl.netRevenue} />
             <PLRow label="Cost of goods sold" val={-pl.cogs} muted />
@@ -162,7 +178,10 @@ function PLRow({ label, val, strong, muted }) {
 
 // ───────────────────────────── Chart of Accounts ───────────────────────────
 const TYPE_ORDER = [['asset', 'Assets'], ['liability', 'Liabilities'], ['equity', 'Equity'], ['income', 'Income'], ['expense', 'Expenses']];
-function ChartOfAccountsView() {
+function ChartOfAccountsView({ onLedger }) {
+  const [typeFilter, setTypeFilter] = useV('all');
+  const [adding, setAdding] = useV(false);
+  const shown = TYPE_ORDER.filter(([t]) => typeFilter === 'all' || t === typeFilter);
   return (
     <div className="acc-page">
       <div className="acc-pagehead">
@@ -172,16 +191,28 @@ function ChartOfAccountsView() {
           <div className="acc-sub">{ACCOUNTS.length} accounts · numbered ledger structure</div>
         </div>
         <div className="acc-pagehead-r">
-          <button className="acc-btn acc-btn-ghost acc-btn-sm"><Icons.Filter size={15} />Filter</button>
-          <button className="acc-btn acc-btn-primary acc-btn-sm"><Icons.Plus size={15} />Add account</button>
+          <Dropdown align="right" width={190}
+            trigger={({ toggle }) => (
+              <button className="acc-btn acc-btn-ghost acc-btn-sm" onClick={toggle}><Icons.Filter size={15} />{typeFilter === 'all' ? 'Filter' : TYPE_ORDER.find(([t]) => t === typeFilter)[1]}</button>
+            )}>
+            {({ close }) => (
+              <>
+                <MenuLabel>Show accounts</MenuLabel>
+                <MenuItem label="All types" active={typeFilter === 'all'} onClick={() => { setTypeFilter('all'); close(); }} />
+                {TYPE_ORDER.map(([t, lbl]) => <MenuItem key={t} label={lbl} active={typeFilter === t} onClick={() => { setTypeFilter(t); close(); }} />)}
+              </>
+            )}
+          </Dropdown>
+          <button className="acc-btn acc-btn-primary acc-btn-sm" onClick={() => setAdding(true)}><Icons.Plus size={15} />Add account</button>
         </div>
       </div>
+      {adding && <CreateAccountModal onClose={() => setAdding(false)} />}
       <div className="acc-card">
         <div className="acc-tablewrap">
           <table className="acc-table">
             <thead><tr><th style={{ width: 70 }}>Code</th><th>Account name</th><th>Type</th><th>Category</th><th className="r">Balance (RWF)</th></tr></thead>
             <tbody>
-              {TYPE_ORDER.map(([t, lbl]) => {
+              {shown.map(([t, lbl]) => {
                 const rows = ACCOUNTS.filter((a) => a.type === t);
                 const sum = rows.reduce((s, a) => s + (a.contra ? -a.bal : a.bal), 0);
                 return (
@@ -191,7 +222,7 @@ function ChartOfAccountsView() {
                       <td className="r num" style={{ fontWeight: 800 }}>{money(sum)}</td>
                     </tr>
                     {rows.map((a) => (
-                      <tr key={a.code} className="acc-row-click">
+                      <tr key={a.code} className="acc-row-click" onClick={() => onLedger(a.code)}>
                         <td className="code">{a.code}</td>
                         <td><span className="je-memo">{a.name}</span>{a.contra && <span className="tag" style={{ marginLeft: 8 }}>contra</span>}{a.note && <span className="muted" style={{ fontSize: 11.5, marginLeft: 8 }}>{a.note}</span>}</td>
                         <td><span className={`acc-coa-type ${a.type}`}>{a.type}</span></td>
@@ -222,8 +253,8 @@ function StatementsView() {
           <div className="acc-sub">Generated from the general ledger · May 2026</div>
         </div>
         <div className="acc-pagehead-r">
-          <button className="acc-btn acc-btn-ghost acc-btn-sm"><Icons.Print size={15} />Print</button>
-          <button className="acc-btn acc-btn-ghost acc-btn-sm"><Icons.Download size={15} />PDF</button>
+          <button className="acc-btn acc-btn-ghost acc-btn-sm" onClick={() => toast('Preparing print layout', { sub: 'Financial statements · May 2026', icon: 'Print', tone: 'info' })}><Icons.Print size={15} />Print</button>
+          <button className="acc-btn acc-btn-ghost acc-btn-sm" onClick={() => toast('Generating PDF', { sub: 'Statement pack · RWF', icon: 'Download', tone: 'success' })}><Icons.Download size={15} />PDF</button>
         </div>
       </div>
       <div style={{ marginBottom: 16 }}>
@@ -347,7 +378,7 @@ function TrialBalanceView() {
         </div>
         <div className="acc-pagehead-r">
           <span className={`pill ${tb.balanced ? 'posted' : 'pending'}`} style={{ height: 32, fontSize: 13 }}><span className="pdot" />{tb.balanced ? 'In balance' : 'Out of balance'}</span>
-          <button className="acc-btn acc-btn-ghost acc-btn-sm"><Icons.Download size={15} />Export</button>
+          <button className="acc-btn acc-btn-ghost acc-btn-sm" onClick={() => toast('Exporting trial balance', { sub: 'Excel workbook · 23,420,000', icon: 'Download', tone: 'success' })}><Icons.Download size={15} />Export</button>
         </div>
       </div>
       <div className="acc-card">
@@ -379,7 +410,7 @@ function TrialBalanceView() {
 }
 
 // ───────────────────────────── Aging (AR / AP shared) ──────────────────────
-function AgingView({ kind }) {
+function AgingView({ kind, onNewEntry }) {
   const isAR = kind === 'ar';
   const rows = isAR ? AR : AP;
   const { buckets, total } = ageTotals(rows);
@@ -392,8 +423,8 @@ function AgingView({ kind }) {
           <div className="acc-sub">{isAR ? 'What customers owe you' : 'What you owe suppliers'} · aged · RWF</div>
         </div>
         <div className="acc-pagehead-r">
-          <button className="acc-btn acc-btn-ghost acc-btn-sm"><Icons.Mail size={15} />{isAR ? 'Send reminders' : 'Schedule payment'}</button>
-          <button className="acc-btn acc-btn-primary acc-btn-sm"><Icons.Plus size={15} />{isAR ? 'New invoice' : 'New bill'}</button>
+          <button className="acc-btn acc-btn-ghost acc-btn-sm" onClick={() => toast(isAR ? 'Reminders sent' : 'Payment scheduled', { sub: isAR ? 'Emailed 4 customers with open balances' : 'Queued 4 supplier payments', icon: 'Mail', tone: isAR ? 'success' : 'info' })}><Icons.Mail size={15} />{isAR ? 'Send reminders' : 'Schedule payment'}</button>
+          <button className="acc-btn acc-btn-primary acc-btn-sm" onClick={onNewEntry}><Icons.Plus size={15} />{isAR ? 'New invoice' : 'New bill'}</button>
         </div>
       </div>
 
@@ -425,7 +456,7 @@ function AgingView({ kind }) {
               {rows.map((r) => {
                 const tot = AGE_BUCKETS.reduce((s, b) => s + r[b.key], 0);
                 return (
-                  <tr key={r.inv} className="acc-row-click">
+                  <tr key={r.inv} className="acc-row-click" onClick={() => toast('Statement of account', { sub: `${r.name} · ${money(tot)} outstanding`, icon: isAR ? 'ArrowUpRight' : 'ArrowDown', tone: 'info' })}>
                     <td className="je-memo">{r.name}</td>
                     <td className="code">{r.inv}</td>
                     {AGE_BUCKETS.map((b) => (
@@ -457,7 +488,7 @@ function TaxView() {
           <div className="acc-sub">VAT at {(VAT.rate * 100).toFixed(0)}% (Rwanda standard) · period May 2026</div>
         </div>
         <div className="acc-pagehead-r">
-          <button className="acc-btn acc-btn-primary acc-btn-sm"><Icons.ShieldCheck size={15} />File with RRA</button>
+          <button className="acc-btn acc-btn-primary acc-btn-sm" onClick={() => toast('VAT return submitted', { sub: 'RRA ack · ref RRA-2026-05-0042', icon: 'ShieldCheck', tone: 'success' })}><Icons.ShieldCheck size={15} />File with RRA</button>
         </div>
       </div>
       <div className="acc-grid cols-3 mb16">

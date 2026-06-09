@@ -36,7 +36,7 @@ List<AgingRow> deriveArAging(List<Map<String, dynamic>> transactions) {
   return rows;
 }
 
-/// Derive AP aging from completed expense transactions.
+/// Derive AP aging from open (unpaid) vendor bills in raw transaction maps.
 List<AgingRow> deriveApAging(List<Map<String, dynamic>> transactions) {
   final now = DateTime.now();
   final rows = <AgingRow>[];
@@ -46,14 +46,15 @@ List<AgingRow> deriveApAging(List<Map<String, dynamic>> transactions) {
     if (!isExpense) continue;
     if (t['status'] != 'COMPLETE') continue;
 
-    final amount = _int(t['sub_total'] ?? t['subTotal']);
-    if (amount <= 0) continue;
+    // Paid expenses are not open payables — match handoff bill aging semantics.
+    final remaining = _int(t['remaining_balance'] ?? t['remainingBalance']);
+    if (remaining <= 0) continue;
 
     final created = _parseDate(t['created_at'] ?? t['createdAt']) ?? now;
     final days = now.difference(created).inDays;
     final name = (t['note'] ?? t['supplier_id'] ?? 'Supplier').toString();
     final inv = (t['reference'] ?? t['receipt_number'] ?? t['id']).toString();
-    final buckets = _bucketAmount(amount, days);
+    final buckets = _bucketAmount(remaining, days);
 
     rows.add(AgingRow(
       name: name,

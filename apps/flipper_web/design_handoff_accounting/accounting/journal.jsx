@@ -8,9 +8,10 @@ const { useState: useJ } = React;
 
 const JE_FILTERS = [['all', 'All'], ['posted', 'Posted'], ['pending', 'Pending'], ['draft', 'Drafts']];
 
-function JournalView({ onNewEntry }) {
+function JournalView({ onNewEntry, onEntry }) {
   const [filter, setFilter] = useJ('all');
-  const list = JOURNAL.filter((e) => filter === 'all' || e.status === filter);
+  const [src, setSrc] = useJ('all');
+  const list = JOURNAL.filter((e) => (filter === 'all' || e.status === filter) && (src === 'all' || e.src === src));
   const pending = JOURNAL.filter((e) => e.status === 'pending').length;
   return (
     <div className="acc-page">
@@ -21,7 +22,18 @@ function JournalView({ onNewEntry }) {
           <div className="acc-sub">Every transaction as a balanced double entry · RWF</div>
         </div>
         <div className="acc-pagehead-r">
-          <button className="acc-btn acc-btn-ghost"><Icons.Filter size={16} />Filter</button>
+          <Dropdown align="right" width={180}
+            trigger={({ toggle }) => (
+              <button className="acc-btn acc-btn-ghost" onClick={toggle}><Icons.Filter size={16} />{src === 'all' ? 'Filter' : src}</button>
+            )}>
+            {({ close }) => (
+              <>
+                <MenuLabel>By source</MenuLabel>
+                <MenuItem label="All sources" active={src === 'all'} onClick={() => { setSrc('all'); close(); }} />
+                {['POS', 'Manual', 'Bill', 'Bank', 'Payroll'].map((s) => <MenuItem key={s} label={s} active={src === s} onClick={() => { setSrc(s); close(); }} />)}
+              </>
+            )}
+          </Dropdown>
           <button className="acc-btn acc-btn-primary" onClick={onNewEntry}><Icons.Plus size={17} />New journal entry</button>
         </div>
       </div>
@@ -49,7 +61,7 @@ function JournalView({ onNewEntry }) {
               {list.map((e) => {
                 const t = jeTotals(e);
                 return (
-                  <tr key={e.id} className="acc-row-click">
+                  <tr key={e.id} className="acc-row-click" onClick={() => onEntry(e)}>
                     <td><span className="je-id">{e.id}</span><div className="muted" style={{ fontSize: 11.5, marginTop: 2 }}><Icons.Calendar size={11} style={{ verticalAlign: '-1px', marginRight: 4 }} />{e.date} · {e.ref}</div></td>
                     <td>
                       <div className="je-memo">{e.memo}</div>
@@ -243,7 +255,7 @@ function Composer({ onClose }) {
             </div>
           </div>
           <div className="acc-comp-actions">
-            <button className="acc-btn acc-btn-ghost">Save draft</button>
+            <button className="acc-btn acc-btn-ghost" onClick={() => { toast('Draft saved', { sub: 'JE-1048 kept in Drafts', icon: 'Receipt', tone: 'info' }); onClose(); }}>Save draft</button>
             <button className="acc-btn acc-btn-primary" disabled={!balanced || !hasAccts} onClick={() => setPosted(true)}>
               <Icons.Check size={18} />Post entry
             </button>

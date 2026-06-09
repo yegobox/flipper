@@ -2,9 +2,11 @@ import 'package:flipper_web/features/business_selection/business_branch_selector
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 String accountingEntityInitials(String name) {
   final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
@@ -43,7 +45,20 @@ class AccountingMobileHeader extends ConsumerWidget {
                   const BooksBrandRow(logoSize: 32, variant: BooksBrandVariant.mobile),
                   const Spacer(),
                   _HeaderIconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      if (pending > 0) {
+                        ref.read(accountingMobileTabProvider.notifier).state =
+                            AccountingMobileTab.approvals;
+                      } else {
+                        showAccountingToast(
+                          context,
+                          'All caught up',
+                          subtitle: 'No pending journal entries',
+                          icon: Icons.check,
+                          tone: AccountingToastTone.success,
+                        );
+                      }
+                    },
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -89,7 +104,7 @@ class AccountingMobileHeader extends ConsumerWidget {
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () {},
+                    onTap: () => context.goNamed(AppRoute.businessSelection.name),
                     borderRadius: BorderRadius.circular(10),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),

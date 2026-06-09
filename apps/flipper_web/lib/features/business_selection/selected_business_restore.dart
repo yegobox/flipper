@@ -85,6 +85,8 @@ void restoreSelectedBusinessFromProfile(Ref ref, UserProfile profile) {
   }
 
   if (restored) {
+    ref.read(bankRecLocalLinesProvider.notifier).state = null;
+    ref.read(bankRecFinishedProvider.notifier).state = false;
     ref.invalidate(chartOfAccountsStreamProvider);
     ref.invalidate(journalEntriesStreamProvider);
     ref.invalidate(bankLinesStreamProvider);

@@ -16,22 +16,26 @@ class AccountingJournalView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(journalFilterProvider);
+    final sourceFilter = ref.watch(journalSourceFilterProvider);
     final pending = ref.watch(pendingCountProvider);
     final isLoading = ref.watch(accountingLoadingProvider);
 
     final journal = ref.watch(accountingJournalProvider);
+    final sources = journal.map((e) => e.src).toSet().toList()..sort();
     final currency = ref.watch(accountingCurrencyProvider);
     final accountMap = {
       for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
     };
 
     final list = journal.where((e) {
-      return switch (filter) {
+      final statusOk = switch (filter) {
         JournalFilter.all => true,
         JournalFilter.posted => e.status == JournalStatus.posted,
         JournalFilter.pending => e.status == JournalStatus.pending,
         JournalFilter.draft => e.status == JournalStatus.draft,
       };
+      final sourceOk = sourceFilter == null || e.src == sourceFilter;
+      return statusOk && sourceOk;
     }).toList();
 
     return SingleChildScrollView(
@@ -45,10 +49,24 @@ class AccountingJournalView extends ConsumerWidget {
             subtitle:
                 'Every transaction as a balanced double entry · $currency',
             actions: [
-              const AccountingButton(
-                label: 'Filter',
-                icon: Icons.filter_list,
-                small: true,
+              PopupMenuButton<String?>(
+                tooltip: 'Filter by source',
+                offset: const Offset(0, 40),
+                onSelected: (src) =>
+                    ref.read(journalSourceFilterProvider.notifier).state = src,
+                itemBuilder: (context) => [
+                  const PopupMenuItem<String?>(
+                    value: null,
+                    child: Text('All sources'),
+                  ),
+                  for (final src in sources)
+                    PopupMenuItem(value: src, child: Text(src)),
+                ],
+                child: AccountingButton(
+                  label: sourceFilter ?? 'Filter',
+                  icon: Icons.filter_list,
+                  small: true,
+                ),
               ),
               AccountingButton(
                 label: 'New journal entry',
@@ -186,14 +204,30 @@ class _JournalRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  entry.lines
-                      .map((l) =>
-                          '${l.dr > 0 ? 'Dr' : 'Cr'} ${acctName(l.ac, accountMap)}')
-                      .join(' · '),
-                  style: AccountingTokens.sans(
-                    fontSize: 12,
-                    color: AccountingTokens.ink3,
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      for (var i = 0; i < entry.lines.length; i++) ...[
+                        if (i > 0)
+                          TextSpan(
+                            text: ' · ',
+                            style: AccountingTokens.sans(
+                              fontSize: 12,
+                              color: AccountingTokens.ink3,
+                            ),
+                          ),
+                        TextSpan(
+                          text:
+                              '${entry.lines[i].dr > 0 ? 'Dr' : 'Cr'} ${acctName(entry.lines[i].ac, accountMap)}',
+                          style: AccountingTokens.sans(
+                            fontSize: 12,
+                            color: entry.lines[i].dr > 0
+                                ? AccountingTokens.drInk
+                                : AccountingTokens.crInk,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],

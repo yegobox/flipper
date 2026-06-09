@@ -3,6 +3,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -67,8 +68,8 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
     });
   }
 
-  Future<void> _saveEntry({required bool pending}) async {
-    if (pending && !_canPost) return;
+  Future<void> _saveEntry({required bool post}) async {
+    if (post && !_canPost) return;
     final businessId = ref.read(accountingBusinessIdProvider);
     if (businessId.isEmpty) return;
 
@@ -77,7 +78,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
       date: _dateLabel,
       memo: _memoCtrl.text,
       ref: _refCtrl.text,
-      status: pending ? JournalStatus.pending : JournalStatus.draft,
+      status: post ? JournalStatus.posted : JournalStatus.draft,
       src: 'Manual',
       lines: [
         for (final l in _lines)
@@ -96,9 +97,17 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
           journalCode: 'misc',
         );
 
-    if (pending) {
+    if (post) {
       setState(() => _posted = true);
     } else {
+      if (mounted) {
+        showAccountingToast(
+          context,
+          'Draft saved',
+          subtitle: '${_refCtrl.text} kept in Drafts',
+          icon: Icons.receipt_long_outlined,
+        );
+      }
       widget.onClose();
     }
   }
@@ -350,8 +359,8 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
           totDr: _totDr,
           totCr: _totCr,
           canPost: _canPost,
-          onSaveDraft: () => _saveEntry(pending: false),
-          onPost: () => _saveEntry(pending: true),
+          onSaveDraft: () => _saveEntry(post: false),
+          onPost: () => _saveEntry(post: true),
         ),
       ],
     );

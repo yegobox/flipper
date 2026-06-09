@@ -5,6 +5,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
 import 'package:flipper_web/modules/accounting/widgets/trend_chart.dart';
 import 'package:flutter/material.dart';
@@ -65,9 +66,39 @@ class AccountingDashboardView extends ConsumerWidget {
                 ? '$entityName · fiscal period $period · all amounts in $currency'
                 : 'Fiscal period $period · all amounts in $currency',
             actions: [
-              const AccountingButton(
-                label: 'Export',
-                icon: Icons.download_outlined,
+              PopupMenuButton<String>(
+                tooltip: 'Export',
+                offset: const Offset(0, 40),
+                onSelected: (value) {
+                  final subtitle = switch (value) {
+                    'excel' => 'Books · $period',
+                    'pdf' => 'Financial overview',
+                    _ => 'General ledger lines',
+                  };
+                  final title = switch (value) {
+                    'excel' => 'Exporting to Excel',
+                    'pdf' => 'Generating PDF',
+                    _ => 'Exporting CSV',
+                  };
+                  showAccountingToast(
+                    context,
+                    title,
+                    subtitle: subtitle,
+                    icon: Icons.download_outlined,
+                    tone: value == 'excel' || value == 'pdf'
+                        ? AccountingToastTone.success
+                        : AccountingToastTone.info,
+                  );
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: 'excel', child: Text('Excel workbook (.xlsx)')),
+                  PopupMenuItem(value: 'pdf', child: Text('PDF report')),
+                  PopupMenuItem(value: 'csv', child: Text('CSV (raw ledger)')),
+                ],
+                child: const AccountingButton(
+                  label: 'Export',
+                  icon: Icons.download_outlined,
+                ),
               ),
               AccountingButton(
                 label: 'New journal entry',
@@ -215,10 +246,17 @@ class _DonutCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AccountingCard(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Row(
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AccountingCardHeader(
+            title: 'Where money went',
+            subtitle: 'Operating expenses breakdown',
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+            child: Row(
+              children: [
             DonutChart(
               segments: segments,
               center: Column(
@@ -279,8 +317,10 @@ class _DonutCard extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

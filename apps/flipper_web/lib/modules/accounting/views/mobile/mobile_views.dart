@@ -4,6 +4,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/journal_approval_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/trend_chart.dart';
 import 'package:flutter/material.dart';
@@ -490,6 +491,15 @@ class AccountingMoreTab extends ConsumerWidget {
               leading: Icon(item.icon),
               title: Text(item.view.label),
               subtitle: Text(group.section),
+              onTap: () {
+                ref.read(accountingViewProvider.notifier).state = item.view;
+                showAccountingToast(
+                  context,
+                  item.view.label,
+                  subtitle: 'Open on a wider screen for the desktop workspace',
+                  icon: item.icon,
+                );
+              },
             ),
         const SizedBox(height: 16),
         FilledButton(

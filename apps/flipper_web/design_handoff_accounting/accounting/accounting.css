@@ -41,75 +41,78 @@
 }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 
-/* ============================ sidebar ============================ */
+/* ============================ sidebar (light · Flipper house style) ============================ */
 .acc-side {
   flex-shrink: 0; width: 248px;
-  background: var(--acc-side);
+  background: var(--surface);
+  border-right: 1px solid var(--line);
   display: flex; flex-direction: column;
-  color: #C7D2E5;
+  color: var(--ink-2);
 }
 .acc-brand {
   display: flex; align-items: center; gap: 11px;
   padding: 18px 18px 16px;
 }
-.acc-brand .wordmark { color: #fff; font-size: 19px; }
+.acc-brand .wordmark { color: var(--ink-1); font-size: 19px; }
 .acc-brand-sub {
-  margin-left: auto; font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: #6F7E99;
-  border: 1px solid #283449; border-radius: 999px; padding: 3px 9px;
+  margin-left: auto; font-size: 10.5px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--blue);
+  background: var(--blue-tint); border-radius: 999px; padding: 3px 9px;
 }
 /* entity switcher */
 .acc-entity {
   margin: 0 12px 8px; padding: 11px 12px;
   display: flex; align-items: center; gap: 11px;
-  background: var(--acc-side-2); border: 1px solid #243149; border-radius: 12px;
-  cursor: pointer; transition: border-color .12s;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+  cursor: pointer; transition: border-color .12s, box-shadow .12s;
 }
-.acc-entity:hover { border-color: #34466A; }
+.acc-entity:hover { border-color: var(--line-strong); box-shadow: var(--sh-1); }
 .acc-entity-mark {
   width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
   background: var(--grad-brand); color: #fff;
   display: grid; place-items: center; font-weight: 700; font-size: 14px;
 }
 .acc-entity-meta { min-width: 0; flex: 1; }
-.acc-entity-name { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.acc-entity-fy { font-size: 11px; color: #7E8DA8; margin-top: 1px; }
-.acc-entity .chev { color: #5C6B86; }
+.acc-entity-name { font-size: 14px; font-weight: 700; color: var(--ink-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-entity-fy { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+.acc-entity .chev { color: var(--ink-4); }
 
 .acc-nav { flex: 1; overflow-y: auto; padding: 8px 12px 12px; }
 .acc-nav::-webkit-scrollbar { width: 0; }
 .acc-nav-sec {
   font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-  color: #5E6E8C; padding: 14px 10px 7px;
+  color: var(--ink-4); padding: 14px 10px 7px;
 }
 .acc-navitem {
   display: flex; align-items: center; gap: 12px; width: 100%;
   height: 42px; padding: 0 12px; border-radius: 10px;
-  color: #AEBBD2; font-size: 14px; font-weight: 500;
+  color: var(--ink-2); font-size: 14px; font-weight: 500;
   transition: background .12s, color .12s;
   position: relative;
 }
-.acc-navitem:hover { background: rgba(255,255,255,.05); color: #fff; }
-.acc-navitem.is-on { background: var(--blue); color: #fff; box-shadow: 0 6px 16px -6px rgba(37,99,235,.7); }
-.acc-navitem .ic { flex-shrink: 0; opacity: .92; }
+.acc-navitem:hover { background: var(--surface-2); color: var(--ink-1); }
+.acc-navitem.is-on { background: var(--blue-tint); color: var(--blue); font-weight: 600; }
+.acc-navitem .ic { flex-shrink: 0; opacity: .85; }
+.acc-navitem:hover .ic, .acc-navitem.is-on .ic { opacity: 1; }
 .acc-navitem-badge {
   margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px;
-  border-radius: 999px; background: var(--xp); color: #3A2400;
+  border-radius: 999px; background: var(--warn-tint); color: var(--warnamber);
   font-family: var(--mono); font-size: 11px; font-weight: 700;
   display: grid; place-items: center;
 }
-.acc-navitem.is-on .acc-navitem-badge { background: rgba(255,255,255,.92); color: var(--blue-700); }
+.acc-navitem.is-on .acc-navitem-badge { background: var(--blue); color: #fff; }
 
-.acc-side-foot { padding: 12px; border-top: 1px solid #1E2A40; }
-.acc-user { display: flex; align-items: center; gap: 11px; padding: 6px 6px; border-radius: 10px; }
+.acc-side-foot { padding: 12px; border-top: 1px solid var(--line); }
+.acc-user { display: flex; align-items: center; gap: 11px; padding: 6px 6px; border-radius: 10px; transition: background .12s; }
+.acc-user:hover { background: var(--surface-2); }
 .acc-user-av {
   width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
   background: var(--grad-brand); color: #fff; display: grid; place-items: center;
   font-weight: 700; font-size: 14px;
 }
 .acc-user-meta { min-width: 0; flex: 1; }
-.acc-user-name { font-size: 13.5px; font-weight: 700; color: #fff; }
-.acc-user-role { font-size: 11.5px; color: #7E8DA8; }
+.acc-user-name { font-size: 13.5px; font-weight: 700; color: var(--ink-1); }
+.acc-user-role { font-size: 11.5px; color: var(--ink-3); }
 
 /* ============================ main column ============================ */
 .acc-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -157,6 +160,22 @@
   position: absolute; top: 8px; right: 9px; width: 7px; height: 7px;
   border-radius: 50%; background: var(--loss); border: 1.5px solid var(--surface);
 }
+
+/* app launcher (9-dot grid) */
+.acc-applaunch { padding: 4px; }
+.acc-applaunch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2px; }
+.acc-applaunch-item {
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  padding: 13px 6px 11px; border-radius: 13px; text-align: center;
+  transition: background .12s, transform .1s;
+}
+.acc-applaunch-item:hover { background: var(--surface-2); }
+.acc-applaunch-item:active { transform: scale(.96); }
+.acc-applaunch-item.is-current { background: var(--blue-tint); }
+.acc-applaunch-ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; box-shadow: var(--sh-1); }
+.acc-applaunch-lbl { font-size: 11.5px; font-weight: 600; color: var(--ink-2); line-height: 1.2; }
+.acc-applaunch-item.is-current .acc-applaunch-lbl { color: var(--blue); }
+.acc-applaunch-foot { display: flex; align-items: center; gap: 7px; padding: 9px 10px 5px; margin-top: 4px; border-top: 1px solid var(--line-soft); font-size: 11.5px; color: var(--ink-3); }
 
 /* scroll area */
 .acc-scroll { flex: 1; overflow-y: auto; padding: 24px 24px 40px; }

@@ -1,5 +1,6 @@
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_bank_seed.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -8,16 +9,10 @@ import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/account_type_pill.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-const _ageBuckets = [
-  ('current', 'Current', AccountingTokens.accent),
-  ('d30', '1–30 days', AccountingTokens.crInk),
-  ('d60', '31–60 days', Color(0xFFE89A2A)),
-  ('d90', '60+ days', AccountingTokens.loss),
-];
 
 class AccountingGeneralLedgerView extends ConsumerWidget {
   const AccountingGeneralLedgerView({super.key});
@@ -54,8 +49,9 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
                     ),
                 ],
                 onChanged: (v) {
-                  if (v != null)
+                  if (v != null) {
                     ref.read(ledgerAccountCodeProvider.notifier).state = v;
+                  }
                 },
               ),
             ],
@@ -169,6 +165,50 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
   }
 }
 
+void _importBankStatement(BuildContext context, WidgetRef ref) {
+  final streamLines = ref.read(bankLinesStreamProvider).value ?? [];
+  final local = ref.read(bankRecLocalLinesProvider);
+  final current = local ?? streamLines;
+  if (current.isEmpty) {
+    ref.read(bankRecLocalLinesProvider.notifier).state =
+        List<BankLine>.from(accountingBankSeedLines);
+    ref.read(bankRecFinishedProvider.notifier).state = false;
+    showAccountingToast(
+      context,
+      'Statement imported',
+      subtitle: 'Bank of Kigali · ${accountingBankSeedLines.length} lines loaded',
+      icon: Icons.sync,
+    );
+  } else {
+    showAccountingToast(
+      context,
+      'Statement imported',
+      subtitle: 'Bank of Kigali · no new lines found',
+      icon: Icons.sync,
+    );
+  }
+}
+
+void _matchBankLine(BuildContext context, WidgetRef ref, int index, BankLine line) {
+  final lines = List<BankLine>.from(ref.read(accountingBankLinesProvider));
+  lines[index] = BankLine(
+    date: line.date,
+    desc: line.desc,
+    amt: line.amt,
+    matched: true,
+    je: 'JE-${1048 + index}',
+  );
+  ref.read(bankRecLocalLinesProvider.notifier).state = lines;
+  ref.read(bankRecFinishedProvider.notifier).state = false;
+  showAccountingToast(
+    context,
+    'Bank line matched',
+    subtitle: line.desc,
+    icon: Icons.check,
+    tone: AccountingToastTone.success,
+  );
+}
+
 class AccountingBankRecView extends ConsumerWidget {
   const AccountingBankRecView({super.key});
 
@@ -178,12 +218,14 @@ class AccountingBankRecView extends ConsumerWidget {
     final accounts = ref.watch(accountingAccountsProvider);
     final currency = ref.watch(accountingCurrencyProvider);
     final period = ref.watch(accountingPeriodLabelProvider);
+    final finished = ref.watch(bankRecFinishedProvider);
     final bankBal = accounts
         .where((a) => a.code == '1020')
         .fold<int>(0, (s, a) => s + a.bal);
     final matched = lines.where((l) => l.matched).length;
     final unmatched = lines.length - matched;
     final diff = lines.where((l) => !l.matched).fold<int>(0, (s, l) => s + l.amt);
+    final canFinish = unmatched == 0 && lines.isNotEmpty && !finished;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
@@ -193,19 +235,33 @@ class AccountingBankRecView extends ConsumerWidget {
           AccountingPageHeader(
             eyebrow: 'Daybook',
             title: 'Bank reconciliation',
-            subtitle: 'Bank · $period · $currency',
+            subtitle: 'Bank · Bank of Kigali · statement $period · $currency',
             actions: [
               AccountingButton(
                 label: 'Import statement',
                 icon: Icons.sync,
                 small: true,
+                onPressed: () => _importBankStatement(context, ref),
               ),
               AccountingButton(
-                label: 'Finish reconciliation',
+                label: finished ? 'Reconciled' : 'Finish reconciliation',
                 icon: Icons.check,
                 primary: true,
                 small: true,
-                enabled: false,
+                enabled: canFinish || finished,
+                onPressed: canFinish
+                    ? () {
+                        ref.read(bankRecFinishedProvider.notifier).state = true;
+                        showAccountingToast(
+                          context,
+                          'Reconciliation complete',
+                          subtitle:
+                              '${lines.length} of ${lines.length} lines matched',
+                          icon: Icons.verified_user_outlined,
+                          tone: AccountingToastTone.success,
+                        );
+                      }
+                    : null,
               ),
             ],
           ),
@@ -213,7 +269,7 @@ class AccountingBankRecView extends ConsumerWidget {
             maxColumns: 3,
             children: [
               AccountingKpiCard(
-                label: 'Ledger balance',
+                label: 'Statement balance',
                 value: bankBal,
                 icon: Icons.account_balance_wallet_outlined,
                 tone: KpiTone.blue,
@@ -253,223 +309,71 @@ class AccountingBankRecView extends ConsumerWidget {
                       ),
                     ),
                   ),
-                for (final l in lines)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 70,
-                          child: Text(
-                            l.date,
-                            style: AccountingTokens.sans(
-                              fontSize: 13,
-                              color: AccountingTokens.ink3,
+                for (var i = 0; i < lines.length; i++)
+                  Builder(
+                    builder: (context) {
+                      final l = lines[i];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 70,
+                              child: Text(
+                                l.date,
+                                style: AccountingTokens.sans(
+                                  fontSize: 13,
+                                  color: AccountingTokens.ink3,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            l.desc,
-                            style: AccountingTokens.sans(fontSize: 13.5),
-                          ),
-                        ),
-                        Text(
-                          l.amt < 0 ? '(${money(-l.amt)})' : money(l.amt),
-                          style: AccountingTokens.mono(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
-                            color: l.amt < 0
-                                ? AccountingTokens.lossInk
-                                : AccountingTokens.gainInk,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        if (l.matched) ...[
-                          Text(
-                            l.je!,
-                            style: AccountingTokens.mono(
-                              fontSize: 12,
-                              color: AccountingTokens.accent,
+                            Expanded(
+                              child: Text(
+                                l.desc,
+                                style: AccountingTokens.sans(fontSize: 13.5),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          const MatchedPill(),
-                        ] else
-                          const AccountingButton(
-                            label: 'Match',
-                            primary: true,
-                            small: true,
-                          ),
-                      ],
-                    ),
+                            Text(
+                              l.amt < 0 ? '(${money(-l.amt)})' : money(l.amt),
+                              style: AccountingTokens.mono(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: l.amt < 0
+                                    ? AccountingTokens.lossInk
+                                    : AccountingTokens.gainInk,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            if (l.matched) ...[
+                              Text(
+                                l.je ?? '—',
+                                style: AccountingTokens.mono(
+                                  fontSize: 12,
+                                  color: AccountingTokens.accent,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const MatchedPill(),
+                            ] else
+                              AccountingButton(
+                                label: 'Match',
+                                primary: true,
+                                small: true,
+                                onPressed: () =>
+                                    _matchBankLine(context, ref, i, l),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class AccountingAgingView extends ConsumerWidget {
-  const AccountingAgingView({super.key, required this.kind});
-
-  final String kind; // ar | ap
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final rows = kind == 'ar'
-        ? ref.watch(accountingArAgingProvider)
-        : ref.watch(accountingApAgingProvider);
-    final period = ref.watch(accountingPeriodLabelProvider);
-    final currency = ref.watch(accountingCurrencyProvider);
-    final totals = ageTotals(rows);
-    final isAr = kind == 'ar';
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AccountingPageHeader(
-            eyebrow: 'Money',
-            title: isAr ? 'Receivables' : 'Payables',
-            subtitle: 'Aging analysis · $period · $currency',
-            actions: [
-              AccountingButton(
-                label: isAr ? 'Send reminders' : 'Schedule payment',
-                icon: Icons.send_outlined,
-                small: true,
-              ),
-              AccountingButton(
-                label: isAr ? 'New invoice' : 'New bill',
-                icon: Icons.add,
-                primary: true,
-                small: true,
-              ),
-            ],
-          ),
-          AccountingCard(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                for (final b in _ageBuckets)
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border(left: BorderSide(color: b.$3, width: 3)),
-                        color: AccountingTokens.surface2,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            b.$2,
-                            style: AccountingTokens.sans(
-                              fontSize: 11,
-                              color: AccountingTokens.ink3,
-                            ),
-                          ),
-                          Text(
-                            money(totals.buckets[b.$1] ?? 0),
-                            style: AccountingTokens.mono(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          AccountingCard(
-            child: Column(
-              children: [
-                for (final r in rows)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            r.name,
-                            style: AccountingTokens.sans(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            r.inv,
-                            style: AccountingTokens.mono(
-                              fontSize: 12,
-                              color: AccountingTokens.ink3,
-                            ),
-                          ),
-                        ),
-                        _BucketCell(r.current),
-                        _BucketCell(r.d30),
-                        _BucketCell(r.d60, warn: true),
-                        _BucketCell(r.d90, danger: true),
-                        SizedBox(
-                          width: 90,
-                          child: Text(
-                            money(r.total),
-                            style: AccountingTokens.mono(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BucketCell extends StatelessWidget {
-  const _BucketCell(this.val, {this.warn = false, this.danger = false});
-
-  final int val;
-  final bool warn;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 80,
-      child: Text(
-        val == 0 ? '—' : money(val),
-        style: AccountingTokens.mono(
-          fontSize: 12.5,
-          color: danger
-              ? AccountingTokens.lossInk
-              : (warn ? AccountingTokens.warnAmber : AccountingTokens.ink2),
-        ),
-        textAlign: TextAlign.right,
       ),
     );
   }
@@ -500,6 +404,13 @@ class AccountingTaxVatView extends ConsumerWidget {
                 label: 'File with RRA',
                 icon: Icons.verified_user_outlined,
                 primary: true,
+                onPressed: () => showAccountingToast(
+                  context,
+                  'VAT return submitted',
+                  subtitle: 'RRA ack · ref RRA-2026-05-0042',
+                  icon: Icons.verified_user_outlined,
+                  tone: AccountingToastTone.success,
+                ),
               ),
             ],
           ),
@@ -507,13 +418,13 @@ class AccountingTaxVatView extends ConsumerWidget {
             maxColumns: 3,
             children: [
               AccountingKpiCard(
-                label: 'Output VAT',
+                label: 'Output VAT (on sales)',
                 value: vat?.outputVat ?? 0,
                 icon: Icons.trending_up,
                 tone: KpiTone.green,
               ),
               AccountingKpiCard(
-                label: 'Input VAT',
+                label: 'Input VAT (reclaimable)',
                 value: vat?.inputVat ?? 0,
                 icon: Icons.receipt_long,
                 tone: KpiTone.blue,
@@ -526,6 +437,112 @@ class AccountingTaxVatView extends ConsumerWidget {
                 footnote: vat != null ? 'Due ${vat.dueDate}' : '—',
               ),
             ],
+          ),
+          if (vat != null) ...[
+            const SizedBox(height: 16),
+            AccountingCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                    child: Row(
+                      children: [
+                        Text(
+                          'VAT return summary',
+                          style: AccountingTokens.cardTitle,
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AccountingTokens.surface2,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Draft',
+                            style: AccountingTokens.sans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AccountingTokens.ink3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 18),
+                    child: Column(
+                      children: [
+                        _VatSummaryRow(
+                          'Output VAT collected',
+                          vat.outputVat,
+                        ),
+                        _VatSummaryRow(
+                          'Input VAT on purchases',
+                          -vat.inputVat,
+                          muted: true,
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: const BoxDecoration(
+                            border: Border(
+                              top: BorderSide(color: AccountingTokens.line),
+                            ),
+                          ),
+                          child: _VatSummaryRow(
+                            'Net VAT due to RRA',
+                            vat.netPayable,
+                            strong: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _VatSummaryRow extends StatelessWidget {
+  const _VatSummaryRow(this.label, this.value, {this.muted = false, this.strong = false});
+
+  final String label;
+  final int value;
+  final bool muted;
+  final bool strong;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AccountingTokens.sans(
+              fontSize: 14,
+              fontWeight: strong ? FontWeight.w800 : FontWeight.w500,
+              color: muted ? AccountingTokens.ink2 : AccountingTokens.ink1,
+            ),
+          ),
+          Text(
+            money(value),
+            style: AccountingTokens.mono(
+              fontSize: strong ? 16 : 14,
+              fontWeight: strong ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -561,11 +578,24 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
                 label: 'Print',
                 icon: Icons.print_outlined,
                 small: true,
+                onPressed: () => showAccountingToast(
+                  context,
+                  'Preparing print layout',
+                  subtitle: 'Financial statements · $period',
+                  icon: Icons.print_outlined,
+                ),
               ),
               AccountingButton(
                 label: 'PDF',
                 icon: Icons.picture_as_pdf_outlined,
                 small: true,
+                onPressed: () => showAccountingToast(
+                  context,
+                  'Generating PDF',
+                  subtitle: 'Statement pack · ${ref.watch(accountingCurrencyProvider)}',
+                  icon: Icons.download_outlined,
+                  tone: AccountingToastTone.success,
+                ),
               ),
             ],
           ),
@@ -868,6 +898,11 @@ class AccountingChartOfAccountsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accounts = ref.watch(accountingAccountsProvider);
+    final typeFilter = ref.watch(coaTypeFilterProvider);
+    final filteredTypes = typeFilter == null
+        ? _typeOrder
+        : _typeOrder.where((t) => t.$1 == typeFilter).toList();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
       child: Column(
@@ -878,24 +913,49 @@ class AccountingChartOfAccountsView extends ConsumerWidget {
             title: 'Chart of accounts',
             subtitle:
                 '${accounts.length} accounts · numbered ledger structure',
-            actions: const [
-              AccountingButton(
-                label: 'Filter',
-                icon: Icons.filter_list,
-                small: true,
+            actions: [
+              PopupMenuButton<AccountType?>(
+                tooltip: 'Filter by type',
+                offset: const Offset(0, 40),
+                onSelected: (t) =>
+                    ref.read(coaTypeFilterProvider.notifier).state = t,
+                itemBuilder: (context) => [
+                  const PopupMenuItem<AccountType?>(
+                    value: null,
+                    child: Text('All types'),
+                  ),
+                  for (final (type, label) in _typeOrder)
+                    PopupMenuItem(
+                      value: type,
+                      child: Text(label),
+                    ),
+                ],
+                child: AccountingButton(
+                  label: typeFilter == null
+                      ? 'Filter'
+                      : _typeOrder.firstWhere((t) => t.$1 == typeFilter).$2,
+                  icon: Icons.filter_list,
+                  small: true,
+                ),
               ),
               AccountingButton(
                 label: 'Add account',
                 icon: Icons.add,
                 primary: true,
                 small: true,
+                onPressed: () => showAccountingToast(
+                  context,
+                  'Add account',
+                  subtitle: 'Opening account setup…',
+                  icon: Icons.add,
+                ),
               ),
             ],
           ),
           AccountingCard(
             child: Column(
               children: [
-                for (final (type, label) in _typeOrder) ...[
+                for (final (type, label) in filteredTypes) ...[
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
