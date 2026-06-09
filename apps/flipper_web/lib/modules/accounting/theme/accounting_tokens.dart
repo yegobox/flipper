@@ -17,6 +17,7 @@ abstract final class AccountingTokens {
   static const Color lineStrong = Color(0xFFD1D5DB);
   static const Color accent = Color(0xFF2563EB);
   static const Color accentTint = Color(0xFFEAF1FE);
+  static const Color accentTint2 = Color(0xFFDEEAFD);
   static const Color gain = Color(0xFF16A34A);
   static const Color gainInk = Color(0xFF15803D);
   static const Color gainTint = Color(0xFFE7F6EE);

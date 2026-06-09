@@ -16,9 +16,15 @@ class AccountingJournalView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final JournalFilter filter = ref.watch(journalFilterProvider);
-    final pending = pendingJournalCount();
-    final list = demoJournal.where((e) {
+    final filter = ref.watch(journalFilterProvider);
+    final pending = ref.watch(pendingCountProvider);
+    final isLoading = ref.watch(accountingLoadingProvider);
+
+    // Use live journal entries when available; fall back to demo while loading.
+    final liveJournal = ref.watch(accountingJournalProvider);
+    final journal = liveJournal.isEmpty ? demoJournal : liveJournal;
+
+    final list = journal.where((e) {
       return switch (filter) {
         JournalFilter.all => true,
         JournalFilter.posted => e.status == JournalStatus.posted,
@@ -35,12 +41,27 @@ class AccountingJournalView extends ConsumerWidget {
           AccountingPageHeader(
             eyebrow: 'Daybook',
             title: 'Journal entries',
-            subtitle: 'Every transaction as a balanced double entry · $demoCurrency',
+            subtitle:
+                'Every transaction as a balanced double entry · $demoCurrency',
             actions: [
-              const AccountingButton(label: 'Filter', icon: Icons.filter_list, small: true),
-              AccountingButton(label: 'New journal entry', icon: Icons.add, primary: true, onPressed: onNewEntry),
+              const AccountingButton(
+                label: 'Filter',
+                icon: Icons.filter_list,
+                small: true,
+              ),
+              AccountingButton(
+                label: 'New journal entry',
+                icon: Icons.add,
+                primary: true,
+                onPressed: onNewEntry,
+              ),
             ],
           ),
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: LinearProgressIndicator(),
+            ),
           Wrap(
             spacing: 6,
             runSpacing: 8,
@@ -56,25 +77,55 @@ class AccountingJournalView extends ConsumerWidget {
                 final on = filter == f;
                 return ChoiceChip(
                   label: Text(
-                    f == JournalFilter.pending && pending > 0 ? '$label ($pending)' : label,
-                    style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w600, color: on ? AccountingTokens.accent : AccountingTokens.ink2),
+                    f == JournalFilter.pending && pending > 0
+                        ? '$label ($pending)'
+                        : label,
+                    style: AccountingTokens.sans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: on
+                          ? AccountingTokens.accent
+                          : AccountingTokens.ink2,
+                    ),
                   ),
                   selected: on,
-                  onSelected: (_) => ref.read(journalFilterProvider.notifier).state = f,
+                  onSelected: (_) =>
+                      ref.read(journalFilterProvider.notifier).state = f,
                   selectedColor: AccountingTokens.accentTint,
                   backgroundColor: AccountingTokens.surface,
-                  side: BorderSide(color: on ? AccountingTokens.accent : AccountingTokens.line),
+                  side: BorderSide(
+                    color: on ? AccountingTokens.accent : AccountingTokens.line,
+                  ),
                 );
               }),
               if (pending > 0)
-                Text('$pending entries awaiting approval', style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.warnAmber, fontWeight: FontWeight.w600)),
+                Text(
+                  '$pending entries awaiting approval',
+                  style: AccountingTokens.sans(
+                    fontSize: 13,
+                    color: AccountingTokens.warnAmber,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 16),
           AccountingCard(
             child: Column(
               children: [
-                for (final e in list) _JournalRow(entry: e),
+                if (list.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      'No entries match this filter.',
+                      style: AccountingTokens.sans(
+                        fontSize: 13.5,
+                        color: AccountingTokens.ink3,
+                      ),
+                    ),
+                  )
+                else
+                  for (final e in list) _JournalRow(entry: e),
               ],
             ),
           ),
@@ -102,8 +153,21 @@ class _JournalRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(entry.id, style: AccountingTokens.mono(fontSize: 13, fontWeight: FontWeight.w700, color: AccountingTokens.accent)),
-                Text('${entry.date} · ${entry.ref}', style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink3)),
+                Text(
+                  entry.id,
+                  style: AccountingTokens.mono(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AccountingTokens.accent,
+                  ),
+                ),
+                Text(
+                  '${entry.date} · ${entry.ref}',
+                  style: AccountingTokens.sans(
+                    fontSize: 11.5,
+                    color: AccountingTokens.ink3,
+                  ),
+                ),
               ],
             ),
           ),
@@ -111,11 +175,22 @@ class _JournalRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(entry.memo, style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w500)),
+                Text(
+                  entry.memo,
+                  style: AccountingTokens.sans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  entry.lines.map((l) => '${l.dr > 0 ? 'Dr' : 'Cr'} ${acctName(l.ac)}').join(' · '),
-                  style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.ink3),
+                  entry.lines
+                      .map((l) => '${l.dr > 0 ? 'Dr' : 'Cr'} ${acctName(l.ac)}')
+                      .join(' · '),
+                  style: AccountingTokens.sans(
+                    fontSize: 12,
+                    color: AccountingTokens.ink3,
+                  ),
                 ),
               ],
             ),
@@ -128,12 +203,28 @@ class _JournalRow extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: AccountingTokens.surface2, borderRadius: BorderRadius.circular(6)),
-                  child: Text(entry.src, style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink2)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AccountingTokens.surface2,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    entry.src,
+                    style: AccountingTokens.sans(
+                      fontSize: 11.5,
+                      color: AccountingTokens.ink2,
+                    ),
+                  ),
                 ),
                 StatusPill(status: entry.status),
-                Text(money(t.dr), style: AccountingTokens.mono(fontSize: 14, fontWeight: FontWeight.w700)),
+                Text(
+                  money(t.dr),
+                  style: AccountingTokens.mono(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
           ),

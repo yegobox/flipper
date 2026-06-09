@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -8,7 +9,10 @@ class FlipperLogo extends StatelessWidget {
   final double size;
 
   static const _assetPath = 'assets/icons/flipper-logo.svg';
-  static const _package = 'flipper_web';
+
+  /// When [flipper_web] is the host app (web), assets live at `assets/…`.
+  /// When embedded in native Flipper, they live under `packages/flipper_web/…`.
+  static String? get _package => kIsWeb ? null : 'flipper_web';
 
   @override
   Widget build(BuildContext context) {
