@@ -597,7 +597,7 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
                   _StmtRow('Cost of goods sold', -pl.cogs),
                   _StmtRow('Gross profit', pl.grossProfit),
                   _StmtRow('Operating expenses', -pl.totalOpex),
-                  _StmtRow('Net income', pl.netIncome, total: true),
+                  _StmtRow(profitOrLossLabel(pl.netIncome), pl.netIncome, total: true),
                 ],
               ),
               StatementsTab.balance => _StmtBody(
@@ -662,27 +662,36 @@ class _StmtBody extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         for (final r in rows)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  r.label,
-                  style: AccountingTokens.sans(
-                    fontSize: 14,
-                    fontWeight: r.total ? FontWeight.w800 : FontWeight.w500,
-                  ),
+          Builder(
+            builder: (context) {
+              final loss = r.total && r.value < 0;
+              final emphasis =
+                  loss ? AccountingTokens.lossInk : AccountingTokens.ink1;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      r.label,
+                      style: AccountingTokens.sans(
+                        fontSize: 14,
+                        fontWeight: r.total ? FontWeight.w800 : FontWeight.w500,
+                        color: r.total ? emphasis : AccountingTokens.ink1,
+                      ),
+                    ),
+                    Text(
+                      money(r.value),
+                      style: AccountingTokens.mono(
+                        fontSize: r.total ? 19 : 14,
+                        fontWeight: r.total ? FontWeight.w800 : FontWeight.w600,
+                        color: r.total ? emphasis : AccountingTokens.ink1,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  money(r.value),
-                  style: AccountingTokens.mono(
-                    fontSize: r.total ? 19 : 14,
-                    fontWeight: r.total ? FontWeight.w800 : FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
         if (balanced)
           Padding(

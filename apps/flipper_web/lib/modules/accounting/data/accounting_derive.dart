@@ -130,6 +130,10 @@ AgeTotals ageTotals(List<AgingRow> rows) {
   return AgeTotals(buckets: buckets, total: total);
 }
 
+/// Formats amounts for financial statements.
+///
+/// Negative values use parentheses — standard under US GAAP and widely used in
+/// IFRS filings (e.g. (200) = loss or deduction). Positive values are unsigned.
 String money(int? n, {bool sign = false}) {
   if (n == null) return '—';
   final neg = n < 0;
@@ -137,6 +141,10 @@ String money(int? n, {bool sign = false}) {
   if (neg) return '($s)';
   return '${sign ? '+' : ''}$s';
 }
+
+/// IAS 1: the bottom line is profit or loss for the period, not always "income".
+String profitOrLossLabel(int netIncome) =>
+    netIncome < 0 ? 'Net loss' : 'Net income';
 
 String compact(int n) {
   final abs = n.abs();

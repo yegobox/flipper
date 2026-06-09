@@ -85,10 +85,12 @@ class AccountingDashboardView extends ConsumerWidget {
           AccountingKpiGrid(
             children: [
               AccountingKpiCard(
-                label: 'Net income',
+                label: profitOrLossLabel(pl.netIncome),
                 value: pl.netIncome,
-                icon: Icons.trending_up,
-                tone: KpiTone.green,
+                icon: pl.netIncome < 0
+                    ? Icons.trending_down
+                    : Icons.trending_up,
+                tone: pl.netIncome < 0 ? KpiTone.red : KpiTone.green,
                 delta: incomeDelta,
                 footnote: incomeDelta != null ? 'vs prior period' : null,
               ),
@@ -383,34 +385,41 @@ class _MiniPlCard extends StatelessWidget {
           _PlRow('Cost of goods sold', -pl.cogs, muted: true),
           _PlRow('Gross profit', pl.grossProfit, strong: true),
           _PlRow('Operating expenses', -pl.totalOpex, muted: true),
-          Container(
-            margin: const EdgeInsets.only(top: 10),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AccountingTokens.gainTint,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Net income',
-                  style: AccountingTokens.sans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: AccountingTokens.gainInk,
-                  ),
+          Builder(
+            builder: (context) {
+              final loss = pl.netIncome < 0;
+              final bg = loss ? AccountingTokens.lossTint : AccountingTokens.gainTint;
+              final fg = loss ? AccountingTokens.lossInk : AccountingTokens.gainInk;
+              return Container(
+                margin: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                Text(
-                  money(pl.netIncome),
-                  style: AccountingTokens.mono(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800,
-                    color: AccountingTokens.gainInk,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      profitOrLossLabel(pl.netIncome),
+                      style: AccountingTokens.sans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: fg,
+                      ),
+                    ),
+                    Text(
+                      money(pl.netIncome),
+                      style: AccountingTokens.mono(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        color: fg,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
       ),

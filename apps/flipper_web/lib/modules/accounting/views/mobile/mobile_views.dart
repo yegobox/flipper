@@ -165,7 +165,10 @@ class _HeroCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('Net income · $period', style: AccountingTokens.sans(fontSize: 12.5, color: Colors.white70)),
+              Text(
+                '${profitOrLossLabel(netIncome)} · $period',
+                style: AccountingTokens.sans(fontSize: 12.5, color: Colors.white70),
+              ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -391,7 +394,7 @@ class AccountingStatementDetail extends ConsumerWidget {
                   _SRow('COGS', -pl.cogs),
                   _SRow('Gross profit', pl.grossProfit),
                   _SRow('Operating expenses', -pl.totalOpex),
-                  _SRow('Net income', pl.netIncome, bold: true),
+                  _SRow(profitOrLossLabel(pl.netIncome), pl.netIncome, bold: true),
                 ],
               MobileReportKey.bs => [
                   _SRow('Total assets', bs.totalAssets),
@@ -442,13 +445,29 @@ class _SRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loss = bold && value < 0;
+    final emphasis = loss ? AccountingTokens.lossInk : AccountingTokens.ink1;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AccountingTokens.sans(fontSize: 14, fontWeight: bold ? FontWeight.w800 : FontWeight.w500)),
-          Text(labelOverride ?? money(value), style: AccountingTokens.mono(fontSize: bold ? 16 : 14, fontWeight: bold ? FontWeight.w800 : FontWeight.w600)),
+          Text(
+            label,
+            style: AccountingTokens.sans(
+              fontSize: 14,
+              fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
+              color: emphasis,
+            ),
+          ),
+          Text(
+            labelOverride ?? money(value),
+            style: AccountingTokens.mono(
+              fontSize: bold ? 16 : 14,
+              fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+              color: emphasis,
+            ),
+          ),
         ],
       ),
     );

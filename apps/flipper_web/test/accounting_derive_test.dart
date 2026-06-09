@@ -67,6 +67,12 @@ void main() {
       expect(money(1234567), '1,234,567');
     });
 
+    test('profitOrLossLabel follows IAS 1 wording', () {
+      expect(profitOrLossLabel(100), 'Net income');
+      expect(profitOrLossLabel(0), 'Net income');
+      expect(profitOrLossLabel(-200), 'Net loss');
+    });
+
     test('pendingJournalCount counts pending only', () {
       final journal = [
         const JournalEntry(
