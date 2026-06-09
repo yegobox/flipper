@@ -145,9 +145,95 @@ void main() {
       // Assert
       expect(result.id, equals(testUserProfile.id));
       expect(result.phoneNumber, equals(testUserProfile.phoneNumber));
-      verify(
-        () => mockUser.phone,
-      ).called(2); // Verify phone number was accessed
+      verify(() => mockUser.phone).called(1);
+    });
+
+    test('fetchAndSaveUserProfile uses explicit login key when session phone is empty',
+        () async {
+      when(() => mockUser.phone).thenReturn(null);
+      when(() => mockUser.email).thenReturn('agent@example.com');
+
+      final mockResponse = MockResponse();
+      when(() => mockResponse.statusCode).thenReturn(200);
+      when(() => mockResponse.body).thenReturn(jsonEncode(testUserProfileJson));
+      when(() => mockDittoService.saveUserProfile(any())).thenAnswer((_) async {});
+      when(
+        () => mockHttpClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => mockResponse);
+
+      await userRepository.fetchAndSaveUserProfile(
+        mockSession,
+        loginKey: '+250783054884',
+      );
+
+      final captured = verify(
+        () => mockHttpClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: captureAny(named: 'body'),
+        ),
+      ).captured.single as String;
+      expect(captured, contains('+250783054884'));
+      verifyNever(() => mockUser.phone);
+    });
+
+    test('fetchAndSaveUserProfile parses flipper-turbo API shape', () async {
+      final apiResponse = {
+        'id': '75060',
+        'phone_number': '+250783054884',
+        'pin': 75060,
+        'businesses': [
+          {
+            'id': '6330e99b-39c3-4e95-9186-9322974bd95e',
+            'name': 'Muri',
+            'country': 'Rwanda',
+            'currency': 'RWF',
+            'latitude': 1,
+            'longitude': 1,
+            'active': true,
+            'user_id': '75060',
+            'branches': [
+              {
+                'id': '5efbf694-6ae4-437d-b6af-14586c961d6b',
+                'name': 'Muri',
+                'description': 'Default branch',
+                'latitude': 1,
+                'longitude': 1,
+                'is_default': true,
+                'server_id': 24862400,
+                'business_id': '6330e99b-39c3-4e95-9186-9322974bd95e',
+                'active': true,
+              },
+            ],
+          },
+        ],
+      };
+
+      final mockResponse = MockResponse();
+      when(() => mockResponse.statusCode).thenReturn(200);
+      when(() => mockResponse.body).thenReturn(jsonEncode(apiResponse));
+      when(() => mockDittoService.saveUserProfile(any())).thenAnswer((_) async {});
+      when(
+        () => mockHttpClient.post(
+          any(),
+          headers: any(named: 'headers'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => mockResponse);
+
+      final result = await userRepository.fetchAndSaveUserProfile(mockSession);
+
+      expect(result.id, '75060');
+      expect(result.tenants, hasLength(1));
+      expect(result.tenants.first.businesses, hasLength(1));
+      expect(result.tenants.first.businesses.first.name, 'Muri');
+      expect(result.tenants.first.branches, hasLength(1));
+      expect(result.tenants.first.branches.first.businessId,
+          '6330e99b-39c3-4e95-9186-9322974bd95e');
     });
 
     test('getCurrentUserProfile calls DittoService.getUserProfile', () async {

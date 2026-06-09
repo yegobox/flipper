@@ -15,6 +15,10 @@ class UserProfile {
     this.pin,
   });
 
+  /// True when at least one tenant has a business to select.
+  bool get hasBusinesses =>
+      tenants.any((tenant) => tenant.businesses.isNotEmpty);
+
   factory UserProfile.fromJson(Map<String, dynamic> json, {String? id}) {
     return UserProfile(
       id: id ?? json['id'].toString(),
@@ -24,6 +28,74 @@ class UserProfile {
           .map((e) => Tenant.fromJson(e))
           .toList(),
       pin: json['pin'],
+    );
+  }
+
+  /// Parses POST `/v2/api/user` (flipper-turbo `get_user_with_nested_data`).
+  /// The API returns top-level `businesses` with snake_case keys, not `tenants`.
+  factory UserProfile.fromApiResponse(
+    Map<String, dynamic> json, {
+    String? sessionUserId,
+  }) {
+    if (json['tenants'] is List) {
+      return UserProfile.fromJson(json, id: sessionUserId);
+    }
+
+    final id = (json['id'] ?? sessionUserId).toString();
+    final phoneNumber =
+        (json['phone_number'] ?? json['phoneNumber'] ?? '').toString();
+    final pin = json['pin'] is int
+        ? json['pin'] as int
+        : int.tryParse('${json['pin']}');
+    final token = (json['token'] ?? '').toString();
+
+    final businessesRaw = json['businesses'] as List? ?? [];
+    final businesses = <Business>[];
+    final branches = <Branch>[];
+
+    for (final entry in businessesRaw) {
+      final map = Map<String, dynamic>.from(entry as Map);
+      final businessId = map['id'].toString();
+      businesses.add(
+        Business.fromApiJson(map, fallbackPhone: phoneNumber),
+      );
+      final branchesRaw = map['branches'] as List? ?? [];
+      for (final branchEntry in branchesRaw) {
+        branches.add(
+          Branch.fromApiJson(
+            Map<String, dynamic>.from(branchEntry as Map),
+            businessId: businessId,
+          ),
+        );
+      }
+    }
+
+    final tenants = businesses.isEmpty
+        ? <Tenant>[]
+        : [
+            Tenant(
+              id: id,
+              name: businesses.first.name,
+              phoneNumber: phoneNumber,
+              email: '',
+              imageUrl: '',
+              permissions: const [],
+              branches: branches,
+              businesses: businesses,
+              nfcEnabled: false,
+              userId: int.tryParse(id) ?? pin ?? 0,
+              pin: pin ?? int.tryParse(id) ?? 0,
+              isDefault: true,
+              type: (json['ownership'] ?? 'User').toString(),
+            ),
+          ];
+
+    return UserProfile(
+      id: id,
+      phoneNumber: phoneNumber,
+      token: token,
+      tenants: tenants,
+      pin: pin,
     );
   }
 
@@ -143,16 +215,27 @@ class Branch {
   });
 
   factory Branch.fromJson(Map<String, dynamic> json) {
+    return Branch.fromApiJson(json);
+  }
+
+  factory Branch.fromApiJson(
+    Map<String, dynamic> json, {
+    String? businessId,
+  }) {
     return Branch(
-      id: json['id'],
-      description: json['description'] ?? '',
-      name: json['name'] ?? '',
-      longitude: json['longitude'] ?? '',
-      latitude: json['latitude'] ?? '',
-      businessId: json['businessId'] as String? ?? "",
-      serverId: json['serverId'] as int? ?? 0,
-      active: json['active'] ?? false,
-      isDefault: json['is_default'] ?? false,
+      id: json['id'].toString(),
+      description: json['description']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      longitude: _asString(json['longitude']),
+      latitude: _asString(json['latitude']),
+      businessId:
+          businessId ??
+          json['business_id']?.toString() ??
+          json['businessId']?.toString() ??
+          '',
+      serverId: _asInt(json['server_id'] ?? json['serverId']),
+      active: json['active'] as bool? ?? true,
+      isDefault: json['is_default'] as bool? ?? false,
     );
   }
 
@@ -213,26 +296,34 @@ class Business {
   });
 
   factory Business.fromJson(Map<String, dynamic> json) {
+    return Business.fromApiJson(json);
+  }
+
+  factory Business.fromApiJson(
+    Map<String, dynamic> json, {
+    String? fallbackPhone,
+  }) {
     return Business(
-      id: json['id'],
-      name: json['name'] ?? '',
-      country: json['country'] ?? '',
-      currency: json['currency'] ?? '',
-      latitude: json['latitude'] ?? '',
-      longitude: json['longitude'] ?? '',
-      active: json['active'] ?? false,
-      userId: json['userId'] ?? '',
-      phoneNumber: json['phoneNumber'] ?? '',
-      lastSeen: json['lastSeen'] as int? ?? 0,
-      backUpEnabled: json['backUpEnabled'] ?? false,
-      fullName: json['fullName'] ?? '',
-      tinNumber: json['tinNumber'] as int? ?? 0,
-      taxEnabled: json['taxEnabled'] ?? false,
-      businessTypeId: json['businessTypeId'] as int? ?? 0,
-      serverId: json['serverId'] as int? ?? 0,
-      isDefault: json['is_default'] ?? false,
+      id: json['id'].toString(),
+      name: json['name']?.toString() ?? '',
+      country: json['country']?.toString() ?? '',
+      currency: json['currency']?.toString() ?? '',
+      latitude: _asString(json['latitude']),
+      longitude: _asString(json['longitude']),
+      active: json['active'] as bool? ?? true,
+      userId: json['user_id']?.toString() ?? json['userId']?.toString() ?? '',
+      phoneNumber:
+          json['phoneNumber']?.toString() ?? fallbackPhone ?? '',
+      lastSeen: _asInt(json['lastSeen']),
+      backUpEnabled: json['backUpEnabled'] as bool? ?? false,
+      fullName: json['fullName']?.toString() ?? json['name']?.toString() ?? '',
+      tinNumber: _asInt(json['tinNumber']),
+      taxEnabled: json['taxEnabled'] as bool? ?? false,
+      businessTypeId: _asInt(json['businessTypeId']),
+      serverId: _asInt(json['server_id'] ?? json['serverId']),
+      isDefault: json['is_default'] as bool? ?? false,
       lastSubscriptionPaymentSucceeded:
-          json['lastSubscriptionPaymentSucceeded'] ?? false,
+          json['lastSubscriptionPaymentSucceeded'] as bool? ?? false,
     );
   }
 
@@ -258,4 +349,16 @@ class Business {
       'lastSubscriptionPaymentSucceeded': lastSubscriptionPaymentSucceeded,
     };
   }
+}
+
+String _asString(dynamic value) {
+  if (value == null) return '';
+  return value.toString();
+}
+
+int _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
 }

@@ -399,6 +399,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
       child: SizedBox(
         height: 0,
         child: TextFormField(
+          key: const Key('pin_hidden_input'),
           controller: _pinController,
           focusNode: _pinFocus,
           autofocus: true,
@@ -456,6 +457,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
         ),
         const SizedBox(height: 10),
         TextFormField(
+          key: const Key('otp_input'),
           controller: _otpController,
           focusNode: _otpFocus,
           keyboardType: TextInputType.number,
