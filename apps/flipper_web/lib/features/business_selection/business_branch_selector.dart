@@ -9,11 +9,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'business_branch_selector.g.dart';
 
-enum AppRoute { dashboard, login, businessSelection }
+enum AppRoute { accounting, dashboard, login, businessSelection }
 
 extension AppRouteExtension on AppRoute {
   String get name {
     switch (this) {
+      case AppRoute.accounting:
+        return 'accounting';
       case AppRoute.dashboard:
         return 'dashboard';
       case AppRoute.login:
@@ -331,7 +333,7 @@ class _BusinessBranchSelectorState
     ref.read(selectedBranchProvider.notifier).set(branch);
 
     if (mounted) {
-      context.goNamed(AppRoute.dashboard.name);
+      context.goNamed(AppRoute.accounting.name);
     }
   }
 

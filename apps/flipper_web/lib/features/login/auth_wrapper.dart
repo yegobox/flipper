@@ -26,8 +26,8 @@ class AuthWrapper extends ConsumerWidget {
                 // Ensure the URL reflects the appropriate route for web
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   final current = Uri.base.path;
-                  if (hasSelected && current != '/dashboard') {
-                    context.go('/dashboard');
+                  if (hasSelected && current != '/accounting') {
+                    context.go('/accounting');
                   } else if (!hasSelected && current != '/business-selection') {
                     context.go('/business-selection');
                   }

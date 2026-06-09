@@ -1,0 +1,137 @@
+import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
+import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
+import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class AccountingJournalView extends ConsumerWidget {
+  const AccountingJournalView({super.key, required this.onNewEntry});
+
+  final VoidCallback onNewEntry;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final JournalFilter filter = ref.watch(journalFilterProvider);
+    final pending = pendingJournalCount();
+    final list = demoJournal.where((e) {
+      return switch (filter) {
+        JournalFilter.all => true,
+        JournalFilter.posted => e.status == JournalStatus.posted,
+        JournalFilter.pending => e.status == JournalStatus.pending,
+        JournalFilter.draft => e.status == JournalStatus.draft,
+      };
+    }).toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AccountingPageHeader(
+            eyebrow: 'Daybook',
+            title: 'Journal entries',
+            subtitle: 'Every transaction as a balanced double entry · $demoCurrency',
+            actions: [
+              const AccountingButton(label: 'Filter', icon: Icons.filter_list, small: true),
+              AccountingButton(label: 'New journal entry', icon: Icons.add, primary: true, onPressed: onNewEntry),
+            ],
+          ),
+          Row(
+            children: [
+              Wrap(
+                spacing: 6,
+                children: JournalFilter.values.map((f) {
+                  final label = switch (f) {
+                    JournalFilter.all => 'All',
+                    JournalFilter.posted => 'Posted',
+                    JournalFilter.pending => 'Pending',
+                    JournalFilter.draft => 'Drafts',
+                  };
+                  final on = filter == f;
+                  return ChoiceChip(
+                    label: Text(
+                      f == JournalFilter.pending && pending > 0 ? '$label ($pending)' : label,
+                      style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w600, color: on ? AccountingTokens.accent : AccountingTokens.ink2),
+                    ),
+                    selected: on,
+                    onSelected: (_) => ref.read(journalFilterProvider.notifier).state = f,
+                    selectedColor: AccountingTokens.accentTint,
+                    backgroundColor: AccountingTokens.surface,
+                    side: BorderSide(color: on ? AccountingTokens.accent : AccountingTokens.line),
+                  );
+                }).toList(),
+              ),
+              const Spacer(),
+              if (pending > 0)
+                Text('$pending entries awaiting approval', style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.warnAmber, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          AccountingCard(
+            child: Column(
+              children: [
+                for (final e in list) _JournalRow(entry: e),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _JournalRow extends StatelessWidget {
+  const _JournalRow({required this.entry});
+
+  final JournalEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = jeTotals(entry);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 130,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(entry.id, style: AccountingTokens.mono(fontSize: 13, fontWeight: FontWeight.w700, color: AccountingTokens.accent)),
+                Text('${entry.date} · ${entry.ref}', style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink3)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(entry.memo, style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 4),
+                Text(
+                  entry.lines.map((l) => '${l.dr > 0 ? 'Dr' : 'Cr'} ${acctName(l.ac)}').join(' · '),
+                  style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.ink3),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(color: AccountingTokens.surface2, borderRadius: BorderRadius.circular(6)),
+            child: Text(entry.src, style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink2)),
+          ),
+          const SizedBox(width: 12),
+          StatusPill(status: entry.status),
+          const SizedBox(width: 16),
+          Text(money(t.dr), style: AccountingTokens.mono(fontSize: 14, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
