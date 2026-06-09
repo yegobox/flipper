@@ -4,7 +4,6 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
-import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flipper_web/modules/accounting/widgets/trend_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -496,33 +495,3 @@ class AccountingMoreTab extends ConsumerWidget {
   }
 }
 
-class AccountingMobileHeader extends StatelessWidget {
-  const AccountingMobileHeader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      color: AccountingTokens.surface,
-      child: Row(
-        children: [
-          const BooksBrandRow(logoSize: 28),
-          const Spacer(),
-          Stack(
-            children: [
-              IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_outlined)),
-              Positioned(right: 12, top: 12, child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: AccountingTokens.loss, shape: BoxShape.circle))),
-            ],
-          ),
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(gradient: AccountingTokens.brandGradient, borderRadius: BorderRadius.all(Radius.circular(10))),
-            child: Text('DE', style: AccountingTokens.sans(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-}

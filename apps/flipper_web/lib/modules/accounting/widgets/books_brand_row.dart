@@ -2,10 +2,17 @@ import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/widgets/flipper_logo.dart';
 import 'package:flutter/material.dart';
 
+enum BooksBrandVariant { desktop, mobile }
+
 class BooksBrandRow extends StatelessWidget {
-  const BooksBrandRow({super.key, this.logoSize = 30});
+  const BooksBrandRow({
+    super.key,
+    this.logoSize = 30,
+    this.variant = BooksBrandVariant.desktop,
+  });
 
   final double logoSize;
+  final BooksBrandVariant variant;
 
   @override
   Widget build(BuildContext context) {
@@ -22,23 +29,7 @@ class BooksBrandRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: AccountingTokens.accentTint,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AccountingTokens.accent.withValues(alpha: 0.2)),
-          ),
-          child: Text(
-            'Books',
-            style: AccountingTokens.sans(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              color: AccountingTokens.accent,
-              letterSpacing: 0.06 * 10.5,
-            ),
-          ),
-        ),
+        _BooksBadge(variant: variant),
       ],
     );
 
@@ -66,6 +57,34 @@ class BooksBrandRow extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _BooksBadge extends StatelessWidget {
+  const _BooksBadge({required this.variant});
+
+  final BooksBrandVariant variant;
+
+  @override
+  Widget build(BuildContext context) {
+    final mobile = variant == BooksBrandVariant.mobile;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: mobile ? 7 : 8, vertical: mobile ? 2 : 3),
+      decoration: BoxDecoration(
+        color: mobile ? const Color(0xFFF3F4F6) : AccountingTokens.accentTint,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: mobile ? const Color(0xFFE5E7EB) : AccountingTokens.accent.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        mobile ? 'BOOKS' : 'Books',
+        style: AccountingTokens.sans(
+          fontSize: mobile ? 10 : 10.5,
+          fontWeight: FontWeight.w600,
+          color: mobile ? AccountingTokens.ink4 : AccountingTokens.accent,
+          letterSpacing: mobile ? 0.06 * 10 : 0.06 * 10.5,
+        ),
+      ),
     );
   }
 }
