@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/models/user_profile.dart';
@@ -91,6 +94,11 @@ final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
     // Warm the cache so subsequent reads are instant.
     if (userProfile != null && userProfile.hasBusinesses) {
       ref.read(userProfileCacheProvider.notifier).state = userProfile;
+    }
+
+    final dittoUserId = (pinUserId ?? userProfile?.id ?? '').trim();
+    if (dittoUserId.isNotEmpty) {
+      unawaited(DittoBootstrap.ensureInitialized(ref, userId: dittoUserId));
     }
 
     return userProfile;

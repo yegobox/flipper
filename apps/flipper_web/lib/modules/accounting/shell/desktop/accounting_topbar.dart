@@ -1,6 +1,5 @@
 import 'package:flipper_web/features/module_launcher/all_apps_sheet.dart';
 import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -22,6 +21,7 @@ class AccountingTopbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AccountingView view = ref.watch(accountingViewProvider);
+    final period = ref.watch(accountingPeriodLabelProvider);
 
     return Container(
       height: AccountingTokens.topbarHeight,
@@ -64,7 +64,7 @@ class AccountingTopbar extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                OutlinedButton(onPressed: () {}, child: Text(demoPeriod, style: AccountingTokens.sans(fontSize: 13))),
+                OutlinedButton(onPressed: () {}, child: Text(period, style: AccountingTokens.sans(fontSize: 13))),
               ],
               const SizedBox(width: 4),
               Stack(

@@ -45,8 +45,10 @@ class JournalEntry {
     required this.status,
     required this.src,
     required this.lines,
+    this.uuid,
   });
 
+  /// Human-readable entry number (e.g. JE-1047).
   final String id;
   final String date;
   final String memo;
@@ -54,6 +56,9 @@ class JournalEntry {
   final JournalStatus status;
   final String src;
   final List<JournalLine> lines;
+
+  /// Postgres / Ditto document UUID when loaded from the ledger backend.
+  final String? uuid;
 }
 
 class AgingRow {

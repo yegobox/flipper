@@ -1,9 +1,10 @@
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 class ComposerLine {
@@ -14,16 +15,16 @@ class ComposerLine {
   String cr;
 }
 
-class JournalComposer extends StatefulWidget {
+class JournalComposer extends ConsumerStatefulWidget {
   const JournalComposer({super.key, required this.onClose});
 
   final VoidCallback onClose;
 
   @override
-  State<JournalComposer> createState() => _JournalComposerState();
+  ConsumerState<JournalComposer> createState() => _JournalComposerState();
 }
 
-class _JournalComposerState extends State<JournalComposer> {
+class _JournalComposerState extends ConsumerState<JournalComposer> {
   final _memoCtrl = TextEditingController();
   final _refCtrl = TextEditingController(text: 'Auto · JE-1048');
   final _pickerLink = LayerLink();
@@ -64,6 +65,42 @@ class _JournalComposerState extends State<JournalComposer> {
       _lines = t.codes.map((c) => ComposerLine(ac: c)).toList();
       if (_lines.length < 2) _lines.add(ComposerLine());
     });
+  }
+
+  Future<void> _saveEntry({required bool pending}) async {
+    if (pending && !_canPost) return;
+    final businessId = ref.read(accountingBusinessIdProvider);
+    if (businessId.isEmpty) return;
+
+    final entry = JournalEntry(
+      id: _refCtrl.text,
+      date: _dateLabel,
+      memo: _memoCtrl.text,
+      ref: _refCtrl.text,
+      status: pending ? JournalStatus.pending : JournalStatus.draft,
+      src: 'Manual',
+      lines: [
+        for (final l in _lines)
+          if (l.ac.isNotEmpty)
+            JournalLine(
+              ac: l.ac,
+              dr: _parseInput(l.dr),
+              cr: _parseInput(l.cr),
+            ),
+      ],
+    );
+
+    await ref.read(accountingLedgerRepositoryProvider).createJournalEntry(
+          businessId: businessId,
+          entry: entry,
+          journalCode: 'misc',
+        );
+
+    if (pending) {
+      setState(() => _posted = true);
+    } else {
+      widget.onClose();
+    }
   }
 
   @override
@@ -148,6 +185,9 @@ class _JournalComposerState extends State<JournalComposer> {
   }
 
   Widget _buildForm() {
+    final accounts = ref.watch(accountingAccountsProvider);
+    final accountMap = {for (final a in accounts) a.code: a};
+
     return Column(
       children: [
         _ComposerHeader(onClose: widget.onClose),
@@ -218,6 +258,7 @@ class _JournalComposerState extends State<JournalComposer> {
                       _LineEditor(
                         key: ValueKey('line-$i-${_lines[i].ac}'),
                         line: _lines[i],
+                        accountMap: accountMap,
                         pickerLink: _pickerIndex == i ? _pickerLink : null,
                         onPick: () => setState(() => _pickerIndex = i),
                         onDr: (v) => setState(() {
@@ -291,6 +332,7 @@ class _JournalComposerState extends State<JournalComposer> {
                   showWhenUnlinked: false,
                   offset: const Offset(0, 54),
                   child: _AccountPickerPopover(
+                    accounts: accounts,
                     onPick: (code) => setState(() {
                       _lines[_pickerIndex!].ac = code;
                       _pickerIndex = null;
@@ -308,8 +350,8 @@ class _JournalComposerState extends State<JournalComposer> {
           totDr: _totDr,
           totCr: _totCr,
           canPost: _canPost,
-          onSaveDraft: widget.onClose,
-          onPost: () => setState(() => _posted = true),
+          onSaveDraft: () => _saveEntry(pending: false),
+          onPost: () => _saveEntry(pending: true),
         ),
       ],
     );
@@ -470,6 +512,7 @@ class _LineEditor extends StatelessWidget {
   const _LineEditor({
     super.key,
     required this.line,
+    required this.accountMap,
     required this.onPick,
     required this.onDr,
     required this.onCr,
@@ -478,6 +521,7 @@ class _LineEditor extends StatelessWidget {
   });
 
   final ComposerLine line;
+  final Map<String, Account> accountMap;
   final VoidCallback onPick;
   final ValueChanged<String> onDr;
   final ValueChanged<String> onCr;
@@ -487,7 +531,7 @@ class _LineEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filled = line.ac.isNotEmpty;
-    final account = filled ? demoAccountMap[line.ac] : null;
+    final account = filled ? accountMap[line.ac] : null;
 
     Widget accountField = Material(
       color: filled ? AccountingTokens.accentTint : AccountingTokens.surface,
@@ -863,8 +907,13 @@ class _BalanceSide extends StatelessWidget {
 }
 
 class _AccountPickerPopover extends StatefulWidget {
-  const _AccountPickerPopover({required this.onPick, required this.onClose});
+  const _AccountPickerPopover({
+    required this.accounts,
+    required this.onPick,
+    required this.onClose,
+  });
 
+  final List<Account> accounts;
   final ValueChanged<String> onPick;
   final VoidCallback onClose;
 
@@ -952,7 +1001,9 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
                     for (final (type, label) in _groups) ...[
                       Builder(
                         builder: (context) {
-                          final rows = demoAccounts.where((a) => a.type == type && _matches(a)).toList();
+                          final rows = widget.accounts
+                              .where((a) => a.type == type && _matches(a))
+                              .toList();
                           if (rows.isEmpty) return const SizedBox.shrink();
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

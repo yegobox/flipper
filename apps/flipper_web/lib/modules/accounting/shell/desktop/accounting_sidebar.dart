@@ -1,6 +1,4 @@
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -15,9 +13,13 @@ class AccountingSidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AccountingView view = ref.watch(accountingViewProvider);
-    final pending = pendingJournalCount();
+    final pending = ref.watch(pendingCountProvider);
     final business = ref.watch(selectedBusinessProvider);
-    final entityName = business?.name ?? demoEntityName;
+    final entityName = business?.name ?? 'Business';
+    final fiscalYear = ref.watch(accountingFiscalYearLabelProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
+    final userName = ref.watch(accountingUserNameProvider);
+    final userRole = ref.watch(accountingUserRoleProvider);
 
     return Container(
       width: AccountingTokens.sidebarWidth,
@@ -70,7 +72,7 @@ class AccountingSidebar extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          '$demoFiscalYear · $demoCurrency',
+                          '$fiscalYear · $currency',
                           style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink3),
                         ),
                       ],
@@ -118,8 +120,9 @@ class AccountingSidebar extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Diane E.', style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w700, color: AccountingTokens.ink1)),
-                      Text('Owner · Bookkeeper', style: AccountingTokens.sans(fontSize: 11, color: AccountingTokens.ink3)),
+                      Text(userName.isNotEmpty ? userName : '—', style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w700, color: AccountingTokens.ink1)),
+                      if (userRole.isNotEmpty)
+                        Text(userRole, style: AccountingTokens.sans(fontSize: 11, color: AccountingTokens.ink3)),
                     ],
                   ),
                 ),

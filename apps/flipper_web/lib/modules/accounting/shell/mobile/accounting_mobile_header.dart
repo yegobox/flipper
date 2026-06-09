@@ -1,5 +1,5 @@
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +18,10 @@ class AccountingMobileHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final business = ref.watch(selectedBusinessProvider);
-    final entityName = business?.name ?? demoEntityName;
+    final entityName = business?.name ?? 'Business';
     final initials = accountingEntityInitials(entityName);
+    final fiscalYear = ref.watch(accountingFiscalYearLabelProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
 
     return DecoratedBox(
       decoration: const BoxDecoration(
@@ -67,7 +69,7 @@ class AccountingMobileHeader extends ConsumerWidget {
                       borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
                     child: Text(
-                      'DE',
+                      initials,
                       style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ),
@@ -117,7 +119,7 @@ class AccountingMobileHeader extends ConsumerWidget {
                               ),
                               const SizedBox(height: 1),
                               Text(
-                                '$demoFiscalYear · $demoCurrency',
+                                '$fiscalYear · $currency',
                                 style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.ink3),
                               ),
                             ],

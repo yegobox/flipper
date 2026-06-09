@@ -1,3 +1,4 @@
+import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -65,6 +66,7 @@ class AuthService {
   /// Signs out the current user
   Future<void> signOut() async {
     try {
+      await DittoBootstrap.disposeOnSignOut();
       _ref.read(userProfileCacheProvider.notifier).state = null;
       _ref.read(sessionLoginKeyProvider.notifier).state = null;
       _ref.read(sessionApiUserIdProvider.notifier).state = null;

@@ -70,55 +70,80 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-      child: Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 720;
+        final headerRow = _buildHeaderRow(compact: compact);
+
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 16 : 40,
+            vertical: 24,
+          ),
+          child: compact
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: headerRow,
+                )
+              : headerRow,
+        );
+      },
+    );
+  }
+
+  Widget _buildHeaderRow({required bool compact}) {
+    final trailing = [
+      _buildNavItem('Pricing', _localized((l) => l.pricing)),
+      const SizedBox(width: 32),
+      _buildNavItem('Blog', _localized((l) => l.blog)),
+      const SizedBox(width: 32),
+      _buildNavItem('About', _localized((l) => l.about)),
+      const SizedBox(width: 32),
+      _buildNavItem('Download', _localized((l) => l.download)),
+      const SizedBox(width: 32),
+      _buildNavItem('Help', _localized((l) => l.help)),
+      const SizedBox(width: 48),
+      Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          MouseRegion(
-            onEnter: (_) => setState(() => _isHovering = true),
-            onExit: (_) => setState(() => _isHovering = false),
-            child: AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w600,
-                color: _isHovering ? const Color(0xFF22C55E) : Colors.black,
-                letterSpacing: -0.5,
-              ),
-              child: const Text('Flipper'),
+          Icon(Icons.star_outline, size: 20, color: Colors.grey.shade600),
+          const SizedBox(width: 8),
+          Text(
+            '21k',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const Spacer(),
-          _buildNavItem('Pricing', _localized((l) => l.pricing)),
-          const SizedBox(width: 32),
-          _buildNavItem('Blog', _localized((l) => l.blog)),
-          const SizedBox(width: 32),
-          _buildNavItem('About', _localized((l) => l.about)),
-          const SizedBox(width: 32),
-          _buildNavItem('Download', _localized((l) => l.download)),
-          const SizedBox(width: 32),
-          _buildNavItem('Help', _localized((l) => l.help)),
-          const SizedBox(width: 48),
-          Row(
-            children: [
-              Icon(Icons.star_outline, size: 20, color: Colors.grey.shade600),
-              const SizedBox(width: 8),
-              Text(
-                '21k',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 24),
-          _buildLanguageDropdown(),
-          const SizedBox(width: 24),
-          _buildSignUpButton(),
         ],
       ),
+      const SizedBox(width: 24),
+      _buildLanguageDropdown(),
+      const SizedBox(width: 24),
+      _buildSignUpButton(),
+    ];
+
+    return Row(
+      mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+      children: [
+        MouseRegion(
+          onEnter: (_) => setState(() => _isHovering = true),
+          onExit: (_) => setState(() => _isHovering = false),
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
+              color: _isHovering ? const Color(0xFF22C55E) : Colors.black,
+              letterSpacing: -0.5,
+            ),
+            child: const Text('Flipper'),
+          ),
+        ),
+        if (compact) const SizedBox(width: 32) else const Spacer(),
+        ...trailing,
+      ],
     );
   }
 

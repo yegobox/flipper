@@ -1,4 +1,3 @@
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -20,9 +19,11 @@ class AccountingJournalView extends ConsumerWidget {
     final pending = ref.watch(pendingCountProvider);
     final isLoading = ref.watch(accountingLoadingProvider);
 
-    // Use live journal entries when available; fall back to demo while loading.
-    final liveJournal = ref.watch(accountingJournalProvider);
-    final journal = liveJournal.isEmpty ? demoJournal : liveJournal;
+    final journal = ref.watch(accountingJournalProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
+    final accountMap = {
+      for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
+    };
 
     final list = journal.where((e) {
       return switch (filter) {
@@ -42,7 +43,7 @@ class AccountingJournalView extends ConsumerWidget {
             eyebrow: 'Daybook',
             title: 'Journal entries',
             subtitle:
-                'Every transaction as a balanced double entry · $demoCurrency',
+                'Every transaction as a balanced double entry · $currency',
             actions: [
               const AccountingButton(
                 label: 'Filter',
@@ -125,7 +126,8 @@ class AccountingJournalView extends ConsumerWidget {
                     ),
                   )
                 else
-                  for (final e in list) _JournalRow(entry: e),
+                  for (final e in list)
+                    _JournalRow(entry: e, accountMap: accountMap),
               ],
             ),
           ),
@@ -136,9 +138,10 @@ class AccountingJournalView extends ConsumerWidget {
 }
 
 class _JournalRow extends StatelessWidget {
-  const _JournalRow({required this.entry});
+  const _JournalRow({required this.entry, required this.accountMap});
 
   final JournalEntry entry;
+  final Map<String, Account> accountMap;
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +188,8 @@ class _JournalRow extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   entry.lines
-                      .map((l) => '${l.dr > 0 ? 'Dr' : 'Cr'} ${acctName(l.ac)}')
+                      .map((l) =>
+                          '${l.dr > 0 ? 'Dr' : 'Cr'} ${acctName(l.ac, accountMap)}')
                       .join(' · '),
                   style: AccountingTokens.sans(
                     fontSize: 12,

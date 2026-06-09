@@ -1,4 +1,4 @@
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -13,16 +13,29 @@ class AccountingSnapshotTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pl = incomeStatement();
-    final cashBank = cashAndBankTotal();
-    final ar = ageTotals(demoAr).total;
-    final ap = ageTotals(demoAp).total;
-    final pending = pendingJournalCount();
+    final pl = ref.watch(accountingIncomeStatementProvider);
+    final cashBank = ref.watch(accountingCashBankTotalProvider);
+    final ar = ageTotals(ref.watch(accountingArAgingProvider)).total;
+    final ap = ageTotals(ref.watch(accountingApAgingProvider)).total;
+    final pending = ref.watch(pendingCountProvider);
+    final trend = ref.watch(accountingTrendProvider);
+    final journal = ref.watch(accountingJournalProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
+    final inventoryAsync = ref.watch(accountingInventoryValueProvider);
+    final stockValue = inventoryAsync.value ?? 0;
+    final trendMonths = trend.length;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
-        _HeroCard(netIncome: pl.netIncome, revenue: pl.netRevenue, expenses: pl.cogs + pl.totalOpex, margin: pl.netMargin),
+        _HeroCard(
+          netIncome: pl.netIncome,
+          revenue: pl.netRevenue,
+          expenses: pl.cogs + pl.totalOpex,
+          margin: pl.netMargin,
+          period: ref.watch(accountingPeriodLabelProvider),
+          currency: currency,
+        ),
         const SizedBox(height: 12),
         GridView.count(
           crossAxisCount: 2,
@@ -32,10 +45,10 @@ class AccountingSnapshotTab extends ConsumerWidget {
           crossAxisSpacing: 10,
           childAspectRatio: 1.5,
           children: [
-            _MiniKpi('Cash & bank', cashBank, Icons.account_balance_wallet_outlined, AccountingTokens.accent),
-            _MiniKpi('Stock value', demoAccountMap['1200']!.bal, Icons.inventory_2_outlined, AccountingTokens.gain),
-            _MiniKpi('Receivable', ar, Icons.north_east, AccountingTokens.warnAmber),
-            _MiniKpi('Payable', ap, Icons.south_west, AccountingTokens.loss),
+            _MiniKpi('Cash & bank', cashBank, Icons.account_balance_wallet_outlined, AccountingTokens.accent, currency: currency),
+            _MiniKpi('Stock value', stockValue, Icons.inventory_2_outlined, AccountingTokens.gain, currency: currency),
+            _MiniKpi('Receivable', ar, Icons.north_east, AccountingTokens.warnAmber, currency: currency),
+            _MiniKpi('Payable', ap, Icons.south_west, AccountingTokens.loss, currency: currency),
           ],
         ),
         if (pending > 0) ...[
@@ -79,13 +92,16 @@ class AccountingSnapshotTab extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Revenue vs expenses', style: AccountingTokens.sans(fontSize: 14, fontWeight: FontWeight.w700)),
-                    Text('6 mo', style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.accent)),
+                    Text(
+                      trendMonths > 0 ? '$trendMonths mo' : '—',
+                      style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.accent),
+                    ),
                   ],
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 0, 8, 14),
-                child: TrendChart(data: demoTrend, height: 150),
+                child: TrendChart(data: trend, height: 150),
               ),
             ],
           ),
@@ -99,7 +115,7 @@ class AccountingSnapshotTab extends ConsumerWidget {
                 padding: const EdgeInsets.all(14),
                 child: Text('Recent entries', style: AccountingTokens.sans(fontSize: 14, fontWeight: FontWeight.w700)),
               ),
-              for (final e in demoJournal.take(4))
+              for (final e in journal.take(4))
                 ListTile(
                   leading: const Icon(Icons.receipt_long_outlined),
                   title: Text(e.memo, style: AccountingTokens.sans(fontSize: 13.5)),
@@ -115,12 +131,21 @@ class AccountingSnapshotTab extends ConsumerWidget {
 }
 
 class _HeroCard extends StatelessWidget {
-  const _HeroCard({required this.netIncome, required this.revenue, required this.expenses, required this.margin});
+  const _HeroCard({
+    required this.netIncome,
+    required this.revenue,
+    required this.expenses,
+    required this.margin,
+    required this.period,
+    required this.currency,
+  });
 
   final int netIncome;
   final int revenue;
   final int expenses;
   final double margin;
+  final String period;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -139,16 +164,14 @@ class _HeroCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('Net income · $demoPeriod', style: AccountingTokens.sans(fontSize: 12.5, color: Colors.white70)),
+              Text('Net income · $period', style: AccountingTokens.sans(fontSize: 12.5, color: Colors.white70)),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(999)),
-                child: Row(
-                  children: [
-                    const Icon(Icons.arrow_upward, size: 11, color: Colors.white),
-                    Text('18%', style: AccountingTokens.mono(fontSize: 11, color: Colors.white)),
-                  ],
+                child: Text(
+                  '${(margin * 100).round()}% margin',
+                  style: AccountingTokens.mono(fontSize: 11, color: Colors.white),
                 ),
               ),
             ],
@@ -158,7 +181,7 @@ class _HeroCard extends StatelessWidget {
             text: TextSpan(
               style: AccountingTokens.mono(fontSize: 32, fontWeight: FontWeight.w700, color: Colors.white),
               children: [
-                const TextSpan(text: 'RWF ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                TextSpan(text: '$currency ', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                 TextSpan(text: money(netIncome)),
               ],
             ),
@@ -198,12 +221,13 @@ class _HeroCell extends StatelessWidget {
 }
 
 class _MiniKpi extends StatelessWidget {
-  const _MiniKpi(this.label, this.value, this.icon, this.color);
+  const _MiniKpi(this.label, this.value, this.icon, this.color, {required this.currency});
 
   final String label;
   final int value;
   final IconData icon;
   final Color color;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +244,7 @@ class _MiniKpi extends StatelessWidget {
           Icon(icon, size: 18, color: color),
           const Spacer(),
           Text(label, style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink3)),
-          Text('RWF ${compact(value)}', style: AccountingTokens.mono(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text('$currency ${compact(value)}', style: AccountingTokens.mono(fontSize: 16, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -233,7 +257,7 @@ class AccountingApprovalsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actions = ref.watch(approvalActionsProvider);
-    final pending = demoJournal.where((e) => e.status == JournalStatus.pending).toList();
+    final pending = ref.watch(accountingJournalProvider).where((e) => e.status == JournalStatus.pending).toList();
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -241,12 +265,30 @@ class AccountingApprovalsTab extends ConsumerWidget {
         Text('Approvals', style: AccountingTokens.sans(fontSize: 22, fontWeight: FontWeight.w800)),
         Text('Pending journal entries — tap approve to post to the ledger.', style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3)),
         const SizedBox(height: 16),
-        for (final e in pending) _ApprovalCard(
-          entry: e,
-          action: actions[e.id],
-          onApprove: () => ref.read(approvalActionsProvider.notifier).update((m) => {...m, e.id: ApprovalAction.approve}),
-          onReject: () => ref.read(approvalActionsProvider.notifier).update((m) => {...m, e.id: ApprovalAction.reject}),
-        ),
+        for (final e in pending)
+          _ApprovalCard(
+            entry: e,
+            action: actions[e.id],
+            accountMap: {
+              for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
+            },
+            onApprove: () async {
+              final businessId = ref.read(accountingBusinessIdProvider);
+              final uuid = e.uuid;
+              if (businessId.isNotEmpty && uuid != null) {
+                await ref.read(accountingLedgerRepositoryProvider).postJournalEntry(
+                      businessId: businessId,
+                      entryId: uuid,
+                    );
+              }
+              ref.read(approvalActionsProvider.notifier).update(
+                    (m) => {...m, e.id: ApprovalAction.approve},
+                  );
+            },
+            onReject: () => ref.read(approvalActionsProvider.notifier).update(
+                  (m) => {...m, e.id: ApprovalAction.reject},
+                ),
+          ),
         if (pending.isEmpty)
           Padding(
             padding: const EdgeInsets.all(30),
@@ -258,10 +300,17 @@ class AccountingApprovalsTab extends ConsumerWidget {
 }
 
 class _ApprovalCard extends StatelessWidget {
-  const _ApprovalCard({required this.entry, required this.action, required this.onApprove, required this.onReject});
+  const _ApprovalCard({
+    required this.entry,
+    required this.action,
+    required this.accountMap,
+    required this.onApprove,
+    required this.onReject,
+  });
 
   final JournalEntry entry;
   final ApprovalAction? action;
+  final Map<String, Account> accountMap;
   final VoidCallback onApprove;
   final VoidCallback onReject;
 
@@ -308,7 +357,12 @@ class _ApprovalCard extends StatelessWidget {
                     child: Text(l.dr > 0 ? 'Dr' : 'Cr', style: AccountingTokens.mono(fontSize: 11, color: l.dr > 0 ? AccountingTokens.drInk : AccountingTokens.crInk)),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(child: Text('${acctName(l.ac)} ${l.ac}', style: AccountingTokens.sans(fontSize: 13))),
+                  Expanded(
+                    child: Text(
+                      '${acctName(l.ac, accountMap)} ${l.ac}',
+                      style: AccountingTokens.sans(fontSize: 13),
+                    ),
+                  ),
                   Text(money(l.dr > 0 ? l.dr : l.cr), style: AccountingTokens.mono(fontSize: 13, color: l.dr > 0 ? AccountingTokens.drInk : AccountingTokens.crInk)),
                 ],
               ),
@@ -346,6 +400,8 @@ class AccountingReportsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final report = ref.watch(mobileReportProvider);
 
+    final vat = ref.watch(accountingVatProvider);
+
     if (report != null) {
       return AccountingStatementDetail(report: report, onBack: () => ref.read(mobileReportProvider.notifier).state = null);
     }
@@ -354,9 +410,9 @@ class AccountingReportsTab extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         Text('Reports', style: AccountingTokens.sans(fontSize: 22, fontWeight: FontWeight.w800)),
-        Text('Generated live from the ledger · $demoEntityName', style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3)),
+        Text('Generated live from the ledger · ${ref.watch(selectedBusinessProvider)?.name ?? ''}', style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3)),
         const SizedBox(height: 16),
-        for (final r in _mobileReports)
+        for (final r in _buildMobileReports(vat))
           ListTile(
             leading: Icon(r.$3),
             title: Text(r.$1),
@@ -369,24 +425,26 @@ class AccountingReportsTab extends ConsumerWidget {
   }
 }
 
-final _mobileReports = [
-  ('Income statement', 'Profit & loss · May', Icons.trending_up, MobileReportKey.pl),
+List<(String, String, IconData, MobileReportKey)> _buildMobileReports(VatInfo? vat) => [
+  ('Income statement', 'Profit & loss', Icons.trending_up, MobileReportKey.pl),
   ('Balance sheet', 'Financial position', Icons.layers_outlined, MobileReportKey.bs),
   ('Trial balance', 'In balance', Icons.grid_view, MobileReportKey.tb),
-  ('Tax & VAT', 'Net due ${money(demoVat.netPayable)}', Icons.verified_user_outlined, MobileReportKey.vat),
+  ('Tax & VAT', vat != null ? 'Net due ${money(vat.netPayable)}' : 'No VAT data yet', Icons.verified_user_outlined, MobileReportKey.vat),
 ];
 
-class AccountingStatementDetail extends StatelessWidget {
+class AccountingStatementDetail extends ConsumerWidget {
   const AccountingStatementDetail({super.key, required this.report, required this.onBack});
 
   final MobileReportKey report;
   final VoidCallback onBack;
 
   @override
-  Widget build(BuildContext context) {
-    final pl = incomeStatement();
-    final bs = balanceSheet();
-    final tb = trialBalance();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(accountingAccountsProvider);
+    final pl = incomeStatement(accounts);
+    final bs = balanceSheet(accounts);
+    final tb = trialBalance(accounts);
+    final vat = ref.watch(accountingVatProvider);
     final title = switch (report) {
       MobileReportKey.pl => 'Income statement',
       MobileReportKey.bs => 'Balance sheet',
@@ -427,10 +485,20 @@ class AccountingStatementDetail extends StatelessWidget {
                   _SRow('Totals Dr/Cr', tb.totDr, bold: true),
                 ],
               MobileReportKey.vat => [
-                  _SRow('Output VAT', demoVat.outputVat),
-                  _SRow('Input VAT', demoVat.inputVat),
-                  _SRow('Net payable', demoVat.netPayable, bold: true),
-                  _SRow('Due', 0, labelOverride: demoVat.dueDate),
+                  if (vat == null)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'No VAT data for this period.',
+                        style: AccountingTokens.sans(color: AccountingTokens.ink3),
+                      ),
+                    )
+                  else ...[
+                    _SRow('Output VAT', vat.outputVat),
+                    _SRow('Input VAT', vat.inputVat),
+                    _SRow('Net payable', vat.netPayable, bold: true),
+                    _SRow('Due', 0, labelOverride: vat.dueDate),
+                  ],
                 ],
             },
           ),

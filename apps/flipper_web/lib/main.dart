@@ -21,8 +21,11 @@ Future<void> main() async {
   // Initialize Supabase
   await initializeSupabase();
 
-  // Initialize Ditto
-  // await initializeDitto(); // Removed early initialization as it requires userId
+  // Ditto initializes after login via DittoBootstrap (needs pin user id).
+  debugPrint(
+    '[flipper_web] startup: Supabase ready; accounting uses Supabase until '
+    'DittoBootstrap runs after login',
+  );
 
   runApp(const ProviderScope(child: MyApp()));
 }

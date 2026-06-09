@@ -1,4 +1,3 @@
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:intl/intl.dart';
 
@@ -6,9 +5,8 @@ int drOf(Account a) => a.isDebitNormal ? a.bal : 0;
 
 int crOf(Account a) => !a.isDebitNormal ? a.bal : 0;
 
-String acctName(String code, [Map<String, Account>? map]) {
-  final m = map ?? demoAccountMap;
-  return m[code]?.name ?? code;
+String acctName(String code, Map<String, Account> map) {
+  return map[code]?.name ?? code;
 }
 
 JeTotals jeTotals(JournalEntry e) {
@@ -17,9 +15,8 @@ JeTotals jeTotals(JournalEntry e) {
   return JeTotals(dr: dr, cr: cr, balanced: dr == cr);
 }
 
-TrialBalanceResult trialBalance([List<Account>? accounts]) {
-  final accts = accounts ?? demoAccounts;
-  final rows = accts
+TrialBalanceResult trialBalance(List<Account> accounts) {
+  final rows = accounts
       .map((a) => TrialBalanceRow(account: a, dr: drOf(a), cr: crOf(a)))
       .toList();
   final totDr = rows.fold<int>(0, (s, r) => s + r.dr);
@@ -32,15 +29,18 @@ TrialBalanceResult trialBalance([List<Account>? accounts]) {
   );
 }
 
-IncomeStatementResult incomeStatement([List<Account>? accounts]) {
-  final accts = accounts ?? demoAccounts;
-  final income = accts.where((a) => a.type == AccountType.income).toList();
-  final grossRevenue = income.where((a) => !a.contra).fold<int>(0, (s, a) => s + a.bal);
-  final discounts = income.where((a) => a.contra).fold<int>(0, (s, a) => s + a.bal);
+IncomeStatementResult incomeStatement(List<Account> accounts) {
+  final income = accounts.where((a) => a.type == AccountType.income).toList();
+  final grossRevenue =
+      income.where((a) => !a.contra).fold<int>(0, (s, a) => s + a.bal);
+  final discounts =
+      income.where((a) => a.contra).fold<int>(0, (s, a) => s + a.bal);
   final netRevenue = grossRevenue - discounts;
-  final cogs = accts.where((a) => a.sub == 'Cost of sales').fold<int>(0, (s, a) => s + a.bal);
+  final cogs = accounts
+      .where((a) => a.sub == 'Cost of sales')
+      .fold<int>(0, (s, a) => s + a.bal);
   final grossProfit = netRevenue - cogs;
-  final opex = accts.where((a) => a.sub == 'Operating expenses').toList();
+  final opex = accounts.where((a) => a.sub == 'Operating expenses').toList();
   final totalOpex = opex.fold<int>(0, (s, a) => s + a.bal);
   final netIncome = grossProfit - totalOpex;
   return IncomeStatementResult(
@@ -60,26 +60,30 @@ IncomeStatementResult incomeStatement([List<Account>? accounts]) {
 
 int _assetVal(Account x) => x.contra ? -x.bal : x.bal;
 
-BalanceSheetResult balanceSheet([List<Account>? accounts]) {
-  final accts = accounts ?? demoAccounts;
-  List<Account> byAssetSub(String sub) =>
-      accts.where((x) => x.type == AccountType.asset && x.sub == sub).toList();
+BalanceSheetResult balanceSheet(List<Account> accounts) {
+  List<Account> byAssetSub(String sub) => accounts
+      .where((x) => x.type == AccountType.asset && x.sub == sub)
+      .toList();
 
   final currentAssets = byAssetSub('Current assets');
   final fixedAssets = byAssetSub('Fixed assets');
-  final totalCurrentAssets = currentAssets.fold<int>(0, (s, x) => s + _assetVal(x));
+  final totalCurrentAssets =
+      currentAssets.fold<int>(0, (s, x) => s + _assetVal(x));
   final totalFixedAssets = fixedAssets.fold<int>(0, (s, x) => s + _assetVal(x));
   final totalAssets = totalCurrentAssets + totalFixedAssets;
 
-  final curLiab = accts.where((x) => x.sub == 'Current liabilities').toList();
-  final ltLiab = accts.where((x) => x.sub == 'Long-term liabilities').toList();
+  final curLiab =
+      accounts.where((x) => x.sub == 'Current liabilities').toList();
+  final ltLiab =
+      accounts.where((x) => x.sub == 'Long-term liabilities').toList();
   final totalCurLiab = curLiab.fold<int>(0, (s, x) => s + x.bal);
   final totalLtLiab = ltLiab.fold<int>(0, (s, x) => s + x.bal);
   final totalLiab = totalCurLiab + totalLtLiab;
 
-  final pl = incomeStatement(accts);
-  final capital = demoAccountMap['3010']!.bal;
-  final retainedOpening = demoAccountMap['3020']!.bal;
+  final pl = incomeStatement(accounts);
+  final acctMap = {for (final a in accounts) a.code: a};
+  final capital = acctMap['3010']?.bal ?? 0;
+  final retainedOpening = acctMap['3020']?.bal ?? 0;
   final retainedClosing = retainedOpening + pl.netIncome;
   final totalEquity = capital + retainedClosing;
 
@@ -142,18 +146,21 @@ String compact(int n) {
   return n.round().toString();
 }
 
-int pendingJournalCount([List<JournalEntry>? journal]) {
-  final j = journal ?? demoJournal;
-  return j.where((e) => e.status == JournalStatus.pending).length;
+int pendingJournalCount(List<JournalEntry> journal) {
+  return journal.where((e) => e.status == JournalStatus.pending).length;
 }
 
-List<GlPosting> generalLedgerPostings(String accountCode, [List<JournalEntry>? journal]) {
-  final j = journal ?? demoJournal;
-  final account = demoAccountMap[accountCode];
+List<GlPosting> generalLedgerPostings(
+  String accountCode,
+  List<JournalEntry> journal,
+  List<Account> accounts,
+) {
+  final acctMap = {for (final a in accounts) a.code: a};
+  final account = acctMap[accountCode];
   if (account == null) return [];
 
   final postings = <({String date, String jeId, String memo, int debit, int credit})>[];
-  for (final e in j) {
+  for (final e in journal) {
     if (e.status == JournalStatus.draft) continue;
     for (final line in e.lines) {
       if (line.ac != accountCode) continue;
@@ -196,10 +203,4 @@ List<GlPosting> generalLedgerPostings(String accountCode, [List<JournalEntry>? j
     ));
   }
   return result;
-}
-
-int cashAndBankTotal() {
-  return demoAccountMap['1010']!.bal +
-      demoAccountMap['1020']!.bal +
-      demoAccountMap['1030']!.bal;
 }

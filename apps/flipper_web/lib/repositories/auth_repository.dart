@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -200,6 +201,12 @@ class AuthRepository {
       }
 
       _ref.invalidate(currentUserProfileProvider);
+
+      final dittoUserId = (resolvedPinUserId ?? profile.id).trim();
+      if (dittoUserId.isNotEmpty) {
+        // Non-blocking — accounting providers refresh when Ditto becomes ready.
+        unawaited(DittoBootstrap.ensureInitialized(_ref, userId: dittoUserId));
+      }
 
       debugPrint('User profile fetched and cached successfully');
     } catch (e) {

@@ -1,4 +1,5 @@
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -24,8 +25,14 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final code = ref.watch(ledgerAccountCodeProvider);
-    final account = demoAccountMap[code]!;
-    final postings = generalLedgerPostings(code);
+    final accounts = ref.watch(accountingAccountsProvider);
+    final journal = ref.watch(accountingJournalProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
+    final accountMap = {for (final a in accounts) a.code: a};
+    final account = accountMap[code];
+    final postings = account == null
+        ? <GlPosting>[]
+        : generalLedgerPostings(code, journal, accounts);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
@@ -35,12 +42,12 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
           AccountingPageHeader(
             eyebrow: 'Daybook',
             title: 'General ledger',
-            subtitle: 'Account-level posting history · $demoCurrency',
+            subtitle: 'Account-level posting history · $currency',
             actions: [
               DropdownButton<String>(
                 value: code,
                 items: [
-                  for (final a in demoAccounts)
+                  for (final a in accounts)
                     DropdownMenuItem(
                       value: a.code,
                       child: Text('${a.code} · ${a.name}'),
@@ -53,41 +60,42 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
               ),
             ],
           ),
-          AccountingCard(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Text(
-                  account.code,
-                  style: AccountingTokens.mono(
-                    fontSize: 14,
-                    color: AccountingTokens.ink3,
+          if (account != null)
+            AccountingCard(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Text(
+                    account.code,
+                    style: AccountingTokens.mono(
+                      fontSize: 14,
+                      color: AccountingTokens.ink3,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    account.name,
-                    style: AccountingTokens.sans(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      account.name,
+                      style: AccountingTokens.sans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  AccountTypePill(type: account.type),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Closing ${money(account.bal)}',
+                    style: AccountingTokens.mono(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(width: 12),
-                AccountTypePill(type: account.type),
-                const SizedBox(width: 12),
-                Text(
-                  'Closing ${money(account.bal)}',
-                  style: AccountingTokens.mono(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 16),
           AccountingCard(
             child: Column(
@@ -161,26 +169,31 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
   }
 }
 
-class AccountingBankRecView extends StatelessWidget {
+class AccountingBankRecView extends ConsumerWidget {
   const AccountingBankRecView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final matched = demoBankLines.where((l) => l.matched).length;
-    final unmatched = demoBankLines.length - matched;
-    final diff = demoBankLines
-        .where((l) => !l.matched)
-        .fold<int>(0, (s, l) => s + l.amt);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lines = ref.watch(accountingBankLinesProvider);
+    final accounts = ref.watch(accountingAccountsProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
+    final period = ref.watch(accountingPeriodLabelProvider);
+    final bankBal = accounts
+        .where((a) => a.code == '1020')
+        .fold<int>(0, (s, a) => s + a.bal);
+    final matched = lines.where((l) => l.matched).length;
+    final unmatched = lines.length - matched;
+    final diff = lines.where((l) => !l.matched).fold<int>(0, (s, l) => s + l.amt);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AccountingPageHeader(
+          AccountingPageHeader(
             eyebrow: 'Daybook',
             title: 'Bank reconciliation',
-            subtitle: 'Bank · Bank of Kigali · statement 31 May 2026 · RWF',
+            subtitle: 'Bank · $period · $currency',
             actions: [
               AccountingButton(
                 label: 'Import statement',
@@ -200,8 +213,8 @@ class AccountingBankRecView extends StatelessWidget {
             maxColumns: 3,
             children: [
               AccountingKpiCard(
-                label: 'Statement balance',
-                value: 4180000,
+                label: 'Ledger balance',
+                value: bankBal,
                 icon: Icons.account_balance_wallet_outlined,
                 tone: KpiTone.blue,
               ),
@@ -210,7 +223,7 @@ class AccountingBankRecView extends StatelessWidget {
                 value: matched,
                 icon: Icons.check,
                 tone: KpiTone.green,
-                footnote: 'of ${demoBankLines.length}',
+                footnote: lines.isEmpty ? 'no lines yet' : 'of ${lines.length}',
               ),
               AccountingKpiCard(
                 label: 'Needs attention',
@@ -229,7 +242,18 @@ class AccountingBankRecView extends StatelessWidget {
                   title: 'Statement lines',
                   subtitle: 'Match each bank line to a journal entry',
                 ),
-                for (final l in demoBankLines)
+                if (lines.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'No bank statement lines yet. Import a statement to begin.',
+                      style: AccountingTokens.sans(
+                        fontSize: 13.5,
+                        color: AccountingTokens.ink3,
+                      ),
+                    ),
+                  ),
+                for (final l in lines)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -292,14 +316,18 @@ class AccountingBankRecView extends StatelessWidget {
   }
 }
 
-class AccountingAgingView extends StatelessWidget {
+class AccountingAgingView extends ConsumerWidget {
   const AccountingAgingView({super.key, required this.kind});
 
   final String kind; // ar | ap
 
   @override
-  Widget build(BuildContext context) {
-    final rows = kind == 'ar' ? demoAr : demoAp;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rows = kind == 'ar'
+        ? ref.watch(accountingArAgingProvider)
+        : ref.watch(accountingApAgingProvider);
+    final period = ref.watch(accountingPeriodLabelProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
     final totals = ageTotals(rows);
     final isAr = kind == 'ar';
 
@@ -311,7 +339,7 @@ class AccountingAgingView extends StatelessWidget {
           AccountingPageHeader(
             eyebrow: 'Money',
             title: isAr ? 'Receivables' : 'Payables',
-            subtitle: 'Aging analysis · $demoPeriod · $demoCurrency',
+            subtitle: 'Aging analysis · $period · $currency',
             actions: [
               AccountingButton(
                 label: isAr ? 'Send reminders' : 'Schedule payment',
@@ -447,20 +475,26 @@ class _BucketCell extends StatelessWidget {
   }
 }
 
-class AccountingTaxVatView extends StatelessWidget {
+class AccountingTaxVatView extends ConsumerWidget {
   const AccountingTaxVatView({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vat = ref.watch(accountingVatProvider);
+    final period = ref.watch(accountingPeriodLabelProvider);
+    final ratePct = vat != null ? (vat.rate * 100).round() : 18;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AccountingPageHeader(
+          AccountingPageHeader(
             eyebrow: 'Money',
             title: 'Tax & VAT',
-            subtitle: 'Rwanda standard rate 18% · May 2026',
+            subtitle: vat != null
+                ? 'Standard rate $ratePct% · $period'
+                : 'No VAT data for $period',
             actions: [
               AccountingButton(
                 label: 'File with RRA',
@@ -474,22 +508,22 @@ class AccountingTaxVatView extends StatelessWidget {
             children: [
               AccountingKpiCard(
                 label: 'Output VAT',
-                value: demoVat.outputVat,
+                value: vat?.outputVat ?? 0,
                 icon: Icons.trending_up,
                 tone: KpiTone.green,
               ),
               AccountingKpiCard(
                 label: 'Input VAT',
-                value: demoVat.inputVat,
+                value: vat?.inputVat ?? 0,
                 icon: Icons.receipt_long,
                 tone: KpiTone.blue,
               ),
               AccountingKpiCard(
                 label: 'Net VAT payable',
-                value: demoVat.netPayable,
+                value: vat?.netPayable ?? 0,
                 icon: Icons.shield_outlined,
                 tone: KpiTone.amber,
-                footnote: 'Due ${demoVat.dueDate}',
+                footnote: vat != null ? 'Due ${vat.dueDate}' : '—',
               ),
             ],
           ),
@@ -505,18 +539,23 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final StatementsTab tab = ref.watch(statementsTabProvider);
-    final pl = incomeStatement();
-    final bs = balanceSheet();
+    final accounts = ref.watch(accountingAccountsProvider);
+    final journal = ref.watch(accountingJournalProvider);
+    final pl = incomeStatement(accounts);
+    final bs = balanceSheet(accounts);
+    final cf = cashFlowFromJournal(journal);
+    final entityName = ref.watch(selectedBusinessProvider)?.name ?? '';
+    final period = ref.watch(accountingPeriodLabelProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AccountingPageHeader(
+          AccountingPageHeader(
             eyebrow: 'Reports',
             title: 'Financial statements',
-            subtitle: 'Demo Shop Ltd · May 2026',
+            subtitle: entityName.isNotEmpty ? '$entityName · $period' : period,
             actions: [
               AccountingButton(
                 label: 'Print',
@@ -552,6 +591,7 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
             padding: const EdgeInsets.all(24),
             child: switch (tab) {
               StatementsTab.income => _StmtBody(
+                entityName: entityName,
                 rows: [
                   _StmtRow('Net revenue', pl.netRevenue),
                   _StmtRow('Cost of goods sold', -pl.cogs),
@@ -561,6 +601,7 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
                 ],
               ),
               StatementsTab.balance => _StmtBody(
+                entityName: entityName,
                 rows: [
                   _StmtRow('Total assets', bs.totalAssets),
                   _StmtRow('Total liabilities', bs.totalLiab),
@@ -574,11 +615,12 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
                 balanced: bs.totalAssets == bs.totalLiabEquity,
               ),
               StatementsTab.cashFlow => _StmtBody(
-                rows: const [
-                  _StmtRow('Operating activities', 1575000),
-                  _StmtRow('Investing activities', -600000),
-                  _StmtRow('Financing activities', -430000),
-                  _StmtRow('Net change in cash', 545000, total: true),
+                entityName: entityName,
+                rows: [
+                  _StmtRow('Operating activities', cf.operating),
+                  _StmtRow('Investing activities', cf.investing),
+                  _StmtRow('Financing activities', cf.financing),
+                  _StmtRow('Net change in cash', cf.netChange, total: true),
                 ],
               ),
             },
@@ -598,17 +640,19 @@ class _StmtRow {
 }
 
 class _StmtBody extends StatelessWidget {
-  const _StmtBody({required this.rows, this.balanced = false});
+  const _StmtBody({required this.rows, this.balanced = false, this.entityName = ''});
 
   final List<_StmtRow> rows;
   final bool balanced;
+  final String entityName;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          'DEMO SHOP LTD',
+        if (entityName.isNotEmpty)
+          Text(
+            entityName.toUpperCase(),
           style: AccountingTokens.sans(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -657,12 +701,15 @@ class _StmtBody extends StatelessWidget {
   }
 }
 
-class AccountingTrialBalanceView extends StatelessWidget {
+class AccountingTrialBalanceView extends ConsumerWidget {
   const AccountingTrialBalanceView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final tb = trialBalance();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(accountingAccountsProvider);
+    final tb = trialBalance(accounts);
+    final period = ref.watch(accountingPeriodLabelProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
       child: Column(
@@ -671,7 +718,7 @@ class AccountingTrialBalanceView extends StatelessWidget {
           AccountingPageHeader(
             eyebrow: 'Reports',
             title: 'Trial balance',
-            subtitle: 'As of 31 May 2026 · $demoCurrency',
+            subtitle: 'As of $period · $currency',
             actions: [
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -683,11 +730,13 @@ class AccountingTrialBalanceView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  'In balance',
+                  tb.balanced ? 'In balance' : 'Out of balance',
                   style: AccountingTokens.sans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: AccountingTokens.gainInk,
+                    color: tb.balanced
+                        ? AccountingTokens.gainInk
+                        : AccountingTokens.lossInk,
                   ),
                 ),
               ),
@@ -696,6 +745,14 @@ class AccountingTrialBalanceView extends StatelessWidget {
           AccountingCard(
             child: Column(
               children: [
+                if (tb.rows.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'No accounts loaded yet.',
+                      style: AccountingTokens.sans(color: AccountingTokens.ink3),
+                    ),
+                  ),
                 for (final r in tb.rows)
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -788,7 +845,7 @@ class AccountingTrialBalanceView extends StatelessWidget {
   }
 }
 
-class AccountingChartOfAccountsView extends StatelessWidget {
+class AccountingChartOfAccountsView extends ConsumerWidget {
   const AccountingChartOfAccountsView({super.key});
 
   static const _typeOrder = [
@@ -800,7 +857,8 @@ class AccountingChartOfAccountsView extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(accountingAccountsProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
       child: Column(
@@ -810,7 +868,7 @@ class AccountingChartOfAccountsView extends StatelessWidget {
             eyebrow: 'Setup',
             title: 'Chart of accounts',
             subtitle:
-                '${demoAccounts.length} accounts · numbered ledger structure',
+                '${accounts.length} accounts · numbered ledger structure',
             actions: const [
               AccountingButton(
                 label: 'Filter',
@@ -844,7 +902,7 @@ class AccountingChartOfAccountsView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  for (final a in demoAccounts.where((x) => x.type == type))
+                  for (final a in accounts.where((x) => x.type == type))
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,

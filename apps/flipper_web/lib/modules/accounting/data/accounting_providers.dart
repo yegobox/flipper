@@ -1,16 +1,27 @@
 import 'package:flipper_web/core/supabase_provider.dart';
+import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_web/modules/accounting/data/mapper/ledger_row_mapper.dart';
+import 'package:flipper_web/modules/accounting/data/mapper/transaction_aging.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/transaction_to_accounts.dart';
+import 'package:flipper_web/modules/accounting/data/repository/accounting_ledger_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_ledger_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_ledger_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_repository.dart';
+import 'package:flipper_web/modules/accounting/data/transaction_journal_poster.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
+import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:intl/intl.dart';
 
-// ─── UI state (unchanged) ────────────────────────────────────────────────────
+// ─── UI state ────────────────────────────────────────────────────────────────
 
 final accountingViewProvider = StateProvider<AccountingView>(
   (ref) => AccountingView.dashboard,
@@ -41,35 +52,45 @@ final approvalActionsProvider =
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
 
-/// Active branch ID — sourced from the branch the user selected at login.
-/// [Branch.serverId] is the integer PK that maps to `branch_id bigint` in Supabase.
-/// Override in tests via ProviderContainer.overrideWithValue.
 final accountingBranchIdProvider = Provider<String>((ref) {
   final branch = ref.watch(selectedBranchProvider);
   return branch?.serverId.toString() ?? '';
 });
 
-/// Active date range (start, end). Defaults to current calendar month.
+final accountingBusinessIdProvider = Provider<String>((ref) {
+  final business = ref.watch(selectedBusinessProvider);
+  return business?.id ?? '';
+});
+
 final accountingDateRangeProvider =
     StateProvider<(DateTime, DateTime)>((ref) {
   final now = DateTime.now();
   return (DateTime(now.year, now.month, 1), now);
 });
 
-/// Backend selector. Swap the return value to switch from Supabase to Ditto:
-///
-///   return DittoAccountingRepository(DittoService.instance);
-///
-/// Override in tests via ProviderContainer.override to inject a fake.
 final accountingRepositoryProvider = Provider<AccountingRepository>((ref) {
-  final client = ref.watch(supabaseProvider);
-  return SupabaseAccountingRepository(client);
+  final ditto = ref.watch(dittoServiceProvider);
+  if (ditto.isReady()) {
+    debugPrint('[Accounting] transactions repository → ditto');
+    return DittoAccountingRepository(ditto);
+  }
+  debugPrint('[Accounting] transactions repository → supabase');
+  return SupabaseAccountingRepository(ref.watch(supabaseProvider));
+});
+
+final accountingLedgerRepositoryProvider =
+    Provider<AccountingLedgerRepository>((ref) {
+  final ditto = ref.watch(dittoServiceProvider);
+  if (ditto.isReady()) {
+    debugPrint('[Accounting] ledger repository → ditto');
+    return DittoAccountingLedgerRepository(ditto);
+  }
+  debugPrint('[Accounting] ledger repository → supabase');
+  return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
 });
 
 // ─── Raw data streams ────────────────────────────────────────────────────────
 
-/// Real-time stream of completed transaction rows for the active branch/range.
-/// Backed by [AccountingRepository.watchTransactions]; backend-agnostic.
 final rawTransactionStreamProvider =
     StreamProvider<List<Map<String, dynamic>>>((ref) {
   final repo = ref.watch(accountingRepositoryProvider);
@@ -82,8 +103,6 @@ final rawTransactionStreamProvider =
   );
 });
 
-/// Transaction items for all currently streamed transactions.
-/// Re-fetched whenever [rawTransactionStreamProvider] emits a new list.
 final rawTransactionItemsProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
@@ -98,68 +117,210 @@ final rawTransactionItemsProvider =
       );
 });
 
-// ─── Derived accounting data ──────────────────────────────────────────────────
+// ─── Ledger streams ──────────────────────────────────────────────────────────
 
-/// Chart of accounts derived from live transactions, merged with [demoAccounts]
-/// for balance-sheet lines that cannot be computed from POS data alone
-/// (equity, fixed assets, long-term liabilities).
-///
-/// Income and expense codes are intentionally excluded from the static merge:
-/// the income statement must only reflect live transactions.
-/// Derived accounts win on code collision — demo entries only fill gaps.
-final accountingAccountsProvider = Provider<List<Account>>((ref) {
-  final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
-  final items = ref.watch(rawTransactionItemsProvider).value ?? [];
-  final balanceSheetStatics = demoAccounts
-      .where((a) => a.type != AccountType.income && a.type != AccountType.expense)
-      .toList();
-  return TransactionToAccounts.deriveAccounts(
-    txns,
-    items,
-    staticAccounts: balanceSheetStatics,
-  );
+final chartOfAccountsStreamProvider = StreamProvider<List<Account>>((ref) {
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return const Stream.empty();
+  final ledger = ref.watch(accountingLedgerRepositoryProvider);
+  ledger.ensureSeeded(businessId: businessId);
+  return ledger.watchChartOfAccounts(businessId: businessId);
 });
 
-/// Double-entry journal derived from live transactions.
+final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return const Stream.empty();
+  final (start, end) = ref.watch(accountingDateRangeProvider);
+  return ref.watch(accountingLedgerRepositoryProvider).watchJournalEntries(
+        businessId: businessId,
+        startDate: start,
+        endDate: end,
+      );
+});
+
+final bankLinesStreamProvider = StreamProvider<List<BankLine>>((ref) {
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return const Stream.empty();
+  return ref.watch(accountingLedgerRepositoryProvider).watchBankLines(
+        businessId: businessId,
+      );
+});
+
+// ─── Auto-poster (transaction → journal) ─────────────────────────────────────
+
+final accountingAutoPosterProvider = Provider<void>((ref) {
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return;
+
+  Future<void> sync() async {
+    final txns = ref.read(rawTransactionStreamProvider).value ?? [];
+    if (txns.isEmpty) return;
+    final items = await ref.read(rawTransactionItemsProvider.future);
+    await TransactionJournalPoster(ref.read(accountingLedgerRepositoryProvider))
+        .syncTransactions(
+      businessId: businessId,
+      transactions: txns,
+      items: items,
+    );
+  }
+
+  ref.listen(rawTransactionStreamProvider, (_, __) => sync());
+  ref.listen(rawTransactionItemsProvider, (_, __) => sync());
+});
+
+// ─── Derived accounting data ─────────────────────────────────────────────────
+
+final accountingCoaProvider = Provider<List<Account>>((ref) {
+  return ref.watch(chartOfAccountsStreamProvider).value ?? [];
+});
+
 final accountingJournalProvider = Provider<List<JournalEntry>>((ref) {
-  final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
-  final items = ref.watch(rawTransactionItemsProvider).value ?? [];
-  return TransactionToAccounts.toJournal(txns, items);
+  return ref.watch(journalEntriesStreamProvider).value ?? [];
 });
 
-/// Income statement computed from real derived accounts.
+final accountingAccountsProvider = Provider<List<Account>>((ref) {
+  final coa = ref.watch(accountingCoaProvider);
+  final journal = ref.watch(accountingJournalProvider);
+  if (coa.isEmpty) return [];
+  return accountsWithBalances(coa, journal);
+});
+
 final accountingIncomeStatementProvider = Provider<IncomeStatementResult>(
+  (ref) => incomeStatement(ref.watch(accountingAccountsProvider)),
+);
+
+final accountingPriorIncomeStatementProvider = Provider<IncomeStatementResult>(
   (ref) {
     final accounts = ref.watch(accountingAccountsProvider);
     return incomeStatement(accounts);
   },
 );
 
-/// Monthly revenue vs expenses trend (last ≤6 months, oldest-first).
 final accountingTrendProvider = Provider<List<TrendPoint>>((ref) {
   final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
-  final derived = TransactionToAccounts.toTrend(txns);
-  // Fall back to demo trend when no live data is available yet
-  return derived.isEmpty ? demoTrend : derived;
+  return TransactionToAccounts.toTrend(txns);
 });
 
-/// Sum of cash, bank, and MoMo account balances.
 final accountingCashBankTotalProvider = Provider<int>((ref) {
   return TransactionToAccounts.cashAndBankTotal(
     ref.watch(accountingAccountsProvider),
   );
 });
 
-/// Count of pending journal entries from the live journal.
-final pendingCountProvider = Provider<int>((ref) {
-  final journal = ref.watch(accountingJournalProvider);
-  // Live journal entries are always posted (derived from COMPLETE transactions).
-  // Manual/approval entries will be added when the journal-entry write path is built.
-  if (journal.isEmpty) return pendingJournalCount(); // demo fallback
-  return journal.where((e) => e.status == JournalStatus.pending).length;
+final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
+  final branchId = ref.watch(accountingBranchIdProvider);
+  if (branchId.isEmpty) return 0;
+  return ref.watch(accountingLedgerRepositoryProvider).fetchInventoryValue(
+        branchId: branchId,
+      );
 });
 
-/// True while the transaction stream has not yet emitted its first value.
-final accountingLoadingProvider = Provider<bool>(
-  (ref) => ref.watch(rawTransactionStreamProvider).isLoading,
-);
+final accountingArAgingProvider = Provider<List<AgingRow>>((ref) {
+  final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
+  return deriveArAging(txns);
+});
+
+final accountingApAgingProvider = Provider<List<AgingRow>>((ref) {
+  final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
+  return deriveApAging(txns);
+});
+
+final accountingVatProvider = Provider<VatInfo?>((ref) {
+  final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
+  final settings = ref.watch(accountingSettingsProvider).value;
+
+  var outputVat = 0;
+  var inputVat = 0;
+  for (final t in txns) {
+    if (t['status'] != 'COMPLETE') continue;
+    final tax = _rawInt(t['tax_amount'] ?? t['taxAmount']);
+    final isExpense = t['is_expense'] == true || t['isExpense'] == true;
+    if (isExpense) {
+      inputVat += tax;
+    } else {
+      outputVat += tax;
+    }
+  }
+
+  if (outputVat == 0 && inputVat == 0) return null;
+
+  final (_, end) = ref.watch(accountingDateRangeProvider);
+  final dueDay = _rawInt(settings?['vat_due_day'] ?? settings?['vatDueDay']) == 0
+      ? 15
+      : _rawInt(settings?['vat_due_day'] ?? settings?['vatDueDay']);
+  final dueMonth = DateTime(end.year, end.month + 1, dueDay);
+  final dueLabel = DateFormat('d MMM yyyy').format(dueMonth);
+
+  return LedgerRowMapper.settingsToVat(
+    settings,
+    outputVat: outputVat,
+    inputVat: inputVat,
+    dueDateLabel: dueLabel,
+  );
+});
+
+final accountingBankLinesProvider = Provider<List<BankLine>>((ref) {
+  return ref.watch(bankLinesStreamProvider).value ?? [];
+});
+
+final accountingSettingsProvider =
+    FutureProvider<Map<String, dynamic>?>((ref) async {
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return null;
+  return ref.watch(accountingLedgerRepositoryProvider).fetchSettings(
+        businessId: businessId,
+      );
+});
+
+// ─── Context metadata ────────────────────────────────────────────────────────
+
+final accountingFiscalYearLabelProvider = Provider<String>((ref) {
+  final (_, end) = ref.watch(accountingDateRangeProvider);
+  return 'FY ${end.year}';
+});
+
+final accountingPeriodLabelProvider = Provider<String>((ref) {
+  final (_, end) = ref.watch(accountingDateRangeProvider);
+  return DateFormat('MMM yyyy').format(end);
+});
+
+final accountingCurrencyProvider = Provider<String>((ref) {
+  final business = ref.watch(selectedBusinessProvider);
+  final c = business?.currency ?? '';
+  return c.isNotEmpty ? c : 'RWF';
+});
+
+final accountingUserNameProvider = Provider<String>((ref) {
+  final profile = ref.watch(userProfileCacheProvider);
+  if (profile == null) return '';
+  if (profile.tenants.isNotEmpty &&
+      profile.tenants.first.businesses.isNotEmpty) {
+    final fn = profile.tenants.first.businesses.first.fullName;
+    if (fn.isNotEmpty) return fn;
+  }
+  return profile.phoneNumber;
+});
+
+final accountingUserRoleProvider = Provider<String>((ref) {
+  final profile = ref.watch(userProfileCacheProvider);
+  if (profile != null && profile.tenants.isNotEmpty) {
+    return profile.tenants.first.type;
+  }
+  return '';
+});
+
+final pendingCountProvider = Provider<int>((ref) {
+  final journal = ref.watch(accountingJournalProvider);
+  return pendingJournalCount(journal);
+});
+
+final accountingLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(rawTransactionStreamProvider).isLoading ||
+      ref.watch(chartOfAccountsStreamProvider).isLoading;
+});
+
+int _rawInt(dynamic v) {
+  if (v == null) return 0;
+  if (v is num) return v.round();
+  return int.tryParse(v.toString()) ?? 0;
+}

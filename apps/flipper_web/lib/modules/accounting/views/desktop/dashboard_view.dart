@@ -1,4 +1,4 @@
-import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -22,11 +22,20 @@ class AccountingDashboardView extends ConsumerWidget {
     final journal = ref.watch(accountingJournalProvider);
     final trend = ref.watch(accountingTrendProvider);
     final cashBank = ref.watch(accountingCashBankTotalProvider);
-
-    // AR/AP aging rows: derived from real data in a future iteration;
-    // kept as demo until the receivables/payables write path is added.
-    final arAge = ageTotals(demoAr);
-    final apAge = ageTotals(demoAp);
+    final arAge = ageTotals(ref.watch(accountingArAgingProvider));
+    final apAge = ageTotals(ref.watch(accountingApAgingProvider));
+    final entityName = ref.watch(selectedBusinessProvider)?.name ?? '';
+    final period = ref.watch(accountingPeriodLabelProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
+    final accounts = ref.watch(accountingAccountsProvider);
+    final arOverdue60 = ref.watch(accountingArAgingProvider).fold<int>(
+          0,
+          (s, r) => s + r.d60 + r.d90,
+        );
+    final liquidAccountCount =
+        accounts.where((a) => {'1010', '1020', '1030'}.contains(a.code)).length;
+    final incomeDelta = _trendDeltaPercent(trend, income: true);
+    final cashDelta = _trendDeltaPercent(trend, income: false);
 
     final opexSegs = pl.opex.asMap().entries.map((e) {
       const colors = [
@@ -52,8 +61,9 @@ class AccountingDashboardView extends ConsumerWidget {
           AccountingPageHeader(
             eyebrow: 'Financial overview',
             title: 'Books at a glance',
-            subtitle:
-                '$demoEntityName · fiscal period $demoPeriod · all amounts in $demoCurrency',
+            subtitle: entityName.isNotEmpty
+                ? '$entityName · fiscal period $period · all amounts in $currency'
+                : 'Fiscal period $period · all amounts in $currency',
             actions: [
               const AccountingButton(
                 label: 'Export',
@@ -79,23 +89,27 @@ class AccountingDashboardView extends ConsumerWidget {
                 value: pl.netIncome,
                 icon: Icons.trending_up,
                 tone: KpiTone.green,
-                delta: 18,
-                footnote: 'vs prior period',
+                delta: incomeDelta,
+                footnote: incomeDelta != null ? 'vs prior period' : null,
               ),
               AccountingKpiCard(
                 label: 'Cash & bank',
                 value: cashBank,
                 icon: Icons.account_balance_wallet_outlined,
                 tone: KpiTone.blue,
-                delta: 6,
-                footnote: 'across 3 accounts',
+                delta: cashDelta,
+                footnote: liquidAccountCount > 0
+                    ? 'across $liquidAccountCount accounts'
+                    : null,
               ),
               AccountingKpiCard(
                 label: 'Receivable',
                 value: arAge.total,
                 icon: Icons.north_east,
                 tone: KpiTone.amber,
-                footnote: 'overdue 60+',
+                footnote: arOverdue60 > 0
+                    ? '${money(arOverdue60)} overdue 60+'
+                    : 'no overdue 60+',
                 deltaPositive: false,
               ),
               AccountingKpiCard(
@@ -103,7 +117,7 @@ class AccountingDashboardView extends ConsumerWidget {
                 value: apAge.total,
                 icon: Icons.south_west,
                 tone: KpiTone.red,
-                footnote: '${demoAp.length} open bills',
+                footnote: apAge.total == 0 ? 'no open bills' : '${ref.watch(accountingApAgingProvider).length} open bills',
               ),
             ],
           ),
@@ -277,11 +291,19 @@ class _RecentJournalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = journal.isEmpty ? demoJournal.take(5) : journal.take(5);
+    final entries = journal.take(5);
     return AccountingCard(
       child: Column(
         children: [
           const AccountingCardHeader(title: 'Recent journal entries'),
+          if (entries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'No journal entries yet.',
+                style: AccountingTokens.sans(color: AccountingTokens.ink3),
+              ),
+            ),
           for (final e in entries)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -431,4 +453,14 @@ class _PlRow extends StatelessWidget {
       ),
     );
   }
+}
+
+int? _trendDeltaPercent(List<TrendPoint> trend, {required bool income}) {
+  if (trend.length < 2) return null;
+  final last = trend.last;
+  final prev = trend[trend.length - 2];
+  final lastVal = income ? last.rev - last.exp : last.rev;
+  final prevVal = income ? prev.rev - prev.exp : prev.rev;
+  if (prevVal == 0) return null;
+  return (((lastVal - prevVal) / prevVal.abs()) * 100).round();
 }

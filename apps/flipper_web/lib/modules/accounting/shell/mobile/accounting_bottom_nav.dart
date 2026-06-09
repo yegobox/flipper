@@ -1,4 +1,3 @@
-import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -11,7 +10,7 @@ class AccountingBottomNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tab = ref.watch(accountingMobileTabProvider);
-    final pending = pendingJournalCount();
+    final pending = ref.watch(pendingCountProvider);
 
     return Container(
       decoration: BoxDecoration(
