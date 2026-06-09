@@ -10,6 +10,7 @@ import 'package:flipper_web/modules/accounting/widgets/account_type_pill.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_tag.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
 import 'package:flutter/material.dart';
@@ -384,11 +385,22 @@ class AccountingBankRecView extends ConsumerWidget {
 class AccountingTaxVatView extends ConsumerWidget {
   const AccountingTaxVatView({super.key});
 
+  static const _netVatGradient = LinearGradient(
+    begin: Alignment(-0.5, -0.8),
+    end: Alignment(0.8, 1),
+    colors: [Color(0xFFFFFBF2), Color(0xFFFEF3E2)],
+  );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vat = ref.watch(accountingVatProvider);
     final period = ref.watch(accountingPeriodLabelProvider);
     final ratePct = vat != null ? (vat.rate * 100).round() : 18;
+    final outputVat = vat?.outputVat ?? 0;
+    final inputVat = vat?.inputVat ?? 0;
+    final netPayable = vat?.netPayable ?? 0;
+    final totalSales = vat?.totalSalesVatInclusive ?? 0;
+    final dueDate = vat?.dueDate ?? '—';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
@@ -396,23 +408,25 @@ class AccountingTaxVatView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AccountingPageHeader(
-            eyebrow: 'Money',
+            eyebrow: 'Compliance',
             title: 'Tax & VAT',
-            subtitle: vat != null
-                ? 'Standard rate $ratePct% · $period'
-                : 'No VAT data for $period',
+            subtitle:
+                'VAT at $ratePct% (Rwanda standard) · period $period',
             actions: [
               AccountingButton(
                 label: 'File with RRA',
-                icon: Icons.verified_user_outlined,
+                accIcon: AccIcon.shieldCheck,
                 primary: true,
-                onPressed: () => showAccountingToast(
-                  context,
-                  'VAT return submitted',
-                  subtitle: 'RRA ack · ref RRA-2026-05-0042',
-                  icon: Icons.verified_user_outlined,
-                  tone: AccountingToastTone.success,
-                ),
+                small: true,
+                onPressed: vat == null
+                    ? null
+                    : () => showAccountingToast(
+                          context,
+                          'VAT return submitted',
+                          subtitle: 'RRA ack · ref RRA-2026-05-0042',
+                          accIcon: AccIcon.shieldCheck,
+                          tone: AccountingToastTone.success,
+                        ),
               ),
             ],
           ),
@@ -421,129 +435,153 @@ class AccountingTaxVatView extends ConsumerWidget {
             children: [
               AccountingKpiCard(
                 label: 'Output VAT (on sales)',
-                value: vat?.outputVat ?? 0,
-                icon: AccIcon.chart,
+                value: outputVat,
+                icon: AccIcon.arrowUpRight,
                 tone: KpiTone.green,
               ),
               AccountingKpiCard(
                 label: 'Input VAT (reclaimable)',
-                value: vat?.inputVat ?? 0,
-                icon: AccIcon.receipt,
+                value: inputVat,
+                icon: AccIcon.arrowDown,
                 tone: KpiTone.blue,
               ),
               AccountingKpiCard(
                 label: 'Net VAT payable',
-                value: vat?.netPayable ?? 0,
-                icon: AccIcon.shieldCheck,
+                value: netPayable,
+                icon: AccIcon.receipt,
                 tone: KpiTone.amber,
-                footnote: vat != null ? 'Due ${vat.dueDate}' : '—',
+                note: vat != null ? 'Due $dueDate' : null,
+                highlightGradient: _netVatGradient,
               ),
             ],
           ),
-          if (vat != null) ...[
-            const SizedBox(height: 16),
-            AccountingCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-                    child: Row(
-                      children: [
-                        Text(
-                          'VAT return summary',
-                          style: AccountingTokens.cardTitle,
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AccountingTokens.surface2,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'Draft',
-                            style: AccountingTokens.sans(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AccountingTokens.ink3,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+          const SizedBox(height: 16),
+          AccountingCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                  child: Row(
+                    children: [
+                      Text(
+                        'VAT return summary',
+                        style: AccountingTokens.cardTitle,
+                      ),
+                      const Spacer(),
+                      const AccountingTag(label: 'Draft'),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 18),
-                    child: Column(
-                      children: [
-                        _VatSummaryRow(
-                          'Output VAT collected',
-                          vat.outputVat,
-                        ),
-                        _VatSummaryRow(
-                          'Input VAT on purchases',
-                          -vat.inputVat,
-                          muted: true,
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 10),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: const BoxDecoration(
-                            border: Border(
-                              top: BorderSide(color: AccountingTokens.line),
-                            ),
-                          ),
-                          child: _VatSummaryRow(
-                            'Net VAT due to RRA',
-                            vat.netPayable,
-                            strong: true,
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 6, 24, 18),
+                  child: Column(
+                    children: [
+                      _VatStmtRow(
+                        'Total sales (VAT-inclusive)',
+                        totalSales,
+                      ),
+                      _VatStmtRow('Output VAT collected', outputVat),
+                      _VatStmtRow(
+                        'Input VAT on purchases',
+                        -inputVat,
+                      ),
+                      _VatStmtTotal(
+                        'Net VAT due to RRA',
+                        netPayable,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _VatSummaryRow extends StatelessWidget {
-  const _VatSummaryRow(this.label, this.value, {this.muted = false, this.strong = false});
+/// Handoff `.stmt-row` — label left, mono value right.
+class _VatStmtRow extends StatelessWidget {
+  const _VatStmtRow(this.label, this.value);
 
   final String label;
   final int value;
-  final bool muted;
-  final bool strong;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
         children: [
-          Text(
-            label,
-            style: AccountingTokens.sans(
-              fontSize: 14,
-              fontWeight: strong ? FontWeight.w800 : FontWeight.w500,
-              color: muted ? AccountingTokens.ink2 : AccountingTokens.ink1,
+          Expanded(
+            child: Text(
+              label,
+              style: AccountingTokens.sans(
+                fontSize: 14,
+                color: AccountingTokens.ink1,
+              ),
             ),
           ),
-          Text(
-            money(value),
-            style: AccountingTokens.mono(
-              fontSize: strong ? 16 : 14,
-              fontWeight: strong ? FontWeight.w800 : FontWeight.w600,
+          SizedBox(
+            width: 130,
+            child: Text(
+              money(value),
+              textAlign: TextAlign.right,
+              style: AccountingTokens.mono(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Handoff `.stmt-total` — shaded footer row.
+class _VatStmtTotal extends StatelessWidget {
+  const _VatStmtTotal(this.label, this.value);
+
+  final String label;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+      decoration: BoxDecoration(
+        color: AccountingTokens.surface2,
+        borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
+        border: Border.all(color: AccountingTokens.line),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: AccountingTokens.sans(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 130,
+            child: Text(
+              money(value),
+              textAlign: TextAlign.right,
+              style: AccountingTokens.mono(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],

@@ -195,6 +195,7 @@ class LedgerRowMapper {
     Map<String, dynamic>? settings, {
     required int outputVat,
     required int inputVat,
+    required int totalSalesVatInclusive,
     required String dueDateLabel,
   }) {
     if (settings == null && outputVat == 0 && inputVat == 0) return null;
@@ -205,6 +206,7 @@ class LedgerRowMapper {
       outputVat: outputVat,
       inputVat: inputVat,
       dueDate: dueDateLabel,
+      totalSalesVatInclusive: totalSalesVatInclusive,
     );
   }
 

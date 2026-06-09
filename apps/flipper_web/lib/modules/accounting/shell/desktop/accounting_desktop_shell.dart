@@ -37,17 +37,23 @@ class AccountingDesktopShell extends ConsumerWidget {
                   children: [
                     const AccountingTopbar(),
                     Expanded(
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: AccountingTokens.contentMaxWidth,
-                          ),
-                          child: _DesktopViewRouter(
-                            view: view,
-                            onNewEntry: openComposer,
-                          ),
-                        ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final contentWidth = constraints.maxWidth.clamp(
+                            0.0,
+                            AccountingTokens.contentMaxWidth,
+                          );
+                          return Align(
+                            alignment: Alignment.topCenter,
+                            child: SizedBox(
+                              width: contentWidth,
+                              child: _DesktopViewRouter(
+                                view: view,
+                                onNewEntry: openComposer,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],

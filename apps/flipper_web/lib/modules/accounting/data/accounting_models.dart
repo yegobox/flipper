@@ -111,12 +111,16 @@ class VatInfo {
     required this.outputVat,
     required this.inputVat,
     required this.dueDate,
+    required this.totalSalesVatInclusive,
   });
 
   final double rate;
   final int outputVat;
   final int inputVat;
   final String dueDate;
+
+  /// Sum of VAT-inclusive sale totals in the period (subtotal + output VAT).
+  final int totalSalesVatInclusive;
 
   int get netPayable => outputVat - inputVat;
 }

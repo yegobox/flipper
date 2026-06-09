@@ -29,13 +29,17 @@ class AccountingPageHeader extends StatelessWidget {
       ],
     );
 
+    // Handoff `.acc-pagehead-r` — horizontal group, no shrink.
     final actionBlock = actions.isEmpty
         ? null
-        : Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.end,
-            children: actions,
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < actions.length; i++) ...[
+                if (i > 0) const SizedBox(width: 10),
+                actions[i],
+              ],
+            ],
           );
 
     return Padding(
@@ -43,20 +47,25 @@ class AccountingPageHeader extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final stackActions = constraints.maxWidth < 520;
-          if (actionBlock == null || stackActions) {
+          if (actionBlock == null) {
+            return titleBlock;
+          }
+          if (stackActions) {
             return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 titleBlock,
-                if (actionBlock != null) ...[const SizedBox(height: 12), actionBlock],
+                const SizedBox(height: 12),
+                Align(alignment: Alignment.centerRight, child: actionBlock),
               ],
             );
           }
+          // Handoff `.acc-pagehead` — space-between, actions on far right.
           return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(child: titleBlock),
-              Flexible(child: actionBlock),
+              actionBlock,
             ],
           );
         },
@@ -229,7 +238,7 @@ class AccountingCardHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) Flexible(child: trailing!),
+          if (trailing != null) trailing!,
         ],
       ),
     );

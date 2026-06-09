@@ -9,7 +9,12 @@ import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/ledger_row_mapper.dart';
-import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
+import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart'
+    show
+        accountingSubTotal,
+        accountingTaxAmount,
+        isAccountingExpense,
+        isAccountingRecognizedTransaction;
 import 'package:flipper_web/modules/accounting/data/mapper/transaction_aging.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/transaction_to_accounts.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_ledger_repository.dart';
@@ -297,14 +302,16 @@ final accountingVatProvider = Provider<VatInfo?>((ref) {
 
   var outputVat = 0;
   var inputVat = 0;
+  var totalSalesVatInclusive = 0;
   for (final t in txns) {
     if (!isAccountingRecognizedTransaction(t)) continue;
-    final tax = _rawInt(t['tax_amount'] ?? t['taxAmount']);
+    final tax = accountingTaxAmount(t);
     final isExpense = isAccountingExpense(t);
     if (isExpense) {
       inputVat += tax;
     } else {
       outputVat += tax;
+      totalSalesVatInclusive += accountingSubTotal(t) + tax;
     }
   }
 
@@ -321,6 +328,7 @@ final accountingVatProvider = Provider<VatInfo?>((ref) {
     settings,
     outputVat: outputVat,
     inputVat: inputVat,
+    totalSalesVatInclusive: totalSalesVatInclusive,
     dueDateLabel: dueLabel,
   );
 });

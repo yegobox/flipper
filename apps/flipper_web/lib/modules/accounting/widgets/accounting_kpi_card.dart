@@ -55,9 +55,11 @@ class AccountingKpiCard extends StatelessWidget {
     this.textValue,
     this.currencyPrefix,
     this.footnote,
+    this.note,
     this.delta,
     this.deltaPositive,
     this.valueFontSize,
+    this.highlightGradient,
   });
 
   final String label;
@@ -74,9 +76,15 @@ class AccountingKpiCard extends StatelessWidget {
   final bool? currencyPrefix;
 
   final String? footnote;
+
+  /// Handoff `.acc-kpi-note` line below the value (e.g. VAT due date).
+  final String? note;
   final int? delta;
   final bool? deltaPositive;
   final double? valueFontSize;
+
+  /// Handoff amber gradient on net-VAT KPI card.
+  final Gradient? highlightGradient;
 
   @override
   Widget build(BuildContext context) {
@@ -128,56 +136,88 @@ class AccountingKpiCard extends StatelessWidget {
       );
     }
 
-    return AccountingCard(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: icBg,
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                alignment: Alignment.center,
-                child: AccountingIcon(icon: icon, size: 20, color: icFg),
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: icBg,
+                borderRadius: BorderRadius.circular(11),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  label,
-                  style: AccountingTokens.sans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AccountingTokens.ink3,
-                  ),
+              alignment: Alignment.center,
+              child: AccountingIcon(icon: icon, size: 20, color: icFg),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: AccountingTokens.sans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AccountingTokens.ink3,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          valueWidget,
-          if (footnote != null && (showCurrency || textValue != null)) ...[
-            const SizedBox(height: 4),
-            Text(
-              footnote!,
-              style: AccountingTokens.sans(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AccountingTokens.ink3,
               ),
             ),
           ],
-          if (delta != null) ...[
-            const SizedBox(height: 10),
-            _DeltaChip(value: delta!, positive: deltaPositive ?? delta! >= 0),
-          ],
+        ),
+        const SizedBox(height: 12),
+        valueWidget,
+        if (footnote != null && (showCurrency || textValue != null)) ...[
+          const SizedBox(height: 4),
+          Text(
+            footnote!,
+            style: AccountingTokens.sans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AccountingTokens.ink3,
+            ),
+          ),
         ],
-      ),
+        if (note != null) ...[
+          const SizedBox(height: 9),
+          Text(
+            note!,
+            style: AccountingTokens.sans(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AccountingTokens.ink3,
+            ),
+          ),
+        ],
+        if (delta != null) ...[
+          const SizedBox(height: 10),
+          _DeltaChip(value: delta!, positive: deltaPositive ?? delta! >= 0),
+        ],
+      ],
+    );
+
+    if (highlightGradient != null) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: highlightGradient,
+          borderRadius: BorderRadius.circular(AccountingTokens.radiusLg),
+          border: Border.all(color: AccountingTokens.line),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A0B1220),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+        child: content,
+      );
+    }
+
+    return AccountingCard(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      child: content,
     );
   }
 }
