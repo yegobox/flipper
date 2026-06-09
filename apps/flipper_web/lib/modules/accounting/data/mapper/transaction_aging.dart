@@ -1,4 +1,5 @@
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 
 /// Derive AR aging rows from open loan/credit sales in raw transaction maps.
 List<AgingRow> deriveArAging(List<Map<String, dynamic>> transactions) {
@@ -6,23 +7,20 @@ List<AgingRow> deriveArAging(List<Map<String, dynamic>> transactions) {
   final rows = <AgingRow>[];
 
   for (final t in transactions) {
-    final isLoan = t['is_loan'] == true || t['isLoan'] == true;
-    if (!isLoan) continue;
-    if (t['status'] != 'COMPLETE') continue;
+    if (!isOpenReceivable(t)) continue;
 
-    final remaining = _int(t['remaining_balance'] ?? t['remainingBalance']);
-    final amount = remaining > 0
-        ? remaining
-        : _int(t['sub_total'] ?? t['subTotal']);
-    if (amount <= 0) continue;
-
+    final remaining = accountingRemainingBalance(t);
     final created = _parseDate(t['created_at'] ?? t['createdAt']) ?? now;
     final days = now.difference(created).inDays;
-    final name = (t['customer_name'] ?? t['customerName'] ?? 'Customer').toString();
-    final inv = (t['receipt_number'] ?? t['receiptNumber'] ?? t['reference'] ?? t['id'])
+    final name =
+        (t['customer_name'] ?? t['customerName'] ?? 'Customer').toString();
+    final inv = (t['receipt_number'] ??
+            t['receiptNumber'] ??
+            t['reference'] ??
+            t['id'])
         .toString();
 
-    final buckets = _bucketAmount(amount, days);
+    final buckets = _bucketAmount(remaining, days);
     rows.add(AgingRow(
       name: name,
       inv: inv,
@@ -42,14 +40,9 @@ List<AgingRow> deriveApAging(List<Map<String, dynamic>> transactions) {
   final rows = <AgingRow>[];
 
   for (final t in transactions) {
-    final isExpense = t['is_expense'] == true || t['isExpense'] == true;
-    if (!isExpense) continue;
-    if (t['status'] != 'COMPLETE') continue;
+    if (!isOpenPayable(t)) continue;
 
-    // Paid expenses are not open payables — match handoff bill aging semantics.
-    final remaining = _int(t['remaining_balance'] ?? t['remainingBalance']);
-    if (remaining <= 0) continue;
-
+    final remaining = accountingRemainingBalance(t);
     final created = _parseDate(t['created_at'] ?? t['createdAt']) ?? now;
     final days = now.difference(created).inDays;
     final name = (t['note'] ?? t['supplier_id'] ?? 'Supplier').toString();
@@ -74,12 +67,6 @@ List<AgingRow> deriveApAging(List<Map<String, dynamic>> transactions) {
   if (days <= 30) return (0, amount, 0, 0);
   if (days <= 60) return (0, 0, amount, 0);
   return (0, 0, 0, amount);
-}
-
-int _int(dynamic v) {
-  if (v == null) return 0;
-  if (v is num) return v.round();
-  return int.tryParse(v.toString()) ?? 0;
 }
 
 DateTime? _parseDate(dynamic raw) {

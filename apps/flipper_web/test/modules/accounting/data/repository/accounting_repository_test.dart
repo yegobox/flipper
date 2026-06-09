@@ -43,7 +43,7 @@ void main() {
     final sampleTxns = [
       {
         'id': 'txn-1',
-        'status': 'COMPLETE',
+        'status': 'completed',
         'sub_total': 100000,
         'tax_amount': 0,
         'payment_type': 'CASH',

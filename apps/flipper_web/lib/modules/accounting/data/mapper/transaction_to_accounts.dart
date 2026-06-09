@@ -1,4 +1,5 @@
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 
 /// Maps raw Supabase / Ditto row maps to the accounting model types used by
 /// [accounting_derive.dart].
@@ -11,53 +12,73 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 /// whole RWF depending on business configuration).  The mapper rounds doubles
 /// to ints using [num.round].
 ///
-/// Static accounts that cannot be derived from transaction data (equity, fixed
-/// assets, long-term liabilities) are accepted via [staticAccounts] so callers
-/// can merge in a configured chart of accounts without changing this class.
+/// **Accrual principle:** revenue and VAT are recognized at sale time
+/// (`completed` or `parked`). Collected cash debits liquid accounts; unpaid
+/// loan/credit balances debit Accounts Receivable (1100).
 class TransactionToAccounts {
   TransactionToAccounts._();
+
+  static const _arCode = '1100';
+  static const _revenueCode = '4010';
+  static const _vatCode = '2100';
+  static const _opexCode = '6000';
 
   // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
 
-  /// Derive [Account] balances from completed transaction rows + their line
-  /// items.  Pass [staticAccounts] to merge in accounts that cannot be derived
-  /// (e.g. equity, fixed assets). Derived accounts win on code collision.
+  /// Derive [Account] balances from finalized transaction rows + line items.
   static List<Account> deriveAccounts(
     List<Map<String, dynamic>> transactions,
     List<Map<String, dynamic>> items, {
     List<Account> staticAccounts = const [],
   }) {
-    final sales = transactions.where(_isSale).toList();
-    final expenses = transactions.where(_isExpense).toList();
+    final recognized =
+        transactions.where(isAccountingRecognizedTransaction).toList();
+    final sales = recognized.where((t) => !isAccountingExpense(t)).toList();
+    final expenses = recognized.where(isAccountingExpense).toList();
 
-    // Revenue & VAT
-    final grossRevenue = _sumField(sales, 'sub_total', 'subTotal');
-    final vatTotal = _sumField(sales, 'tax_amount', 'taxAmount');
+    // Revenue & VAT (full sale amount at recognition — accrual)
+    final grossRevenue = _sumSubTotal(sales);
+    final vatTotal = _sumTax(sales);
     final netRevenue = grossRevenue - vatTotal;
 
-    // Cash accounts by payment type
-    final cashSales = _sumByPayType(sales, {'cash'});
-    final bankSales = _sumByPayType(sales, {'bank', 'card', 'transfer'});
-    final momoSales = _sumByPayType(sales, {'momo', 'mobile_money', 'mobile money'});
+    // Liquid assets: collected portions only (not full subtotal on loans)
+    var cashBal = 0;
+    var bankBal = 0;
+    var momoBal = 0;
+    for (final s in sales) {
+      final collected = accountingCollectedAmount(s);
+      if (collected <= 0) continue;
+      switch (accountingLiquidAccountCode(s)) {
+        case '1020':
+          bankBal += collected;
+        case '1030':
+          momoBal += collected;
+        default:
+          cashBal += collected;
+      }
+    }
 
-    final cashExp = _sumByPayType(expenses, {'cash'});
-    final bankExp = _sumByPayType(expenses, {'bank', 'card'});
-    final momoExp = _sumByPayType(expenses, {'momo', 'mobile_money', 'mobile money'});
+    for (final e in expenses) {
+      final sub = accountingSubTotal(e);
+      switch (accountingLiquidAccountCode(e)) {
+        case '1020':
+          bankBal -= sub;
+        case '1030':
+          momoBal -= sub;
+        default:
+          cashBal -= sub;
+      }
+    }
 
-    // Accounts Receivable (loan / credit sales)
-    final arBalance = _sumField(
-      sales.where(_isLoan).toList(),
-      'sub_total',
-      'subTotal',
-    );
+    // Open AR = sum of remaining balances on loan sales
+    final arBalance = sales
+        .where(isOpenReceivable)
+        .fold<int>(0, (s, t) => s + accountingRemainingBalance(t));
 
-    // COGS from item supply amounts
     final cogs = _sumField(items, 'sply_amt', 'splyAmt');
-
-    // Operating expenses (single bucket; expanded via staticAccounts later)
-    final opex = _sumField(expenses, 'sub_total', 'subTotal');
+    final opex = _sumSubTotal(expenses);
 
     final derived = <Account>[
       Account(
@@ -66,7 +87,7 @@ class TransactionToAccounts {
         type: AccountType.asset,
         sub: 'Current assets',
         normal: AccountNormal.debit,
-        bal: (cashSales - cashExp).clamp(0, double.maxFinite).toInt(),
+        bal: cashBal.clamp(0, double.maxFinite).toInt(),
       ),
       Account(
         code: '1020',
@@ -74,7 +95,7 @@ class TransactionToAccounts {
         type: AccountType.asset,
         sub: 'Current assets',
         normal: AccountNormal.debit,
-        bal: (bankSales - bankExp).clamp(0, double.maxFinite).toInt(),
+        bal: bankBal.clamp(0, double.maxFinite).toInt(),
       ),
       Account(
         code: '1030',
@@ -82,11 +103,11 @@ class TransactionToAccounts {
         type: AccountType.asset,
         sub: 'Current assets',
         normal: AccountNormal.debit,
-        bal: (momoSales - momoExp).clamp(0, double.maxFinite).toInt(),
+        bal: momoBal.clamp(0, double.maxFinite).toInt(),
       ),
       if (arBalance > 0)
         Account(
-          code: '1100',
+          code: _arCode,
           name: 'Accounts Receivable',
           type: AccountType.asset,
           sub: 'Current assets',
@@ -94,7 +115,7 @@ class TransactionToAccounts {
           bal: arBalance,
         ),
       Account(
-        code: '4010',
+        code: _revenueCode,
         name: 'Sales Revenue',
         type: AccountType.income,
         sub: 'Operating income',
@@ -102,7 +123,7 @@ class TransactionToAccounts {
         bal: netRevenue,
       ),
       Account(
-        code: '2100',
+        code: _vatCode,
         name: 'VAT Payable',
         type: AccountType.liability,
         sub: 'Current liabilities',
@@ -120,7 +141,7 @@ class TransactionToAccounts {
         ),
       if (opex > 0)
         Account(
-          code: '6000',
+          code: _opexCode,
           name: 'Operating Expenses',
           type: AccountType.expense,
           sub: 'Operating expenses',
@@ -129,7 +150,6 @@ class TransactionToAccounts {
         ),
     ];
 
-    // Merge: derived wins, static fills gaps
     final derivedCodes = {for (final a in derived) a.code};
     return [
       ...derived,
@@ -137,28 +157,24 @@ class TransactionToAccounts {
     ];
   }
 
-  /// Convert completed transactions into double-entry [JournalEntry] records.
-  ///
-  /// Each sale:  Dr cash-account (by payment type) / Cr revenue / Cr VAT
-  /// Each expense: Dr expense / Cr cash-account
+  /// Convert finalized transactions into balanced double-entry [JournalEntry]
+  /// records (debits = credits).
   static List<JournalEntry> toJournal(
     List<Map<String, dynamic>> transactions,
     List<Map<String, dynamic>> items,
   ) {
     final itemsByTxn = _groupItemsByTransaction(items);
     return [
-      for (final txn in transactions)
+      for (final txn in transactions.where(isAccountingRecognizedTransaction))
         _txnToEntry(txn, itemsByTxn[_id(txn)] ?? []),
     ];
   }
 
-  /// Aggregate transactions into monthly [TrendPoint] records (last 6 months,
-  /// oldest first).
   static List<TrendPoint> toTrend(List<Map<String, dynamic>> transactions) {
     final monthly = <String, ({int rev, int exp})>{};
     final order = <String>[];
 
-    for (final txn in transactions) {
+    for (final txn in transactions.where(isAccountingRecognizedTransaction)) {
       final dt = _parseDate(txn['created_at'] ?? txn['createdAt']);
       if (dt == null) continue;
       final key = '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
@@ -166,14 +182,13 @@ class TransactionToAccounts {
         monthly[key] = (rev: 0, exp: 0);
         order.add(key);
       }
-      final sub = _rawInt(txn['sub_total'] ?? txn['subTotal']);
+      final sub = accountingSubTotal(txn);
       final cur = monthly[key]!;
-      monthly[key] = _isExpense(txn)
+      monthly[key] = isAccountingExpense(txn)
           ? (rev: cur.rev, exp: cur.exp + sub)
           : (rev: cur.rev + sub, exp: cur.exp);
     }
 
-    // Sort ascending, take last 6
     order.sort();
     return order.reversed.take(6).toList().reversed.map((key) {
       final dt = DateTime.parse('$key-01');
@@ -182,7 +197,6 @@ class TransactionToAccounts {
     }).toList();
   }
 
-  /// Sum cash + bank + MoMo balances from a derived account list.
   static int cashAndBankTotal(List<Account> accounts) {
     return accounts
         .where((a) => {'1010', '1020', '1030'}.contains(a.code))
@@ -211,29 +225,22 @@ class TransactionToAccounts {
     List<Map<String, dynamic>> items,
   ) {
     final id = _id(txn);
-    final sub = _rawInt(txn['sub_total'] ?? txn['subTotal']);
-    final tax = _rawInt(txn['tax_amount'] ?? txn['taxAmount']);
+    final sub = accountingSubTotal(txn);
+    final tax = accountingTaxAmount(txn);
     final netRev = sub - tax;
-    final payType = (txn['payment_type'] ?? txn['paymentType'] ?? 'CASH')
-        .toString();
-    final cashAc = _payTypeToAccount(payType);
     final ref =
         (txn['receipt_number'] ?? txn['receiptNumber'])?.toString() ??
         (txn['reference'] as String?) ??
         id.substring(0, id.length.clamp(0, 8));
     final dateStr = _formatDate(txn['created_at'] ?? txn['createdAt']);
-    final isExp = _isExpense(txn);
+    final isExp = isAccountingExpense(txn);
     final memo = isExp
         ? 'Expense · ${txn['note'] ?? txn['reference'] ?? ref}'
         : 'Sale · ${txn['customer_name'] ?? txn['customerName'] ?? ref}';
 
     final lines = isExp
-        ? [JournalLine(ac: '6000', dr: sub), JournalLine(ac: cashAc, cr: sub)]
-        : [
-            JournalLine(ac: cashAc, dr: sub),
-            JournalLine(ac: '4010', cr: netRev),
-            if (tax > 0) JournalLine(ac: '2100', cr: tax),
-          ];
+        ? _expenseLines(sub, accountingLiquidAccountCode(txn))
+        : _saleLines(txn, sub, netRev, tax);
 
     return JournalEntry(
       id: 'JE-${ref.substring(0, ref.length.clamp(0, 8)).toUpperCase()}',
@@ -246,16 +253,50 @@ class TransactionToAccounts {
     );
   }
 
-  // --- field readers ---
+  /// Dr expense / Cr liquid account.
+  static List<JournalLine> _expenseLines(int sub, String liquidAc) => [
+        JournalLine(ac: _opexCode, dr: sub),
+        JournalLine(ac: liquidAc, cr: sub),
+      ];
+
+  /// Accrual sale: Dr cash (collected) + Dr AR (open) / Cr revenue / Cr VAT.
+  static List<JournalLine> _saleLines(
+    Map<String, dynamic> txn,
+    int sub,
+    int netRev,
+    int tax,
+  ) {
+    final collected = accountingCollectedAmount(txn);
+    final ar = isOpenReceivable(txn) ? accountingRemainingBalance(txn) : 0;
+    final liquidAc = accountingLiquidAccountCode(txn);
+
+    final debits = <JournalLine>[];
+    if (collected > 0) {
+      debits.add(JournalLine(ac: liquidAc, dr: collected));
+    }
+    if (ar > 0) {
+      debits.add(JournalLine(ac: _arCode, dr: ar));
+    }
+    // Fully paid non-loan: entire subtotal to liquid (fallback if both zero)
+    if (debits.isEmpty && sub > 0) {
+      debits.add(JournalLine(ac: liquidAc, dr: sub));
+    }
+
+    return [
+      ...debits,
+      JournalLine(ac: _revenueCode, cr: netRev),
+      if (tax > 0) JournalLine(ac: _vatCode, cr: tax),
+    ];
+  }
 
   static String _id(Map<String, dynamic> row) =>
       (row['id'] ?? row['_id'] ?? '').toString();
 
-  static int _rawInt(dynamic v) {
-    if (v == null) return 0;
-    if (v is num) return v.round();
-    return int.tryParse(v.toString()) ?? 0;
-  }
+  static int _sumSubTotal(List<Map<String, dynamic>> rows) =>
+      rows.fold(0, (s, r) => s + accountingSubTotal(r));
+
+  static int _sumTax(List<Map<String, dynamic>> rows) =>
+      rows.fold(0, (s, r) => s + accountingTaxAmount(r));
 
   static int _sumField(
     List<Map<String, dynamic>> rows,
@@ -264,39 +305,10 @@ class TransactionToAccounts {
   ) =>
       rows.fold(0, (s, r) => s + _rawInt(r[snakeKey] ?? r[camelKey]));
 
-  static int _sumByPayType(
-    List<Map<String, dynamic>> rows,
-    Set<String> normalised,
-  ) =>
-      rows
-          .where((r) {
-            final pt = (r['payment_type'] ?? r['paymentType'] ?? '')
-                .toString()
-                .toLowerCase()
-                .replaceAll('_', ' ');
-            return normalised.any((n) => pt.contains(n));
-          })
-          .fold(0, (s, r) => s + _rawInt(r['sub_total'] ?? r['subTotal']));
-
-  // --- predicates ---
-
-  static bool _isSale(Map<String, dynamic> t) => !_isExpense(t);
-
-  static bool _isExpense(Map<String, dynamic> t) =>
-      t['is_expense'] == true || t['isExpense'] == true;
-
-  static bool _isLoan(Map<String, dynamic> t) =>
-      t['is_loan'] == true || t['isLoan'] == true;
-
-  // --- formatters ---
-
-  static String _payTypeToAccount(String payType) {
-    final p = payType.toLowerCase();
-    if (p.contains('momo') || p.contains('mobile')) return '1030';
-    if (p.contains('bank') || p.contains('card') || p.contains('transfer')) {
-      return '1020';
-    }
-    return '1010';
+  static int _rawInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.round();
+    return int.tryParse(v.toString()) ?? 0;
   }
 
   static String _formatDate(dynamic raw) {
@@ -317,4 +329,3 @@ class TransactionToAccounts {
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
       ][m];
 }
-

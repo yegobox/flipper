@@ -4,12 +4,12 @@ import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_aging_seed.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/ledger_row_mapper.dart';
+import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/transaction_aging.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/transaction_to_accounts.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_ledger_repository.dart';
@@ -283,14 +283,12 @@ final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
 
 final accountingArAgingProvider = Provider<List<AgingRow>>((ref) {
   final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
-  final derived = deriveArAging(txns);
-  return derived.isNotEmpty ? derived : accountingArSeedRows;
+  return deriveArAging(txns);
 });
 
 final accountingApAgingProvider = Provider<List<AgingRow>>((ref) {
   final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
-  final derived = deriveApAging(txns);
-  return derived.isNotEmpty ? derived : accountingApSeedRows;
+  return deriveApAging(txns);
 });
 
 final accountingVatProvider = Provider<VatInfo?>((ref) {
@@ -300,9 +298,9 @@ final accountingVatProvider = Provider<VatInfo?>((ref) {
   var outputVat = 0;
   var inputVat = 0;
   for (final t in txns) {
-    if (t['status'] != 'COMPLETE') continue;
+    if (!isAccountingRecognizedTransaction(t)) continue;
     final tax = _rawInt(t['tax_amount'] ?? t['taxAmount']);
-    final isExpense = t['is_expense'] == true || t['isExpense'] == true;
+    final isExpense = isAccountingExpense(t);
     if (isExpense) {
       inputVat += tax;
     } else {

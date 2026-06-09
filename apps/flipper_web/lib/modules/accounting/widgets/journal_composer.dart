@@ -1,6 +1,7 @@
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/data/chart_account_resolver.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
@@ -27,24 +28,84 @@ class JournalComposer extends ConsumerStatefulWidget {
 
 class _JournalComposerState extends ConsumerState<JournalComposer> {
   final _memoCtrl = TextEditingController();
-  final _refCtrl = TextEditingController(text: 'Auto · JE-1048');
+  late final TextEditingController _refCtrl;
   final _pickerLink = LayerLink();
   late final String _dateLabel;
   List<ComposerLine> _lines = [ComposerLine(), ComposerLine()];
   int? _pickerIndex;
-  bool _posted = false;
-
-  static const _templates = [
-    (name: 'Record a sale', icon: Icons.shopping_cart_outlined, memo: 'Record a sale', codes: ['1010', '4010', '2100']),
-    (name: 'Pay an expense', icon: Icons.account_balance_wallet_outlined, memo: 'Pay an expense', codes: ['6010', '1020']),
-    (name: 'Receive payment', icon: Icons.arrow_downward, memo: 'Receive payment', codes: ['1020', '1100']),
-    (name: 'Pay a bill', icon: Icons.receipt_long_outlined, memo: 'Pay a bill', codes: ['2010', '1020']),
-  ];
+  bool _submitted = false;
 
   @override
   void initState() {
     super.initState();
     _dateLabel = DateFormat('d MMM y').format(DateTime.now());
+    _refCtrl = TextEditingController(text: _nextEntryRef());
+  }
+
+  static String _nextEntryRef() {
+    final n = DateTime.now().microsecondsSinceEpoch % 10000;
+    return 'Auto · JE-${1000 + n}';
+  }
+
+  List<({String name, IconData icon, String memo, List<String> codes})>
+  _templatesFor(ChartAccountResolver roles) {
+    final templates =
+        <({String name, IconData icon, String memo, List<String> codes})>[];
+
+    final saleCodes = [
+      roles.cashOnHand,
+      roles.salesRevenue,
+      roles.vatPayable,
+    ].whereType<String>().toList();
+    if (saleCodes.length >= 2) {
+      templates.add((
+        name: 'Record a sale',
+        icon: Icons.shopping_cart_outlined,
+        memo: 'Record a sale',
+        codes: saleCodes,
+      ));
+    }
+
+    final expenseCodes = [
+      roles.operatingExpense,
+      roles.bank ?? roles.cashOnHand,
+    ].whereType<String>().toList();
+    if (expenseCodes.length == 2) {
+      templates.add((
+        name: 'Pay an expense',
+        icon: Icons.account_balance_wallet_outlined,
+        memo: 'Pay an expense',
+        codes: expenseCodes,
+      ));
+    }
+
+    final receiveCodes = [
+      roles.bank ?? roles.cashOnHand,
+      roles.receivable,
+    ].whereType<String>().toList();
+    if (receiveCodes.length == 2) {
+      templates.add((
+        name: 'Receive payment',
+        icon: Icons.arrow_downward,
+        memo: 'Receive payment',
+        codes: receiveCodes,
+      ));
+    }
+
+    final billCodes = [
+      roles.payable,
+      roles.bank ?? roles.cashOnHand,
+    ].whereType<String>().toList();
+    if (billCodes.length == 2) {
+      templates.add((
+        name: 'Pay a bill',
+        icon: Icons.receipt_long_outlined,
+        memo: 'Pay a bill',
+        codes: billCodes,
+      ));
+    }
+
+    return templates;
   }
 
   @override
@@ -60,7 +121,9 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
   bool get _balanced => _diff == 0 && _totDr > 0;
   bool get _canPost => _balanced && _lines.any((l) => l.ac.isNotEmpty);
 
-  void _applyTemplate(({String name, IconData icon, String memo, List<String> codes}) t) {
+  void _applyTemplate(
+    ({String name, IconData icon, String memo, List<String> codes}) t,
+  ) {
     setState(() {
       _memoCtrl.text = t.memo;
       _lines = t.codes.map((c) => ComposerLine(ac: c)).toList();
@@ -68,8 +131,8 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
     });
   }
 
-  Future<void> _saveEntry({required bool post}) async {
-    if (post && !_canPost) return;
+  Future<void> _saveEntry({required bool submitForApproval}) async {
+    if (submitForApproval && !_canPost) return;
     final businessId = ref.read(accountingBusinessIdProvider);
     if (businessId.isEmpty) return;
 
@@ -78,27 +141,25 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
       date: _dateLabel,
       memo: _memoCtrl.text,
       ref: _refCtrl.text,
-      status: post ? JournalStatus.posted : JournalStatus.draft,
+      status: submitForApproval ? JournalStatus.pending : JournalStatus.draft,
       src: 'Manual',
       lines: [
         for (final l in _lines)
           if (l.ac.isNotEmpty)
-            JournalLine(
-              ac: l.ac,
-              dr: _parseInput(l.dr),
-              cr: _parseInput(l.cr),
-            ),
+            JournalLine(ac: l.ac, dr: _parseInput(l.dr), cr: _parseInput(l.cr)),
       ],
     );
 
-    await ref.read(accountingLedgerRepositoryProvider).createJournalEntry(
+    await ref
+        .read(accountingLedgerRepositoryProvider)
+        .createJournalEntry(
           businessId: businessId,
           entry: entry,
           journalCode: 'misc',
         );
 
-    if (post) {
-      setState(() => _posted = true);
+    if (submitForApproval) {
+      setState(() => _submitted = true);
     } else {
       if (mounted) {
         showAccountingToast(
@@ -128,9 +189,14 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
             elevation: 0,
             shadowColor: const Color(0x80080C16),
             child: AnimatedContainer(
-              duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 320),
+              duration: reduceMotion
+                  ? Duration.zero
+                  : const Duration(milliseconds: 320),
               curve: const Cubic(0.22, 0.9, 0.3, 1),
-              width: AccountingTokens.composerWidth.clamp(320, MediaQuery.sizeOf(context).width),
+              width: AccountingTokens.composerWidth.clamp(
+                320,
+                MediaQuery.sizeOf(context).width,
+              ),
               height: double.infinity,
               decoration: const BoxDecoration(
                 color: AccountingTokens.surface,
@@ -143,7 +209,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                   ),
                 ],
               ),
-              child: _posted ? _buildSuccess() : _buildForm(),
+              child: _submitted ? _buildSuccess() : _buildForm(),
             ),
           ),
         ),
@@ -176,17 +242,28 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Entry posted & balanced',
-              style: AccountingTokens.sans(fontSize: 23, fontWeight: FontWeight.w800, letterSpacing: -0.02 * 23),
+              'Submitted for approval',
+              style: AccountingTokens.sans(
+                fontSize: 23,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.02 * 23,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Debits equal credits. The ledger, trial balance and statements have all been updated.',
-              style: AccountingTokens.sans(fontSize: 14, color: AccountingTokens.ink3),
+              'Debits equal credits. Review and approve from the Approvals tab to post to the ledger.',
+              style: AccountingTokens.sans(
+                fontSize: 14,
+                color: AccountingTokens.ink3,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            AccountingButton(label: 'Done', primary: true, onPressed: widget.onClose),
+            AccountingButton(
+              label: 'Done',
+              primary: true,
+              onPressed: widget.onClose,
+            ),
           ],
         ),
       ),
@@ -196,6 +273,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
   Widget _buildForm() {
     final accounts = ref.watch(accountingAccountsProvider);
     final accountMap = {for (final a in accounts) a.code: a};
+    final templates = _templatesFor(ChartAccountResolver(accounts));
 
     return Column(
       children: [
@@ -215,7 +293,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        for (final t in _templates)
+                        for (final t in templates)
                           AccountingButton(
                             label: t.name,
                             icon: t.icon,
@@ -244,7 +322,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                             child: _ComposerInput(
                               icon: Icons.tag,
                               controller: _refCtrl,
-                              hint: 'Auto · JE-1048',
+                              hint: _refCtrl.text,
                             ),
                           ),
                         ),
@@ -285,22 +363,34 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                               })
                             : null,
                       ),
-                    _AddLineButton(onTap: () => setState(() => _lines.add(ComposerLine()))),
+                    _AddLineButton(
+                      onTap: () => setState(() => _lines.add(ComposerLine())),
+                    ),
                     const SizedBox(height: 18),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Padding(
                           padding: EdgeInsets.only(top: 1),
-                          child: Icon(Icons.info_outline, size: 15, color: AccountingTokens.accent),
+                          child: Icon(
+                            Icons.info_outline,
+                            size: 15,
+                            color: AccountingTokens.accent,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text.rich(
                             TextSpan(
-                              style: AccountingTokens.sans(fontSize: 12.5, color: AccountingTokens.ink3, height: 1.4),
+                              style: AccountingTokens.sans(
+                                fontSize: 12.5,
+                                color: AccountingTokens.ink3,
+                                height: 1.4,
+                              ),
                               children: [
-                                const TextSpan(text: 'Every entry has two sides. Money '),
+                                const TextSpan(
+                                  text: 'Every entry has two sides. Money ',
+                                ),
                                 TextSpan(
                                   text: 'into',
                                   style: AccountingTokens.sans(
@@ -309,7 +399,9 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                                     color: AccountingTokens.drInk,
                                   ),
                                 ),
-                                const TextSpan(text: ' an account is a debit; money '),
+                                const TextSpan(
+                                  text: ' an account is a debit; money ',
+                                ),
                                 TextSpan(
                                   text: 'out',
                                   style: AccountingTokens.sans(
@@ -318,7 +410,10 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                                     color: AccountingTokens.crInk,
                                   ),
                                 ),
-                                const TextSpan(text: ' is a credit. They must add up to the same total.'),
+                                const TextSpan(
+                                  text:
+                                      ' is a credit. They must add up to the same total.',
+                                ),
                               ],
                             ),
                           ),
@@ -359,17 +454,22 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
           totDr: _totDr,
           totCr: _totCr,
           canPost: _canPost,
-          onSaveDraft: () => _saveEntry(post: false),
-          onPost: () => _saveEntry(post: true),
+          onSaveDraft: () => _saveEntry(submitForApproval: false),
+          onPost: () => _saveEntry(submitForApproval: true),
         ),
       ],
     );
   }
 
-  static int _parseInput(String s) => int.tryParse(s.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
+  static int _parseInput(String s) =>
+      int.tryParse(s.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
 }
 
-final _fieldLabel = AccountingTokens.sans(fontSize: 12.5, fontWeight: FontWeight.w700, color: AccountingTokens.ink2);
+final _fieldLabel = AccountingTokens.sans(
+  fontSize: 12.5,
+  fontWeight: FontWeight.w700,
+  color: AccountingTokens.ink2,
+);
 
 class _ComposerHeader extends StatelessWidget {
   const _ComposerHeader({required this.onClose});
@@ -392,12 +492,19 @@ class _ComposerHeader extends StatelessWidget {
               children: [
                 Text(
                   'New journal entry',
-                  style: AccountingTokens.sans(fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -0.02 * 19),
+                  style: AccountingTokens.sans(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.02 * 19,
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   'Pick the accounts and enter amounts — Flipper keeps it balanced.',
-                  style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3),
+                  style: AccountingTokens.sans(
+                    fontSize: 13,
+                    color: AccountingTokens.ink3,
+                  ),
                 ),
               ],
             ),
@@ -411,7 +518,11 @@ class _ComposerHeader extends StatelessWidget {
               child: const SizedBox(
                 width: 38,
                 height: 38,
-                child: Icon(Icons.close, size: 18, color: AccountingTokens.ink2),
+                child: Icon(
+                  Icons.close,
+                  size: 18,
+                  color: AccountingTokens.ink2,
+                ),
               ),
             ),
           ),
@@ -475,17 +586,26 @@ class _ComposerInput extends StatelessWidget {
             child: readOnly
                 ? Text(
                     value ?? '',
-                    style: AccountingTokens.sans(fontSize: 14.5, color: AccountingTokens.ink1),
+                    style: AccountingTokens.sans(
+                      fontSize: 14.5,
+                      color: AccountingTokens.ink1,
+                    ),
                   )
                 : TextField(
                     controller: controller,
                     readOnly: readOnly,
-                    style: AccountingTokens.sans(fontSize: 14.5, color: AccountingTokens.ink1),
+                    style: AccountingTokens.sans(
+                      fontSize: 14.5,
+                      color: AccountingTokens.ink1,
+                    ),
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       hintText: hint,
-                      hintStyle: AccountingTokens.sans(fontSize: 14.5, color: AccountingTokens.ink4),
+                      hintStyle: AccountingTokens.sans(
+                        fontSize: 14.5,
+                        color: AccountingTokens.ink4,
+                      ),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -507,9 +627,23 @@ class _LinesHeader extends StatelessWidget {
         children: [
           Expanded(child: Text('ACCOUNT', style: AccountingTokens.tableHead)),
           const SizedBox(width: 10),
-          SizedBox(width: 150, child: Text('DEBIT', style: AccountingTokens.tableHead, textAlign: TextAlign.right)),
+          SizedBox(
+            width: 150,
+            child: Text(
+              'DEBIT',
+              style: AccountingTokens.tableHead,
+              textAlign: TextAlign.right,
+            ),
+          ),
           const SizedBox(width: 10),
-          SizedBox(width: 150, child: Text('CREDIT', style: AccountingTokens.tableHead, textAlign: TextAlign.right)),
+          SizedBox(
+            width: 150,
+            child: Text(
+              'CREDIT',
+              style: AccountingTokens.tableHead,
+              textAlign: TextAlign.right,
+            ),
+          ),
           const SizedBox(width: 36),
         ],
       ),
@@ -554,7 +688,9 @@ class _LineEditor extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(11),
             border: Border.all(
-              color: filled ? AccountingTokens.accentTint2 : AccountingTokens.line,
+              color: filled
+                  ? AccountingTokens.accentTint2
+                  : AccountingTokens.line,
               width: 1.5,
             ),
           ),
@@ -563,13 +699,20 @@ class _LineEditor extends StatelessWidget {
               if (account != null) ...[
                 Text(
                   account.code,
-                  style: AccountingTokens.mono(fontSize: 12, fontWeight: FontWeight.w700, color: AccountingTokens.accent),
+                  style: AccountingTokens.mono(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AccountingTokens.accent,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     account.name,
-                    style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600),
+                    style: AccountingTokens.sans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -577,10 +720,18 @@ class _LineEditor extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Select account…',
-                    style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w500, color: AccountingTokens.ink4),
+                    style: AccountingTokens.sans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                      color: AccountingTokens.ink4,
+                    ),
                   ),
                 ),
-              const Icon(Icons.keyboard_arrow_down, size: 16, color: AccountingTokens.ink4),
+              const Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
+                color: AccountingTokens.ink4,
+              ),
             ],
           ),
         ),
@@ -608,7 +759,11 @@ class _LineEditor extends StatelessWidget {
           const SizedBox(width: 10),
           SizedBox(
             width: 150,
-            child: _AmountField(value: line.cr, isDebit: false, onChanged: onCr),
+            child: _AmountField(
+              value: line.cr,
+              isDebit: false,
+              onChanged: onCr,
+            ),
           ),
           const SizedBox(width: 10),
           _LineDeleteButton(onPressed: onDelete),
@@ -619,7 +774,11 @@ class _LineEditor extends StatelessWidget {
 }
 
 class _AmountField extends StatefulWidget {
-  const _AmountField({required this.value, required this.isDebit, required this.onChanged});
+  const _AmountField({
+    required this.value,
+    required this.isDebit,
+    required this.onChanged,
+  });
 
   final String value;
   final bool isDebit;
@@ -659,7 +818,9 @@ class _AmountFieldState extends State<_AmountField> {
   @override
   Widget build(BuildContext context) {
     final focused = _focus.hasFocus;
-    final focusColor = widget.isDebit ? AccountingTokens.drInk : AccountingTokens.crInk;
+    final focusColor = widget.isDebit
+        ? AccountingTokens.drInk
+        : AccountingTokens.crInk;
     final focusTint = widget.isDebit
         ? AccountingTokens.drInk.withValues(alpha: 0.12)
         : AccountingTokens.crInk.withValues(alpha: 0.12);
@@ -687,7 +848,11 @@ class _AmountFieldState extends State<_AmountField> {
           isDense: true,
           border: InputBorder.none,
           hintText: '0',
-          hintStyle: AccountingTokens.mono(fontSize: 16, fontWeight: FontWeight.w500, color: AccountingTokens.ink4),
+          hintStyle: AccountingTokens.mono(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: AccountingTokens.ink4,
+          ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
         ),
         onChanged: (raw) {
@@ -728,7 +893,9 @@ class _LineDeleteButton extends StatelessWidget {
           child: Icon(
             Icons.delete_outline,
             size: 16,
-            color: onPressed == null ? AccountingTokens.ink4.withValues(alpha: 0.4) : AccountingTokens.ink4,
+            color: onPressed == null
+                ? AccountingTokens.ink4.withValues(alpha: 0.4)
+                : AccountingTokens.ink4,
           ),
         ),
       ),
@@ -754,14 +921,25 @@ class _AddLineButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AccountingTokens.lineStrong, width: 1.5, strokeAlign: BorderSide.strokeAlignInside),
+            border: Border.all(
+              color: AccountingTokens.lineStrong,
+              width: 1.5,
+              strokeAlign: BorderSide.strokeAlignInside,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.add, size: 15, color: AccountingTokens.ink2),
               const SizedBox(width: 7),
-              Text('Add line', style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600, color: AccountingTokens.ink2)),
+              Text(
+                'Add line',
+                style: AccountingTokens.sans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: AccountingTokens.ink2,
+                ),
+              ),
             ],
           ),
         ),
@@ -794,8 +972,8 @@ class _ComposerFooter extends StatelessWidget {
     final statusLabel = balanced
         ? 'Balanced'
         : totDr == 0
-            ? 'Enter amounts'
-            : 'Off by ${money(diff.abs())}';
+        ? 'Enter amounts'
+        : 'Off by ${money(diff.abs())}';
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
@@ -808,23 +986,46 @@ class _ComposerFooter extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
             decoration: BoxDecoration(
-              color: balanced ? AccountingTokens.gainTint : AccountingTokens.warnTint,
+              color: balanced
+                  ? AccountingTokens.gainTint
+                  : AccountingTokens.warnTint,
               borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
-              border: Border.all(color: balanced ? const Color(0xFFBFE8CF) : const Color(0xFFF4D9AE)),
+              border: Border.all(
+                color: balanced
+                    ? const Color(0xFFBFE8CF)
+                    : const Color(0xFFF4D9AE),
+              ),
             ),
             child: Row(
               children: [
-                _BalanceSide(label: 'Total debits', amount: money(totDr), color: AccountingTokens.drInk),
+                _BalanceSide(
+                  label: 'Total debits',
+                  amount: money(totDr),
+                  color: AccountingTokens.drInk,
+                ),
                 const SizedBox(width: 16),
-                Text('=', style: AccountingTokens.sans(fontSize: 22, fontWeight: FontWeight.w700, color: AccountingTokens.ink4)),
+                Text(
+                  '=',
+                  style: AccountingTokens.sans(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: AccountingTokens.ink4,
+                  ),
+                ),
                 const SizedBox(width: 16),
-                _BalanceSide(label: 'Total credits', amount: money(totCr), color: AccountingTokens.crInk),
+                _BalanceSide(
+                  label: 'Total credits',
+                  amount: money(totCr),
+                  color: AccountingTokens.crInk,
+                ),
                 const Spacer(),
                 Container(
                   width: 26,
                   height: 26,
                   decoration: BoxDecoration(
-                    color: balanced ? AccountingTokens.gain : const Color(0xFFE89A2A),
+                    color: balanced
+                        ? AccountingTokens.gain
+                        : const Color(0xFFE89A2A),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -839,7 +1040,9 @@ class _ComposerFooter extends StatelessWidget {
                   style: AccountingTokens.sans(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
-                    color: balanced ? AccountingTokens.gainInk : AccountingTokens.warnAmber,
+                    color: balanced
+                        ? AccountingTokens.gainInk
+                        : AccountingTokens.warnAmber,
                   ),
                 ),
               ],
@@ -855,10 +1058,21 @@ class _ComposerFooter extends StatelessWidget {
                     onPressed: onSaveDraft,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AccountingTokens.ink1,
-                      side: const BorderSide(color: AccountingTokens.lineStrong, width: 1.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+                      side: const BorderSide(
+                        color: AccountingTokens.lineStrong,
+                        width: 1.5,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(11),
+                      ),
                     ),
-                    child: Text('Save draft', style: AccountingTokens.sans(fontSize: 14, fontWeight: FontWeight.w600)),
+                    child: Text(
+                      'Save draft',
+                      style: AccountingTokens.sans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -870,15 +1084,25 @@ class _ComposerFooter extends StatelessWidget {
                     onPressed: canPost ? onPost : null,
                     style: FilledButton.styleFrom(
                       backgroundColor: AccountingTokens.accent,
-                      disabledBackgroundColor: AccountingTokens.accent.withValues(alpha: 0.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+                      disabledBackgroundColor: AccountingTokens.accent
+                          .withValues(alpha: 0.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(11),
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.check, size: 18, color: Colors.white),
                         const SizedBox(width: 8),
-                        Text('Post entry', style: AccountingTokens.sans(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                        Text(
+                          'Submit for approval',
+                          style: AccountingTokens.sans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -893,7 +1117,11 @@ class _ComposerFooter extends StatelessWidget {
 }
 
 class _BalanceSide extends StatelessWidget {
-  const _BalanceSide({required this.label, required this.amount, required this.color});
+  const _BalanceSide({
+    required this.label,
+    required this.amount,
+    required this.color,
+  });
 
   final String label;
   final String amount;
@@ -906,10 +1134,22 @@ class _BalanceSide extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: AccountingTokens.sans(fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 0.05 * 10.5, color: AccountingTokens.ink3),
+          style: AccountingTokens.sans(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.05 * 10.5,
+            color: AccountingTokens.ink3,
+          ),
         ),
         const SizedBox(height: 2),
-        Text(amount, style: AccountingTokens.mono(fontSize: 18, fontWeight: FontWeight.w700, color: color)),
+        Text(
+          amount,
+          style: AccountingTokens.mono(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
       ],
     );
   }
@@ -979,7 +1219,11 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.search, size: 16, color: AccountingTokens.ink3),
+                    const Icon(
+                      Icons.search,
+                      size: 16,
+                      color: AccountingTokens.ink3,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
@@ -990,7 +1234,10 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
                           isDense: true,
                           border: InputBorder.none,
                           hintText: 'Search accounts…',
-                          hintStyle: AccountingTokens.sans(fontSize: 14.5, color: AccountingTokens.ink4),
+                          hintStyle: AccountingTokens.sans(
+                            fontSize: 14.5,
+                            color: AccountingTokens.ink4,
+                          ),
                           contentPadding: EdgeInsets.zero,
                         ),
                         onChanged: (v) => setState(() => _query = v),
@@ -1018,7 +1265,12 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                                padding: const EdgeInsets.fromLTRB(
+                                  10,
+                                  10,
+                                  10,
+                                  5,
+                                ),
                                 child: Text(
                                   label.toUpperCase(),
                                   style: AccountingTokens.sans(
@@ -1037,23 +1289,39 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
                                     borderRadius: BorderRadius.circular(9),
                                     hoverColor: AccountingTokens.accentTint,
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 9,
+                                      ),
                                       child: Row(
                                         children: [
                                           SizedBox(
                                             width: 38,
                                             child: Text(
                                               a.code,
-                                              style: AccountingTokens.mono(fontSize: 12, fontWeight: FontWeight.w700, color: AccountingTokens.accent),
+                                              style: AccountingTokens.mono(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: AccountingTokens.accent,
+                                              ),
                                             ),
                                           ),
                                           Expanded(
                                             child: Text(
                                               a.name,
-                                              style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600),
+                                              style: AccountingTokens.sans(
+                                                fontSize: 13.5,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
                                           ),
-                                          Text(money(a.bal), style: AccountingTokens.mono(fontSize: 12, color: AccountingTokens.ink3)),
+                                          Text(
+                                            money(a.bal),
+                                            style: AccountingTokens.mono(
+                                              fontSize: 12,
+                                              color: AccountingTokens.ink3,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),

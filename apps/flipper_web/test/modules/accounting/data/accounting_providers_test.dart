@@ -39,7 +39,7 @@ ProviderContainer _container({
 
 final _cashSale = {
   'id': 'txn-1',
-  'status': 'COMPLETE',
+  'status': 'completed',
   'sub_total': 118000,
   'tax_amount': 18000,
   'payment_type': 'CASH',
@@ -53,7 +53,7 @@ final _cashSale = {
 
 final _cashExpense = {
   'id': 'exp-1',
-  'status': 'COMPLETE',
+  'status': 'completed',
   'sub_total': 30000,
   'tax_amount': 0,
   'payment_type': 'CASH',
@@ -163,6 +163,44 @@ void main() {
       await container.read(rawTransactionStreamProvider.future);
       final vat = container.read(accountingVatProvider);
       expect(vat?.outputVat, 18000);
+    });
+  });
+
+  group('accountingArAgingProvider', () {
+    test('returns empty when no open loan sales', () async {
+      final container = _container(transactions: [_cashSale]);
+      addTearDown(container.dispose);
+
+      await container.read(rawTransactionStreamProvider.future);
+      expect(container.read(accountingArAgingProvider), isEmpty);
+    });
+
+    test('includes parked loan with remaining balance', () async {
+      final loanSale = {
+        ..._cashSale,
+        'status': 'parked',
+        'is_loan': true,
+        'remaining_balance': 40000,
+        'customer_name': 'Karake',
+      };
+      final container = _container(transactions: [loanSale]);
+      addTearDown(container.dispose);
+
+      await container.read(rawTransactionStreamProvider.future);
+      final rows = container.read(accountingArAgingProvider);
+      expect(rows, hasLength(1));
+      expect(rows.first.name, 'Karake');
+      expect(rows.first.total, 40000);
+    });
+  });
+
+  group('accountingApAgingProvider', () {
+    test('returns empty when no open bills', () async {
+      final container = _container(transactions: [_cashExpense]);
+      addTearDown(container.dispose);
+
+      await container.read(rawTransactionStreamProvider.future);
+      expect(container.read(accountingApAgingProvider), isEmpty);
     });
   });
 

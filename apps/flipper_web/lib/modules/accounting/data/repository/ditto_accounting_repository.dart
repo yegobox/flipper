@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 
@@ -27,12 +28,15 @@ class DittoAccountingRepository implements AccountingRepository {
 
     final args = <String, dynamic>{
       'branchId': branchId,
-      'status': 'COMPLETE',
+      'completed': accountingSaleStatusCompleted,
+      'parked': accountingSaleStatusParked,
     };
 
     var query =
         'SELECT * FROM transactions '
-        'WHERE branchId = :branchId AND status = :status AND subTotal > 0';
+        'WHERE branchId = :branchId '
+        'AND (status = :completed OR status = :parked) '
+        'AND subTotal > 0';
 
     if (startDate != null) {
       query += ' AND createdAt >= :start';
@@ -85,11 +89,14 @@ class DittoAccountingRepository implements AccountingRepository {
 
     final args = <String, dynamic>{
       'branchId': branchId,
-      'status': 'COMPLETE',
+      'completed': accountingSaleStatusCompleted,
+      'parked': accountingSaleStatusParked,
     };
     var query =
         'SELECT * FROM transactions '
-        'WHERE branchId = :branchId AND status = :status AND subTotal > 0';
+        'WHERE branchId = :branchId '
+        'AND (status = :completed OR status = :parked) '
+        'AND subTotal > 0';
     if (startDate != null) {
       query += ' AND createdAt >= :start';
       args['start'] = startDate.toIso8601String();

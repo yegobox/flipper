@@ -1,3 +1,4 @@
+import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -26,7 +27,10 @@ class SupabaseAccountingRepository implements AccountingRepository {
         .from(_txTable)
         .select()
         .eq('branch_id', branchId)
-        .eq('status', 'COMPLETE')
+        .inFilter('status', [
+          accountingSaleStatusCompleted,
+          accountingSaleStatusParked,
+        ])
         .gt('sub_total', 0);
 
     if (startDate != null) {
@@ -66,7 +70,7 @@ class SupabaseAccountingRepository implements AccountingRepository {
         .eq('branch_id', branchId)
         .map((rows) {
           return rows.cast<Map<String, dynamic>>().where((r) {
-            if (r['status'] != 'COMPLETE') return false;
+            if (!isAccountingRecognizedTransaction(r)) return false;
             final sub = (r['sub_total'] as num? ?? 0);
             if (sub <= 0) return false;
             if (startDate != null) {

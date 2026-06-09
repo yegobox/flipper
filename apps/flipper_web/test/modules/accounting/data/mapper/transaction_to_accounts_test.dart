@@ -12,16 +12,19 @@ Map<String, dynamic> _sale({
   int taxAmount = 18000,
   String paymentType = 'CASH',
   bool isLoan = false,
+  int remainingBalance = 0,
+  String status = 'completed',
   String createdAt = '2026-05-15T10:00:00.000Z',
 }) => {
   'id': id,
-  'status': 'COMPLETE',
+  'status': status,
   'sub_total': subTotal,
   'tax_amount': taxAmount,
   'payment_type': paymentType,
   'is_expense': false,
   'is_income': true,
   'is_loan': isLoan,
+  if (isLoan && remainingBalance > 0) 'remaining_balance': remainingBalance,
   'created_at': createdAt,
   'customer_name': 'Test Customer',
   'receipt_number': '001',
@@ -35,7 +38,7 @@ Map<String, dynamic> _expense({
   String? note,
 }) => {
   'id': id,
-  'status': 'COMPLETE',
+  'status': 'completed',
   'sub_total': subTotal,
   'tax_amount': 0,
   'payment_type': paymentType,
@@ -63,7 +66,7 @@ Map<String, dynamic> _saleCamel({
   String paymentType = 'MoMo',
 }) => {
   'id': id,
-  'status': 'COMPLETE',
+  'status': 'completed',
   'subTotal': subTotal,
   'taxAmount': taxAmount,
   'paymentType': paymentType,
@@ -141,16 +144,26 @@ void main() {
       expect(cogs.bal, 100000);
     });
 
-    test('accounts receivable present only when loan sales exist', () {
+    test('accounts receivable uses open loan balance not full subtotal', () {
       final noLoan = TransactionToAccounts.deriveAccounts([_sale()], []);
       expect(noLoan.any((a) => a.code == '1100'), isFalse);
 
       final withLoan = TransactionToAccounts.deriveAccounts(
-        [_sale(isLoan: true, subTotal: 200000)],
+        [
+          _sale(
+            isLoan: true,
+            status: 'parked',
+            subTotal: 200000,
+            remainingBalance: 75000,
+            paymentType: 'CASH',
+          ),
+        ],
         [],
       );
       expect(withLoan.any((a) => a.code == '1100'), isTrue);
-      expect(withLoan.firstWhere((a) => a.code == '1100').bal, 200000);
+      expect(withLoan.firstWhere((a) => a.code == '1100').bal, 75000);
+      // Collected portion hits cash, not full subtotal
+      expect(withLoan.firstWhere((a) => a.code == '1010').bal, 125000);
     });
 
     test('static accounts fill codes not covered by derived accounts', () {
@@ -275,6 +288,66 @@ void main() {
 
     test('empty input returns empty list', () {
       expect(TransactionToAccounts.toJournal([], []), isEmpty);
+    });
+
+    test('partial loan sale debits cash and AR with balanced entry', () {
+      final journal = TransactionToAccounts.toJournal(
+        [
+          _sale(
+            isLoan: true,
+            status: 'parked',
+            subTotal: 118000,
+            taxAmount: 18000,
+            remainingBalance: 50000,
+            paymentType: 'CASH',
+          ),
+        ],
+        [],
+      );
+      final entry = journal.single;
+      final totalDr =
+          entry.lines.fold<int>(0, (s, l) => s + l.dr);
+      final totalCr =
+          entry.lines.fold<int>(0, (s, l) => s + l.cr);
+      expect(totalDr, totalCr);
+      expect(totalDr, 118000);
+
+      expect(
+        entry.lines.any((l) => l.ac == '1010' && l.dr == 68000),
+        isTrue,
+      );
+      expect(
+        entry.lines.any((l) => l.ac == '1100' && l.dr == 50000),
+        isTrue,
+      );
+      expect(
+        entry.lines.any((l) => l.ac == '4010' && l.cr == 100000),
+        isTrue,
+      );
+      expect(
+        entry.lines.any((l) => l.ac == '2100' && l.cr == 18000),
+        isTrue,
+      );
+    });
+
+    test('credit-only loan debits AR for full sale amount', () {
+      final journal = TransactionToAccounts.toJournal(
+        [
+          _sale(
+            isLoan: true,
+            status: 'parked',
+            subTotal: 100000,
+            taxAmount: 0,
+            remainingBalance: 100000,
+            paymentType: 'CREDIT',
+          ),
+        ],
+        [],
+      );
+      final entry = journal.single;
+      expect(entry.lines.any((l) => l.ac == '1100' && l.dr == 100000), isTrue);
+      expect(entry.lines.any((l) => l.dr > 0 && l.ac == '1010'), isFalse);
+      expect(entry.lines.any((l) => l.ac == '4010' && l.cr == 100000), isTrue);
     });
   });
 
