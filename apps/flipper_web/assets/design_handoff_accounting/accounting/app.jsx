@@ -87,21 +87,33 @@ const FLIPPER_APPS = [
 ];
 const NAV = [
   { sec: 'Overview', items: [{ k: 'dashboard', label: 'Dashboard', icon: 'Home' }] },
-  { sec: 'Daybook', items: [
-      { k: 'journal', label: 'Journal entries', icon: 'Receipt', badge: PENDING },
-      { k: 'ledger', label: 'General ledger', icon: 'Stack' },
-      { k: 'bankrec', label: 'Bank reconciliation', icon: 'Refresh' },
-  ] },
-  { sec: 'Money', items: [
+  { sec: 'Sales', items: [
+      { k: 'invoices', label: 'Invoices', icon: 'Receipt' },
+      { k: 'customers', label: 'Customers', icon: 'Users' },
       { k: 'ar', label: 'Receivables', icon: 'ArrowUpRight' },
+  ] },
+  { sec: 'Purchases', items: [
+      { k: 'bills', label: 'Bills', icon: 'Receipt' },
+      { k: 'suppliers', label: 'Suppliers', icon: 'Truck' },
       { k: 'ap', label: 'Payables', icon: 'ArrowDown' },
-      { k: 'tax', label: 'Tax & VAT', icon: 'ShieldCheck' },
+  ] },
+  { sec: 'Daybook', items: [
+      { k: 'journal', label: 'Journal entries', icon: 'Stack', badge: PENDING },
+      { k: 'ledger', label: 'General ledger', icon: 'Group' },
+      { k: 'recurring', label: 'Recurring', icon: 'Refresh' },
+      { k: 'bankrec', label: 'Bank reconciliation', icon: 'Wallet' },
   ] },
   { sec: 'Reports', items: [
       { k: 'statements', label: 'Financial statements', icon: 'Chart' },
       { k: 'trial', label: 'Trial balance', icon: 'Group' },
+      { k: 'tax', label: 'Tax & VAT', icon: 'ShieldCheck' },
   ] },
-  { sec: 'Setup', items: [{ k: 'coa', label: 'Chart of accounts', icon: 'Building' }] },
+  { sec: 'Setup', items: [
+      { k: 'coa', label: 'Chart of accounts', icon: 'Building' },
+      { k: 'close', label: 'Period close', icon: 'Clock' },
+      { k: 'audit', label: 'Audit trail', icon: 'Eye' },
+      { k: 'roles', label: 'Users & roles', icon: 'User' },
+  ] },
 ];
 const ALL_ITEMS = NAV.flatMap((g) => g.items.map((it) => ({ ...it, sec: g.sec })));
 
@@ -275,8 +287,13 @@ function AccountingApp({ tweaks }) {
 
         <div className="acc-scroll">
           {view === 'dashboard' && <OverviewView tweaks={tweaks} period={period} entity={entity} onNewEntry={openComposer} onView={setView} onLedger={gotoLedger} onEntry={openEntry} />}
+          {view === 'invoices' && <InvoicesView />}
+          {view === 'bills' && <BillsView />}
+          {view === 'customers' && <CustomersView />}
+          {view === 'suppliers' && <SuppliersView />}
           {view === 'journal' && <JournalView onNewEntry={openComposer} onEntry={openEntry} />}
           {view === 'ledger' && <GeneralLedgerView code={ledgerCode} setCode={setLedgerCode} />}
+          {view === 'recurring' && <RecurringView onNewEntry={openComposer} />}
           {view === 'bankrec' && <BankRecView />}
           {view === 'ar' && <AgingView kind="ar" onNewEntry={openComposer} />}
           {view === 'ap' && <AgingView kind="ap" onNewEntry={openComposer} />}
@@ -284,6 +301,9 @@ function AccountingApp({ tweaks }) {
           {view === 'statements' && <StatementsView />}
           {view === 'trial' && <TrialBalanceView />}
           {view === 'coa' && <ChartOfAccountsView onLedger={gotoLedger} />}
+          {view === 'close' && <PeriodCloseView onView={setView} />}
+          {view === 'audit' && <AuditView />}
+          {view === 'roles' && <RolesView />}
         </div>
       </div>
 

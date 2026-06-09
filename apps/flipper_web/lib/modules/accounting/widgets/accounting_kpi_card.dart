@@ -1,5 +1,6 @@
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flutter/material.dart';
 
@@ -48,21 +49,34 @@ class AccountingKpiCard extends StatelessWidget {
   const AccountingKpiCard({
     super.key,
     required this.label,
-    required this.value,
     required this.icon,
     required this.tone,
+    this.value,
+    this.textValue,
+    this.currencyPrefix,
     this.footnote,
     this.delta,
     this.deltaPositive,
+    this.valueFontSize,
   });
 
   final String label;
-  final int value;
-  final IconData icon;
+  final AccIcon icon;
   final KpiTone tone;
+
+  /// Monetary or numeric KPI (renders with optional RWF prefix).
+  final int? value;
+
+  /// Non-numeric KPI (e.g. next run date). When set, [value] is ignored.
+  final String? textValue;
+
+  /// When true (default for [value]), shows "RWF" before amount.
+  final bool? currencyPrefix;
+
   final String? footnote;
   final int? delta;
   final bool? deltaPositive;
+  final double? valueFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +87,49 @@ class AccountingKpiCard extends StatelessWidget {
       KpiTone.red => (AccountingTokens.lossTint, AccountingTokens.loss),
     };
 
+    final showCurrency = currencyPrefix ?? (value != null && textValue == null);
+
+    Widget valueWidget;
+    if (textValue != null) {
+      valueWidget = Text(
+        textValue!,
+        style: AccountingTokens.sans(
+          fontSize: valueFontSize ?? 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.02 * 20,
+        ),
+      );
+    } else {
+      valueWidget = RichText(
+        text: TextSpan(
+          style: AccountingTokens.kpiValue,
+          children: [
+            if (showCurrency)
+              TextSpan(
+                text: 'RWF ',
+                style: AccountingTokens.mono(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AccountingTokens.ink3,
+                ),
+              ),
+            TextSpan(text: money(value ?? 0)),
+            if (footnote != null && !showCurrency)
+              TextSpan(
+                text: ' $footnote',
+                style: AccountingTokens.sans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AccountingTokens.ink3,
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     return AccountingCard(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,36 +137,44 @@ class AccountingKpiCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(color: icBg, borderRadius: BorderRadius.circular(10)),
-                child: Icon(icon, size: 20, color: icFg),
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: icBg,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                alignment: Alignment.center,
+                child: AccountingIcon(icon: icon, size: 20, color: icFg),
               ),
               const SizedBox(width: 10),
-              Expanded(child: Text(label, style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3))),
+              Expanded(
+                child: Text(
+                  label,
+                  style: AccountingTokens.sans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AccountingTokens.ink3,
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 14),
-          RichText(
-            text: TextSpan(
-              style: AccountingTokens.kpiValue,
-              children: [
-                TextSpan(text: 'RWF ', style: AccountingTokens.mono(fontSize: 14, fontWeight: FontWeight.w500, color: AccountingTokens.ink3)),
-                TextSpan(text: money(value)),
-              ],
+          const SizedBox(height: 12),
+          valueWidget,
+          if (footnote != null && (showCurrency || textValue != null)) ...[
+            const SizedBox(height: 4),
+            Text(
+              footnote!,
+              style: AccountingTokens.sans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AccountingTokens.ink3,
+              ),
             ),
-          ),
-          if (footnote != null || delta != null) ...[
+          ],
+          if (delta != null) ...[
             const SizedBox(height: 10),
-            Row(
-              children: [
-                if (delta != null)
-                  _DeltaChip(value: delta!, positive: deltaPositive ?? delta! >= 0),
-                if (delta != null && footnote != null) const SizedBox(width: 8),
-                if (footnote != null)
-                  Expanded(child: Text(footnote!, style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.ink3))),
-              ],
-            ),
+            _DeltaChip(value: delta!, positive: deltaPositive ?? delta! >= 0),
           ],
         ],
       ),
@@ -136,8 +199,18 @@ class _DeltaChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(positive ? Icons.arrow_upward : Icons.arrow_downward, size: 11, color: positive ? AccountingTokens.gainInk : AccountingTokens.lossInk),
-          Text('$value%', style: AccountingTokens.mono(fontSize: 11, color: positive ? AccountingTokens.gainInk : AccountingTokens.lossInk)),
+          AccountingIcon(
+            icon: positive ? AccIcon.arrowUpRight : AccIcon.arrowDown,
+            size: 11,
+            color: positive ? AccountingTokens.gainInk : AccountingTokens.lossInk,
+          ),
+          Text(
+            '$value%',
+            style: AccountingTokens.mono(
+              fontSize: 11,
+              color: positive ? AccountingTokens.gainInk : AccountingTokens.lossInk,
+            ),
+          ),
         ],
       ),
     );

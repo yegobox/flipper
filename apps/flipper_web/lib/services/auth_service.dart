@@ -1,3 +1,4 @@
+import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
@@ -71,6 +72,7 @@ class AuthService {
       _ref.read(sessionLoginKeyProvider.notifier).state = null;
       _ref.read(sessionApiUserIdProvider.notifier).state = null;
       await SessionPersistence.clear();
+      await BusinessSelectionPersistence.clear();
       await _client.auth.signOut();
     } catch (e) {
       debugPrint('Error signing out: $e');

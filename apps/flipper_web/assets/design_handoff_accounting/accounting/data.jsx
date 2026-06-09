@@ -177,6 +177,109 @@ const TREND = [
   { m: 'May', rev: 7480000, exp: 5560000 },
 ];
 
+// ---- contacts: customers & suppliers (master records) ------------------
+const CUSTOMERS = [
+  { id: 'C-01', name: 'Karake Retail Group', contact: 'Jean-Paul Karake', phone: '+250 788 120 440', email: 'accounts@karake.rw', tin: '102938471', since: 'Mar 2024', terms: 'Net 30', balance: 640000 },
+  { id: 'C-02', name: 'Mutoni Boutique',     contact: 'Aline Mutoni',     phone: '+250 788 304 119', email: 'aline@mutoni.rw',    tin: '109284756', since: 'Jul 2024', terms: 'Net 15', balance: 380000 },
+  { id: 'C-03', name: 'Gisenyi Mini-Mart',   contact: 'Eric Niyonzima',   phone: '+250 788 551 202', email: 'gisenyi.mart@gmail.com', tin: '113847562', since: 'Jan 2024', terms: 'Net 30', balance: 410000 },
+  { id: 'C-04', name: 'Twesigye Hardware',   contact: 'Robert Twesigye',  phone: '+250 788 667 833', email: 'sales@twesigye.rw',  tin: '118273645', since: 'Sep 2023', terms: 'Net 30', balance: 290000 },
+  { id: 'C-05', name: 'Umutara Traders',     contact: 'Claudine Uwase',   phone: '+250 788 712 909', email: 'umutara.traders@yahoo.com', tin: '120394857', since: 'Feb 2025', terms: 'Net 15', balance: 520000 },
+  { id: 'C-06', name: 'Kivu Fresh Foods',    contact: 'Patrick Habineza', phone: '+250 788 845 661', email: 'finance@kivufresh.rw', tin: '124857390', since: 'Nov 2024', terms: 'Net 30', balance: 120000 },
+];
+const SUPPLIERS = [
+  { id: 'S-01', name: 'Habimana Wholesalers', contact: 'Théogène Habimana', phone: '+250 788 201 553', email: 'orders@habimana.rw',  tin: '130495761', since: 'Jan 2023', terms: 'Net 30', balance: 1200000 },
+  { id: 'S-02', name: 'Rwanda Beverage Co.',  contact: 'Sales desk',         phone: '+250 788 990 014', email: 'b2b@rwandabev.rw',    tin: '133847562', since: 'May 2023', terms: 'Net 45', balance: 340000 },
+  { id: 'S-03', name: 'Kigali Packaging Ltd', contact: 'Yves Mugisha',       phone: '+250 788 443 217', email: 'invoice@kpack.rw',    tin: '137162849', since: 'Aug 2024', terms: 'Net 30', balance: 180000 },
+  { id: 'S-04', name: 'Akagera Logistics',    contact: 'Dispatch',           phone: '+250 788 118 776', email: 'billing@akageralog.rw', tin: '140382947', since: 'Oct 2024', terms: 'Net 15', balance: 260000 },
+];
+
+// ---- sales invoices & purchase bills (line-item documents) -------------
+// status: draft | sent | paid | overdue.  lines: {desc, qty, price}
+const INVOICES = [
+  { id: 'INV-2210', who: 'Umutara Traders',     date: '30 May 2026', due: '14 Jun 2026', status: 'sent',    lines: [{ desc: 'Wholesale carton · cooking oil 20L', qty: 8, price: 52000 }, { desc: 'Delivery surcharge', qty: 1, price: 24000 }] },
+  { id: 'INV-2209', who: 'Mutoni Boutique',     date: '28 May 2026', due: '12 Jun 2026', status: 'sent',    lines: [{ desc: 'Assorted fabric rolls', qty: 6, price: 48000 }, { desc: 'Tailoring accessories pack', qty: 2, price: 46000 }] },
+  { id: 'INV-2208', who: 'Karake Retail Group', date: '24 May 2026', due: '08 Jun 2026', status: 'overdue', lines: [{ desc: 'Bulk sugar 50kg sack', qty: 10, price: 54237 }] },
+  { id: 'INV-2207', who: 'Kivu Fresh Foods',    date: '22 May 2026', due: '06 Jun 2026', status: 'sent',    lines: [{ desc: 'Fresh produce crates', qty: 12, price: 8475 }] },
+  { id: 'INV-2206', who: 'Gisenyi Mini-Mart',   date: '18 May 2026', due: '02 Jun 2026', status: 'overdue', lines: [{ desc: 'Soft drinks · mixed pallets', qty: 5, price: 69492 }] },
+  { id: 'INV-2205', who: 'Karake Retail Group', date: '12 May 2026', due: '27 May 2026', status: 'paid',    lines: [{ desc: 'Rice 25kg bags', qty: 30, price: 22600 }] },
+  { id: 'INV-2204', who: 'Twesigye Hardware',   date: '08 May 2026', due: '23 May 2026', status: 'paid',    lines: [{ desc: 'Cement bags 50kg', qty: 40, price: 11440 }] },
+  { id: 'INV-2203', who: 'Mutoni Boutique',     date: '02 May 2026', due: '17 May 2026', status: 'draft',   lines: [{ desc: 'Seasonal collection deposit', qty: 1, price: 150000 }] },
+];
+const BILLS = [
+  { id: 'BILL-512', who: 'Habimana Wholesalers', date: '28 May 2026', due: '27 Jun 2026', status: 'sent',    lines: [{ desc: 'Inventory restock · dry goods', qty: 1, price: 1016949 }] },
+  { id: 'BILL-498', who: 'Rwanda Beverage Co.',  date: '20 May 2026', due: '04 Jul 2026', status: 'sent',    lines: [{ desc: 'Beverage supply · May', qty: 1, price: 288136 }] },
+  { id: 'BILL-491', who: 'Kigali Packaging Ltd', date: '14 May 2026', due: '13 Jun 2026', status: 'overdue', lines: [{ desc: 'Branded packaging run', qty: 1, price: 152542 }] },
+  { id: 'BILL-487', who: 'Akagera Logistics',    date: '10 May 2026', due: '25 May 2026', status: 'sent',    lines: [{ desc: 'Inter-city freight · May', qty: 1, price: 220339 }] },
+  { id: 'BILL-480', who: 'Habimana Wholesalers', date: '02 May 2026', due: '01 Jun 2026', status: 'paid',    lines: [{ desc: 'Inventory restock · April', qty: 1, price: 940000 }] },
+];
+
+// document line/VAT maths (18% Rwanda standard, prices are VAT-exclusive)
+function docTotals(lines, rate = 0.18) {
+  const subtotal = lines.reduce((s, l) => s + (Number(l.qty) || 0) * (Number(l.price) || 0), 0);
+  const vat = Math.round(subtotal * rate);
+  return { subtotal, vat, total: subtotal + vat };
+}
+const DOC_STATUS = {
+  draft:   { label: 'Draft',   cls: 'draft' },
+  sent:    { label: 'Sent',    cls: 'sent' },
+  paid:    { label: 'Paid',    cls: 'posted' },
+  overdue: { label: 'Overdue', cls: 'overdue' },
+};
+
+// ---- recurring schedules (auto-posting templates) ----------------------
+const RECURRING = [
+  { id: 'R-01', name: 'Monthly rent — Kigali branch', freq: 'Monthly', day: '1st', next: '01 Jun 2026', amount: 350000, accounts: 'Rent → Bank', icon: 'Home', active: true },
+  { id: 'R-02', name: 'Staff salaries', freq: 'Monthly', day: '26th', next: '26 Jun 2026', amount: 520000, accounts: 'Salaries → Wages payable / Bank', icon: 'Users', active: true },
+  { id: 'R-03', name: 'Internet & airtime', freq: 'Monthly', day: '5th', next: '05 Jun 2026', amount: 60000, accounts: 'Utilities → MoMo', icon: 'Wallet', active: true },
+  { id: 'R-04', name: 'Equipment depreciation', freq: 'Monthly', day: 'Last', next: '30 Jun 2026', amount: 75000, accounts: 'Depreciation → Accum. depreciation', icon: 'Stack', active: true },
+  { id: 'R-05', name: 'Quarterly insurance', freq: 'Quarterly', day: '1st', next: '01 Jul 2026', amount: 180000, accounts: 'Insurance → Bank', icon: 'ShieldCheck', active: false },
+];
+
+// ---- audit trail (immutable activity log) ------------------------------
+const AUDIT_LOG = [
+  { id: 'A-209', ts: '31 May 2026 · 16:42', user: 'Diane E.', role: 'Owner', action: 'posted', target: 'JE-1046', detail: 'Cash sale — counter (RWF 283,200)', icon: 'Check', tone: 'green' },
+  { id: 'A-208', ts: '31 May 2026 · 16:40', user: 'Diane E.', role: 'Owner', action: 'approved', target: 'JE-1045', detail: 'Rent — June, Kigali branch', icon: 'ShieldCheck', tone: 'green' },
+  { id: 'A-207', ts: '31 May 2026 · 11:18', user: 'Samuel R.', role: 'Bookkeeper', action: 'created', target: 'INV-2210', detail: 'Invoice to Umutara Traders (RWF 560,000)', icon: 'Receipt', tone: 'blue' },
+  { id: 'A-206', ts: '30 May 2026 · 09:51', user: 'Samuel R.', role: 'Bookkeeper', action: 'edited', target: 'BILL-512', detail: 'Updated due date to 27 Jun 2026', icon: 'Receipt', tone: 'amber' },
+  { id: 'A-205', ts: '29 May 2026 · 17:03', user: 'Diane E.', role: 'Owner', action: 'matched', target: 'JE-1045', detail: 'Bank line reconciled — rent payment', icon: 'Refresh', tone: 'blue' },
+  { id: 'A-204', ts: '29 May 2026 · 14:22', user: 'Grace I.', role: 'Viewer', action: 'exported', target: 'Trial balance', detail: 'Downloaded Excel workbook', icon: 'Download', tone: 'slate' },
+  { id: 'A-203', ts: '28 May 2026 · 10:09', user: 'Samuel R.', role: 'Bookkeeper', action: 'created', target: 'BILL-512', detail: 'Bill from Habimana Wholesalers', icon: 'Receipt', tone: 'blue' },
+  { id: 'A-202', ts: '27 May 2026 · 15:47', user: 'Diane E.', role: 'Owner', action: 'recorded', target: 'RCT-330', detail: 'Customer payment — Karake Retail (RWF 560,000)', icon: 'ArrowDown', tone: 'green' },
+];
+
+// ---- team & role-based access ------------------------------------------
+const TEAM = [
+  { id: 'U-1', name: 'Diane Mukamana', initials: 'DE', color: '#2563EB', email: 'diane@demoshop.rw', role: 'Owner', last: 'Active now', you: true },
+  { id: 'U-2', name: 'Samuel Rwema',   initials: 'SR', color: '#0D9488', email: 'samuel@demoshop.rw', role: 'Bookkeeper', last: '2 hours ago' },
+  { id: 'U-3', name: 'Grace Iradukunda', initials: 'GI', color: '#7C3AED', email: 'grace@demoshop.rw', role: 'Viewer', last: 'Yesterday' },
+  { id: 'U-4', name: 'Eric Niyibizi',  initials: 'EN', color: '#E08600', email: 'eric@demoshop.rw', role: 'Cashier', last: '3 days ago' },
+];
+const ROLES = [
+  { role: 'Owner',      desc: 'Full access — approve, post, file taxes, manage team', color: '#2563EB' },
+  { role: 'Bookkeeper', desc: 'Create & edit entries, invoices and bills; cannot approve or file', color: '#0D9488' },
+  { role: 'Cashier',    desc: 'Record sales and receipts from POS only', color: '#E08600' },
+  { role: 'Viewer',     desc: 'Read-only access to reports and statements', color: '#7C3AED' },
+];
+const PERMISSIONS = [
+  { cap: 'View reports & statements',   Owner: true, Bookkeeper: true,  Cashier: false, Viewer: true },
+  { cap: 'Create invoices & bills',     Owner: true, Bookkeeper: true,  Cashier: false, Viewer: false },
+  { cap: 'Record payments & receipts',  Owner: true, Bookkeeper: true,  Cashier: true,  Viewer: false },
+  { cap: 'Post & edit journal entries', Owner: true, Bookkeeper: true,  Cashier: false, Viewer: false },
+  { cap: 'Approve entries',             Owner: true, Bookkeeper: false, Cashier: false, Viewer: false },
+  { cap: 'File VAT with RRA',           Owner: true, Bookkeeper: false, Cashier: false, Viewer: false },
+  { cap: 'Close periods & manage team', Owner: true, Bookkeeper: false, Cashier: false, Viewer: false },
+];
+
+// ---- period close checklist --------------------------------------------
+const CLOSE_TASKS = [
+  { id: 'ct1', label: 'All journal entries posted', detail: '2 entries still pending approval', done: false, go: 'journal', icon: 'Receipt' },
+  { id: 'ct2', label: 'Bank accounts reconciled', detail: '2 statement lines unmatched', done: false, go: 'bankrec', icon: 'Refresh' },
+  { id: 'ct3', label: 'Receivables reviewed', detail: 'Aging confirmed · 2 overdue invoices', done: true, go: 'ar', icon: 'ArrowUpRight' },
+  { id: 'ct4', label: 'Payables reviewed', detail: 'All supplier bills entered', done: true, go: 'ap', icon: 'ArrowDown' },
+  { id: 'ct5', label: 'VAT return prepared', detail: 'Net payable RWF 640,000 · due 15 Jun', done: true, go: 'tax', icon: 'ShieldCheck' },
+  { id: 'ct6', label: 'Depreciation posted', detail: 'JE-1047 awaiting approval', done: false, go: 'journal', icon: 'Stack' },
+];
+
 // ---- formatting --------------------------------------------------------
 function money(n, { sign = false } = {}) {
   if (n == null) return '—';
@@ -198,4 +301,6 @@ Object.assign(window, {
   trialBalance, incomeStatement, balanceSheet,
   JOURNAL, jeTotals, AR, AP, ageTotals, VAT, TREND,
   money, compact,
+  CUSTOMERS, SUPPLIERS, INVOICES, BILLS, docTotals, DOC_STATUS,
+  RECURRING, AUDIT_LOG, TEAM, ROLES, PERMISSIONS, CLOSE_TASKS,
 });

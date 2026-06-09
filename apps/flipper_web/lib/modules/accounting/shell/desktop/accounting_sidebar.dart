@@ -3,6 +3,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/shell/mobile/accounting_mobile_header.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flutter/material.dart';
@@ -246,7 +247,7 @@ class _NavButton extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(item.icon, size: 19, color: iconColor),
+              AccountingIcon(icon: item.icon, size: 19, color: iconColor),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

@@ -3,6 +3,7 @@ import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +62,7 @@ class AccountingTopbar extends ConsumerWidget {
                     context,
                     'All caught up',
                     subtitle: 'Notifications marked read',
-                    icon: Icons.check,
+                    accIcon: AccIcon.check,
                     tone: AccountingToastTone.success,
                   );
                 },
@@ -73,18 +74,18 @@ class AccountingTopbar extends ConsumerWidget {
                 },
               ),
               _TopIconButton(
-                icon: Icons.grid_view,
+                accIcon: AccIcon.grid,
                 tooltip: 'All apps',
                 onPressed: () => _openAppLauncher(context),
               ),
               _TopIconButton(
-                icon: Icons.smartphone_outlined,
+                accIcon: AccIcon.phone,
                 tooltip: 'Mobile companion',
                 onPressed: () => showAccountingToast(
                   context,
                   'Mobile companion',
                   subtitle: 'Resize the window below 768px for the phone layout',
-                  icon: Icons.smartphone_outlined,
+                  accIcon: AccIcon.phone,
                 ),
               ),
             ],
@@ -116,8 +117,8 @@ class _Breadcrumb extends StatelessWidget {
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 9),
-          child: Icon(
-            Icons.chevron_right,
+          child: AccountingIcon(
+            icon: AccIcon.chevRight,
             size: 14,
             color: AccountingTokens.ink3,
           ),
@@ -184,7 +185,11 @@ class _TopSearchFieldState extends State<_TopSearchField> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.search, size: 17, color: AccountingTokens.ink3),
+          const AccountingIcon(
+            icon: AccIcon.search,
+            size: 17,
+            color: AccountingTokens.ink3,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -242,7 +247,7 @@ class _PeriodButton extends ConsumerWidget {
           context,
           'Period changed',
           subtitle: DateFormat('MMM yyyy').format(monthStart),
-          icon: Icons.calendar_today_outlined,
+          accIcon: AccIcon.calendar,
         );
       },
       itemBuilder: (context) => [
@@ -281,8 +286,8 @@ class _PeriodButton extends ConsumerWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.calendar_today_outlined,
+                  const AccountingIcon(
+                    icon: AccIcon.calendar,
                     size: 17,
                     color: AccountingTokens.accent,
                   ),
@@ -296,8 +301,8 @@ class _PeriodButton extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 9),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
+                  const AccountingIcon(
+                    icon: AccIcon.chevDown,
                     size: 15,
                     color: AccountingTokens.ink3,
                   ),
@@ -367,7 +372,7 @@ class _NotificationsButton extends StatelessWidget {
             value: 'journal',
             child: ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.receipt_long_outlined, size: 20),
+              leading: AccountingIcon(icon: AccIcon.receipt, size: 20),
               title: Text('Journal entries awaiting approval'),
               subtitle: Text('Review pending double-entry postings'),
             ),
@@ -392,8 +397,8 @@ class _NotificationsButton extends StatelessWidget {
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  const Icon(
-                    Icons.notifications_outlined,
+                  const AccountingIcon(
+                    icon: AccIcon.bell,
                     size: 19,
                     color: AccountingTokens.ink2,
                   ),
@@ -426,12 +431,12 @@ class _NotificationsButton extends StatelessWidget {
 
 class _TopIconButton extends StatelessWidget {
   const _TopIconButton({
-    required this.icon,
+    required this.accIcon,
     required this.onPressed,
     this.tooltip,
   });
 
-  final IconData icon;
+  final AccIcon accIcon;
   final VoidCallback onPressed;
   final String? tooltip;
 
@@ -448,7 +453,11 @@ class _TopIconButton extends StatelessWidget {
           child: SizedBox(
             width: 40,
             height: 40,
-            child: Icon(icon, size: 19, color: AccountingTokens.ink2),
+            child: AccountingIcon(
+              icon: accIcon,
+              size: 19,
+              color: AccountingTokens.ink2,
+            ),
           ),
         ),
       ),

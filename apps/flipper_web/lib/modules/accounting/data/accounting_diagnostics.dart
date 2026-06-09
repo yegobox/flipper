@@ -18,11 +18,12 @@ final accountingBackendLabelProvider = Provider<String>((ref) {
 final accountingStartupDiagnosticsProvider = FutureProvider<void>((ref) async {
   final backend = ref.read(accountingBackendLabelProvider);
   final dittoReady = ref.read(dittoServiceProvider).isReady();
-  final businessId = ref.read(accountingBusinessIdProvider);
-  final branchId = ref.read(accountingBranchIdProvider);
+  // Watch so diagnostics re-run after business restore completes.
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  final branchId = ref.watch(accountingBranchIdProvider);
   final period = ref.read(accountingPeriodLabelProvider);
 
-  final branch = ref.read(selectedBranchProvider);
+  final branch = ref.watch(selectedBranchProvider);
   final txDitto = ref.read(accountingUseDittoForTransactionsProvider);
   final branchKeyKind = txDitto ? 'dittoUuid' : 'supabaseServerId';
   debugPrint(

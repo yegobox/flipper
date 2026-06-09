@@ -1,4 +1,5 @@
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flutter/material.dart';
 
 enum AccountingToastTone { info, success, warn }
@@ -7,6 +8,7 @@ void showAccountingToast(
   BuildContext context,
   String title, {
   String? subtitle,
+  AccIcon? accIcon,
   IconData? icon,
   AccountingToastTone tone = AccountingToastTone.info,
 }) {
@@ -33,7 +35,9 @@ void showAccountingToast(
                 color: bg,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon ?? Icons.info_outline, size: 18, color: fg),
+              child: accIcon != null
+                  ? AccountingIcon(icon: accIcon, size: 18, color: fg)
+                  : Icon(icon ?? Icons.info_outline, size: 18, color: fg),
             ),
             const SizedBox(width: 12),
             Expanded(

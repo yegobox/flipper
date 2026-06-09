@@ -58,6 +58,44 @@ mixin AccountingMixin on DittoCore {
     });
   }
 
+  Future<void> upsertAccountingDocument(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  ) async {
+    if (dittoInstance == null) return handleNotInitialized('upsertAccountingDocument');
+    await executeUpsert('accounting_documents', docId, {
+      ...data,
+      'businessId': businessId,
+      '_id': docId,
+      'id': docId,
+    });
+  }
+
+  Future<void> deleteAccountingDocument(String docId) async {
+    if (dittoInstance == null) return handleNotInitialized('deleteAccountingDocument');
+    await executeRemove('accounting_documents', docId);
+  }
+
+  Future<void> upsertAccountingContact(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  ) async {
+    if (dittoInstance == null) return handleNotInitialized('upsertAccountingContact');
+    await executeUpsert('accounting_contacts', docId, {
+      ...data,
+      'businessId': businessId,
+      '_id': docId,
+      'id': docId,
+    });
+  }
+
+  Future<void> deleteAccountingContact(String docId) async {
+    if (dittoInstance == null) return handleNotInitialized('deleteAccountingContact');
+    await executeRemove('accounting_contacts', docId);
+  }
+
   Future<void> upsertBankStatementLine(
     String businessId,
     BankLine line, {

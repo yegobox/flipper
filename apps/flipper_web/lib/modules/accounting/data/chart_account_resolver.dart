@@ -37,6 +37,10 @@ class ChartAccountResolver {
   String? get vatPayable =>
       _byCode('2100') ?? _byName('vat payable');
 
+  /// Inventory (1200).
+  String? get inventory =>
+      _byCode('1200') ?? _byName('inventory');
+
   /// Generic operating expense bucket (6000) or first opex line.
   String? get operatingExpense =>
       _byCode('6000') ??

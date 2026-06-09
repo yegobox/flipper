@@ -3,6 +3,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
@@ -118,9 +119,7 @@ class AccountingDashboardView extends ConsumerWidget {
               AccountingKpiCard(
                 label: profitOrLossLabel(pl.netIncome),
                 value: pl.netIncome,
-                icon: pl.netIncome < 0
-                    ? Icons.trending_down
-                    : Icons.trending_up,
+                icon: AccIcon.chart,
                 tone: pl.netIncome < 0 ? KpiTone.red : KpiTone.green,
                 delta: incomeDelta,
                 footnote: incomeDelta != null ? 'vs prior period' : null,
@@ -128,7 +127,7 @@ class AccountingDashboardView extends ConsumerWidget {
               AccountingKpiCard(
                 label: 'Cash & bank',
                 value: cashBank,
-                icon: Icons.account_balance_wallet_outlined,
+                icon: AccIcon.wallet,
                 tone: KpiTone.blue,
                 delta: cashDelta,
                 footnote: liquidAccountCount > 0
@@ -138,7 +137,7 @@ class AccountingDashboardView extends ConsumerWidget {
               AccountingKpiCard(
                 label: 'Receivable',
                 value: arAge.total,
-                icon: Icons.north_east,
+                icon: AccIcon.arrowUpRight,
                 tone: KpiTone.amber,
                 footnote: arOverdue60 > 0
                     ? '${money(arOverdue60)} overdue 60+'
@@ -148,7 +147,7 @@ class AccountingDashboardView extends ConsumerWidget {
               AccountingKpiCard(
                 label: 'Payable',
                 value: apAge.total,
-                icon: Icons.south_west,
+                icon: AccIcon.arrowDown,
                 tone: KpiTone.red,
                 footnote: apAge.total == 0 ? 'no open bills' : '${ref.watch(accountingApAgingProvider).length} open bills',
               ),

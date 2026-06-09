@@ -56,6 +56,19 @@ class DittoCore {
     }
   }
 
+  /// Removes a document from a Ditto collection.
+  Future<void> executeRemove(String collection, String docId) async {
+    if (dittoInstance == null) return handleNotInitialized('executeRemove');
+    try {
+      await dittoInstance!.store.execute(
+        'EVICT FROM $collection WHERE _id = :id',
+        arguments: {'id': docId},
+      );
+    } catch (e) {
+      debugPrint('Error executing remove: $e');
+    }
+  }
+
   /// Helper method to execute update operation
   Future<void> executeUpdate(
     String collection,

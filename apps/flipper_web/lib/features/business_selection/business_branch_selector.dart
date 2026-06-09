@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/features/business_selection/login_choices_ui.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/services/auth_service.dart';
@@ -331,6 +332,15 @@ class _BusinessBranchSelectorState
     });
 
     ref.read(selectedBranchProvider.notifier).set(branch);
+
+    final business = ref.read(selectedBusinessProvider);
+    if (business != null) {
+      await BusinessSelectionPersistence.save(
+        userId: widget.userProfile.id,
+        businessId: business.id,
+        branchId: branch.id,
+      );
+    }
 
     if (mounted) {
       context.goNamed(AppRoute.accounting.name);

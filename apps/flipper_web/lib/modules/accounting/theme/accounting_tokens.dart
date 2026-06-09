@@ -35,6 +35,7 @@ abstract final class AccountingTokens {
   static const double topbarHeight = 60;
   static const double contentMaxWidth = 1080;
   static const double composerWidth = 720;
+  static const double composerWidthWide = 860;
   static const double radiusLg = 20;
   static const double radiusMd = 14;
   static const double radiusSm = 10;

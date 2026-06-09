@@ -7,6 +7,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/account_type_pill.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
@@ -271,20 +272,21 @@ class AccountingBankRecView extends ConsumerWidget {
               AccountingKpiCard(
                 label: 'Statement balance',
                 value: bankBal,
-                icon: Icons.account_balance_wallet_outlined,
+                icon: AccIcon.wallet,
                 tone: KpiTone.blue,
               ),
               AccountingKpiCard(
                 label: 'Matched',
                 value: matched,
-                icon: Icons.check,
+                icon: AccIcon.check,
                 tone: KpiTone.green,
                 footnote: lines.isEmpty ? 'no lines yet' : 'of ${lines.length}',
+                currencyPrefix: false,
               ),
               AccountingKpiCard(
                 label: 'Needs attention',
                 value: unmatched,
-                icon: Icons.warning_amber_outlined,
+                icon: AccIcon.warn,
                 tone: KpiTone.amber,
                 footnote: money(diff.abs()),
               ),
@@ -420,19 +422,19 @@ class AccountingTaxVatView extends ConsumerWidget {
               AccountingKpiCard(
                 label: 'Output VAT (on sales)',
                 value: vat?.outputVat ?? 0,
-                icon: Icons.trending_up,
+                icon: AccIcon.chart,
                 tone: KpiTone.green,
               ),
               AccountingKpiCard(
                 label: 'Input VAT (reclaimable)',
                 value: vat?.inputVat ?? 0,
-                icon: Icons.receipt_long,
+                icon: AccIcon.receipt,
                 tone: KpiTone.blue,
               ),
               AccountingKpiCard(
                 label: 'Net VAT payable',
                 value: vat?.netPayable ?? 0,
-                icon: Icons.shield_outlined,
+                icon: AccIcon.shieldCheck,
                 tone: KpiTone.amber,
                 footnote: vat != null ? 'Due ${vat.dueDate}' : '—',
               ),

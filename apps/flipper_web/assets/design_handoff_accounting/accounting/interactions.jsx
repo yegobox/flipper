@@ -107,15 +107,23 @@ const NOTIFS = [
 /* ──────────────────────────── search palette ──────────────────────────── */
 const SEARCH_VIEWS = [
   { k: 'dashboard', label: 'Dashboard', icon: 'Home' },
-  { k: 'journal', label: 'Journal entries', icon: 'Receipt' },
-  { k: 'ledger', label: 'General ledger', icon: 'Stack' },
-  { k: 'bankrec', label: 'Bank reconciliation', icon: 'Refresh' },
+  { k: 'invoices', label: 'Invoices', icon: 'Receipt' },
+  { k: 'bills', label: 'Bills', icon: 'Receipt' },
+  { k: 'customers', label: 'Customers', icon: 'Users' },
+  { k: 'suppliers', label: 'Suppliers', icon: 'Truck' },
+  { k: 'journal', label: 'Journal entries', icon: 'Stack' },
+  { k: 'ledger', label: 'General ledger', icon: 'Group' },
+  { k: 'recurring', label: 'Recurring entries', icon: 'Refresh' },
+  { k: 'bankrec', label: 'Bank reconciliation', icon: 'Wallet' },
   { k: 'ar', label: 'Receivables', icon: 'ArrowUpRight' },
   { k: 'ap', label: 'Payables', icon: 'ArrowDown' },
   { k: 'tax', label: 'Tax & VAT', icon: 'ShieldCheck' },
   { k: 'statements', label: 'Financial statements', icon: 'Chart' },
   { k: 'trial', label: 'Trial balance', icon: 'Group' },
   { k: 'coa', label: 'Chart of accounts', icon: 'Building' },
+  { k: 'close', label: 'Period close', icon: 'Clock' },
+  { k: 'audit', label: 'Audit trail', icon: 'Eye' },
+  { k: 'roles', label: 'Users & roles', icon: 'User' },
 ];
 function TopSearch({ onView, onAccount, onEntry }) {
   const [q, setQ] = useIx('');

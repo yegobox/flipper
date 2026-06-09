@@ -1,4 +1,5 @@
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
+import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,8 @@ class AuthWrapper extends ConsumerWidget {
       data: (state) {
         switch (state) {
           case AuthState.authenticated:
-            // Use the hasSelectedBusinessAndBranch provider to check if business and branch are selected
+            // Load profile + restore business/branch before Books opens.
+            ref.watch(selectedBusinessRestoreProvider);
             final hasSelectedBusinessAndBranchAsync = ref.watch(
               hasSelectedBusinessAndBranchProvider,
             );

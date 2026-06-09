@@ -3,14 +3,16 @@
 ## Overview
 A full **SAP-style accounting module** added to **Flipper** (a business OS / POS app; primary market Rwanda, currency **RWF**). It is **double-entry under the hood but approachable on the surface** — usable by both a business **owner** (who reads the numbers and approves) and a **bookkeeper** (who records entries).
 
-> **Updated June 2026.** Two changes since the previous handoff: (1) the desktop **sidebar was re-skinned from deep-navy to the light/white Flipper house style** (matching POS, Daily Reports, Income) — see *Shell layout* and *Design tokens*; (2) a **9-dot app launcher** was added to the topbar that opens an app-switcher grid linking to the other Flipper surfaces. All buttons across every view are wired.
+> **Updated June 2026 (v3).** Major expansion — the module went from "view your books" to **"run your books".** Added **Invoices**, **Bills**, **Customers**, **Suppliers**, **Recurring entries**, **Period close**, **Audit trail**, and **Users & roles** (18 desktop views total, reorganized into Sales / Purchases / Daybook / Reports / Setup). New money documents (invoices, bills, payments) **auto-post balanced double entries** through the same engine. Earlier v2 changes retained: light/white sidebar (Flipper house style) and the 9-dot app launcher. Every button across every view is wired.
+>
+> **New source files since v2:** `accounting/billing.jsx` (invoices, bills, payment, document preview), `accounting/contacts.jsx` (customers, suppliers, detail drawer), `accounting/admin.jsx` (recurring, period close, audit, roles). `accounting/data.jsx` gained the contact/document/admin datasets. CSS for all new components is appended to `accounting/accounting.css`.
 
 It ships as **two linked surfaces**:
 
 | Surface | File | Role |
 |---|---|---|
-| **Desktop workspace** | `Flipper Accounting.html` | The workhorse. 1440×912 canvas, sidebar + topbar, 10 modules. Where entries are recorded and reports are read. |
-| **Mobile companion** | `Flipper Accounting Mobile.html` | ~412px phone. View the books on the go + **approve pending entries**. |
+| **Desktop workspace** | `Flipper Accounting.html` | The workhorse. 1440×912 canvas, sidebar + topbar, **18 modules**. Where entries/invoices/bills are recorded and reports are read. |
+| **Mobile companion** | `Flipper Accounting Mobile.html` | ~412px phone. View the books on the go + **approve pending entries**. *(Note: the v3 modules — invoices, bills, contacts, admin — are desktop-only so far; the mobile app still mirrors the original read/approve scope.)* |
 
 The desktop topbar has a **phone icon** that links to the mobile file; the mobile **More** tab links back to the desktop file.
 
@@ -118,6 +120,44 @@ Rows of `{ name, inv, current, d30, d60, d90 }` (RWF per bucket). Buckets: **Cur
 ## Trend (charts)
 6 months `{ m, rev, exp }` Dec→May, ending May `{rev:7,480,000, exp:5,560,000}`.
 
+## v3 datasets (contacts, documents, admin) — `accounting/data.jsx`
+These power the new modules. All are plain arrays exported on `window`; in production back them with your API.
+
+**Contacts** — `CUSTOMERS` (6) and `SUPPLIERS` (4), shape:
+```js
+{ id:'C-01', name:'Karake Retail Group', contact:'Jean-Paul Karake',
+  phone:'+250 788 120 440', email:'accounts@karake.rw', tin:'102938471',
+  since:'Mar 2024', terms:'Net 30', balance:640000 }
+```
+Customer `balance` = what they owe (ties to AR); supplier `balance` = what you owe (ties to AP).
+
+**Sales invoices / purchase bills** — `INVOICES` (8) and `BILLS` (5), shape:
+```js
+{ id:'INV-2210', who:'Umutara Traders', date:'30 May 2026', due:'14 Jun 2026',
+  status:'sent', lines:[ {desc:'Wholesale carton · cooking oil 20L', qty:8, price:52000}, … ] }
+```
+- `who` is the contact name (link by name). `status`: `draft | sent | paid | overdue`.
+- **`docTotals(lines, rate=0.18)` → `{subtotal, vat, total}`** — prices are **VAT-exclusive**; subtotal = Σ(qty×price), vat = round(subtotal×0.18). Port this exactly.
+- `DOC_STATUS` maps each status → `{label, cls}` where `cls` is the pill class (`draft|sent|posted|overdue`; note `paid`→`posted` reuses the green pill).
+
+**Auto-posting rules (the double entry each document creates):**
+| Action | Debit | Credit |
+|---|---|---|
+| Invoice **sent** | 1100 Accounts Receivable = total | 4010 Sales Revenue = subtotal · 2100 VAT Payable = vat |
+| Bill **recorded** | 1200 Inventory = subtotal · 2100 VAT Payable = vat | 2010 Accounts Payable = total |
+| Invoice **payment** | chosen cash/bank acct (1010/1020/1030) = amount | 1100 Accounts Receivable = amount |
+| Bill **payment** | 2010 Accounts Payable = amount | chosen cash/bank acct = amount |
+
+The editors render this as a live "This invoice will post" preview with a Balanced check — same visual language as the journal composer. In the prototype, posting updates local component state + a toast; wire to your ledger API in production.
+
+**Recurring** — `RECURRING` (5) `{ id, name, freq:'Monthly'|'Quarterly', day, next, amount, accounts, icon, active }`. Drives the schedule table + active/paused toggles + "Run now".
+
+**Audit trail** — `AUDIT_LOG` (8, newest first) `{ id, ts, user, role, action, target, detail, icon, tone }`. `tone`: `green|blue|amber|slate` (timeline icon color). Immutable in concept.
+
+**Team & roles** — `TEAM` (4 members) `{ id, name, initials, color, email, role, last, you? }`; `ROLES` (4) `{ role, desc, color }` = Owner / Bookkeeper / Cashier / Viewer; `PERMISSIONS` (7 capability rows) `{ cap, Owner, Bookkeeper, Cashier, Viewer }` booleans → the permission matrix.
+
+**Period close** — `CLOSE_TASKS` (6) `{ id, label, detail, done, go, icon }`. `go` = the view key to jump to for an incomplete step. Closing is enabled only when all `done`.
+
 ## Formatting helpers
 - `money(n)`: thousands-separated; **negatives render in parentheses** `(1,234)`.
 - `compact(n)`: `1.36M`, `640K`, `3.9B`.
@@ -144,20 +184,25 @@ The whole thing is a fixed **1440×912** canvas, JS-scaled to fit the viewport (
 - **Grouped nav** (section label uppercase `--ink-4`, then items). Default item text `--ink-2`; hover → `--surface-2` bg + `--ink-1`. **Active item = `--blue-tint` bg with `--blue` text** (no more solid-blue glow pill). Pending badge = amber pill (`--warn-tint`/`--warnamber`); on the active row it inverts to solid blue.
 - Footer: user card ("Diane E. · Owner · Bookkeeper", gradient avatar) — hover → `--surface-2`.
 
-Nav groups & items (icon from `onboarding/icons.jsx`):
-| Group | Items (icon) |
+Nav groups & items (icon from `onboarding/icons.jsx`). Defined as the `NAV` array in `accounting/app.jsx`; each item has a `k` (view key) used by the router and search.
+| Group | Items (icon · view key) |
 |---|---|
-| Overview | Dashboard (Home) |
-| Daybook | Journal entries (Receipt, **badge 2**) · General ledger (Stack) · Bank reconciliation (Refresh) |
-| Money | Receivables (ArrowUpRight) · Payables (ArrowDown) · Tax & VAT (ShieldCheck) |
-| Reports | Financial statements (Chart) · Trial balance (Group) |
-| Setup | Chart of accounts (Building) |
+| Overview | Dashboard (Home · `dashboard`) |
+| Sales | Invoices (Receipt · `invoices`) · Customers (Users · `customers`) · Receivables (ArrowUpRight · `ar`) |
+| Purchases | Bills (Receipt · `bills`) · Suppliers (Truck · `suppliers`) · Payables (ArrowDown · `ap`) |
+| Daybook | Journal entries (Stack · `journal`, **badge 2**) · General ledger (Group · `ledger`) · Recurring (Refresh · `recurring`) · Bank reconciliation (Wallet · `bankrec`) |
+| Reports | Financial statements (Chart · `statements`) · Trial balance (Group · `trial`) · Tax & VAT (ShieldCheck · `tax`) |
+| Setup | Chart of accounts (Building · `coa`) · Period close (Clock · `close`) · Audit trail (Eye · `audit`) · Users & roles (User · `roles`) |
 
 **Topbar:** breadcrumb (`section › view`), spacer, search field with `⌘K` kbd, period button "May 2026", bell with red dot, **9-dot app launcher**, **phone-icon link to the mobile file**.
 
 **App launcher (▦):** the 9-dot grid icon opens a 284px dropdown — a 3-column grid of Flipper apps (Point of Sale, **Books = current/highlighted**, Dashboard, Daily Reports, Income, Commissions, Customers, Inventory, Settings). Each tile = a rounded color-chip icon + label. Tiles with a real screen in the bundle are `<a href>` links (POS, Dashboard, Daily Reports, Income, Commissions); the rest pop an "Opening …" toast as placeholders. Config is the `FLIPPER_APPS` array at the top of `accounting/app.jsx` — repoint `href`s at your real routes. Styles: `.acc-applaunch*` in `accounting.css`.
 
-## Views (10)
+## Views (18)
+
+Router lives in `AccountingApp` (`accounting/app.jsx`): a `view` state string switches the rendered component. The 10 original views are below; the 8 v3 views follow.
+
+### Original 10
 
 ### 1. Dashboard ("Books at a glance")
 - Page header: eyebrow "FINANCIAL OVERVIEW", H1, subtitle, right actions **Export** (ghost) + **New journal entry** (primary → opens composer).
@@ -192,6 +237,39 @@ Nav groups & items (icon from `onboarding/icons.jsx`):
 
 ### 10. Chart of accounts
 - One table grouped by type (Assets/Liabilities/Equity/Income/Expenses). Each group has a shaded header row with the group's net total. Each account row: code (mono), name (+ "contra"/"Opening" tags), a colored **type pill**, category, balance (contra shown in parentheses, red).
+
+### v3 views (Sales / Purchases / Setup)
+
+Components live in `billing.jsx` (invoices, bills), `contacts.jsx` (customers, suppliers), `admin.jsx` (recurring, close, audit, roles). All reuse the existing page header, `.acc-card`, `.acc-table`, KPI, pill, modal and segmented-control patterns.
+
+### 11 & 12. Invoices / Bills (shared `DocListView`, `kind: 'invoice' | 'bill'`)
+- 3 KPIs (Outstanding / Overdue / Drafts), status tabs (All / Draft / Sent / Overdue / Paid), and a table: id, party, date, due, **status pill**, amount, and a row `⋯` menu (Open & preview · Edit · Record payment / Pay bill · Send reminder · Delete).
+- Row click → **document preview** (`DocPreview`): a formatted invoice/bill "paper" (company block, bill-to, line table, subtotal/VAT/total) with PDF / Edit / Record-payment actions.
+- **New invoice/bill** → `DocEditor` (wide right slide-in, 860px): customer/supplier dropdown, date/due, **line-item editor** (description, qty, unit price, computed amount, add/remove rows), and a two-column footer — left = **live posting preview** (the double entry + Balanced check), right = Subtotal / VAT (18%) / Total. Footer: **Save draft** + **Save & send** (invoices show an Email / WhatsApp / PDF menu; bills show **Record bill**). All amounts format with separators as you type; validation requires a party + at least one priced line.
+- **`PaymentModal`** (from a row menu or preview): choose deposit/pay account (Bank / Cash / MoMo segmented), amount (auto-filled to total), a posting preview, then a success state; marks the document **paid**.
+
+### 13 & 14. Customers / Suppliers (shared `ContactsView`, `kind: 'customers' | 'suppliers'`)
+- Header has an inline search; 3 KPIs (count / with-open-balance / total receivable-or-payable). Table: avatar + name (+ "since"), contact + email, phone, terms tag, balance, row `⋯` menu (View record · Send statement · Call · Delete).
+- Row click → **`ContactDetail`** drawer (540px slide-in): avatar header, two mini-stats (outstanding / lifetime), contact detail list, and the contact's documents table. Footer: Send statement + New invoice/bill.
+- **New customer/supplier** → `ContactForm` modal (name, contact, phone, email, TIN, payment-terms segmented).
+
+### 15. Recurring entries (`RecurringView`)
+- 3 KPIs (active schedules / monthly committed / next run). Table: schedule (icon tile + name), frequency tag, next run, posts-to, amount, an **on/off switch** (`.acc-switch`), and **Run now**. Paused rows render muted with a disabled "Run now".
+
+### 16. Period close (`PeriodCloseView`)
+- Split layout. Left: **close checklist** — a progress bar + 6 tasks each with a checkbox, icon, label/detail, and a "Review" link (jumps to the relevant view) when incomplete; checked tasks strike through. Right: "What closing does" explainer + readiness banner. **Close period** button enabled only when all tasks are checked; closing swaps it for a green "May 2026 locked" pill.
+
+### 17. Audit trail (`AuditView`)
+- User filter dropdown + Export. A **timeline** (`.acc-timeline`): each row = a toned icon, `<b>user</b> action target`, detail line, and right-aligned timestamp + role tag. Newest first.
+
+### 18. Users & roles (`RolesView`)
+- **Team table**: avatar + name (+ "You"), email, an inline **role chip** dropdown (change role), last-active, row menu (Resend invite · Remove). **Invite teammate** → `InviteForm` modal (name, email, role).
+- **Permission matrix** (`.acc-table.perm`): capability rows × four role columns, each cell a green check or a neutral dash. Driven by `PERMISSIONS`.
+
+---
+
+
+---
 
 ## ⭐ The double-entry composer (signature feature) — `accounting/journal.jsx`
 A right-side slide-in panel (720px, scrim `rgba(8,12,22,.55)`), opened by any "New journal entry" button.
@@ -254,7 +332,8 @@ Behavior:
 - Nav/tab switches are instant (no route transition needed).
 
 ## State management
-- **Desktop (`AccountingApp`):** `view` (which module, default `'dashboard'`), `composer` (bool). Sub-state inside views: `StatementsView` tab; `GeneralLedgerView` selected account code; `JournalView` filter; `Composer` holds `{memo, lines:[{ac,dr,cr}], picker, posted}`.
+- **Desktop (`AccountingApp`):** `view` (which module, default `'dashboard'`), `composer` (bool), plus `ledgerCode`, `period`, `entity`, `bellUnread`, `jeDetail`. Sub-state inside views: `StatementsView` tab; `GeneralLedgerView` account code; `JournalView` filter; `Composer` `{memo, lines, picker, posted}`.
+  - **v3 views hold their own list state** seeded from the data arrays so created/edited/paid records appear live: `DocListView` `{docs, tab, editing, paying, preview}`; `ContactsView` `{people, q, open, adding}`; `RecurringView` `{rows}`; `PeriodCloseView` `{tasks, locked}`; `AuditView` `{who}`; `RolesView` `{team, inviting}`. `DocEditor` holds `{who, date, due, lines, ...}`; `PaymentModal` holds `{method, amount, done}`. These reset on reload (front-end mock).
 - **Mobile (`MAccountingApp`):** `tab` (default `'home'`), `report` (selected statement key or null). `Approvals` holds a `{ [jeId]: 'approve'|'reject' }` map.
 - All data is static/derived in this prototype. In production, replace `accounting/data.jsx` reads with your ledger API; the derive functions (`trialBalance`, `incomeStatement`, `balanceSheet`) should run server-side or against fetched accounts.
 
@@ -277,7 +356,9 @@ Shared Flipper tokens live in `onboarding/styles.css` (`--ink-1..4`, `--line*`, 
 
 **Type scale (key):** page H1 27px/800/−.025em; card title 15.5px/700; table body 13.5px; table head 11px/700 uppercase `.05em`; KPI value 26px/700; statement total 19px/800; all numbers mono + tabular.
 **Radii:** cards `--r-lg 20px`; inputs/buttons 10–11px; pills 999px.
-**Status pill colors:** posted=green tint, pending=amber tint, draft=neutral. **Type pills:** asset=blue, liability=amber, equity=violet `#7C3AED`, income=green, expense=red.
+**Status pill colors:** posted=green tint, pending=amber tint, draft=neutral, **sent=blue tint**, **overdue=red tint** (added in v3; `paid` reuses the `posted` green pill). **Type pills:** asset=blue, liability=amber, equity=violet `#7C3AED`, income=green, expense=red.
+
+**v3 component classes** (appended to `accounting/accounting.css`): `.doc-lines-head/.doc-line/.doc-line-amt` (invoice/bill line editor grid), `.doc-postbox/.doc-postline/.doc-postchk` (live posting preview), `.doc-totals/.doc-trow` (subtotal/VAT/total), `.doc-paper*` (printable document preview), `.contact-cell/.contact-av` (avatars), `.acc-drawer*` (contact detail drawer, mirrors composer slide-in), `.acc-mini-stat`, `.acc-detail-row`, `.rec-ic`, `.acc-switch` (toggle), `.close-prog/.close-task/.close-check/.close-note` (period close), `.acc-timeline/.tl-*` (audit), `.role-chip/.acc-table.perm/.perm-yes/.perm-no` (roles). `.acc-iconbtn.sm` = row-action menu trigger; `.acc-inlsearch` = header inline search; `.acc-seg.col` = vertical segmented control; `.acc-composer.wide` = 860px editor.
 
 ## Tweaks (prototype-only controls; not part of the product UI)
 - **Chart style:** `bars | area | line` (passed to `TrendChart`).
@@ -295,15 +376,18 @@ Shared Flipper tokens live in `onboarding/styles.css` (`--ink-1..4`, `--line*`, 
 Flipper Accounting.html          desktop entry (loads everything, scaler, Tweaks)
 Flipper Accounting Mobile.html   mobile entry
 accounting/
-  data.jsx       ★ chart of accounts + derive functions + formatting (port first)
+  data.jsx       ★ chart of accounts + derive functions + v3 datasets (contacts/docs/admin) + formatting (port first)
   charts.jsx     TrendChart (bars/area/line), Donut, MiniBar
   views.jsx      Dashboard, Chart of Accounts, Statements, Trial Balance, Aging (AR/AP), Tax, General Ledger
   journal.jsx    Journal list + AccountPicker + Composer (the double-entry composer)
+  billing.jsx    ★ v3 — Invoices, Bills (DocListView), DocEditor, PaymentModal, DocPreview, StatusPill
+  contacts.jsx   ★ v3 — Customers, Suppliers (ContactsView), ContactDetail drawer, ContactForm
+  admin.jsx      ★ v3 — RecurringView, PeriodCloseView, AuditView, RolesView, InviteForm
   app.jsx        desktop shell: sidebar, topbar (+ 9-dot app launcher), view router, Bank reconciliation view
   interactions.jsx  Dropdown/Menu primitives, ToastHost, search \u2014 used by topbar menus & app launcher
   interactions.css  styles for the above (menus, toasts)
   mobile.jsx     mobile shell + Snapshot, Approvals, Reports, StatementDetail, More
-  accounting.css desktop styles + tokens
+  accounting.css desktop styles + tokens (+ all v3 component styles)
   mobile.css     mobile styles + tokens
 onboarding/      shared deps: styles.css (tokens), icons.jsx, frame.jsx (logo/Phone), tweaks-panel.jsx
 ```

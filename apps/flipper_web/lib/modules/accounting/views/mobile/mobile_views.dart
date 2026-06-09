@@ -4,6 +4,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/journal_approval_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/trend_chart.dart';
@@ -488,7 +489,7 @@ class AccountingMoreTab extends ConsumerWidget {
         for (final group in accountingNavGroups)
           for (final item in group.items)
             ListTile(
-              leading: Icon(item.icon),
+              leading: AccountingIcon(icon: item.icon, size: 20),
               title: Text(item.view.label),
               subtitle: Text(group.section),
               onTap: () {
@@ -497,7 +498,7 @@ class AccountingMoreTab extends ConsumerWidget {
                   context,
                   item.view.label,
                   subtitle: 'Open on a wider screen for the desktop workspace',
-                  icon: item.icon,
+                  accIcon: item.icon,
                 );
               },
             ),

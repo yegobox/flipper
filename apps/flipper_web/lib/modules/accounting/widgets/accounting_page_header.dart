@@ -1,4 +1,5 @@
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flutter/material.dart';
 
 class AccountingPageHeader extends StatelessWidget {
@@ -68,6 +69,7 @@ class AccountingButton extends StatelessWidget {
   const AccountingButton({
     super.key,
     required this.label,
+    this.accIcon,
     this.icon,
     this.onPressed,
     this.primary = false,
@@ -76,6 +78,7 @@ class AccountingButton extends StatelessWidget {
   });
 
   final String label;
+  final AccIcon? accIcon;
   final IconData? icon;
   final VoidCallback? onPressed;
   final bool primary;
@@ -85,41 +88,89 @@ class AccountingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = small ? 34.0 : 40.0;
-    final child = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (icon != null) ...[Icon(icon, size: small ? 15 : 17), const SizedBox(width: 6)],
-        Text(label, style: AccountingTokens.sans(fontSize: small ? 13 : 14, fontWeight: FontWeight.w600, color: primary ? Colors.white : AccountingTokens.ink1)),
-      ],
+    final hPad = small ? 10.0 : 18.0;
+    final labelStyle = AccountingTokens.sans(
+      fontSize: small ? 13 : 14,
+      fontWeight: FontWeight.w600,
+      color: primary ? Colors.white : AccountingTokens.ink1,
     );
 
-    if (primary) {
-      return SizedBox(
-        height: height,
-        child: FilledButton(
-          onPressed: enabled ? onPressed : null,
-          style: FilledButton.styleFrom(
-            backgroundColor: AccountingTokens.accent,
-            disabledBackgroundColor: AccountingTokens.accent.withValues(alpha: 0.5),
-            padding: EdgeInsets.symmetric(horizontal: small ? 14 : 18),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
-          ),
-          child: child,
-        ),
+    Widget buildContent({required bool iconOnly}) {
+      final iconSize = small ? 15.0 : 17.0;
+      final iconColor = primary ? Colors.white : AccountingTokens.ink1;
+      final iconWidget = accIcon != null
+          ? AccountingIcon(icon: accIcon!, size: iconSize, color: iconColor)
+          : icon != null
+              ? Icon(icon, size: iconSize, color: iconColor)
+              : null;
+
+      if (iconOnly && iconWidget != null) return iconWidget;
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (iconWidget != null) ...[
+            iconWidget,
+            if (!iconOnly) const SizedBox(width: 6),
+          ],
+          if (!iconOnly)
+            Flexible(
+              child: Text(
+                label,
+                style: labelStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+              ),
+            ),
+        ],
       );
     }
 
+    final buttonStyle = primary
+        ? FilledButton.styleFrom(
+            backgroundColor: AccountingTokens.accent,
+            disabledBackgroundColor: AccountingTokens.accent.withValues(alpha: 0.5),
+            padding: EdgeInsets.symmetric(horizontal: hPad),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+          )
+        : OutlinedButton.styleFrom(
+            foregroundColor: AccountingTokens.ink1,
+            side: const BorderSide(color: AccountingTokens.line),
+            padding: EdgeInsets.symmetric(horizontal: hPad),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+          );
+
     return SizedBox(
       height: height,
-      child: OutlinedButton(
-        onPressed: enabled ? onPressed : null,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AccountingTokens.ink1,
-          side: const BorderSide(color: AccountingTokens.line),
-          padding: EdgeInsets.symmetric(horizontal: small ? 14 : 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
-        ),
-        child: child,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Table cells / PopupMenuButton can leave very little width for the label.
+          final iconOnly =
+              constraints.hasBoundedWidth && constraints.maxWidth < 56;
+          final content = buildContent(iconOnly: iconOnly);
+
+          final child = iconOnly
+              ? content
+              : FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child: content,
+                );
+
+          if (primary) {
+            return FilledButton(
+              onPressed: enabled ? onPressed : null,
+              style: buttonStyle,
+              child: child,
+            );
+          }
+          return OutlinedButton(
+            onPressed: enabled ? onPressed : null,
+            style: buttonStyle,
+            child: child,
+          );
+        },
       ),
     );
   }
