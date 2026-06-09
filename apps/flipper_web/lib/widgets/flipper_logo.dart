@@ -8,11 +8,13 @@ class FlipperLogo extends StatelessWidget {
   final double size;
 
   static const _assetPath = 'assets/icons/flipper-logo.svg';
+  static const _package = 'flipper_web';
 
   @override
   Widget build(BuildContext context) {
     return SvgPicture.asset(
       _assetPath,
+      package: _package,
       width: size,
       height: size,
     );

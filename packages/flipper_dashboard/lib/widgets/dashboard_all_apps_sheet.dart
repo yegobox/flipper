@@ -216,11 +216,14 @@ class _DashboardAllAppsSheetBody extends ConsumerWidget {
                           tile: tile,
                           badge: badge,
                           onTap: () async {
-                            Navigator.of(context).pop();
+                            final navigator = Navigator.of(context, rootNavigator: true);
+                            navigator.pop();
                             await navigateToDashboardAppPage(
-                              context: context,
+                              context: navigator.context,
                               isBigScreen: false,
                               page: tile.page,
+                              ref: ref,
+                              navigator: navigator,
                             );
                           },
                         );

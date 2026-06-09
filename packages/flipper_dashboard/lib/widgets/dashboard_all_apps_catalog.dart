@@ -31,6 +31,17 @@ class DashboardAllAppSection {
 
 /// Grouped launcher catalog — maps design handoff sections to real Flipper routes.
 List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
+  const DashboardAllAppSection(
+    label: 'Finance',
+    apps: [
+      DashboardAllAppTile(
+        page: 'Accounting',
+        label: 'Books',
+        icon: FluentIcons.book_24_regular,
+        color: Color(0xFF2563EB),
+      ),
+    ],
+  ),
   DashboardAllAppSection(
     label: context.flipperL10n.sell,
     apps: [

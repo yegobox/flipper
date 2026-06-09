@@ -1,10 +1,20 @@
 import 'package:flipper_web/features/module_launcher/all_apps_sheet.dart';
+import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+void _openAppLauncher(BuildContext context) {
+  if (kIsWeb) {
+    AllAppsSheet.show(context);
+    return;
+  }
+  AppLauncherHost.maybeOf(context)?.onOpenLauncher();
+}
 
 class AccountingTopbar extends ConsumerWidget {
   const AccountingTopbar({super.key});
@@ -65,7 +75,7 @@ class AccountingTopbar extends ConsumerWidget {
                 ],
               ),
               IconButton(
-                onPressed: () => AllAppsSheet.show(context),
+                onPressed: () => _openAppLauncher(context),
                 icon: const Icon(Icons.apps),
                 tooltip: 'All apps',
               ),

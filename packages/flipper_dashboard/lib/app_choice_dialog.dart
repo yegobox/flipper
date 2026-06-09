@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -57,6 +58,20 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
       iconSvg: DashboardQuickAccessSvgs.appSwitcherInventoryIcon(),
       iconBg: const Color.fromRGBO(59, 109, 17, 0.10),
       onSelect: () => _handleAppSelection('Inventory', DashboardPage.inventory),
+    ),
+    _AppChoiceItem(
+      id: 'Books',
+      title: 'Books',
+      subtitle: 'Accounting',
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherBooksIcon(),
+      iconBg: const Color.fromRGBO(37, 99, 235, 0.10),
+      onSelect: () async {
+        final navigator = Navigator.of(context, rootNavigator: true);
+        widget.completer(
+          DialogResponse(confirmed: true, data: {'defaultApp': 'Books'}),
+        );
+        await navigateToBooksModule(context, ref, navigator: navigator);
+      },
     ),
     _AppChoiceItem(
       id: 'Customers',
