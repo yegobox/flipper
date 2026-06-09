@@ -1,4 +1,5 @@
 import 'package:flipper_web/features/login/signin_styles.dart';
+import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_diagnostics.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/shell/desktop/accounting_desktop_shell.dart';
@@ -12,6 +13,7 @@ class AccountingModuleScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(selectedBusinessRestoreProvider);
     ref.watch(accountingAutoPosterProvider);
     ref.watch(accountingStartupDiagnosticsProvider);
 
