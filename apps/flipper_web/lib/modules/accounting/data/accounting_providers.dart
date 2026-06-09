@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
@@ -52,9 +55,13 @@ final approvalActionsProvider =
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
 
+/// Branch key for transaction queries.
+/// Ditto POS documents use [Branch.id] (UUID); Supabase uses [Branch.serverId].
 final accountingBranchIdProvider = Provider<String>((ref) {
   final branch = ref.watch(selectedBranchProvider);
-  return branch?.serverId.toString() ?? '';
+  if (branch == null) return '';
+  final dittoReady = ref.watch(dittoServiceProvider).isReady();
+  return dittoReady ? branch.id : branch.serverId.toString();
 });
 
 final accountingBusinessIdProvider = Provider<String>((ref) {
@@ -80,6 +87,11 @@ final accountingRepositoryProvider = Provider<AccountingRepository>((ref) {
 
 final accountingLedgerRepositoryProvider =
     Provider<AccountingLedgerRepository>((ref) {
+  // Web Ditto store is in-memory; journals persist in Postgres across reload.
+  if (kIsWeb) {
+    debugPrint('[Accounting] ledger repository → supabase (web persistence)');
+    return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
+  }
   final ditto = ref.watch(dittoServiceProvider);
   if (ditto.isReady()) {
     debugPrint('[Accounting] ledger repository → ditto');
@@ -87,6 +99,27 @@ final accountingLedgerRepositoryProvider =
   }
   debugPrint('[Accounting] ledger repository → supabase');
   return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
+});
+
+/// Registers Ditto cloud pull subscriptions for GL + POS (like catalog sync).
+final accountingDittoSyncProvider = Provider<void>((ref) {
+  final ditto = ref.watch(dittoServiceProvider);
+  if (!ditto.isReady()) return;
+
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return;
+
+  final branchId = ref.watch(accountingBranchIdProvider);
+  final instance = ditto.dittoInstance;
+  if (instance == null) return;
+
+  unawaited(
+    ensureAccountingCloudSubscriptions(
+      ditto: instance,
+      businessId: businessId,
+      branchId: branchId.isEmpty ? null : branchId,
+    ),
+  );
 });
 
 // ─── Raw data streams ────────────────────────────────────────────────────────

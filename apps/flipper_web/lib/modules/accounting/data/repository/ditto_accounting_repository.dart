@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 
@@ -47,9 +48,7 @@ class DittoAccountingRepository implements AccountingRepository {
     query += ' ORDER BY createdAt DESC';
 
     final result = await ditto.store.execute(query, arguments: args);
-    return result.items
-        .map((i) => Map<String, dynamic>.from(i.value))
-        .toList();
+    return dittoQueryRows(result);
   }
 
   @override
@@ -72,9 +71,7 @@ class DittoAccountingRepository implements AccountingRepository {
       'SELECT * FROM transaction_items WHERE transactionId IN ($placeholders)',
       arguments: args,
     );
-    return result.items
-        .map((i) => Map<String, dynamic>.from(i.value))
-        .toList();
+    return dittoQueryRows(result);
   }
 
   @override
@@ -108,17 +105,27 @@ class DittoAccountingRepository implements AccountingRepository {
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     dynamic observer;
 
-    observer = ditto.store.registerObserver(
-      query,
-      arguments: args,
-      onChange: (queryResult) {
-        if (controller.isClosed) return;
-        final rows = queryResult.items
-            .map((i) => Map<String, dynamic>.from(i.value))
-            .toList();
-        controller.add(rows);
-      },
-    );
+    void emitRows(dynamic queryResult) {
+      if (controller.isClosed) return;
+      controller.add(dittoQueryRows(queryResult));
+    }
+
+    Future<void> start() async {
+      try {
+        final initial = await ditto.store.execute(query, arguments: args);
+        emitRows(initial);
+      } catch (e) {
+        debugPrint('watchTransactions initial execute: $e');
+      }
+
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: args,
+        onChange: emitRows,
+      );
+    }
+
+    unawaited(start());
 
     controller.onCancel = () async {
       await cancelDittoStoreObserver(observer);

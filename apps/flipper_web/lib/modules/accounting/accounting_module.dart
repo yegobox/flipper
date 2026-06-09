@@ -14,6 +14,7 @@ class AccountingModuleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(selectedBusinessRestoreProvider);
+    ref.watch(accountingDittoSyncProvider);
     ref.watch(accountingAutoPosterProvider);
     ref.watch(accountingStartupDiagnosticsProvider);
 

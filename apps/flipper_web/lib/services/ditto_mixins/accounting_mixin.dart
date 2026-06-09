@@ -39,6 +39,7 @@ mixin AccountingMixin on DittoCore {
   }
 
   Future<void> upsertJournalLine(
+    String businessId,
     String journalEntryId,
     JournalLine line, {
     String? id,
@@ -50,7 +51,11 @@ mixin AccountingMixin on DittoCore {
       line: line,
       id: docId,
     );
-    await executeUpsert('journal_lines', docId, data);
+    await executeUpsert('journal_lines', docId, {
+      ...data,
+      'businessId': businessId,
+      'business_id': businessId,
+    });
   }
 
   Future<void> upsertBankStatementLine(
@@ -81,7 +86,7 @@ mixin AccountingMixin on DittoCore {
       return handleNotInitializedAndReturn('queryCollection', []);
     }
     final result = await dittoInstance!.store.execute(query, arguments: args);
-    return result.items.map((i) => Map<String, dynamic>.from(i.value)).toList();
+    return dittoQueryRows(result);
   }
 
   Stream<List<Map<String, dynamic>>> watchCollection(
@@ -95,17 +100,27 @@ mixin AccountingMixin on DittoCore {
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     dynamic observer;
 
-    observer = ditto.store.registerObserver(
-      query,
-      arguments: args,
-      onChange: (queryResult) {
-        if (controller.isClosed) return;
-        final rows = queryResult.items
-            .map((i) => Map<String, dynamic>.from(i.value))
-            .toList();
-        controller.add(rows);
-      },
-    );
+    void emitRows(dynamic queryResult) {
+      if (controller.isClosed) return;
+      controller.add(dittoQueryRows(queryResult));
+    }
+
+    Future<void> start() async {
+      try {
+        final initial = await ditto.store.execute(query, arguments: args);
+        emitRows(initial);
+      } catch (e) {
+        debugPrint('watchCollection($collection) initial execute: $e');
+      }
+
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: args,
+        onChange: emitRows,
+      );
+    }
+
+    unawaited(start());
 
     controller.onCancel = () async {
       await cancelDittoStoreObserver(observer);

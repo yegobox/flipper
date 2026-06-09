@@ -13,7 +13,13 @@ class TransactionJournalPoster {
     required List<Map<String, dynamic>> transactions,
     required List<Map<String, dynamic>> items,
   }) async {
-    if (businessId.isEmpty || transactions.isEmpty) return;
+    if (businessId.isEmpty) return;
+    if (transactions.isEmpty) {
+      debugPrint(
+        '[Accounting] auto-poster: no COMPLETE transactions for this branch/period',
+      );
+      return;
+    }
 
     await _ledger.ensureSeeded(businessId: businessId);
 

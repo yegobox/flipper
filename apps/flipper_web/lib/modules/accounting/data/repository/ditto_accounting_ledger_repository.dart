@@ -114,7 +114,7 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     await _ditto.upsertJournalEntryHeader(businessId, header, entryId);
 
     for (final line in entry.lines) {
-      await _ditto.upsertJournalLine(entryId, line);
+      await _ditto.upsertJournalLine(businessId, entryId, line);
     }
     return entryId;
   }
@@ -143,7 +143,7 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     }
 
     for (final line in entry.lines) {
-      await _ditto.upsertJournalLine(entryId, line);
+      await _ditto.upsertJournalLine(businessId, entryId, line);
     }
   }
 

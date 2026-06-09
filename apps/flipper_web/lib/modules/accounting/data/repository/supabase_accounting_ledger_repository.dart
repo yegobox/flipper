@@ -15,6 +15,29 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   static const _bankTable = 'bank_statement_lines';
   static const _settingsTable = 'accounting_settings';
 
+  /// [LedgerRowMapper] emits Ditto + Postgres keys; PostgREST accepts snake_case only.
+  static const _dittoOnlyKeys = {
+    'businessId',
+    'journalId',
+    'transactionId',
+    'entryNumber',
+    'entryDate',
+    'journalEntryId',
+    'accountCode',
+    'bankAccountCode',
+    'lineDate',
+    'matchedJournalEntryId',
+    'matchedEntryNumber',
+  };
+
+  static Map<String, dynamic> _forPostgrest(Map<String, dynamic> row) {
+    final out = Map<String, dynamic>.from(row);
+    for (final key in _dittoOnlyKeys) {
+      out.remove(key);
+    }
+    return out;
+  }
+
   @override
   Future<void> ensureSeeded({required String businessId}) async {
     debugPrint(
@@ -116,27 +139,22 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
       journalId = j?['id']?.toString();
     }
 
-    final header = LedgerRowMapper.entryToRow(
+    final header = _forPostgrest(LedgerRowMapper.entryToRow(
       businessId: businessId,
       entry: entry,
       transactionId: transactionId,
       journalId: journalId,
-    );
-    header.remove('entryDate');
-    header.remove('businessId');
-    header.remove('journalId');
-    header.remove('transactionId');
+    ));
 
     final inserted = await _client.from(_entriesTable).insert(header).select('id').single();
     final entryId = inserted['id'].toString();
 
     final lineRows = entry.lines
-        .map((l) {
-          final row = LedgerRowMapper.lineToRow(journalEntryId: entryId, line: l);
-          row.remove('journalEntryId');
-          row.remove('accountCode');
-          return row;
-        })
+        .map(
+          (l) => _forPostgrest(
+            LedgerRowMapper.lineToRow(journalEntryId: entryId, line: l),
+          ),
+        )
         .toList();
 
     if (lineRows.isNotEmpty) {
@@ -152,24 +170,20 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     required String entryId,
     required JournalEntry entry,
   }) async {
-    final header = LedgerRowMapper.entryToRow(businessId: businessId, entry: entry, id: entryId);
-    header.remove('entryDate');
-    header.remove('businessId');
-    header.remove('journalId');
-    header.remove('transactionId');
-    header.remove('entryNumber');
+    final header = _forPostgrest(
+      LedgerRowMapper.entryToRow(businessId: businessId, entry: entry, id: entryId),
+    );
 
     await _client.from(_entriesTable).update(header).eq('id', entryId).eq('business_id', businessId);
 
     await _client.from(_linesTable).delete().eq('journal_entry_id', entryId);
 
     final lineRows = entry.lines
-        .map((l) {
-          final row = LedgerRowMapper.lineToRow(journalEntryId: entryId, line: l);
-          row.remove('journalEntryId');
-          row.remove('accountCode');
-          return row;
-        })
+        .map(
+          (l) => _forPostgrest(
+            LedgerRowMapper.lineToRow(journalEntryId: entryId, line: l),
+          ),
+        )
         .toList();
 
     if (lineRows.isNotEmpty) {
@@ -212,17 +226,13 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     String? id,
     String? matchedJournalEntryId,
   }) async {
-    final row = LedgerRowMapper.bankLineToRow(
+    final row = _forPostgrest(LedgerRowMapper.bankLineToRow(
       businessId: businessId,
       line: line,
       bankAccountCode: bankAccountCode,
       id: id,
       matchedJournalEntryId: matchedJournalEntryId,
-    );
-    row.remove('businessId');
-    row.remove('bankAccountCode');
-    row.remove('lineDate');
-    row.remove('matchedJournalEntryId');
+    ));
 
     if (id != null) {
       await _client.from(_bankTable).upsert(row);

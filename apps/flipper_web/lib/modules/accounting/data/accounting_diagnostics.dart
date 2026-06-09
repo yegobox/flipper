@@ -1,3 +1,4 @@
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -18,10 +19,13 @@ final accountingStartupDiagnosticsProvider = FutureProvider<void>((ref) async {
   final branchId = ref.read(accountingBranchIdProvider);
   final period = ref.read(accountingPeriodLabelProvider);
 
+  final branch = ref.read(selectedBranchProvider);
+  final branchKeyKind = dittoReady ? 'dittoUuid' : 'supabaseServerId';
   debugPrint(
     '[Accounting] ── startup ── backend=$backend dittoReady=$dittoReady '
     'businessId=${businessId.isEmpty ? "(none)" : businessId} '
-    'branchId=${branchId.isEmpty ? "(none)" : branchId} period=$period',
+    'branchId=${branchId.isEmpty ? "(none)" : branchId} ($branchKeyKind'
+    '${branch != null ? ', branch=${branch.name}' : ''}) period=$period',
   );
 
   if (businessId.isEmpty) {
