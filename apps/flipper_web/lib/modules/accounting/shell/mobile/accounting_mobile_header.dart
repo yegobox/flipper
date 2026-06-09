@@ -1,5 +1,6 @@
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,9 @@ class AccountingMobileHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tab = ref.watch(accountingMobileTabProvider);
+    final showEntity = tab == AccountingMobileTab.snapshot;
+    final pending = ref.watch(pendingCountProvider);
     final business = ref.watch(selectedBusinessProvider);
     final entityName = business?.name ?? 'Business';
     final initials = accountingEntityInitials(entityName);
@@ -44,18 +48,23 @@ class AccountingMobileHeader extends ConsumerWidget {
                       clipBehavior: Clip.none,
                       children: [
                         const Icon(Icons.notifications_outlined, size: 20, color: AccountingTokens.ink2),
-                        Positioned(
-                          right: -1,
-                          top: -1,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: AccountingTokens.loss,
-                              shape: BoxShape.circle,
+                        if (pending > 0)
+                          Positioned(
+                            right: -1,
+                            top: -1,
+                            child: Container(
+                              width: 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                color: AccountingTokens.loss,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AccountingTokens.surface,
+                                  width: 1.5,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -75,62 +84,71 @@ class AccountingMobileHeader extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {},
-                  borderRadius: BorderRadius.circular(10),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: AccountingTokens.accentTint,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            initials,
-                            style: AccountingTokens.sans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AccountingTokens.accent,
+              if (showEntity) ...[
+                const SizedBox(height: 14),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {},
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AccountingTokens.accentTint,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              initials,
+                              style: AccountingTokens.sans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AccountingTokens.accent,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                entityName,
-                                style: AccountingTokens.sans(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AccountingTokens.ink1,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  entityName,
+                                  style: AccountingTokens.sans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: AccountingTokens.ink1,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 1),
-                              Text(
-                                '$fiscalYear · $currency',
-                                style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.ink3),
-                              ),
-                            ],
+                                const SizedBox(height: 1),
+                                Text(
+                                  '$fiscalYear · $currency',
+                                  style: AccountingTokens.sans(
+                                    fontSize: 12,
+                                    color: AccountingTokens.ink3,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const Icon(Icons.expand_more, color: AccountingTokens.ink4, size: 20),
-                      ],
+                          const Icon(
+                            Icons.expand_more,
+                            color: AccountingTokens.ink4,
+                            size: 20,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

@@ -4,6 +4,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
+import 'package:flipper_web/modules/accounting/widgets/journal_approval_card.dart';
 import 'package:flipper_web/modules/accounting/widgets/trend_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -258,20 +259,32 @@ class AccountingApprovalsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final actions = ref.watch(approvalActionsProvider);
     final pending = ref.watch(accountingJournalProvider).where((e) => e.status == JournalStatus.pending).toList();
+    final accountMap = {
+      for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
+    };
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
-        Text('Approvals', style: AccountingTokens.sans(fontSize: 22, fontWeight: FontWeight.w800)),
-        Text('Pending journal entries — tap approve to post to the ledger.', style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3)),
-        const SizedBox(height: 16),
+        Text(
+          'Approvals',
+          style: AccountingTokens.sans(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.025 * 22,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          'Pending journal entries — tap approve to post to the ledger.',
+          style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3),
+        ),
+        const SizedBox(height: 14),
         for (final e in pending)
-          _ApprovalCard(
+          JournalApprovalCard(
             entry: e,
             action: actions[e.id],
-            accountMap: {
-              for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
-            },
+            accountMap: accountMap,
             onApprove: () async {
               final businessId = ref.read(accountingBusinessIdProvider);
               final uuid = e.uuid;
@@ -292,103 +305,14 @@ class AccountingApprovalsTab extends ConsumerWidget {
         if (pending.isEmpty)
           Padding(
             padding: const EdgeInsets.all(30),
-            child: Center(child: Text("Nothing waiting — you're all caught up.", style: AccountingTokens.sans(color: AccountingTokens.ink3))),
+            child: Center(
+              child: Text(
+                "Nothing waiting — you're all caught up.",
+                style: AccountingTokens.sans(color: AccountingTokens.ink3),
+              ),
+            ),
           ),
       ],
-    );
-  }
-}
-
-class _ApprovalCard extends StatelessWidget {
-  const _ApprovalCard({
-    required this.entry,
-    required this.action,
-    required this.accountMap,
-    required this.onApprove,
-    required this.onReject,
-  });
-
-  final JournalEntry entry;
-  final ApprovalAction? action;
-  final Map<String, Account> accountMap;
-  final VoidCallback onApprove;
-  final VoidCallback onReject;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = jeTotals(entry);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AccountingTokens.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AccountingTokens.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(entry.id, style: AccountingTokens.mono(fontSize: 13, fontWeight: FontWeight.w700, color: AccountingTokens.accent)),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: AccountingTokens.warnTint, borderRadius: BorderRadius.circular(999)),
-                child: Text('pending', style: AccountingTokens.sans(fontSize: 11, color: AccountingTokens.warnAmber, fontWeight: FontWeight.w600)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(entry.memo, style: AccountingTokens.sans(fontSize: 15, fontWeight: FontWeight.w600)),
-          Text('${entry.date} · ${entry.ref} · via ${entry.src}', style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.ink3)),
-          const SizedBox(height: 12),
-          for (final l in entry.lines)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: l.dr > 0 ? AccountingTokens.accentTint : const Color(0xFFE6F4F2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(l.dr > 0 ? 'Dr' : 'Cr', style: AccountingTokens.mono(fontSize: 11, color: l.dr > 0 ? AccountingTokens.drInk : AccountingTokens.crInk)),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '${acctName(l.ac, accountMap)} ${l.ac}',
-                      style: AccountingTokens.sans(fontSize: 13),
-                    ),
-                  ),
-                  Text(money(l.dr > 0 ? l.dr : l.cr), style: AccountingTokens.mono(fontSize: 13, color: l.dr > 0 ? AccountingTokens.drInk : AccountingTokens.crInk)),
-                ],
-              ),
-            ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: AccountingTokens.gainTint, borderRadius: BorderRadius.circular(8)),
-            child: Text('Balanced · ${money(t.dr)} = ${money(t.cr)}', style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.gainInk, fontWeight: FontWeight.w600)),
-          ),
-          const SizedBox(height: 12),
-          if (action != null)
-            Text(
-              action == ApprovalAction.approve ? 'Approved & posted' : 'Sent back to drafts',
-              style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3, fontStyle: FontStyle.italic),
-            )
-          else
-            Row(
-              children: [
-                Expanded(child: OutlinedButton(onPressed: onReject, child: const Text('Reject'))),
-                const SizedBox(width: 10),
-                Expanded(child: FilledButton(onPressed: onApprove, child: const Text('Approve'))),
-              ],
-            ),
-        ],
-      ),
     );
   }
 }

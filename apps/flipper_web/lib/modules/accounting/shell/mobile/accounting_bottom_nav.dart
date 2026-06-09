@@ -19,8 +19,8 @@ class AccountingBottomNav extends ConsumerWidget {
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 56,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
           child: Row(
             children: [
               _TabBtn(
@@ -77,28 +77,48 @@ class _TabBtn extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(icon, size: 22, color: color),
-                if (badge != null && badge! > 0)
-                  Positioned(
-                    right: -8,
-                    top: -4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      decoration: BoxDecoration(color: AccountingTokens.warnAmber, borderRadius: BorderRadius.circular(8)),
-                      child: Text('$badge', style: AccountingTokens.mono(fontSize: 9, color: Colors.white)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Icon(icon, size: 21, color: color),
+                  if (badge != null && badge! > 0)
+                    Positioned(
+                      top: -2,
+                      left: 22,
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AccountingTokens.loss,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AccountingTokens.surface, width: 1.5),
+                        ),
+                        child: Text(
+                          '$badge',
+                          style: AccountingTokens.mono(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(label, style: AccountingTokens.sans(fontSize: 10.5, fontWeight: FontWeight.w600, color: color)),
-          ],
+                ],
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: AccountingTokens.sans(fontSize: 10, fontWeight: FontWeight.w600, color: color),
+              ),
+            ],
+          ),
         ),
       ),
     );
