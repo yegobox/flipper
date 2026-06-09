@@ -4,6 +4,7 @@ import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
@@ -55,13 +56,34 @@ final approvalActionsProvider =
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
 
+/// Override in tests; at runtime reads [--dart-define=ACCOUNTING_BACKEND=…].
+final accountingBackendStrategyProvider = Provider<AccountingBackendStrategy>(
+  (ref) => AccountingBackendConfig.strategy,
+);
+
+final accountingUseDittoForTransactionsProvider = Provider<bool>((ref) {
+  return AccountingBackendConfig.useDitto(
+    strategy: ref.watch(accountingBackendStrategyProvider),
+    dittoReady: ref.watch(dittoServiceProvider).isReady(),
+    layer: AccountingDataLayer.transactions,
+  );
+});
+
+final accountingUseDittoForLedgerProvider = Provider<bool>((ref) {
+  return AccountingBackendConfig.useDitto(
+    strategy: ref.watch(accountingBackendStrategyProvider),
+    dittoReady: ref.watch(dittoServiceProvider).isReady(),
+    layer: AccountingDataLayer.ledger,
+  );
+});
+
 /// Branch key for transaction queries.
 /// Ditto POS documents use [Branch.id] (UUID); Supabase uses [Branch.serverId].
 final accountingBranchIdProvider = Provider<String>((ref) {
   final branch = ref.watch(selectedBranchProvider);
   if (branch == null) return '';
-  final dittoReady = ref.watch(dittoServiceProvider).isReady();
-  return dittoReady ? branch.id : branch.serverId.toString();
+  final useDitto = ref.watch(accountingUseDittoForTransactionsProvider);
+  return useDitto ? branch.id : branch.serverId.toString();
 });
 
 final accountingBusinessIdProvider = Provider<String>((ref) {
@@ -76,10 +98,10 @@ final accountingDateRangeProvider =
 });
 
 final accountingRepositoryProvider = Provider<AccountingRepository>((ref) {
-  final ditto = ref.watch(dittoServiceProvider);
-  if (ditto.isReady()) {
+  final strategy = ref.watch(accountingBackendStrategyProvider);
+  if (strategy == AccountingBackendStrategy.ditto) {
     debugPrint('[Accounting] transactions repository → ditto');
-    return DittoAccountingRepository(ditto);
+    return DittoAccountingRepository(ref.watch(dittoServiceProvider));
   }
   debugPrint('[Accounting] transactions repository → supabase');
   return SupabaseAccountingRepository(ref.watch(supabaseProvider));
@@ -87,15 +109,10 @@ final accountingRepositoryProvider = Provider<AccountingRepository>((ref) {
 
 final accountingLedgerRepositoryProvider =
     Provider<AccountingLedgerRepository>((ref) {
-  // Web Ditto store is in-memory; journals persist in Postgres across reload.
-  if (kIsWeb) {
-    debugPrint('[Accounting] ledger repository → supabase (web persistence)');
-    return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
-  }
-  final ditto = ref.watch(dittoServiceProvider);
-  if (ditto.isReady()) {
+  final strategy = ref.watch(accountingBackendStrategyProvider);
+  if (strategy == AccountingBackendStrategy.ditto) {
     debugPrint('[Accounting] ledger repository → ditto');
-    return DittoAccountingLedgerRepository(ditto);
+    return DittoAccountingLedgerRepository(ref.watch(dittoServiceProvider));
   }
   debugPrint('[Accounting] ledger repository → supabase');
   return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
@@ -105,6 +122,10 @@ final accountingLedgerRepositoryProvider =
 final accountingDittoSyncProvider = Provider<void>((ref) {
   final ditto = ref.watch(dittoServiceProvider);
   if (!ditto.isReady()) return;
+  if (ref.watch(accountingBackendStrategyProvider) !=
+      AccountingBackendStrategy.ditto) {
+    return;
+  }
 
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return;

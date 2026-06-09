@@ -5,10 +5,13 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Human-readable backend label for logs and debug UI.
+/// Human-readable backend summary for logs and debug UI.
 final accountingBackendLabelProvider = Provider<String>((ref) {
-  final dittoReady = ref.watch(dittoServiceProvider).isReady();
-  return dittoReady ? 'ditto' : 'supabase';
+  final strategy = ref.watch(accountingBackendStrategyProvider);
+  final txDitto = ref.watch(accountingUseDittoForTransactionsProvider);
+  final glDitto = ref.watch(accountingUseDittoForLedgerProvider);
+  return 'strategy=${strategy.name} tx=${txDitto ? "ditto" : "supabase"} '
+      'ledger=${glDitto ? "ditto" : "supabase"}';
 });
 
 /// Runs once when Books opens: logs backend, ids, seed result, COA/journal counts.
@@ -20,9 +23,10 @@ final accountingStartupDiagnosticsProvider = FutureProvider<void>((ref) async {
   final period = ref.read(accountingPeriodLabelProvider);
 
   final branch = ref.read(selectedBranchProvider);
-  final branchKeyKind = dittoReady ? 'dittoUuid' : 'supabaseServerId';
+  final txDitto = ref.read(accountingUseDittoForTransactionsProvider);
+  final branchKeyKind = txDitto ? 'dittoUuid' : 'supabaseServerId';
   debugPrint(
-    '[Accounting] ── startup ── backend=$backend dittoReady=$dittoReady '
+    '[Accounting] ── startup ── $backend dittoReady=$dittoReady '
     'businessId=${businessId.isEmpty ? "(none)" : businessId} '
     'branchId=${branchId.isEmpty ? "(none)" : branchId} ($branchKeyKind'
     '${branch != null ? ', branch=${branch.name}' : ''}) period=$period',
