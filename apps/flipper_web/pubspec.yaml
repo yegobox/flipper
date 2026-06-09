@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.518+1434
+version: 1.0.519+1435
 
 
 environment:
@@ -43,6 +43,10 @@ dependencies:
 dependency_overrides:
   archive: ^4.0.9
   sqlite3: ^3.3.1
+  # Wasm-safe replacement: upstream flutter_keyboard_visibility_web 2.0.0 imports
+  # dart:html, which dart2wasm cannot compile. See open-sources package.
+  flutter_keyboard_visibility_web:
+    path: ../../open-sources/flutter_keyboard_visibility_web
 
 dev_dependencies:
   integration_test:
