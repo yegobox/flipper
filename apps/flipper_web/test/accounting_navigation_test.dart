@@ -36,6 +36,37 @@ void main() {
     expect(find.byType(AccountingMobileShell), findsNothing);
   });
 
+  testWidgets('AccountingModuleScreen desktop shell has no horizontal overflow at breakpoint', (tester) async {
+    final overflows = <FlutterErrorDetails>[];
+    final previousHandler = FlutterError.onError;
+    FlutterError.onError = (details) {
+      if (_isLayoutOverflow(details.exception)) {
+        overflows.add(details);
+        return;
+      }
+      previousHandler?.call(details);
+    };
+
+    tester.view.physicalSize = Size(SITokens.desktopBreakpoint, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: AccountingModuleScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    FlutterError.onError = previousHandler;
+
+    expect(find.byType(AccountingDesktopShell), findsOneWidget);
+    expect(overflows, isEmpty, reason: overflows.map((e) => e.exception).join('\n'));
+  });
+
   testWidgets('AccountingModuleScreen shows mobile shell below breakpoint', (tester) async {
     tester.view.physicalSize = Size(SITokens.desktopBreakpoint - 1, 800);
     tester.view.devicePixelRatio = 1.0;

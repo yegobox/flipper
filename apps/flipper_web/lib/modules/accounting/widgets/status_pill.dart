@@ -21,17 +21,20 @@ class StatusPill extends StatelessWidget {
         color: bg,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(label, style: AccountingTokens.sans(fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+            Text(label, style: AccountingTokens.sans(fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
+          ],
+        ),
       ),
     );
   }
@@ -48,13 +51,16 @@ class MatchedPill extends StatelessWidget {
         color: AccountingTokens.gainTint,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(width: 6, height: 6, decoration: const BoxDecoration(color: AccountingTokens.gainInk, shape: BoxShape.circle)),
-          const SizedBox(width: 6),
-          Text('Matched', style: AccountingTokens.sans(fontSize: 12, fontWeight: FontWeight.w600, color: AccountingTokens.gainInk)),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 6, height: 6, decoration: const BoxDecoration(color: AccountingTokens.gainInk, shape: BoxShape.circle)),
+            const SizedBox(width: 6),
+            Text('Matched', style: AccountingTokens.sans(fontSize: 12, fontWeight: FontWeight.w600, color: AccountingTokens.gainInk)),
+          ],
+        ),
       ),
     );
   }

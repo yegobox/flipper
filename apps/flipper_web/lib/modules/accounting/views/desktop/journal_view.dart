@@ -41,32 +41,31 @@ class AccountingJournalView extends ConsumerWidget {
               AccountingButton(label: 'New journal entry', icon: Icons.add, primary: true, onPressed: onNewEntry),
             ],
           ),
-          Row(
+          Wrap(
+            spacing: 6,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Wrap(
-                spacing: 6,
-                children: JournalFilter.values.map((f) {
-                  final label = switch (f) {
-                    JournalFilter.all => 'All',
-                    JournalFilter.posted => 'Posted',
-                    JournalFilter.pending => 'Pending',
-                    JournalFilter.draft => 'Drafts',
-                  };
-                  final on = filter == f;
-                  return ChoiceChip(
-                    label: Text(
-                      f == JournalFilter.pending && pending > 0 ? '$label ($pending)' : label,
-                      style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w600, color: on ? AccountingTokens.accent : AccountingTokens.ink2),
-                    ),
-                    selected: on,
-                    onSelected: (_) => ref.read(journalFilterProvider.notifier).state = f,
-                    selectedColor: AccountingTokens.accentTint,
-                    backgroundColor: AccountingTokens.surface,
-                    side: BorderSide(color: on ? AccountingTokens.accent : AccountingTokens.line),
-                  );
-                }).toList(),
-              ),
-              const Spacer(),
+              ...JournalFilter.values.map((f) {
+                final label = switch (f) {
+                  JournalFilter.all => 'All',
+                  JournalFilter.posted => 'Posted',
+                  JournalFilter.pending => 'Pending',
+                  JournalFilter.draft => 'Drafts',
+                };
+                final on = filter == f;
+                return ChoiceChip(
+                  label: Text(
+                    f == JournalFilter.pending && pending > 0 ? '$label ($pending)' : label,
+                    style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w600, color: on ? AccountingTokens.accent : AccountingTokens.ink2),
+                  ),
+                  selected: on,
+                  onSelected: (_) => ref.read(journalFilterProvider.notifier).state = f,
+                  selectedColor: AccountingTokens.accentTint,
+                  backgroundColor: AccountingTokens.surface,
+                  side: BorderSide(color: on ? AccountingTokens.accent : AccountingTokens.line),
+                );
+              }),
               if (pending > 0)
                 Text('$pending entries awaiting approval', style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.warnAmber, fontWeight: FontWeight.w600)),
             ],
@@ -121,15 +120,23 @@ class _JournalRow extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: AccountingTokens.surface2, borderRadius: BorderRadius.circular(6)),
-            child: Text(entry.src, style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink2)),
+          Flexible(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: AccountingTokens.surface2, borderRadius: BorderRadius.circular(6)),
+                  child: Text(entry.src, style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink2)),
+                ),
+                StatusPill(status: entry.status),
+                Text(money(t.dr), style: AccountingTokens.mono(fontSize: 14, fontWeight: FontWeight.w700)),
+              ],
+            ),
           ),
-          const SizedBox(width: 12),
-          StatusPill(status: entry.status),
-          const SizedBox(width: 16),
-          Text(money(t.dr), style: AccountingTokens.mono(fontSize: 14, fontWeight: FontWeight.w700)),
         ],
       ),
     );

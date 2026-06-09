@@ -17,26 +17,48 @@ class AccountingPageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(eyebrow.toUpperCase(), style: AccountingTokens.eyebrow),
+        const SizedBox(height: 6),
+        Text(title, style: AccountingTokens.pageH1),
+        const SizedBox(height: 4),
+        Text(subtitle, style: AccountingTokens.sans(fontSize: 13.5, color: AccountingTokens.ink3)),
+      ],
+    );
+
+    final actionBlock = actions.isEmpty
+        ? null
+        : Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.end,
+            children: actions,
+          );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final stackActions = constraints.maxWidth < 520;
+          if (actionBlock == null || stackActions) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(eyebrow.toUpperCase(), style: AccountingTokens.eyebrow),
-                const SizedBox(height: 6),
-                Text(title, style: AccountingTokens.pageH1),
-                const SizedBox(height: 4),
-                Text(subtitle, style: AccountingTokens.sans(fontSize: 13.5, color: AccountingTokens.ink3)),
+                titleBlock,
+                if (actionBlock != null) ...[const SizedBox(height: 12), actionBlock],
               ],
-            ),
-          ),
-          if (actions.isNotEmpty)
-            Wrap(spacing: 8, runSpacing: 8, children: actions),
-        ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: titleBlock),
+              Flexible(child: actionBlock),
+            ],
+          );
+        },
       ),
     );
   }
@@ -156,7 +178,7 @@ class AccountingCardHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) trailing!,
+          if (trailing != null) Flexible(child: trailing!),
         ],
       ),
     );

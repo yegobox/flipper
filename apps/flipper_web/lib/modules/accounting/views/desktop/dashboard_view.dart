@@ -38,24 +38,13 @@ class AccountingDashboardView extends StatelessWidget {
               AccountingButton(label: 'New journal entry', icon: Icons.add, primary: true, onPressed: onNewEntry),
             ],
           ),
-          LayoutBuilder(
-            builder: (context, c) {
-              final cols = c.maxWidth > 900 ? 4 : (c.maxWidth > 600 ? 2 : 1);
-              return GridView.count(
-                crossAxisCount: cols,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: cols == 1 ? 2.4 : 2.0,
-                children: [
-                  AccountingKpiCard(label: 'Net income', value: pl.netIncome, icon: Icons.trending_up, tone: KpiTone.green, delta: 18, footnote: 'vs April'),
-                  AccountingKpiCard(label: 'Cash & bank', value: cashBank, icon: Icons.account_balance_wallet_outlined, tone: KpiTone.blue, delta: 6, footnote: 'across 3 accounts'),
-                  AccountingKpiCard(label: 'Receivable', value: arAge.total, icon: Icons.north_east, tone: KpiTone.amber, footnote: 'overdue 60+', deltaPositive: false),
-                  AccountingKpiCard(label: 'Payable', value: apAge.total, icon: Icons.south_west, tone: KpiTone.red, footnote: '${demoAp.length} open bills'),
-                ],
-              );
-            },
+          AccountingKpiGrid(
+            children: [
+              AccountingKpiCard(label: 'Net income', value: pl.netIncome, icon: Icons.trending_up, tone: KpiTone.green, delta: 18, footnote: 'vs April'),
+              AccountingKpiCard(label: 'Cash & bank', value: cashBank, icon: Icons.account_balance_wallet_outlined, tone: KpiTone.blue, delta: 6, footnote: 'across 3 accounts'),
+              AccountingKpiCard(label: 'Receivable', value: arAge.total, icon: Icons.north_east, tone: KpiTone.amber, footnote: 'overdue 60+', deltaPositive: false),
+              AccountingKpiCard(label: 'Payable', value: apAge.total, icon: Icons.south_west, tone: KpiTone.red, footnote: '${demoAp.length} open bills'),
+            ],
           ),
           const SizedBox(height: 16),
           LayoutBuilder(
@@ -183,10 +172,21 @@ class _RecentJournalCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Expanded(flex: 3, child: Text(e.memo, style: AccountingTokens.sans(fontSize: 13.5))),
-                  StatusPill(status: e.status),
-                  const SizedBox(width: 12),
-                  Text(money(jeTotals(e).dr), style: AccountingTokens.mono(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                  Expanded(
+                    flex: 3,
+                    child: Text(e.memo, style: AccountingTokens.sans(fontSize: 13.5), overflow: TextOverflow.ellipsis, maxLines: 2),
+                  ),
+                  Flexible(
+                    child: Wrap(
+                      spacing: 8,
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        StatusPill(status: e.status),
+                        Text(money(jeTotals(e).dr), style: AccountingTokens.mono(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

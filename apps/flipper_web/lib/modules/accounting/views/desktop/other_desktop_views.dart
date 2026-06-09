@@ -65,16 +65,19 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  account.name,
-                  style: AccountingTokens.sans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Text(
+                    account.name,
+                    style: AccountingTokens.sans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 12),
                 AccountTypePill(type: account.type),
-                const Spacer(),
+                const SizedBox(width: 12),
                 Text(
                   'Closing ${money(account.bal)}',
                   style: AccountingTokens.mono(
@@ -193,13 +196,8 @@ class AccountingBankRecView extends StatelessWidget {
               ),
             ],
           ),
-          GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 2.2,
+          AccountingKpiGrid(
+            maxColumns: 3,
             children: [
               AccountingKpiCard(
                 label: 'Statement balance',
@@ -471,13 +469,8 @@ class AccountingTaxVatView extends StatelessWidget {
               ),
             ],
           ),
-          GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 2.2,
+          AccountingKpiGrid(
+            maxColumns: 3,
             children: [
               AccountingKpiCard(
                 label: 'Output VAT',

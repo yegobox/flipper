@@ -5,6 +5,45 @@ import 'package:flutter/material.dart';
 
 enum KpiTone { green, blue, amber, red }
 
+/// Responsive KPI row/grid without fixed [GridView] aspect ratios (avoids vertical clip).
+class AccountingKpiGrid extends StatelessWidget {
+  const AccountingKpiGrid({
+    super.key,
+    required this.children,
+    this.spacing = 12,
+    this.maxColumns = 4,
+  });
+
+  final List<Widget> children;
+  final double spacing;
+  final int maxColumns;
+
+  static int columnCount(double maxWidth, {int maxColumns = 4}) {
+    if (maxWidth > 900) return maxColumns;
+    if (maxWidth > 600) return 2;
+    return 1;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = columnCount(constraints.maxWidth, maxColumns: maxColumns).clamp(1, children.length);
+        final itemWidth = (constraints.maxWidth - spacing * (cols - 1)) / cols;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final child in children)
+              SizedBox(width: itemWidth, child: child),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class AccountingKpiCard extends StatelessWidget {
   const AccountingKpiCard({
     super.key,

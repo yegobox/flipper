@@ -3,8 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 abstract final class AccountingTokens {
   static const Color workspaceBg = Color(0xFFF1F4FA);
-  static const Color sidebarBg = Color(0xFF0E1626);
-  static const Color sidebarBg2 = Color(0xFF16213A);
+  /// Light rail — matches [EnhancedSideMenu] / PosTokens.surface.
+  static const Color sidebarBg = Color(0xFFFFFFFF);
+  static const Color sidebarBg2 = Color(0xFFF7F9FE);
+  static const Color sidebarBorder = Color(0xFFE5E7EB);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surface2 = Color(0xFFF4F6FB);
   static const Color ink1 = Color(0xFF0B1220);

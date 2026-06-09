@@ -506,7 +506,7 @@ class AccountingMobileHeader extends StatelessWidget {
       color: AccountingTokens.surface,
       child: Row(
         children: [
-          const BooksBrandRow(logoSize: 28, onDark: false),
+          const BooksBrandRow(logoSize: 28),
           const Spacer(),
           Stack(
             children: [

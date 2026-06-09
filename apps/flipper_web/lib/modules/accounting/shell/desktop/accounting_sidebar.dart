@@ -8,24 +8,30 @@ import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Light rail styling aligned with [EnhancedSideMenu] in flipper_dashboard.
 class AccountingSidebar extends ConsumerWidget {
   const AccountingSidebar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final view = ref.watch(accountingViewProvider);
+    final AccountingView view = ref.watch(accountingViewProvider);
     final pending = pendingJournalCount();
     final business = ref.watch(selectedBusinessProvider);
     final entityName = business?.name ?? demoEntityName;
 
     return Container(
       width: AccountingTokens.sidebarWidth,
-      color: AccountingTokens.sidebarBg,
+      decoration: const BoxDecoration(
+        color: AccountingTokens.sidebarBg,
+        border: Border(
+          right: BorderSide(color: AccountingTokens.sidebarBorder),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Padding(
-            padding: EdgeInsets.fromLTRB(20, 22, 20, 16),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 16),
             child: BooksBrandRow(),
           ),
           Padding(
@@ -34,8 +40,8 @@ class AccountingSidebar extends ConsumerWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AccountingTokens.sidebarBg2,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                borderRadius: BorderRadius.circular(AccountingTokens.radiusSm),
+                border: Border.all(color: AccountingTokens.line),
               ),
               child: Row(
                 children: [
@@ -57,12 +63,20 @@ class AccountingSidebar extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(entityName, style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
-                        Text('$demoFiscalYear · $demoCurrency', style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.navMuted)),
+                        Text(
+                          entityName,
+                          style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w700, color: AccountingTokens.ink1),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          '$demoFiscalYear · $demoCurrency',
+                          style: AccountingTokens.sans(fontSize: 11.5, color: AccountingTokens.ink3),
+                        ),
                       ],
                     ),
                   ),
-                  Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.5), size: 18),
+                  const Icon(Icons.expand_more, color: AccountingTokens.ink4, size: 18),
                 ],
               ),
             ),
@@ -77,7 +91,12 @@ class AccountingSidebar extends ConsumerWidget {
                     padding: const EdgeInsets.fromLTRB(10, 14, 10, 8),
                     child: Text(
                       group.section.toUpperCase(),
-                      style: AccountingTokens.sans(fontSize: 10.5, fontWeight: FontWeight.w700, color: AccountingTokens.navMuted, letterSpacing: 0.08 * 10.5),
+                      style: AccountingTokens.sans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: AccountingTokens.ink3,
+                        letterSpacing: 0.08 * 10.5,
+                      ),
                     ),
                   ),
                   for (final item in group.items)
@@ -99,12 +118,16 @@ class AccountingSidebar extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Diane E.', style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
-                      Text('Owner · Bookkeeper', style: AccountingTokens.sans(fontSize: 11, color: AccountingTokens.navMuted)),
+                      Text('Diane E.', style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w700, color: AccountingTokens.ink1)),
+                      Text('Owner · Bookkeeper', style: AccountingTokens.sans(fontSize: 11, color: AccountingTokens.ink3)),
                     ],
                   ),
                 ),
-                Icon(Icons.settings_outlined, color: Colors.white.withValues(alpha: 0.6), size: 20),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.settings_outlined, color: AccountingTokens.ink3, size: 20),
+                  visualDensity: VisualDensity.compact,
+                ),
               ],
             ),
           ),
@@ -115,7 +138,12 @@ class AccountingSidebar extends ConsumerWidget {
 }
 
 class _NavButton extends StatelessWidget {
-  const _NavButton({required this.item, required this.selected, required this.onTap, this.badge});
+  const _NavButton({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+    this.badge,
+  });
 
   final AccountingNavItem item;
   final bool selected;
@@ -124,35 +152,68 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = selected ? AccountingTokens.accent : AccountingTokens.ink3;
+    final labelColor = selected ? AccountingTokens.ink1 : AccountingTokens.ink2;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: Material(
-        color: selected ? AccountingTokens.accent : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                Icon(item.icon, size: 19, color: selected ? Colors.white : Colors.white.withValues(alpha: 0.75)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    item.view.label,
-                    style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600, color: selected ? Colors.white : Colors.white.withValues(alpha: 0.85)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AccountingTokens.radiusSm),
+        hoverColor: AccountingTokens.surface2,
+        child: Row(
+          children: [
+            if (selected)
+              Container(
+                width: 4,
+                height: 32,
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: AccountingTokens.accent,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(4),
+                    bottomRight: Radius.circular(4),
                   ),
                 ),
-                if (badge != null && badge! > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(color: AccountingTokens.warnTint, borderRadius: BorderRadius.circular(999)),
-                    child: Text('$badge', style: AccountingTokens.mono(fontSize: 11, color: AccountingTokens.warnAmber, fontWeight: FontWeight.w700)),
-                  ),
-              ],
+              )
+            else
+              const SizedBox(width: 8),
+            Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                curve: Curves.ease,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: BoxDecoration(
+                  color: selected ? AccountingTokens.accentTint : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AccountingTokens.radiusSm),
+                ),
+                child: Row(
+                  children: [
+                    Icon(item.icon, size: 19, color: iconColor),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        item.view.label,
+                        style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600, color: labelColor),
+                      ),
+                    ),
+                    if (badge != null && badge! > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AccountingTokens.warnTint,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '$badge',
+                          style: AccountingTokens.mono(fontSize: 11, color: AccountingTokens.warnAmber, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
