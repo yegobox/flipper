@@ -1,4 +1,5 @@
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:intl/intl.dart';
 
 /// Maps Supabase / Ditto row maps ↔ accounting UI models.
 class LedgerRowMapper {
@@ -231,17 +232,68 @@ class LedgerRowMapper {
   }
 
   static String _parseEntryDateToIso(String label) {
-    final now = DateTime.now();
-    final parts = label.trim().split(RegExp(r'\s+'));
-    if (parts.length >= 2) {
-      const months = {
-        'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-        'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
-      };
-      final m = months[parts[0].toLowerCase().substring(0, 3)] ?? now.month;
-      final d = int.tryParse(parts[1]) ?? now.day;
-      return DateTime(now.year, m, d).toIso8601String();
+    final trimmed = label.trim();
+    if (trimmed.isEmpty) {
+      return _dateOnlyIso(DateTime.now());
     }
-    return now.toIso8601String();
+
+    final iso = DateTime.tryParse(trimmed);
+    if (iso != null) {
+      return _dateOnlyIso(iso);
+    }
+
+    for (final pattern in ['d MMM y', 'MMM d y', 'MMM d', 'd MMM']) {
+      try {
+        return _dateOnlyIso(DateFormat(pattern).parse(trimmed));
+      } catch (_) {
+        continue;
+      }
+    }
+
+    final now = DateTime.now();
+    final parts = trimmed.split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      final dayFirst = int.tryParse(parts[0]);
+      if (dayFirst != null) {
+        final month = _monthNumber(parts[1]) ?? now.month;
+        final year =
+            parts.length >= 3 ? (int.tryParse(parts[2]) ?? now.year) : now.year;
+        return _dateOnlyIso(DateTime(year, month, dayFirst));
+      }
+
+      final month = _monthNumber(parts[0]) ?? now.month;
+      final day = int.tryParse(parts[1]) ?? now.day;
+      final year =
+          parts.length >= 3 ? (int.tryParse(parts[2]) ?? now.year) : now.year;
+      return _dateOnlyIso(DateTime(year, month, day));
+    }
+
+    return _dateOnlyIso(now);
+  }
+
+  static String _dateOnlyIso(DateTime dt) {
+    return DateTime(dt.year, dt.month, dt.day).toIso8601String();
+  }
+
+  static int? _monthNumber(String token) {
+    const months = {
+      'jan': 1,
+      'feb': 2,
+      'mar': 3,
+      'apr': 4,
+      'may': 5,
+      'jun': 6,
+      'jul': 7,
+      'aug': 8,
+      'sep': 9,
+      'oct': 10,
+      'nov': 11,
+      'dec': 12,
+    };
+    final lower = token.toLowerCase();
+    if (lower.length >= 3) {
+      return months[lower.substring(0, 3)];
+    }
+    return months[lower];
   }
 }
