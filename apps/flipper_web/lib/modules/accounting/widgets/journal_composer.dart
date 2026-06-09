@@ -26,6 +26,7 @@ class JournalComposer extends StatefulWidget {
 class _JournalComposerState extends State<JournalComposer> {
   final _memoCtrl = TextEditingController();
   final _refCtrl = TextEditingController(text: 'Auto · JE-1048');
+  final _pickerLink = LayerLink();
   late final String _dateLabel;
   List<ComposerLine> _lines = [ComposerLine(), ComposerLine()];
   int? _pickerIndex;
@@ -75,13 +76,6 @@ class _JournalComposerState extends State<JournalComposer> {
           onTap: widget.onClose,
           child: Container(color: const Color(0x8C081216)),
         ),
-        if (_pickerIndex != null)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () => setState(() => _pickerIndex = null),
-              behavior: HitTestBehavior.translucent,
-            ),
-          ),
         Align(
           alignment: Alignment.centerRight,
           child: Material(
@@ -158,133 +152,154 @@ class _JournalComposerState extends State<JournalComposer> {
       children: [
         _ComposerHeader(onClose: widget.onClose),
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Quick start', style: _fieldLabel),
-                const SizedBox(height: 7),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final t in _templates)
-                      AccountingButton(
-                        label: t.name,
-                        icon: t.icon,
-                        small: true,
-                        onPressed: () => _applyTemplate(t),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _LabeledField(
-                        label: 'Date',
-                        child: _ComposerInput(
-                          icon: Icons.calendar_today_outlined,
-                          readOnly: true,
-                          value: _dateLabel,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: _LabeledField(
-                        label: 'Reference',
-                        child: _ComposerInput(
-                          icon: Icons.tag,
-                          controller: _refCtrl,
-                          hint: 'Auto · JE-1048',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _LabeledField(
-                  label: 'Memo / description',
-                  child: _ComposerInput(
-                    icon: Icons.receipt_long_outlined,
-                    controller: _memoCtrl,
-                    hint: 'What is this entry for?',
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text('Lines', style: _fieldLabel.copyWith(fontSize: 12.5)),
-                const SizedBox(height: 10),
-                const _LinesHeader(),
-                for (var i = 0; i < _lines.length; i++)
-                  _LineEditor(
-                    key: ValueKey('line-$i-${_lines[i].ac}'),
-                    line: _lines[i],
-                    showPicker: _pickerIndex == i,
-                    onPick: () => setState(() => _pickerIndex = i),
-                    onDr: (v) => setState(() {
-                      _lines[i].dr = v;
-                      _lines[i].cr = '';
-                    }),
-                    onCr: (v) => setState(() {
-                      _lines[i].cr = v;
-                      _lines[i].dr = '';
-                    }),
-                    onDelete: _lines.length > 2
-                        ? () => setState(() {
-                            if (_pickerIndex == i) _pickerIndex = null;
-                            _lines.removeAt(i);
-                          })
-                        : null,
-                    onAccountPicked: (code) => setState(() {
-                      _lines[i].ac = code;
-                      _pickerIndex = null;
-                    }),
-                    onPickerClose: () => setState(() => _pickerIndex = null),
-                  ),
-                _AddLineButton(onTap: () => setState(() => _lines.add(ComposerLine()))),
-                const SizedBox(height: 18),
-                Row(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 1),
-                      child: Icon(Icons.info_outline, size: 15, color: AccountingTokens.accent),
+                    Text('Quick start', style: _fieldLabel),
+                    const SizedBox(height: 7),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final t in _templates)
+                          AccountingButton(
+                            label: t.name,
+                            icon: t.icon,
+                            small: true,
+                            onPressed: () => _applyTemplate(t),
+                          ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text.rich(
-                        TextSpan(
-                          style: AccountingTokens.sans(fontSize: 12.5, color: AccountingTokens.ink3, height: 1.4),
-                          children: [
-                            const TextSpan(text: 'Every entry has two sides. Money '),
-                            TextSpan(
-                              text: 'into',
-                              style: AccountingTokens.sans(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: AccountingTokens.drInk,
-                              ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _LabeledField(
+                            label: 'Date',
+                            child: _ComposerInput(
+                              icon: Icons.calendar_today_outlined,
+                              readOnly: true,
+                              value: _dateLabel,
                             ),
-                            const TextSpan(text: ' an account is a debit; money '),
-                            TextSpan(
-                              text: 'out',
-                              style: AccountingTokens.sans(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: AccountingTokens.crInk,
-                              ),
-                            ),
-                            const TextSpan(text: ' is a credit. They must add up to the same total.'),
-                          ],
+                          ),
                         ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: _LabeledField(
+                            label: 'Reference',
+                            child: _ComposerInput(
+                              icon: Icons.tag,
+                              controller: _refCtrl,
+                              hint: 'Auto · JE-1048',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _LabeledField(
+                      label: 'Memo / description',
+                      child: _ComposerInput(
+                        icon: Icons.receipt_long_outlined,
+                        controller: _memoCtrl,
+                        hint: 'What is this entry for?',
                       ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text('Lines', style: _fieldLabel.copyWith(fontSize: 12.5)),
+                    const SizedBox(height: 10),
+                    const _LinesHeader(),
+                    for (var i = 0; i < _lines.length; i++)
+                      _LineEditor(
+                        key: ValueKey('line-$i-${_lines[i].ac}'),
+                        line: _lines[i],
+                        pickerLink: _pickerIndex == i ? _pickerLink : null,
+                        onPick: () => setState(() => _pickerIndex = i),
+                        onDr: (v) => setState(() {
+                          _lines[i].dr = v;
+                          _lines[i].cr = '';
+                        }),
+                        onCr: (v) => setState(() {
+                          _lines[i].cr = v;
+                          _lines[i].dr = '';
+                        }),
+                        onDelete: _lines.length > 2
+                            ? () => setState(() {
+                                if (_pickerIndex == i) _pickerIndex = null;
+                                _lines.removeAt(i);
+                              })
+                            : null,
+                      ),
+                    _AddLineButton(onTap: () => setState(() => _lines.add(ComposerLine()))),
+                    const SizedBox(height: 18),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 1),
+                          child: Icon(Icons.info_outline, size: 15, color: AccountingTokens.accent),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              style: AccountingTokens.sans(fontSize: 12.5, color: AccountingTokens.ink3, height: 1.4),
+                              children: [
+                                const TextSpan(text: 'Every entry has two sides. Money '),
+                                TextSpan(
+                                  text: 'into',
+                                  style: AccountingTokens.sans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AccountingTokens.drInk,
+                                  ),
+                                ),
+                                const TextSpan(text: ' an account is a debit; money '),
+                                TextSpan(
+                                  text: 'out',
+                                  style: AccountingTokens.sans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AccountingTokens.crInk,
+                                  ),
+                                ),
+                                const TextSpan(text: ' is a credit. They must add up to the same total.'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+              ),
+              if (_pickerIndex != null) ...[
+                Positioned.fill(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _pickerIndex = null),
+                    behavior: HitTestBehavior.opaque,
+                    child: const ColoredBox(color: Color(0x080B1220)),
+                  ),
+                ),
+                CompositedTransformFollower(
+                  link: _pickerLink,
+                  showWhenUnlinked: false,
+                  offset: const Offset(0, 54),
+                  child: _AccountPickerPopover(
+                    onPick: (code) => setState(() {
+                      _lines[_pickerIndex!].ac = code;
+                      _pickerIndex = null;
+                    }),
+                    onClose: () => setState(() => _pickerIndex = null),
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
         ),
         _ComposerFooter(
@@ -455,22 +470,18 @@ class _LineEditor extends StatelessWidget {
   const _LineEditor({
     super.key,
     required this.line,
-    required this.showPicker,
     required this.onPick,
     required this.onDr,
     required this.onCr,
-    required this.onAccountPicked,
-    required this.onPickerClose,
+    this.pickerLink,
     this.onDelete,
   });
 
   final ComposerLine line;
-  final bool showPicker;
   final VoidCallback onPick;
   final ValueChanged<String> onDr;
   final ValueChanged<String> onCr;
-  final ValueChanged<String> onAccountPicked;
-  final VoidCallback onPickerClose;
+  final LayerLink? pickerLink;
   final VoidCallback? onDelete;
 
   @override
@@ -478,84 +489,76 @@ class _LineEditor extends StatelessWidget {
     final filled = line.ac.isNotEmpty;
     final account = filled ? demoAccountMap[line.ac] : null;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    Widget accountField = Material(
+      color: filled ? AccountingTokens.accentTint : AccountingTokens.surface,
+      borderRadius: BorderRadius.circular(11),
+      child: InkWell(
+        onTap: onPick,
+        borderRadius: BorderRadius.circular(11),
+        child: Container(
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(11),
+            border: Border.all(
+              color: filled ? AccountingTokens.accentTint2 : AccountingTokens.line,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
             children: [
-              Expanded(
-                child: Material(
-                  color: filled ? AccountingTokens.accentTint : AccountingTokens.surface,
-                  borderRadius: BorderRadius.circular(11),
-                  child: InkWell(
-                    onTap: onPick,
-                    borderRadius: BorderRadius.circular(11),
-                    child: Container(
-                      height: 50,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(11),
-                        border: Border.all(
-                          color: filled ? AccountingTokens.accentTint2 : AccountingTokens.line,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          if (account != null) ...[
-                            Text(
-                              account.code,
-                              style: AccountingTokens.mono(fontSize: 12, fontWeight: FontWeight.w700, color: AccountingTokens.accent),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                account.name,
-                                style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ] else
-                            Expanded(
-                              child: Text(
-                                'Select account…',
-                                style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w500, color: AccountingTokens.ink4),
-                              ),
-                            ),
-                          const Icon(Icons.keyboard_arrow_down, size: 16, color: AccountingTokens.ink4),
-                        ],
-                      ),
-                    ),
+              if (account != null) ...[
+                Text(
+                  account.code,
+                  style: AccountingTokens.mono(fontSize: 12, fontWeight: FontWeight.w700, color: AccountingTokens.accent),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    account.name,
+                    style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 150,
-                child: _AmountField(value: line.dr, isDebit: true, onChanged: onDr),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 150,
-                child: _AmountField(value: line.cr, isDebit: false, onChanged: onCr),
-              ),
-              const SizedBox(width: 10),
-              _LineDeleteButton(onPressed: onDelete),
+              ] else
+                Expanded(
+                  child: Text(
+                    'Select account…',
+                    style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w500, color: AccountingTokens.ink4),
+                  ),
+                ),
+              const Icon(Icons.keyboard_arrow_down, size: 16, color: AccountingTokens.ink4),
             ],
           ),
-          if (showPicker)
-            Positioned(
-              top: 54,
-              left: 0,
-              right: 46,
-              child: _AccountPickerPopover(
-                onPick: onAccountPicked,
-                onClose: onPickerClose,
-              ),
-            ),
+        ),
+      ),
+    );
+
+    if (pickerLink != null) {
+      accountField = CompositedTransformTarget(
+        link: pickerLink!,
+        child: accountField,
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(child: accountField),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 150,
+            child: _AmountField(value: line.dr, isDebit: true, onChanged: onDr),
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 150,
+            child: _AmountField(value: line.cr, isDebit: false, onChanged: onCr),
+          ),
+          const SizedBox(width: 10),
+          _LineDeleteButton(onPressed: onDelete),
         ],
       ),
     );
@@ -896,19 +899,15 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      elevation: 8,
-      shadowColor: const Color(0x260B1220),
+      color: AccountingTokens.surface,
+      elevation: 12,
+      shadowColor: const Color(0x400B1220),
       borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
-      child: Container(
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
         width: 360,
-        constraints: const BoxConstraints(maxHeight: 360),
-        decoration: BoxDecoration(
-          color: AccountingTokens.surface,
-          borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
-          border: Border.all(color: AccountingTokens.lineStrong),
-        ),
+        height: 360,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
               padding: const EdgeInsets.all(6),
@@ -943,66 +942,70 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
                 ),
               ),
             ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
-                children: [
-                  for (final (type, label) in _groups) ...[
-                    Builder(
-                      builder: (context) {
-                        final rows = demoAccounts.where((a) => a.type == type && _matches(a)).toList();
-                        if (rows.isEmpty) return const SizedBox.shrink();
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                              child: Text(
-                                label.toUpperCase(),
-                                style: AccountingTokens.sans(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.06 * 10.5,
-                                  color: AccountingTokens.ink4,
-                                ),
-                              ),
-                            ),
-                            for (final a in rows)
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => widget.onPick(a.code),
-                                  borderRadius: BorderRadius.circular(9),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          width: 38,
-                                          child: Text(
-                                            a.code,
-                                            style: AccountingTokens.mono(fontSize: 12, fontWeight: FontWeight.w700, color: AccountingTokens.accent),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            a.name,
-                                            style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600),
-                                          ),
-                                        ),
-                                        Text(money(a.bal), style: AccountingTokens.mono(fontSize: 12, color: AccountingTokens.ink3)),
-                                      ],
-                                    ),
+            const Divider(height: 1, color: AccountingTokens.line),
+            Expanded(
+              child: ColoredBox(
+                color: AccountingTokens.surface,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+                  children: [
+                    for (final (type, label) in _groups) ...[
+                      Builder(
+                        builder: (context) {
+                          final rows = demoAccounts.where((a) => a.type == type && _matches(a)).toList();
+                          if (rows.isEmpty) return const SizedBox.shrink();
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                                child: Text(
+                                  label.toUpperCase(),
+                                  style: AccountingTokens.sans(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.06 * 10.5,
+                                    color: AccountingTokens.ink4,
                                   ),
                                 ),
                               ),
-                          ],
-                        );
-                      },
-                    ),
+                              for (final a in rows)
+                                Material(
+                                  color: AccountingTokens.surface,
+                                  child: InkWell(
+                                    onTap: () => widget.onPick(a.code),
+                                    borderRadius: BorderRadius.circular(9),
+                                    hoverColor: AccountingTokens.accentTint,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 38,
+                                            child: Text(
+                                              a.code,
+                                              style: AccountingTokens.mono(fontSize: 12, fontWeight: FontWeight.w700, color: AccountingTokens.accent),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              a.name,
+                                              style: AccountingTokens.sans(fontSize: 13.5, fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                          Text(money(a.bal), style: AccountingTokens.mono(fontSize: 12, color: AccountingTokens.ink3)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],

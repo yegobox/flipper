@@ -1,5 +1,5 @@
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_demo_data.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
@@ -41,9 +41,12 @@ final approvalActionsProvider =
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
 
-/// Active branch ID. Override in tests via ProviderContainer.override.
+/// Active branch ID — sourced from the branch the user selected at login.
+/// [Branch.serverId] is the integer PK that maps to `branch_id bigint` in Supabase.
+/// Override in tests via ProviderContainer.overrideWithValue.
 final accountingBranchIdProvider = Provider<String>((ref) {
-  return ProxyService.box.getBranchId() ?? '';
+  final branch = ref.watch(selectedBranchProvider);
+  return branch?.serverId.toString() ?? '';
 });
 
 /// Active date range (start, end). Defaults to current calendar month.
