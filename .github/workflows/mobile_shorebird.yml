@@ -78,10 +78,14 @@ jobs:
         run: |
           set -euo pipefail
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          SHOREBIRD_DIR="${XDG_CONFIG_HOME:-$HOME/.shorebird}"
+          if [ -z "${XDG_CONFIG_HOME-}" ]; then
+            SHOREBIRD_DIR="$HOME/.shorebird"
+          else
+            SHOREBIRD_DIR="$XDG_CONFIG_HOME/shorebird"
+          fi
           echo "$SHOREBIRD_DIR/bin" >> "$GITHUB_PATH"
           echo "SHOREBIRD_BIN=$SHOREBIRD_DIR/bin/shorebird" >> "$GITHUB_ENV"
-          test -x "$SHOREBIRD_DIR/bin/shorebird"
+          "$SHOREBIRD_DIR/bin/shorebird" --version
 
       - name: Install Melos
         run: |
