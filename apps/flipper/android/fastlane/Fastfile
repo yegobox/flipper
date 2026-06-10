@@ -1,5 +1,11 @@
 default_platform(:android)
 
+# Gradle redirects build output to apps/flipper/build (see android/build.gradle.kts).
+def release_aab_path
+  android_dir = File.expand_path('..', __dir__)
+  File.expand_path('../build/app/outputs/bundle/release/app-release.aab', android_dir)
+end
+
 def shorebird_cmd
   env_bin = ENV['SHOREBIRD_BIN']
   return env_bin if env_bin && !env_bin.empty? && File.executable?(env_bin)
@@ -24,7 +30,7 @@ end
 def build_release_bundle
   # CI builds the Shorebird AAB in a dedicated workflow step (SHOREBIRD_PREBUILT).
   if ENV['SHOREBIRD_PREBUILT'] == 'true'
-    aab = File.expand_path('../build/app/outputs/bundle/release/app-release.aab', __dir__)
+    aab = release_aab_path
     UI.user_error!("Shorebird AAB missing at #{aab}") unless File.exist?(aab)
     return
   end
@@ -53,7 +59,7 @@ platform :android do
     upload_to_play_store(
       package_name: 'rw.flipper',
       track: 'internal',
-      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      aab: release_aab_path,
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       skip_upload_metadata: false,
       skip_upload_images: true,
@@ -81,7 +87,7 @@ platform :android do
     upload_to_play_store(
       track: 'beta',
       package_name: 'rw.flipper',
-      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      aab: release_aab_path,
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       skip_upload_metadata: false,
       skip_upload_images: true,
@@ -96,7 +102,7 @@ platform :android do
     upload_to_play_store(
       track: 'production',
       package_name: 'rw.flipper',
-      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      aab: release_aab_path,
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       skip_upload_metadata: false,
       skip_upload_images: true,
