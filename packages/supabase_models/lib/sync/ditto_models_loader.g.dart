@@ -19,6 +19,7 @@ import 'package:supabase_models/brick/models/message.model.dart' as message_mode
 import 'package:supabase_models/brick/models/stock.model.dart' as stock_model;
 import 'package:supabase_models/brick/models/stock_recount.model.dart' as stock_recount_model;
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as stock_recount_item_model;
+import 'package:supabase_models/brick/models/supplier.model.dart' as supplier_model;
 import 'package:supabase_models/brick/models/transaction.model.dart' as transaction_model;
 import 'package:supabase_models/brick/models/transactionItem.model.dart' as transactionItem_model;
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart' as transaction_delegation_model;
@@ -46,6 +47,7 @@ void ensureDittoAdaptersLoaded() {
   stock_model.StockDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_model.StockRecountDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_item_model.StockRecountItemDittoAdapter.registryToken; // ignore: unnecessary_statements
+  supplier_model.SupplierDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_model.ITransactionDittoAdapter.registryToken; // ignore: unnecessary_statements
   transactionItem_model.TransactionItemDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_delegation_model.TransactionDelegationDittoAdapter.registryToken; // ignore: unnecessary_statements

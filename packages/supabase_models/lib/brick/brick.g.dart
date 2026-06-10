@@ -105,6 +105,7 @@ import '../brick/models/sku.model.dart';
 import '../brick/models/stock.model.dart';
 import '../brick/models/stock_recount.model.dart';
 import '../brick/models/stock_recount_item.model.dart';
+import '../brick/models/supplier.model.dart';
 import '../brick/models/token.model.dart';
 import '../brick/models/transaction.model.dart';
 import '../brick/models/transactionItem.model.dart';
@@ -167,6 +168,7 @@ part 'adapters/s_k_u_adapter.g.dart';
 part 'adapters/stock_adapter.g.dart';
 part 'adapters/stock_recount_adapter.g.dart';
 part 'adapters/stock_recount_item_adapter.g.dart';
+part 'adapters/supplier_adapter.g.dart';
 part 'adapters/token_adapter.g.dart';
 part 'adapters/i_transaction_adapter.g.dart';
 part 'adapters/transaction_item_adapter.g.dart';
@@ -231,6 +233,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Stock: StockAdapter(),
   StockRecount: StockRecountAdapter(),
   StockRecountItem: StockRecountItemAdapter(),
+  Supplier: SupplierAdapter(),
   Token: TokenAdapter(),
   ITransaction: ITransactionAdapter(),
   TransactionItem: TransactionItemAdapter(),
@@ -297,6 +300,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Stock: StockAdapter(),
   StockRecount: StockRecountAdapter(),
   StockRecountItem: StockRecountItemAdapter(),
+  Supplier: SupplierAdapter(),
   Token: TokenAdapter(),
   ITransaction: ITransactionAdapter(),
   TransactionItem: TransactionItemAdapter(),

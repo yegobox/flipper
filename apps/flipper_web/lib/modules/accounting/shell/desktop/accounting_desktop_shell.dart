@@ -21,8 +21,14 @@ class AccountingDesktopShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AccountingView view = ref.watch(accountingViewProvider);
     final composerOpen = ref.watch(composerOpenProvider);
-    final openComposer = () => ref.read(composerOpenProvider.notifier).state = true;
-    final closeComposer = () => ref.read(composerOpenProvider.notifier).state = false;
+
+    void openComposer() {
+      ref.read(composerOpenProvider.notifier).state = true;
+    }
+
+    void closeComposer() {
+      ref.read(composerOpenProvider.notifier).state = false;
+    }
 
     return Scaffold(
       backgroundColor: AccountingTokens.workspaceBg,
@@ -69,8 +75,7 @@ class AccountingDesktopShell extends ConsumerWidget {
               ),
             ],
           ),
-          if (composerOpen)
-            JournalComposer(onClose: closeComposer),
+          if (composerOpen) JournalComposer(onClose: closeComposer),
         ],
       ),
     );
@@ -86,16 +91,26 @@ class _DesktopViewRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (view) {
-      AccountingView.dashboard => AccountingDashboardView(onNewEntry: onNewEntry),
+      AccountingView.dashboard => AccountingDashboardView(
+        onNewEntry: onNewEntry,
+      ),
       AccountingView.invoices => const AccountingInvoicesView(),
       AccountingView.customers => const AccountingCustomersView(),
-      AccountingView.ar => AccountingAgingView(kind: 'ar', onNewEntry: onNewEntry),
+      AccountingView.ar => AccountingAgingView(
+        kind: 'ar',
+        onNewEntry: onNewEntry,
+      ),
       AccountingView.bills => const AccountingBillsView(),
       AccountingView.suppliers => const AccountingSuppliersView(),
-      AccountingView.ap => AccountingAgingView(kind: 'ap', onNewEntry: onNewEntry),
+      AccountingView.ap => AccountingAgingView(
+        kind: 'ap',
+        onNewEntry: onNewEntry,
+      ),
       AccountingView.journal => AccountingJournalView(onNewEntry: onNewEntry),
       AccountingView.ledger => const AccountingGeneralLedgerView(),
-      AccountingView.recurring => AccountingRecurringView(onNewEntry: onNewEntry),
+      AccountingView.recurring => AccountingRecurringView(
+        onNewEntry: onNewEntry,
+      ),
       AccountingView.bankRec => const AccountingBankRecView(),
       AccountingView.statements => const AccountingFinancialStatementsView(),
       AccountingView.trial => const AccountingTrialBalanceView(),

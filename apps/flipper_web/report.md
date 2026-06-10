@@ -200,3 +200,11 @@ The two high-severity correctness gaps and the ledger-test coverage gap have bee
 - **Aging due-date basis (4.6):** POS transactions carry no due-date field, only `created_at`. A proper aging fix needs either a due-date/payment-terms field on POS sales or an agreed convention. (Document/invoice aging in the v3 layer already uses a due date.)
 - **UI-only actions (4.7):** PDF/print export, RRA VAT filing integration, add-account form, team invitations, recurring "Run now", send statement/reminders, mobile navigation. Each is independent feature work; triage by launch priority.
 - **Period-end mechanisms (4.8):** depreciation posting and formal closing entries need business rules (depreciation method, asset lives, whether to lock periods with closing journals).
+
+
+
+# Something to note
+Aging due-date basis: POS sales have no due-date field, only created_at — needs a due-date/payment-terms field or an agreed convention.
+
+UI-only actions: PDF export, RRA filing integration, add-account form, etc. — triage by launch priority.
+Depreciation & closing entries: need business rules (method, asset lives, period-locking).

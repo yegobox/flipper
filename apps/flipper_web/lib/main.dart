@@ -16,7 +16,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Run any critical IO-only initialization (sets HttpOverrides and trusted certs)
-  // This is awaited so subsequent initialization and network clients pick up the settings.
+  // This is awaited so subsequent
+  // initialization and network clients pick up the settings.
   await initializeCriticalDependencies();
 
   // Initialize Supabase

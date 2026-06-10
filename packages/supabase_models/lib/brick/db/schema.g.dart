@@ -1,20 +1,22 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260603185233.migration.dart';
+part '20260610091903.migration.dart';
 part '20260522081221.migration.dart';
 part '20260527030019.migration.dart';
+part '20260603185233.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260603185233(),
+  const Migration20260610091903(),
   const Migration20260522081221(),
   const Migration20260527030019(),
+  const Migration20260603185233(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260527030019,
+  20260603185233,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1411,6 +1413,38 @@ final schema = Schema(
         SchemaIndex(columns: ['recount_id'], unique: false),
         SchemaIndex(columns: ['variant_id'], unique: false),
         SchemaIndex(columns: ['stock_id'], unique: false),
+      },
+    ),
+    SchemaTable(
+      'Supplier',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('cust_nm', Column.varchar),
+        SchemaColumn('email', Column.varchar),
+        SchemaColumn('tel_no', Column.varchar),
+        SchemaColumn('adrs', Column.varchar),
+        SchemaColumn('branch_id', Column.varchar),
+        SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('cust_no', Column.varchar),
+        SchemaColumn('cust_tin', Column.varchar),
+        SchemaColumn('regr_nm', Column.varchar),
+        SchemaColumn('regr_id', Column.varchar),
+        SchemaColumn('modr_nm', Column.varchar),
+        SchemaColumn('modr_id', Column.varchar),
+        SchemaColumn('ebm_synced', Column.boolean),
+        SchemaColumn('bhf_id', Column.varchar),
+        SchemaColumn('use_yn', Column.varchar),
+        SchemaColumn('customer_type', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
       },
     ),
     SchemaTable(
