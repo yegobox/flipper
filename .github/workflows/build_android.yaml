@@ -122,9 +122,10 @@ jobs:
         run: |
           set -euo pipefail
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          echo "$HOME/.shorebird/bin" >> "$GITHUB_PATH"
-          echo "SHOREBIRD_BIN=$HOME/.shorebird/bin/shorebird" >> "$GITHUB_ENV"
-          test -x "$HOME/.shorebird/bin/shorebird"
+          SHOREBIRD_DIR="${XDG_CONFIG_HOME:-$HOME/.shorebird}"
+          echo "$SHOREBIRD_DIR/bin" >> "$GITHUB_PATH"
+          echo "SHOREBIRD_BIN=$SHOREBIRD_DIR/bin/shorebird" >> "$GITHUB_ENV"
+          test -x "$SHOREBIRD_DIR/bin/shorebird"
       - name: Verify Shorebird
         run: |
           command -v shorebird
@@ -136,7 +137,8 @@ jobs:
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
       - run: |
-          export PATH="$HOME/.shorebird/bin:$PATH"
+          SHOREBIRD_DIR="${XDG_CONFIG_HOME:-$HOME/.shorebird}"
+          export PATH="$SHOREBIRD_DIR/bin:$PATH"
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}

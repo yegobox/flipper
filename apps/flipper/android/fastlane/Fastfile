@@ -4,6 +4,12 @@ def shorebird_cmd
   env_bin = ENV['SHOREBIRD_BIN']
   return env_bin if env_bin && !env_bin.empty? && File.executable?(env_bin)
 
+  xdg = ENV['XDG_CONFIG_HOME']
+  if xdg && !xdg.empty?
+    xdg_bin = File.join(xdg, 'shorebird', 'bin', 'shorebird')
+    return xdg_bin if File.executable?(xdg_bin)
+  end
+
   home_bin = File.join(ENV['HOME'] || Dir.home, '.shorebird', 'bin', 'shorebird')
   return home_bin if File.executable?(home_bin)
 
