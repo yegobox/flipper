@@ -844,10 +844,7 @@ jobs:
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: |
-          if [ -z "${SHOREBIRD_TOKEN:-}" ]; then
-            echo "::error::SHOREBIRD_TOKEN is empty. Create an API key at https://console.shorebird.dev (Account → API Keys)."
-            exit 1
-          fi
+          bash scripts/ci/verify_shorebird_token.sh
           shorebird --version
           shorebird doctor -v
       - name: Calculate Version
