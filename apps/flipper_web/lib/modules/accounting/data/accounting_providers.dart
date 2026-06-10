@@ -23,6 +23,7 @@ import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_
 import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_ledger_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_repository.dart';
+import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
 import 'package:flipper_web/modules/accounting/data/transaction_journal_poster.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -64,6 +65,14 @@ final approvalActionsProvider =
 final bankRecLocalLinesProvider = StateProvider<List<BankLine>?>((ref) => null);
 
 final bankRecFinishedProvider = StateProvider<bool>((ref) => false);
+
+/// Metadata (bank name, closing balance, period) from the most recently
+/// imported statement — drives the statement-balance KPI card.
+final bankStatementMetaProvider = StateProvider<ParsedStatement?>((ref) => null);
+
+final bankStatementServiceProvider = Provider<BankStatementService>(
+  (ref) => BankStatementService(),
+);
 
 final coaTypeFilterProvider = StateProvider<AccountType?>((ref) => null);
 

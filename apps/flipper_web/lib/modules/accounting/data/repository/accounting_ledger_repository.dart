@@ -48,6 +48,7 @@ abstract class AccountingLedgerRepository {
     String bankAccountCode = '1020',
     String? id,
     String? matchedJournalEntryId,
+    String? matchedEntryNumber,
   });
 
   Future<Map<String, dynamic>?> fetchSettings({required String businessId});

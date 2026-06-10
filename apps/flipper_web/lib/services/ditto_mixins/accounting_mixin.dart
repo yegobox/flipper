@@ -123,6 +123,7 @@ mixin AccountingMixin on DittoCore {
     String? id,
     String bankAccountCode = '1020',
     String? matchedJournalEntryId,
+    String? matchedEntryNumber,
   }) async {
     if (dittoInstance == null) return handleNotInitialized('upsertBankStatementLine');
     final docId = id ?? '${businessId}_${line.date}_${line.amt}_${line.desc.hashCode}';
@@ -132,6 +133,7 @@ mixin AccountingMixin on DittoCore {
       bankAccountCode: bankAccountCode,
       id: docId,
       matchedJournalEntryId: matchedJournalEntryId,
+      matchedEntryNumber: matchedEntryNumber,
     );
     await executeUpsert('bank_statement_lines', docId, data);
   }

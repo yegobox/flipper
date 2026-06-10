@@ -99,6 +99,7 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
     String bankAccountCode = '1020',
     String? id,
     String? matchedJournalEntryId,
+    String? matchedEntryNumber,
   }) async {}
 
   @override

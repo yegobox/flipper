@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.532+1448
+version: 1.0.534+1450
 
 
 environment:
@@ -35,6 +35,8 @@ dependencies:
   flutter_svg: ^2.2.4
   path: ^1.9.1
   intl: ^0.20.2
+  file_picker: 10.3.7
+  uuid: ^4.5.1
   path_provider: ^2.1.5
   riverpod_annotation: ^3.0.3
   sqflite_common: ^2.5.4+6

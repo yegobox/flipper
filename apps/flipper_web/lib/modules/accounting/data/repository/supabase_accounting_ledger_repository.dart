@@ -225,6 +225,7 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
     String bankAccountCode = '1020',
     String? id,
     String? matchedJournalEntryId,
+    String? matchedEntryNumber,
   }) async {
     final row = _forPostgrest(LedgerRowMapper.bankLineToRow(
       businessId: businessId,
@@ -232,6 +233,7 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
       bankAccountCode: bankAccountCode,
       id: id,
       matchedJournalEntryId: matchedJournalEntryId,
+      matchedEntryNumber: matchedEntryNumber,
     ));
 
     if (id != null) {

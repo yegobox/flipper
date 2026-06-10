@@ -1,6 +1,6 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_bank_seed.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -15,6 +15,7 @@ import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 class AccountingGeneralLedgerView extends ConsumerWidget {
   const AccountingGeneralLedgerView({super.key});
@@ -167,47 +168,216 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
   }
 }
 
-void _importBankStatement(BuildContext context, WidgetRef ref) {
-  final streamLines = ref.read(bankLinesStreamProvider).value ?? [];
-  final local = ref.read(bankRecLocalLinesProvider);
-  final current = local ?? streamLines;
-  if (current.isEmpty) {
-    ref.read(bankRecLocalLinesProvider.notifier).state =
-        List<BankLine>.from(accountingBankSeedLines);
-    ref.read(bankRecFinishedProvider.notifier).state = false;
-    showAccountingToast(
-      context,
-      'Statement imported',
-      subtitle: 'Bank of Kigali · ${accountingBankSeedLines.length} lines loaded',
-      icon: Icons.sync,
+/// Stable id per statement line so re-imports and match updates upsert the
+/// same row on both backends (valid UUID for Postgres, plain doc id for Ditto).
+String _bankLineId(String businessId, BankLine line) => const Uuid().v5(
+      Namespace.url.value,
+      'flipper:bank-line:$businessId:${line.date}:${line.amt}:${line.desc}',
     );
-  } else {
+
+String _bankLineDateLabel(String? isoDate) {
+  final dt = isoDate == null ? null : DateTime.tryParse(isoDate);
+  if (dt == null) return isoDate ?? '';
+  const months = [
+    '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+  return '${months[dt.month]} ${dt.day}';
+}
+
+Future<void> _importBankStatement(BuildContext context, WidgetRef ref) async {
+  final picked = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['pdf'],
+    withData: true,
+  );
+  final file = picked?.files.single;
+  final bytes = file?.bytes;
+  if (file == null || bytes == null) return;
+
+  if (!context.mounted) return;
+  showAccountingToast(
+    context,
+    'Reading statement…',
+    subtitle: file.name,
+    icon: Icons.sync,
+  );
+
+  try {
+    final statement =
+        await ref.read(bankStatementServiceProvider).parse(bytes);
+    final businessId = ref.read(accountingBusinessIdProvider);
+    final repo = ref.read(accountingLedgerRepositoryProvider);
+
+    final lines = <BankLine>[];
+    for (final parsed in statement.lines) {
+      final line = BankLine(
+        date: _bankLineDateLabel(parsed.date),
+        desc: parsed.description ?? '',
+        amt: parsed.amount.round(),
+        matched: false,
+      );
+      lines.add(line);
+      if (businessId.isNotEmpty) {
+        await repo.upsertBankLine(
+          businessId: businessId,
+          line: line,
+          id: _bankLineId(businessId, line),
+        );
+      }
+    }
+
+    ref.read(bankRecLocalLinesProvider.notifier).state = lines;
+    ref.read(bankStatementMetaProvider.notifier).state = statement;
+    ref.read(bankRecFinishedProvider.notifier).state = false;
+
+    if (!context.mounted) return;
     showAccountingToast(
       context,
       'Statement imported',
-      subtitle: 'Bank of Kigali · no new lines found',
+      subtitle:
+          '${statement.bankName ?? file.name} · ${lines.length} lines loaded',
       icon: Icons.sync,
+      tone: AccountingToastTone.success,
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+    showAccountingToast(
+      context,
+      'Import failed',
+      subtitle: '$e',
+      icon: Icons.error_outline,
+      tone: AccountingToastTone.warn,
     );
   }
 }
 
-void _matchBankLine(BuildContext context, WidgetRef ref, int index, BankLine line) {
-  final lines = List<BankLine>.from(ref.read(accountingBankLinesProvider));
-  lines[index] = BankLine(
+/// Net movement an entry posts to the bank account: debits increase the
+/// bank balance (money in), credits decrease it.
+int _bankMovement(JournalEntry entry, String bankAccountCode) => entry.lines
+    .where((l) => l.ac == bankAccountCode)
+    .fold<int>(0, (s, l) => s + l.dr - l.cr);
+
+Future<void> _matchBankLine(
+  BuildContext context,
+  WidgetRef ref,
+  int index,
+  BankLine line,
+) async {
+  const bankAccountCode = '1020';
+  final journal = ref.read(accountingJournalProvider);
+  final candidates = journal
+      .where((e) => _bankMovement(e, bankAccountCode) == line.amt)
+      .toList()
+    // Entries dated like the bank line first.
+    ..sort((a, b) =>
+        (a.date == line.date ? 0 : 1).compareTo(b.date == line.date ? 0 : 1));
+
+  if (candidates.isEmpty) {
+    showAccountingToast(
+      context,
+      'No matching journal entry',
+      subtitle:
+          'No entry moves ${money(line.amt.abs())} on the bank account ($bankAccountCode)',
+      icon: Icons.search_off,
+      tone: AccountingToastTone.warn,
+    );
+    return;
+  }
+
+  final entry = candidates.length == 1
+      ? candidates.first
+      : await _pickJournalEntry(context, candidates, line);
+  if (entry == null) return;
+
+  final matched = BankLine(
     date: line.date,
     desc: line.desc,
     amt: line.amt,
     matched: true,
-    je: 'JE-${1048 + index}',
+    je: entry.id,
   );
+
+  final lines = List<BankLine>.from(ref.read(accountingBankLinesProvider));
+  if (index < lines.length) lines[index] = matched;
   ref.read(bankRecLocalLinesProvider.notifier).state = lines;
   ref.read(bankRecFinishedProvider.notifier).state = false;
+
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isNotEmpty) {
+    await ref.read(accountingLedgerRepositoryProvider).upsertBankLine(
+          businessId: businessId,
+          line: matched,
+          id: _bankLineId(businessId, line),
+          matchedJournalEntryId: entry.uuid ?? entry.id,
+          matchedEntryNumber: entry.id,
+        );
+  }
+
+  if (!context.mounted) return;
   showAccountingToast(
     context,
     'Bank line matched',
-    subtitle: line.desc,
+    subtitle: '${line.desc} → ${entry.id}',
     icon: Icons.check,
     tone: AccountingToastTone.success,
+  );
+}
+
+Future<JournalEntry?> _pickJournalEntry(
+  BuildContext context,
+  List<JournalEntry> candidates,
+  BankLine line,
+) {
+  return showDialog<JournalEntry>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Match bank line'),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${line.date} · ${line.desc}',
+              style: AccountingTokens.sans(
+                fontSize: 13,
+                color: AccountingTokens.ink3,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final e in candidates)
+                    ListTile(
+                      dense: true,
+                      title: Text(
+                        '${e.id} · ${e.date}',
+                        style: AccountingTokens.mono(fontSize: 13),
+                      ),
+                      subtitle: Text(
+                        e.memo,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () => Navigator.of(context).pop(e),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
+    ),
   );
 }
 
@@ -221,9 +391,13 @@ class AccountingBankRecView extends ConsumerWidget {
     final currency = ref.watch(accountingCurrencyProvider);
     final period = ref.watch(accountingPeriodLabelProvider);
     final finished = ref.watch(bankRecFinishedProvider);
+    final meta = ref.watch(bankStatementMetaProvider);
     final bankBal = accounts
         .where((a) => a.code == '1020')
         .fold<int>(0, (s, a) => s + a.bal);
+    // Prefer the imported statement's closing balance; fall back to the GL.
+    final statementBalance = meta?.closingBalance?.round() ?? bankBal;
+    final bankName = meta?.bankName ?? 'Bank of Kigali';
     final matched = lines.where((l) => l.matched).length;
     final unmatched = lines.length - matched;
     final diff = lines.where((l) => !l.matched).fold<int>(0, (s, l) => s + l.amt);
@@ -237,7 +411,7 @@ class AccountingBankRecView extends ConsumerWidget {
           AccountingPageHeader(
             eyebrow: 'Daybook',
             title: 'Bank reconciliation',
-            subtitle: 'Bank · Bank of Kigali · statement $period · $currency',
+            subtitle: 'Bank · $bankName · statement $period · $currency',
             actions: [
               AccountingButton(
                 label: 'Import statement',
@@ -272,9 +446,10 @@ class AccountingBankRecView extends ConsumerWidget {
             children: [
               AccountingKpiCard(
                 label: 'Statement balance',
-                value: bankBal,
+                value: statementBalance,
                 icon: AccIcon.wallet,
                 tone: KpiTone.blue,
+                footnote: meta != null ? 'from imported statement' : null,
               ),
               AccountingKpiCard(
                 label: 'Matched',

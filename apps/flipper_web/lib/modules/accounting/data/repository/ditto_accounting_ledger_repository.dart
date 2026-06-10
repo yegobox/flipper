@@ -176,6 +176,7 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     String bankAccountCode = '1020',
     String? id,
     String? matchedJournalEntryId,
+    String? matchedEntryNumber,
   }) async {
     await _ditto.upsertBankStatementLine(
       businessId,
@@ -183,6 +184,7 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       id: id,
       bankAccountCode: bankAccountCode,
       matchedJournalEntryId: matchedJournalEntryId,
+      matchedEntryNumber: matchedEntryNumber,
     );
   }
 
