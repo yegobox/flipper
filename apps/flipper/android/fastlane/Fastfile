@@ -23,7 +23,18 @@ end
 
 def build_release_bundle
   if ENV['USE_SHOREBIRD'] == 'true'
-    sh "cd .. && #{shorebird_cmd} release android -- --no-android-gradle-daemon"
+    if ENV['SHOREBIRD_TOKEN'].to_s.strip.empty?
+      UI.user_error!(
+        'SHOREBIRD_TOKEN is not set. Create an API key at https://console.shorebird.dev ' \
+        '(Account → API Keys) and add it to GitHub Actions secrets.'
+      )
+    end
+
+    flutter_flag = ''
+    flutter_version = ENV['FLUTTER_VERSION'].to_s.strip
+    flutter_flag = " --flutter-version=#{flutter_version}" unless flutter_version.empty?
+
+    sh "cd .. && #{shorebird_cmd} release android -v#{flutter_flag} -- --no-android-gradle-daemon"
   else
     sh "cd .. && flutter build appbundle -- --no-android-gradle-daemon"
   end

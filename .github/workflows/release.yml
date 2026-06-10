@@ -834,46 +834,48 @@ jobs:
             exit 1
           fi
         working-directory: apps/${{ matrix.app }}/android
-      - name: Install Shorebird
+      - name: Setup Shorebird
         if: matrix.app == 'flipper'
-        shell: bash
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Verify Shorebird auth
+        if: matrix.app == 'flipper'
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: |
-          set -euo pipefail
-          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          if [ -z "${XDG_CONFIG_HOME-}" ]; then
-            SHOREBIRD_DIR="$HOME/.shorebird"
-          else
-            SHOREBIRD_DIR="$XDG_CONFIG_HOME/shorebird"
+          if [ -z "${SHOREBIRD_TOKEN:-}" ]; then
+            echo "::error::SHOREBIRD_TOKEN is empty. Create an API key at https://console.shorebird.dev (Account → API Keys)."
+            exit 1
           fi
-          echo "$SHOREBIRD_DIR/bin" >> "$GITHUB_PATH"
-          echo "SHOREBIRD_BIN=$SHOREBIRD_DIR/bin/shorebird" >> "$GITHUB_ENV"
-          "$SHOREBIRD_DIR/bin/shorebird" --version
-      - name: Verify Shorebird
-        if: matrix.app == 'flipper'
-        run: |
-          command -v shorebird
           shorebird --version
+          shorebird doctor -v
       - name: Calculate Version
         run: |
           VERSION_CODE=$(( ${{ github.run_number }} + 1800000000 ))
           VERSION_NAME="1.180.${{ github.run_number }}"
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
-      - run: |
-          if [ -z "${XDG_CONFIG_HOME-}" ]; then
-            SHOREBIRD_DIR="$HOME/.shorebird"
-          else
-            SHOREBIRD_DIR="$XDG_CONFIG_HOME/shorebird"
-          fi
-          export PATH="$SHOREBIRD_DIR/bin:$PATH"
-          bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
+      - run: bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          FLUTTER_VERSION: ${{ env.FLUTTER_VERSION }}
+          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
           USE_SHOREBIRD: ${{ matrix.app == 'flipper' && 'true' || 'false' }}
         working-directory: apps/${{ matrix.app }}/android
+      - name: Upload Shorebird logs on failure
+        if: failure() && matrix.app == 'flipper'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shorebird-logs-${{ matrix.app }}-${{ github.run_id }}
+          path: |
+            ~/.config/shorebird/logs/
+            ~/.shorebird/logs/
+          if-no-files-found: ignore
       
       # ===== POST-BUILD 16 KB VERIFICATION - START =====
       # - name: Verify AAB/APK 16 KB Compliance

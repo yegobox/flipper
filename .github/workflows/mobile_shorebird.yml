@@ -73,19 +73,20 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
 
-      - name: Install Shorebird
-        shell: bash
+      - name: Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Verify Shorebird auth
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: |
-          set -euo pipefail
-          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          if [ -z "${XDG_CONFIG_HOME-}" ]; then
-            SHOREBIRD_DIR="$HOME/.shorebird"
-          else
-            SHOREBIRD_DIR="$XDG_CONFIG_HOME/shorebird"
+          if [ -z "${SHOREBIRD_TOKEN:-}" ]; then
+            echo "::error::SHOREBIRD_TOKEN is empty. Create an API key at https://console.shorebird.dev (Account → API Keys)."
+            exit 1
           fi
-          echo "$SHOREBIRD_DIR/bin" >> "$GITHUB_PATH"
-          echo "SHOREBIRD_BIN=$SHOREBIRD_DIR/bin/shorebird" >> "$GITHUB_ENV"
-          "$SHOREBIRD_DIR/bin/shorebird" --version
+          shorebird --version
+          shorebird doctor -v
 
       - name: Install Melos
         run: |
