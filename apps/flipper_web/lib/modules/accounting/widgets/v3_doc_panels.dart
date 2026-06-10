@@ -189,6 +189,8 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                     ),
                   ),
                   const SizedBox(height: 10),
+                  const _LineHeader(),
+                  const SizedBox(height: 6),
                   for (var i = 0; i < _lines.length; i++) ...[
                     _LineRow(
                       line: _lines[i],
@@ -902,6 +904,45 @@ InputDecoration _inputDecoration({IconData? icon, String? hint, String? prefix})
   );
 }
 
+class _LineHeader extends StatelessWidget {
+  const _LineHeader();
+
+  // Mirrors the 12px horizontal content padding of the fields below, so each
+  // header label lines up with its field's text.
+  static Widget _label(String text, {TextAlign align = TextAlign.left}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Text(
+        text,
+        textAlign: align,
+        style: AccountingTokens.sans(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AccountingTokens.ink3,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Column widths mirror _LineRow so headers line up with each field.
+    return Row(
+      children: [
+        Expanded(flex: 3, child: _label('Item or service')),
+        const SizedBox(width: 8),
+        SizedBox(width: 64, child: _label('Qty', align: TextAlign.center)),
+        const SizedBox(width: 8),
+        SizedBox(width: 110, child: _label('Unit price')),
+        const SizedBox(width: 8),
+        SizedBox(width: 90, child: _label('Amount', align: TextAlign.right)),
+        // Reserve space for the per-row delete icon.
+        const SizedBox(width: 48),
+      ],
+    );
+  }
+}
+
 class _LineRow extends StatelessWidget {
   const _LineRow({
     required this.line,
@@ -934,7 +975,8 @@ class _LineRow extends StatelessWidget {
           child: TextFormField(
             initialValue: '${line.qty}',
             keyboardType: TextInputType.number,
-            decoration: _inputDecoration(),
+            textAlign: TextAlign.center,
+            decoration: _inputDecoration(hint: 'Qty'),
             onChanged: (v) => onChanged(
               line.copyWith(qty: num.tryParse(v) ?? line.qty),
             ),
@@ -946,7 +988,7 @@ class _LineRow extends StatelessWidget {
           child: TextFormField(
             initialValue: line.price > 0 ? money(line.price.round()) : '',
             keyboardType: TextInputType.number,
-            decoration: _inputDecoration(),
+            decoration: _inputDecoration(hint: 'Unit price'),
             onChanged: (v) {
               final n = int.tryParse(v.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
               onChanged(line.copyWith(price: n));
