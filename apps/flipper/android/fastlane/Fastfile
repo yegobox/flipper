@@ -1,10 +1,25 @@
 default_platform(:android)
 
+def shorebird_cmd
+  env_bin = ENV['SHOREBIRD_BIN']
+  return env_bin if env_bin && !env_bin.empty? && File.executable?(env_bin)
+
+  home_bin = File.join(ENV['HOME'] || Dir.home, '.shorebird', 'bin', 'shorebird')
+  return home_bin if File.executable?(home_bin)
+
+  which = `command -v shorebird 2>/dev/null`.strip
+  return which unless which.empty?
+
+  UI.user_error!(
+    'shorebird CLI not found. Install it in CI or locally: https://docs.shorebird.dev'
+  )
+end
+
 def build_release_bundle
   if ENV['USE_SHOREBIRD'] == 'true'
-    sh "cd .. && shorebird release android -- --no-android-gradle-daemon"
+    sh "cd .. && #{shorebird_cmd} release android -- --no-android-gradle-daemon"
   else
-    sh "cd .. && flutter build appbundle --no-android-gradle-daemon"
+    sh "cd .. && flutter build appbundle -- --no-android-gradle-daemon"
   end
 end
 

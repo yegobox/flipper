@@ -836,9 +836,18 @@ jobs:
         working-directory: apps/${{ matrix.app }}/android
       - name: Install Shorebird
         if: matrix.app == 'flipper'
+        shell: bash
         run: |
+          set -euo pipefail
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
           echo "$HOME/.shorebird/bin" >> "$GITHUB_PATH"
+          echo "SHOREBIRD_BIN=$HOME/.shorebird/bin/shorebird" >> "$GITHUB_ENV"
+          test -x "$HOME/.shorebird/bin/shorebird"
+      - name: Verify Shorebird
+        if: matrix.app == 'flipper'
+        run: |
+          command -v shorebird
+          shorebird --version
       - name: Calculate Version
         run: |
           VERSION_CODE=$(( ${{ github.run_number }} + 1800000000 ))
@@ -846,6 +855,7 @@ jobs:
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
       - run: |
+          export PATH="$HOME/.shorebird/bin:$PATH"
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}

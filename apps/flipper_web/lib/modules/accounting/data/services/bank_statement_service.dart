@@ -92,10 +92,9 @@ class BankStatementService {
   BankStatementService({http.Client? client})
       : _client = client ?? http.Client();
 
-  static const String _baseUrl = String.fromEnvironment(
-    'DATA_CONNECTOR_URL',
-    defaultValue: 'http://localhost:8084',
-  );
+  static String get _baseUrl => kDebugMode
+      ? 'http://localhost:8084'
+      : 'https://data-connector.yegobox.com';
 
   final http.Client _client;
 
