@@ -19,7 +19,10 @@ review-my-changes.sh
 *.ipr
 *.iws
 .idea/
-ditto
+# Local Ditto peer data dirs (not lib/core/ditto source)
+/ditto/
+apps/flipper/ditto/
+extensions/excel/ditto/
 *.db/
 
 # The .vscode folder contains launch configuration and tasks you configure in
