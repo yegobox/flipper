@@ -3,6 +3,7 @@
 /// POS stores lowercase statuses (`completed`, `parked`) per
 /// `flipper_services/constants.dart`. Reports and data-connector use the same
 /// values. Books must accept both legacy uppercase fixtures and live data.
+library;
 
 /// Status after a finalized sale (fully paid or parked as loan/credit).
 const accountingSaleStatusCompleted = 'completed';

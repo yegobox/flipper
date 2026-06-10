@@ -142,7 +142,7 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                         child: _FieldLabel(
                           label: _isInvoice ? 'Customer' : 'Supplier',
                           child: DropdownButtonFormField<String>(
-                            value: _who.isEmpty ? null : _who,
+                            initialValue: _who.isEmpty ? null : _who,
                             decoration: _inputDecoration(
                               icon: Icons.business_outlined,
                               hint: 'Select ${_isInvoice ? 'customer' : 'supplier'}…',
