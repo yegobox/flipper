@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
+import 'package:flipper_web/modules/accounting/data/bank_rec_matching.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -13,6 +14,7 @@ import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.da
 import 'package:flipper_web/modules/accounting/widgets/accounting_tag.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -185,6 +187,51 @@ String _bankLineDateLabel(String? isoDate) {
   return '${months[dt.month]} ${dt.day}';
 }
 
+/// Debug-only: wipe imported statement lines + in-memory meta so you can re-import.
+Future<void> _clearBankStatementImport(BuildContext context, WidgetRef ref) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Clear bank import?'),
+      content: const Text(
+        'Deletes all imported statement lines for this business and resets '
+        'match state. Journal entries are not affected.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Clear'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isNotEmpty) {
+    await ref.read(accountingLedgerRepositoryProvider).clearBankStatementLines(
+          businessId: businessId,
+        );
+  }
+
+  ref.read(bankRecLocalLinesProvider.notifier).state = const [];
+  ref.read(bankStatementMetaProvider.notifier).state = null;
+  ref.read(bankRecFinishedProvider.notifier).state = false;
+
+  if (!context.mounted) return;
+  showAccountingToast(
+    context,
+    'Bank import cleared',
+    subtitle: 'You can import a statement again',
+    icon: Icons.delete_outline,
+    tone: AccountingToastTone.success,
+  );
+}
+
 Future<void> _importBankStatement(BuildContext context, WidgetRef ref) async {
   final picked = await FilePicker.platform.pickFiles(
     type: FileType.custom,
@@ -252,11 +299,31 @@ Future<void> _importBankStatement(BuildContext context, WidgetRef ref) async {
   }
 }
 
-/// Net movement an entry posts to the bank account: debits increase the
-/// bank balance (money in), credits decrease it.
-int _bankMovement(JournalEntry entry, String bankAccountCode) => entry.lines
-    .where((l) => l.ac == bankAccountCode)
-    .fold<int>(0, (s, l) => s + l.dr - l.cr);
+Future<List<JournalEntry>> _journalEntriesForBankRec(WidgetRef ref) async {
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return [];
+  final repo = ref.read(accountingLedgerRepositoryProvider);
+  final meta = ref.read(bankStatementMetaProvider);
+  final (start, end) = bankRecJournalDateRange(meta);
+  final scoped = await repo
+      .watchJournalEntries(
+        businessId: businessId,
+        startDate: start,
+        endDate: end,
+      )
+      .first;
+  // If the statement period was wrong or sparse, search the full ledger too.
+  if (scoped.length >= 25) return scoped;
+  final all = await repo
+      .watchJournalEntries(businessId: businessId)
+      .first;
+  if (all.length <= scoped.length) return scoped;
+  final seen = <String>{};
+  return [
+    for (final e in [...scoped, ...all])
+      if (seen.add(e.uuid ?? e.id)) e,
+  ];
+}
 
 Future<void> _matchBankLine(
   BuildContext context,
@@ -265,30 +332,61 @@ Future<void> _matchBankLine(
   BankLine line,
 ) async {
   const bankAccountCode = '1020';
-  final journal = ref.read(accountingJournalProvider);
-  final candidates = journal
-      .where((e) => _bankMovement(e, bankAccountCode) == line.amt)
-      .toList()
-    // Entries dated like the bank line first.
-    ..sort((a, b) =>
-        (a.date == line.date ? 0 : 1).compareTo(b.date == line.date ? 0 : 1));
+  final meta = ref.read(bankStatementMetaProvider);
+  final (rangeStart, rangeEnd) = bankRecJournalDateRange(meta);
+  final journal = await _journalEntriesForBankRec(ref);
+  final matchCandidates = findBankMatchCandidates(
+    journal: journal,
+    line: line,
+    primaryAccountCode: bankAccountCode,
+  );
 
-  if (candidates.isEmpty) {
+  if (matchCandidates.isEmpty) {
+    if (!context.mounted) return;
     showAccountingToast(
       context,
       'No matching journal entry',
       subtitle:
-          'No entry moves ${money(line.amt.abs())} on the bank account ($bankAccountCode)',
+          'Searched ${journal.length} entries (${bankRecJournalRangeLabel(rangeStart, rangeEnd)}). '
+          'No posted line moves ${money(line.amt.abs())} on Bank ($bankAccountCode). '
+          'Bank fees and transfers are often not in POS journals — post a manual entry first.',
       icon: Icons.search_off,
       tone: AccountingToastTone.warn,
     );
     return;
   }
 
-  final entry = candidates.length == 1
-      ? candidates.first
-      : await _pickJournalEntry(context, candidates, line);
-  if (entry == null) return;
+  BankMatchCandidate? chosen = matchCandidates.length == 1
+      ? matchCandidates.first
+      : await _pickBankMatchCandidate(context, matchCandidates, line);
+  if (chosen == null || !context.mounted) return;
+
+  if (chosen.accountCode != bankAccountCode) {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Match on a different account?'),
+        content: Text(
+          'This journal entry moves ${money(line.amt.abs())} on '
+          '${liquidAccountLabel(chosen.accountCode)} (${chosen.accountCode}), '
+          'not Bank ($bankAccountCode). Match anyway?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Match'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+  }
+
+  final entry = chosen.entry;
 
   final matched = BankLine(
     date: line.date,
@@ -324,12 +422,12 @@ Future<void> _matchBankLine(
   );
 }
 
-Future<JournalEntry?> _pickJournalEntry(
+Future<BankMatchCandidate?> _pickBankMatchCandidate(
   BuildContext context,
-  List<JournalEntry> candidates,
+  List<BankMatchCandidate> candidates,
   BankLine line,
 ) {
-  return showDialog<JournalEntry>(
+  return showDialog<BankMatchCandidate>(
     context: context,
     builder: (context) => AlertDialog(
       title: const Text('Match bank line'),
@@ -351,19 +449,19 @@ Future<JournalEntry?> _pickJournalEntry(
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  for (final e in candidates)
+                  for (final c in candidates)
                     ListTile(
                       dense: true,
                       title: Text(
-                        '${e.id} · ${e.date}',
+                        '${c.entry.id} · ${c.entry.date}',
                         style: AccountingTokens.mono(fontSize: 13),
                       ),
                       subtitle: Text(
-                        e.memo,
-                        maxLines: 1,
+                        '${c.entry.memo} · ${liquidAccountLabel(c.accountCode)}',
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      onTap: () => Navigator.of(context).pop(e),
+                      onTap: () => Navigator.of(context).pop(c),
                     ),
                 ],
               ),
@@ -413,6 +511,13 @@ class AccountingBankRecView extends ConsumerWidget {
             title: 'Bank reconciliation',
             subtitle: 'Bank · $bankName · statement $period · $currency',
             actions: [
+              if (kDebugMode)
+                AccountingButton(
+                  label: 'Clear import',
+                  icon: Icons.delete_outline,
+                  small: true,
+                  onPressed: () => _clearBankStatementImport(context, ref),
+                ),
               AccountingButton(
                 label: 'Import statement',
                 icon: Icons.sync,

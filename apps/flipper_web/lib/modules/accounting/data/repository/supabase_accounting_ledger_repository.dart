@@ -244,6 +244,18 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
+  Future<void> clearBankStatementLines({
+    required String businessId,
+    String bankAccountCode = '1020',
+  }) async {
+    await _client
+        .from(_bankTable)
+        .delete()
+        .eq('business_id', businessId)
+        .eq('bank_account_code', bankAccountCode);
+  }
+
+  @override
   Future<Map<String, dynamic>?> fetchSettings({required String businessId}) async {
     return _client
         .from(_settingsTable)

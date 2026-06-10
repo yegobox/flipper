@@ -189,6 +189,24 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
+  Future<void> clearBankStatementLines({
+    required String businessId,
+    String bankAccountCode = '1020',
+  }) async {
+    final rows = await _ditto.queryCollection(
+      'bank_statement_lines',
+      'SELECT _id FROM bank_statement_lines WHERE businessId = :businessId AND bankAccountCode = :code',
+      {'businessId': businessId, 'code': bankAccountCode},
+    );
+    for (final row in rows) {
+      final id = (row['_id'] ?? row['id'])?.toString();
+      if (id != null && id.isNotEmpty) {
+        await _ditto.deletePartyDoc('bank_statement_lines', id);
+      }
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>?> fetchSettings({required String businessId}) async {
     final rows = await _ditto.queryCollection(
       'accounting_settings',

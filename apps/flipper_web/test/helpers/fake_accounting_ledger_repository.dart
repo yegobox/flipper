@@ -103,6 +103,14 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
   }) async {}
 
   @override
+  Future<void> clearBankStatementLines({
+    required String businessId,
+    String bankAccountCode = '1020',
+  }) async {
+    _bankLines.clear();
+  }
+
+  @override
   Future<Map<String, dynamic>?> fetchSettings({required String businessId}) async {
     return {'default_vat_rate': 0.18, 'vat_due_day': 15};
   }

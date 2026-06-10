@@ -51,6 +51,12 @@ abstract class AccountingLedgerRepository {
     String? matchedEntryNumber,
   });
 
+  /// Removes all imported bank statement lines for [businessId] (debug / re-import).
+  Future<void> clearBankStatementLines({
+    required String businessId,
+    String bankAccountCode = '1020',
+  });
+
   Future<Map<String, dynamic>?> fetchSettings({required String businessId});
 
   /// Sum of inventory value (supply_price × current_stock) for a branch.
