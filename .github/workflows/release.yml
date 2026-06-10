@@ -569,7 +569,7 @@ jobs:
       - name: Accept Android licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;28.0.12674087"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;29.0.14206865"
       - name: Configure Git with PAT
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -688,7 +688,7 @@ jobs:
           echo "=========================================="
           
           # Verify NDK version
-          NDK_VERSION="28.0.12674087"
+          NDK_VERSION="29.0.14206865"
           if [ -d "$ANDROID_HOME/ndk/$NDK_VERSION" ]; then
             echo "✅ NDK $NDK_VERSION is installed (supports 16 KB alignment by default)"
             
@@ -856,16 +856,34 @@ jobs:
           VERSION_NAME="1.180.${{ github.run_number }}"
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+      - name: Shorebird release build
+        if: matrix.app == 'flipper'
+        working-directory: apps/flipper
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
+        run: |
+          set -euo pipefail
+          shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log
+          test -f build/app/outputs/bundle/release/app-release.aab
+      - name: Dump Shorebird release log on failure
+        if: failure() && matrix.app == 'flipper'
+        run: |
+          echo "=== shorebird release log (tail) ==="
+          tail -300 /tmp/shorebird-release.log 2>/dev/null || echo "(no /tmp/shorebird-release.log)"
+          echo "=== build outputs ==="
+          ls -laR apps/flipper/build/app/outputs 2>/dev/null || true
       - run: bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-          FLUTTER_VERSION: ${{ env.FLUTTER_VERSION }}
           VERSION_CODE: ${{ env.VERSION_CODE }}
           VERSION_NAME: ${{ env.VERSION_NAME }}
-          USE_SHOREBIRD: ${{ matrix.app == 'flipper' && 'true' || 'false' }}
+          SHOREBIRD_PREBUILT: ${{ matrix.app == 'flipper' && 'true' || 'false' }}
+          USE_SHOREBIRD: 'false'
         working-directory: apps/${{ matrix.app }}/android
       - name: Upload Shorebird logs on failure
         if: failure() && matrix.app == 'flipper'
@@ -873,6 +891,7 @@ jobs:
         with:
           name: shorebird-logs-${{ matrix.app }}-${{ github.run_id }}
           path: |
+            /tmp/shorebird-release.log
             ~/.config/shorebird/logs/
             ~/.shorebird/logs/
           if-no-files-found: ignore
