@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 
 /// Applies posted journal lines to COA templates and returns accounts with balances.
@@ -13,7 +14,20 @@ List<Account> accountsWithBalances(
   for (final entry in entries.where((e) => e.status == JournalStatus.posted)) {
     for (final line in entry.lines) {
       final acct = normalByCode[line.ac];
-      if (acct == null) continue;
+      if (acct == null) {
+        // A line referencing an account that is not in the chart of accounts
+        // would silently drop one leg of the entry and unbalance the ledger.
+        // Surface it loudly in debug rather than hiding the imbalance.
+        assert(() {
+          debugPrint(
+            '[Accounting] WARNING: journal entry ${entry.id} references unknown '
+            'account "${line.ac}"; this leg was dropped and the trial balance '
+            'will not balance. Add the account to the chart of accounts.',
+          );
+          return true;
+        }());
+        continue;
+      }
       final cur = balances[line.ac] ?? 0;
       balances[line.ac] = acct.isDebitNormal
           ? cur + line.dr - line.cr

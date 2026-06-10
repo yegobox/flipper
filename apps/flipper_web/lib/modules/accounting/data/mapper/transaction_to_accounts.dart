@@ -22,6 +22,8 @@ class TransactionToAccounts {
   static const _revenueCode = '4010';
   static const _vatCode = '2100';
   static const _opexCode = '6000';
+  static const _cogsCode = '5010';
+  static const _inventoryCode = '1200';
 
   // ---------------------------------------------------------------------------
   // Public API
@@ -238,9 +240,12 @@ class TransactionToAccounts {
         ? 'Expense · ${txn['note'] ?? txn['reference'] ?? ref}'
         : 'Sale · ${txn['customer_name'] ?? txn['customerName'] ?? ref}';
 
+    // Cost of goods sold for the sale, summed from the line-item supply cost.
+    final cogs = isExp ? 0 : _sumField(items, 'sply_amt', 'splyAmt');
+
     final lines = isExp
         ? _expenseLines(sub, accountingLiquidAccountCode(txn))
-        : _saleLines(txn, sub, netRev, tax);
+        : _saleLines(txn, sub, netRev, tax, cogs);
 
     return JournalEntry(
       id: 'JE-${ref.substring(0, ref.length.clamp(0, 8)).toUpperCase()}',
@@ -259,12 +264,17 @@ class TransactionToAccounts {
         JournalLine(ac: liquidAc, cr: sub),
       ];
 
-  /// Accrual sale: Dr cash (collected) + Dr AR (open) / Cr revenue / Cr VAT.
+  /// Accrual sale: Dr cash (collected) + Dr AR (open) / Cr revenue / Cr VAT,
+  /// plus the matching cost entry Dr COGS / Cr Inventory when item cost is known.
+  ///
+  /// Both halves are self-balancing, so the compound entry stays balanced
+  /// (total debits == total credits) regardless of whether [cogs] is present.
   static List<JournalLine> _saleLines(
     Map<String, dynamic> txn,
     int sub,
     int netRev,
     int tax,
+    int cogs,
   ) {
     final collected = accountingCollectedAmount(txn);
     final ar = isOpenReceivable(txn) ? accountingRemainingBalance(txn) : 0;
@@ -286,6 +296,11 @@ class TransactionToAccounts {
       ...debits,
       JournalLine(ac: _revenueCode, cr: netRev),
       if (tax > 0) JournalLine(ac: _vatCode, cr: tax),
+      // Matching principle: recognize cost of the sale and relieve inventory.
+      if (cogs > 0) ...[
+        JournalLine(ac: _cogsCode, dr: cogs),
+        JournalLine(ac: _inventoryCode, cr: cogs),
+      ],
     ];
   }
 
