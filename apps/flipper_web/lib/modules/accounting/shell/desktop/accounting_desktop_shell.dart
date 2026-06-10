@@ -58,6 +58,7 @@ class AccountingDesktopShell extends ConsumerWidget {
                                 ),
                               ),
                               const AccountingContactsDrawerHost(),
+                              const AccountingBillingPanelHost(),
                             ],
                           );
                         },

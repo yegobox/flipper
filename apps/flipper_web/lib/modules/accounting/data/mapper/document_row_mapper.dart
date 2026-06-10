@@ -79,6 +79,7 @@ class DocumentRowMapper {
   }
 
   static AccountingContact contactFromRow(Map<String, dynamic> row) {
+    final partyId = (row['party_id'] ?? row['partyId'])?.toString();
     return AccountingContact(
       uuid: (row['id'] ?? row['_id'])?.toString(),
       id: _str(row, 'local_id', 'localId').isNotEmpty
@@ -92,6 +93,7 @@ class DocumentRowMapper {
       since: _str(row, 'since_label', 'sinceLabel'),
       terms: _str(row, 'terms', 'terms'),
       balance: 0,
+      partyId: partyId == null || partyId.isEmpty ? null : partyId,
     );
   }
 
@@ -118,6 +120,8 @@ class DocumentRowMapper {
       'since_label': contact.since,
       'sinceLabel': contact.since,
       'terms': contact.terms,
+      if (contact.partyId != null) 'party_id': contact.partyId,
+      if (contact.partyId != null) 'partyId': contact.partyId,
     };
   }
 }

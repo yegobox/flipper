@@ -5,6 +5,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_providers.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_documents_repository.dart';
+import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart';
@@ -14,6 +15,159 @@ import 'package:flipper_web/modules/accounting/widgets/doc_status_pill.dart';
 import 'package:flipper_web/modules/accounting/widgets/v3_doc_panels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Invoice/bill editor, preview, and payment panels at the shell right edge.
+class AccountingBillingPanelHost extends ConsumerWidget {
+  const AccountingBillingPanelHost({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(accountingViewProvider, (_, view) {
+      if (view != AccountingView.invoices && view != AccountingView.bills) {
+        ref.read(billingUiProvider.notifier).state = null;
+      }
+    });
+
+    final ui = ref.watch(billingUiProvider);
+    if (ui == null) return const SizedBox.shrink();
+
+    final docs = ui.kind == DocKind.invoice
+        ? ref.watch(accountingInvoicesProvider)
+        : ref.watch(accountingBillsProvider);
+    final repo = ref.read(accountingDocumentsRepositoryProvider);
+    final isInvoice = ui.kind == DocKind.invoice;
+
+    void close() => ref.read(billingUiProvider.notifier).state = null;
+
+    void open(BillingUiState state) =>
+        ref.read(billingUiProvider.notifier).state = state;
+
+    Future<void> saveDoc(AccountingDocument doc, String mode) async {
+      final businessId = ref.read(accountingBusinessIdProvider);
+      if (businessId.isEmpty) return;
+
+      final existing = docs.where((d) => d.id == doc.id).firstOrNull;
+      final toSave = doc.copyWith(uuid: existing?.uuid);
+      await repo.upsertDocument(
+        businessId: businessId,
+        kind: ui.kind,
+        doc: toSave,
+      );
+
+      final currency = ref.read(accountingCurrencyProvider);
+      if (mode == 'send') {
+        final accounts = ref.read(accountingAccountsProvider);
+        final poster = DocumentJournalPoster(
+          ref.read(accountingLedgerRepositoryProvider),
+          accounts,
+        );
+        if (isInvoice) {
+          await poster.postInvoiceSent(businessId: businessId, doc: doc);
+        } else {
+          await poster.postBillRecorded(businessId: businessId, doc: doc);
+        }
+        appendAuditLog(
+          ref,
+          action: 'created',
+          target: doc.id,
+          detail: isInvoice
+              ? 'Invoice to ${doc.who} ($currency ${money(docTotals(doc.lines).total)})'
+              : 'Bill from ${doc.who}',
+          iconName: 'Receipt',
+          tone: AuditTone.blue,
+        );
+      }
+
+      final t = docTotals(doc.lines).total;
+      close();
+      if (!context.mounted) return;
+      if (mode == 'draft') {
+        showAccountingToast(context, 'Draft saved', subtitle: '${doc.id} · ${doc.who}');
+      } else if (isInvoice) {
+        showAccountingToast(
+          context,
+          'Invoice sent & posted',
+          subtitle: '${doc.id} → ${doc.who} · $currency ${money(t)}',
+          icon: Icons.mail_outline,
+        );
+      } else {
+        showAccountingToast(
+          context,
+          'Bill recorded & posted',
+          subtitle: '${doc.id} · ${doc.who} · $currency ${money(t)}',
+          icon: Icons.check,
+        );
+      }
+    }
+
+    Future<void> markPaid(AccountingDocument doc) async {
+      final businessId = ref.read(accountingBusinessIdProvider);
+      if (businessId.isEmpty) return;
+      await repo.upsertDocument(
+        businessId: businessId,
+        kind: ui.kind,
+        doc: doc.copyWith(status: DocStatus.paid),
+      );
+      close();
+      if (!context.mounted) return;
+      showAccountingToast(
+        context,
+        'Payment recorded',
+        subtitle: doc.id,
+        icon: Icons.check,
+      );
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (ui.editing != null || ui.editingNew)
+          Positioned(
+            top: 0,
+            right: 0,
+            bottom: 0,
+            child: DocEditorPanel(
+              kind: ui.kind,
+              doc: ui.editing,
+              newId: nextDocumentId(ui.kind, docs),
+              initialWho: ui.initialWho,
+              onClose: close,
+              onSaved: saveDoc,
+            ),
+          ),
+        if (ui.paying != null)
+          Positioned(
+            top: 0,
+            right: 0,
+            bottom: 0,
+            child: PaymentModalPanel(
+              kind: ui.kind,
+              doc: ui.paying!,
+              onClose: close,
+              onPaid: markPaid,
+            ),
+          ),
+        if (ui.preview != null)
+          Positioned(
+            top: 0,
+            right: 0,
+            bottom: 0,
+            child: DocPreviewPanel(
+              kind: ui.kind,
+              doc: ui.preview!,
+              onClose: close,
+              onEdit: () => open(
+                BillingUiState(kind: ui.kind, editing: ui.preview),
+              ),
+              onPay: () => open(
+                BillingUiState(kind: ui.kind, paying: ui.preview),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
 
 class AccountingInvoicesView extends ConsumerWidget {
   const AccountingInvoicesView({super.key});
@@ -44,12 +198,6 @@ class AccountingDocListView extends ConsumerStatefulWidget {
 }
 
 class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
-  AccountingDocument? _editing;
-  bool _editingNew = false;
-  String? _initialWho;
-  AccountingDocument? _paying;
-  AccountingDocument? _preview;
-
   bool get _isInvoice => widget.kind == DocKind.invoice;
 
   List<AccountingDocument> get _docs => _isInvoice
@@ -59,15 +207,21 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
   AccountingDocumentsRepository get _repo =>
       ref.read(accountingDocumentsRepositoryProvider);
 
+  void _openBilling(BillingUiState state) {
+    ref.read(billingUiProvider.notifier).state = state;
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<PendingDocEditor?>(pendingDocEditorProvider, (prev, next) {
       if (next == null || next.kind != widget.kind) return;
-      setState(() {
-        _editingNew = true;
-        _editing = null;
-        _initialWho = next.who;
-      });
+      _openBilling(
+        BillingUiState(
+          kind: widget.kind,
+          editingNew: true,
+          initialWho: next.who,
+        ),
+      );
       ref.read(pendingDocEditorProvider.notifier).state = null;
     });
     final tab = ref.watch(docTabFilterProvider);
@@ -90,9 +244,7 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
         .fold<int>(0, (s, d) => s + docTotals(d.lines).total);
     final draftCount = _docs.where((d) => d.status == DocStatus.draft).length;
 
-    return Stack(
-      children: [
-        SingleChildScrollView(
+    return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,10 +277,9 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                     label: _isInvoice ? 'New invoice' : 'New bill',
                     icon: Icons.add,
                     primary: true,
-                    onPressed: () => setState(() {
-                      _editingNew = true;
-                      _editing = null;
-                    }),
+                    onPressed: () => _openBilling(
+                      BillingUiState(kind: widget.kind, editingNew: true),
+                    ),
                   ),
                 ],
               ),
@@ -205,7 +356,9 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                           rows: [
                             for (final d in list)
                               DataRow(
-                                onSelectChanged: (_) => setState(() => _preview = d),
+                                onSelectChanged: (_) => _openBilling(
+                                  BillingUiState(kind: widget.kind, preview: d),
+                                ),
                                 cells: [
                                   DataCell(Text(d.id, style: AccountingTokens.mono())),
                                   DataCell(Text(d.who)),
@@ -254,43 +407,6 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
               ),
             ],
           ),
-        ),
-        if (_editing != null || _editingNew)
-          DocEditorPanel(
-            kind: widget.kind,
-            doc: _editing,
-            newId: nextDocumentId(widget.kind, _docs),
-            initialWho: _initialWho,
-            onClose: () => setState(() {
-              _editing = null;
-              _editingNew = false;
-              _initialWho = null;
-            }),
-            onSaved: _saveDoc,
-          ),
-        if (_paying != null)
-          PaymentModalPanel(
-            kind: widget.kind,
-            doc: _paying!,
-            onClose: () => setState(() => _paying = null),
-            onPaid: _markPaid,
-          ),
-        if (_preview != null)
-          DocPreviewPanel(
-            kind: widget.kind,
-            doc: _preview!,
-            onClose: () => setState(() => _preview = null),
-            onEdit: () => setState(() {
-              _editing = _preview;
-              _editingNew = false;
-              _preview = null;
-            }),
-            onPay: () => setState(() {
-              _paying = _preview;
-              _preview = null;
-            }),
-          ),
-      ],
     );
   }
 
@@ -305,14 +421,11 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
   void _onRowAction(String action, AccountingDocument d) {
     switch (action) {
       case 'preview':
-        setState(() => _preview = d);
+        _openBilling(BillingUiState(kind: widget.kind, preview: d));
       case 'edit':
-        setState(() {
-          _editing = d;
-          _editingNew = false;
-        });
+        _openBilling(BillingUiState(kind: widget.kind, editing: d));
       case 'pay':
-        setState(() => _paying = d);
+        _openBilling(BillingUiState(kind: widget.kind, paying: d));
       case 'remind':
         showAccountingToast(
           context,
@@ -337,84 +450,4 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
     showAccountingToast(context, 'Deleted', subtitle: doc.id, icon: Icons.delete_outline);
   }
 
-  Future<void> _saveDoc(AccountingDocument doc, String mode) async {
-    final businessId = ref.read(accountingBusinessIdProvider);
-    if (businessId.isEmpty) return;
-
-    final existing = _docs.where((d) => d.id == doc.id).firstOrNull;
-    final toSave = doc.copyWith(uuid: existing?.uuid);
-    await _repo.upsertDocument(
-      businessId: businessId,
-      kind: widget.kind,
-      doc: toSave,
-    );
-
-    final currency = ref.read(accountingCurrencyProvider);
-    if (mode == 'send') {
-      final businessId = ref.read(accountingBusinessIdProvider);
-      final accounts = ref.read(accountingAccountsProvider);
-      final poster = DocumentJournalPoster(
-        ref.read(accountingLedgerRepositoryProvider),
-        accounts,
-      );
-      if (_isInvoice) {
-        await poster.postInvoiceSent(businessId: businessId, doc: doc);
-      } else {
-        await poster.postBillRecorded(businessId: businessId, doc: doc);
-      }
-      appendAuditLog(
-        ref,
-        action: 'created',
-        target: doc.id,
-        detail: _isInvoice
-            ? 'Invoice to ${doc.who} ($currency ${money(docTotals(doc.lines).total)})'
-            : 'Bill from ${doc.who}',
-        iconName: 'Receipt',
-        tone: AuditTone.blue,
-      );
-    }
-
-    final t = docTotals(doc.lines).total;
-    if (!mounted) return;
-    if (mode == 'draft') {
-      showAccountingToast(context, 'Draft saved', subtitle: '${doc.id} · ${doc.who}');
-    } else if (_isInvoice) {
-      showAccountingToast(
-        context,
-        'Invoice sent & posted',
-        subtitle: '${doc.id} → ${doc.who} · $currency ${money(t)}',
-        icon: Icons.mail_outline,
-      );
-    } else {
-      showAccountingToast(
-        context,
-        'Bill recorded & posted',
-        subtitle: '${doc.id} · ${doc.who} · $currency ${money(t)}',
-        icon: Icons.check,
-      );
-    }
-    setState(() {
-      _editing = null;
-      _editingNew = false;
-      _initialWho = null;
-    });
-  }
-
-  Future<void> _markPaid(AccountingDocument doc) async {
-    final businessId = ref.read(accountingBusinessIdProvider);
-    if (businessId.isEmpty) return;
-    await _repo.upsertDocument(
-      businessId: businessId,
-      kind: widget.kind,
-      doc: doc.copyWith(status: DocStatus.paid),
-    );
-    if (!mounted) return;
-    setState(() => _paying = null);
-    showAccountingToast(
-      context,
-      'Payment recorded',
-      subtitle: doc.id,
-      icon: Icons.check,
-    );
-  }
 }

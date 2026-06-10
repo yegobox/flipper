@@ -31,8 +31,8 @@ abstract final class _TxDetailColors {
   static const gainTint = Color(0xFFE7F6EE);
   static const gainSoft = Color(0xFFF1FAF5);
   static const loss = Color(0xFFE5484D);
-  static const lossInk = Color(0xFFB91C1C);
-  static const lossTint = Color(0xFFFEECEC);
+  static const lossInk = Color(0xFFB42318);
+  static const lossTint = Color(0xFFFDECEC);
   static const lossSoft = Color(0xFFFFF5F5);
   static const blue = Color(0xFF2563EB);
   static const blueTint = Color(0xFFEFF6FF);
@@ -529,10 +529,15 @@ class _TxHeroCard extends StatelessWidget {
                             const Color(0xFFF87171),
                             _TxDetailColors.loss,
                           ]
-                        : [
-                            heroPalette.primary.withValues(alpha: 0.7),
-                            heroPalette.primary,
-                          ],
+                        : direction == _TxDirection.income
+                            ? [
+                                const Color(0xFF34D399),
+                                _TxDetailColors.gain,
+                              ]
+                            : [
+                                const Color(0xFFF87171),
+                                _TxDetailColors.loss,
+                              ],
                   ),
                 ),
               ),
@@ -641,11 +646,6 @@ class _TxHeroCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (refunded && transaction.refundedAmount != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: _RefundBanner(transaction: transaction),
-                    ),
                   const SizedBox(height: 12),
                   Text.rich(
                     TextSpan(
@@ -673,6 +673,11 @@ class _TxHeroCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (refunded && transaction.refundedAmount != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _RefundBanner(transaction: transaction),
+                    ),
                   const SizedBox(height: 18),
                   _MetaStrip(
                     method: _formatPaymentMethod(transaction.paymentType),
@@ -872,7 +877,7 @@ class _MetaCell extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label,
+            label.toUpperCase(),
             style: GoogleFonts.outfit(
               fontSize: 11,
               fontWeight: FontWeight.w700,

@@ -13,6 +13,7 @@ export 'category.model.dart';
 export 'color.model.dart';
 export 'configuration.model.dart';
 export 'customer.model.dart';
+export 'supplier.model.dart';
 export 'device.model.dart';
 export 'message.model.dart';
 export 'favorite.model.dart';

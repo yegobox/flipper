@@ -1,12 +1,17 @@
 import 'package:flipper_web/core/supabase_provider.dart';
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
+import 'package:flipper_web/modules/accounting/data/party_models.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_documents_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_documents_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/ditto_party_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/party_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_documents_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/supabase_party_repository.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -43,6 +48,9 @@ final billsStreamProvider = StreamProvider<List<AccountingDocument>>((ref) {
       );
 });
 
+/// Extension records only (terms / contact person / since-label) from
+/// accounting_contacts. Identity now lives on the canonical party row —
+/// see [customerPartiesStreamProvider].
 final customersStreamProvider = StreamProvider<List<AccountingContact>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return const Stream.empty();
@@ -61,12 +69,57 @@ final suppliersStreamProvider = StreamProvider<List<AccountingContact>>((ref) {
       );
 });
 
+// ─── Canonical party store (shared with POS) ─────────────────────────────────
+
+/// Branch key for the canonical `customers`/`suppliers` stores.
+///
+/// Single chokepoint by design: BOTH backends key parties on the branch UUID
+/// (`customers.branch_id` references branches(id); POS writes
+/// `branchId = getBranchId()` which is the same uuid) — unlike transactions,
+/// which use serverId on Supabase.
+final partyBranchIdProvider = Provider<String>((ref) {
+  return ref.watch(selectedBranchProvider)?.id ?? '';
+});
+
+final partyRepositoryProvider = Provider<PartyRepository>((ref) {
+  final strategy = ref.watch(accountingBackendStrategyProvider);
+  if (strategy == AccountingBackendStrategy.ditto) {
+    return DittoPartyRepository(
+      ref.watch(dittoServiceProvider),
+      ref.watch(supabaseProvider),
+    );
+  }
+  return SupabasePartyRepository(
+    ref.watch(supabaseProvider),
+    ref.watch(dittoServiceProvider),
+  );
+});
+
+final customerPartiesStreamProvider = StreamProvider<List<Party>>((ref) {
+  final branchId = ref.watch(partyBranchIdProvider);
+  if (branchId.isEmpty) return const Stream.empty();
+  return ref
+      .watch(partyRepositoryProvider)
+      .watchParties(branchId: branchId, kind: PartyKind.customer);
+});
+
+final supplierPartiesStreamProvider = StreamProvider<List<Party>>((ref) {
+  final branchId = ref.watch(partyBranchIdProvider);
+  if (branchId.isEmpty) return const Stream.empty();
+  return ref
+      .watch(partyRepositoryProvider)
+      .watchParties(branchId: branchId, kind: PartyKind.supplier);
+});
+
 // ─── UI state ────────────────────────────────────────────────────────────────
 
 final pendingDocEditorProvider = StateProvider<PendingDocEditor?>((ref) => null);
 
 /// Detail / new-contact panels render in [AccountingContactsDrawerHost] at shell edge.
 final contactsUiProvider = StateProvider<ContactsUiState?>((ref) => null);
+
+/// Invoice/bill panels render in [AccountingBillingPanelHost] at shell edge.
+final billingUiProvider = StateProvider<BillingUiState?>((ref) => null);
 
 final recurringSchedulesProvider =
     StateProvider<List<RecurringSchedule>>((ref) => defaultRecurringSchedules);
@@ -84,22 +137,49 @@ final docTabFilterProvider = StateProvider<DocTabFilter>(
   (ref) => DocTabFilter.all,
 );
 
-// ─── Derived contacts (aging + persisted) ────────────────────────────────────
+// ─── Derived contacts (canonical parties + extensions + aging) ───────────────
+
+/// Canonical parties joined with their accounting extension records.
+///
+/// Identity (name/phone/email/tin) comes from the shared party row; the
+/// accounting extras (contact person, terms, since-label) overlay from the
+/// matching accounting_contacts extension (joined by partyId). Legacy
+/// extension rows without a partyId are kept as standalone contacts.
+List<AccountingContact> _joinPartiesWithExtensions({
+  required List<Party> parties,
+  required List<AccountingContact> extensions,
+}) {
+  final extByPartyId = <String, AccountingContact>{
+    for (final e in extensions)
+      if (e.partyId != null) e.partyId!: e,
+  };
+
+  return [
+    for (final p in parties)
+      AccountingContact(
+        id: extByPartyId[p.id]?.id ?? p.id,
+        partyId: p.id,
+        uuid: extByPartyId[p.id]?.uuid,
+        name: p.name,
+        contact: extByPartyId[p.id]?.contact ?? '',
+        phone: p.phone,
+        email: p.email,
+        tin: p.tin,
+        since: extByPartyId[p.id]?.since ?? '—',
+        terms: extByPartyId[p.id]?.terms ?? 'Net 30',
+        balance: 0,
+      ),
+    // Legacy extension-only rows (no canonical party linked).
+    ...extensions.where((e) => e.partyId == null),
+  ];
+}
 
 List<AccountingContact> _mergeContacts({
   required List<AgingRow> aging,
   required List<AccountingContact> saved,
-  required List<AccountingContact> handoffSeed,
   required String idPrefix,
 }) {
   final byName = <String, AccountingContact>{};
-
-  // Handoff master records when nothing is persisted yet (matches contacts.jsx seed).
-  if (saved.isEmpty) {
-    for (final s in handoffSeed) {
-      byName[s.name] = s;
-    }
-  }
 
   for (final row in aging) {
     if (row.name.isEmpty) continue;
@@ -137,8 +217,10 @@ List<AccountingContact> _mergeContacts({
 final accountingCustomersProvider = Provider<List<AccountingContact>>((ref) {
   return _mergeContacts(
     aging: ref.watch(accountingArAgingProvider),
-    saved: ref.watch(customersStreamProvider).value ?? [],
-    handoffSeed: defaultHandoffCustomers,
+    saved: _joinPartiesWithExtensions(
+      parties: ref.watch(customerPartiesStreamProvider).value ?? [],
+      extensions: ref.watch(customersStreamProvider).value ?? [],
+    ),
     idPrefix: 'C',
   );
 });
@@ -146,8 +228,10 @@ final accountingCustomersProvider = Provider<List<AccountingContact>>((ref) {
 final accountingSuppliersProvider = Provider<List<AccountingContact>>((ref) {
   return _mergeContacts(
     aging: ref.watch(accountingApAgingProvider),
-    saved: ref.watch(suppliersStreamProvider).value ?? [],
-    handoffSeed: defaultHandoffSuppliers,
+    saved: _joinPartiesWithExtensions(
+      parties: ref.watch(supplierPartiesStreamProvider).value ?? [],
+      extensions: ref.watch(suppliersStreamProvider).value ?? [],
+    ),
     idPrefix: 'S',
   );
 });

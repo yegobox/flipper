@@ -96,6 +96,27 @@ mixin AccountingMixin on DittoCore {
     await executeRemove('accounting_contacts', docId);
   }
 
+  /// Upsert into a canonical party collection (`customers` / `suppliers`).
+  /// Row must already carry the full Ditto document shape (see
+  /// PartyRowMapper.toDittoRow); only `_id`/`id` are enforced here.
+  Future<void> upsertPartyDoc(
+    String collection,
+    String docId,
+    Map<String, dynamic> data,
+  ) async {
+    if (dittoInstance == null) return handleNotInitialized('upsertPartyDoc');
+    await executeUpsert(collection, docId, {
+      ...data,
+      '_id': docId,
+      'id': docId,
+    });
+  }
+
+  Future<void> deletePartyDoc(String collection, String docId) async {
+    if (dittoInstance == null) return handleNotInitialized('deletePartyDoc');
+    await executeRemove(collection, docId);
+  }
+
   Future<void> upsertBankStatementLine(
     String businessId,
     BankLine line, {

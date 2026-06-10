@@ -85,6 +85,30 @@ class ContactsUiState {
   final bool showCreateForm;
 }
 
+/// Invoice/bill editor, preview, or payment panel (shell-level overlay).
+class BillingUiState {
+  const BillingUiState({
+    required this.kind,
+    this.editing,
+    this.editingNew = false,
+    this.initialWho,
+    this.paying,
+    this.preview,
+  }) : assert(
+          editing != null ||
+              editingNew ||
+              paying != null ||
+              preview != null,
+        );
+
+  final DocKind kind;
+  final AccountingDocument? editing;
+  final bool editingNew;
+  final String? initialWho;
+  final AccountingDocument? paying;
+  final AccountingDocument? preview;
+}
+
 class DocTotals {
   const DocTotals({required this.subtotal, required this.vat, required this.total});
 
@@ -106,6 +130,7 @@ class AccountingContact {
     required this.balance,
     this.fromAging = false,
     this.uuid,
+    this.partyId,
   });
 
   final String id;
@@ -122,6 +147,10 @@ class AccountingContact {
   /// Backend contact UUID when persisted (not aging-derived).
   final String? uuid;
 
+  /// Canonical party id in the shared `customers`/`suppliers` store (POS
+  /// customers). Null for aging-derived rows and legacy extension-only rows.
+  final String? partyId;
+
   AccountingContact copyWith({
     String? id,
     String? name,
@@ -134,6 +163,7 @@ class AccountingContact {
     int? balance,
     bool? fromAging,
     String? uuid,
+    String? partyId,
   }) =>
       AccountingContact(
         id: id ?? this.id,
@@ -147,6 +177,7 @@ class AccountingContact {
         balance: balance ?? this.balance,
         fromAging: fromAging ?? this.fromAging,
         uuid: uuid ?? this.uuid,
+        partyId: partyId ?? this.partyId,
       );
 }
 

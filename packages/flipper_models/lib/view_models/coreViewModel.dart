@@ -6,9 +6,10 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/domain/party/customer_factory.dart';
+import 'package:flipper_models/domain/party/party_draft.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_models/sync/utils/stock_io_util.dart';
@@ -593,25 +594,20 @@ class CoreViewModel extends FlipperBaseModel
     String? tinNumber,
   }) async {
     String branchId = ProxyService.box.getBranchId()!;
+    // Shared party domain logic (also used by flipper_web Books contacts):
+    // RRA defaults, custTin/custNo derivation live in PartyDraft.
+    final draft = PartyDraft(
+      id: id,
+      name: name,
+      phone: phone,
+      email: email,
+      tin: tinNumber,
+      customerType: customerType,
+      branchId: branchId,
+      bhfId: await ProxyService.box.bhfId() ?? "00",
+    );
     await ProxyService.strategy.addCustomer(
-      customer: Customer(
-        id: id,
-        custNm: name,
-        custTin: tinNumber ?? phone,
-        email: email,
-        telNo: phone,
-        updatedAt: DateTime.now().toUtc(),
-        branchId: branchId,
-        custNo: tinNumber ?? phone,
-        regrNm: randomNumber().toString().substring(0, 5),
-        modrId: randomNumber().toString().substring(0, 5),
-        regrId: randomNumber().toString().substring(0, 5),
-        ebmSynced: false,
-        modrNm: randomNumber().toString().substring(0, 5),
-        bhfId: await ProxyService.box.bhfId() ?? "00",
-        useYn: "N",
-        customerType: customerType,
-      ),
+      customer: customerFromDraft(draft),
       transactionId: transactionId,
     );
   }

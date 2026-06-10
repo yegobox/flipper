@@ -327,51 +327,71 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
         : [(side: 'dr', ac: '2010'), (side: 'cr', ac: _method)];
 
     if (_done) {
-      return _ModalScrim(
-        onClose: widget.onClose,
-        child: Padding(
-          padding: const EdgeInsets.all(38),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 76,
-                height: 76,
-                decoration: BoxDecoration(
-                  color: AccountingTokens.gain,
-                  borderRadius: BorderRadius.circular(24),
+      return _EdgePanel(
+        width: 480,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _PanelHeader(
+              title: 'Payment recorded',
+              subtitle: widget.doc.id,
+              onClose: widget.onClose,
+              compact: true,
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(38),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 76,
+                        height: 76,
+                        decoration: BoxDecoration(
+                          color: AccountingTokens.gain,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Icon(Icons.check, color: Colors.white, size: 36),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Payment recorded',
+                        style: AccountingTokens.sans(
+                          fontSize: 21,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _isInvoice
+                            ? '${widget.doc.who} paid $currency ${money(_amount)}. The invoice is marked paid.'
+                            : 'Paid $currency ${money(_amount)} to ${widget.doc.who}. The bill is settled.',
+                        textAlign: TextAlign.center,
+                        style: AccountingTokens.sans(
+                          fontSize: 13.5,
+                          color: AccountingTokens.ink3,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      AccountingButton(
+                        label: 'Done',
+                        primary: true,
+                        onPressed: () => widget.onPaid(widget.doc),
+                      ),
+                    ],
+                  ),
                 ),
-                child: const Icon(Icons.check, color: Colors.white, size: 36),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Payment recorded',
-                style: AccountingTokens.sans(fontSize: 21, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _isInvoice
-                    ? '${widget.doc.who} paid $currency ${money(_amount)}. The invoice is marked paid.'
-                    : 'Paid $currency ${money(_amount)} to ${widget.doc.who}. The bill is settled.',
-                textAlign: TextAlign.center,
-                style: AccountingTokens.sans(fontSize: 13.5, color: AccountingTokens.ink3),
-              ),
-              const SizedBox(height: 20),
-              AccountingButton(
-                label: 'Done',
-                primary: true,
-                onPressed: () => widget.onPaid(widget.doc),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
 
-    return _ModalScrim(
-      onClose: widget.onClose,
+    return _EdgePanel(
+      width: 480,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _PanelHeader(
@@ -380,11 +400,12 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
             onClose: widget.onClose,
             compact: true,
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 _FieldLabel(
                   label: _isInvoice ? 'Deposit to' : 'Pay from',
                   child: Wrap(
@@ -429,7 +450,8 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                   total: _amount,
                   showBalanced: false,
                 ),
-              ],
+                ],
+              ),
             ),
           ),
           _PanelFooter(
@@ -510,11 +532,9 @@ class DocPreviewPanel extends ConsumerWidget {
     final party = parties.where((p) => p.name == doc.who).firstOrNull;
     final business = ref.watch(selectedBusinessProvider);
 
-    return _ModalScrim(
-      onClose: onClose,
-      wide: true,
+    return _EdgePanel(
+      width: AccountingTokens.composerWidthWide,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
@@ -532,9 +552,10 @@ class DocPreviewPanel extends ConsumerWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-            child: Container(
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+              child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: AccountingTokens.surface2,
@@ -688,6 +709,7 @@ class DocPreviewPanel extends ConsumerWidget {
                 ],
               ),
             ),
+            ),
           ),
           _PanelFooter(
             children: [
@@ -723,6 +745,33 @@ class DocPreviewPanel extends ConsumerWidget {
 
 // ─── Shared panel chrome ─────────────────────────────────────────────────────
 
+/// Right-edge slide-in panel — no dimming scrim; list stays interactive at left.
+class _EdgePanel extends StatelessWidget {
+  const _EdgePanel({required this.child, this.width});
+
+  final Widget child;
+  final double? width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width ?? AccountingTokens.composerWidth,
+      decoration: const BoxDecoration(
+        color: AccountingTokens.surface,
+        border: Border(left: BorderSide(color: AccountingTokens.line)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x33081216),
+            blurRadius: 60,
+            offset: Offset(-24, 0),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
 class _PanelScrim extends StatelessWidget {
   const _PanelScrim({
     required this.onClose,
@@ -736,65 +785,7 @@ class _PanelScrim extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: onClose,
-          child: Container(color: const Color(0x8C081216)),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Material(
-            color: AccountingTokens.surface,
-            child: SizedBox(
-              width: (width ?? AccountingTokens.composerWidth).clamp(
-                320,
-                MediaQuery.sizeOf(context).width,
-              ),
-              height: MediaQuery.sizeOf(context).height,
-              child: child,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ModalScrim extends StatelessWidget {
-  const _ModalScrim({
-    required this.onClose,
-    required this.child,
-    this.wide = false,
-  });
-
-  final VoidCallback onClose;
-  final Widget child;
-  final bool wide;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: onClose,
-          child: Container(color: const Color(0x8C081216)),
-        ),
-        Center(
-          child: Material(
-            color: AccountingTokens.surface,
-            borderRadius: BorderRadius.circular(AccountingTokens.radiusLg),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: wide ? 720 : 480,
-                maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-              ),
-              child: child,
-            ),
-          ),
-        ),
-      ],
-    );
+    return _EdgePanel(width: width, child: child);
   }
 }
 

@@ -1,8 +1,13 @@
+import 'package:flipper_models/domain/party/party_draft.dart';
+import 'package:flipper_models/domain/party/party_validation.dart';
+import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_providers.dart';
+import 'package:flipper_web/modules/accounting/data/party_backfill.dart';
+import 'package:flipper_web/modules/accounting/data/party_models.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_data_table.dart';
@@ -14,6 +19,7 @@ import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.da
 import 'package:flipper_web/modules/accounting/widgets/accounting_tag.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/doc_status_pill.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -43,6 +49,26 @@ class AccountingContactsDrawerHost extends ConsumerWidget {
     Future<void> saveContact(AccountingContact contact) async {
       final businessId = ref.read(accountingBusinessIdProvider);
       if (businessId.isEmpty) return;
+      final branchId = ref.read(partyBranchIdProvider);
+      if (branchId.isEmpty) return;
+
+      // 1. Canonical party row in the shared customers/suppliers store
+      //    (same record the POS app reads; RRA defaults via PartyDraft).
+      final draft = PartyDraft(
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+        tin: contact.tin,
+        customerType: 'Business',
+        branchId: branchId,
+        kind: ui.isCustomer ? PartyKind.customer : PartyKind.supplier,
+      );
+      await ref
+          .read(partyRepositoryProvider)
+          .upsertParty(Party.fromDraft(draft));
+
+      // 2. Accounting extension record (terms / contact person / since),
+      //    joined to the canonical row via partyId.
       final saved = ui.isCustomer
           ? ref.read(customersStreamProvider).value ?? []
           : ref.read(suppliersStreamProvider).value ?? [];
@@ -51,7 +77,7 @@ class AccountingContactsDrawerHost extends ConsumerWidget {
       await ref.read(accountingDocumentsRepositoryProvider).upsertContact(
             businessId: businessId,
             isCustomer: ui.isCustomer,
-            contact: contact.copyWith(id: id),
+            contact: contact.copyWith(id: id, partyId: draft.id),
           );
       close();
       if (!context.mounted) return;
@@ -76,10 +102,13 @@ class AccountingContactsDrawerHost extends ConsumerWidget {
     }
 
     return Stack(
-      fit: StackFit.expand,
+      clipBehavior: Clip.none,
       children: [
         if (ui.detailContact != null)
-          Positioned.fill(
+          Positioned(
+            top: 0,
+            right: 0,
+            bottom: 0,
             child: _ContactDetailDrawer(
               isCustomer: ui.isCustomer,
               person: ui.detailContact!,
@@ -135,6 +164,22 @@ class AccountingContactsView extends ConsumerStatefulWidget {
 
 class _AccountingContactsViewState extends ConsumerState<AccountingContactsView> {
   String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // One-time reconciler: push canonical Supabase party rows missing from
+    // Ditto (migrated rows / failed dual-writes) so POS live lists see them.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final branchId = ref.read(partyBranchIdProvider);
+      if (branchId.isEmpty) return;
+      PartyBackfill(
+        ref.read(supabaseProvider),
+        ref.read(dittoServiceProvider),
+      ).run(branchId: branchId);
+    });
+  }
 
   void _openDetail(AccountingContact contact) {
     ref.read(contactsUiProvider.notifier).state = ContactsUiState(
@@ -357,13 +402,52 @@ class _AccountingContactsViewState extends ConsumerState<AccountingContactsView>
   }
 
   Future<void> _deleteContact(AccountingContact contact) async {
-    if (contact.fromAging || contact.uuid == null) return;
+    if (contact.fromAging) return;
+    if (contact.uuid == null && contact.partyId == null) return;
     final businessId = ref.read(accountingBusinessIdProvider);
     if (businessId.isEmpty) return;
-    await ref.read(accountingDocumentsRepositoryProvider).deleteContact(
-          businessId: businessId,
-          contactId: contact.uuid!,
-        );
+
+    // Canonical party rows are shared with the POS app (transactions
+    // reference them via customerId) — deleting one needs explicit consent.
+    var deleteParty = false;
+    if (contact.partyId != null) {
+      deleteParty = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text('Delete ${contact.name}?'),
+              content: const Text(
+                'This contact is shared with the POS app. Deleting it removes '
+                'the customer record everywhere; past sales keep their '
+                'snapshot but lose the link. Delete anyway?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Delete everywhere'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+      if (!deleteParty) return;
+    }
+
+    if (contact.uuid != null) {
+      await ref.read(accountingDocumentsRepositoryProvider).deleteContact(
+            businessId: businessId,
+            contactId: contact.uuid!,
+          );
+    }
+    if (deleteParty && contact.partyId != null) {
+      await ref.read(partyRepositoryProvider).deleteParty(
+            id: contact.partyId!,
+            kind: widget.isCustomer ? PartyKind.customer : PartyKind.supplier,
+          );
+    }
     if (!mounted) return;
     showAccountingToast(context, 'Deleted', subtitle: contact.name);
   }
@@ -441,34 +525,22 @@ class _ContactDetailDrawer extends StatelessWidget {
         ? person.name.substring(0, 2).toUpperCase()
         : person.name.toUpperCase();
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        GestureDetector(
-          onTap: onClose,
-          child: Container(color: const Color(0x80081216)),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Material(
-            color: AccountingTokens.surface,
-            elevation: 0,
-            child: Container(
-              width: 540,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                color: AccountingTokens.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0x80081216),
-                    blurRadius: 60,
-                    offset: const Offset(-24, 0),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+    return Container(
+      width: 540,
+      decoration: const BoxDecoration(
+        color: AccountingTokens.surface,
+        border: Border(left: BorderSide(color: AccountingTokens.line)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x33081216),
+            blurRadius: 60,
+            offset: Offset(-24, 0),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 22, 16, 22),
                     child: Row(
@@ -637,12 +709,8 @@ class _ContactDetailDrawer extends StatelessWidget {
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -881,8 +949,23 @@ class _ContactFormDrawerState extends State<_ContactFormDrawer> {
     super.dispose();
   }
 
-  bool get _ok =>
-      _name.text.trim().isNotEmpty && _contact.text.trim().isNotEmpty;
+  /// First failing shared-domain validation (same rules/messages as the POS
+  /// AddCustomer form), or null when the canonical fields are valid.
+  String? get _validationError =>
+      validatePartyName(_name.text, isBusiness: true) ??
+      validatePartyPhone(_phone.text) ??
+      validatePartyEmail(_email.text.trim()) ??
+      validatePartyTin(_tin.text);
+
+  bool get _ok => _validationError == null && _contact.text.trim().isNotEmpty;
+
+  /// Show the error only once the user has started typing.
+  bool get _showError =>
+      _validationError != null &&
+      (_name.text.isNotEmpty ||
+          _phone.text.isNotEmpty ||
+          _email.text.isNotEmpty ||
+          _tin.text.isNotEmpty);
 
   void _submit() {
     if (!_ok) return;
@@ -1039,6 +1122,18 @@ class _ContactFormDrawerState extends State<_ContactFormDrawer> {
               ),
             ),
             const Divider(height: 1, color: AccountingTokens.line),
+            if (_showError)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                child: Text(
+                  _validationError!,
+                  style: AccountingTokens.sans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AccountingTokens.loss,
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
               child: Row(

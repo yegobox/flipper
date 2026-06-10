@@ -6,6 +6,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/mpos_helpers.dart';
+import 'package:flipper_models/domain/party/party_validation.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -208,14 +209,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                           icon: _isBusiness
                               ? Icons.storefront_outlined
                               : Icons.person_outline_rounded,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return _isBusiness
-                                  ? 'Business name is required'
-                                  : 'Name is required';
-                            }
-                            return null;
-                          },
+                          validator: (value) =>
+                              validatePartyName(value, isBusiness: _isBusiness),
                         ),
                         const SizedBox(height: 14),
                         _CustomerFormField(
@@ -224,12 +219,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                           hint: '07XX XXX XXX',
                           icon: Icons.smartphone_outlined,
                           keyboardType: TextInputType.phone,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Phone number is required';
-                            }
-                            return null;
-                          },
+                          validator: validatePartyPhone,
                         ),
                         const SizedBox(height: 14),
                         _CustomerFormField(
@@ -239,14 +229,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                           hint: 'name@email.com',
                           icon: Icons.mail_outline_rounded,
                           keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value != null &&
-                                value.isNotEmpty &&
-                                !isEmail(value)) {
-                              return 'Please enter a valid email address';
-                            }
-                            return null;
-                          },
+                          validator: validatePartyEmail,
                         ),
                         const SizedBox(height: 14),
                         _CustomerFormField(
@@ -256,18 +239,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                           hint: 'Tax ID for invoices',
                           icon: Icons.tag_outlined,
                           keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value != null && value.trim().isNotEmpty) {
-                              final trimmedValue = value.trim();
-                              if (!RegExp(r'^\d+$').hasMatch(trimmedValue)) {
-                                return 'TIN should contain only digits';
-                              }
-                              if (trimmedValue.length != 9) {
-                                return 'TIN must be 9 digits';
-                              }
-                            }
-                            return null;
-                          },
+                          validator: validatePartyTin,
                         ),
                       ],
                     ),

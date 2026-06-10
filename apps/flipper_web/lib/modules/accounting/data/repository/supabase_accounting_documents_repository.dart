@@ -23,6 +23,7 @@ class SupabaseAccountingDocumentsRepository
     'localId',
     'contactName',
     'sinceLabel',
+    'partyId',
   };
 
   static Map<String, dynamic> _forPostgrest(Map<String, dynamic> row) {
