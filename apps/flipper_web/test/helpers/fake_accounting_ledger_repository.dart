@@ -16,6 +16,12 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
   final List<BankLine> _bankLines;
   final Map<String, String> _txnToEntryId = {};
 
+  /// Entries created so far (read-only view for assertions).
+  List<JournalEntry> get entries => List.unmodifiable(_entries);
+
+  /// transactionId -> created entry uuid (read-only view for assertions).
+  Map<String, String> get txnToEntryId => Map.unmodifiable(_txnToEntryId);
+
   @override
   Future<void> ensureSeeded({required String businessId}) async {}
 

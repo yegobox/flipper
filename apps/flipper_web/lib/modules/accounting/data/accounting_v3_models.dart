@@ -72,6 +72,19 @@ class PendingDocEditor {
   final String who;
 }
 
+/// Customers/suppliers detail drawer or new-contact form (shell-level overlay).
+class ContactsUiState {
+  const ContactsUiState({
+    required this.isCustomer,
+    this.detailContact,
+    this.showCreateForm = false,
+  }) : assert(detailContact != null || showCreateForm);
+
+  final bool isCustomer;
+  final AccountingContact? detailContact;
+  final bool showCreateForm;
+}
+
 class DocTotals {
   const DocTotals({required this.subtotal, required this.vat, required this.total});
 
@@ -231,6 +244,172 @@ const defaultRecurringSchedules = <RecurringSchedule>[
     accounts: 'Insurance → Bank',
     iconName: 'ShieldCheck',
     active: false,
+  ),
+];
+
+/// Handoff `CUSTOMERS` seed — baseline when no contacts are persisted yet.
+const defaultHandoffCustomers = <AccountingContact>[
+  AccountingContact(
+    id: 'C-01',
+    name: 'Karake Retail Group',
+    contact: 'Jean-Paul Karake',
+    phone: '+250 788 120 440',
+    email: 'accounts@karake.rw',
+    tin: '102938471',
+    since: 'Mar 2024',
+    terms: 'Net 30',
+    balance: 640000,
+  ),
+  AccountingContact(
+    id: 'C-02',
+    name: 'Mutoni Boutique',
+    contact: 'Aline Mutoni',
+    phone: '+250 788 304 119',
+    email: 'aline@mutoni.rw',
+    tin: '109284756',
+    since: 'Jul 2024',
+    terms: 'Net 15',
+    balance: 380000,
+  ),
+  AccountingContact(
+    id: 'C-03',
+    name: 'Gisenyi Mini-Mart',
+    contact: 'Eric Niyonzima',
+    phone: '+250 788 551 202',
+    email: 'gisenyi.mart@gmail.com',
+    tin: '113847562',
+    since: 'Jan 2024',
+    terms: 'Net 30',
+    balance: 410000,
+  ),
+  AccountingContact(
+    id: 'C-04',
+    name: 'Twesigye Hardware',
+    contact: 'Robert Twesigye',
+    phone: '+250 788 667 833',
+    email: 'sales@twesigye.rw',
+    tin: '118273645',
+    since: 'Sep 2023',
+    terms: 'Net 30',
+    balance: 290000,
+  ),
+  AccountingContact(
+    id: 'C-05',
+    name: 'Umutara Traders',
+    contact: 'Claudine Uwase',
+    phone: '+250 788 712 909',
+    email: 'umutara.traders@yahoo.com',
+    tin: '120394857',
+    since: 'Feb 2025',
+    terms: 'Net 15',
+    balance: 520000,
+  ),
+  AccountingContact(
+    id: 'C-06',
+    name: 'Kivu Fresh Foods',
+    contact: 'Patrick Habineza',
+    phone: '+250 788 845 661',
+    email: 'finance@kivufresh.rw',
+    tin: '124857390',
+    since: 'Nov 2024',
+    terms: 'Net 30',
+    balance: 120000,
+  ),
+];
+
+/// Handoff `SUPPLIERS` seed — baseline when no contacts are persisted yet.
+const defaultHandoffSuppliers = <AccountingContact>[
+  AccountingContact(
+    id: 'S-01',
+    name: 'Habimana Wholesalers',
+    contact: 'Théogène Habimana',
+    phone: '+250 788 201 553',
+    email: 'orders@habimana.rw',
+    tin: '130495761',
+    since: 'Jan 2023',
+    terms: 'Net 30',
+    balance: 1200000,
+  ),
+  AccountingContact(
+    id: 'S-02',
+    name: 'Rwanda Beverage Co.',
+    contact: 'Sales desk',
+    phone: '+250 788 990 014',
+    email: 'b2b@rwandabev.rw',
+    tin: '133847562',
+    since: 'May 2023',
+    terms: 'Net 45',
+    balance: 340000,
+  ),
+  AccountingContact(
+    id: 'S-03',
+    name: 'Kigali Packaging Ltd',
+    contact: 'Yves Mugisha',
+    phone: '+250 788 443 217',
+    email: 'invoice@kpack.rw',
+    tin: '137162849',
+    since: 'Aug 2024',
+    terms: 'Net 30',
+    balance: 180000,
+  ),
+  AccountingContact(
+    id: 'S-04',
+    name: 'Akagera Logistics',
+    contact: 'Dispatch',
+    phone: '+250 788 118 776',
+    email: 'billing@akageralog.rw',
+    tin: '140382947',
+    since: 'Oct 2024',
+    terms: 'Net 15',
+    balance: 260000,
+  ),
+];
+
+/// Handoff `BILLS` seed — baseline when no bills are persisted yet.
+const defaultHandoffBills = <AccountingDocument>[
+  AccountingDocument(
+    id: 'BILL-512',
+    who: 'Habimana Wholesalers',
+    date: '28 May 2026',
+    due: '27 Jun 2026',
+    status: DocStatus.sent,
+    lines: [
+      DocLine(desc: 'Inventory restock · dry goods', qty: 1, price: 1016949),
+    ],
+  ),
+  AccountingDocument(
+    id: 'BILL-498',
+    who: 'Rwanda Beverage Co.',
+    date: '20 May 2026',
+    due: '04 Jul 2026',
+    status: DocStatus.sent,
+    lines: [DocLine(desc: 'Beverage supply · May', qty: 1, price: 288136)],
+  ),
+  AccountingDocument(
+    id: 'BILL-491',
+    who: 'Kigali Packaging Ltd',
+    date: '14 May 2026',
+    due: '13 Jun 2026',
+    status: DocStatus.overdue,
+    lines: [DocLine(desc: 'Branded packaging run', qty: 1, price: 152542)],
+  ),
+  AccountingDocument(
+    id: 'BILL-487',
+    who: 'Akagera Logistics',
+    date: '10 May 2026',
+    due: '25 May 2026',
+    status: DocStatus.sent,
+    lines: [DocLine(desc: 'Inter-city freight · May', qty: 1, price: 220339)],
+  ),
+  AccountingDocument(
+    id: 'BILL-480',
+    who: 'Habimana Wholesalers',
+    date: '02 May 2026',
+    due: '01 Jun 2026',
+    status: DocStatus.paid,
+    lines: [
+      DocLine(desc: 'Inventory restock · April', qty: 1, price: 940000),
+    ],
   ),
 ];
 

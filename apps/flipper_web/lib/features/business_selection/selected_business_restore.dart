@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:flipper_web/core/business_selection_persistence.dart';
+import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
@@ -11,27 +10,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Restores [selectedBusinessProvider] / [selectedBranchProvider] after reload
-/// or hot restart when in-memory selection was cleared.
-final selectedBusinessRestoreProvider = Provider<void>((ref) {
-  void scheduleRestore(UserProfile? profile) {
-    if (profile == null || !profile.hasBusinesses) return;
-    unawaited(
-      Future.microtask(() async {
-        if (!ref.mounted) return;
-        await restoreSelectedBusinessFromProfile(ref, profile);
-      }),
-    );
+/// or navigation before Books reads [accountingBusinessIdProvider].
+final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
+  // Keep selection alive while restore runs.
+  ref.watch(selectedBusinessProvider);
+  ref.watch(selectedBranchProvider);
+
+  final cached = ref.read(userProfileCacheProvider);
+  if (cached != null && cached.hasBusinesses) {
+    await restoreSelectedBusinessFromProfile(ref, cached);
+    return;
   }
 
-  ref.listen(userProfileCacheProvider, (_, profile) => scheduleRestore(profile));
-  ref.listen(currentUserProfileProvider, (_, asyncProfile) {
-    scheduleRestore(asyncProfile.value);
-  });
-
-  // Ensures profile fetch runs on /accounting even when cache is empty.
-  ref.watch(currentUserProfileProvider);
-
-  scheduleRestore(ref.read(userProfileCacheProvider));
+  final profile = await ref.watch(currentUserProfileProvider.future);
+  if (profile != null && profile.hasBusinesses) {
+    await restoreSelectedBusinessFromProfile(ref, profile);
+  }
 });
 
 /// Applies persisted or default business/branch from [profile] when selection
@@ -54,9 +48,11 @@ Future<void> restoreSelectedBusinessFromProfile(
   Branch? branch = currentBranch;
 
   if (business == null || branch == null) {
-    final persisted = await BusinessSelectionPersistence.read(
-      userId: profile.id,
-    );
+    final apiUserId = await SessionPersistence.readApiUserId();
+    final persisted = await BusinessSelectionPersistence.readForUserIds([
+      profile.id,
+      if (apiUserId != null) apiUserId,
+    ]);
     if (persisted != null) {
       business ??= _findBusiness(businesses, persisted.businessId);
       if (business != null) {
@@ -95,8 +91,9 @@ Future<void> restoreSelectedBusinessFromProfile(
   }
 
   if (restored && branch != null) {
+    final apiUserId = await SessionPersistence.readApiUserId();
     await BusinessSelectionPersistence.save(
-      userId: profile.id,
+      userId: apiUserId ?? profile.id,
       businessId: resolvedBusiness.id,
       branchId: branch.id,
     );

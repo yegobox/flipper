@@ -43,15 +43,22 @@ class AccountingDesktopShell extends ConsumerWidget {
                             0.0,
                             AccountingTokens.contentMaxWidth,
                           );
-                          return Align(
-                            alignment: Alignment.topCenter,
-                            child: SizedBox(
-                              width: contentWidth,
-                              child: _DesktopViewRouter(
-                                view: view,
-                                onNewEntry: openComposer,
+                          return Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Align(
+                                alignment: Alignment.topCenter,
+                                child: SizedBox(
+                                  width: contentWidth,
+                                  height: constraints.maxHeight,
+                                  child: _DesktopViewRouter(
+                                    view: view,
+                                    onNewEntry: openComposer,
+                                  ),
+                                ),
                               ),
-                            ),
+                              const AccountingContactsDrawerHost(),
+                            ],
                           );
                         },
                       ),

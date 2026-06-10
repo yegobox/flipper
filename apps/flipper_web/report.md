@@ -190,9 +190,13 @@ The two high-severity correctness gaps and the ledger-test coverage gap have bee
 | 4.2 Expense account `6000` missing | **Fixed** | Added `6000 Operating Expenses` (sub `Operating expenses`) to the seed chart of accounts. (`default_chart_of_accounts_seed.dart`) |
 | 4.2 silent line dropping | **Hardened** | `accountsWithBalances` now emits a debug warning when a journal line references an account absent from the COA, instead of silently dropping one leg. (`accounting_balances.dart`) |
 | 4.5 missing balancing tests | **Fixed** | Added `test/modules/accounting/data/ledger_balancing_test.dart`: asserts trial balance balances, the accounting equation (Assets = Liabilities + Equity) holds, COGS and cash expenses flow to the income statement, every posted line maps to a seeded account, and that a line to an unknown account is detectable as an imbalance. |
+| Supabase seed RPC missing 6000 | **Fixed** | Added migration `supabase/migrations/20260610130000_add_operating_expenses_account.sql`: replaces `seed_default_chart_of_accounts` to include `6000` and backfills it for already-seeded businesses (idempotent). Apply via the normal migration step. |
+| Poster transaction/entry index misalignment | **Fixed** | `TransactionJournalPoster.syncTransactions` paired entries to transactions by index, but the entry list is filtered to recognized transactions only, so a non-recognized row shifted the alignment and misattributed transaction ids. Now both sides iterate the same filtered+ordered list. Regression test added in `test/modules/accounting/data/transaction_journal_poster_test.dart`. |
 
-**Verification:** `flutter test test/modules/accounting` now passes **60/60** (was 50). `flutter analyze` on the changed files: no issues.
+**Verification:** `flutter test test/modules/accounting` now passes **63/63** (was 50). `flutter analyze` on the changed files: no issues.
 
-**Note on Supabase backend:** the Ditto seed is fixed directly. The Supabase chart of accounts is seeded by a server-side RPC (`seed_default_chart_of_accounts`) not present in this repo; that RPC must also be updated to include account `6000`, otherwise finding 4.2 persists on the Supabase backend.
-
-**Still open (lower priority, not addressed this session):** bank reconciliation demo data (4.4), aging due-date basis (4.6), UI-only actions (4.7), and period-end mechanisms such as depreciation and closing entries (4.8).
+**Still open (need product/business decisions, not addressed this session):**
+- **Bank reconciliation (4.4):** uses demo seed data; needs a decision on the real bank-statement source (file import vs bank API vs manual) before the matching can be wired.
+- **Aging due-date basis (4.6):** POS transactions carry no due-date field, only `created_at`. A proper aging fix needs either a due-date/payment-terms field on POS sales or an agreed convention. (Document/invoice aging in the v3 layer already uses a due date.)
+- **UI-only actions (4.7):** PDF/print export, RRA VAT filing integration, add-account form, team invitations, recurring "Run now", send statement/reminders, mobile navigation. Each is independent feature work; triage by launch priority.
+- **Period-end mechanisms (4.8):** depreciation posting and formal closing entries need business rules (depreciation method, asset lives, whether to lock periods with closing journals).

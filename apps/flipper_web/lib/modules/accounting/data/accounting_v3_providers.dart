@@ -65,6 +65,9 @@ final suppliersStreamProvider = StreamProvider<List<AccountingContact>>((ref) {
 
 final pendingDocEditorProvider = StateProvider<PendingDocEditor?>((ref) => null);
 
+/// Detail / new-contact panels render in [AccountingContactsDrawerHost] at shell edge.
+final contactsUiProvider = StateProvider<ContactsUiState?>((ref) => null);
+
 final recurringSchedulesProvider =
     StateProvider<List<RecurringSchedule>>((ref) => defaultRecurringSchedules);
 
@@ -86,24 +89,39 @@ final docTabFilterProvider = StateProvider<DocTabFilter>(
 List<AccountingContact> _mergeContacts({
   required List<AgingRow> aging,
   required List<AccountingContact> saved,
+  required List<AccountingContact> handoffSeed,
   required String idPrefix,
 }) {
   final byName = <String, AccountingContact>{};
+
+  // Handoff master records when nothing is persisted yet (matches contacts.jsx seed).
+  if (saved.isEmpty) {
+    for (final s in handoffSeed) {
+      byName[s.name] = s;
+    }
+  }
+
   for (final row in aging) {
     if (row.name.isEmpty) continue;
-    byName[row.name] = AccountingContact(
-      id: '$idPrefix-${row.name.hashCode.abs()}',
-      name: row.name,
-      contact: row.name,
-      phone: '',
-      email: '',
-      tin: '',
-      since: '—',
-      terms: 'Net 30',
-      balance: row.total,
-      fromAging: true,
-    );
+    final existing = byName[row.name];
+    if (existing != null) {
+      byName[row.name] = existing.copyWith(balance: row.total, fromAging: true);
+    } else {
+      byName[row.name] = AccountingContact(
+        id: '$idPrefix-${row.name.hashCode.abs()}',
+        name: row.name,
+        contact: row.name,
+        phone: '',
+        email: '',
+        tin: '',
+        since: '—',
+        terms: 'Net 30',
+        balance: row.total,
+        fromAging: true,
+      );
+    }
   }
+
   for (final c in saved) {
     final existing = byName[c.name];
     if (existing != null && existing.fromAging) {
@@ -112,6 +130,7 @@ List<AccountingContact> _mergeContacts({
       byName[c.name] = c;
     }
   }
+
   return byName.values.toList()..sort((a, b) => a.name.compareTo(b.name));
 }
 
@@ -119,6 +138,7 @@ final accountingCustomersProvider = Provider<List<AccountingContact>>((ref) {
   return _mergeContacts(
     aging: ref.watch(accountingArAgingProvider),
     saved: ref.watch(customersStreamProvider).value ?? [],
+    handoffSeed: defaultHandoffCustomers,
     idPrefix: 'C',
   );
 });
@@ -127,6 +147,7 @@ final accountingSuppliersProvider = Provider<List<AccountingContact>>((ref) {
   return _mergeContacts(
     aging: ref.watch(accountingApAgingProvider),
     saved: ref.watch(suppliersStreamProvider).value ?? [],
+    handoffSeed: defaultHandoffSuppliers,
     idPrefix: 'S',
   );
 });
@@ -152,7 +173,9 @@ final accountingInvoicesProvider = Provider<List<AccountingDocument>>((ref) {
 });
 
 final accountingBillsProvider = Provider<List<AccountingDocument>>((ref) {
-  return _withOverdue(ref.watch(billsStreamProvider).value ?? []);
+  final persisted = ref.watch(billsStreamProvider).value ?? [];
+  if (persisted.isEmpty) return _withOverdue(defaultHandoffBills);
+  return _withOverdue(persisted);
 });
 
 // ─── Team (current user + invited) ───────────────────────────────────────────

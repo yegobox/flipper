@@ -37,6 +37,8 @@ enum AccIcon {
   trash,
   layers,
   minus,
+  more,
+  hash,
 }
 
 const _svgAttrs =
@@ -140,6 +142,12 @@ String _iconSvg(AccIcon icon) => switch (icon) {
           'M4 17l8 4 8-4',
         ]),
       AccIcon.minus => _svg(['M5 12h14']),
+      AccIcon.more => _svgMixed(
+          '<circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none"/>'
+          '<circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>'
+          '<circle cx="19" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
+        ),
+      AccIcon.hash => _svg(['M4 9h16', 'M4 15h16', 'M10 3v18', 'M14 3v18']),
     };
 
 extension AccIconSvg on AccIcon {
@@ -169,6 +177,9 @@ AccIcon? accIconFromHandoff(String name) => switch (name) {
       'Warn' => AccIcon.warn,
       'Mail' => AccIcon.mail,
       'Download' => AccIcon.download,
+      'Hash' => AccIcon.hash,
+      'Phone' => AccIcon.phone,
+      'Search' => AccIcon.search,
       _ => null,
     };
 

@@ -35,6 +35,19 @@ abstract final class BusinessSelectionPersistence {
     return (businessId: businessId, branchId: branchId);
   }
 
+  /// Tries each user id (profile id, persisted API user id, etc.).
+  static Future<({String businessId, String branchId})?> readForUserIds(
+    Iterable<String> userIds,
+  ) async {
+    for (final raw in userIds) {
+      final id = raw.trim();
+      if (id.isEmpty) continue;
+      final result = await read(userId: id);
+      if (result != null) return result;
+    }
+    return null;
+  }
+
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userKey);

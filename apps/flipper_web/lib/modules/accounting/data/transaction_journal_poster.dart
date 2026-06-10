@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/transaction_to_accounts.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_ledger_repository.dart';
 
@@ -23,14 +24,21 @@ class TransactionJournalPoster {
 
     await _ledger.ensureSeeded(businessId: businessId);
 
-    final derived = TransactionToAccounts.toJournal(transactions, items);
+    // [toJournal] emits one entry per *recognized* transaction, preserving
+    // order. Pair each entry with the matching transaction from the SAME
+    // filtered+ordered list so the transactionId (used for idempotency and
+    // source linkage) is never misattributed when the input contains
+    // non-recognized rows.
+    final recognized =
+        transactions.where(isAccountingRecognizedTransaction).toList();
+    final derived = TransactionToAccounts.toJournal(recognized, items);
     var created = 0;
     var skipped = 0;
 
     for (var i = 0; i < derived.length; i++) {
       final entry = derived[i];
-      if (i >= transactions.length) continue;
-      final txnId = (transactions[i]['id'] ?? transactions[i]['_id'] ?? '')
+      if (i >= recognized.length) continue;
+      final txnId = (recognized[i]['id'] ?? recognized[i]['_id'] ?? '')
           .toString();
       if (txnId.isEmpty) continue;
 

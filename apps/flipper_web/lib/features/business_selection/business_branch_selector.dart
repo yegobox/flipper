@@ -1,5 +1,6 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
+import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/features/business_selection/login_choices_ui.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/services/auth_service.dart';
@@ -27,7 +28,7 @@ extension AppRouteExtension on AppRoute {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class SelectedBusiness extends _$SelectedBusiness {
   @override
   Business? build() => null;
@@ -35,7 +36,7 @@ class SelectedBusiness extends _$SelectedBusiness {
   void set(Business? business) => state = business;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class SelectedBranch extends _$SelectedBranch {
   @override
   Branch? build() => null;
@@ -335,8 +336,9 @@ class _BusinessBranchSelectorState
 
     final business = ref.read(selectedBusinessProvider);
     if (business != null) {
+      final apiUserId = await SessionPersistence.readApiUserId();
       await BusinessSelectionPersistence.save(
-        userId: widget.userProfile.id,
+        userId: apiUserId ?? widget.userProfile.id,
         businessId: business.id,
         branchId: branch.id,
       );

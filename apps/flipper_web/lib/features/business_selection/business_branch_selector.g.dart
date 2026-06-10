@@ -8,22 +8,19 @@ part of 'business_branch_selector.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Provider for the selected business
 
 @ProviderFor(SelectedBusiness)
 const selectedBusinessProvider = SelectedBusinessProvider._();
 
-/// Provider for the selected business
 final class SelectedBusinessProvider
     extends $NotifierProvider<SelectedBusiness, Business?> {
-  /// Provider for the selected business
   const SelectedBusinessProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'selectedBusinessProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -44,9 +41,7 @@ final class SelectedBusinessProvider
   }
 }
 
-String _$selectedBusinessHash() => r'2578b9712eb3ee260aecfd52bf47f34ec8b2dbc7';
-
-/// Provider for the selected business
+String _$selectedBusinessHash() => r'6d245760aacf7cb5164401252e78b98a77807743';
 
 abstract class _$SelectedBusiness extends $Notifier<Business?> {
   Business? build();
@@ -67,22 +62,18 @@ abstract class _$SelectedBusiness extends $Notifier<Business?> {
   }
 }
 
-/// Provider for the selected branch
-
 @ProviderFor(SelectedBranch)
 const selectedBranchProvider = SelectedBranchProvider._();
 
-/// Provider for the selected branch
 final class SelectedBranchProvider
     extends $NotifierProvider<SelectedBranch, Branch?> {
-  /// Provider for the selected branch
   const SelectedBranchProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'selectedBranchProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -103,9 +94,7 @@ final class SelectedBranchProvider
   }
 }
 
-String _$selectedBranchHash() => r'ee917e3b5c6ea74ba5e0c640b2958c8964ddccfb';
-
-/// Provider for the selected branch
+String _$selectedBranchHash() => r'bc99833d82f612166d9cdea59853091eb8be65f0';
 
 abstract class _$SelectedBranch extends $Notifier<Branch?> {
   Branch? build();

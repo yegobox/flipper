@@ -22,12 +22,16 @@ class AccountingDataTable extends StatelessWidget {
     required this.rows,
     this.mutedRow,
     this.onRowTap,
+    this.rowTapExcludeTrailingColumns = 0,
   });
 
   final List<AccountingTableColumn> columns;
   final List<List<Widget>> rows;
   final bool Function(int index)? mutedRow;
   final void Function(int index)? onRowTap;
+
+  /// Trailing columns (e.g. row menu) that should not trigger [onRowTap].
+  final int rowTapExcludeTrailingColumns;
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +90,12 @@ class AccountingDataTable extends StatelessWidget {
                           for (var ci = 0; ci < rows[ri].length; ci++)
                             _Cell(
                               muted: mutedRow?.call(ri) ?? false,
-                              onTap: onRowTap == null ? null : () => onRowTap!(ri),
+                              onTap: onRowTap == null ||
+                                      ci >=
+                                          columns.length -
+                                              rowTapExcludeTrailingColumns
+                                  ? null
+                                  : () => onRowTap!(ri),
                               align: columns[ci].align,
                               child: rows[ri][ci],
                             ),
