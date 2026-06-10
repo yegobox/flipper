@@ -143,7 +143,7 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-          FLUTTER_VERSION: "3.29.3"
+          FLUTTER_VERSION: "3.44.9"
           VERSION_CODE: ${{ env.VERSION_CODE }}
           VERSION_NAME: ${{ env.VERSION_NAME }}
           USE_SHOREBIRD: "true"
