@@ -162,6 +162,19 @@ abstract final class StockRecountExportContext {
     return 'Agent';
   }
 
+  /// Branch display name for the PDF header — never the raw branch UUID.
+  static Future<String> resolveBranchName(String branchId) async {
+    try {
+      final id = ProxyService.box.getBranchId() ?? branchId;
+      final branch = await ProxyService.strategy
+          .activeBranch(branchId: id)
+          .timeout(const Duration(seconds: 5));
+      final name = branch.name?.trim();
+      if (name != null && name.isNotEmpty) return name;
+    } catch (_) {}
+    return 'Branch';
+  }
+
   static Future<Map<String, String>> resolveVariantSkus(
     List<StockRecountItem> items,
   ) async {

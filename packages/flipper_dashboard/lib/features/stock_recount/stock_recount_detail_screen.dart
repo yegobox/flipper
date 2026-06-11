@@ -280,11 +280,13 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
       final tenant = await ProxyService.strategy.getTenant(
         userId: ProxyService.box.getUserId() ?? '',
       );
+      final branchName =
+          await StockRecountExportContext.resolveBranchName(recount.branchId);
       await StockRecountPdfExport.previewAndShare(
         recount: recount,
         items: _items,
         businessName: tenant?.name ?? 'Business',
-        branchName: ProxyService.box.branchIdString() ?? recount.branchId,
+        branchName: branchName,
       );
     } catch (e, st) {
       talker.error('StockRecountDetail: export failed', e, st);

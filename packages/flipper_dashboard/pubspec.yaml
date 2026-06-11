@@ -150,6 +150,7 @@ flutter:
   uses-material-design: true
   assets:
     - ./assets/
+    - ./assets/fonts/
     - ./assets/pos_handoff/icons/
     - ./assets/animations/empty_box.json
 generate: true

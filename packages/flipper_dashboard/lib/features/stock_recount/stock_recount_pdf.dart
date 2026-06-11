@@ -16,9 +16,10 @@ import 'stock_recount_helpers.dart';
 
 class StockRecountPdfExport {
   static pw.Font? _fallbackFont;
+  static final Map<String, pw.Font?> _geistFonts = {};
 
-  /// Helvetica only covers Latin-1 (no em dash, no non-Latin product names);
-  /// NotoSans fills the gaps via the page theme's fontFallback.
+  /// Geist (the design's typeface) only covers Latin; NotoSans fills the gaps
+  /// (em dash, non-Latin product names) via the page theme's fontFallback.
   static Future<pw.Font?> _unicodeFallback() async {
     if (_fallbackFont != null) return _fallbackFont;
     try {
@@ -28,6 +29,19 @@ class StockRecountPdfExport {
       _fallbackFont = pw.Font.ttf(data);
     } catch (_) {}
     return _fallbackFont;
+  }
+
+  static Future<pw.Font?> _geist(String weight) async {
+    if (_geistFonts.containsKey(weight)) return _geistFonts[weight];
+    pw.Font? font;
+    try {
+      final data = await rootBundle.load(
+        'packages/flipper_dashboard/assets/fonts/Geist-$weight.ttf',
+      );
+      font = pw.Font.ttf(data);
+    } catch (_) {}
+    _geistFonts[weight] = font;
+    return font;
   }
 
   /// Saves or shares the PDF — does not open the system print dialog.
@@ -105,8 +119,10 @@ class StockRecountPdfExport {
       );
       logo = pw.MemoryImage(logoBytes.buffer.asUint8List());
     } catch (_) {}
-    final baseFont = pw.Font.helvetica();
-    final boldFont = pw.Font.helveticaBold();
+    final baseFont = await _geist('Regular') ?? pw.Font.helvetica();
+    final boldFont = await _geist('Bold') ?? pw.Font.helveticaBold();
+    // Design weight 800 for the document titles and totals row.
+    final heavyFont = await _geist('ExtraBold') ?? boldFont;
     final fallbackFont = await _unicodeFallback();
     final now = DateTime.now();
     final reportId = recount.id.length >= 6
@@ -142,7 +158,7 @@ class StockRecountPdfExport {
                         pw.Text(
                           businessName,
                           style: pw.TextStyle(
-                            font: boldFont,
+                            font: heavyFont,
                             fontSize: 20,
                             fontWeight: pw.FontWeight.bold,
                             letterSpacing: -0.4,
@@ -167,7 +183,7 @@ class StockRecountPdfExport {
                   pw.Text(
                     'Stock Recount',
                     style: pw.TextStyle(
-                      font: boldFont,
+                      font: heavyFont,
                       fontSize: 22,
                       fontWeight: pw.FontWeight.bold,
                       letterSpacing: -0.44,
@@ -203,7 +219,7 @@ class StockRecountPdfExport {
             ),
           ],
           pw.SizedBox(height: 8),
-          _itemsTable(items, stats, variantSkus, baseFont, boldFont),
+          _itemsTable(items, stats, variantSkus, baseFont, boldFont, heavyFont),
           pw.SizedBox(height: 18),
           _summaryPills(stats, baseFont, boldFont),
           pw.SizedBox(height: 48),
@@ -337,6 +353,7 @@ class StockRecountPdfExport {
     Map<String, String> variantSkus,
     pw.Font regular,
     pw.Font bold,
+    pw.Font heavy,
   ) {
     PdfColor varianceColor(double v) {
       if (v > 0) return const PdfColor.fromInt(0xFF047857);
@@ -463,18 +480,18 @@ class StockRecountPdfExport {
               padding: const pw.EdgeInsets.fromLTRB(10, 14, 10, 12),
               child: pw.Text(
                 'Totals · ${stats.count} ${stats.count == 1 ? 'item' : 'items'}',
-                style: pw.TextStyle(font: bold, fontSize: 14),
+                style: pw.TextStyle(font: heavy, fontSize: 14),
               ),
             ),
-            _numCell(stats.sysTot, bold, size: 14),
-            _numCell(stats.cntTot, bold, size: 14),
+            _numCell(stats.sysTot, heavy, size: 14),
+            _numCell(stats.cntTot, heavy, size: 14),
             pw.Padding(
               padding: const pw.EdgeInsets.fromLTRB(10, 14, 10, 12),
               child: pw.Text(
                 StockRecountHelpers.formatSignedVariance(stats.net),
                 textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(
-                  font: bold,
+                  font: heavy,
                   fontSize: 14,
                   color: varianceColor(stats.net),
                 ),

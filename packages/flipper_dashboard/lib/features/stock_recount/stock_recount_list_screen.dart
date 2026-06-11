@@ -122,11 +122,13 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
       final tenant = await ProxyService.strategy.getTenant(
         userId: ProxyService.box.getUserId() ?? '',
       );
+      final branchName =
+          await StockRecountExportContext.resolveBranchName(recount.branchId);
       await StockRecountPdfExport.previewAndShare(
         recount: recount,
         items: items,
         businessName: tenant?.name ?? 'Business',
-        branchName: ProxyService.box.branchIdString() ?? recount.branchId,
+        branchName: branchName,
       );
     } catch (e, st) {
       talker.error('StockRecountList: PDF export failed', e, st);
