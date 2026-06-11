@@ -118,6 +118,7 @@ class _RecordPurchaseModal extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(padX, 20, padX - 8, 18),
@@ -169,7 +170,7 @@ class _RecordPurchaseModal extends StatelessWidget {
             ),
           ),
           Container(height: 1, color: ImportPurchaseTokens.line),
-          Expanded(
+          Flexible(
             child: ManualPurchaseForm(
               catalogVariants: catalogVariants,
               onClose: onClose,

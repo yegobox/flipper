@@ -169,8 +169,9 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(_padX, 22, _padX, 20),
               child: Align(
