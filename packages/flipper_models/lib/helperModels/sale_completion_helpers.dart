@@ -6,6 +6,8 @@ double _roundToTwoDecimalPlaces(double value) =>
 const String saleCompletionStatusComplete = 'completed';
 const String saleCompletionStatusParked = 'parked';
 
+const double _paymentEpsilon = 0.0001;
+
 /// Minimal tender line for completion math (no Flutter controllers).
 class PaymentLineForSaleCompletion {
   const PaymentLineForSaleCompletion({
@@ -42,16 +44,21 @@ DerivedSaleCompletionState deriveSaleCompletionState({
   required double finalSubTotal,
   required List<PaymentLineForSaleCompletion> paymentMethods,
 }) {
-  const paymentEpsilon = 0.0001;
   var effectiveCashReceived = transactionCashReceived;
-  if (effectiveCashReceived <= paymentEpsilon) {
-    final sumFromPaymentLines = paymentMethods.fold<double>(
-      0,
-      (sum, p) => sum + p.amount,
-    );
-    effectiveCashReceived = sumFromPaymentLines > paymentEpsilon
+  final sumFromPaymentLines = paymentMethods.fold<double>(
+    0,
+    (sum, p) => sum + p.amount,
+  );
+  if (effectiveCashReceived <= _paymentEpsilon) {
+    // Do not assume full payment when tender is unknown — that skipped loan/park.
+    effectiveCashReceived = sumFromPaymentLines > _paymentEpsilon
         ? sumFromPaymentLines
-        : finalSubTotal;
+        : 0.0;
+  } else if (sumFromPaymentLines > _paymentEpsilon &&
+      sumFromPaymentLines + _paymentEpsilon < effectiveCashReceived) {
+    // Payment rows are authoritative when the received-amount field is stale
+    // (auto-filled to full total while the user underpaid on the payment card).
+    effectiveCashReceived = sumFromPaymentLines;
   }
 
   final totalCredit = paymentMethods
@@ -64,7 +71,7 @@ DerivedSaleCompletionState deriveSaleCompletionState({
   final nonCreditCashReceived = nonCreditCashReceivedRaw < 0
       ? 0.0
       : nonCreditCashReceivedRaw;
-  final isFullyPaid = (nonCreditCashReceived + paymentEpsilon) >= saleTotal;
+  final isFullyPaid = (nonCreditCashReceived + _paymentEpsilon) >= saleTotal;
 
   final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
   final status = shouldBeLoan ? saleCompletionStatusParked : saleCompletionStatusComplete;

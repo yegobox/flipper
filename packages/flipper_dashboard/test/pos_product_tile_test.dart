@@ -29,6 +29,21 @@ void main() {
         PosStockVisual.ok,
       );
     });
+
+    test('posAvailableStockForDisplay subtracts in-cart qty', () {
+      expect(
+        posAvailableStockForDisplay(physicalStock: 3, inCartQty: 0),
+        3,
+      );
+      expect(
+        posAvailableStockForDisplay(physicalStock: 3, inCartQty: 2),
+        1,
+      );
+      expect(
+        posAvailableStockForDisplay(physicalStock: 2, inCartQty: 3),
+        0,
+      );
+    });
   });
 
   test('PosTokens match handoff surface colors', () {

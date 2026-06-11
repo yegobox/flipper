@@ -5,6 +5,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -108,8 +109,11 @@ Future<bool> persistItemToTransaction({
     if (variant.taxTyCd != "D" && variant.itemTyCd != "3") {
       final allowSellingBelowStock =
           await locator<SettingsService>().isAllowSellingBelowStock();
+      final inCartQty = ref.read(posCartQtyForVariantProvider(variant.id));
       if (!allowSellingBelowStock &&
-          (currentStock == null || currentStock <= 0)) {
+          (currentStock == null ||
+              currentStock <= 0 ||
+              currentStock < inCartQty)) {
         ref.read(optimisticOrderCountProvider.notifier).decrement();
         if (cartOptimismApplied) {
           ref

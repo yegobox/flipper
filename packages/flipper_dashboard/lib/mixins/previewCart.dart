@@ -63,28 +63,46 @@ Future<List<TransactionItem>> _getTransactionItems({
   return items;
 }
 
+const double _tenderEpsilon = 0.0001;
+
+/// Tender lines for completion, reading controller text when [Payment.amount] is unset.
+List<PaymentLineForSaleCompletion> paymentLinesForSaleCompletion(
+  List<Payment> paymentMethods,
+) {
+  return paymentMethods
+      .map((p) {
+        var amt = p.amount;
+        if (amt <= _tenderEpsilon) {
+          amt = double.tryParse(p.controller.text.trim()) ?? 0.0;
+        }
+        return PaymentLineForSaleCompletion(amount: amt, method: p.method);
+      })
+      .toList();
+}
+
+double sumTenderFromPaymentMethods(List<Payment> paymentMethods) {
+  final sum = paymentLinesForSaleCompletion(paymentMethods)
+      .fold<double>(0, (s, p) => s + p.amount);
+  return sum > _tenderEpsilon ? sum : 0.0;
+}
+
 /// Resolves how much tender was received when the dedicated "received amount"
 /// field is empty or stale (e.g. mobile checkout only updates payment rows, or
-/// QuickSellingView binds a different [TextEditingController] than the mixin).
+/// QuickSellingView auto-filled the received field to the full total while the
+/// user underpaid on [PaymentMethodsCard]).
 double resolveTenderAmountForSaleCompletion({
   required TextEditingController receivedAmountController,
   required List<Payment> paymentMethods,
   required double saleTotal,
 }) {
-  const eps = 0.0001;
-  var amount = double.tryParse(receivedAmountController.text.trim()) ?? 0.0;
-  if (amount > eps) return amount;
+  final fromPayments = sumTenderFromPaymentMethods(paymentMethods);
+  if (fromPayments > _tenderEpsilon) return fromPayments;
 
-  amount = paymentMethods.fold<double>(0.0, (s, p) => s + p.amount);
-  if (amount > eps) return amount;
+  final fromReceived =
+      double.tryParse(receivedAmountController.text.trim()) ?? 0.0;
+  if (fromReceived > _tenderEpsilon) return fromReceived;
 
-  amount = paymentMethods.fold<double>(
-    0.0,
-    (s, p) => s + (double.tryParse(p.controller.text.trim()) ?? 0.0),
-  );
-  if (amount > eps) return amount;
-
-  return saleTotal > eps ? saleTotal : 0.0;
+  return saleTotal > _tenderEpsilon ? saleTotal : 0.0;
 }
 
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
@@ -708,12 +726,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }) async {
     final capella = ProxyService.getStrategy(Strategy.capella);
 
-    final paymentLines = paymentMethods
-        .map(
-          (p) =>
-              PaymentLineForSaleCompletion(amount: p.amount, method: p.method),
-        )
-        .toList();
+    final paymentLines = paymentLinesForSaleCompletion(paymentMethods);
 
     final derived = deriveSaleCompletionState(
       transactionCashReceived: transaction.cashReceived ?? 0,

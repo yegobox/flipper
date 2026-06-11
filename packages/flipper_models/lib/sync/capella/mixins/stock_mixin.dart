@@ -152,8 +152,8 @@ mixin CapellaStockMixin implements StockInterface {
         talker.error('Ditto not initialized:3');
         throw Exception('Ditto not initialized:4');
       }
-      final result = await ditto.store.execute(
-        'SELECT * FROM stocks WHERE _id = :id LIMIT 1',
+      var result = await ditto.store.execute(
+        'SELECT * FROM stocks WHERE _id = :id OR id = :id LIMIT 1',
         arguments: {'id': id},
       );
 
@@ -236,10 +236,9 @@ mixin CapellaStockMixin implements StockInterface {
 
       final out = <String, Stock>{};
       for (final doc in result.items) {
-        final stock = _convertFromDittoDocument(
-          Map<String, dynamic>.from(doc.value),
-        );
-        out[stock.id] = stock;
+        final data = Map<String, dynamic>.from(doc.value);
+        final stock = _convertFromDittoDocument(data);
+        _indexStockByIdKeys(out, stock, data);
       }
       return out;
     } catch (e, st) {
@@ -340,6 +339,22 @@ mixin CapellaStockMixin implements StockInterface {
   }
 
   /// Convert Ditto document to Stock model
+  void _indexStockByIdKeys(
+    Map<String, Stock> out,
+    Stock stock,
+    Map<String, dynamic> data,
+  ) {
+    out[stock.id] = stock;
+    final logicalId = data['id']?.toString();
+    if (logicalId != null && logicalId.isNotEmpty) {
+      out[logicalId] = stock;
+    }
+    final dittoId = data['_id']?.toString();
+    if (dittoId != null && dittoId.isNotEmpty) {
+      out[dittoId] = stock;
+    }
+  }
+
   Stock _convertFromDittoDocument(Map<String, dynamic> data) {
     DateTime? lastTouched;
     if (data['lastTouched'] != null) {
@@ -398,7 +413,7 @@ mixin CapellaStockMixin implements StockInterface {
 
       // Get existing stock
       final existingResult = await ditto.store.execute(
-        'SELECT * FROM stocks WHERE _id = :stockId LIMIT 1',
+        'SELECT * FROM stocks WHERE _id = :stockId OR id = :stockId LIMIT 1',
         arguments: {'stockId': stockId},
       );
 
@@ -442,7 +457,7 @@ mixin CapellaStockMixin implements StockInterface {
 
       if (updateData.isNotEmpty) {
         await ditto.store.execute(
-          'UPDATE stocks SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :stockId',
+          'UPDATE stocks SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :stockId OR id = :stockId',
           arguments: {...updateData, 'stockId': stockId},
         );
       }
@@ -470,7 +485,7 @@ mixin CapellaStockMixin implements StockInterface {
       await ditto.store.execute(
         '''
 UPDATE stocks SET currentStock = :currentStock, rsdQty = :rsdQty
-WHERE _id = :stockId
+WHERE _id = :stockId OR id = :stockId
 ''',
         arguments: {
           'stockId': stockId,
@@ -862,10 +877,15 @@ WHERE _id = :stockId
           if (controller.isClosed) return;
           final out = <String, Stock?>{for (final id in unique) id: null};
           for (final doc in queryResult.items) {
-            final stock = _convertFromDittoDocument(
-              Map<String, dynamic>.from(doc.value),
-            );
-            out[stock.id] = stock;
+            final data = Map<String, dynamic>.from(doc.value);
+            final stock = _convertFromDittoDocument(data);
+            for (final key in <String>{
+              stock.id,
+              data['id']?.toString() ?? '',
+              data['_id']?.toString() ?? '',
+            }) {
+              if (key.isNotEmpty) out[key] = stock;
+            }
           }
           controller.add(out);
         },

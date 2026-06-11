@@ -54,6 +54,30 @@ void main() {
       expect(d.shouldBeLoan, false);
       expect(d.status, saleCompletionStatusComplete);
     });
+
+    test('stale in-memory cashReceived yields to lower payment rows', () {
+      final d = deriveSaleCompletionState(
+        transactionCashReceived: 100,
+        finalSubTotal: 100,
+        paymentMethods: const [
+          PaymentLineForSaleCompletion(amount: 40, method: 'CASH'),
+        ],
+      );
+      expect(d.shouldBeLoan, true);
+      expect(d.status, saleCompletionStatusParked);
+      expect(d.remainingBalance, closeTo(60.0, 0.001));
+    });
+
+    test('unknown tender does not assume full payment', () {
+      final d = deriveSaleCompletionState(
+        transactionCashReceived: 0,
+        finalSubTotal: 100,
+        paymentMethods: const [],
+      );
+      expect(d.shouldBeLoan, true);
+      expect(d.status, saleCompletionStatusParked);
+      expect(d.remainingBalance, closeTo(100.0, 0.001));
+    });
   });
 
   group('normalizePaymentLinesToSaleTotal', () {
