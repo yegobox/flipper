@@ -92,6 +92,13 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
         color: Color(0xFF10B981),
         feature: 'Sales',
       ),
+      const DashboardAllAppTile(
+        page: 'StockRecount',
+        label: 'Stock Recount',
+        icon: FluentIcons.clipboard_pulse_24_regular,
+        color: Color(0xFF2563EB),
+        feature: 'Stock',
+      ),
       DashboardAllAppTile(
         page: 'Orders',
         label: context.flipperL10n.purchases,

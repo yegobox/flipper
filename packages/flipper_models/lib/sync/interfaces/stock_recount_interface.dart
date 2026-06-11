@@ -62,6 +62,12 @@ abstract class StockRecountInterface {
     required String recountId,
   });
 
+  /// Update session notes (draft only).
+  Future<StockRecount> updateRecountNotes({
+    required String recountId,
+    required String notes,
+  });
+
   /// Stream of recounts for real-time updates
   Stream<List<StockRecount>> recountsStream({
     required String branchId,

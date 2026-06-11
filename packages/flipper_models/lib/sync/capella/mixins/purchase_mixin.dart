@@ -5,6 +5,7 @@ import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
 import 'package:supabase_models/brick/models/purchase.model.dart';
+import 'package:supabase_models/brick/models/supplier.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
@@ -18,7 +19,8 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
     required String bhfId,
   }) async {
     throw UnimplementedError(
-        'selectImportItems needs to be implemented for Capella');
+      'selectImportItems needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -29,12 +31,17 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
     String? pchsSttsCd,
   }) async {
     throw UnimplementedError(
-        'selectPurchases needs to be implemented for Capella');
+      'selectPurchases needs to be implemented for Capella',
+    );
   }
 
   @override
-  Future<void> saveVariant(Variant item, Business business, String branchId,
-      {required bool skipRRaCall}) async {
+  Future<void> saveVariant(
+    Variant item,
+    Business business,
+    String branchId, {
+    required bool skipRRaCall,
+  }) async {
     throw UnimplementedError('saveVariant needs to be implemented for Capella');
   }
 
@@ -44,21 +51,32 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
   }
 
   @override
-  FutureOr<Purchase?> getPurchase({
-    required String id,
-  }) {
+  FutureOr<Purchase?> getPurchase({required String id}) {
     throw UnimplementedError('getPurchase needs to be implemented for Capella');
   }
 
   @override
   Future<List<Variant>> allImportsToDate() {
     throw UnimplementedError(
-        'allImportsToDate needs to be implemented for Capella');
+      'allImportsToDate needs to be implemented for Capella',
+    );
   }
 
   @override
   Future<List<PurchaseReportItem>> allPurchasesToDate() {
     throw UnimplementedError(
-        'allPurchasesToDate needs to be implemented for Capella');
+      'allPurchasesToDate needs to be implemented for Capella',
+    );
+  }
+
+  @override
+  Future<Purchase> saveManualPurchase({
+    required Purchase purchase,
+    required String branchId,
+    Supplier? supplier,
+  }) {
+    throw UnimplementedError(
+      'saveManualPurchase needs to be implemented for Capella',
+    );
   }
 }

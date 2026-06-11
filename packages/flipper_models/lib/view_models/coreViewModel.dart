@@ -1349,6 +1349,7 @@ class CoreViewModel extends FlipperBaseModel
       variants: purchase.variants!,
       bhfId: bhfId!,
       rcptTyCd: PurchaseConstants.purchaseReceiptType,
+      regTyCd: purchase.regTyCd ?? 'A',
       URI: serverUrl,
       pchsSttsCd: pchsSttsCd,
     );

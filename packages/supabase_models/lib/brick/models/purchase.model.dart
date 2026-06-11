@@ -45,6 +45,10 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   int? approved;
   int? rejected;
   int? pending;
+
+  /// EBM registration type: 'A' = automatic (fetched from RRA),
+  /// 'M' = manual (recorded in-app). Null is treated as 'A'.
+  final String? regTyCd;
   @Supabase(name: 'created_at')
   @Sqlite(index: true)
   DateTime createdAt;
@@ -81,6 +85,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
     this.approved,
     this.rejected,
     this.pending,
+    this.regTyCd,
     this.remark,
     required this.createdAt,
     this.variants,
@@ -115,6 +120,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
       totTaxblAmt: (json['totTaxblAmt'] as num).toDouble(),
       totTaxAmt: (json['totTaxAmt'] as num).toDouble(),
       totAmt: (json['totAmt'] as num).toDouble(),
+      regTyCd: json['regTyCd'] as String?,
       remark: json['remark'] as String?,
       createdAt: json['created_at'] != null
           ? (json['created_at'] is String
@@ -157,6 +163,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
       'totTaxblAmt': totTaxblAmt,
       'totTaxAmt': totTaxAmt,
       'totAmt': totAmt,
+      'regTyCd': regTyCd,
       'remark': remark,
       'created_at': createdAt.toIso8601String(),
       'itemList': variants,

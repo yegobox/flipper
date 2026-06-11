@@ -50,8 +50,12 @@ mixin PurchaseMixin
   }
 
   @override
-  Future<void> saveVariant(Variant item, Business business, String branchId,
-      {required bool skipRRaCall}) async {
+  Future<void> saveVariant(
+    Variant item,
+    Business business,
+    String branchId, {
+    required bool skipRRaCall,
+  }) async {
     await createProduct(
       skipRRaCall: skipRRaCall,
       bhFId: (await ProxyService.box.bhfId()) ?? "00",
@@ -103,15 +107,18 @@ mixin PurchaseMixin
     required String bhfId,
   }) async {
     try {
-      Ebm? ebm = await ProxyService.strategy
-          .ebm(branchId: ProxyService.box.getBranchId()!);
-      final activeBranch =
-          await branch(serverId: ProxyService.box.getBranchId()!);
+      Ebm? ebm = await ProxyService.strategy.ebm(
+        branchId: ProxyService.box.getBranchId()!,
+      );
+      final activeBranch = await branch(
+        serverId: ProxyService.box.getBranchId()!,
+      );
       if (activeBranch == null) throw Exception("Active branch not found");
       final branchId = ProxyService.box.getBranchId()!;
 
-      final business =
-          await getBusinessById(businessId: ProxyService.box.getBusinessId()!);
+      final business = await getBusinessById(
+        businessId: ProxyService.box.getBusinessId()!,
+      );
       if (business == null) throw Exception("Business details not found");
 
       final lastRequestRecords = await repository.get<ImportPurchaseDates>(
@@ -126,7 +133,8 @@ mixin PurchaseMixin
         ),
       );
 
-      final lastReqDt = lastRequestRecords.firstOrNull?.lastRequestDate ??
+      final lastReqDt =
+          lastRequestRecords.firstOrNull?.lastRequestDate ??
           DateTime.now().toYYYYMMddHHmmss();
       final URI = ebm?.taxServerUrl ?? "";
 
@@ -148,8 +156,9 @@ mixin PurchaseMixin
         final paged = await variants(
           branchId: branchId,
           forImportScreen: true,
-          taxTyCds:
-              ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'],
+          taxTyCds: ebm?.vatEnabled == true
+              ? ['A', 'B', 'C', 'TT']
+              : ['D', 'TT'],
         );
         return List<Variant>.from(paged.variants);
       }
@@ -162,7 +171,8 @@ mixin PurchaseMixin
         item.color = randomizeColor();
         item.itemCd = "2";
         saveVariantTasks.add(
-            saveVariant(item, business, activeBranch.id, skipRRaCall: true));
+          saveVariant(item, business, activeBranch.id, skipRRaCall: true),
+        );
       }
       await Future.wait(saveVariantTasks);
 
@@ -174,18 +184,16 @@ mixin PurchaseMixin
             requestType: "IMPORT",
           ),
           query: brick.Query(
-            where: [
-              brick.Where('branchId').isExactly(branchId),
-            ],
+            where: [brick.Where('branchId').isExactly(branchId)],
           ),
         );
       }
 
       final paged = await variants(
-          branchId: branchId,
-          forImportScreen: true,
-          taxTyCds:
-              ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT']);
+        branchId: branchId,
+        forImportScreen: true,
+        taxTyCds: ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'],
+      );
       return List<Variant>.from(paged.variants);
     } catch (e, stackTrace) {
       talker.error("Error in selectImportItems: $e", stackTrace);
@@ -201,17 +209,20 @@ mixin PurchaseMixin
     String? pchsSttsCd,
   }) async {
     try {
-      Ebm? ebm = await ProxyService.strategy
-          .ebm(branchId: ProxyService.box.getBranchId()!);
+      Ebm? ebm = await ProxyService.strategy.ebm(
+        branchId: ProxyService.box.getBranchId()!,
+      );
       RwApiResponse response;
       // Fetch active branch
-      final activeBranch =
-          await branch(serverId: ProxyService.box.getBranchId()!);
+      final activeBranch = await branch(
+        serverId: ProxyService.box.getBranchId()!,
+      );
       if (activeBranch == null) throw Exception("Active branch not found");
 
       // Fetch business details
-      final business =
-          await getBusinessById(businessId: ProxyService.box.getBusinessId()!);
+      final business = await getBusinessById(
+        businessId: ProxyService.box.getBusinessId()!,
+      );
       if (business == null) throw Exception("Business details not found");
 
       final businessId = ProxyService.box.getBusinessId()!;
@@ -238,7 +249,8 @@ mixin PurchaseMixin
           URI: url,
           tin: tinNumber,
           bhfId: ebm?.bhfId ?? "00",
-          lastReqDt: lastRequestRecords.firstOrNull?.lastRequestDate ??
+          lastReqDt:
+              lastRequestRecords.firstOrNull?.lastRequestDate ??
               DateTime.now().toYYYYMMddHHmmss(),
         );
 
@@ -251,9 +263,7 @@ mixin PurchaseMixin
           }
           return await repository.get<Purchase>(
             query: brick.Query(
-              where: [
-                brick.Where('branchId').isExactly(branchId),
-              ],
+              where: [brick.Where('branchId').isExactly(branchId)],
             ),
           );
         }
@@ -271,111 +281,32 @@ mixin PurchaseMixin
 
         for (final Purchase purchase in response.data?.saleList ?? []) {
           try {
-            purchase.createdAt = DateTime.now().toUtc();
-            purchase.branchId = ProxyService.box.getBranchId()!;
-
-            // Save the purchase first to get an ID
-            final savedPurchase = await repository.upsert<Purchase>(purchase);
-            talker.info(
-                'Saved purchase ${savedPurchase.id} with ${purchase.variants?.length ?? 0} variants');
-
-            final saveVariantTasks = <Future<void>>[];
-            final Set<String> processedBarcodes = {};
-
-            for (final variant in purchase.variants!) {
-              if (variant.itemNm?.isEmpty != false) {
-                talker.warning('Skipping variant with no name: ${variant.id}');
-                continue;
-              }
-
-              final barCode = variant.bcd?.isNotEmpty == true
-                  ? variant.bcd!
-                  : randomString();
-              if (processedBarcodes.contains(barCode)) {
-                talker
-                    .info('Skipping duplicate variant with barcode: $barCode');
-                continue;
-              }
-              processedBarcodes.add(barCode);
-
-              Future<void> saveVariant() async {
-                if (variant.stock != null) {
-                  await repository.upsert<Stock>(variant.stock!);
-                }
-                final createdProduct = await createProduct(
-                  skipRRaCall: true,
-                  saleListId: savedPurchase.id,
-                  businessId: businessId,
-                  branchId: branchId,
-                  pkgUnitCd: variant.pkgUnitCd,
-                  qty: variant.qty ?? 1,
-                  tinNumber: tinNumber,
-                  itemCd: variant.itemCd,
-                  taxAmt: variant.taxAmt,
-                  taxblAmt: variant.taxblAmt,
-                  taxTyCd: variant.taxTyCd,
-                  itemClasses: {barCode: variant.itemClsCd ?? ""},
-                  pchsSttsCd: "01",
-                  splyAmt: variant.splyAmt,
-                  pkg: variant.pkg,
-                  qtyUnitCd: variant.qtyUnitCd,
-                  bhFId: bhfId,
-                  createItemCode: variant.itemCd?.isEmpty == true,
-                  product: Product(
-                    color: randomizeColor(),
-                    name: variant.itemNm!,
-                    barCode: barCode,
-                    lastTouched: DateTime.now().toUtc(),
-                    createdAt: DateTime.now().toUtc(),
-                    branchId: branchId,
-                    businessId: businessId,
-                    spplrNm: purchase.spplrNm,
-                  ),
-                  purchase: savedPurchase,
-                  supplyPrice: variant.splyAmt ?? 0,
-                  retailPrice: variant.splyAmt ?? 0,
-                  skipRegularVariant: true,
-                );
-
-                if (createdProduct != null) {
-                  variant.productId = createdProduct.id;
-                  variant.purchaseId = savedPurchase.id;
-                  variant.pchsSttsCd = "01";
-                  variant.unit = "Per Item";
-                  variant.taxName = variant.taxTyCd ?? "B";
-                  variant.isrcAmt = null;
-                  variant.useYn = "N";
-                  variant.spplrItemCd = variant.itemCd;
-                  variant.spplrNm = purchase.spplrNm;
-                  variant.color = randomizeColor();
-                  variant.itemTyCd = "2";
-                  variant.itemStdNm = variant.itemStdNm;
-                  variant.spplrItemClsCd = variant.itemClsCd;
-                  variant.orgnNatCd = "RW";
-                  variant.stockSynchronized = true;
-                  variant.isrcAplcbYn = "N";
-                  variant.imptItemSttsCd = null;
-                  variant.bhfId = ebm?.bhfId ?? "00";
-                  variant.tin = tinNumber;
-                  variant.modrNm = variant.itemNm;
-                  variant.regrNm = variant.itemNm;
-                  variant.modrId = randomNumber().toString().substring(0, 5);
-                  variant.regrId = randomNumber().toString().substring(0, 5);
-                  variant.name = variant.itemNm!;
-                  variant.productName = variant.itemNm!;
-                  variant.lastTouched = DateTime.now().toUtc();
-                  variant.retailPrice = variant.splyAmt;
-                  variant.supplyPrice = variant.splyAmt;
-                  await repository.upsert<Variant>(variant);
-                } else {
-                  talker.error(
-                      'Failed to create product for variant: ${variant.itemNm}');
-                }
-              }
-
-              saveVariantTasks.add(saveVariant());
+            // A purchase recorded manually (or fetched earlier) for the same
+            // supplier invoice must not be duplicated when RRA returns it.
+            final existing = await repository.get<Purchase>(
+              query: brick.Query(
+                where: [
+                  brick.Where('spplrTin').isExactly(purchase.spplrTin),
+                  brick.Where('spplrInvcNo').isExactly(purchase.spplrInvcNo),
+                  brick.Where('branchId').isExactly(branchId),
+                ],
+              ),
+            );
+            if (existing.isNotEmpty) {
+              talker.info(
+                'Skipping purchase invoice ${purchase.spplrInvcNo} from TIN ${purchase.spplrTin}: already saved locally',
+              );
+              continue;
             }
-            await Future.wait(saveVariantTasks);
+
+            await processIncomingPurchase(
+              purchase: purchase,
+              branchId: branchId,
+              businessId: businessId,
+              tinNumber: tinNumber,
+              bhfId: bhfId,
+              ebm: ebm,
+            );
             //here
             if (!(ProxyService.box.enableDebug() ?? false)) {
               final newImportDate = ImportPurchaseDates(
@@ -406,15 +337,177 @@ mixin PurchaseMixin
       // After processing all new purchases, return all relevant purchases from local DB
       return await repository.get<Purchase>(
         query: brick.Query(
-          where: [
-            brick.Where('branchId').isExactly(branchId),
-          ],
+          where: [brick.Where('branchId').isExactly(branchId)],
         ),
       );
     } catch (e, stackTrace) {
       print("Error in selectPurchases: $e\n$stackTrace");
       rethrow;
     }
+  }
+
+  /// Persists one incoming purchase and its line variants. Shared by the
+  /// RRA fetch path ([selectPurchases]) and manual entry
+  /// ([saveManualPurchase]) so both produce identical records for the
+  /// downstream approval pipeline.
+  Future<Purchase> processIncomingPurchase({
+    required Purchase purchase,
+    required String branchId,
+    required String businessId,
+    required int tinNumber,
+    required String bhfId,
+    Ebm? ebm,
+  }) async {
+    purchase.createdAt = DateTime.now().toUtc();
+    purchase.branchId = branchId;
+
+    // Save the purchase first to get an ID
+    final savedPurchase = await repository.upsert<Purchase>(purchase);
+    talker.info(
+      'Saved purchase ${savedPurchase.id} with ${purchase.variants?.length ?? 0} variants',
+    );
+
+    final saveVariantTasks = <Future<void>>[];
+    final Set<String> processedBarcodes = {};
+
+    for (final variant in purchase.variants!) {
+      if (variant.itemNm?.isEmpty != false) {
+        talker.warning('Skipping variant with no name: ${variant.id}');
+        continue;
+      }
+
+      final barCode = variant.bcd?.isNotEmpty == true
+          ? variant.bcd!
+          : randomString();
+      if (processedBarcodes.contains(barCode)) {
+        talker.info('Skipping duplicate variant with barcode: $barCode');
+        continue;
+      }
+      processedBarcodes.add(barCode);
+
+      Future<void> saveVariant() async {
+        if (variant.stock != null) {
+          await repository.upsert<Stock>(variant.stock!);
+        }
+        final createdProduct = await createProduct(
+          skipRRaCall: true,
+          saleListId: savedPurchase.id,
+          businessId: businessId,
+          branchId: branchId,
+          pkgUnitCd: variant.pkgUnitCd,
+          qty: variant.qty ?? 1,
+          tinNumber: tinNumber,
+          itemCd: variant.itemCd,
+          taxAmt: variant.taxAmt,
+          taxblAmt: variant.taxblAmt,
+          taxTyCd: variant.taxTyCd,
+          itemClasses: {barCode: variant.itemClsCd ?? ""},
+          pchsSttsCd: "01",
+          splyAmt: variant.splyAmt,
+          pkg: variant.pkg,
+          qtyUnitCd: variant.qtyUnitCd,
+          bhFId: bhfId,
+          createItemCode: variant.itemCd?.isEmpty == true,
+          product: Product(
+            color: randomizeColor(),
+            name: variant.itemNm!,
+            barCode: barCode,
+            lastTouched: DateTime.now().toUtc(),
+            createdAt: DateTime.now().toUtc(),
+            branchId: branchId,
+            businessId: businessId,
+            spplrNm: purchase.spplrNm,
+          ),
+          purchase: savedPurchase,
+          supplyPrice: variant.splyAmt ?? 0,
+          retailPrice: variant.splyAmt ?? 0,
+          skipRegularVariant: true,
+        );
+
+        if (createdProduct != null) {
+          variant.productId = createdProduct.id;
+          variant.purchaseId = savedPurchase.id;
+          variant.pchsSttsCd = "01";
+          variant.unit = "Per Item";
+          variant.taxName = variant.taxTyCd ?? "B";
+          variant.isrcAmt = null;
+          variant.useYn = "N";
+          variant.spplrItemCd = variant.itemCd;
+          variant.spplrNm = purchase.spplrNm;
+          variant.color = randomizeColor();
+          variant.itemTyCd = "2";
+          variant.itemStdNm = variant.itemStdNm;
+          variant.spplrItemClsCd = variant.itemClsCd;
+          variant.orgnNatCd = "RW";
+          variant.stockSynchronized = true;
+          variant.isrcAplcbYn = "N";
+          variant.imptItemSttsCd = null;
+          variant.bhfId = ebm?.bhfId ?? "00";
+          variant.tin = tinNumber;
+          variant.modrNm = variant.itemNm;
+          variant.regrNm = variant.itemNm;
+          variant.modrId = randomNumber().toString().substring(0, 5);
+          variant.regrId = randomNumber().toString().substring(0, 5);
+          variant.name = variant.itemNm!;
+          variant.productName = variant.itemNm!;
+          variant.lastTouched = DateTime.now().toUtc();
+          variant.retailPrice = variant.splyAmt;
+          variant.supplyPrice = variant.splyAmt;
+          await repository.upsert<Variant>(variant);
+        } else {
+          talker.error(
+            'Failed to create product for variant: ${variant.itemNm}',
+          );
+        }
+      }
+
+      saveVariantTasks.add(saveVariant());
+    }
+    await Future.wait(saveVariantTasks);
+    // Return the purchase with its processed variants attached so callers
+    // (e.g. immediate approval after manual entry) see the same shape the
+    // PurchaseTable loads via _processPurchase.
+    savedPurchase.variants = purchase.variants;
+    return savedPurchase;
+  }
+
+  @override
+  Future<Purchase> saveManualPurchase({
+    required Purchase purchase,
+    required String branchId,
+    Supplier? supplier,
+  }) async {
+    final business = await getBusinessById(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
+    if (business == null) throw Exception("Business details not found");
+    final businessId = ProxyService.box.getBusinessId()!;
+    final tinNumber = (await effectiveTin(business: business))!;
+    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    final bhfId = ebm?.bhfId ?? (await ProxyService.box.bhfId()) ?? "00";
+
+    if (supplier != null) {
+      final existingSupplier = await repository.get<Supplier>(
+        query: brick.Query(
+          where: [
+            brick.Where('custNm').isExactly(supplier.custNm),
+            brick.Where('branchId').isExactly(branchId),
+          ],
+        ),
+      );
+      if (existingSupplier.isEmpty) {
+        await repository.upsert<Supplier>(supplier);
+      }
+    }
+
+    return await processIncomingPurchase(
+      purchase: purchase,
+      branchId: branchId,
+      businessId: businessId,
+      tinNumber: tinNumber,
+      bhfId: bhfId,
+      ebm: ebm,
+    );
   }
 
   String randomizeColor() {
@@ -427,7 +520,7 @@ mixin PurchaseMixin
     final purchases = await repository.get<Purchase>(
       query: brick.Query(
         where: [
-          brick.Where('branchId').isExactly(ProxyService.box.getBranchId()!)
+          brick.Where('branchId').isExactly(ProxyService.box.getBranchId()!),
         ],
       ),
     );
@@ -460,8 +553,9 @@ mixin PurchaseMixin
     purchase.variants = allVariantsForPurchase;
 
     // Determine if the purchase has any unapproved variants based on the relevant variants
-    bool newHasUnapprovedVariant =
-        allVariantsForPurchase.any((variant) => variant.pchsSttsCd == '01');
+    bool newHasUnapprovedVariant = allVariantsForPurchase.any(
+      (variant) => variant.pchsSttsCd == '01',
+    );
 
     if (purchase.hasUnApprovedVariant != newHasUnapprovedVariant) {
       // If the status changed, update the purchase object directly
@@ -479,13 +573,9 @@ mixin PurchaseMixin
   }
 
   @override
-  FutureOr<Purchase?> getPurchase({
-    required String id,
-  }) async {
+  FutureOr<Purchase?> getPurchase({required String id}) async {
     final purchase = await repository.get<Purchase>(
-      query: brick.Query(
-        where: [brick.Where('id').isExactly(id)],
-      ),
+      query: brick.Query(where: [brick.Where('id').isExactly(id)]),
     );
     return purchase.firstOrNull;
   }
@@ -494,9 +584,7 @@ mixin PurchaseMixin
   Future<void> hydrateDate({required String branchId}) async {
     await repository.get<ImportPurchaseDates>(
       policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
-      query: brick.Query(
-        where: [brick.Where('branchId').isExactly(branchId)],
-      ),
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
     );
   }
 
@@ -558,11 +646,13 @@ mixin PurchaseMixin
     // Create report items
     return purchases
         .where((purchase) => purchaseVariants.containsKey(purchase.id))
-        .map((purchase) => PurchaseReportItem(
-              variant: purchaseVariants[purchase.id]!
-                  .first, // or handle multiple variants as needed
-              purchase: purchase,
-            ))
+        .map(
+          (purchase) => PurchaseReportItem(
+            variant: purchaseVariants[purchase.id]!
+                .first, // or handle multiple variants as needed
+            purchase: purchase,
+          ),
+        )
         .toList();
   }
 }

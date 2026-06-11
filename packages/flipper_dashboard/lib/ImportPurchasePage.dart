@@ -1,6 +1,7 @@
 // ImportPurchasePage.dart
 import 'package:flipper_dashboard/Imports.dart';
 import 'package:flipper_dashboard/Purchases.dart';
+import 'package:flipper_dashboard/manual_purchase/manual_purchase_dialog.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -292,6 +293,36 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (!isImport) ...[
+                    TextButton.icon(
+                      icon: const Icon(Icons.post_add, size: 18),
+                      label: const Text('Record Purchase'),
+                      onPressed: () async {
+                        final catalogVariants =
+                            ref
+                                .read(
+                                  outerVariantsProvider(
+                                    ProxyService.box.getBranchId() ?? "",
+                                  ),
+                                )
+                                .value ??
+                            [];
+                        final saved = await ManualPurchaseDialog.show(
+                          context,
+                          catalogVariants: catalogVariants,
+                        );
+                        if (saved != null && mounted) {
+                          // Refresh from the local DB only; no RRA round-trip
+                          // is needed to show the purchase we just recorded.
+                          setState(() {
+                            _futurePurchases = ProxyService.strategy
+                                .purchases();
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                  ],
                   Text(
                     isImport ? 'Import' : 'Purchase',
                     style: TextStyle(fontWeight: FontWeight.w500),

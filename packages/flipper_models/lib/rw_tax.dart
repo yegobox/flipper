@@ -1653,6 +1653,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required Purchase item,
     required String URI,
     String rcptTyCd = "S",
+    String regTyCd = "A",
     required String bhfId,
     required List<Variant> variants,
     required Business business,
@@ -1677,7 +1678,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     data['totItemCnt'] = variants.length;
     data['pchsTyCd'] = 'N'; // transaction type N=normal
     data['cfmDt'] = convertDateToString(DateTime.now());
-    data['regTyCd'] = 'A';
+    data['regTyCd'] = regTyCd;
     data['modrId'] = randomNumber();
     // P is refund after sale
     data['rcptTyCd'] = rcptTyCd;

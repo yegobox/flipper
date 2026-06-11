@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/daily_report_files/daily_report_files
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
+import 'package:flipper_dashboard/features/stock_recount/stock_recount_list_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/services_gigs_app.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -128,6 +129,13 @@ Future<void> navigateToDashboardAppPage({
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => const DailyReportFilesApp(),
+        ),
+      );
+      break;
+    case 'StockRecount':
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const StockRecountListScreen(),
         ),
       );
       break;

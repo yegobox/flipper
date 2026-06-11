@@ -565,6 +565,23 @@ LIMIT 1
   }
 
   @override
+  Future<StockRecount> updateRecountNotes({
+    required String recountId,
+    required String notes,
+  }) async {
+    final recount = await getRecount(recountId: recountId);
+    if (recount == null) {
+      throw Exception('Recount not found: $recountId');
+    }
+    if (recount.status != 'draft') {
+      throw Exception('Can only edit notes on draft recounts');
+    }
+    final updated = recount.copyWith(notes: notes);
+    await _upsertRecountDitto(updated);
+    return updated;
+  }
+
+  @override
   Stream<List<StockRecount>> recountsStream({
     required String branchId,
     String? status,
