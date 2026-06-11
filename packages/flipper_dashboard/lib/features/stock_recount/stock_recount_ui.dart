@@ -215,15 +215,9 @@ class StockRecountBlurredAppBar extends StatelessWidget implements PreferredSize
               if (leading == null)
                 Padding(
                   padding: const EdgeInsets.only(right: 10),
-                  child: Image.asset(
-                    'packages/receipt/assets/flipper_logo.png',
-                    width: 34,
-                    height: 34,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.inventory_2_outlined,
-                      color: StockRecountTokens.accent,
-                      size: 30,
-                    ),
+                  child: StockRecountIcons.svg(
+                    'flipper-logo',
+                    size: 34,
                   ),
                 ),
               Expanded(

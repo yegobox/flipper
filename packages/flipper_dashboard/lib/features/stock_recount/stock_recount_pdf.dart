@@ -15,8 +15,12 @@ import 'package:universal_platform/universal_platform.dart';
 import 'stock_recount_helpers.dart';
 
 class StockRecountPdfExport {
+  static const _flipperLogoSvgAsset =
+      'packages/flipper_dashboard/assets/pos_handoff/icons/flipper-logo.svg';
+
   static pw.Font? _fallbackFont;
   static final Map<String, pw.Font?> _geistFonts = {};
+  static String? _flipperLogoSvg;
 
   /// Geist (the design's typeface) only covers Latin; NotoSans fills the gaps
   /// (em dash, non-Latin product names) via the page theme's fontFallback.
@@ -29,6 +33,15 @@ class StockRecountPdfExport {
       _fallbackFont = pw.Font.ttf(data);
     } catch (_) {}
     return _fallbackFont;
+  }
+
+  /// Gradient ring mark — same SVG as [PosHandoffIcons] / desktop POS shell.
+  static Future<String?> _flipperLogoMarkup() async {
+    if (_flipperLogoSvg != null) return _flipperLogoSvg;
+    try {
+      _flipperLogoSvg = await rootBundle.loadString(_flipperLogoSvgAsset);
+    } catch (_) {}
+    return _flipperLogoSvg;
   }
 
   static Future<pw.Font?> _geist(String weight) async {
@@ -112,16 +125,10 @@ class StockRecountPdfExport {
     required String counterName,
     Map<String, String> variantSkus = const {},
   }) async {
-    pw.ImageProvider? logo;
-    try {
-      final logoBytes = await rootBundle.load(
-        'packages/receipt/assets/flipper_logo.png',
-      );
-      logo = pw.MemoryImage(logoBytes.buffer.asUint8List());
-    } catch (_) {}
+    final logoSvg = await _flipperLogoMarkup();
     final baseFont = await _geist('Regular') ?? pw.Font.helvetica();
     final boldFont = await _geist('Bold') ?? pw.Font.helveticaBold();
-    // Design weight 800 for the document titles and totals row.
+    // Design `--sans` weights 700 (labels) and 800 (titles / totals).
     final heavyFont = await _geist('ExtraBold') ?? boldFont;
     final fallbackFont = await _unicodeFallback();
     final now = DateTime.now();
@@ -147,8 +154,12 @@ class StockRecountPdfExport {
                 child: pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    if (logo != null)
-                      pw.Image(logo, width: 40, height: 40)
+                    if (logoSvg != null)
+                      pw.SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: pw.SvgImage(svg: logoSvg),
+                      )
                     else
                       pw.SizedBox(width: 40, height: 40),
                     pw.SizedBox(width: 12),
@@ -160,7 +171,6 @@ class StockRecountPdfExport {
                           style: pw.TextStyle(
                             font: heavyFont,
                             fontSize: 20,
-                            fontWeight: pw.FontWeight.bold,
                             letterSpacing: -0.4,
                           ),
                         ),
@@ -185,7 +195,6 @@ class StockRecountPdfExport {
                     style: pw.TextStyle(
                       font: heavyFont,
                       fontSize: 22,
-                      fontWeight: pw.FontWeight.bold,
                       letterSpacing: -0.44,
                     ),
                   ),
@@ -198,7 +207,7 @@ class StockRecountPdfExport {
                     ),
                   ),
                   pw.SizedBox(height: 6),
-                  _statusBadge(recount.status, boldFont),
+                  _statusBadge(recount.status, heavyFont),
                 ],
               ),
             ],
@@ -209,13 +218,25 @@ class StockRecountPdfExport {
           _metaGrid(recount, counterName, now, baseFont, boldFont),
           if (recount.notes != null && recount.notes!.trim().isNotEmpty) ...[
             pw.SizedBox(height: 14),
-            pw.Text(
-              'Note: ${recount.notes!.trim()}',
-              style: pw.TextStyle(
-                font: baseFont,
-                fontSize: 13,
-                color: const PdfColor.fromInt(0xFF4A5567),
-              ),
+            pw.Wrap(
+              children: [
+                pw.Text(
+                  'Note: ',
+                  style: pw.TextStyle(
+                    font: boldFont,
+                    fontSize: 13,
+                    color: const PdfColor.fromInt(0xFF0B1220),
+                  ),
+                ),
+                pw.Text(
+                  recount.notes!.trim(),
+                  style: pw.TextStyle(
+                    font: baseFont,
+                    fontSize: 13,
+                    color: const PdfColor.fromInt(0xFF4A5567),
+                  ),
+                ),
+              ],
             ),
           ],
           pw.SizedBox(height: 8),
@@ -225,9 +246,11 @@ class StockRecountPdfExport {
           pw.SizedBox(height: 48),
           pw.Row(
             children: [
-              pw.Expanded(child: _signatureBlock('Counted by — $counterName', baseFont)),
+              pw.Expanded(
+                child: _signatureBlock('Counted by — $counterName', boldFont),
+              ),
               pw.SizedBox(width: 40),
-              pw.Expanded(child: _signatureBlock('Approved by', baseFont)),
+              pw.Expanded(child: _signatureBlock('Approved by', boldFont)),
             ],
           ),
           pw.SizedBox(height: 30),
