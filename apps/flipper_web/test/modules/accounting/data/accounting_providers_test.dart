@@ -32,6 +32,7 @@ ProviderContainer _container({
     ],
   );
   container.listen(rawTransactionStreamProvider, (_, __) {});
+  container.listen(rawAllTransactionsStreamProvider, (_, __) {});
   container.listen(chartOfAccountsStreamProvider, (_, __) {});
   container.listen(journalEntriesStreamProvider, (_, __) {});
   return container;
@@ -171,7 +172,7 @@ void main() {
       final container = _container(transactions: [_cashSale]);
       addTearDown(container.dispose);
 
-      await container.read(rawTransactionStreamProvider.future);
+      await container.read(rawAllTransactionsStreamProvider.future);
       expect(container.read(accountingArAgingProvider), isEmpty);
     });
 
@@ -186,7 +187,7 @@ void main() {
       final container = _container(transactions: [loanSale]);
       addTearDown(container.dispose);
 
-      await container.read(rawTransactionStreamProvider.future);
+      await container.read(rawAllTransactionsStreamProvider.future);
       final rows = container.read(accountingArAgingProvider);
       expect(rows, hasLength(1));
       expect(rows.first.name, 'Karake');
@@ -199,7 +200,7 @@ void main() {
       final container = _container(transactions: [_cashExpense]);
       addTearDown(container.dispose);
 
-      await container.read(rawTransactionStreamProvider.future);
+      await container.read(rawAllTransactionsStreamProvider.future);
       expect(container.read(accountingApAgingProvider), isEmpty);
     });
   });

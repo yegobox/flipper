@@ -24,6 +24,8 @@ import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/services/loan_customer_linker.dart';
+import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
@@ -686,6 +688,31 @@ class CapellaSync extends AiStrategyImpl
           talker.warning('Deferred variant touch failed: $e');
         }
       });
+
+      // Record the event in the accounting ledger so Books finds the journal
+      // entry already posted, whether or not the accounting app is running.
+      unawaited(
+        PosJournalPoster.onTransactionFinalized(
+          transaction: transaction,
+          items: items,
+          eventCashReceived: cashReceived,
+          completionStatus: completionStatus,
+          isProformaMode: isProformaMode,
+          isTrainingMode: isTrainingMode,
+        ),
+      );
+
+      // Link (or auto-create) the canonical customer record for loans so
+      // accounting tracks debtors by customer id — runs in the background,
+      // adds no latency to checkout. A parked sale is a loan even before
+      // markTransactionAsCompleted persists isLoan.
+      unawaited(
+        LoanCustomerLinker.ensureLinked(
+          transaction: transaction,
+          branchId: branchId,
+          markAsLoan: transaction.isLoan == true || completionStatus == PARKED,
+        ),
+      );
 
       return transaction;
     } catch (e, s) {

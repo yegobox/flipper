@@ -506,7 +506,16 @@ class AccountingAuditView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final log = ref.watch(auditLogProvider);
+    // Session entries first (instant feedback), then the persisted trail
+    // (deduped by id — appendAuditLog writes both with the same id).
+    final session = ref.watch(auditLogProvider);
+    final persisted =
+        ref.watch(persistedAuditLogProvider).value ?? const <AuditEntry>[];
+    final sessionIds = {for (final a in session) a.id};
+    final log = [
+      ...session,
+      ...persisted.where((a) => !sessionIds.contains(a.id)),
+    ];
     final journal = ref.watch(accountingJournalProvider);
     final userFilter = ref.watch(auditUserFilterProvider);
     final users = ['all', ...{for (final a in log) a.user}];

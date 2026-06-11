@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:stacked/stacked.dart';
@@ -355,6 +356,10 @@ class AppService with ListenableServiceMixin {
             branchId: branchId,
           ),
         );
+        // Backfill journal entries for finalized transactions that were
+        // never posted (crash, pre-rollout data). Idempotent via
+        // deterministic entry ids.
+        unawaited(PosJournalPoster.sweepUnposted(branchId: branchId));
       }
     } catch (e) {
       print("⚠️ Ditto initialization failed (app will continue offline): $e");

@@ -48,13 +48,22 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
+  Future<bool> entryExists({
+    required String businessId,
+    required String entryId,
+  }) async {
+    return _entries.any((e) => e.uuid == entryId);
+  }
+
+  @override
   Future<String> createJournalEntry({
     required String businessId,
     required JournalEntry entry,
     String? transactionId,
     String? journalCode,
+    String? entryId,
   }) async {
-    final id = 'uuid-${_entries.length}';
+    final id = entryId ?? 'uuid-${_entries.length}';
     _entries.add(JournalEntry(
       id: entry.id,
       date: entry.date,

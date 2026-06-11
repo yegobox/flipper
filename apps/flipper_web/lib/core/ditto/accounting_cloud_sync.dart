@@ -43,14 +43,27 @@ Future<void> ensureAccountingCloudSubscriptions({
       sql: 'SELECT * FROM accounting_settings WHERE businessId = :businessId',
       args: {'businessId': businessId},
     ),
+    (
+      key: 'accounting_audit_logs|$businessId',
+      sql:
+          'SELECT * FROM accounting_audit_logs WHERE businessId = :businessId',
+      args: {'businessId': businessId},
+    ),
   ];
 
   if (branchId != null && branchId.isNotEmpty) {
+    // POS uses lowercase `completed` / `parked` (flipper_services/constants.dart).
     entries.add((
       key: 'transactions|$branchId',
       sql:
-          'SELECT * FROM transactions WHERE branchId = :branchId AND status = :status',
-      args: {'branchId': branchId, 'status': 'COMPLETE'},
+          'SELECT * FROM transactions WHERE branchId = :branchId '
+          'AND (status = :completed OR status = :parked) '
+          'AND subTotal > 0',
+      args: {
+        'branchId': branchId,
+        'completed': 'completed',
+        'parked': 'parked',
+      },
     ));
     entries.add((
       key: 'transaction_items|$branchId',

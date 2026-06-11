@@ -117,6 +117,22 @@ mixin AccountingMixin on DittoCore {
     await executeRemove(collection, docId);
   }
 
+  Future<void> upsertAccountingAuditLog(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  ) async {
+    if (dittoInstance == null) {
+      return handleNotInitialized('upsertAccountingAuditLog');
+    }
+    await executeUpsert('accounting_audit_logs', docId, {
+      ...data,
+      'businessId': businessId,
+      '_id': docId,
+      'id': docId,
+    });
+  }
+
   Future<void> upsertBankStatementLine(
     String businessId,
     BankLine line, {

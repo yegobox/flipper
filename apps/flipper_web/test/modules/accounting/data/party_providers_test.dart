@@ -78,6 +78,7 @@ ProviderContainer _container({
   container.listen(customerPartiesStreamProvider, (_, __) {});
   container.listen(customersStreamProvider, (_, __) {});
   container.listen(rawTransactionStreamProvider, (_, __) {});
+  container.listen(rawAllTransactionsStreamProvider, (_, __) {});
   return container;
 }
 
@@ -159,6 +160,7 @@ void main() {
       await container.read(customerPartiesStreamProvider.future);
       await container.read(customersStreamProvider.future);
       await container.read(rawTransactionStreamProvider.future);
+      await container.read(rawAllTransactionsStreamProvider.future);
 
       final customers = container.read(accountingCustomersProvider);
       expect(customers.length, 2);
@@ -178,6 +180,70 @@ void main() {
       await container.read(customersStreamProvider.future);
 
       expect(container.read(accountingCustomersProvider), isEmpty);
+    });
+
+    test('loan with customer_id merges into the party even when the typed '
+        'name differs', () async {
+      final container = _container(
+        parties: [_party()], // id p-1, name 'Karake Retail'
+        transactions: [
+          {
+            'id': 'txn-loan-id',
+            'status': 'parked',
+            'sub_total': 100000,
+            'tax_amount': 0,
+            'payment_type': 'CASH',
+            'is_expense': false,
+            'is_loan': true,
+            'remaining_balance': 60000,
+            'created_at': DateTime.now().toIso8601String(),
+            'customer_id': 'p-1',
+            'customer_name': 'Karake K.', // free-text variant of the name
+            'receipt_number': '10',
+          },
+        ],
+      );
+      addTearDown(container.dispose);
+      await container.read(customerPartiesStreamProvider.future);
+      await container.read(customersStreamProvider.future);
+      await container.read(rawAllTransactionsStreamProvider.future);
+
+      final customers = container.read(accountingCustomersProvider);
+      // No duplicate "Karake K." row — the debt lands on the real customer.
+      expect(customers.length, 1);
+      expect(customers.single.name, 'Karake Retail');
+      expect(customers.single.partyId, 'p-1');
+      expect(customers.single.balance, 60000);
+    });
+
+    test('multiple open loans for the same customer sum their balances',
+        () async {
+      Map<String, dynamic> loan(String id, int remaining) => {
+            'id': id,
+            'status': 'parked',
+            'sub_total': 100000,
+            'tax_amount': 0,
+            'payment_type': 'CASH',
+            'is_expense': false,
+            'is_loan': true,
+            'remaining_balance': remaining,
+            'created_at': DateTime.now().toIso8601String(),
+            'customer_id': 'p-1',
+            'customer_name': 'Karake Retail',
+            'receipt_number': id,
+          };
+      final container = _container(
+        parties: [_party()],
+        transactions: [loan('t1', 40000), loan('t2', 25000)],
+      );
+      addTearDown(container.dispose);
+      await container.read(customerPartiesStreamProvider.future);
+      await container.read(customersStreamProvider.future);
+      await container.read(rawAllTransactionsStreamProvider.future);
+
+      final customers = container.read(accountingCustomersProvider);
+      expect(customers.length, 1);
+      expect(customers.single.balance, 65000);
     });
   });
 }

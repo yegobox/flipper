@@ -24,6 +24,7 @@ import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_ledger_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_repository.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
+import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_web/modules/accounting/data/transaction_journal_poster.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -236,8 +237,11 @@ final accountingAutoPosterProvider = Provider<void>((ref) {
     final txns = ref.read(rawTransactionStreamProvider).value ?? [];
     if (txns.isEmpty) return;
     final items = await ref.read(rawTransactionItemsProvider.future);
-    await TransactionJournalPoster(ref.read(accountingLedgerRepositoryProvider))
-        .syncTransactions(
+    final ditto = ref.read(dittoServiceProvider);
+    await TransactionJournalPoster(
+      ref.read(accountingLedgerRepositoryProvider),
+      audit: AuditTrailRecorder(ditto),
+    ).syncTransactions(
       businessId: businessId,
       transactions: txns,
       items: items,
@@ -295,13 +299,23 @@ final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
       );
 });
 
+/// Open receivables/payables are balances, not period flows: a loan from a
+/// prior month is still owed today. Aging therefore reads ALL finalized
+/// transactions for the branch, ignoring the selected accounting period.
+final rawAllTransactionsStreamProvider =
+    StreamProvider<List<Map<String, dynamic>>>((ref) {
+  final repo = ref.watch(accountingRepositoryProvider);
+  final branchId = ref.watch(accountingBranchIdProvider);
+  return repo.watchTransactions(branchId: branchId);
+});
+
 final accountingArAgingProvider = Provider<List<AgingRow>>((ref) {
-  final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
+  final txns = ref.watch(rawAllTransactionsStreamProvider).value ?? [];
   return deriveArAging(txns);
 });
 
 final accountingApAgingProvider = Provider<List<AgingRow>>((ref) {
-  final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
+  final txns = ref.watch(rawAllTransactionsStreamProvider).value ?? [];
   return deriveApAging(txns);
 });
 

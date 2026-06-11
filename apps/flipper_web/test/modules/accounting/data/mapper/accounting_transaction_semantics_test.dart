@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('accounting transaction semantics', () {
-    test('recognizes completed and parked lowercase statuses', () {
+    test('recognizes completed sales and parked loans, not held tickets', () {
       expect(
         isAccountingRecognizedTransaction({
           'status': 'completed',
@@ -11,12 +11,23 @@ void main() {
         }),
         isTrue,
       );
+      // Parked loan = credit sale → recognized.
+      expect(
+        isAccountingRecognizedTransaction({
+          'status': 'parked',
+          'subTotal': 100,
+          'isLoan': true,
+        }),
+        isTrue,
+      );
+      // Parked WITHOUT loan = held ticket (cart saved for later) → not a
+      // sale; recognizing it would post revenue/cash never earned.
       expect(
         isAccountingRecognizedTransaction({
           'status': 'parked',
           'subTotal': 100,
         }),
-        isTrue,
+        isFalse,
       );
       expect(
         isAccountingRecognizedTransaction({

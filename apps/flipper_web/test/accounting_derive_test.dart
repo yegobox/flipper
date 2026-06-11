@@ -3,6 +3,9 @@ import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/default_chart_of_accounts_seed.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+// Coherent sample period: 100k cash sales, 40k of inventory sold (COGS, bought
+// with sale proceeds) and 10k rent paid — cash on hand ends at 50k, so trial
+// balance debits (50k + 40k + 10k) equal credits (100k revenue).
 List<Account> _sampleAccounts() {
   return [
     const Account(
@@ -11,7 +14,7 @@ List<Account> _sampleAccounts() {
       type: AccountType.asset,
       sub: 'Current assets',
       normal: AccountNormal.debit,
-      bal: 100000,
+      bal: 50000,
     ),
     const Account(
       code: '4010',

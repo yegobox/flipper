@@ -575,6 +575,13 @@ mixin TransactionMixinOld {
         ],
       );
 
+      // NOTE: do NOT mutate transaction.isLoan here. Setting it before
+      // collectPayment forces its loan branch, which changes cashReceived /
+      // lastPaymentDate handling and breaks the parked-as-loan completion
+      // derived later by markTransactionAsCompleted. The parked status alone
+      // signals the loan; the journal poster and customer linker derive
+      // loan-ness from completionStatus (see PosJournalPoster / LoanCustomerLinker).
+
       // Collect payment via Capella so items are read from Ditto
       await ProxyService.getStrategy(Strategy.capella).collectPayment(
         branchId: branchId,

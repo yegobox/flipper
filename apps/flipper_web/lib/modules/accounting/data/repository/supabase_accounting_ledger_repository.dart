@@ -122,11 +122,33 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
+  Future<bool> entryExists({
+    required String businessId,
+    required String entryId,
+  }) async {
+    try {
+      final row = await _client
+          .from(_entriesTable)
+          .select('id')
+          .eq('business_id', businessId)
+          .eq('id', entryId)
+          .maybeSingle();
+      return row != null;
+    } catch (_) {
+      // Deterministic ids are not valid Postgres UUIDs; callers fall back to
+      // findEntryIdByTransactionId for dedupe on this backend.
+      return false;
+    }
+  }
+
+  @override
   Future<String> createJournalEntry({
     required String businessId,
     required JournalEntry entry,
     String? transactionId,
     String? journalCode,
+    // Postgres generates entry ids; dedupe relies on transaction_id instead.
+    String? entryId,
   }) async {
     String? journalId;
     if (journalCode != null) {

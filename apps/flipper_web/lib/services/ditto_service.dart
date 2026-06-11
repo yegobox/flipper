@@ -18,6 +18,7 @@ import 'ditto_mixins/user_access_mixin.dart';
 import 'ditto_mixins/feature_mixin.dart';
 import 'ditto_mixins/plan_mixin.dart';
 import 'ditto_mixins/accounting_mixin.dart';
+import 'package:flipper_accounting/accounting_ditto_store.dart';
 
 // Global singleton instance of DittoService
 final DittoService _dittoServiceInstance = DittoService._internal();
@@ -65,7 +66,8 @@ class DittoService extends DittoCore
         UserAccessMixin,
         FeatureMixin,
         PlanMixin,
-        AccountingMixin {
+        AccountingMixin
+    implements AccountingDittoStore {
   // Private constructor for singleton implementation
   DittoService._internal();
 

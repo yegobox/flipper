@@ -2092,6 +2092,17 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       setClauses.add('dueDate = :dueDate');
       args['dueDate'] = transaction.dueDate!.toUtc().toIso8601String();
     }
+    if (transaction.isLoan == true && subTotal > 0) {
+      final paid = transaction.cashReceived ?? 0.0;
+      final remaining = subTotal - paid;
+      final loanRemaining = remaining < 0 ? 0.0 : remaining;
+      transaction.originalLoanAmount = subTotal;
+      transaction.remainingBalance = loanRemaining;
+      setClauses.add('originalLoanAmount = :originalLoanAmount');
+      setClauses.add('remainingBalance = :remainingBalance');
+      args['originalLoanAmount'] = subTotal;
+      args['remainingBalance'] = loanRemaining;
+    }
 
     await ditto.store.execute(
       'UPDATE transactions SET ${setClauses.join(', ')} '

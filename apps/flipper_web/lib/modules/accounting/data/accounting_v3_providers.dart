@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
@@ -124,7 +127,46 @@ final billingUiProvider = StateProvider<BillingUiState?>((ref) => null);
 final recurringSchedulesProvider =
     StateProvider<List<RecurringSchedule>>((ref) => defaultRecurringSchedules);
 
+/// Session-local audit entries (immediate UI feedback). The durable record
+/// lives in [persistedAuditLogProvider]; appendAuditLog writes both.
 final auditLogProvider = StateProvider<List<AuditEntry>>((ref) => []);
+
+/// Persisted audit trail from the Ditto `accounting_audit_logs` collection —
+/// survives restarts, syncs across devices, and includes system events
+/// (POS posting, auto-poster, backfill sweep, loan customer linking).
+final persistedAuditLogProvider = StreamProvider<List<AuditEntry>>((ref) {
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return const Stream.empty();
+  return ref
+      .watch(dittoServiceProvider)
+      .watchCollection(
+        'accounting_audit_logs',
+        'SELECT * FROM accounting_audit_logs WHERE businessId = :businessId '
+            'ORDER BY ts DESC LIMIT 300',
+        {'businessId': businessId},
+      )
+      .map((rows) => rows.map(auditEntryFromRow).toList());
+});
+
+/// Maps a persisted `accounting_audit_logs` row to the UI [AuditEntry].
+AuditEntry auditEntryFromRow(Map<String, dynamic> row) {
+  final tsRaw = row['ts']?.toString() ?? '';
+  final dt = DateTime.tryParse(tsRaw)?.toLocal();
+  return AuditEntry(
+    id: (row['id'] ?? row['_id'] ?? '').toString(),
+    ts: dt != null ? DateFormat('d MMM y · HH:mm').format(dt) : tsRaw,
+    user: (row['user'] ?? '—').toString(),
+    role: (row['role'] ?? 'System').toString(),
+    action: (row['action'] ?? '').toString(),
+    target: (row['target'] ?? '').toString(),
+    detail: (row['detail'] ?? '').toString(),
+    iconName: (row['iconName'] ?? 'Receipt').toString(),
+    tone: AuditTone.values.firstWhere(
+      (t) => t.name == row['tone'],
+      orElse: () => AuditTone.slate,
+    ),
+  );
+}
 
 final teamExtraProvider = StateProvider<List<TeamMember>>((ref) => []);
 
@@ -179,39 +221,66 @@ List<AccountingContact> _mergeContacts({
   required List<AccountingContact> saved,
   required String idPrefix,
 }) {
-  final byName = <String, AccountingContact>{};
+  final savedByPartyId = <String, AccountingContact>{
+    for (final c in saved)
+      if (c.partyId != null) c.partyId!: c,
+  };
+  final savedByName = <String, AccountingContact>{
+    for (final c in saved) c.name: c,
+  };
+
+  String keyFor(AccountingContact c) => c.partyId ?? c.id;
+
+  // Resolve every aging row to a contact key — by canonical party id when the
+  // transaction carries one (names are free text and may differ per sale),
+  // by name only as a walk-in fallback — and SUM balances per debtor.
+  final balances = <String, int>{};
+  final synthetic = <String, ({String? partyId, String name})>{};
 
   for (final row in aging) {
-    if (row.name.isEmpty) continue;
-    final existing = byName[row.name];
-    if (existing != null) {
-      byName[row.name] = existing.copyWith(balance: row.total, fromAging: true);
+    AccountingContact? match;
+    final pid = row.partyId;
+    if (pid != null && pid.isNotEmpty) match = savedByPartyId[pid];
+    match ??= savedByName[row.name];
+
+    String key;
+    if (match != null) {
+      key = keyFor(match);
+    } else if (pid != null && pid.isNotEmpty) {
+      key = pid;
+      synthetic[key] = (partyId: pid, name: row.name);
+    } else if (row.name.isNotEmpty) {
+      key = '$idPrefix-${row.name.hashCode.abs()}';
+      synthetic[key] = (partyId: null, name: row.name);
     } else {
-      byName[row.name] = AccountingContact(
-        id: '$idPrefix-${row.name.hashCode.abs()}',
-        name: row.name,
-        contact: row.name,
-        phone: '',
-        email: '',
-        tin: '',
-        since: '—',
-        terms: 'Net 30',
-        balance: row.total,
-        fromAging: true,
-      );
+      continue;
     }
+    balances[key] = (balances[key] ?? 0) + row.total;
   }
 
-  for (final c in saved) {
-    final existing = byName[c.name];
-    if (existing != null && existing.fromAging) {
-      byName[c.name] = c.copyWith(balance: existing.balance);
-    } else {
-      byName[c.name] = c;
-    }
-  }
+  final out = <String, AccountingContact>{
+    for (final c in saved)
+      keyFor(c): balances.containsKey(keyFor(c))
+          ? c.copyWith(balance: balances[keyFor(c)]!)
+          : c,
+  };
+  synthetic.forEach((key, info) {
+    out[key] = AccountingContact(
+      id: key,
+      partyId: info.partyId,
+      name: info.name,
+      contact: info.name,
+      phone: '',
+      email: '',
+      tin: '',
+      since: '—',
+      terms: 'Net 30',
+      balance: balances[key] ?? 0,
+      fromAging: true,
+    );
+  });
 
-  return byName.values.toList()..sort((a, b) => a.name.compareTo(b.name));
+  return out.values.toList()..sort((a, b) => a.name.compareTo(b.name));
 }
 
 final accountingCustomersProvider = Provider<List<AccountingContact>>((ref) {
@@ -387,8 +456,9 @@ void appendAuditLog(
 }) {
   final user = ref.read(accountingUserNameProvider);
   final role = ref.read(accountingUserRoleProvider);
-  final ts = DateFormat('d MMM y · HH:mm').format(DateTime.now());
-  final id = 'A-${DateTime.now().millisecondsSinceEpoch % 10000}';
+  final now = DateTime.now();
+  final ts = DateFormat('d MMM y · HH:mm').format(now);
+  final id = 'audit_ui_${now.toUtc().microsecondsSinceEpoch}';
   final entry = AuditEntry(
     id: id,
     ts: ts,
@@ -401,6 +471,26 @@ void appendAuditLog(
     tone: tone,
   );
   ref.read(auditLogProvider.notifier).update((log) => [entry, ...log]);
+
+  // Persist so the trail survives restarts and syncs across devices.
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isNotEmpty) {
+    unawaited(
+      AuditTrailRecorder(ref.read(dittoServiceProvider)).record(
+        businessId: businessId,
+        id: id,
+        action: action,
+        target: target,
+        detail: detail,
+        user: entry.user,
+        role: entry.role,
+        tone: tone.name,
+        iconName: iconName,
+        src: 'Books',
+        at: now.toUtc(),
+      ),
+    );
+  }
 }
 
 AccountingView? closeTaskView(String goView) => AccountingViewX.fromKey(goView);

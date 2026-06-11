@@ -14,6 +14,8 @@ List<AgingRow> deriveArAging(List<Map<String, dynamic>> transactions) {
     final days = now.difference(created).inDays;
     final name =
         (t['customer_name'] ?? t['customerName'] ?? 'Customer').toString();
+    final customerId =
+        (t['customer_id'] ?? t['customerId'])?.toString();
     final inv = (t['receipt_number'] ??
             t['receiptNumber'] ??
             t['reference'] ??
@@ -24,6 +26,7 @@ List<AgingRow> deriveArAging(List<Map<String, dynamic>> transactions) {
     rows.add(AgingRow(
       name: name,
       inv: inv,
+      partyId: (customerId != null && customerId.isNotEmpty) ? customerId : null,
       current: buckets.$1,
       d30: buckets.$2,
       d60: buckets.$3,
@@ -46,12 +49,14 @@ List<AgingRow> deriveApAging(List<Map<String, dynamic>> transactions) {
     final created = _parseDate(t['created_at'] ?? t['createdAt']) ?? now;
     final days = now.difference(created).inDays;
     final name = (t['note'] ?? t['supplier_id'] ?? 'Supplier').toString();
+    final supplierId = (t['supplier_id'] ?? t['supplierId'])?.toString();
     final inv = (t['reference'] ?? t['receipt_number'] ?? t['id']).toString();
     final buckets = _bucketAmount(remaining, days);
 
     rows.add(AgingRow(
       name: name,
       inv: inv,
+      partyId: (supplierId != null && supplierId.isNotEmpty) ? supplierId : null,
       current: buckets.$1,
       d30: buckets.$2,
       d60: buckets.$3,
