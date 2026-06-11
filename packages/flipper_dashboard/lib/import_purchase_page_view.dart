@@ -47,8 +47,8 @@ class _ImportPurchasePageViewState
     final state = ref.watch(importPurchaseViewModelProvider);
     final isImport = state.when(
       data: (s) => s.isImport,
-      loading: () => true,
-      error: (_, __) => true,
+      loading: () => false,
+      error: (_, __) => false,
     );
     final isExporting = state.when(
       data: (s) => s.isExporting,

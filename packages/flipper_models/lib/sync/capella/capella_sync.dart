@@ -53,6 +53,7 @@ import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/personal_goals_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
+import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_models/sync/capella/mixins/production_output_mixin.dart';
@@ -79,6 +80,7 @@ class CapellaSync extends AiStrategyImpl
         CoreMiscellaneous,
         CapellaGetterOperationsMixin,
         CapellaProductMixin,
+        PurchaseMixin,
         CapellaPurchaseMixin,
         CapellaReceiptMixin,
         CapellaStorageMixin,

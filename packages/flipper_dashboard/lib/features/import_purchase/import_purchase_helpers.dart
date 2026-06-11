@@ -95,9 +95,7 @@ abstract final class ImportPurchaseHelpers {
   ) {
     for (final entry in variantMap.entries) {
       if (entry.value.any((v) => v.id == importItem.id)) {
-        return entry.value.first.name != importItem.name
-            ? entry.key
-            : null;
+        return entry.value.first.name != importItem.name ? entry.key : null;
       }
     }
     for (final entry in variantMap.entries) {
@@ -127,7 +125,7 @@ abstract final class ImportPurchaseHelpers {
     final items = purchase.variants ?? [];
     return items.fold<double>(
       0,
-      (sum, v) => sum + (v.supplyPrice ?? 0) * (v.stock?.currentStock ?? 1),
+      (sum, v) => sum + (v.supplyPrice ?? 0) * (v.stock?.currentStock ?? 0.0),
     );
   }
 }

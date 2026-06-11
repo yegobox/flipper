@@ -517,6 +517,13 @@ class TaxController<OBJ> {
       transactionId: transaction.id,
     );
 
+    var customerNameForPrint =
+        transaction.customerName ?? ProxyService.box.customerName() ?? '';
+    customerNameForPrint = customerNameForPrint.trim();
+    if (customerNameForPrint.isEmpty) {
+      customerNameForPrint = 'Walk-in Customer';
+    }
+
     await Print().print(
       vatEnabled: ebm!.vatEnabled ?? false,
       taxTT: totalTT,
@@ -571,9 +578,7 @@ class TaxController<OBJ> {
           ? transaction.customerTin
           : ProxyService.box.customerTin(),
       receiptType: receiptType,
-      customerName: (transaction.customerName?.isNotEmpty ?? false)
-          ? transaction.customerName!
-          : ProxyService.box.customerName()!,
+      customerName: customerNameForPrint,
       printCallback: (Uint8List data) {
         bytes = data;
         onSuccess?.call();

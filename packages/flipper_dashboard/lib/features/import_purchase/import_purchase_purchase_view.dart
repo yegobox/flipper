@@ -125,7 +125,7 @@ class _ImportPurchasePurchaseViewState
     Variant item,
     List<Variant> catalog,
   ) async {
-    final paged = await ProxyService.strategy.variants(
+    final paged = await ProxyService.getStrategy(Strategy.capella).variants(
       taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
       fetchRemote: false,
       branchId: ProxyService.box.getBranchId()!,

@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/export/export_import.dart';
 import 'package:flipper_dashboard/export/export_purchase.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,7 +20,7 @@ class ImportPurchaseViewModel
   ImportPurchaseViewModel()
     : super(
         AsyncValue.data(
-          ImportPurchaseState(selectedDate: DateTime.now(), isImport: true),
+          ImportPurchaseState(selectedDate: DateTime.now(), isImport: false),
         ),
       );
 
@@ -30,7 +31,8 @@ class ImportPurchaseViewModel
   Future<void> exportImport() async {
     state = AsyncValue.data(state.value!.copyWith(isExporting: true));
     try {
-      List<Variant> imports = await ProxyService.strategy.allImportsToDate();
+      List<Variant> imports =
+          await ProxyService.getStrategy(Strategy.capella).allImportsToDate();
       if (imports.isNotEmpty) {
         await ExportImport().export(imports);
       } else {
@@ -46,8 +48,9 @@ class ImportPurchaseViewModel
   Future<void> exportPurchase() async {
     state = AsyncValue.data(state.value!.copyWith(isExporting: true));
     try {
-      List<PurchaseReportItem> purchases = await ProxyService.strategy
-          .allPurchasesToDate();
+      List<PurchaseReportItem> purchases = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).allPurchasesToDate();
       if (purchases.isNotEmpty) {
         await ExportPurchase().export(purchases);
       } else {

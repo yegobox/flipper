@@ -463,11 +463,13 @@ mixin CapellaProductMixin implements ProductInterface {
               await repository.upsert<Variant>(savedVariant);
               // Ditto sync for variant done in addVariant? Yes.
               await repository.upsert<Purchase>(purchase);
-              // Ditto sync for purchase?
               if (ditto != null) {
-                // Assuming Purchase has toJson
-                // await ditto.store.execute(...)
-                // Not strictly in scope for "Fixing upsert", but good hygiene.
+                final doc = await PurchaseDittoAdapter.instance
+                    .toDittoDocument(purchase);
+                await ditto.store.execute(
+                  'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+                  arguments: {'doc': doc},
+                );
               }
 
               talker.info(
@@ -486,6 +488,14 @@ mixin CapellaProductMixin implements ProductInterface {
       }
       if (purchase != null) {
         await repository.upsert<Purchase>(purchase);
+        if (ditto != null) {
+          final doc =
+              await PurchaseDittoAdapter.instance.toDittoDocument(purchase);
+          await ditto.store.execute(
+            'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+            arguments: {'doc': doc},
+          );
+        }
       }
 
       return createdProduct;

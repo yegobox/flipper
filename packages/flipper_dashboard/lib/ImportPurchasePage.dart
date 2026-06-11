@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 
@@ -49,20 +49,21 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   Future<void> _loadData() async {
     if (!mounted) return;
     final isImportState =
-        ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
+        ref.read(importPurchaseViewModelProvider).value?.isImport ?? false;
 
     int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
     if (!mounted) return;
 
     setState(() => isLoading = true);
 
-    final business = await ProxyService.strategy.getBusiness(
-      businessId: ProxyService.box.getBusinessId()!,
-    );
-    if (!mounted) return;
-
     try {
       if (isImportState) {
+        // NOTE: Using the dynamic strategy (cloudSync/Brick on mobile/desktop)
+        // to keep reading import/purchase data from the pre-refactor backend.
+        // Switch back to getStrategy(Strategy.capella) when migrating to Ditto.
+        final business = await ProxyService.strategy
+            .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+        if (!mounted) return;
         _futureImportResponse = _fetchDataImport(
           selectedDate: _selectedDate,
           business: business,
@@ -104,6 +105,18 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     return data; // Return data directly
   }
 
+  /// Visible feedback so approve/reject actions are never silent.
+  /// Uses the shared [showSuccessNotification]/[showErrorNotification]
+  /// snackbars (floating, icon + haptics, responsive width).
+  void _notify(String message, {bool success = true}) {
+    if (!mounted) return;
+    if (success) {
+      showSuccessNotification(context, message);
+    } else {
+      showErrorNotification(context, message);
+    }
+  }
+
   void _selectItem(model.Variant? item) {
     setState(() {
       _selectedItem = item;
@@ -132,7 +145,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   void _saveChangeMadeOnItem() {
     if (_importFormKey.currentState?.validate() ?? false) {
       final isImportState =
-          ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
+          ref.read(importPurchaseViewModelProvider).value?.isImport ?? false;
       if (isImportState && _selectedItem != null) {
         setState(() {
           _selectedItem!.itemNm = _nameController.text;
@@ -207,7 +220,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       viewModelBuilder: () => brick.CoreViewModel(),
       builder: (context, coreViewModel, child) {
         final isImport =
-            ref.watch(importPurchaseViewModelProvider).value?.isImport ?? true;
+            ref.watch(importPurchaseViewModelProvider).value?.isImport ?? false;
 
         return Form(
           key: _importFormKey,
@@ -276,19 +289,26 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                       variant.supplyPrice == null ||
                       variant.retailPrice! <= 0 ||
                       variant.supplyPrice! <= 0)) {
-                toast(
+                _notify(
                   "One of the items to be approved is missing required pricing",
+                  success: false,
                 );
                 return;
               }
             }
-            await coreViewModel.approveAllImportItems(
-              variants,
-              variantMap: _variantMap,
-            );
-            if (!context.mounted) return;
-            final combinedNotifier = ref.read(refreshProvider);
-            combinedNotifier.performActions(productName: "", scanMode: true);
+            try {
+              await coreViewModel.approveAllImportItems(
+                variants,
+                variantMap: _variantMap,
+              );
+              _notify('Approved ${variants.length} item(s)');
+              if (!context.mounted) return;
+              final combinedNotifier = ref.read(refreshProvider);
+              combinedNotifier.performActions(productName: "", scanMode: true);
+            } catch (e, s) {
+              talker.error('Failed to approve all import items', e, s);
+              _notify('Could not approve items: $e', success: false);
+            }
           },
           selectItem: _selectItem,
           finalItemList: finalItemList,
@@ -310,23 +330,38 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                         item.supplyPrice == null ||
                         item.retailPrice! <= 0 ||
                         item.supplyPrice! <= 0)) {
-                  toast("Please set both retail and supply prices");
+                  _notify(
+                    "Please set both retail and supply prices",
+                    success: false,
+                  );
                   return;
                 }
-                await coreViewModel.processImportItem(item, variantMap);
-                if (!context.mounted) return;
-                final combinedNotifier = ref.read(refreshProvider);
-                combinedNotifier.performActions(
-                  productName: "",
-                  scanMode: true,
-                );
+                try {
+                  await coreViewModel.processImportItem(item, variantMap);
+                  _notify('Approved "${item.itemNm ?? item.name}"');
+                  if (!context.mounted) return;
+                  final combinedNotifier = ref.read(refreshProvider);
+                  combinedNotifier.performActions(
+                    productName: "",
+                    scanMode: true,
+                  );
+                } catch (e, s) {
+                  talker.error('Failed to approve import item', e, s);
+                  _notify('Could not approve item: $e', success: false);
+                }
               },
           onReject:
               (
                 model.Variant item,
                 Map<String, List<model.Variant>> variantMap,
               ) async {
-                await coreViewModel.rejectImportItem(item);
+                try {
+                  await coreViewModel.rejectImportItem(item);
+                  _notify('Rejected "${item.itemNm ?? item.name}"');
+                } catch (e, s) {
+                  talker.error('Failed to reject import item', e, s);
+                  _notify('Could not reject item: $e', success: false);
+                }
               },
         );
       },
@@ -376,6 +411,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                 required model.Purchase purchase,
                 model.Variant? clickedVariant,
               }) async {
+                final isDecline = pchsSttsCd == '04';
                 try {
                   await coreViewModel.acceptPurchase(
                     purchases: purchases,
@@ -385,9 +421,15 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                     clickedVariant: clickedVariant,
                   );
                   itemMapper.clear();
-                } catch (e) {
-                  talker.error('Error accepting purchase: $e');
-                  rethrow;
+                  _notify(isDecline ? 'Purchase declined' : 'Purchase accepted');
+                } catch (e, s) {
+                  talker.error('Error accepting purchase', e, s);
+                  // Notify instead of rethrowing: rethrow leaves the row's
+                  // loading spinner stuck (the view resets it only on success).
+                  _notify(
+                    'Could not ${isDecline ? 'decline' : 'accept'} purchase: $e',
+                    success: false,
+                  );
                 }
               },
           selectSale:

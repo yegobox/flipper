@@ -1,4 +1,5 @@
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -318,7 +319,8 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
         updatedAt: now,
       );
 
-      final saved = await ProxyService.strategy.saveManualPurchase(
+      final saved = await ProxyService.getStrategy(Strategy.capella)
+          .saveManualPurchase(
         purchase: purchase,
         branchId: branchId,
         supplier: supplier,

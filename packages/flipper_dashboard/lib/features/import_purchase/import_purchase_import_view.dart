@@ -49,7 +49,7 @@ class ImportPurchaseImportView extends ConsumerStatefulWidget {
 
 class _ImportPurchaseImportViewState
     extends ConsumerState<ImportPurchaseImportView> {
-  String _statusFilter = 'all';
+  String _statusFilter = 'wait';
   Variant? _selectedItem;
   final Map<String, bool> _approveLoading = {};
   final Map<String, bool> _rejectLoading = {};

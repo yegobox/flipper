@@ -208,15 +208,8 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     );
   }
 
-  @override
-  FutureOr<Business?> getBusinessById({
-    required String businessId,
-    bool fetchOnline = false,
-  }) async {
-    throw UnimplementedError(
-      'getBusinessById needs to be implemented for Capella',
-    );
-  }
+  // getBusinessById() is implemented by CapellaBusinessMixin (do not stub here
+  // — later mixins shadow earlier ones and would hide the repository lookup).
 
   // branch() is implemented by CapellaBranchMixin (do not stub here — later
   // mixins shadow earlier ones and would hide the Ditto implementation).

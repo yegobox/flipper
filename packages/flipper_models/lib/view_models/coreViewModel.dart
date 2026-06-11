@@ -5,6 +5,7 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/domain/party/customer_factory.dart';
 import 'package:flipper_models/domain/party/party_draft.dart';
@@ -60,6 +61,10 @@ class CoreViewModel extends FlipperBaseModel
   //     .notificationStream(identifier: ProxyService.box.getBranchId()!);
 
   CoreViewModel() {}
+
+  /// Import/purchase always uses Capella (Ditto-backed [CapellaPurchaseMixin]).
+  DatabaseSyncInterface get _importPurchaseSync =>
+      ProxyService.getStrategy(Strategy.capella);
 
   List<String> transactionPeriodOptions = [
     "Today",
@@ -998,7 +1003,7 @@ class CoreViewModel extends FlipperBaseModel
     notifyListeners();
 
     int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
-    final data = await ProxyService.strategy.selectImportItems(
+    final data = await _importPurchaseSync.selectImportItems(
       tin: tin!,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
     );
@@ -1128,7 +1133,7 @@ class CoreViewModel extends FlipperBaseModel
 
       // Persist updates if not handled by _processNewVariant
       if (shouldPersist) {
-        await ProxyService.strategy.updateVariant(
+        await _importPurchaseSync.updateVariant(
           updatables: [purchaseVariant],
           approvedQty: purchaseVariant.stock?.currentStock ?? 0,
           updateIo: false,
@@ -1195,7 +1200,7 @@ class CoreViewModel extends FlipperBaseModel
     }
 
     // Generate new itemCd using extracted components for ALL variants (including services)
-    variant.itemCd = await ProxyService.strategy.itemCode(
+    variant.itemCd = await _importPurchaseSync.itemCode(
       countryCode: countryCode,
       productType: productType,
       packagingUnit: packagingUnit,
@@ -1218,14 +1223,14 @@ class CoreViewModel extends FlipperBaseModel
         variant.stock!.currentStock = 0;
       }
 
-      await ProxyService.strategy.addVariant(
+      await _importPurchaseSync.addVariant(
         variations: [variant],
         branchId: ProxyService.box.getBranchId()!,
         skipRRaCall: false,
       );
     } else {
       // Normal handling for non-service items
-      await ProxyService.strategy.addVariant(
+      await _importPurchaseSync.addVariant(
         variations: [variant],
         branchId: ProxyService.box.getBranchId()!,
         skipRRaCall: false,
@@ -1249,7 +1254,7 @@ class CoreViewModel extends FlipperBaseModel
       final purchaseVariants = entry.value;
       // variantFromPurchase.assi
 
-      final existingVariant = await ProxyService.strategy.getVariant(
+      final existingVariant = await _importPurchaseSync.getVariant(
         id: existingVariantId,
       );
 
@@ -1259,7 +1264,7 @@ class CoreViewModel extends FlipperBaseModel
           totalQty += pv.stock?.currentStock ?? 0;
           pv.assigned = true;
           pv.pchsSttsCd = "03";
-          await ProxyService.strategy.updateVariant(
+          await _importPurchaseSync.updateVariant(
             updatables: [pv],
             approvedQty: pv.stock?.currentStock ?? 0,
             updateIo: false,
@@ -1273,13 +1278,13 @@ class CoreViewModel extends FlipperBaseModel
         final newTotalStock = originalStock + totalQty;
 
         // Update the existing variant's stock
-        await ProxyService.strategy.updateStock(
+        await _importPurchaseSync.updateStock(
           stockId: existingVariant.stock!.id,
           currentStock: newTotalStock,
           appending: false,
         );
 
-        await ProxyService.strategy.updateVariant(
+        await _importPurchaseSync.updateVariant(
           updatables: [existingVariant],
           purchase: purchase,
           approvedQty: totalQty,
@@ -1310,7 +1315,7 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<Business> _getBusiness() async {
     final businessId = ProxyService.box.getBusinessId();
-    final business = await ProxyService.strategy.getBusiness(
+    final business = await _importPurchaseSync.getBusiness(
       businessId: businessId,
     );
 
@@ -1404,7 +1409,7 @@ class CoreViewModel extends FlipperBaseModel
         final existingId = entry.key;
         final imports = entry.value;
 
-        final existingVariant = await ProxyService.strategy.getVariant(
+        final existingVariant = await _importPurchaseSync.getVariant(
           id: existingId,
         );
         if (existingVariant != null) {
@@ -1414,7 +1419,7 @@ class CoreViewModel extends FlipperBaseModel
             import.imptItemSttsCd = "3";
             import.assigned = true;
             import.ebmSynced = true;
-            await ProxyService.strategy.updateVariant(
+            await _importPurchaseSync.updateVariant(
               updatables: [import],
               approvedQty: import.stock?.currentStock ?? 0,
             );
@@ -1425,13 +1430,13 @@ class CoreViewModel extends FlipperBaseModel
           final newStockQty =
               (existingVariant.stock!.currentStock ?? 0.0) + totalIncomingQty;
 
-          await ProxyService.strategy.updateStock(
+          await _importPurchaseSync.updateStock(
             stockId: existingVariant.stock!.id,
             currentStock: newStockQty,
             appending: false,
           );
 
-          await ProxyService.strategy.updateVariant(
+          await _importPurchaseSync.updateVariant(
             updatables: [existingVariant],
             approvedQty: totalIncomingQty,
           );
@@ -1453,7 +1458,7 @@ class CoreViewModel extends FlipperBaseModel
       for (final variant in importItems) {
         if (!mappedImportIds.contains(variant.id) &&
             variant.imptItemSttsCd == "2") {
-          variant.itemCd = await ProxyService.strategy.itemCode(
+          variant.itemCd = await _importPurchaseSync.itemCode(
             countryCode: variant.orgnNatCd ?? "RW",
             productType: "2",
             packagingUnit: variant.pkgUnitCd ?? "CT",
@@ -1463,7 +1468,7 @@ class CoreViewModel extends FlipperBaseModel
           variant.qtyUnitCd = "BE";
           variant.imptItemSttsCd = "3";
           variant.assigned = false;
-          await ProxyService.strategy.addVariant(
+          await _importPurchaseSync.addVariant(
             variations: [variant],
             branchId: ProxyService.box.getBranchId()!,
             skipRRaCall: false,
@@ -1522,7 +1527,7 @@ class CoreViewModel extends FlipperBaseModel
     if (existingId != null) {
       // This import is mapped to an existing variant
       final imports = variantMap[existingId]!;
-      final existingVariant = await ProxyService.strategy.getVariant(
+      final existingVariant = await _importPurchaseSync.getVariant(
         id: existingId,
       );
       if (existingVariant != null) {
@@ -1532,7 +1537,7 @@ class CoreViewModel extends FlipperBaseModel
           import.imptItemSttsCd = "3";
           import.assigned = true;
           import.ebmSynced = true;
-          await ProxyService.strategy.updateVariant(
+          await _importPurchaseSync.updateVariant(
             updatables: [import],
             approvedQty: import.stock?.currentStock ?? 0,
             updateIo: false,
@@ -1544,13 +1549,13 @@ class CoreViewModel extends FlipperBaseModel
         final newStockQty =
             (existingVariant.stock!.currentStock ?? 0.0) + totalIncomingQty;
 
-        await ProxyService.strategy.updateStock(
+        await _importPurchaseSync.updateStock(
           stockId: existingVariant.stock!.id,
           currentStock: newStockQty,
           appending: false,
         );
 
-        await ProxyService.strategy.updateVariant(
+        await _importPurchaseSync.updateVariant(
           updatables: [existingVariant],
           approvedQty: totalIncomingQty,
           updateIo: false,
@@ -1568,7 +1573,7 @@ class CoreViewModel extends FlipperBaseModel
       }
     } else {
       // Create new variant
-      incomingImportVariant.itemCd = await ProxyService.strategy.itemCode(
+      incomingImportVariant.itemCd = await _importPurchaseSync.itemCode(
         countryCode: incomingImportVariant.orgnNatCd ?? "RW",
         productType: "2",
         packagingUnit: incomingImportVariant.pkgUnitCd ?? "CT",
@@ -1578,7 +1583,7 @@ class CoreViewModel extends FlipperBaseModel
       incomingImportVariant.qtyUnitCd = "BE";
       incomingImportVariant.imptItemSttsCd = "3";
       incomingImportVariant.assigned = false;
-      await ProxyService.strategy.addVariant(
+      await _importPurchaseSync.addVariant(
         variations: [incomingImportVariant],
         skipRRaCall: false,
         branchId: ProxyService.box.getBranchId()!,
@@ -1595,7 +1600,7 @@ class CoreViewModel extends FlipperBaseModel
     try {
       item.imptItemSttsCd = "4";
       item.ebmSynced = false;
-      await ProxyService.strategy.updateVariant(
+      await _importPurchaseSync.updateVariant(
         updatables: [item],
         approvedQty: 0,
         updateIo: false,
@@ -1614,7 +1619,7 @@ class CoreViewModel extends FlipperBaseModel
       await ProxyService.tax.updateImportItems(item: item, URI: URI);
 
       item.ebmSynced = true;
-      ProxyService.strategy.updateVariant(
+      _importPurchaseSync.updateVariant(
         updatables: [item],
         approvedQty: 0,
         updateIo: false,
