@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:badges/badges.dart' as badges;
 import 'package:flipper_dashboard/BranchPerformance.dart';
-import 'package:flipper_dashboard/import_purchase_dialog.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/umusada_helper.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
@@ -263,7 +263,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
   Future<void> _handleImportPurchaseTap(BuildContext context) async {
     final ok = await _verifyAdminPinIfRequired(context);
     if (!ok || !mounted) return;
-    await ImportPurchaseDialog.show(context);
+    ref.read(selectedPageProvider.notifier).state = DashboardPage.purchases;
   }
 
   Future<void> _handleMoreMenuSelection(

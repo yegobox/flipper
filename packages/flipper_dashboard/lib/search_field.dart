@@ -2,7 +2,7 @@
 
 import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/AddRoomDialog.dart';
-import 'package:flipper_dashboard/import_purchase_dialog.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
@@ -373,7 +373,10 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handlePurchaseImport() {
-    ImportPurchaseDialog.show(context);
+    // Same gate the former dialog applied: not available on small screens.
+    final deviceType = _getDeviceType(context);
+    if (deviceType == 'Phone' || deviceType == 'Phablet') return;
+    ref.read(selectedPageProvider.notifier).state = DashboardPage.purchases;
   }
 
   void _handleShowingCustomAmountCalculator({required CoreViewModel model}) {

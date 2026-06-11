@@ -14,6 +14,8 @@ enum DashboardPage {
   productionOutput,
   dailyReportFiles,
   agentCommission,
+  purchases,
+  recordPurchase,
 }
 
 final selectedPageProvider = StateProvider<DashboardPage>(

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Developer Handoff — Import &amp; Purchase Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --accent: #2f6bff; --accent-strong: #1e5be6; --accent-wash: #eaf0ff;
+    --green: #1f9d55; --green-wash: #e7f6ee; --red: #e5484d; --red-wash: #fdecec;
+    --amber: #98690a; --amber-wash: #fff3d6;
+    --ink: #1a1f2e; --ink-2: #545b6b; --muted: #8a909c; --faint: #b6bcc6;
+    --line: #ecedf1; --line-2: #e2e5ec; --surface: #fff; --surface-2: #f7f8fb; --surface-3: #eef1f6; --canvas: #f3f5f9;
+    --radius: 14px; --radius-sm: 9px;
+    --shadow: 0 1px 2px rgba(20,30,60,.05), 0 10px 24px -14px rgba(20,30,60,.2);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Inter", -apple-system, sans-serif; color: var(--ink); background: var(--canvas);
+    -webkit-font-smoothing: antialiased; line-height: 1.55; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 32px 96px; }
+  h1 { font-size: 34px; font-weight: 800; letter-spacing: -.025em; margin: 0 0 6px; }
+  h2 { font-size: 21px; font-weight: 800; letter-spacing: -.015em; margin: 0 0 16px; padding-top: 8px; }
+  h3 { font-size: 15px; font-weight: 800; margin: 22px 0 10px; letter-spacing: -.01em; }
+  p { margin: 0 0 12px; color: var(--ink-2); }
+  a { color: var(--accent-strong); }
+  code { font-family: "JetBrains Mono", monospace; font-size: .88em; background: var(--surface-3); padding: 1.5px 6px; border-radius: 5px; color: #2c3550; }
+  strong { color: var(--ink); font-weight: 700; }
+  ul { margin: 0 0 12px; padding-left: 20px; color: var(--ink-2); }
+  li { margin: 4px 0; }
+  li::marker { color: var(--faint); }
+
+  .lead { font-size: 16.5px; color: var(--ink-2); max-width: 70ch; }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 4px; }
+  .chip { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line-2); color: var(--ink-2); }
+  .chip.hifi { background: var(--green-wash); color: #178045; border-color: transparent; }
+  .chip.brand { background: var(--accent-wash); color: var(--accent-strong); border-color: transparent; }
+
+  section { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 30px 32px; margin: 18px 0; box-shadow: var(--shadow); }
+
+  /* token-budget callout */
+  .callout { border-radius: 18px; padding: 26px 30px; margin: 18px 0; border: 1px solid; }
+  .callout.ai { background: #fffaf0; border-color: #f0dcae; }
+  .callout.ai h2 { color: #8a5a00; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+  .callout .tag { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #b07a17; background: #fdeecb; padding: 3px 9px; border-radius: 6px; }
+  .callout.ai ul { color: #6b5224; }
+  .callout.ai li { margin: 7px 0; }
+  .callout.ai strong { color: #5c4413; }
+
+  /* token swatches */
+  .tok-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 12px; margin: 4px 0 8px; }
+  .tok { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .tok .sw { height: 52px; }
+  .tok .lab { padding: 9px 11px; }
+  .tok .lab .nm { font-size: 12.5px; font-weight: 700; }
+  .tok .lab .hex { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 14px; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--surface-2); }
+  td { color: var(--ink-2); }
+  td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  td code { white-space: nowrap; }
+
+  .filelist { display: grid; gap: 8px; }
+  .filerow { display: grid; grid-template-columns: 230px 1fr; gap: 14px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .filerow:last-child { border-bottom: none; }
+  .filerow .fn { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .filerow .fd { font-size: 13.5px; color: var(--ink-2); }
+
+  .note { background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; padding: 14px 18px; margin: 14px 0; font-size: 14px; color: var(--ink-2); }
+  .note strong { color: var(--ink); }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  @media (max-width: 680px) { .two { grid-template-columns: 1fr; } .filerow { grid-template-columns: 1fr; gap: 2px; } .wrap { padding: 32px 18px 64px; } }
+
+  .toc { columns: 2; column-gap: 28px; font-size: 14px; }
+  .toc a { display: block; padding: 4px 0; color: var(--ink-2); text-decoration: none; }
+  .toc a:hover { color: var(--accent-strong); }
+  @media (max-width: 680px) { .toc { columns: 1; } }
+
+  kbd { font-family: "JetBrains Mono", monospace; font-size: 11.5px; background: var(--surface); border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 6px; padding: 1.5px 7px; color: var(--ink); }
+  .hr { height: 1px; background: var(--line); margin: 8px 0 0; }
+  @media print { body { background: #fff; } section, .callout { box-shadow: none; break-inside: avoid; } .wrap { max-width: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Import &amp; Purchase Management</h1>
+  <p class="lead">Developer handoff for the responsive redesign of the Import &amp; Purchase screen and the in-app Record Purchase modal.</p>
+  <div class="meta">
+    <span class="chip hifi">High fidelity</span>
+    <span class="chip brand">Flipper design system</span>
+    <span class="chip">Inter</span>
+    <span class="chip">Responsive · mobile + desktop</span>
+    <span class="chip">React (prototype)</span>
+  </div>
+
+  <section>
+    <h2>Contents</h2>
+    <nav class="toc">
+      <a href="#about">1 · About these files</a>
+      <a href="#ai">2 · Brief for AI coding assistants</a>
+      <a href="#tokens">3 · Design tokens</a>
+      <a href="#type">4 · Typography</a>
+      <a href="#topbar">5 · Top bar</a>
+      <a href="#import">6 · Import mode</a>
+      <a href="#purchase">7 · Purchase mode</a>
+      <a href="#modal">8 · Record Purchase modal</a>
+      <a href="#responsive">9 · Responsive rules</a>
+      <a href="#state">10 · State &amp; data</a>
+      <a href="#files">11 · Files in this bundle</a>
+    </nav>
+  </section>
+
+  <section id="about">
+    <h2>1 · About these files</h2>
+    <p>The files in <code>src/</code> are <strong>design references built in HTML/CSS + React (via in-browser Babel)</strong>. They are prototypes that demonstrate the intended look, layout, and behavior — <strong>not production code to ship as-is</strong>.</p>
+    <p>Your task is to <strong>recreate these designs inside the target codebase</strong> using its established framework, component library, state management, and conventions. If no front-end environment exists yet, pick the most appropriate framework for the project and implement there. Treat the HTML/CSS as the source of truth for <strong>visual spec and interaction</strong>; treat the React structure as a reference for component breakdown, not a required architecture.</p>
+    <div class="note"><strong>Fidelity: high.</strong> Colors, type, spacing, radii, and interactions are final. Recreate them precisely using your codebase's primitives (e.g. map the tokens below to your theme).</div>
+  </section>
+
+  <div class="callout ai" id="ai">
+    <h2><span class="tag">Read first</span> 2 · Brief for AI coding assistants</h2>
+    <p style="color:#6b5224;margin-bottom:10px;">This handoff is self-sufficient. Work efficiently and do not burn tokens re-deriving what is already specified here.</p>
+    <ul>
+      <li><strong>Don't echo the spec.</strong> Don't re-read or paste large file contents back into chat. Reference token names and section numbers instead of reproducing values.</li>
+      <li><strong>Read only what you need.</strong> The HTML/CSS in <code>src/</code> is the source of truth. Open <code>ipm.css</code> + <code>record-purchase.css</code> for exact values; skim the <code>.jsx</code> only for component structure. Avoid loading every file at once.</li>
+      <li><strong>Map, don't reinvent.</strong> Translate the tokens in §3 to your existing theme variables once, then reference them. Reuse existing components (buttons, inputs, modals, badges) rather than rebuilding from these class names.</li>
+      <li><strong>Plan before editing.</strong> Produce a short component list and a token map, confirm with the user, then implement. Don't open a long trial-and-error loop.</li>
+      <li><strong>No narration.</strong> Skip step-by-step play-by-play and verbose summaries. Make the change, state what changed in 1–2 lines.</li>
+      <li><strong>Ask only blocking questions.</strong> If a detail isn't here (e.g. real API shape), ask one concise question rather than guessing across multiple turns.</li>
+      <li><strong>Keep diffs tight.</strong> Edit in place with minimal surrounding context; don't rewrite whole files to change a few lines.</li>
+    </ul>
+  </div>
+
+  <section id="tokens">
+    <h2>3 · Design tokens</h2>
+    <p>Defined as CSS custom properties in <code>ipm.css</code> (<code>:root</code>). The accent is user-tweakable in the prototype; <strong>Blue is the production default</strong>.</p>
+
+    <h3>Accent &amp; semantic</h3>
+    <div class="tok-grid">
+      <div class="tok"><div class="sw" style="background:#2f6bff"></div><div class="lab"><div class="nm">Accent</div><div class="hex">--accent · #2F6BFF</div></div></div>
+      <div class="tok"><div class="sw" style="background:#1e5be6"></div><div class="lab"><div class="nm">Accent strong</div><div class="hex">--accent-strong · #1E5BE6</div></div></div>
+      <div class="tok"><div class="sw" style="background:#eaf0ff"></div><div class="lab"><div class="nm">Accent wash</div><div class="hex">--accent-wash · #EAF0FF</div></div></div>
+      <div class="tok"><div class="sw" style="background:#1f9d55"></div><div class="lab"><div class="nm">Green (approved)</div><div class="hex">--green · #1F9D55</div></div></div>
+      <div class="tok"><div class="sw" style="background:#e7f6ee"></div><div class="lab"><div class="nm">Green wash</div><div class="hex">--green-wash · #E7F6EE</div></div></div>
+      <div class="tok"><div class="sw" style="background:#e5484d"></div><div class="lab"><div class="nm">Red (rejected)</div><div class="hex">--red · #E5484D</div></div></div>
+      <div class="tok"><div class="sw" style="background:#fdecec"></div><div class="lab"><div class="nm">Red wash</div><div class="hex">--red-wash · #FDECEC</div></div></div>
+      <div class="tok"><div class="sw" style="background:#fff3d6"></div><div class="lab"><div class="nm">Amber wash (wait)</div><div class="hex">--amber-wash · #FFF3D6</div></div></div>
+    </div>
+
+    <h3>Neutrals</h3>
+    <div class="tok-grid">
+      <div class="tok"><div class="sw" style="background:#1a1f2e"></div><div class="lab"><div class="nm">Ink</div><div class="hex">--ink · #1A1F2E</div></div></div>
+      <div class="tok"><div class="sw" style="background:#545b6b"></div><div class="lab"><div class="nm">Ink 2</div><div class="hex">--ink-2 · #545B6B</div></div></div>
+      <div class="tok"><div class="sw" style="background:#8a909c"></div><div class="lab"><div class="nm">Muted</div><div class="hex">--muted · #8A909C</div></div></div>
+      <div class="tok"><div class="sw" style="background:#b6bcc6"></div><div class="lab"><div class="nm">Faint</div><div class="hex">--faint · #B6BCC6</div></div></div>
+      <div class="tok"><div class="sw" style="background:#ecedf1"></div><div class="lab"><div class="nm">Line</div><div class="hex">--line · #ECEDF1</div></div></div>
+      <div class="tok"><div class="sw" style="background:#e2e5ec"></div><div class="lab"><div class="nm">Line 2</div><div class="hex">--line-2 · #E2E5EC</div></div></div>
+      <div class="tok"><div class="sw" style="background:#f7f8fb"></div><div class="lab"><div class="nm">Surface 2</div><div class="hex">--surface-2 · #F7F8FB</div></div></div>
+      <div class="tok"><div class="sw" style="background:#f3f5f9"></div><div class="lab"><div class="nm">Canvas</div><div class="hex">--canvas · #F3F5F9</div></div></div>
+    </div>
+
+    <h3>Radius, spacing &amp; elevation</h3>
+    <table>
+      <thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>--radius-lg</td><td><code>18px</code></td><td>Panels, cards, modal corners</td></tr>
+        <tr><td>--radius</td><td><code>14px</code></td><td>Mobile item cards, line-item table</td></tr>
+        <tr><td>--radius-sm</td><td><code>10px</code></td><td>Buttons, inputs, selects</td></tr>
+        <tr><td>--radius-xs</td><td><code>8px</code></td><td>Chips, small controls</td></tr>
+        <tr><td>--gutter</td><td><code>28px</code> desktop / <code>16px</code> mobile</td><td>Page padding (compact density: 20px)</td></tr>
+        <tr><td>--field-h</td><td><code>46px</code> (compact 40px)</td><td>Input / button height</td></tr>
+        <tr><td>--shadow-sm</td><td><code>0 1px 2px rgba(20,30,60,.05), 0 1px 1px rgba(20,30,60,.04)</code></td><td>Resting cards</td></tr>
+        <tr><td>--shadow-pop</td><td><code>0 8px 30px -6px rgba(20,30,60,.22), 0 2px 6px rgba(20,30,60,.08)</code></td><td>Popovers, toasts</td></tr>
+        <tr><td>--shadow-modal</td><td><code>0 24px 60px -12px rgba(15,23,42,.42), 0 8px 20px -8px rgba(15,23,42,.3)</code></td><td>Record Purchase modal</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Two density modes exist (<code>comfortable</code> default, <code>compact</code>) toggled by adding <code>.compact</code> to <code>&lt;body&gt;</code>, which lowers <code>--field-h</code> and <code>--gutter</code>. Optional to port.</div>
+  </section>
+
+  <section id="type">
+    <h2>4 · Typography</h2>
+    <p>Single family: <strong>Inter</strong> (weights 400/500/600/700/800). Tabular numerals (<code>font-variant-numeric: tabular-nums</code>) on all money/quantity cells for column alignment.</p>
+    <table>
+      <thead><tr><th>Role</th><th>Size / weight</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Page / modal title</td><td>19–20px / 800</td><td>letter-spacing −.02em</td></tr>
+        <tr><td>Section &amp; card title</td><td>16px / 800</td><td>Supplier name, item name (cards)</td></tr>
+        <tr><td>Body / cell</td><td>14–14.5px / 600–700</td><td>Table cells, field values</td></tr>
+        <tr><td>Field label</td><td>12px / 700</td><td>ink-2, padding-left 2px</td></tr>
+        <tr><td>Column header / overline</td><td>11–11.5px / 800</td><td>uppercase, letter-spacing .045–.06em, muted</td></tr>
+        <tr><td>Status badge</td><td>12px / 700</td><td>pill, 7px color dot</td></tr>
+        <tr><td>Grand total</td><td>27px / 800</td><td>UGX prefix 14px muted</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="topbar">
+    <h2>5 · Top bar</h2>
+    <p>Sticky single row (<code>.subbar</code>, <code>position: sticky; top: 0; z-index: 25</code>) on white with a bottom hairline. Left → right:</p>
+    <ul>
+      <li><strong>Date filter</strong> — label "<em>Import from</em> / <em>Purchase from</em>" (changes with mode) + native <code>&lt;input type="date"&gt;</code> (38px tall).</li>
+      <li><strong>Export</strong> — ghost button (icon + label), download glyph. Collapses to icon-only ≤880px.</li>
+      <li><strong>Record Purchase</strong> — primary blue button (plus-doc icon + label). Opens the modal (§8). Collapses to icon-only ≤880px.</li>
+      <li><strong>Spacer</strong>, then the <strong>mode segmented control</strong> on the right.</li>
+    </ul>
+    <h3>Segmented control (Import / Purchase)</h3>
+    <p>Pill track <code>--surface-3</code>, 4px padding; an absolutely-positioned white thumb (<code>.thumb</code>, <code>--shadow-sm</code>) slides under the active tab via measured <code>offsetLeft/offsetWidth</code> with <code>transition: left .22s cubic-bezier(.3,.7,.4,1)</code>. Active label color <code>--accent-strong</code>. Each tab has a 17px leading icon. Full-width (tabs <code>flex:1</code>) on mobile.</p>
+  </section>
+
+  <section id="import">
+    <h2>6 · Import mode</h2>
+    <p>Purpose: review imported items, edit name/prices/variant, assign variants, and approve/reject (single or bulk).</p>
+
+    <h3>Edit toolbar (desktop) — <code>.editbar</code></h3>
+    <ul>
+      <li>Panel card. Top hint line: idle shows "<em>Select a row below to edit…</em>" (pencil icon, muted); when a row is selected shows "Editing <span class="chip" style="padding:1px 7px">#N</span> {item}" + a <strong>Clear</strong> link.</li>
+      <li>Fields grid (<code>repeat(auto-fit, minmax(165px,1fr))</code>): <strong>Item name</strong>, <strong>Supply price</strong>, <strong>Retail price</strong>, <strong>Variant</strong> (searchable combo, §8-style).</li>
+      <li>Bottom action row: <strong>Save Changes</strong> (primary), <strong>Accept All</strong> (green), and the <strong>Status filter</strong> select pushed to the right.</li>
+    </ul>
+
+    <h3>Data table (desktop) — <code>.tbl.import</code></h3>
+    <p>CSS-grid rows. Columns: No · Item Name (+variant tag) · HS Code · Quantity · Retail · Supply · Status · Supplier · Date · Actions. Secondary columns (HS Code / Supplier / Date) are hidden when the "show secondary" tweak is off — grid template switches.</p>
+    <ul>
+      <li>Row hover → <code>--surface-2</code>; selected row → <code>--accent-wash</code> bg + 3px left accent bar (<code>inset 3px 0 0 var(--accent)</code>). Click a row to load it into the edit toolbar.</li>
+      <li><strong>Actions</strong>: round 38px Accept (green-wash→green on hover) and Reject (red-wash→red) icon buttons. <code>stopPropagation</code> so they don't trigger row-select.</li>
+    </ul>
+
+    <h3>Status badges</h3>
+    <table>
+      <thead><tr><th>Status</th><th>Colors</th></tr></thead>
+      <tbody>
+        <tr><td>Wait</td><td>bg <code>--amber-wash</code>, text <code>#98690A</code>, dot <code>#E6A700</code></td></tr>
+        <tr><td>Approved</td><td>bg <code>--green-wash</code>, text <code>#178045</code>, dot <code>--green</code></td></tr>
+        <tr><td>Rejected</td><td>bg <code>--red-wash</code>, text <code>#D23A3F</code>, dot <code>--red</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Mobile (≤880px) — stacked cards <code>.icard</code></h3>
+    <ul>
+      <li>Each row becomes a card: number chip + item name + variant line + status badge on top; a 2-col grid of labelled values (HS Code, Quantity, Supply, Retail, Supplier, Date); footer with full-width <strong>Edit</strong> button (opens bottom-sheet editor) + 44px Accept / Reject buttons.</li>
+      <li>A sticky <strong>mbar</strong> holds the status-filter select (in a pill) + <strong>Accept All</strong>.</li>
+      <li>Editing happens in a <strong>bottom sheet</strong> (the shared Modal), not inline.</li>
+    </ul>
+  </section>
+
+  <section id="purchase">
+    <h2>7 · Purchase mode</h2>
+    <p>Purpose: review recorded purchase invoices grouped by supplier, expand to see line items, assign variants, and approve/decline whole invoices.</p>
+    <h3>Toolbar</h3>
+    <ul>
+      <li><strong>Status filter</strong> select (default "Waiting"), spacer, and a <strong>pager</strong> ("1–4 of N" + prev/next arrows). Page size = 4 groups.</li>
+    </ul>
+    <h3>Supplier group — <code>.sgroup</code></h3>
+    <ul>
+      <li>Panel card. Header (click to expand/collapse): "Supplier: {name} (count)" + "Invoice: {no}"; right side has a green <strong>time pill</strong>, an accent <strong>total pill</strong> (UGX, sum of supply×qty), <strong>Accept All</strong> (green-soft) / <strong>Decline All</strong> (red-soft), and a chevron button that rotates 180° when open.</li>
+      <li>Body (<code>--surface-2</code>): line-items table — No · Name (+variant) · Qty · Supply · Retail · Status. If an item has no variant, its status cell shows an "Assign variant" affordance (tag icon). Click any line → opens Assign Variant modal (§8).</li>
+    </ul>
+    <h3>Mobile (≤880px)</h3>
+    <ul>
+      <li>Header reflows: id + chevron on row 1; time/total pills wrap to a second line; Accept All / Decline All become full-width buttons.</li>
+      <li>Line items become tappable mini-cards (<code>.licard</code>) with a 3-col Qty/Supply/Retail grid and an "assign variant" hint.</li>
+    </ul>
+  </section>
+
+  <section id="modal">
+    <h2>8 · Record Purchase modal</h2>
+    <p>Opens <strong>as an overlay on the live screen</strong> (not a separate page). Markup is namespaced under a <code>.rp</code> root so its generic class names (<code>.modal</code>, <code>.scrim</code>, <code>.field</code>, <code>.btn</code>) never collide with the host screen's styles — keep this namespacing when porting, or scope via your own component styles.</p>
+    <div class="note"><strong>Critical:</strong> the scrim and modal must be opaque immediately. Do <strong>not</strong> drive their visible state purely from an entrance animation with <code>opacity</code> + <code>fill-mode</code> — if the renderer pauses the animation at frame 0 the modal becomes see-through. Animate <strong>transform only</strong>; keep base <code>opacity: 1</code>. (This was a real bug we fixed.)</div>
+    <ul>
+      <li><strong>Scrim</strong>: <code>rgba(20,28,46,.5)</code> + <code>backdrop-filter: blur(2px)</code>, z-index 100. Click to close.</li>
+      <li><strong>Modal</strong>: max-width 1040px, white, <code>--radius-lg</code>, <code>--shadow-modal</code>, z-index 101.</li>
+      <li><strong>Header</strong>: accent-wash icon badge + "Record Purchase" + subtitle + close ✕.</li>
+      <li><strong>Header fields</strong>: Supplier (2fr) + Supplier TIN (optional); then Invoice No · Purchase date · Payment type (3-col).</li>
+      <li><strong>Line items</strong>: "Add from catalog" (searchable popover of priced items by tax category) and "New item". Empty state with box icon + two pills. Table columns: Item · Tax category · Qty · Unit price · VAT 18% · Amount · delete.</li>
+      <li><strong>Tax logic</strong>: categories A (Exempt), B (18%), C (Zero), D (Deemed). VAT = net × 0.18 only for B. Totals block: Taxable (B), VAT 18%, Exempt/zero (A+C+D), and grand <strong>Total</strong> (UGX).</li>
+      <li><strong>Footer</strong>: Cancel (ghost) · Save as Waiting (outline) · Save &amp; Approve (primary, disabled until supplier + ≥1 item).</li>
+      <li><strong>Close</strong> on: ✕, Cancel, scrim click, <kbd>Esc</kbd>, or after a save.</li>
+    </ul>
+    <h3>Mobile (≤720px)</h3>
+    <ul>
+      <li>Becomes a <strong>bottom sheet</strong>: full width, rounded top only, slides up (<code>transform: translateY(100%)</code> → 0).</li>
+      <li>Header fields stack to 1 column; line items become labelled cards (delete button top-right); totals stack with grand total full-width; footer buttons stack full-width (Save &amp; Approve on top).</li>
+    </ul>
+    <h3>Searchable variant/catalog combo</h3>
+    <p>Button-styled trigger opens a popover with a search input (auto-focus) + filtered option list; selected option gets a check; closes on outside-click. Reused for the Variant picker in Import mode.</p>
+  </section>
+
+  <section id="responsive">
+    <h2>9 · Responsive rules</h2>
+    <table>
+      <thead><tr><th>Breakpoint</th><th>What changes</th></tr></thead>
+      <tbody>
+        <tr><td>≤ 880px</td><td>Main screen: <code>--gutter</code>→16px; segmented control full-width; data tables → stacked cards; Export/Record collapse to icons; supplier headers reflow.</td></tr>
+        <tr><td>≤ 860px</td><td>Modal header fields → 2 columns.</td></tr>
+        <tr><td>≤ 720px</td><td>Modal → bottom sheet; modal fields → 1 column; line items → cards; totals + footer stack.</td></tr>
+      </tbody>
+    </table>
+    <p>Mobile/desktop switch in the prototype is partly JS-driven (<code>useMedia('(max-width: 880px)')</code>) to swap table vs card components; the modal switches purely via CSS. In production, prefer CSS-only where possible.</p>
+  </section>
+
+  <section id="state">
+    <h2>10 · State &amp; data</h2>
+    <h3>App-level</h3>
+    <ul>
+      <li><code>mode</code>: "import" | "purchase" (segmented control)</li>
+      <li><code>date</code>, density, accent, showSecondary (tweaks)</li>
+      <li><code>recordOpen</code>: boolean → mounts the modal</li>
+      <li><code>items</code> (import list), <code>groups</code> (purchase invoices)</li>
+      <li><code>importFilter</code> (default "all"), <code>purchaseFilter</code> (default "waiting")</li>
+    </ul>
+    <h3>Entities (replace with real API shapes)</h3>
+    <table>
+      <thead><tr><th>Entity</th><th>Fields</th></tr></thead>
+      <tbody>
+        <tr><td>Import item</td><td>id, item, hs, qty, retail, supply, status(wait|approved|rejected), supplier, date, variant</td></tr>
+        <tr><td>Purchase group</td><td>id, supplier, invoice, time, status(waiting|approved|rejected), items[]</td></tr>
+        <tr><td>Line item</td><td>id, name, qty, supply, retail, status, variant</td></tr>
+        <tr><td>Record draft</td><td>supplier, tin, invoice, date, payment, items[{name, cat(A–D), qty, price}]</td></tr>
+      </tbody>
+    </table>
+    <h3>Key interactions</h3>
+    <ul>
+      <li>Accept/Reject item → flips status; <strong>Accept All</strong> approves all "wait" items in the current filter.</li>
+      <li>Group Accept All / Decline All → sets group + all its items' status.</li>
+      <li>Toasts appear bottom-center on actions (ink bg, ~2.6s, slide-up).</li>
+      <li>Saving a purchase fires an <code>onSaved</code> callback (wire to your create-purchase API), then closes.</li>
+    </ul>
+  </section>
+
+  <section id="files">
+    <h2>11 · Files in this bundle</h2>
+    <div class="filelist">
+      <div class="filerow"><span class="fn">src/Import &amp; Purchase Management.html</span><span class="fd">Entry point — loads fonts, React + Babel, CSS and all component scripts.</span></div>
+      <div class="filerow"><span class="fn">src/ipm.css</span><span class="fd">All tokens + main-screen styles (top bar, tables, cards, badges, sheets, responsive).</span></div>
+      <div class="filerow"><span class="fn">src/ipm-data.jsx</span><span class="fd">Icons, sample data (import items + purchase groups), formatters.</span></div>
+      <div class="filerow"><span class="fn">src/ipm-import.jsx</span><span class="fd">Shared UI (useMedia, Combo, StatusFilter, Modal, toasts) + Import mode view.</span></div>
+      <div class="filerow"><span class="fn">src/ipm-purchase.jsx</span><span class="fd">Purchase mode: supplier groups, line items, Assign Variant modal.</span></div>
+      <div class="filerow"><span class="fn">src/ipm-app.jsx</span><span class="fd">App shell: top bar, mode control, state, tweaks, mounts the Record Purchase modal.</span></div>
+      <div class="filerow"><span class="fn">src/record-purchase.css</span><span class="fd">Modal styles, all scoped under <code>.rp</code>.</span></div>
+      <div class="filerow"><span class="fn">src/record-purchase-modal.jsx</span><span class="fd">Record Purchase modal component (catalog, tax/VAT logic, totals).</span></div>
+      <div class="filerow"><span class="fn">src/tweaks-panel.jsx</span><span class="fd">Prototype-only tweak panel. Not needed in production.</span></div>
+    </div>
+    <div class="hr"></div>
+    <div class="note" style="margin-top:18px;">To run the prototype: serve the folder and open <code>Import &amp; Purchase Management.html</code> (it uses in-browser Babel + a few CDN scripts; needs network). This is for reference only — not a production build.</div>
+  </section>
+
+</div>
+</body>
+</html>

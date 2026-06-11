@@ -1,24 +1,20 @@
 // ImportPurchasePage.dart
-import 'package:flipper_dashboard/Imports.dart';
-import 'package:flipper_dashboard/Purchases.dart';
-import 'package:flipper_dashboard/manual_purchase/manual_purchase_dialog.dart';
+import 'package:flipper_dashboard/features/import_purchase/import_purchase_import_view.dart';
+import 'package:flipper_dashboard/features/import_purchase/import_purchase_purchase_view.dart';
+import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart' as brick;
 import 'package:flipper_models/providers/outer_variant_provider.dart';
-import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
-import 'package:flipper_models/providers/import_purchase_dates_provider.dart';
-import 'package:flipper_models/providers/active_branch_provider.dart';
 
 class ImportPurchasePage extends StatefulHookConsumerWidget {
   @override
@@ -51,14 +47,20 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   }
 
   Future<void> _loadData() async {
-    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
+    if (!mounted) return;
     final isImportState =
         ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
+
+    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
+    if (!mounted) return;
+
     setState(() => isLoading = true);
 
     final business = await ProxyService.strategy.getBusiness(
       businessId: ProxyService.box.getBusinessId()!,
     );
+    if (!mounted) return;
+
     try {
       if (isImportState) {
         _futureImportResponse = _fetchDataImport(
@@ -167,214 +169,17 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   }
 
   Widget _buildLoadingIndicator() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircularProgressIndicator(),
-          const SizedBox(height: 16),
-          Text('Loading data...', style: TextStyle(fontSize: 16)),
-        ],
-      ),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildErrorWidget(String error) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              'Error loading data',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _loadData, child: Text('Retry')),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'No items found',
-            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            (ref.watch(importPurchaseViewModelProvider).value?.isImport ?? true)
-                ? 'No import items available for the selected date.'
-                : 'No purchase items available for the selected date.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[500]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    final isImport =
-        ref.watch(importPurchaseViewModelProvider).value?.isImport ?? true;
-    final requestType = isImport ? "IMPORT" : "PURCHASE";
-
-    // Watch the active branch provider to get branch ID
-    final activeBranchAsync = ref.watch(activeBranchProvider);
-
-    return activeBranchAsync.when(
-      data: (activeBranch) {
-        final branchId = activeBranch.id;
-
-        // Watch the provider to get the last request date
-        final lastDateAsync = ref.watch(
-          importPurchaseDatesProvider(
-            branchId: branchId,
-            requestType: requestType,
-          ),
-        );
-
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: lastDateAsync.when(
-                  data: (lastDate) {
-                    final displayDate = lastDate ?? _selectedDate;
-                    return Text(
-                      isImport
-                          ? 'Import From Date: ${DateFormat('yyyy-MM-dd').format(displayDate)}'
-                          : 'Purchase From Date: ${DateFormat('yyyy-MM-dd').format(displayDate)}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  },
-                  loading: () => Text(
-                    isImport
-                        ? 'Import From Date: Loading...'
-                        : 'Purchase From Date: Loading...',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  error: (error, stack) => Text(
-                    isImport
-                        ? 'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}'
-                        : 'Purchase From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!isImport) ...[
-                    TextButton.icon(
-                      icon: const Icon(Icons.post_add, size: 18),
-                      label: const Text('Record Purchase'),
-                      onPressed: () async {
-                        final catalogVariants =
-                            ref
-                                .read(
-                                  outerVariantsProvider(
-                                    ProxyService.box.getBranchId() ?? "",
-                                  ),
-                                )
-                                .value ??
-                            [];
-                        final saved = await ManualPurchaseDialog.show(
-                          context,
-                          catalogVariants: catalogVariants,
-                        );
-                        if (saved != null && mounted) {
-                          // Refresh from the local DB only; no RRA round-trip
-                          // is needed to show the purchase we just recorded.
-                          setState(() {
-                            _futurePurchases = ProxyService.strategy
-                                .purchases();
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                  Text(
-                    isImport ? 'Import' : 'Purchase',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(width: 8),
-                  Switch(
-                    value: isImport,
-                    onChanged: (value) {
-                      ref
-                          .read(importPurchaseViewModelProvider.notifier)
-                          .toggleImportPurchase(value);
-                      // Clear local state that depends on import/purchase mode
-                      setState(() {
-                        _selectItem(null);
-                        _selectedPurchaseItem = null;
-                        finalItemList = [];
-                        salesList = [];
-                        _variantMap.clear();
-                      });
-                      _loadData();
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-      loading: () => Container(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-        ),
-        child: Text(
-          'Loading branch...',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-      ),
-      error: (error, stack) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-        ),
-        child: Text(
-          'Error loading branch',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.red,
-          ),
+        padding: const EdgeInsets.all(24),
+        child: IpmEmptyState(
+          icon: Icons.error_outline,
+          title: 'Error loading data',
+          subtitle: error,
         ),
       ),
     );
@@ -382,27 +187,36 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(
+      importPurchaseViewModelProvider.select((s) => s.value?.isImport),
+      (prev, next) {
+        if (prev != null && next != null && prev != next) {
+          setState(() {
+            _selectItem(null);
+            _selectedPurchaseItem = null;
+            finalItemList = [];
+            salesList = [];
+            _variantMap.clear();
+          });
+          _loadData();
+        }
+      },
+    );
+
     return ViewModelBuilder<brick.CoreViewModel>.reactive(
       viewModelBuilder: () => brick.CoreViewModel(),
       builder: (context, coreViewModel, child) {
+        final isImport =
+            ref.watch(importPurchaseViewModelProvider).value?.isImport ?? true;
+
         return Form(
           key: _importFormKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: isLoading
-                    ? _buildLoadingIndicator()
-                    : (ref
-                              .watch(importPurchaseViewModelProvider)
-                              .value
-                              ?.isImport ??
-                          true)
-                    ? _buildImportView(coreViewModel)
-                    : _buildPurchaseView(coreViewModel),
-              ),
-            ],
+          child: SizedBox.expand(
+            child: isLoading
+                ? _buildLoadingIndicator()
+                : isImport
+                ? _buildImportView(coreViewModel)
+                : _buildPurchaseView(coreViewModel),
           ),
         );
       },
@@ -420,20 +234,34 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             snapshot.error?.toString() ?? 'An unknown error occurred',
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return _buildEmptyState();
+          return const IpmEmptyState(
+            icon: Icons.inbox_outlined,
+            title: 'No imported items',
+            subtitle:
+                'No import items available for the selected date.',
+          );
         }
 
         final items = snapshot.data!;
-        return Imports(
+        final catalogVariants =
+            ref
+                .watch(
+                  outerVariantsProvider(ProxyService.box.getBranchId() ?? ''),
+                )
+                .value ??
+            [];
+
+        return ImportPurchaseImportView(
           key: ValueKey(
             'import_view_${isLoading}_${ref.watch(importPurchaseViewModelProvider).value?.isImport}',
           ),
-          futureResponse: Future.value(items),
+          items: items,
           formKey: _importFormKey,
           nameController: _nameController,
           supplyPriceController: _supplyPriceController,
           retailPriceController: _retailPriceController,
           saveChangeMadeOnItem: _saveChangeMadeOnItem,
+          catalogVariants: catalogVariants,
           acceptAllImport: (List<model.Variant> variants) async {
             for (model.Variant variant in variants) {
               bool isAssigned = false;
@@ -458,6 +286,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               variants,
               variantMap: _variantMap,
             );
+            if (!context.mounted) return;
             final combinedNotifier = ref.read(refreshProvider);
             combinedNotifier.performActions(productName: "", scanMode: true);
           },
@@ -485,6 +314,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                   return;
                 }
                 await coreViewModel.processImportItem(item, variantMap);
+                if (!context.mounted) return;
                 final combinedNotifier = ref.read(refreshProvider);
                 combinedNotifier.performActions(
                   productName: "",
@@ -498,13 +328,6 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               ) async {
                 await coreViewModel.rejectImportItem(item);
               },
-          variants:
-              ref
-                  .watch(
-                    outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
-                  )
-                  .value ??
-              [],
         );
       },
     );
@@ -522,25 +345,30 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           );
         } else if (!purchaseSnapshot.hasData ||
             purchaseSnapshot.data!.isEmpty) {
-          return _buildEmptyState();
+          return const IpmEmptyState(
+            icon: Icons.shopping_cart_outlined,
+            title: 'No purchase invoices',
+            subtitle:
+                'No purchase items available for the selected date.',
+          );
         }
 
         final allPurchases = purchaseSnapshot.data!;
-        // Get variants from outerVariantsProvider (watch so it updates on search)
         final allVariants = ref.watch(
-          outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
+          outerVariantsProvider(ProxyService.box.getBranchId() ?? ''),
         );
 
-        return Purchases(
+        return ImportPurchasePurchaseView(
           key: ValueKey(
             'purchase_view_${isLoading}_${ref.watch(importPurchaseViewModelProvider).value?.isImport}',
           ),
           purchases: allPurchases,
-          formKey: _importFormKey,
           nameController: _nameController,
           supplyPriceController: _supplyPriceController,
           retailPriceController: _retailPriceController,
           saveItemName: _saveChangeMadeOnItem,
+          itemMapper: itemMapper,
+          variants: allVariants.value ?? [],
           acceptPurchases:
               ({
                 required List<model.Purchase> purchases,
@@ -571,7 +399,6 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                   );
                 }
               },
-          variants: allVariants.value ?? [],
         );
       },
     );

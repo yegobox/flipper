@@ -1,0 +1,832 @@
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
+import 'assign_variant_modal.dart';
+import 'import_purchase_helpers.dart';
+import 'import_purchase_tokens.dart';
+import 'import_purchase_ui.dart';
+
+class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
+  const ImportPurchasePurchaseView({
+    super.key,
+    required this.purchases,
+    required this.nameController,
+    required this.supplyPriceController,
+    required this.retailPriceController,
+    required this.saveItemName,
+    required this.acceptPurchases,
+    required this.selectSale,
+    required this.variants,
+    required this.itemMapper,
+  });
+
+  final List<Purchase> purchases;
+  final TextEditingController nameController;
+  final TextEditingController supplyPriceController;
+  final TextEditingController retailPriceController;
+  final VoidCallback saveItemName;
+  final Future<void> Function({
+    required List<Purchase> purchases,
+    required String pchsSttsCd,
+    required Purchase purchase,
+    Variant? clickedVariant,
+  }) acceptPurchases;
+  final void Function(Variant? itemToAssign, Variant? itemFromPurchase)
+      selectSale;
+  final List<Variant> variants;
+  final Map<String, List<Variant>> itemMapper;
+
+  @override
+  ConsumerState<ImportPurchasePurchaseView> createState() =>
+      _ImportPurchasePurchaseViewState();
+}
+
+class _ImportPurchasePurchaseViewState
+    extends ConsumerState<ImportPurchasePurchaseView> {
+  static const _pageSize = 4;
+  String _statusFilter = 'waiting';
+  int _page = 0;
+  final Map<String, bool> _expanded = {};
+  final Map<String, String?> _loadingAction = {};
+  final Map<String, Stock> _stockMap = {};
+  final Set<String> _fetchedStockIds = {};
+
+  static const _filterOptions = [
+    MapEntry('all', 'All'),
+    MapEntry('waiting', 'Waiting'),
+    MapEntry('approved', 'Approved'),
+    MapEntry('rejected', 'Rejected'),
+  ];
+
+  List<Variant> _filterVariants(List<Variant> variants) {
+    return variants
+        .where((v) =>
+            ImportPurchaseHelpers.matchesPurchaseVariantFilter(v, _statusFilter))
+        .toList();
+  }
+
+  List<Purchase> get _displayablePurchases {
+    return widget.purchases.where((purchase) {
+      if (purchase.variants == null || purchase.variants!.isEmpty) {
+        return false;
+      }
+      return _filterVariants(purchase.variants!).isNotEmpty;
+    }).toList();
+  }
+
+  Future<void> _fetchStocks(List<Variant> variants) async {
+    final stockIds = variants
+        .where((v) => v.stock?.id != null)
+        .map((v) => v.stock!.id)
+        .toSet();
+    final newStockIds = stockIds.difference(_fetchedStockIds);
+    if (newStockIds.isEmpty) return;
+
+    final futures = newStockIds.map(
+      (id) => ProxyService.getStrategy(Strategy.capella).getStockById(id: id),
+    );
+    try {
+      final stocks = await Future.wait(futures);
+      if (!mounted) return;
+      setState(() {
+        for (var i = 0; i < newStockIds.length; i++) {
+          _stockMap[newStockIds.elementAt(i)] = stocks[i];
+        }
+        _fetchedStockIds.addAll(newStockIds);
+      });
+    } catch (_) {}
+  }
+
+  String? _assignedCatalogId(Variant lineItem) {
+    for (final entry in widget.itemMapper.entries) {
+      if (entry.value.any((v) => v.id == lineItem.id)) {
+        return entry.key;
+      }
+    }
+    return null;
+  }
+
+  String? _assignedCatalogName(Variant lineItem) {
+    final id = _assignedCatalogId(lineItem);
+    if (id == null) return null;
+    for (final v in widget.variants) {
+      if (v.id == id) return v.name;
+    }
+    return null;
+  }
+
+  Future<void> _openAssign(
+    BuildContext context,
+    Purchase purchase,
+    Variant item,
+    List<Variant> catalog,
+  ) async {
+    final paged = await ProxyService.strategy.variants(
+      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+      fetchRemote: false,
+      branchId: ProxyService.box.getBranchId()!,
+    );
+    final variants = List<Variant>.from(paged.variants)
+        .where((v) => v.itemTyCd != '3')
+        .toList();
+
+    if (!context.mounted) return;
+    await showIpmAssignVariantModal(
+      context,
+      item: item,
+      catalogVariants: variants,
+      nameController: widget.nameController,
+      supplyPriceController: widget.supplyPriceController,
+      retailPriceController: widget.retailPriceController,
+      saveItemName: widget.saveItemName,
+      selectSale: widget.selectSale,
+      initialCatalogVariantId: _assignedCatalogId(item),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final isMobile = width <= ImportPurchaseTokens.mobileBreakpoint;
+    final gutter = ImportPurchaseTokens.gutter(width);
+    final all = _displayablePurchases;
+    final total = all.length;
+    final pages = total == 0 ? 1 : (total / _pageSize).ceil();
+    final cur = _page.clamp(0, pages - 1);
+    final start = cur * _pageSize;
+    final end = (start + _pageSize).clamp(0, total);
+    final visible = total == 0 ? <Purchase>[] : all.sublist(start, end);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(gutter, 18, gutter, 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 380),
+                  child: IpmStatusFilter(
+                    value: _statusFilter,
+                    options: _filterOptions,
+                    onChanged: (v) => setState(() {
+                      _statusFilter = v;
+                      _page = 0;
+                    }),
+                  ),
+                ),
+              ),
+              if (!isMobile) const Spacer(),
+              _buildPager(start, end, total, cur, pages),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Expanded(
+            child: visible.isEmpty
+                ? const IpmEmptyState(
+                    icon: Icons.shopping_cart_outlined,
+                    title: 'No purchase invoices',
+                    subtitle:
+                        'Nothing matches this status filter. Record a purchase or change the filter.',
+                  )
+                : ListView.separated(
+                    itemCount: visible.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) =>
+                        _buildSupplierGroup(context, visible[index], isMobile),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPager(int start, int end, int total, int cur, int pages) {
+    return Row(
+      children: [
+        Text(
+          total == 0 ? '0 of 0' : '${start + 1}–$end of $total',
+          style: ImportPurchaseHelpers.text(
+            size: 14,
+            weight: FontWeight.w600,
+            color: ImportPurchaseTokens.ink2,
+          ),
+        ),
+        const SizedBox(width: 6),
+        _pagerArrow(
+          Icons.keyboard_arrow_up,
+          enabled: cur > 0,
+          onTap: () => setState(() => _page--),
+        ),
+        _pagerArrow(
+          Icons.keyboard_arrow_down,
+          enabled: cur < pages - 1,
+          onTap: () => setState(() => _page++),
+        ),
+      ],
+    );
+  }
+
+  Widget _pagerArrow(IconData icon, {required bool enabled, VoidCallback? onTap}) {
+    return Material(
+      color: ImportPurchaseTokens.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: ImportPurchaseTokens.line2),
+      ),
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(10),
+        child: SizedBox(
+          width: 38,
+          height: 38,
+          child: Icon(
+            icon,
+            size: 18,
+            color: enabled ? ImportPurchaseTokens.ink2 : ImportPurchaseTokens.faint,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSupplierGroup(
+    BuildContext context,
+    Purchase purchase,
+    bool isMobile,
+  ) {
+    final open = _expanded[purchase.id] ?? false;
+    final items = _filterVariants(purchase.variants ?? []);
+    final total = purchase.totAmt;
+
+    return IpmPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: () {
+              final next = !open;
+              setState(() => _expanded[purchase.id] = next);
+              if (next) _fetchStocks(items);
+            },
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, 18, isMobile ? 15 : 20, 18),
+              child: isMobile
+                  ? _mobileGroupHeader(purchase, items, total, open)
+                  : _desktopGroupHeader(purchase, items, total, open),
+            ),
+          ),
+          if (open)
+            Container(
+              color: ImportPurchaseTokens.surface2,
+              padding: const EdgeInsets.all(6),
+              child: isMobile
+                  ? _mobileLineCards(context, purchase, items)
+                  : _desktopLineTable(context, purchase, items),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _desktopGroupHeader(
+    Purchase purchase,
+    List<Variant> items,
+    num total,
+    bool open,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Supplier: ${purchase.spplrNm} (${items.length})',
+                style: ImportPurchaseHelpers.text(
+                  size: 16,
+                  weight: FontWeight.w800,
+                  letterSpacing: -0.1,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                'Invoice: ${purchase.spplrInvcNo}',
+                style: ImportPurchaseHelpers.text(
+                  size: 13,
+                  weight: FontWeight.w600,
+                  color: ImportPurchaseTokens.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        _timePill(purchase),
+        const SizedBox(width: 12),
+        _totalPill(total),
+        const SizedBox(width: 12),
+        _groupActions(purchase),
+        const SizedBox(width: 12),
+        _expandButton(open, purchase),
+      ],
+    );
+  }
+
+  Widget _mobileGroupHeader(
+    Purchase purchase,
+    List<Variant> items,
+    num total,
+    bool open,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Supplier: ${purchase.spplrNm} (${items.length})',
+                    style: ImportPurchaseHelpers.text(
+                      size: 16,
+                      weight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    'Invoice: ${purchase.spplrInvcNo}',
+                    style: ImportPurchaseHelpers.text(
+                      size: 13,
+                      weight: FontWeight.w600,
+                      color: ImportPurchaseTokens.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _expandButton(open, purchase),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _timePill(purchase),
+            _totalPill(total),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(child: _acceptAllButton(purchase)),
+            const SizedBox(width: 8),
+            Expanded(child: _declineAllButton(purchase)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _timePill(Purchase purchase) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: ImportPurchaseTokens.green,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        timeago.format(purchase.createdAt, clock: DateTime.now()),
+        style: ImportPurchaseHelpers.text(
+          size: 12.5,
+          weight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _totalPill(num total) {
+    final currency = ProxyService.box.defaultCurrency();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: ImportPurchaseTokens.accentWash,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: '$currency ',
+              style: ImportPurchaseHelpers.text(
+                size: 11,
+                weight: FontWeight.w700,
+                color: ImportPurchaseTokens.accentStrong.withValues(alpha: 0.7),
+              ),
+            ),
+            TextSpan(
+              text: ImportPurchaseHelpers.formatMoney(total),
+              style: ImportPurchaseHelpers.text(
+                size: 13.5,
+                weight: FontWeight.w800,
+                color: ImportPurchaseTokens.accentStrong,
+                tabular: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _groupActions(Purchase purchase) {
+    return Row(
+      children: [
+        _acceptAllButton(purchase),
+        const SizedBox(width: 10),
+        _declineAllButton(purchase),
+      ],
+    );
+  }
+
+  Widget _acceptAllButton(Purchase purchase) {
+    final loading = _loadingAction[purchase.id] == 'accept';
+    return IpmButton(
+      label: 'Accept All',
+      icon: Icons.check_circle_outline,
+      variant: IpmButtonVariant.greenSoft,
+      compact: true,
+      onPressed: loading
+          ? null
+          : () async {
+              setState(() => _loadingAction[purchase.id] = 'accept');
+              await widget.acceptPurchases(
+                purchases: [purchase],
+                pchsSttsCd: '02',
+                purchase: purchase,
+              );
+              if (mounted) setState(() => _loadingAction[purchase.id] = null);
+            },
+    );
+  }
+
+  Widget _declineAllButton(Purchase purchase) {
+    final loading = _loadingAction[purchase.id] == 'decline';
+    return IpmButton(
+      label: 'Decline All',
+      icon: Icons.cancel_outlined,
+      variant: IpmButtonVariant.dangerSoft,
+      compact: true,
+      onPressed: loading
+          ? null
+          : () async {
+              setState(() => _loadingAction[purchase.id] = 'decline');
+              await widget.acceptPurchases(
+                purchases: [purchase],
+                pchsSttsCd: '04',
+                purchase: purchase,
+              );
+              if (mounted) setState(() => _loadingAction[purchase.id] = null);
+            },
+    );
+  }
+
+  Widget _expandButton(bool open, Purchase purchase) {
+    return Material(
+      color: open ? ImportPurchaseTokens.accentWash : ImportPurchaseTokens.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(9),
+        side: BorderSide(
+          color: open ? Colors.transparent : ImportPurchaseTokens.line2,
+        ),
+      ),
+      child: InkWell(
+        onTap: () {
+          final next = !open;
+          setState(() => _expanded[purchase.id] = next);
+          if (next) {
+            _fetchStocks(_filterVariants(purchase.variants ?? []));
+          }
+        },
+        borderRadius: BorderRadius.circular(9),
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: AnimatedRotation(
+            turns: open ? 0.5 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              Icons.keyboard_arrow_down,
+              size: 18,
+              color: open
+                  ? ImportPurchaseTokens.accentStrong
+                  : ImportPurchaseTokens.ink2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _desktopLineTable(
+    BuildContext context,
+    Purchase purchase,
+    List<Variant> items,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: ImportPurchaseTokens.surface,
+        borderRadius: BorderRadius.circular(ImportPurchaseTokens.radius),
+        border: Border.all(color: ImportPurchaseTokens.line),
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: const BoxDecoration(
+              color: ImportPurchaseTokens.surface2,
+              border: Border(bottom: BorderSide(color: ImportPurchaseTokens.line)),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(ImportPurchaseTokens.radius),
+              ),
+            ),
+            child: const Row(
+              children: [
+                SizedBox(width: 50, child: IpmColumnHeader('No.')),
+                Expanded(child: IpmColumnHeader('Name')),
+                SizedBox(width: 90, child: IpmColumnHeader('Qty', align: TextAlign.end)),
+                SizedBox(
+                  width: 130,
+                  child: IpmColumnHeader('Supply', align: TextAlign.end),
+                ),
+                SizedBox(
+                  width: 130,
+                  child: IpmColumnHeader('Retail', align: TextAlign.end),
+                ),
+                SizedBox(width: 110, child: IpmColumnHeader('Status')),
+              ],
+            ),
+          ),
+          ...items.asMap().entries.map((entry) {
+            final i = entry.key;
+            final item = entry.value;
+            final vtag = _assignedCatalogName(item);
+            final statusKey = ImportPurchaseHelpers.purchaseStatusKey(item);
+
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _openAssign(context, purchase, item, widget.variants),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  constraints: const BoxConstraints(minHeight: 56),
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: ImportPurchaseTokens.line)),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 50,
+                        child: Text(
+                          '${i + 1}',
+                          style: ImportPurchaseHelpers.text(
+                            size: 14,
+                            weight: FontWeight.w800,
+                            color: ImportPurchaseTokens.muted,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              item.name,
+                              style: ImportPurchaseHelpers.text(
+                                size: 14.5,
+                                weight: FontWeight.w700,
+                              ),
+                            ),
+                            if (vtag != null)
+                              Text(
+                                vtag,
+                                style: ImportPurchaseHelpers.text(
+                                  size: 12,
+                                  weight: FontWeight.w600,
+                                  color: ImportPurchaseTokens.accentStrong,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 90,
+                        child: Text(
+                          ImportPurchaseHelpers.formatMoney(
+                            _stockMap[item.stock?.id]?.currentStock ??
+                                item.stock?.currentStock,
+                          ),
+                          textAlign: TextAlign.end,
+                          style: ImportPurchaseHelpers.text(
+                            size: 14,
+                            color: ImportPurchaseTokens.ink2,
+                            tabular: true,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 130,
+                        child: Text(
+                          ImportPurchaseHelpers.formatMoney(item.supplyPrice),
+                          textAlign: TextAlign.end,
+                          style: ImportPurchaseHelpers.text(
+                            size: 14,
+                            color: ImportPurchaseTokens.ink2,
+                            tabular: true,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 130,
+                        child: Text(
+                          ImportPurchaseHelpers.formatMoney(item.retailPrice),
+                          textAlign: TextAlign.end,
+                          style: ImportPurchaseHelpers.text(
+                            size: 14,
+                            color: ImportPurchaseTokens.ink2,
+                            tabular: true,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 118,
+                        child: vtag == null
+                            ? Row(
+                                children: [
+                                  const Icon(
+                                    Icons.local_offer_outlined,
+                                    size: 14,
+                                    color: ImportPurchaseTokens.accentStrong,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      'Assign variant',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: ImportPurchaseHelpers.text(
+                                        size: 12,
+                                        weight: FontWeight.w700,
+                                        color: ImportPurchaseTokens.accentStrong,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : IpmStatusBadge(statusKey: statusKey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _mobileLineCards(
+    BuildContext context,
+    Purchase purchase,
+    List<Variant> items,
+  ) {
+    return Column(
+      children: items.asMap().entries.map((entry) {
+        final i = entry.key;
+        final item = entry.value;
+        final vtag = _assignedCatalogName(item);
+        final statusKey = ImportPurchaseHelpers.purchaseStatusKey(item);
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Material(
+            color: ImportPurchaseTokens.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+              side: const BorderSide(color: ImportPurchaseTokens.line),
+            ),
+            child: InkWell(
+              onTap: () => _openAssign(context, purchase, item, widget.variants),
+              borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${i + 1}. ${item.name}',
+                            style: ImportPurchaseHelpers.text(
+                              size: 14.5,
+                              weight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        IpmStatusBadge(statusKey: statusKey),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _miniCell(
+                            'Qty',
+                            ImportPurchaseHelpers.formatMoney(
+                              _stockMap[item.stock?.id]?.currentStock ??
+                                  item.stock?.currentStock,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: _miniCell(
+                            'Supply',
+                            ImportPurchaseHelpers.formatMoney(item.supplyPrice),
+                          ),
+                        ),
+                        Expanded(
+                          child: _miniCell(
+                            'Retail',
+                            ImportPurchaseHelpers.formatMoney(item.retailPrice),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.local_offer_outlined,
+                          size: 15,
+                          color: ImportPurchaseTokens.accentStrong,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          vtag != null
+                              ? 'Variant · $vtag — tap to edit'
+                              : 'Tap to assign variant',
+                          style: ImportPurchaseHelpers.text(
+                            size: 12.5,
+                            weight: FontWeight.w700,
+                            color: ImportPurchaseTokens.accentStrong,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _miniCell(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: ImportPurchaseHelpers.text(
+            size: 10.5,
+            weight: FontWeight.w700,
+            color: ImportPurchaseTokens.muted,
+            letterSpacing: 0.4,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: ImportPurchaseHelpers.text(
+            size: 13.5,
+            weight: FontWeight.w700,
+            tabular: true,
+          ),
+        ),
+      ],
+    );
+  }
+}
