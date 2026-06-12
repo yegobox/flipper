@@ -341,10 +341,13 @@ class CheckOutState extends ConsumerState<CheckOut>
     final transactionItemsHint =
         ref.read(optimisticCartProvider.notifier).hasPendingFor(transaction.id)
         ? null
-        : ref
-              .read(posCartDisplayItemsProvider)
-              .where((i) => !OptimisticCartIds.isOptimistic(i.id))
-              .toList();
+        : () {
+            final lines = ref
+                .read(posCartDisplayItemsProvider)
+                .where((i) => !OptimisticCartIds.isOptimistic(i.id))
+                .toList();
+            return lines.isEmpty ? null : lines;
+          }();
 
     return await controller.handleCompleteTransaction(
       transaction: transaction,

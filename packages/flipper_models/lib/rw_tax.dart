@@ -278,6 +278,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final url = Uri.parse(
         URI,
       ).replace(path: Uri.parse(URI).path + 'stock/saveStockItems').toString();
+
       /// Filter out service items as they cannot be saved in IO
       items = items.where((item) => item.itemTyCd != "3").toList();
       final itemsList = items
@@ -287,9 +288,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             (entry) => mapRraStockIoItemToJson(
               entry.value,
               bhfId: bhFId,
-              approvedQty: entry.value.qty == 0
-                  ? approvedQty
-                  : entry.value.qty,
+              approvedQty: entry.value.qty == 0 ? approvedQty : entry.value.qty,
               itemSeq: entry.key + 1,
             ),
           )
@@ -636,6 +635,29 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
   /// After [trnsSales/saveSales] succeeds, RRA still expects stock movement and
   /// master updates. Those calls are not needed to build the signed receipt.
+  /// Line totals for `stock/saveStockItems` envelope (stock lines only, matches flipper-turbo).
+  ({double taxable, double tax, double total}) _stockIoEnvelopeTotals(
+    List<TransactionItem> items,
+  ) {
+    var taxable = 0.0;
+    var tax = 0.0;
+    var total = 0.0;
+    for (final item in items) {
+      if (item.itemTyCd == '3') continue;
+      final qty = item.qty.toDouble();
+      final retailUnit = (item.prc ?? item.price).toDouble();
+      final lineTotal = double.parse((retailUnit * qty).toStringAsFixed(2));
+      taxable += lineTotal;
+      total += lineTotal;
+      tax += (item.taxAmt ?? 0).toDouble();
+    }
+    return (
+      taxable: double.parse(taxable.toStringAsFixed(2)),
+      tax: double.parse(tax.toStringAsFixed(2)),
+      total: double.parse(total.toStringAsFixed(2)),
+    );
+  }
+
   /// Invoke via [syncStockAfterSuccessfulSaveSales] after local stock deduction
   /// (see [runPostSaleStockDeductionAndRraSync]) so saveStockItems → saveStockMaster
   /// use post-sale quantities and the allow-below-stock snapshot is available.
@@ -727,6 +749,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           transactionSarTyCd: transaction.sarTyCd,
         );
 
+        final stockIoTotals = _stockIoEnvelopeTotals(movementItemsForStockIo);
+        final stockIoRemark = stockIoSarTyCd == StockInOutType.sale
+            ? 'Stock out for sale'
+            : (transaction.remark ?? '');
+
         final stockIoResp = await saveStockItems(
           items: movementItemsForStockIo,
           tinNumber: ebm.tinNumber.toString(),
@@ -739,10 +766,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           sarNo: highestInvcNo.toString(),
           sarTyCd: stockIoSarTyCd,
           custBhfId: transaction.customerBhfId,
-          totalSupplyPrice: transaction.subTotal!,
-          totalvat: transaction.taxAmount!.toDouble(),
-          totalAmount: transaction.subTotal!,
-          remark: transaction.remark ?? "",
+          totalSupplyPrice: stockIoTotals.taxable,
+          totalvat: stockIoTotals.tax,
+          totalAmount: stockIoTotals.total,
+          remark: stockIoRemark,
           ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
           URI: ebm.taxServerUrl,
         );
@@ -880,9 +907,18 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     if (preloadedItems != null && preloadedItems.isNotEmpty) {
       items = preloadedItems;
     } else {
-      items = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).transactionItems(transactionId: transaction.id, branchId: branchId);
+      items = await ProxyService.getStrategy(Strategy.capella).transactionItems(
+        transactionId: transaction.id,
+        branchId: branchId,
+        doneWithTransaction: false,
+        active: true,
+      );
+    }
+
+    if (items.isEmpty) {
+      throw Exception(
+        'Cannot save sale to RRA: itemList is empty for transaction ${transaction.id}',
+      );
     }
 
     // Get the current date and time in the required format yyyyMMddHHmmss
@@ -1142,13 +1178,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String bhfId,
     num? approvedQty,
     int? itemSeq,
-  }) =>
-      mapRraStockIoItemToJson(
-        item,
-        bhfId: bhfId,
-        approvedQty: approvedQty,
-        itemSeq: itemSeq,
-      );
+  }) => mapRraStockIoItemToJson(
+    item,
+    bhfId: bhfId,
+    approvedQty: approvedQty,
+    itemSeq: itemSeq,
+  );
 
   Future<Map<String, dynamic>> mapItemToJson(
     TransactionItem item, {

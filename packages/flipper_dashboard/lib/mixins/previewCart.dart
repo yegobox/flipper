@@ -63,6 +63,31 @@ Future<List<TransactionItem>> _getTransactionItems({
   return items;
 }
 
+/// Resolves cart lines for Pay / RRA sign — hint first, then Ditto, with brief
+/// retries while optimistic taps are still persisting.
+Future<List<TransactionItem>> _resolveTransactionItemsForCompletion({
+  required ITransaction transaction,
+  required String transactionId,
+  List<TransactionItem>? hint,
+}) async {
+  List<TransactionItem> items;
+  if (hint != null &&
+      hint.isNotEmpty &&
+      hint.every((i) => i.transactionId == transactionId)) {
+    items = List<TransactionItem>.from(hint);
+  } else {
+    items = await _getTransactionItems(transaction: transaction);
+  }
+
+  if (items.isNotEmpty) return items;
+
+  for (var attempt = 0; attempt < 3 && items.isEmpty; attempt++) {
+    await Future<void>.delayed(Duration(milliseconds: 80 * (attempt + 1)));
+    items = await _getTransactionItems(transaction: transaction);
+  }
+  return items;
+}
+
 const double _tenderEpsilon = 0.0001;
 
 /// Tender lines for completion, reading controller text when [Payment.amount] is unset.
@@ -447,23 +472,30 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }
 
       // Validate stock levels before proceeding
-      late List<TransactionItem> transactionItems;
-      final hint = transactionItemsHint;
-      if (hint != null &&
-          hint.isNotEmpty &&
-          hint.every((i) => i.transactionId == transactionId)) {
-        transactionItems = List<TransactionItem>.from(hint);
-        talker.debug(
-          '[sale_completion_timing] load_transaction_items_ms=0 (hint) '
-          'total_ms=${flowWatch.elapsedMilliseconds}',
+      final itemsSw = Stopwatch()..start();
+      final transactionItems = await _resolveTransactionItemsForCompletion(
+        transaction: transaction,
+        transactionId: transactionId,
+        hint: transactionItemsHint,
+      );
+      talker.debug(
+        '[sale_completion_timing] load_transaction_items_ms=${itemsSw.elapsedMilliseconds} '
+        'count=${transactionItems.length} total_ms=${flowWatch.elapsedMilliseconds}',
+      );
+      if (transactionItems.isEmpty) {
+        talker.warning(
+          'Sale completion blocked: no line items for transaction $transactionId',
         );
-      } else {
-        final itemsSw = Stopwatch()..start();
-        transactionItems = await _getTransactionItems(transaction: transaction);
-        talker.debug(
-          '[sale_completion_timing] load_transaction_items_ms=${itemsSw.elapsedMilliseconds} '
-          'total_ms=${flowWatch.elapsedMilliseconds}',
-        );
+        if (mounted && context.mounted) {
+          showCustomSnackBarUtil(
+            context,
+            'Cart is still saving. Wait a moment and tap Pay again.',
+            backgroundColor: Colors.orange,
+            showCloseButton: true,
+          );
+        }
+        ref.read(payButtonStateProvider.notifier).stopLoading();
+        return false;
       }
       // Filter out services (itemTyCd == "3") from stock validation
       final itemsToValidate = transactionItems
@@ -490,10 +522,40 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final bool isProformaOrTraining =
           await TurboTaxService.handleProformaOrTrainingMode();
 
-      talker.debug(
-        '[sale_completion_timing] stock_deduction_ms=0 (deferred_after_rra) '
-        'total_ms=${flowWatch.elapsedMilliseconds}',
+      final receiptTypeForStock = getFilterType(
+        transactionType: transaction.receiptType,
+      ).name;
+      final stockIoSarTyCd = resolveRraStockIoSarTyCd(
+        receiptType: receiptTypeForStock,
       );
+
+      if (!isProformaOrTraining) {
+        final snapshotSw = Stopwatch()..start();
+        await persistPreSaleStockSnapshot(
+          transactionItems: transactionItems,
+          transactionId: transactionId,
+        );
+        talker.debug(
+          '[sale_completion_timing] pre_sale_stock_snapshot_ms='
+          '${snapshotSw.elapsedMilliseconds} total_ms=${flowWatch.elapsedMilliseconds}',
+        );
+
+        // Deduct local stock before RRA sign (pre-perf path). Post-sale sync only
+        // reports saveStockItems → saveStockMaster with post-deduction qty.
+        final stockDeductionSw = Stopwatch()..start();
+        final deducted = await applyDeferredSaleStockDeduction(
+          transactionItems: transactionItems,
+          allowSellingBelowStock: allowSellingBelowStock,
+          isProformaOrTraining: isProformaOrTraining,
+          transactionId: transactionId,
+        );
+        originalStockQuantities.addAll(deducted);
+        talker.debug(
+          '[sale_completion_timing] pre_rra_stock_deduction_ms='
+          '${stockDeductionSw.elapsedMilliseconds} '
+          'stocks=${deducted.length} total_ms=${flowWatch.elapsedMilliseconds}',
+        );
+      }
 
       void schedulePostSaleStockDeduction() {
         schedulePostSaleStockDeductionAndRraSync(
@@ -502,9 +564,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           isProformaOrTraining: isProformaOrTraining,
           transactionId: transactionId,
           transaction: transaction,
-          receiptType: getFilterType(
-            transactionType: transaction.receiptType,
-          ).name,
+          receiptType: receiptTypeForStock,
+          sarTyCd: stockIoSarTyCd,
         );
       }
 
@@ -580,6 +641,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           transactionItems: transactionItems,
           allowSellingBelowStock: allowSellingBelowStock,
           isProformaOrTraining: isProformaOrTraining,
+          receiptTypeForStock: receiptTypeForStock,
+          stockIoSarTyCd: stockIoSarTyCd,
         );
         talker.debug(
           '[sale_completion_timing] flow_total_until_waiting_payment_ms=${flowWatch.elapsedMilliseconds}',
@@ -896,6 +959,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required List<TransactionItem> transactionItems,
     required bool allowSellingBelowStock,
     required bool isProformaOrTraining,
+    required String receiptTypeForStock,
+    required String stockIoSarTyCd,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -1036,6 +1101,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   paymentMethods: paymentMethods,
                   paymentType: paymentType,
                   ticketName: ticketName,
+                  preloadedLineItemsForCollectPayment: transactionItems,
                   skipCollectPaymentTransactionPersist: false,
                   completeTransaction: () {
                     // For digital payments, don't call completeTransaction yet
@@ -1103,9 +1169,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   isProformaOrTraining: isProformaOrTraining,
                   transactionId: transaction.id,
                   transaction: transaction,
-                  receiptType: getFilterType(
-                    transactionType: transaction.receiptType,
-                  ).name,
+                  receiptType: receiptTypeForStock,
+                  sarTyCd: stockIoSarTyCd,
                 );
 
                 _isProcessingPayment = false;

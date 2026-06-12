@@ -326,10 +326,19 @@ class TaxController<OBJ> {
               branchId: (await ProxyService.strategy.activeBranch(
                 branchId: ProxyService.box.getBranchId()!,
               )).id,
+              doneWithTransaction: false,
+              active: true,
             );
       } catch (e) {
         talker.warning('Could not fetch transaction items: $e');
       }
+    }
+
+    if (lineItems.isEmpty) {
+      throw Exception(
+        'Cannot sign receipt: cart has no line items. '
+        'Wait for the cart to finish saving and try again.',
+      );
     }
 
     try {

@@ -7,6 +7,58 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_services/proxy.dart';
 
+/// Reads on-hand qty per [Stock] id for non-service sale lines (before RRA sign).
+Future<Map<String, double>> loadPreSaleStockLevelsForLines(
+  List<TransactionItem> transactionItems,
+) async {
+  final capella = ProxyService.getStrategy(Strategy.capella);
+  final candidates = transactionItems.where((item) {
+    if (item.itemTyCd == '3') return false;
+    final vid = item.variantId;
+    return vid != null && vid.isNotEmpty;
+  }).toList();
+  if (candidates.isEmpty) return {};
+
+  final variantIds = candidates.map((e) => e.variantId!).toSet().toList();
+  final variantsMap = await capella.batchGetVariantsByIds(variantIds);
+
+  final stockIds = <String>{};
+  for (final item in candidates) {
+    final sid = variantsMap[item.variantId!]?.stockId;
+    if (sid != null && sid.isNotEmpty) stockIds.add(sid);
+  }
+  if (stockIds.isEmpty) return {};
+
+  final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
+  for (final sid in stockIds) {
+    if (!stocksMap.containsKey(sid)) {
+      stocksMap[sid] = await capella.getStockById(id: sid);
+    }
+  }
+
+  final out = <String, double>{};
+  for (final sid in stockIds) {
+    final current = stocksMap[sid]?.currentStock;
+    if (current != null) out[sid] = current;
+  }
+  return out;
+}
+
+/// Persists pre-sale on-hand levels before `saveSales` so deferred deduction and
+/// RRA oversell capping use qty at Pay time (not after sign).
+Future<void> persistPreSaleStockSnapshot({
+  required List<TransactionItem> transactionItems,
+  required String transactionId,
+}) async {
+  final levels = await loadPreSaleStockLevelsForLines(transactionItems);
+  final key = rraSaleStockSnapshotBoxKey(transactionId);
+  if (levels.isEmpty) {
+    ProxyService.box.remove(key: key);
+    return;
+  }
+  await ProxyService.box.writeString(key: key, value: jsonEncode(levels));
+}
+
 /// Applies Ditto stock decrements after RRA sign / sale success (not on Pay hot path).
 Future<Map<String, double>> applyDeferredSaleStockDeduction({
   required List<TransactionItem> transactionItems,
@@ -17,26 +69,30 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   final sw = Stopwatch()..start();
   final originalStockQuantities = <String, double>{};
   final capella = ProxyService.getStrategy(Strategy.capella);
+  final rraSaleSnapshotKey = rraSaleStockSnapshotBoxKey(transactionId);
+  final preSaleSnapshot = decodeRraSaleStockSnapshot(
+    ProxyService.box.readString(key: rraSaleSnapshotKey),
+  );
 
-  final itemsNeedingDeduction = transactionItems.where((item) {
+  final candidateItems = transactionItems.where((item) {
     if (item.itemTyCd == "3") return false;
-    if (item.quantityShipped == item.qty.toInt()) return false;
     final vid = item.variantId;
     return vid != null && vid.isNotEmpty;
   }).toList();
 
-  if (isProformaOrTraining || itemsNeedingDeduction.isEmpty) {
+  if (isProformaOrTraining || candidateItems.isEmpty) {
     talker.debug(
-      '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds} skipped',
+      '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds} '
+      'skipped=${isProformaOrTraining ? "proforma_training" : "no_stock_lines"}',
     );
     return originalStockQuantities;
   }
 
-  final variantIds = itemsNeedingDeduction.map((e) => e.variantId!).toSet().toList();
+  final variantIds = candidateItems.map((e) => e.variantId!).toSet().toList();
   final variantsMap = await capella.batchGetVariantsByIds(variantIds);
 
   final stockIds = <String>{};
-  for (final item in itemsNeedingDeduction) {
+  for (final item in candidateItems) {
     final v = variantsMap[item.variantId!];
     final sid = v?.stockId;
     if (sid != null && sid.isNotEmpty) stockIds.add(sid);
@@ -47,6 +103,23 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
     if (!stocksMap.containsKey(sid)) {
       stocksMap[sid] = await capella.getStockById(id: sid);
     }
+  }
+
+  final itemsNeedingDeduction = candidateItems.where((item) {
+    return !saleLineAlreadyStockDeducted(
+      item: item,
+      variantsByVariantId: variantsMap,
+      stocksByStockId: stocksMap,
+      preSaleStockByStockId: preSaleSnapshot,
+    );
+  }).toList();
+
+  if (itemsNeedingDeduction.isEmpty) {
+    talker.debug(
+      '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds} '
+      'skipped=already_deducted',
+    );
+    return originalStockQuantities;
   }
 
   final qtyDeltaPerStock = <String, double>{};
@@ -76,20 +149,29 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
     stockUpdatesById[sid] = (currentStock: newStock, rsdQty: newStock);
   }
 
-  await capella.batchUpdateStocks(stockUpdatesById);
+  if (stockUpdatesById.isEmpty) {
+    talker.warning(
+      'Deferred stock deduction: no stock rows updated for $transactionId '
+      '(lines=${itemsNeedingDeduction.length})',
+    );
+  } else {
+    await capella.batchUpdateStocks(stockUpdatesById);
+    unawaited(
+      _deferMarkItemsQuantityShipped(
+        capella: capella,
+        items: itemsNeedingDeduction,
+        deductedStockIds: deductedStockIds,
+        variantsMap: variantsMap,
+      ),
+    );
+  }
 
-  unawaited(
-    _deferMarkItemsQuantityShipped(
-      capella: capella,
-      items: itemsNeedingDeduction,
-      deductedStockIds: deductedStockIds,
-      variantsMap: variantsMap,
-    ),
-  );
-
-  final rraSaleSnapshotKey = rraSaleStockSnapshotBoxKey(transactionId);
-  ProxyService.box.remove(key: rraSaleSnapshotKey);
-  if (allowSellingBelowStock && originalStockQuantities.isNotEmpty) {
+  // Keep pre-sale snapshot for RRA oversell cap until sync finishes (rw_tax finally).
+  if (!allowSellingBelowStock || originalStockQuantities.isEmpty) {
+    if (preSaleSnapshot == null || preSaleSnapshot.isEmpty) {
+      ProxyService.box.remove(key: rraSaleSnapshotKey);
+    }
+  } else if (preSaleSnapshot == null || preSaleSnapshot.isEmpty) {
     await ProxyService.box.writeString(
       key: rraSaleSnapshotKey,
       value: jsonEncode(originalStockQuantities),
@@ -97,7 +179,8 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   }
 
   talker.debug(
-    '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds}',
+    '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds} '
+    'lines=${itemsNeedingDeduction.length} stocks=${stockUpdatesById.length}',
   );
   return originalStockQuantities;
 }
@@ -181,6 +264,11 @@ Future<void> runPostSaleStockDeductionAndRraSync({
     sarTyCd: sarTyCd,
     receiptType: receiptType,
     transactionSarTyCd: transaction.sarTyCd,
+  );
+
+  talker.info(
+    'Post-sale RRA stock sync: txn=${transaction.id} invc=$highestInvcNo '
+    'sarTyCd=$stockIoSarTyCd lines=${transactionItems.length}',
   );
 
   await ProxyService.tax.syncStockAfterSuccessfulSaveSales(

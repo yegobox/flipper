@@ -99,39 +99,42 @@ void main() {
   });
 
   group('buildRraSaveStockItemsRequest', () {
-    test('stock-in (06): no customer fields, variant registrar, envelope totals × qty', () {
-      final item = _stockLine(id: 'l1', regrId: '31283', modrId: '25431');
-      final line = mapRraStockIoItemToJson(item, bhfId: '00', itemSeq: 1);
+    test(
+      'stock-in (06): no customer fields, variant registrar, envelope totals × qty',
+      () {
+        final item = _stockLine(id: 'l1', regrId: '31283', modrId: '25431');
+        final line = mapRraStockIoItemToJson(item, bhfId: '00', itemSeq: 1);
 
-      final body = buildRraSaveStockItemsRequest(
-        items: [item],
-        itemList: [line],
-        tinNumber: '999909695',
-        bhfId: '00',
-        sarTyCd: StockInOutType.adjustmentIn,
-        regTyCd: 'A',
-        ocrnDt: '20260529',
-        totalSupplyPrice: 25 * 12,
-        totalvat: 0,
-        totalAmount: 60 * 12,
-        remark: 'Stock In from adding new item',
-        sarNo: '4836',
-        orgSarNo: 4836,
-        fallbackRegistrarId: () => 'RANDOM',
-      );
+        final body = buildRraSaveStockItemsRequest(
+          items: [item],
+          itemList: [line],
+          tinNumber: '999909695',
+          bhfId: '00',
+          sarTyCd: StockInOutType.adjustmentIn,
+          regTyCd: 'A',
+          ocrnDt: '20260529',
+          totalSupplyPrice: 25 * 12,
+          totalvat: 0,
+          totalAmount: 60 * 12,
+          remark: 'Stock In from adding new item',
+          sarNo: '4836',
+          orgSarNo: 4836,
+          fallbackRegistrarId: () => 'RANDOM',
+        );
 
-      expect(body['sarTyCd'], '06');
-      expect(body['totTaxblAmt'], 300.0);
-      expect(body['totAmt'], 720.0);
-      expect(body['regrId'], '31283');
-      expect(body['modrId'], '25431');
-      expect(body.containsKey('custNm'), isFalse);
-      expect(body.containsKey('custTin'), isFalse);
-      expect(body.containsKey('custBhfId'), isFalse);
+        expect(body['sarTyCd'], '06');
+        expect(body['totTaxblAmt'], 300.0);
+        expect(body['totAmt'], 720.0);
+        expect(body['regrId'], '31283');
+        expect(body['modrId'], '25431');
+        expect(body.containsKey('custNm'), isFalse);
+        expect(body.containsKey('custTin'), isFalse);
+        expect(body.containsKey('custBhfId'), isFalse);
 
-      final list = body['itemList'] as List;
-      expect(list.single['pkg'], 1);
-    });
+        final list = body['itemList'] as List;
+        expect(list.single['pkg'], 1);
+      },
+    );
 
     test('sale (11): always includes custNm (defaults to N/A)', () {
       final item = _stockLine(id: 'l1');
@@ -183,13 +186,57 @@ void main() {
     });
   });
 
+  group('saleLineAlreadyStockDeducted', () {
+    test('false when shipped flag set but on-hand unchanged', () {
+      const stockId = 's1';
+      const variantId = 'v1';
+      final item = TransactionItem(
+        id: 'l1',
+        name: 'Smoke 005',
+        qty: 1,
+        price: 60,
+        discount: 0,
+        prc: 60,
+        ttCatCd: 'A',
+        variantId: variantId,
+        itemCd: 'RW2AMCT0000138',
+        itemClsCd: '5020230602',
+        itemNm: 'Smoke 005',
+        itemTyCd: '2',
+        supplyPrice: 25,
+        quantityShipped: 1,
+      );
+
+      expect(
+        saleLineAlreadyStockDeducted(
+          item: item,
+          variantsByVariantId: {
+            variantId: Variant(name: 'V', branchId: 'b', stockId: stockId),
+          },
+          stocksByStockId: {
+            stockId: Stock(id: stockId, branchId: 'b', currentStock: 5),
+          },
+          preSaleStockByStockId: {stockId: 5},
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('resolveRraStockIoSarTyCd', () {
     test('post-sale NS must not default to stock-in 06', () {
+      expect(resolveRraStockIoSarTyCd(receiptType: 'NS'), StockInOutType.sale);
+      expect(resolveRraStockIoSarTyCd(receiptType: 'NS'), isNot('06'));
+    });
+
+    test('ignores stale transaction sarTyCd on retail sale', () {
       expect(
-        resolveRraStockIoSarTyCd(receiptType: 'NS'),
+        resolveRraStockIoSarTyCd(
+          receiptType: 'NS',
+          transactionSarTyCd: StockInOutType.adjustmentIn,
+        ),
         StockInOutType.sale,
       );
-      expect(resolveRraStockIoSarTyCd(receiptType: 'NS'), isNot('06'));
     });
   });
 }

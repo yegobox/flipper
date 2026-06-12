@@ -108,6 +108,65 @@ void main() {
     });
   });
 
+  group('saleLineAlreadyStockDeducted', () {
+    test('quantityShipped set but stock still at pre-sale → needs deduct', () {
+      const stockId = 's1';
+      const variantId = 'v1';
+      final item = _line(id: 'l1', variantId: variantId, qty: 1)
+        ..quantityShipped = 1;
+
+      final deducted = saleLineAlreadyStockDeducted(
+        item: item,
+        variantsByVariantId: {
+          variantId: Variant(name: 'V', branchId: 'b', stockId: stockId),
+        },
+        stocksByStockId: {
+          stockId: Stock(id: stockId, branchId: 'b', currentStock: 11),
+        },
+        preSaleStockByStockId: {stockId: 11},
+      );
+      expect(deducted, isFalse);
+    });
+
+    test('quantityShipped set and stock at post-sale level → skip', () {
+      const stockId = 's1';
+      const variantId = 'v1';
+      final item = _line(id: 'l1', variantId: variantId, qty: 1)
+        ..quantityShipped = 1;
+
+      final deducted = saleLineAlreadyStockDeducted(
+        item: item,
+        variantsByVariantId: {
+          variantId: Variant(name: 'V', branchId: 'b', stockId: stockId),
+        },
+        stocksByStockId: {
+          stockId: Stock(id: stockId, branchId: 'b', currentStock: 10),
+        },
+        preSaleStockByStockId: {stockId: 11},
+      );
+      expect(deducted, isTrue);
+    });
+
+    test('no snapshot → trusts quantityShipped', () {
+      final item = _line(id: 'l1', variantId: 'v1', qty: 1)
+        ..quantityShipped = 1;
+
+      expect(
+        saleLineAlreadyStockDeducted(
+          item: item,
+          variantsByVariantId: {
+            'v1': Variant(name: 'V', branchId: 'b', stockId: 's1'),
+          },
+          stocksByStockId: {
+            's1': Stock(id: 's1', branchId: 'b', currentStock: 99),
+          },
+          preSaleStockByStockId: null,
+        ),
+        isTrue,
+      );
+    });
+  });
+
   group('resolvePostSaleInvoiceNo', () {
     test('prefers invoiceNumber then receipt fallbacks', () {
       expect(
@@ -151,6 +210,16 @@ void main() {
       expect(
         resolveRraStockIoSarTyCd(receiptType: 'NR'),
         StockInOutType.returnIn,
+      );
+    });
+
+    test('ignores stale transaction sarTyCd on NS sale', () {
+      expect(
+        resolveRraStockIoSarTyCd(
+          receiptType: 'NS',
+          transactionSarTyCd: '06',
+        ),
+        StockInOutType.sale,
       );
     });
   });
