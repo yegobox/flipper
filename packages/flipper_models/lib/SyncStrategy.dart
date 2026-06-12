@@ -8,10 +8,7 @@ class SyncStrategy {
   final DatabaseSyncInterface cloudSync;
   late Strategy _currentStrategy;
 
-  SyncStrategy({
-    required this.capella,
-    required this.cloudSync,
-  }) {
+  SyncStrategy({required this.capella, required this.cloudSync}) {
     // Enforce Capella on Web, otherwise default to CoreSync
     _currentStrategy = kIsWeb ? Strategy.capella : Strategy.cloudSync;
   }

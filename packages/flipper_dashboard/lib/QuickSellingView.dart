@@ -533,6 +533,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return payBusy || completing;
   }
 
+  Customer? _attachedCustomerHintFor(ITransaction transaction) {
+    final customerId = transaction.customerId;
+    if (customerId == null || customerId.isEmpty) return null;
+    return ref.read(attachedCustomerProvider(customerId)).asData?.value;
+  }
+
   void _prefillCustomerDetails(ITransaction transaction) {
     if (transaction.customerName != null &&
         transaction.customerName!.isNotEmpty &&
@@ -870,6 +876,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         isExpense: ProxyService.box.isOrdering() ?? false,
       ),
     );
+    final attachedCustomerId = transactionAsyncValue.value?.customerId;
+    if (attachedCustomerId != null && attachedCustomerId.isNotEmpty) {
+      ref.watch(attachedCustomerProvider(attachedCustomerId));
+    }
     if (kDebugMode) {
       tv_talk.talker.debug(
         'QuickSellingView.build pending '
@@ -1620,7 +1630,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           data: (branch) {
             return FutureBuilder<bool>(
               future:
-                  ProxyService.strategy.isBranchEnableForPayment(
+                  ProxyService.getStrategy(Strategy.capella).isBranchEnableForPayment(
                         currentBranchId: branch.id,
                       )
                       as Future<bool>,
@@ -1708,6 +1718,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                             paymentMethods: ref.watch(
                                               paymentMethodsProvider,
                                             ),
+                                            attachedCustomerHint:
+                                                _attachedCustomerHintFor(
+                                                  transaction,
+                                                ),
                                             onPaymentConfirmed:
                                                 onPaymentConfirmed,
                                             onPaymentFailed: onPaymentFailed,
@@ -2160,6 +2174,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     transactionHint: transaction,
                     transactionItemsHint: transactionItemsHint,
                     paymentMethods: ref.watch(paymentMethodsProvider),
+                    attachedCustomerHint: _attachedCustomerHintFor(transaction),
                   );
                 } catch (e, s) {
                   await ProxyService.box.writeBool(

@@ -191,7 +191,12 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
 
   @override
   Future<Receipt?> getReceipt({required String transactionId}) async {
-    throw UnimplementedError('getReceipt needs to be implemented for Capella');
+    // Ported from the brick (CoreSync) getter so Capella reads receipts
+    // identically (no regression).
+    return (await repository.get<Receipt>(
+      query: Query(where: [Where('transactionId').isExactly(transactionId)]),
+    ))
+        .firstOrNull;
   }
 
   @override

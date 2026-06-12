@@ -164,7 +164,7 @@ Future<bool> persistItemToTransaction({
     final stock = cachedStock;
 
     if (product != null && product.isComposite == true) {
-      final composites = await ProxyService.strategy.composites(
+      final composites = await ProxyService.getStrategy(Strategy.capella).composites(
         productId: product.id,
       );
       final variantIds = composites

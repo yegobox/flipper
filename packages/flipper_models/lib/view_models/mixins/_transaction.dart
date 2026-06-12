@@ -59,6 +59,9 @@ mixin TransactionMixinOld {
     /// When true, receipt PDF is generated and uploaded but not opened/printed;
     /// SMS is sent after upload when [DigitalReceiptService.queueSmsAfterReceiptUpload] was called.
     bool sendDigitalReceipt = false,
+
+    /// When set (e.g. POS checkout), skips [resolveCustomerForReceipt] DB lookup.
+    Customer? customer,
   }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -66,12 +69,14 @@ mixin TransactionMixinOld {
       if (businessId == null || branchId == null) {
         throw Exception('Business ID or Branch ID not found');
       }
-      final taxEnabled = await ProxyService.strategy.isTaxEnabled(
+      final taxEnabled =
+          await ProxyService.getStrategy(Strategy.capella).isTaxEnabled(
         businessId: businessId,
         branchId: branchId,
       );
       RwApiResponse? response;
-      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+      final ebm = await ProxyService.getStrategy(Strategy.capella)
+          .ebm(branchId: branchId);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
@@ -110,6 +115,7 @@ mixin TransactionMixinOld {
             sendDigitalReceipt: sendDigitalReceipt,
             signOnly: true,
             transactionItems: preloadedLineItemsForCollectPayment,
+            customer: customer,
           );
           talker.debug(
             '[sale_completion_timing] rra_sign_ms=${signSw.elapsedMilliseconds}',
@@ -170,12 +176,9 @@ mixin TransactionMixinOld {
           talker.debug(
             '[sale_completion_timing] collect_payment_ms=${collectSw.elapsedMilliseconds}',
           );
-          final onCompleteSw = Stopwatch()..start();
-          await _awaitPossibleFuture(onComplete());
-          talker.debug(
-            '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
-          );
 
+          // PDF/print does not need the completion Ditto write or deferred
+          // payment rows (pay mode falls back to CASH). Overlap with onComplete.
           scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
           unawaited(
             _presentReceiptAfterSale(
@@ -188,6 +191,12 @@ mixin TransactionMixinOld {
               transactionItems: preloadedLineItemsForCollectPayment,
               presentationReceipt: signOutcome.presentationReceipt,
             ),
+          );
+
+          final onCompleteSw = Stopwatch()..start();
+          await _awaitPossibleFuture(onComplete());
+          talker.debug(
+            '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
           );
           talker.debug(
             '[sale_completion_timing] finalize_payment_quick_sell_ms='
@@ -205,6 +214,7 @@ mixin TransactionMixinOld {
           persistReceiptTransactionFields: !deferPersistTaxReceiptFields,
           sendDigitalReceipt: sendDigitalReceipt,
           transactionItems: preloadedLineItemsForCollectPayment,
+          customer: customer,
         );
         response = receiptOutcome.response;
         if (response.resultCd != "000") {
@@ -363,6 +373,7 @@ mixin TransactionMixinOld {
     RwApiResponse? signedResponse,
     List<TransactionItem>? transactionItems,
     Receipt? presentationReceiptForPdf,
+    Customer? customer,
   }) async {
     try {
       if (sendDigitalReceipt && !presentationOnly) {
@@ -381,6 +392,7 @@ mixin TransactionMixinOld {
             signedResponse: signedResponse,
             transactionItems: transactionItems,
             presentationReceiptForPdf: presentationReceiptForPdf,
+            customer: customer,
           );
       final (
         :response,
@@ -465,11 +477,11 @@ mixin TransactionMixinOld {
       throw Exception('Business ID or Branch ID not found');
     }
 
-    Business? business = await ProxyService.strategy.getBusiness(
+    Business? business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
       businessId: businessId,
     );
 
-    final bool isEbmEnabled = await ProxyService.strategy.isTaxEnabled(
+    final bool isEbmEnabled = await ProxyService.getStrategy(Strategy.capella).isTaxEnabled(
       businessId: business!.id,
       branchId: branchId,
     );

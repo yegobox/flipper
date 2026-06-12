@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -76,7 +77,7 @@ Future<void> persistDeferredSaleReceipt(DeferredSaleReceiptPersist deferred) asy
     whenCreated: deferred.whenCreated,
     invoiceNumber: deferred.highestInvcNo,
   );
-  await ProxyService.strategy.updateCounters(
+  await ProxyService.getStrategy(Strategy.capella).updateCounters(
     counters: deferred.counters,
     receiptSignature: deferred.receiptSignature,
   );

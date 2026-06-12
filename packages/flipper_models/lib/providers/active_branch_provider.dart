@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 part 'active_branch_provider.g.dart';
@@ -43,7 +44,7 @@ Stream<Branch> activeBranch(Ref ref) async* {
     }
 
     try {
-      final branch = await ProxyService.strategy.activeBranch(
+      final branch = await ProxyService.getStrategy(Strategy.capella).activeBranch(
         branchId: branchId,
       );
       if (_branchIdentityChanged(lastYielded, branch)) {

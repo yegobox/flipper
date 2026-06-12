@@ -37,7 +37,20 @@ class CheckoutController {
 
     try {
       await applyDiscount(transaction);
-      
+
+      Customer? attachedCustomerHint;
+      final attachedCustomerId = transaction.customerId;
+      if (attachedCustomerId != null && attachedCustomerId.isNotEmpty) {
+        attachedCustomerHint = ref
+            .read(
+              oldImplementationOfRiverpod.attachedCustomerProvider(
+                attachedCustomerId,
+              ),
+            )
+            .asData
+            ?.value;
+      }
+
       final isWaitingForPayment = await startCompleteTransactionFlow(
         transactionId: transaction.id,
         transactionHint: transaction,
@@ -45,6 +58,7 @@ class CheckoutController {
         immediateCompletion: immediateCompletion,
         onPaymentConfirmed: onPaymentConfirmed,
         onPaymentFailed: onPaymentFailed,
+        attachedCustomerHint: attachedCustomerHint,
         completeTransaction: () async {
           ref.read(payButtonStateProvider.notifier).stopLoading();
 

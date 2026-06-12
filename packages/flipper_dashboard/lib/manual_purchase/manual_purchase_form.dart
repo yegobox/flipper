@@ -1,7 +1,9 @@
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -41,6 +43,11 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   final _tinController = TextEditingController();
   final _invoiceController = TextEditingController();
   final _catalogSearchController = TextEditingController();
+  // Stable focus nodes: creating these inline in build() makes the autocomplete
+  // overlay tear down on every keystroke (state rebuilds), which breaks search
+  // suggestions and causes the field to lose focus / jump.
+  final _supplierFocus = FocusNode();
+  final _catalogFocus = FocusNode();
   List<Supplier> _suppliers = [];
   bool _showCatalogSearch = false;
 
@@ -65,6 +72,8 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
     _tinController.dispose();
     _invoiceController.dispose();
     _catalogSearchController.dispose();
+    _supplierFocus.dispose();
+    _catalogFocus.dispose();
     super.dispose();
   }
 
@@ -286,9 +295,9 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                   _fieldLabel('Supplier'),
                   RawAutocomplete<Supplier>(
                     textEditingController: _supplierController,
-                    focusNode: FocusNode(),
+                    focusNode: _supplierFocus,
                     optionsBuilder: (textEditingValue) {
-                      final query = textEditingValue.text.toLowerCase();
+                      final query = textEditingValue.text.trim().toLowerCase();
                       if (query.isEmpty) {
                         return const Iterable<Supplier>.empty();
                       }
@@ -519,13 +528,32 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   Widget _buildCatalogSearchField(ManualPurchaseNotifier notifier) {
     return RawAutocomplete<Variant>(
       textEditingController: _catalogSearchController,
-      focusNode: FocusNode(),
-      optionsBuilder: (textEditingValue) {
-        final query = textEditingValue.text.toLowerCase();
+      focusNode: _catalogFocus,
+      optionsBuilder: (textEditingValue) async {
+        final query = textEditingValue.text.trim();
         if (query.isEmpty) return const Iterable<Variant>.empty();
-        return widget.catalogVariants
-            .where((v) => v.name.toLowerCase().contains(query))
-            .take(20);
+        // Search the full system-wide catalog (not just the page-1 snapshot
+        // in widget.catalogVariants). Matches what product lists query.
+        final branchId = ProxyService.box.getBranchId() ?? '';
+        if (branchId.isEmpty) {
+          return widget.catalogVariants
+              .where((v) => v.name.toLowerCase().contains(query.toLowerCase()))
+              .take(20);
+        }
+        try {
+          final paged = await ProxyService.getStrategy(Strategy.capella).variants(
+            branchId: branchId,
+            name: query,
+            itemsPerPage: 20,
+          );
+          return paged.variants.cast<Variant>();
+        } catch (e, s) {
+          talker.error('Catalog search failed', e, s);
+          // Fall back to the in-memory snapshot so search still works offline.
+          return widget.catalogVariants
+              .where((v) => v.name.toLowerCase().contains(query.toLowerCase()))
+              .take(20);
+        }
       },
       displayStringForOption: (v) => v.name,
       onSelected: (variant) {

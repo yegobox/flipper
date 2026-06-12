@@ -274,19 +274,10 @@ class CronService {
                       transaction.invoiceNumber = highestInvcNo;
                       await repository.upsert<ITransaction>(transaction);
 
-                      Customer? customer;
-                      try {
-                        customer = await ProxyService.strategy.customerById(
-                          transaction.customerId!,
-                        );
-                        talker.info(
-                          'Resolved customer from id: ${customer?.id}',
-                        );
-                      } catch (e) {
-                        talker.warning(
-                          'Failed to resolve customer for id ${transaction.customerId}: $e',
-                        );
-                      }
+                      final customer = await resolveCustomerForReceipt(
+                        transaction: transaction,
+                        purchaseCode: purchaseCode,
+                      );
                       String custMblNo = transaction.customerPhone!;
                       String customerName = transaction.customerName!;
                       // Call printReceipt with delegation parameters

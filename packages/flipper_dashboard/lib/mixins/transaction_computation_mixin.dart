@@ -133,23 +133,20 @@ mixin TransactionComputationMixin {
 
   /// Fetches the actual cash paid for a transaction from payment records,
   /// excluding CREDIT entries so only real money received is counted.
-  /// Tries Capella (Ditto) first, falls back to CloudSync (brick/SQLite).
   Future<double> fetchNonCreditPaid(String transactionId) async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return 0.0;
 
-    for (final strategy in [Strategy.capella, Strategy.cloudSync]) {
-      try {
-        final paid = await ProxyService.getStrategy(strategy)
-            .getTotalPaidForTransaction(
-              transactionId: transactionId,
-              branchId: branchId,
-              excludePaymentMethod: 'CREDIT',
-            );
-        if (paid != null && paid > 0) return paid;
-      } catch (_) {
-        // try next strategy
-      }
+    try {
+      final paid = await ProxyService.getStrategy(Strategy.capella)
+          .getTotalPaidForTransaction(
+            transactionId: transactionId,
+            branchId: branchId,
+            excludePaymentMethod: 'CREDIT',
+          );
+      if (paid != null && paid > 0) return paid;
+    } catch (_) {
+      // Capella/Ditto is the POS cart source of truth.
     }
     return 0.0;
   }

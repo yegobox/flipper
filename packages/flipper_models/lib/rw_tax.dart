@@ -26,6 +26,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flipper_services/GlobalLogError.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/notice.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
@@ -33,6 +34,34 @@ import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:math' as math;
+
+/// Align branch counters in Ditto when RRA rejects a duplicate [invcNo].
+Future<void> persistCapellaCountersInvcNo(int invcNo) async {
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) return;
+
+  final ditto = DittoService.instance.dittoInstance;
+  if (ditto == null) {
+    talker.warning('Ditto not initialized; cannot persist counter invcNo.');
+    return;
+  }
+
+  final counters = await ProxyService.getStrategy(
+    Strategy.capella,
+  ).getCounters(branchId: branchId, fetchRemote: false);
+  final now = DateTime.now().toUtc();
+  for (final counter in counters) {
+    if (counter.branchId == null) continue;
+    counter.invcNo = invcNo;
+    counter.lastTouched = now;
+    counter.createdAt = now;
+    final doc = await CounterDittoAdapter.instance.toDittoDocument(counter);
+    await ditto.store.execute(
+      'INSERT INTO counters DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {'doc': doc},
+    );
+  }
+}
 
 // Expose a top-level calculateTaxTotals function so tests can call it
 // without needing to instantiate RWTax (which pulls in app-wide services).
@@ -894,15 +923,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
     final repository = Repository();
     // Get business details
-    Business? business = await ProxyService.strategy.getBusiness(
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    Business? business = await capella.getBusiness(
       businessId: ProxyService.box.getBusinessId()!,
     );
-    String branchId = (await ProxyService.strategy.activeBranch(
+    String branchId = (await capella.activeBranch(
       branchId: ProxyService.box.getBranchId()!,
     )).id;
-    Ebm? ebm = await ProxyService.strategy.ebm(
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    Ebm? ebm = await capella.ebm(branchId: ProxyService.box.getBranchId()!);
     final List<TransactionItem> items;
     if (preloadedItems != null && preloadedItems.isNotEmpty) {
       items = preloadedItems;
@@ -955,30 +983,18 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get sales and receipt type codes
     Map<String, String> receiptCodes = getReceiptCodes(receiptType);
     var taxTotals = calculateTaxTotals(itemsList);
-    Future<void> _handleInvoiceDuplicate() async {
-      print("Invoice number already exists.");
-      final branchId = ProxyService.box.getBranchId()!;
-      final counters = await ProxyService.strategy.getCounters(
-        branchId: branchId,
-        fetchRemote: false,
-      );
-
-      for (Counter c in counters) {
-        c.invcNo = (c.invcNo ?? 0) + 1;
-        c.curRcptNo = (c.curRcptNo ?? 0) + 1;
-        await repository.upsert(c);
-      }
-    }
-
     List<odm.Counter> _counters =
         await ProxyService.getStrategy(Strategy.capella).getCounters(
           branchId: ProxyService.box.getBranchId()!,
           fetchRemote: false,
         );
-    final int highestInvcNo = _counters.fold<int>(
+    var currentHighestInvcNo = _counters.fold<int>(
       0,
       (prev, c) => math.max(prev, c.invcNo ?? 0),
     );
+    if (currentHighestInvcNo <= 0) {
+      currentHighestInvcNo = 1;
+    }
 
     // Retrieve customer information
 
@@ -988,7 +1004,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       custMblNo: custMblNo,
       customerName: customerName,
       customer: customer,
-      highestInvcNo: highestInvcNo,
+      highestInvcNo: currentHighestInvcNo,
       ebm: ebm,
       bhFId: bhfId,
       salesSttsCd: salesSttsCd,
@@ -1011,7 +1027,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       ).replace(path: Uri.parse(URI).path + 'trnsSales/saveSales').toString();
 
       RwApiResponse? successData;
-      for (var saveAttempt = 0; saveAttempt < 2; saveAttempt++) {
+      for (var saveAttempt = 0; saveAttempt < 3; saveAttempt++) {
         final response = await sendPostRequest(url, requestData);
 
         if (response.statusCode != 200) {
@@ -1024,7 +1040,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           final msg = data.resultMsg;
-          if (saveAttempt == 0 && _rwTaxIsQtyUnitCdCodeValueError(msg)) {
+          if (saveAttempt < 2 && _rwTaxIsQtyUnitCdCodeValueError(msg)) {
             talker.warning(
               'RRA rejected qtyUnitCd; defaulting transaction lines and variants to U and retrying saveSales.',
             );
@@ -1047,7 +1063,36 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               custMblNo: custMblNo,
               customerName: customerName,
               customer: customer,
-              highestInvcNo: highestInvcNo,
+              highestInvcNo: currentHighestInvcNo,
+              ebm: ebm,
+              bhFId: bhfId,
+              salesSttsCd: salesSttsCd,
+              transaction: transaction,
+              date: date,
+              originalInvoiceNumber: originalInvoiceNumber,
+              totalTaxable: totalTaxable,
+              taxTotals: taxTotals,
+              receiptCodes: receiptCodes,
+              itemsList: itemsList,
+              purchaseCode: purchaseCode,
+              timeToUse: timeToUser,
+              receiptType: receiptType,
+            );
+            continue;
+          }
+
+          if (saveAttempt < 2 && msg == "Invoice number already exists.") {
+            talker.warning(
+              'Invoice number $currentHighestInvcNo already exists; incrementing and retrying saveSales.',
+            );
+            currentHighestInvcNo += 1;
+            await persistCapellaCountersInvcNo(currentHighestInvcNo);
+            requestData = await buildRequestData(
+              business: business,
+              custMblNo: custMblNo,
+              customerName: customerName,
+              customer: customer,
+              highestInvcNo: currentHighestInvcNo,
               ebm: ebm,
               bhFId: bhfId,
               salesSttsCd: salesSttsCd,
@@ -1068,7 +1113,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           Exception exception = Exception(msg);
 
           if (msg == "Invoice number already exists.") {
-            await _handleInvoiceDuplicate();
             exception = Exception(
               "Error occurred, please try again. If the problem persists, contact support.",
             );
@@ -1107,7 +1151,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             receiptType: receiptType,
             items: items,
             ebm: ebm,
-            highestInvcNo: highestInvcNo,
+            highestInvcNo: currentHighestInvcNo,
             sarTyCd: sarTyCd,
             transaction: transaction,
             repository: repository,
@@ -1452,16 +1496,22 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     String? custMblNo,
     required String customerName,
   }) async {
-    odm.Configurations? taxConfigTaxB = await ProxyService.strategy
-        .getByTaxType(taxtype: "B");
-    odm.Configurations? taxConfigTaxA = await ProxyService.strategy
-        .getByTaxType(taxtype: "A");
-    odm.Configurations? taxConfigTaxC = await ProxyService.strategy
-        .getByTaxType(taxtype: "C");
-    odm.Configurations? taxConfigTaxD = await ProxyService.strategy
-        .getByTaxType(taxtype: "D");
-    odm.Configurations? taxConfigTaxTT = await ProxyService.strategy
-        .getByTaxType(taxtype: "TT");
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    odm.Configurations? taxConfigTaxB = await capella.getByTaxType(
+      taxtype: "B",
+    );
+    odm.Configurations? taxConfigTaxA = await capella.getByTaxType(
+      taxtype: "A",
+    );
+    odm.Configurations? taxConfigTaxC = await capella.getByTaxType(
+      taxtype: "C",
+    );
+    odm.Configurations? taxConfigTaxD = await capella.getByTaxType(
+      taxtype: "D",
+    );
+    odm.Configurations? taxConfigTaxTT = await capella.getByTaxType(
+      taxtype: "TT",
+    );
 
     /// TODO: for totalTax we are not accounting other taxes only B
     /// so need to account them in future

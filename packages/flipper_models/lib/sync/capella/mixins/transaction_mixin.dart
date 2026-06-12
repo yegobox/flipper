@@ -17,6 +17,7 @@ import 'package:talker/talker.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 /// Serialize pending-cart ensure for a single (branch, type, expense) slot.
 final Map<String, Lock> _pendingCartScopeLocks = {};
@@ -858,9 +859,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   @override
   FutureOr<void> addTransaction({required ITransaction transaction}) {
-    throw UnimplementedError(
-      'addTransaction needs to be implemented for Capella',
-    );
+    // Ported from the brick (CoreSync) TransactionMixin (no regression).
+    repository.upsert(transaction);
   }
 
   @override
@@ -878,9 +878,18 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
-    throw UnimplementedError(
-      'getByTaxType needs to be implemented for Capella',
-    );
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return null;
+
+    return (await repository.get<Configurations>(
+      query: Query(
+        where: [
+          Where('taxType').isExactly(taxtype),
+          Where('branchId').isExactly(branchId),
+        ],
+      ),
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    )).firstOrNull;
   }
 
   @override
@@ -1811,9 +1820,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
                 if (branchId != null &&
                     tt != null &&
                     _isPosCartTransactionType(tt)) {
-                  final isExpense = _boolFromDitto(
-                    priorRow['isExpense'],
-                  );
+                  final isExpense = _boolFromDitto(priorRow['isExpense']);
                   await _ensureNextPendingCartIfNeeded(
                     branchId: branchId,
                     transactionType: tt,
@@ -2466,14 +2473,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   /// current [agentId], [createdAt] window, adjustment filter, COMPLETE+PARKED
   /// (drops WAITING_MOMO for stable paging aligned with UI scope).
   ({String clause, Map<String, dynamic> arguments})
-      _transactionsReportPagingWhere({
+  _transactionsReportPagingWhere({
     required DateTime startDate,
     required DateTime endDate,
     required String branchId,
   }) {
     final agentId = ProxyService.box.getUserId();
     if (agentId == null || agentId.isEmpty) {
-      throw StateError('Agent id is required for report-scoped transaction paging');
+      throw StateError(
+        'Agent id is required for report-scoped transaction paging',
+      );
     }
     final localStartDate = DateTime(
       startDate.year,
@@ -2526,7 +2535,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized for countTransactionsReportPagingWindow');
+        talker.error(
+          'Ditto not initialized for countTransactionsReportPagingWindow',
+        );
         return 0;
       }
       final prepared = _transactionsReportPagingWhere(
@@ -2573,7 +2584,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized for pageTransactionsReportPagingWindow');
+        talker.error(
+          'Ditto not initialized for pageTransactionsReportPagingWindow',
+        );
         return [];
       }
       final prepared = _transactionsReportPagingWhere(

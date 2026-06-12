@@ -345,13 +345,17 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return null;
+
     return (await repository.get<Configurations>(
       query: Query(
         where: [
-          Where('type').isExactly('tax'),
           Where('taxType').isExactly(taxtype),
+          Where('branchId').isExactly(branchId),
         ],
       ),
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     )).firstOrNull;
   }
 

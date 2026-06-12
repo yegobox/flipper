@@ -53,9 +53,7 @@ Future<List<TransactionItem>> _getTransactionItems({
 }) async {
   final items = await ProxyService.getStrategy(Strategy.capella)
       .transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch(
-          branchId: ProxyService.box.getBranchId()!,
-        )).id,
+        branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.id,
         doneWithTransaction: false,
         active: true,
@@ -189,9 +187,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-            branchId: (await ProxyService.strategy.activeBranch(
-              branchId: ProxyService.box.getBranchId()!,
-            )).id,
+            branchId: ProxyService.box.getBranchId()!,
             transactionId: transaction.id,
             doneWithTransaction: false,
             active: true,
@@ -258,9 +254,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // get items on cart
     final items = await ProxyService.getStrategy(Strategy.capella)
         .transactionItems(
-          branchId: (await ProxyService.strategy.activeBranch(
-            branchId: ProxyService.box.getBranchId()!,
-          )).id,
+          branchId: ProxyService.box.getBranchId()!,
           transactionId: transaction.id,
           doneWithTransaction: false,
           active: true,
@@ -324,6 +318,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     bool immediateCompletion = false,
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
+
+    /// Preloaded attached customer (e.g. mobile checkout UI already resolved it).
+    Customer? attachedCustomerHint,
   }) async {
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
@@ -345,7 +342,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           id: transactionId,
           branchId: branchIdInt,
         );
-        resolved ??= await ProxyService.strategy.getTransaction(
+        resolved ??= await capella.getTransaction(
           id: transactionId,
           branchId: branchIdInt,
         );
@@ -604,18 +601,22 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       if (!isValid) return false;
 
-      final isDigitalPaymentEnabled = await ProxyService.strategy
-          .isBranchEnableForPayment(
+      final isDigitalPaymentEnabled = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).isBranchEnableForPayment(
             currentBranchId: branchId,
             fetchRemote: false,
           );
 
-      Customer? customer;
-      if (transaction.customerId != null &&
-          transaction.customerId!.isNotEmpty &&
-          (hasCreditPayment || isDigitalPaymentEnabled)) {
-        customer = await _getCustomer(transaction.customerId);
-      }
+      Customer? customer = await _resolveAttachedCustomerForSale(
+        transaction: transaction,
+        hint: attachedCustomerHint,
+        fetchIfMissing:
+            hasCreditPayment ||
+            isDigitalPaymentEnabled ||
+            (transaction.customerId != null &&
+                transaction.customerId!.isNotEmpty),
+      );
 
       final String? ticketName =
           customer?.custNm ??
@@ -910,16 +911,25 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<Customer?> _getCustomer(String? customerId) async {
-    if (customerId == null) return null;
+  /// Attached customer for checkout/receipt: prefers [attachedCustomerProvider]
+  /// cache (warmed by Quick Selling / mobile checkout UI), then fetches once.
+  Future<Customer?> _resolveAttachedCustomerForSale({
+    required ITransaction transaction,
+    Customer? hint,
+    required bool fetchIfMissing,
+  }) async {
+    if (hint != null) return hint;
 
-    String? branchId = ProxyService.box.getBranchId();
-    if (branchId == null || branchId.isEmpty) return null;
+    final customerId = transaction.customerId;
+    if (customerId == null || customerId.isEmpty) return null;
 
-    final customers = await ProxyService.getStrategy(
-      Strategy.capella,
-    ).customers(id: customerId, branchId: branchId);
-    return customers.firstOrNull;
+    final cached =
+        ref.read(attachedCustomerProvider(customerId)).asData?.value;
+    if (cached != null) return cached;
+
+    if (!fetchIfMissing) return null;
+
+    return ref.read(attachedCustomerProvider(customerId).future);
   }
 
   /// Get country calling code from country name
@@ -970,10 +980,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         phoneNumber = customer!.telNo!.replaceAll("+", "");
       } else {
         // Get country code dynamically from business country
-        final branch = await ProxyService.strategy.activeBranch(
+        final branch = await ProxyService.getStrategy(Strategy.capella).activeBranch(
           branchId: ProxyService.box.getBranchId()!,
         );
-        final business = await ProxyService.strategy.getBusiness(
+        final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
           businessId: branch.businessId!,
         );
         final countryCode = _getCountryCallingCode(business?.country);
@@ -1246,6 +1256,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               paymentType: paymentTypeController.text,
               transaction: transaction,
               context: context,
+              customer: customer,
             );
 
         // If user cancelled or dialog didn't complete, propagate false
@@ -1288,6 +1299,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           skipTransactionPersist: skipCollectPaymentTransactionPersist,
           deferPersistTaxReceiptFields: true,
           sendDigitalReceipt: sendDigitalReceipt,
+          customer: customer,
           onSuccess: () {
             ref.read(payButtonStateProvider.notifier).stopLoading();
           },
@@ -1363,6 +1375,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required double discount,
     required Function onComplete,
     required BuildContext context,
+    Customer? customer,
   }) async {
     if (transaction.customerTin != null &&
         transaction.customerTin!.isNotEmpty) {
@@ -1390,6 +1403,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               context: dialogContext,
               skipTransactionPersist: true,
               sendDigitalReceiptFuture: sendDigitalReceiptFuture,
+              customer: customer,
             ),
             child: Builder(
               builder: (context) {

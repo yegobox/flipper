@@ -1715,7 +1715,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           Strategy.capella,
         ).flipperDelete(id: item.id, endPoint: 'transactionItem');
       } else {
-        final paged = await ProxyService.strategy.variants(
+        final paged = await ProxyService.getStrategy(Strategy.capella).variants(
           taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
           variantId: item.variantId!,
           branchId: ProxyService.box.getBranchId()!,
@@ -1723,12 +1723,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         Variant? variant = (List<Variant>.from(paged.variants)).firstOrNull;
 
         if (variant != null) {
-          final composites = await ProxyService.strategy.composites(
+          final composites = await ProxyService.getStrategy(Strategy.capella).composites(
             productId: variant.productId!,
           );
 
           for (final composite in composites) {
-            final deletableItem = await ProxyService.strategy
+            final deletableItem = await ProxyService.getStrategy(Strategy.capella)
                 .getTransactionItem(variantId: composite.variantId!);
             if (deletableItem != null) {
               await ProxyService.getStrategy(Strategy.capella).flipperDelete(
