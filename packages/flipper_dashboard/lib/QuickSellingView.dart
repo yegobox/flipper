@@ -111,12 +111,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  /// Prior non-credit payments from payment records, when loaded; otherwise
-  /// [ITransaction.cashReceived]. Must match [updatePaymentRemainder] /
-  /// [standardizedPaymentInitialization] so change/balance are not double-counted.
+  /// Prior non-credit payments from payment records, when loaded.
+  ///
+  /// Do not fall back to [ITransaction.cashReceived] for normal sales: item-add
+  /// updates mirror [ProxyService.box.getCashReceived] into that field, so it
+  /// often holds the current tender and would be double-counted with
+  /// [paymentMethodsProvider]. Loans may still use cashReceived until fetch completes.
   double _effectiveAlreadyPaid(ITransaction? transaction) {
     if (_cachedNonCreditPaid != null) return _cachedNonCreditPaid!;
-    return transaction?.cashReceived ?? 0.0;
+    if (transaction?.isLoan == true) {
+      return transaction?.cashReceived ?? 0.0;
+    }
+    return 0.0;
   }
 
   double get totalAfterDiscountAndShipping {
@@ -807,7 +813,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           _prefillCustomerDetails(next.value!);
           if (isNewTransaction) {
             resetDigitalReceiptToggle(ref);
-            _cachedNonCreditPaid = null;
+            _cachedNonCreditPaid = 0.0;
             _lastPaymentInitTransactionId = null;
             _updateReceivedAmountIfNeeded(next.value!);
           }

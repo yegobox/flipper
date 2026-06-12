@@ -116,6 +116,28 @@ void main() {
       },
     );
 
+    test(
+      'change ignores stale cashReceived mirrored from getCashReceived box',
+      () {
+        const total = 108.0;
+        const staleTxnCashReceived = 108.0;
+        const currentTender = 200.0;
+        const priorPaidFromRecords = 0.0;
+
+        final wrongChange = computation.calculateAmountToChange(
+          total: total,
+          paid: staleTxnCashReceived + currentTender,
+        );
+        expect(wrongChange, 200.0);
+
+        final change = computation.calculateAmountToChange(
+          total: total,
+          paid: priorPaidFromRecords + currentTender,
+        );
+        expect(change, 92.0);
+      },
+    );
+
     test('calculateTransactionTotal with discount returns correct value', () {
       // Create a simple mock-like object for transaction item
       // Since we can't easily mock the actual TransactionItem, we'll test with a simple scenario
