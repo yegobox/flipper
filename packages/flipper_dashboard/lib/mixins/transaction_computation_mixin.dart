@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -21,11 +22,16 @@ mixin TransactionComputationMixin {
     final isCurrencyDecimal = settingsService.isCurrencyDecimal;
 
     double baseTotal = items.fold(0.0, (sum, item) {
-      final val = (item.price * item.qty).toDouble();
+      final lineNet = SaleLinePricing.subtotalNetForItem(
+        unitPrice: item.price.toDouble(),
+        qty: item.qty.toDouble(),
+        dcRt: item.dcRt?.toDouble(),
+        dcAmt: item.dcAmt?.toDouble(),
+      );
       return sum +
           (isCurrencyDecimal
-              ? val.roundToTwoDecimalPlaces()
-              : val.roundToDouble());
+              ? lineNet.roundToTwoDecimalPlaces()
+              : lineNet.roundToDouble());
     });
 
     // Fallback/Validation: REMOVED

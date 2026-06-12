@@ -1199,8 +1199,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final baseTotal = unitPrice * quantity;
 
     // Calculate discount amount correctly for the total
-    final discountRate = item.dcRt;
-    final totalDiscountAmount = (baseTotal * discountRate!) / 100;
+    final discountRate = item.dcRt ?? 0.0;
+    final totalDiscountAmount = (baseTotal * discountRate) / 100;
 
     // Calculate total after discount
     final totalAfterDiscount = baseTotal - totalDiscountAmount;

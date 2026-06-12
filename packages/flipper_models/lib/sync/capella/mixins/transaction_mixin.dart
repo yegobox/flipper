@@ -16,6 +16,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 
 /// Serialize pending-cart ensure for a single (branch, type, expense) slot.
 final Map<String, Lock> _pendingCartScopeLocks = {};
@@ -1173,7 +1174,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
         final double currentQty = (existingItemData['qty'] as num).toDouble();
         final double newQty = updatableQty ?? (currentQty + 1);
-        final double newTotal = amountTotal * newQty;
         final double qtyDelta = newQty - currentQty;
         final prevRem = (existingItemData['remainingStock'] as num?)
             ?.toDouble();
@@ -1188,29 +1188,63 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             0;
         final newSplyAmt = unitSupply * newQty;
 
+        final lineDcRt =
+            (existingItemData['dcRt'] as num?)?.toDouble() ??
+            variation.dcRt ??
+            0.0;
+        final taxTyCd =
+            existingItemData['taxTyCd']?.toString() ?? variation.taxTyCd;
+        final taxPct =
+            (existingItemData['taxPercentage'] as num?)?.toDouble() ??
+            variation.taxPercentage ??
+            18.0;
+        final oldPricing = SaleLinePricing.compute(
+          unitPrice: amountTotal,
+          qty: currentQty,
+          dcRt: lineDcRt.toDouble(),
+          taxTyCd: taxTyCd,
+          taxPercentage: taxPct.toDouble(),
+        );
+        final newPricing = SaleLinePricing.compute(
+          unitPrice: amountTotal,
+          qty: newQty,
+          dcRt: lineDcRt.toDouble(),
+          taxTyCd: taxTyCd,
+          taxPercentage: taxPct.toDouble(),
+        );
+
         await ditto.store.execute(
-          "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, splyAmt = :splyAmt, supplyPriceAtSale = :supplyPriceAtSale, supplyPrice = :supplyPrice, updatedAt = :updatedAt WHERE _id = :id",
+          "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, splyAmt = :splyAmt, supplyPriceAtSale = :supplyPriceAtSale, supplyPrice = :supplyPrice, dcRt = :dcRt, dcAmt = :dcAmt, discount = :discount, taxblAmt = :taxblAmt, taxAmt = :taxAmt, updatedAt = :updatedAt WHERE _id = :id",
           arguments: {
             'qty': newQty,
-            'totAmt': newTotal,
+            'totAmt': newPricing.totAmt,
             'remainingStock': newRemainingStock,
             'splyAmt': newSplyAmt,
             'supplyPriceAtSale': unitSupply,
             'supplyPrice': unitSupply,
+            'dcRt': newPricing.dcRt,
+            'dcAmt': newPricing.dcAmt,
+            'discount': newPricing.discount,
+            'taxblAmt': newPricing.taxblAmt,
+            'taxAmt': newPricing.taxAmt,
             'updatedAt': DateTime.now().toIso8601String(),
             'id': _dittoDocumentId(existingItemData),
           },
         );
 
-        // Delta caused by this update
-        // We assume amountTotal is the current price per unit
-        delta = (newQty - currentQty) * amountTotal;
+        delta = newPricing.subtotalNet - oldPricing.subtotalNet;
       } else {
         // Insert new item
         final double qty = updatableQty ?? 1.0;
-        final double itemTotal = amountTotal * qty;
         final unitSupply = variation.supplyPrice ?? 0;
         final lineSupplyAmt = unitSupply * qty;
+        final pricing = SaleLinePricing.compute(
+          unitPrice: amountTotal,
+          qty: qty,
+          dcRt: variation.dcRt?.toDouble(),
+          taxTyCd: variation.taxTyCd,
+          taxPercentage: (variation.taxPercentage ?? 18.0).toDouble(),
+        );
 
         final newItem = TransactionItem(
           name: variation.name,
@@ -1219,8 +1253,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           qty: qty,
           remainingStock: currentStock - qty,
           price: amountTotal, // Unit price
-          totAmt: itemTotal,
-          discount: 0.0,
+          totAmt: pricing.totAmt,
+          discount: pricing.discount,
+          dcRt: pricing.dcRt,
+          dcAmt: pricing.dcAmt,
+          taxblAmt: pricing.taxblAmt,
+          taxAmt: pricing.taxAmt,
           createdAt: DateTime.now().toUtc(),
           updatedAt: DateTime.now().toUtc(),
           isRefunded: false,
@@ -1272,7 +1310,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         // Ensure we pass the created item to background sync to prevent duplicates
         item = newItem;
 
-        delta = itemTotal;
+        delta = pricing.subtotalNet;
       }
 
       if (updatePendingTransactionSubtotal && delta != 0) {
