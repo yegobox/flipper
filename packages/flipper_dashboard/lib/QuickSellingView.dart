@@ -731,6 +731,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
+    // Empty the visible cart immediately so the operator can start the next
+    // sale without waiting for the stream/pending providers below to reconcile.
+    clearCartLinesOptimistically();
+
     ref
         .read(optimisticCartProvider.notifier)
         .clearForTransaction(transaction.id);

@@ -467,6 +467,30 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
       .toList();
 
+  /// Instantly empties the visible cart when a sale completes, before the async
+  /// provider invalidations in completion reconcile [posCartDisplayItemsProvider]
+  /// to empty (those are Ditto round-trips and lag a beat behind the success
+  /// snackbar). Reuses the optimistic-delete path already trusted by "Delete
+  /// All": the next sale's lines have fresh ids, so they are not filtered, and
+  /// [_removeUnusedControllers] purges these ids once the stream drains.
+  void clearCartLinesOptimistically() {
+    if (!mounted) return;
+    final ids = _linesForTable.map((line) => line.id).toList(growable: false);
+    if (ids.isEmpty) return;
+    setState(() {
+      _optimisticallyDeletedItemIds.addAll(ids);
+      for (final id in ids) {
+        _optimisticQtyByItemId.remove(id);
+        _hasItemChanged.remove(id);
+        _itemErrors.remove(id);
+      }
+    });
+  }
+
+  /// Visible (non-optimistically-deleted) cart lines — for widget tests.
+  @visibleForTesting
+  List<TransactionItem> get debugVisibleCartLines => _visibleTransactionItems;
+
   Widget _buildModernItemRow(
     TransactionItem item,
     bool isOrdering, {
