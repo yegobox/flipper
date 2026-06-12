@@ -80,4 +80,25 @@ class FakeAccountingDittoStore implements AccountingDittoStore {
     String docId,
     Map<String, dynamic> data,
   ) async {}
+
+  @override
+  Future<void> upsertAccountingDocument(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  ) async {}
+
+  @override
+  Future<void> upsertAccountingContact(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  ) async {}
+
+  @override
+  Future<void> upsertPartyDoc(
+    String collection,
+    String docId,
+    Map<String, dynamic> data,
+  ) async {}
 }

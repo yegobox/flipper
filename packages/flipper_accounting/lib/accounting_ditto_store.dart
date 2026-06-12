@@ -63,4 +63,22 @@ abstract class AccountingDittoStore {
     String docId,
     Map<String, dynamic> data,
   );
+
+  Future<void> upsertAccountingDocument(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  );
+
+  Future<void> upsertAccountingContact(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  );
+
+  Future<void> upsertPartyDoc(
+    String collection,
+    String docId,
+    Map<String, dynamic> data,
+  );
 }

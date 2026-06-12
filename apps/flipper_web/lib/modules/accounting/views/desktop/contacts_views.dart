@@ -7,6 +7,7 @@ import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_providers.dart';
 import 'package:flipper_web/modules/accounting/data/party_backfill.dart';
+import 'package:flipper_web/modules/accounting/data/party_contact_service.dart';
 import 'package:flipper_web/modules/accounting/data/party_models.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -52,33 +53,18 @@ class AccountingContactsDrawerHost extends ConsumerWidget {
       final branchId = ref.read(partyBranchIdProvider);
       if (branchId.isEmpty) return;
 
-      // 1. Canonical party row in the shared customers/suppliers store
-      //    (same record the POS app reads; RRA defaults via PartyDraft).
-      final draft = PartyDraft(
-        name: contact.name,
-        phone: contact.phone,
-        email: contact.email,
-        tin: contact.tin,
-        customerType: 'Business',
-        branchId: branchId,
-        kind: ui.isCustomer ? PartyKind.customer : PartyKind.supplier,
-      );
-      await ref
-          .read(partyRepositoryProvider)
-          .upsertParty(Party.fromDraft(draft));
-
-      // 2. Accounting extension record (terms / contact person / since),
-      //    joined to the canonical row via partyId.
       final saved = ui.isCustomer
           ? ref.read(customersStreamProvider).value ?? []
           : ref.read(suppliersStreamProvider).value ?? [];
-      final prefix = ui.isCustomer ? 'C' : 'S';
-      final id = '$prefix-${saved.length + 1}';
-      await ref.read(accountingDocumentsRepositoryProvider).upsertContact(
-            businessId: businessId,
-            isCustomer: ui.isCustomer,
-            contact: contact.copyWith(id: id, partyId: draft.id),
-          );
+      await savePartyContactWithBranch(
+        partyRepository: ref.read(partyRepositoryProvider),
+        documentsRepository: ref.read(accountingDocumentsRepositoryProvider),
+        businessId: businessId,
+        branchId: branchId,
+        isCustomer: ui.isCustomer,
+        contact: contact,
+        existingContactCount: saved.length,
+      );
       close();
       if (!context.mounted) return;
       showAccountingToast(

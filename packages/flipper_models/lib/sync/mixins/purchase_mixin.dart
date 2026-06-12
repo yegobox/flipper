@@ -5,6 +5,8 @@ import 'package:collection/collection.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/domain/party/party_draft.dart';
+import 'package:flipper_models/domain/party/supplier_factory.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ebm_helper.dart';
@@ -469,6 +471,16 @@ mixin PurchaseMixin
     // PurchaseTable loads via _processPurchase.
     savedPurchase.variants = purchase.variants;
     return savedPurchase;
+  }
+
+  @override
+  Future<Supplier> upsertSupplierParty(PartyDraft draft) async {
+    if (draft.kind != PartyKind.supplier) {
+      throw ArgumentError('upsertSupplierParty requires PartyKind.supplier');
+    }
+    final supplier = supplierFromDraft(draft);
+    await repository.upsert<Supplier>(supplier);
+    return supplier;
   }
 
   @override

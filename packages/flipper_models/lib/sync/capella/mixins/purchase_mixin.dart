@@ -1,8 +1,13 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flipper_accounting/purchase_journal_poster.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/domain/party/party_draft.dart';
+import 'package:flipper_models/domain/party/supplier_factory.dart';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
@@ -232,6 +237,82 @@ mixin CapellaPurchaseMixin on PurchaseMixin implements PurchaseInterface {
       arguments: {'doc': doc},
     );
     await repository.upsert<Supplier>(supplier);
+  }
+
+  Future<bool> _supplierExistsById(String id) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      final result = await ditto.store.execute(
+        'SELECT * FROM suppliers WHERE _id = :id OR id = :id LIMIT 1',
+        arguments: {'id': id},
+      );
+      if (result.items.isNotEmpty) return true;
+    }
+    final fromRepo = await repository.get<Supplier>(
+      query: Query(where: [Where('id').isExactly(id)]),
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+    return fromRepo.isNotEmpty;
+  }
+
+  Future<int> _supplierContactCount(String businessId) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return 0;
+    final result = await ditto.store.execute(
+      'SELECT * FROM accounting_contacts '
+      'WHERE businessId = :businessId AND contactKind = :kind',
+      arguments: {'businessId': businessId, 'kind': 'supplier'},
+    );
+    return result.items.length;
+  }
+
+  @override
+  Future<Supplier> upsertSupplierParty(PartyDraft draft) async {
+    if (draft.kind != PartyKind.supplier) {
+      throw ArgumentError('upsertSupplierParty requires PartyKind.supplier');
+    }
+
+    final supplier = supplierFromDraft(draft);
+
+    try {
+      await Supabase.instance.client
+          .from('suppliers')
+          .upsert(draft.toSupabaseRow(), onConflict: 'id');
+    } catch (e) {
+      talker.warning('CapellaPurchase: Supabase supplier upsert failed: $e');
+    }
+
+    await dittoService.upsertPartyDoc(
+      'suppliers',
+      draft.id,
+      draft.toDittoRow(),
+    );
+    await _upsertSupplierDitto(supplier);
+
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId != null && businessId.isNotEmpty && dittoService.isReady()) {
+      final count = await _supplierContactCount(businessId);
+      final localId = 'S-${count + 1}';
+      final since = DateFormat('MMM y').format(DateTime.now());
+      final docId = '${businessId}_supplier_$localId';
+      await dittoService.upsertAccountingContact(
+        businessId,
+        supplierContactToRow(
+          businessId: businessId,
+          docId: docId,
+          localId: localId,
+          partyId: draft.id,
+          name: draft.name,
+          phone: draft.phone,
+          email: draft.email,
+          tin: draft.tin ?? '',
+          sinceLabel: since,
+        ),
+        docId,
+      );
+    }
+
+    return supplier;
   }
 
   Future<bool> _supplierExistsDitto({
@@ -592,12 +673,16 @@ mixin CapellaPurchaseMixin on PurchaseMixin implements PurchaseInterface {
     final bhfId = ebm?.bhfId ?? (await ProxyService.box.bhfId()) ?? '00';
 
     if (supplier != null && (supplier.custNm?.isNotEmpty ?? false)) {
-      final exists = await _supplierExistsDitto(
-        custNm: supplier.custNm!,
-        branchId: branchId,
-      );
-      if (!exists) {
-        await _upsertSupplierDitto(supplier);
+      final alreadySaved = supplier.id.isNotEmpty &&
+          await _supplierExistsById(supplier.id);
+      if (!alreadySaved) {
+        final existsByName = await _supplierExistsDitto(
+          custNm: supplier.custNm!,
+          branchId: branchId,
+        );
+        if (!existsByName) {
+          await _upsertSupplierDitto(supplier);
+        }
       }
     }
 

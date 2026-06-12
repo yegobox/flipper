@@ -1,8 +1,9 @@
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/domain/party/party_draft.dart';
+import 'package:flipper_models/domain/party/supplier_factory.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -72,6 +73,7 @@ class ManualPurchaseLine {
 class ManualPurchaseState {
   final String supplierName;
   final String supplierTin;
+  final String? selectedSupplierId;
   final String invoiceNo;
   final DateTime purchaseDate;
   final String pmtTyCd;
@@ -82,6 +84,7 @@ class ManualPurchaseState {
   ManualPurchaseState({
     this.supplierName = '',
     this.supplierTin = '',
+    this.selectedSupplierId,
     this.invoiceNo = '',
     DateTime? purchaseDate,
     this.pmtTyCd = '01',
@@ -112,6 +115,8 @@ class ManualPurchaseState {
   ManualPurchaseState copyWith({
     String? supplierName,
     String? supplierTin,
+    String? selectedSupplierId,
+    bool clearSelectedSupplierId = false,
     String? invoiceNo,
     DateTime? purchaseDate,
     String? pmtTyCd,
@@ -123,6 +128,9 @@ class ManualPurchaseState {
     return ManualPurchaseState(
       supplierName: supplierName ?? this.supplierName,
       supplierTin: supplierTin ?? this.supplierTin,
+      selectedSupplierId: clearSelectedSupplierId
+          ? null
+          : (selectedSupplierId ?? this.selectedSupplierId),
       invoiceNo: invoiceNo ?? this.invoiceNo,
       purchaseDate: purchaseDate ?? this.purchaseDate,
       pmtTyCd: pmtTyCd ?? this.pmtTyCd,
@@ -138,10 +146,12 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
 
   int _nextUid = 0;
 
-  void setSupplier({String? name, String? tin}) {
+  void setSupplier({String? name, String? tin, String? id}) {
     state = state.copyWith(
       supplierName: name,
       supplierTin: tin,
+      selectedSupplierId: id,
+      clearSelectedSupplierId: id == null && name != null,
       clearError: true,
     );
   }
@@ -156,6 +166,39 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
 
   void setPaymentType(String pmtTyCd) {
     state = state.copyWith(pmtTyCd: pmtTyCd, clearError: true);
+  }
+
+  Future<Supplier?> createSupplier({
+    required String name,
+    String tin = '',
+    String phone = '',
+  }) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return null;
+
+    try {
+      final draft = PartyDraft(
+        name: name.trim(),
+        phone: phone.trim(),
+        tin: tin.trim().isEmpty ? null : tin.trim(),
+        customerType: 'Business',
+        branchId: branchId,
+        kind: PartyKind.supplier,
+        bhfId: await ProxyService.box.bhfId() ?? '00',
+      );
+      final supplier = await ProxyService.getStrategy(Strategy.capella)
+          .upsertSupplierParty(draft);
+      state = state.copyWith(
+        supplierName: supplier.custNm ?? name,
+        supplierTin: supplier.custTin ?? tin,
+        selectedSupplierId: supplier.id,
+        clearError: true,
+      );
+      return supplier;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return null;
+    }
   }
 
   void addLineFromVariant(Variant variant) {
@@ -225,6 +268,35 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
       ),
     );
     return existing.isNotEmpty;
+  }
+
+  Supplier _supplierForSave({
+    required String branchId,
+    required String supplierName,
+    required String supplierTin,
+    required DateTime now,
+  }) {
+    final id = state.selectedSupplierId;
+    if (id != null && id.isNotEmpty) {
+      return Supplier(
+        id: id,
+        custNm: supplierName,
+        custTin: supplierTin.isEmpty ? null : supplierTin,
+        branchId: branchId,
+        updatedAt: now,
+      );
+    }
+    final draft = PartyDraft(
+      name: supplierName,
+      phone: '',
+      tin: supplierTin.isEmpty ? null : supplierTin,
+      customerType: 'Business',
+      branchId: branchId,
+      kind: PartyKind.supplier,
+      bhfId: '00',
+      updatedAt: now,
+    );
+    return supplierFromDraft(draft);
   }
 
   /// Persists the purchase locally with variants in pchsSttsCd '01' so it
@@ -312,11 +384,11 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
         variants: variants,
       );
 
-      final supplier = Supplier(
-        custNm: supplierName,
-        custTin: supplierTin.isEmpty ? null : supplierTin,
+      final supplier = _supplierForSave(
         branchId: branchId,
-        updatedAt: now,
+        supplierName: supplierName,
+        supplierTin: supplierTin,
+        now: now,
       );
 
       final saved = await ProxyService.getStrategy(Strategy.capella)
@@ -326,8 +398,6 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
         supplier: supplier,
       );
 
-      // Keep lines so the caller can map catalog-picked lines to the saved
-      // variants for approval; the autoDispose provider clears on close.
       state = state.copyWith(isSaving: false);
       return saved;
     } catch (e) {

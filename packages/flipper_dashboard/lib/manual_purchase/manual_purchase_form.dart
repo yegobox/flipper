@@ -1,6 +1,8 @@
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
+import 'package:flipper_dashboard/manual_purchase/supplier_search_field.dart';
+import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -155,12 +157,20 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
           pchsSttsCd: '02',
           purchase: saved,
         );
+        await PosPurchaseJournalPoster.postPurchase(
+          purchase: saved,
+          postToLedger: true,
+        );
         toast('Purchase recorded and approved');
       } catch (e) {
         // The purchase stays in Waiting; nothing is lost.
         toast('Purchase saved as waiting. Approval failed: $e');
       }
     } else {
+      await PosPurchaseJournalPoster.postPurchase(
+        purchase: saved,
+        postToLedger: false,
+      );
       toast('Purchase saved as waiting');
     }
 
@@ -293,72 +303,26 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _fieldLabel('Supplier'),
-                  RawAutocomplete<Supplier>(
-                    textEditingController: _supplierController,
+                  SupplierSearchField(
+                    controller: _supplierController,
                     focusNode: _supplierFocus,
-                    optionsBuilder: (textEditingValue) {
-                      final query = textEditingValue.text.trim().toLowerCase();
-                      if (query.isEmpty) {
-                        return const Iterable<Supplier>.empty();
-                      }
-                      return _suppliers.where(
-                        (s) => (s.custNm ?? '').toLowerCase().contains(query),
-                      );
-                    },
-                    displayStringForOption: (s) => s.custNm ?? '',
-                    onSelected: (supplier) {
+                    suppliers: _suppliers,
+                    useImportPurchaseTheme: widget.useImportPurchaseTheme,
+                    validator: (value) =>
+                        (value == null || value.trim().isEmpty)
+                            ? 'Supplier is required'
+                            : null,
+                    onTextChanged: (value) =>
+                        notifier.setSupplier(name: value),
+                    onSupplierSelected: (supplier) {
                       notifier.setSupplier(
                         name: supplier.custNm,
                         tin: supplier.custTin ?? '',
+                        id: supplier.id,
                       );
                       _tinController.text = supplier.custTin ?? '';
                     },
-                    fieldViewBuilder:
-                        (context, controller, focusNode, onFieldSubmitted) {
-                      return TextFormField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: _fieldDecoration(
-                          hint: 'Search or enter supplier name',
-                        ),
-                        validator: (value) =>
-                            (value == null || value.trim().isEmpty)
-                                ? 'Supplier is required'
-                                : null,
-                        onChanged: (value) => notifier.setSupplier(name: value),
-                      );
-                    },
-                    optionsViewBuilder: (context, onSelected, options) {
-                      return Align(
-                        alignment: Alignment.topLeft,
-                        child: Material(
-                          elevation: 4,
-                          borderRadius: BorderRadius.circular(10),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxHeight: 200,
-                              maxWidth: 420,
-                            ),
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: options.length,
-                              itemBuilder: (context, index) {
-                                final supplier = options.elementAt(index);
-                                return ListTile(
-                                  dense: true,
-                                  title: Text(supplier.custNm ?? ''),
-                                  subtitle: supplier.custTin != null
-                                      ? Text('TIN: ${supplier.custTin}')
-                                      : null,
-                                  onTap: () => onSelected(supplier),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                    onSuppliersChanged: _loadSuppliers,
                   ),
                 ],
               ),
