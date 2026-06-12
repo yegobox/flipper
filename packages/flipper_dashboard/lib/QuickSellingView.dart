@@ -731,8 +731,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
-    // Empty the visible cart immediately so the operator can start the next
-    // sale without waiting for the stream/pending providers below to reconcile.
+    // Empty the cart immediately so the operator can start the next sale
+    // without waiting for the stream/pending providers below to reconcile.
+    // Suppress at the provider source so every consumer (list, totals, badges)
+    // clears in the same frame; also drop the mixin's in-widget line cache.
+    ref.read(suppressedCartTransactionIdProvider.notifier).state =
+        transaction.id;
     clearCartLinesOptimistically();
 
     ref
