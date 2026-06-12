@@ -539,36 +539,41 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       );
     }
 
+    // Never overwrite the field while the cashier is actively typing into it,
+    // and never derive a phone via a blind substring (a half-entered "+2507"
+    // would otherwise collapse to a single "7" on the printed receipt).
     if (transaction.customerPhone != null &&
         transaction.customerPhone!.isNotEmpty &&
-        widget.customerPhoneNumberController.text.isEmpty) {
+        widget.customerPhoneNumberController.text.isEmpty &&
+        !_customerPhoneFocusNode.hasFocus) {
       talker.info('Pre-filling customer phone: ${transaction.customerPhone}');
-      String phone = transaction.customerPhone!;
-      // Handle country code if present (assuming +250 or 250)
-      if (phone.startsWith('+')) {
-        // Find dial code match if possible, or just strip commonly known ones
-        if (phone.startsWith('+250')) {
-          widget.countryCodeController.text = '+250';
-          widget.customerPhoneNumberController.text = phone.substring(4);
-        } else {
-          // Fallback: strip + and first 3 digits as a guess or just put all in phone
-          widget.customerPhoneNumberController.text = phone.substring(1);
-        }
-      } else if (phone.startsWith('250') && phone.length > 9) {
-        widget.countryCodeController.text = '+250';
-        widget.customerPhoneNumberController.text = phone.substring(3);
-      } else {
-        widget.customerPhoneNumberController.text = phone;
-      }
+      final local = _localPhoneFromStored(transaction.customerPhone!);
+      widget.customerPhoneNumberController.text = local;
       ProxyService.box.writeString(
         key: 'currentSaleCustomerPhoneNumber',
-        value: widget.customerPhoneNumberController.text,
+        value: local,
       );
     }
 
     // Payment initialization is deferred to the builder where items
     // are guaranteed to be loaded. Calling it here with an empty items
     // list would produce total=0 and zero-out the payment field.
+  }
+
+  /// Extracts the local subscriber number from a stored customer phone.
+  ///
+  /// Strips a leading Rwanda country code only when the full code + 9-digit
+  /// local number is present (>= 12 digits). Anything shorter is returned as-is
+  /// so a partially-entered value such as "+2507" yields "2507" rather than the
+  /// single "7" a blind `substring(4)` would produce. This is what previously
+  /// printed `TEL: 7` on receipts.
+  String _localPhoneFromStored(String raw) {
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.length >= 12 && digits.startsWith('250')) {
+      widget.countryCodeController.text = '+250';
+      return digits.substring(3);
+    }
+    return digits;
   }
 
   // Controllers for quantity inputs per item (small device view)
@@ -2652,8 +2657,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           Strategy.capella,
                         ).updateTransaction(
                           transaction: transaction,
-                          customerPhone:
-                              widget.countryCodeController.text + value,
+                          // Persist the bare local number — the same shape that
+                          // `box` and sale completion store. Prefixing the
+                          // country code here produced "+250<partial>" values
+                          // that later got mis-stripped to a single digit on
+                          // the printed receipt.
+                          customerPhone: value,
                         ),
                       );
                     }
