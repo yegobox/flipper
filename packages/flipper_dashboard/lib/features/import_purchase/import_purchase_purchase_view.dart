@@ -129,26 +129,14 @@ class _ImportPurchasePurchaseViewState
     return null;
   }
 
-  Future<void> _openAssign(
+  void _openAssign(
     BuildContext context,
     Purchase purchase,
     Variant item,
-    List<Variant> catalog,
-  ) async {
-    final paged = await ProxyService.getStrategy(Strategy.capella).variants(
-      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-      fetchRemote: false,
-      branchId: ProxyService.box.getBranchId()!,
-    );
-    final variants = List<Variant>.from(paged.variants)
-        .where((v) => v.itemTyCd != '3')
-        .toList();
-
-    if (!context.mounted) return;
-    await showIpmAssignVariantModal(
+  ) {
+    showIpmAssignVariantModal(
       context,
       item: item,
-      catalogVariants: variants,
       nameController: widget.nameController,
       supplyPriceController: widget.supplyPriceController,
       retailPriceController: widget.retailPriceController,
@@ -611,7 +599,7 @@ class _ImportPurchasePurchaseViewState
             return Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => _openAssign(context, purchase, item, widget.variants),
+                onTap: () => _openAssign(context, purchase, item),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   constraints: const BoxConstraints(minHeight: 56),
@@ -753,7 +741,7 @@ class _ImportPurchasePurchaseViewState
               side: const BorderSide(color: ImportPurchaseTokens.line),
             ),
             child: InkWell(
-              onTap: () => _openAssign(context, purchase, item, widget.variants),
+              onTap: () => _openAssign(context, purchase, item),
               borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
               child: Padding(
                 padding: const EdgeInsets.all(14),

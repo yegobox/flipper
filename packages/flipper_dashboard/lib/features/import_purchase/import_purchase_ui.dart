@@ -649,6 +649,7 @@ class IpmModalShell extends StatelessWidget {
     required this.body,
     this.footer,
     this.maxWidth = 440,
+    this.showBackdrop = true,
   });
 
   final String title;
@@ -658,6 +659,7 @@ class IpmModalShell extends StatelessWidget {
   final Widget body;
   final Widget? footer;
   final double maxWidth;
+  final bool showBackdrop;
 
   @override
   Widget build(BuildContext context) {
@@ -668,12 +670,14 @@ class IpmModalShell extends StatelessWidget {
       color: Colors.transparent,
       child: Stack(
         children: [
-          GestureDetector(
-            onTap: onClose,
-            child: Container(
-              color: const Color(0x80141C2E),
+          if (showBackdrop)
+            GestureDetector(
+              onTap: onClose,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                color: const Color(0x80141C2E),
+              ),
             ),
-          ),
           if (isSheet)
             Align(
               alignment: Alignment.bottomCenter,

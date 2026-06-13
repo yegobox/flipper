@@ -7,7 +7,6 @@ import 'ipm_variant_combo.dart';
 Future<void> showIpmAssignVariantModal(
   BuildContext context, {
   required Variant item,
-  required List<Variant> catalogVariants,
   required TextEditingController nameController,
   required TextEditingController supplyPriceController,
   required TextEditingController retailPriceController,
@@ -22,7 +21,7 @@ Future<void> showIpmAssignVariantModal(
 
   return showDialog<void>(
     context: context,
-    barrierColor: const Color(0x80141C2E),
+    barrierColor: Colors.transparent,
     builder: (dialogContext) {
       return Dialog(
         backgroundColor: Colors.transparent,
@@ -32,6 +31,7 @@ Future<void> showIpmAssignVariantModal(
           subtitle: item.name,
           icon: Icons.local_offer_outlined,
           maxWidth: 440,
+          showBackdrop: false,
           onClose: () => Navigator.of(dialogContext).pop(),
           body: Padding(
             padding: const EdgeInsets.fromLTRB(22, 6, 22, 20),
