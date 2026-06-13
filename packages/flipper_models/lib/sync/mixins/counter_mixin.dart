@@ -44,10 +44,12 @@ mixin CounterMixin implements CounterInterface {
   }
 
   @override
-  Future<void> updateCounters(
-      {required List<Counter> counters,
-      RwApiResponse? receiptSignature}) async {
-    if (counters.isEmpty) return;
+  Future<void> updateCounters({
+    required List<Counter> counters,
+    RwApiResponse? receiptSignature,
+    int? consumedInvcNo,
+  }) async {
+    if (counters.isEmpty && consumedInvcNo == null) return;
 
     if (receiptSignature == null) {
       talker.warning("receiptSignature is null, skipping counter update.");
@@ -58,12 +60,12 @@ mixin CounterMixin implements CounterInterface {
     final newCurRcptNo = receiptSignature.data?.rcptNo ?? 0;
     final newTotRcptNo = receiptSignature.data?.totRcptNo ?? 0;
 
-    // Find the highest invoice number and increment it
-    final highestInvcNo =
-        counters.map((c) => c.invcNo ?? 0).reduce((a, b) => a > b ? a : b);
-    final newInvcNo = highestInvcNo + 1;
-
-    final Set<String> uniqueBranchIds = {};
+    final highestInvcNo = counters.isEmpty
+        ? 0
+        : counters.map((c) => c.invcNo ?? 0).reduce((a, b) => a > b ? a : b);
+    final newInvcNo = (consumedInvcNo != null && consumedInvcNo > 0)
+        ? consumedInvcNo + 1
+        : highestInvcNo + 1;
 
     // Update all counters to the same values
     for (Counter counter in counters) {
@@ -78,23 +80,13 @@ mixin CounterMixin implements CounterInterface {
       counter.invcNo = newInvcNo;
 
       await repository.upsert(counter);
-      uniqueBranchIds.add(counter.branchId!);
     }
 
-    // Update SAR once per unique branch
-    for (final branchId in uniqueBranchIds) {
-      final sar = await getSar(branchId: branchId);
-      if (sar != null) {
-        sar.sarNo = newTotRcptNo;
-        await repository.upsert(sar);
-      } else {
-        final newSar = Sar(
-          sarNo: newTotRcptNo,
-          branchId: branchId,
-        );
-        await repository.upsert(newSar);
-      }
-    }
+    // NOTE: Do NOT write Sar.sarNo here. `sarNo` is the stock-movement (Stock
+    // Activity Report) sequence, owned by the stock-in/out paths
+    // (addVariant -> getSar+1; refunds -> getSar+1; sales use the invoice no.).
+    // Overwriting it with the receipt counter (totRcptNo) corrupts that sequence
+    // and makes RRA reject later stock-in (saveStockItems sarTyCd "06").
   }
 
   Future<Sar?> getSar({required String branchId}) async {

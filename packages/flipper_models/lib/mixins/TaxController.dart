@@ -731,6 +731,7 @@ class TaxController<OBJ> {
           );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
+        final usedInvcNo = receiptSignature.usedInvcNo ?? highestInvcNo;
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         // Convert the date string to DateTime first, then format it properly
@@ -757,13 +758,13 @@ class TaxController<OBJ> {
             agentId: transaction.agentId,
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
-            receiptNumber: highestInvcNo,
+            receiptNumber: usedInvcNo,
             customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
                 ? transaction.customerPhone!
                 : ProxyService.box.currentSaleCustomerPhoneNumber(),
-            totalReceiptNumber: highestInvcNo,
-            // Use the highest invoice number across counters as requested
-            invoiceNumber: highestInvcNo,
+            totalReceiptNumber: usedInvcNo,
+            // Use the invoice number actually consumed by saveSales (924 retries).
+            invoiceNumber: usedInvcNo,
             customerName: (transaction.customerName?.isNotEmpty ?? false)
                 ? transaction.customerName!
                 : ProxyService.box.customerName(),
@@ -842,19 +843,19 @@ class TaxController<OBJ> {
             receiptType == "TS" ||
             receiptType == "PS") {
           transaction.receiptType = receiptType;
-          transaction.sarNo = highestInvcNo.toString();
-          transaction.receiptNumber = highestInvcNo;
-          transaction.totalReceiptNumber = highestInvcNo;
+          transaction.sarNo = usedInvcNo.toString();
+          transaction.receiptNumber = usedInvcNo;
+          transaction.totalReceiptNumber = usedInvcNo;
           transaction.invoiceNumber =
-              transaction.invoiceNumber ?? highestInvcNo;
+              transaction.invoiceNumber ?? usedInvcNo;
           if (persistReceiptTransactionFields) {
             await ProxyService.getStrategy(Strategy.capella).updateTransaction(
               transaction: transaction,
               receiptType: receiptType,
-              sarNo: highestInvcNo.toString(),
-              receiptNumber: highestInvcNo,
-              totalReceiptNumber: highestInvcNo,
-              invoiceNumber: transaction.invoiceNumber ?? highestInvcNo,
+              sarNo: usedInvcNo.toString(),
+              receiptNumber: usedInvcNo,
+              totalReceiptNumber: usedInvcNo,
+              invoiceNumber: transaction.invoiceNumber ?? usedInvcNo,
               isProformaMode: ProxyService.box.isProformaMode(),
               isTrainingMode: ProxyService.box.isTrainingMode(),
             );
@@ -863,15 +864,15 @@ class TaxController<OBJ> {
 
         if (deferPostSignReceiptPersist) {
           // In-memory fields for post-sale RRA stock sync (deferred persist path).
-          transaction.invoiceNumber = transaction.invoiceNumber ?? highestInvcNo;
-          transaction.receiptNumber = transaction.receiptNumber ?? highestInvcNo;
+          transaction.invoiceNumber = transaction.invoiceNumber ?? usedInvcNo;
+          transaction.receiptNumber = transaction.receiptNumber ?? usedInvcNo;
           transaction.totalReceiptNumber =
-              transaction.totalReceiptNumber ?? highestInvcNo;
+              transaction.totalReceiptNumber ?? usedInvcNo;
           presentationReceipt = buildPresentationReceipt(
             receiptSignature: receiptSignature,
             transaction: transaction,
             qrCode: qrCode,
-            highestInvcNo: highestInvcNo,
+            highestInvcNo: usedInvcNo,
             receiptNumber: receiptNumber,
             whenCreated: now,
             receiptType: receiptType,
@@ -880,7 +881,8 @@ class TaxController<OBJ> {
             receiptSignature: receiptSignature,
             transaction: transaction,
             qrCode: qrCode,
-            highestInvcNo: highestInvcNo,
+            highestInvcNo: usedInvcNo,
+            consumedInvcNo: usedInvcNo,
             receiptNumber: receiptNumber,
             whenCreated: now,
             counters: counters,
@@ -891,16 +893,17 @@ class TaxController<OBJ> {
             receiptSignature,
             transaction,
             qrCode,
-            highestInvcNo,
+            usedInvcNo,
             receiptNumber,
             whenCreated: now,
-            invoiceNumber: highestInvcNo,
+            invoiceNumber: usedInvcNo,
           );
 
           /// Ensure all counters of the same branch are synchronized
           await ProxyService.getStrategy(Strategy.capella).updateCounters(
             counters: counters,
             receiptSignature: receiptSignature,
+            consumedInvcNo: usedInvcNo,
           );
         }
       }

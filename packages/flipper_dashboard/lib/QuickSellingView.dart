@@ -621,6 +621,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   // Ensure payment initialization runs once when both transaction & items are ready
   String? _lastPaymentInitTransactionId;
   double? _cachedNonCreditPaid;
+  Timer? _customerNamePersistTimer;
+  Timer? _customerPhonePersistTimer;
+  static const Duration _customerFieldPersistDebounce =
+      Duration(milliseconds: 450);
 
   bool _isPlainEnter(KeyEvent event) {
     if (event is! KeyDownEvent) {
@@ -702,6 +706,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   void dispose() {
     widget.discountController.removeListener(_onDiscountChanged);
+    _customerNamePersistTimer?.cancel();
+    _customerPhonePersistTimer?.cancel();
     for (final c in _quantityControllers.values) {
       c.dispose();
     }
@@ -2500,6 +2506,75 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  void _schedulePersistCustomerName(String value) {
+    _customerNamePersistTimer?.cancel();
+    _customerNamePersistTimer = Timer(_customerFieldPersistDebounce, () {
+      if (!mounted) return;
+      unawaited(_persistCustomerNameToPendingTransaction(value));
+    });
+  }
+
+  Future<void> _persistCustomerNameToPendingTransaction(String value) async {
+    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) return;
+    try {
+      final transactionAsync = ref.read(
+        pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        ),
+      );
+      final transaction = transactionAsync.asData?.value;
+      if (transaction != null && transaction.id.isNotEmpty) {
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+          transaction: transaction,
+          customerName: value,
+        );
+      }
+    } catch (e, s) {
+      talker.error(
+        'Failed to update transaction with customer name',
+        e,
+        s,
+      );
+    }
+  }
+
+  void _schedulePersistCustomerPhone(String value) {
+    _customerPhonePersistTimer?.cancel();
+    _customerPhonePersistTimer = Timer(_customerFieldPersistDebounce, () {
+      if (!mounted) return;
+      unawaited(_persistCustomerPhoneToPendingTransaction(value));
+    });
+  }
+
+  Future<void> _persistCustomerPhoneToPendingTransaction(String value) async {
+    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) return;
+    try {
+      final transactionAsync = ref.read(
+        pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        ),
+      );
+      final transaction = transactionAsync.asData?.value;
+      if (transaction != null && transaction.id.isNotEmpty) {
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+          transaction: transaction,
+          // Persist the bare local number — the same shape that
+          // `box` and sale completion store. Prefixing the
+          // country code here produced "+250<partial>" values
+          // that later got mis-stripped to a single digit on
+          // the printed receipt.
+          customerPhone: value,
+        );
+      }
+    } catch (e, s) {
+      talker.error(
+        'Failed to update transaction with customer phone',
+        e,
+        s,
+      );
+    }
+  }
+
   Widget _customerNameField() {
     final customerNameController = ref.watch(customerNameControllerProvider);
     return Semantics(
@@ -2531,41 +2606,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           }
           return null;
         },
-        onChanged: (value) async {
+        onChanged: (value) {
           // Store the customer name with the exact key expected by rw_tax.dart
           ProxyService.box.writeString(key: 'customerName', value: value);
 
           // For debugging
           talker.info('Customer name set to: $value');
 
-          // Persist to the pending transaction if one exists. Avoid creating a
-          // new transaction by only updating when there is an existing pending
-          // transaction instance available from the provider.
-          try {
-            if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
-              return;
-            }
-            final transactionAsync = ref.read(
-              pendingTransactionStreamProvider(
-                isExpense: ProxyService.box.isOrdering() ?? false,
-              ),
-            );
-            final transaction = transactionAsync.asData?.value;
-            if (transaction != null && transaction.id.isNotEmpty) {
-              unawaited(
-                ProxyService.getStrategy(Strategy.capella).updateTransaction(
-                  transaction: transaction,
-                  customerName: value,
-                ),
-              );
-            }
-          } catch (e, s) {
-            talker.error(
-              'Failed to update transaction with customer name',
-              e,
-              s,
-            );
-          }
+          _schedulePersistCustomerName(value);
         },
       ),
     );
@@ -2657,7 +2705,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   FluentIcons.call_20_regular,
                   color: PosLayoutBreakpoints.posAccentBlue,
                 ),
-                onChanged: (value) async {
+                onChanged: (value) {
                   // Store the customer phone number
                   ProxyService.box.writeString(
                     key: 'currentSaleCustomerPhoneNumber',
@@ -2667,41 +2715,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   // For debugging
                   talker.info('Customer phone set to: $value');
 
-                  // Persist to the pending transaction if one exists. Avoid creating a
-                  // new transaction by only updating when there is an existing pending
-                  // transaction instance available from the provider.
-                  try {
-                    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
-                      return;
-                    }
-                    final transactionAsync = ref.read(
-                      pendingTransactionStreamProvider(
-                        isExpense: ProxyService.box.isOrdering() ?? false,
-                      ),
-                    );
-                    final transaction = transactionAsync.asData?.value;
-                    if (transaction != null && transaction.id.isNotEmpty) {
-                      unawaited(
-                        ProxyService.getStrategy(
-                          Strategy.capella,
-                        ).updateTransaction(
-                          transaction: transaction,
-                          // Persist the bare local number — the same shape that
-                          // `box` and sale completion store. Prefixing the
-                          // country code here produced "+250<partial>" values
-                          // that later got mis-stripped to a single digit on
-                          // the printed receipt.
-                          customerPhone: value,
-                        ),
-                      );
-                    }
-                  } catch (e, s) {
-                    talker.error(
-                      'Failed to update transaction with customer phone',
-                      e,
-                      s,
-                    );
-                  }
+                  _schedulePersistCustomerPhone(value);
                 },
                 validator: (String? value) {
                   final customerTin = ProxyService.box.customerTin();

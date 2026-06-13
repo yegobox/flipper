@@ -110,4 +110,52 @@ void main() {
       expect(cash.amount, closeTo(40.0, 0.02));
     });
   });
+
+  group('saleLineQtyByVariantId', () {
+    SaleCartQtyRow row(String variantId, num qty, {bool? active}) => (
+      variantId: variantId,
+      qty: qty,
+      active: active,
+    );
+
+    test('skips inactive rows', () {
+      final map = saleLineQtyByVariantId([
+        row('a', 2, active: false),
+        row('b', 1),
+      ]);
+      expect(map, {'b': 1});
+    });
+
+    test('sums qty per variant', () {
+      final map = saleLineQtyByVariantId([
+        row('a', 2),
+        row('a', 1),
+        row('b', 3),
+      ]);
+      expect(map, {'a': 3, 'b': 3});
+    });
+  });
+
+  group('saleLineQtyMapsMatch', () {
+    test('matches identical maps', () {
+      expect(
+        saleLineQtyMapsMatch({'a': 2, 'b': 1}, {'a': 2, 'b': 1}),
+        isTrue,
+      );
+    });
+
+    test('rejects missing variant', () {
+      expect(
+        saleLineQtyMapsMatch({'a': 1, 'b': 1}, {'a': 1}),
+        isFalse,
+      );
+    });
+
+    test('rejects qty drift', () {
+      expect(
+        saleLineQtyMapsMatch({'a': 3}, {'a': 2}),
+        isFalse,
+      );
+    });
+  });
 }

@@ -193,6 +193,22 @@ class OptimisticCart extends _$OptimisticCart {
     if (grace != null && DateTime.now().isBefore(grace)) {
       return;
     }
+    _reconcileStreamItems(transactionId: transactionId, items: items);
+  }
+
+  /// Reconcile from a direct Ditto read (Pay path, post-save). Ignores tap grace.
+  void reconcileFromPersistedItems({
+    required String transactionId,
+    required List<TransactionItem> items,
+  }) {
+    if (transactionId.isEmpty) return;
+    _reconcileStreamItems(transactionId: transactionId, items: items);
+  }
+
+  void _reconcileStreamItems({
+    required String transactionId,
+    required List<TransactionItem> items,
+  }) {
     final active = state.activeTransactionId;
     if (active != null && active != transactionId) {
       if (OptimisticCartBootstrap.isBootstrap(active)) {

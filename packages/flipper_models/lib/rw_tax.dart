@@ -1131,6 +1131,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           throw exception;
         }
 
+        data.usedInvcNo = currentHighestInvcNo;
+        await persistCapellaCountersInvcNo(currentHighestInvcNo + 1);
         successData = data;
         break;
       }

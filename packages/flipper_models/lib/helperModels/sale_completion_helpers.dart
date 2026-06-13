@@ -2,6 +2,38 @@
 double _roundToTwoDecimalPlaces(double value) =>
     double.parse(value.toStringAsFixed(2));
 
+const double saleCartQtyMatchEpsilon = 0.0001;
+
+/// Minimal row shape for cart qty comparison (VM-safe; no Ditto/Flutter models).
+typedef SaleCartQtyRow = ({String? variantId, num qty, bool? active});
+
+/// Per-variant qty sum for comparing checkout display vs Ditto cart lines.
+Map<String, double> saleLineQtyByVariantId(Iterable<SaleCartQtyRow> items) {
+  final out = <String, double>{};
+  for (final item in items) {
+    if (item.active == false) continue;
+    final vid = item.variantId;
+    if (vid == null || vid.isEmpty) continue;
+    out[vid] = (out[vid] ?? 0) + item.qty.toDouble();
+  }
+  return out;
+}
+
+/// True when persisted and displayed carts carry the same variant qty totals.
+bool saleLineQtyMapsMatch(
+  Map<String, double> displayByVariant,
+  Map<String, double> persistedByVariant, {
+  double epsilon = saleCartQtyMatchEpsilon,
+}) {
+  if (displayByVariant.length != persistedByVariant.length) return false;
+  for (final entry in displayByVariant.entries) {
+    final other = persistedByVariant[entry.key];
+    if (other == null) return false;
+    if ((entry.value - other).abs() > epsilon) return false;
+  }
+  return true;
+}
+
 /// Aligned with [COMPLETE] / [PARKED] in `flipper_services/constants.dart` (VM-safe).
 const String saleCompletionStatusComplete = 'completed';
 const String saleCompletionStatusParked = 'parked';

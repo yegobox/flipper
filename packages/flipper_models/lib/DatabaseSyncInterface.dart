@@ -566,6 +566,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
+    int? consumedInvcNo,
   });
 
   FutureOr<void> updateCategory({

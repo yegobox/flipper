@@ -114,7 +114,6 @@ Future<bool> persistItemToTransaction({
           (currentStock == null ||
               currentStock <= 0 ||
               currentStock < inCartQty)) {
-        ref.read(optimisticOrderCountProvider.notifier).decrement();
         if (cartOptimismApplied) {
           ref
               .read(optimisticCartProvider.notifier)
@@ -134,7 +133,6 @@ Future<bool> persistItemToTransaction({
   var itemAddAbortedStale = false;
 
   void rollbackStaleAddAttempt() {
-    ref.read(optimisticOrderCountProvider.notifier).decrement();
     if (cartOptimismApplied) {
       ref
           .read(optimisticCartProvider.notifier)
@@ -213,6 +211,17 @@ Future<bool> persistItemToTransaction({
         return;
       }
     }
+
+    final persistedLines = await capella.transactionItems(
+      branchId: branchId,
+      transactionId: pendingTransaction.id,
+      doneWithTransaction: false,
+      active: true,
+    );
+    ref.read(optimisticCartProvider.notifier).reconcileFromPersistedItems(
+      transactionId: pendingTransaction.id,
+      items: persistedLines,
+    );
   });
 
   if (itemAddAbortedStale) return false;
@@ -244,7 +253,6 @@ Future<bool> handlePersistFailure({
   }
 
   if (context.mounted) {
-    ref.read(optimisticOrderCountProvider.notifier).decrement();
     if (txn != null && cartOptimismApplied) {
       ref
           .read(optimisticCartProvider.notifier)

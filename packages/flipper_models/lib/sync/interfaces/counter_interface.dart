@@ -19,5 +19,6 @@ abstract class CounterInterface {
   Future<void> updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
+    int? consumedInvcNo,
   });
 }

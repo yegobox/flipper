@@ -19,6 +19,7 @@ class DeferredSaleReceiptPersist {
     required this.whenCreated,
     required this.counters,
     required this.receiptType,
+    this.consumedInvcNo,
   });
 
   final RwApiResponse receiptSignature;
@@ -29,6 +30,7 @@ class DeferredSaleReceiptPersist {
   final DateTime whenCreated;
   final List<brick_counter.Counter> counters;
   final String receiptType;
+  final int? consumedInvcNo;
 }
 
 /// In-memory receipt for PDF before [createReceipt] completes.
@@ -80,6 +82,10 @@ Future<void> persistDeferredSaleReceipt(DeferredSaleReceiptPersist deferred) asy
   await ProxyService.getStrategy(Strategy.capella).updateCounters(
     counters: deferred.counters,
     receiptSignature: deferred.receiptSignature,
+    consumedInvcNo:
+        deferred.consumedInvcNo ??
+        deferred.receiptSignature.usedInvcNo ??
+        deferred.highestInvcNo,
   );
   talker.debug(
     '[sale_completion_timing] deferred_receipt_persist_ms=${sw.elapsedMilliseconds}',

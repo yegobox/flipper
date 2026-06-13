@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/utils/sale_completion_budget.dart';
+import 'package:flipper_models/helperModels/sale_cart_qty_rows.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
@@ -33,6 +34,7 @@ import 'package:flipper_dashboard/utils/sale_agent_completion.dart';
 import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
@@ -61,29 +63,74 @@ Future<List<TransactionItem>> _getTransactionItems({
   return items;
 }
 
-/// Resolves cart lines for Pay / RRA sign — hint first, then Ditto, with brief
-/// retries while optimistic taps are still persisting.
+const _cartPersistPollMs = 100;
+const _cartPersistMaxWaitMs = 8000;
+
+Map<String, double> _checkoutCartQtyByVariant(WidgetRef ref) {
+  return saleLineQtyByVariantId(
+    saleCartQtyRowsFromTransactionItems(ref.read(posCartDisplayItemsProvider)),
+  );
+}
+
+/// Waits until Ditto line qtys match what checkout displays (authoritative read).
+Future<List<TransactionItem>?> _pollPersistedCartForDisplay({
+  required WidgetRef ref,
+  required ITransaction transaction,
+  required String transactionId,
+}) async {
+  final deadline = DateTime.now().add(
+    const Duration(milliseconds: _cartPersistMaxWaitMs),
+  );
+  final cartNotifier = ref.read(optimisticCartProvider.notifier);
+
+  while (DateTime.now().isBefore(deadline)) {
+    final checkoutQty = _checkoutCartQtyByVariant(ref);
+    if (checkoutQty.isEmpty) {
+      await Future<void>.delayed(
+        const Duration(milliseconds: _cartPersistPollMs),
+      );
+      continue;
+    }
+
+    final ditto = await _getTransactionItems(transaction: transaction);
+    cartNotifier.reconcileFromPersistedItems(
+      transactionId: transactionId,
+      items: ditto,
+    );
+
+    final dittoQty = saleLineQtyByVariantId(
+      saleCartQtyRowsFromTransactionItems(ditto),
+    );
+    if (saleLineQtyMapsMatch(checkoutQty, dittoQty)) {
+      return ditto;
+    }
+
+    await Future<void>.delayed(
+      const Duration(milliseconds: _cartPersistPollMs),
+    );
+  }
+  return null;
+}
+
+/// Resolves cart lines for Pay / RRA sign after [_pollPersistedCartForDisplay].
 Future<List<TransactionItem>> _resolveTransactionItemsForCompletion({
   required ITransaction transaction,
   required String transactionId,
   List<TransactionItem>? hint,
+  required List<TransactionItem> persistedCart,
 }) async {
-  List<TransactionItem> items;
   if (hint != null &&
       hint.isNotEmpty &&
-      hint.every((i) => i.transactionId == transactionId)) {
-    items = List<TransactionItem>.from(hint);
-  } else {
-    items = await _getTransactionItems(transaction: transaction);
+      hint.every((i) => i.transactionId == transactionId) &&
+      saleLineQtyMapsMatch(
+        saleLineQtyByVariantId(saleCartQtyRowsFromTransactionItems(hint)),
+        saleLineQtyByVariantId(
+          saleCartQtyRowsFromTransactionItems(persistedCart),
+        ),
+      )) {
+    return List<TransactionItem>.from(hint);
   }
-
-  if (items.isNotEmpty) return items;
-
-  for (var attempt = 0; attempt < 3 && items.isEmpty; attempt++) {
-    await Future<void>.delayed(Duration(milliseconds: 80 * (attempt + 1)));
-    items = await _getTransactionItems(transaction: transaction);
-  }
-  return items;
+  return persistedCart;
 }
 
 const double _tenderEpsilon = 0.0001;
@@ -470,10 +517,39 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // Validate stock levels before proceeding
       final itemsSw = Stopwatch()..start();
+      final persistedCart = await _pollPersistedCartForDisplay(
+        ref: ref,
+        transaction: transaction,
+        transactionId: transactionId,
+      );
+      if (persistedCart == null) {
+        final hasPending = ref
+            .read(optimisticCartProvider.notifier)
+            .hasPendingFor(transactionId);
+        final hasGhosts = ref
+            .read(posCartDisplayItemsProvider)
+            .any((i) => OptimisticCartIds.isOptimistic(i.id));
+        final checkoutQty = _checkoutCartQtyByVariant(ref);
+        talker.warning(
+          'Sale completion blocked: cart not fully persisted txn=$transactionId '
+          'pending=$hasPending ghosts=$hasGhosts checkoutVariants=${checkoutQty.length}',
+        );
+        if (mounted && context.mounted) {
+          showCustomSnackBarUtil(
+            context,
+            'Cart is still saving. Wait a moment and tap Pay again.',
+            backgroundColor: Colors.orange,
+            showCloseButton: true,
+          );
+        }
+        ref.read(payButtonStateProvider.notifier).stopLoading();
+        return false;
+      }
       final transactionItems = await _resolveTransactionItemsForCompletion(
         transaction: transaction,
         transactionId: transactionId,
         hint: transactionItemsHint,
+        persistedCart: persistedCart,
       );
       talker.debug(
         '[sale_completion_timing] load_transaction_items_ms=${itemsSw.elapsedMilliseconds} '
@@ -536,22 +612,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           '[sale_completion_timing] pre_sale_stock_snapshot_ms='
           '${snapshotSw.elapsedMilliseconds} total_ms=${flowWatch.elapsedMilliseconds}',
         );
-
-        // Deduct local stock before RRA sign (pre-perf path). Post-sale sync only
-        // reports saveStockItems → saveStockMaster with post-deduction qty.
-        final stockDeductionSw = Stopwatch()..start();
-        final deducted = await applyDeferredSaleStockDeduction(
-          transactionItems: transactionItems,
-          allowSellingBelowStock: allowSellingBelowStock,
-          isProformaOrTraining: isProformaOrTraining,
-          transactionId: transactionId,
-        );
-        originalStockQuantities.addAll(deducted);
-        talker.debug(
-          '[sale_completion_timing] pre_rra_stock_deduction_ms='
-          '${stockDeductionSw.elapsedMilliseconds} '
-          'stocks=${deducted.length} total_ms=${flowWatch.elapsedMilliseconds}',
-        );
+        // Local stock decrement runs after RRA sign via [schedulePostSaleStockDeduction]
+        // so Pay stays within the 5s budget (Ditto write queue was blocking ~30s+).
       }
 
       void schedulePostSaleStockDeduction() {
