@@ -1,12 +1,11 @@
-import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/domain/party/party_draft.dart';
 import 'package:flipper_models/domain/party/supplier_factory.dart';
+import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_models/brick/repository.dart';
 
 /// EBM payment type codes accepted on a purchase.
 const Map<String, String> purchasePaymentTypes = {
@@ -258,16 +257,14 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
   Future<bool> invoiceAlreadyExists() async {
     final invoiceNo = int.tryParse(state.invoiceNo.trim());
     if (invoiceNo == null) return false;
-    final branchId = ProxyService.box.getBranchId()!;
-    final existing = await Repository().get<Purchase>(
-      query: brick.Query(
-        where: [
-          brick.Where('spplrInvcNo').isExactly(invoiceNo),
-          brick.Where('branchId').isExactly(branchId),
-        ],
-      ),
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return false;
+    final tin = state.supplierTin.trim();
+    return ManualPurchaseDitto.invoiceExists(
+      branchId: branchId,
+      spplrTin: tin,
+      spplrInvcNo: invoiceNo,
     );
-    return existing.isNotEmpty;
   }
 
   Supplier _supplierForSave({

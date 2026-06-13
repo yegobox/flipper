@@ -1,0 +1,854 @@
+{
+  "info": {
+    "_postman_id": "d656221a-a794-46e5-a607-a41180a88548",
+    "name": "Data Connector — Imports & Purchases",
+    "description": "Test the data-connector import/purchase RRA flow: fetch from RRA (sync) → list pending → approve/reject → poll job status. Async endpoints return 202 + jobId; poll Jobs > Get Job Status.\n\nSet collection variables first (baseUrl, tinNumber, bhfId, branchId, businessId, taxServerUrl). After a sync or list, copy a real variantId / purchaseId into the variables, then run approve/reject. Job-producing requests auto-save the returned jobId into the {{jobId}} variable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "2357227",
+    "_collection_link": "https://go.postman.co/collection/2357227-d656221a-a794-46e5-a607-a41180a88548?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Imports",
+      "item": [
+        {
+          "name": "Sync imports (fetch from RRA)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.expect(pm.response.code).to.eql(202));",
+                  "const j = pm.response.json();",
+                  "if (j && j.jobId) { pm.collectionVariables.set('jobId', j.jobId); console.log('jobId =', j.jobId); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"vatEnabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/imports/sync",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "imports",
+                "sync"
+              ]
+            },
+            "description": "Reads last import date cursor (or now on first run), calls RRA imports/selectImportItems, stores items as pending (imptItemSttsCd='2') in Supabase + Ditto, and advances import_purchase_dates."
+          },
+          "response": [
+            {
+              "name": "Sync imports (fetch from RRA)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"vatEnabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/imports/sync",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "imports",
+                    "sync"
+                  ]
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "origin, access-control-request-method, access-control-request-headers"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                },
+                {
+                  "key": "access-control-expose-headers",
+                  "value": "*"
+                },
+                {
+                  "key": "content-length",
+                  "value": "79"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 12 Jun 2026 15:01:15 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"jobId\": \"imp_pur_1781276475753_5\",\n    \"operation\": \"syncImports\",\n    \"status\": \"queued\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List imports — pending (status=2)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/imports?branchId={{branchId}}&status=2&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "imports"
+              ],
+              "query": [
+                {
+                  "key": "branchId",
+                  "value": "{{branchId}}"
+                },
+                {
+                  "key": "status",
+                  "value": "2",
+                  "description": "2=pending, 3=approved, 4=rejected"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Returns { branchId, count, imports: [variant + nested stock] }."
+          },
+          "response": []
+        },
+        {
+          "name": "List imports — inbox (no status)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/imports?branchId={{branchId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "imports"
+              ],
+              "query": [
+                {
+                  "key": "branchId",
+                  "value": "{{branchId}}"
+                }
+              ]
+            },
+            "description": "Default flipper inbox set: impt_item_stts_cd='2' OR (='3' AND dcl_no IS NOT NULL)."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve import — create NEW variant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.expect(pm.response.code).to.eql(202));",
+                  "const j = pm.response.json();",
+                  "if (j && j.jobId) { pm.collectionVariables.set('jobId', j.jobId); console.log('jobId =', j.jobId); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"variantId\": \"{{variantId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/imports/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "imports",
+                "approve"
+              ]
+            },
+            "description": "No targetVariantId → generates itemCd, runs RRA saveItems→saveStockItems(06)→saveStockMaster→updateImportItems, writes new variant + stock to Supabase + Ditto."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve import — MERGE into existing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.expect(pm.response.code).to.eql(202));",
+                  "const j = pm.response.json();",
+                  "if (j && j.jobId) { pm.collectionVariables.set('jobId', j.jobId); console.log('jobId =', j.jobId); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"variantId\": \"{{variantId}}\",\n  \"targetVariantId\": \"{{targetVariantId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/imports/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "imports",
+                "approve"
+              ]
+            },
+            "description": "With targetVariantId → updateImportItems, then adds incoming qty to the existing variant's stock via saveStockItems(06)+saveStockMaster; updates target stock/variant in Supabase + Ditto."
+          },
+          "response": []
+        },
+        {
+          "name": "Reject import",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.expect(pm.response.code).to.eql(202));",
+                  "const j = pm.response.json();",
+                  "if (j && j.jobId) { pm.collectionVariables.set('jobId', j.jobId); console.log('jobId =', j.jobId); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"variantId\": \"{{variantId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/imports/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "imports",
+                "reject"
+              ]
+            },
+            "description": "Sets imptItemSttsCd='4', calls RRA updateImportItems, updates variant in Supabase only (no Ditto / no stock change)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Purchases",
+      "item": [
+        {
+          "name": "Sync purchases (fetch from RRA)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.expect(pm.response.code).to.eql(202));",
+                  "const j = pm.response.json();",
+                  "if (j && j.jobId) { pm.collectionVariables.set('jobId', j.jobId); console.log('jobId =', j.jobId); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/purchases/sync",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchases",
+                "sync"
+              ]
+            },
+            "description": "Reads last purchase date cursor, calls RRA trnsPurchase/selectTrnsPurchaseSales, dedupes by (branch, spplrTin, spplrInvcNo), stores purchases + variants as pending (pchsSttsCd='01') in Supabase + Ditto, advances the cursor."
+          },
+          "response": [
+            {
+              "name": "Sync purchases (fetch from RRA)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/purchases/sync",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "purchases",
+                    "sync"
+                  ]
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "origin, access-control-request-method, access-control-request-headers"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                },
+                {
+                  "key": "access-control-expose-headers",
+                  "value": "*"
+                },
+                {
+                  "key": "content-length",
+                  "value": "81"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 12 Jun 2026 14:51:39 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"jobId\": \"imp_pur_1781275899469_2\",\n    \"operation\": \"syncPurchases\",\n    \"status\": \"queued\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List purchases — pending (status=01)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchases?branchId={{branchId}}&status=01&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchases"
+              ],
+              "query": [
+                {
+                  "key": "branchId",
+                  "value": "{{branchId}}"
+                },
+                {
+                  "key": "status",
+                  "value": "01",
+                  "description": "01=pending, 02=approved, 04=rejected"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Returns { branchId, count, purchases: [{ purchase, variants:[...] }] }."
+          },
+          "response": [
+            {
+              "name": "List purchases — pending (status=01)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/purchases?branchId={{branchId}}&status=01&limit=100",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "purchases"
+                  ],
+                  "query": [
+                    {
+                      "key": "branchId",
+                      "value": "{{branchId}}"
+                    },
+                    {
+                      "key": "status",
+                      "value": "01",
+                      "description": "01=pending, 02=approved, 04=rejected"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "100"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "origin, access-control-request-method, access-control-request-headers"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                },
+                {
+                  "key": "access-control-expose-headers",
+                  "value": "*"
+                },
+                {
+                  "key": "content-length",
+                  "value": "45332"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 12 Jun 2026 14:50:19 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n    \"count\": 8,\n    \"purchases\": [\n        {\n            \"_id\": \"d81d002d-0449-4cc5-88a9-9dda1daf5286\",\n            \"approved\": null,\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"cfmDt\": \"2026-06-11 15:07:21\",\n            \"createdAt\": \"2026-06-12T14:36:41.086946+00:00\",\n            \"hasUnApprovedVariant\": true,\n            \"id\": \"d81d002d-0449-4cc5-88a9-9dda1daf5286\",\n            \"pending\": null,\n            \"pmtTyCd\": \"01\",\n            \"rcptTyCd\": \"S\",\n            \"rejected\": null,\n            \"remark\": null,\n            \"salesDt\": \"20260611\",\n            \"spplrBhfId\": \"00\",\n            \"spplrInvcNo\": 666,\n            \"spplrNm\": \"DAPA Analytics Ltd\",\n            \"spplrTin\": \"950000003\",\n            \"stockRlsDt\": \"2026-06-11 15:07:21\",\n            \"taxAmtA\": 0,\n            \"taxAmtB\": 0,\n            \"taxAmtC\": 0,\n            \"taxAmtD\": 0,\n            \"taxRtA\": 0,\n            \"taxRtB\": 18,\n            \"taxRtC\": 0,\n            \"taxRtD\": 0,\n            \"taxblAmtA\": 0,\n            \"taxblAmtB\": 0,\n            \"taxblAmtC\": 0,\n            \"taxblAmtD\": 9300000,\n            \"totAmt\": 9300000,\n            \"totItemCnt\": 2,\n            \"totTaxAmt\": 0,\n            \"totTaxblAmt\": 9300000,\n            \"variants\": [\n                {\n                    \"_id\": \"ff48e97a-62e8-43a0-a9d0-ee6875b9a68d\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"4438503578\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"ff48e97a-62e8-43a0-a9d0-ee6875b9a68d\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"BE2NTU0000103\",\n                    \"itemClsCd\": \"8512190200\",\n                    \"itemNm\": \"Meta\",\n                    \"itemSeq\": 1,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Meta\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 1700,\n                    \"productId\": \"41218ee1-c8cc-4c23-94c3-ef350f949783\",\n                    \"productName\": \"Meta\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"d81d002d-0449-4cc5-88a9-9dda1daf5286\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 5100000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"0e2486bb-a73f-4d4b-9c99-3e0acc512ae4\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 3000,\n                        \"ebmSynced\": null,\n                        \"id\": \"0e2486bb-a73f-4d4b-9c99-3e0acc512ae4\",\n                        \"initialStock\": 3000,\n                        \"lastTouched\": \"2026-06-12T14:36:42.837753+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 3000,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 5100000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"0e2486bb-a73f-4d4b-9c99-3e0acc512ae4\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 0,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"D\",\n                    \"taxblAmt\": 5100000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 5100000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"8f208a8a-4c95-49be-ac70-e44df2b4011a\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"3669699419\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"8f208a8a-4c95-49be-ac70-e44df2b4011a\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"CN1BFBG0000104\",\n                    \"itemClsCd\": \"8512190200\",\n                    \"itemNm\": \"Rawa\",\n                    \"itemSeq\": 2,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Rawa\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"BF\",\n                    \"prc\": 600,\n                    \"productId\": \"5ec0e57a-273d-435f-8730-a0156a1196f7\",\n                    \"productName\": \"Rawa\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"d81d002d-0449-4cc5-88a9-9dda1daf5286\",\n                    \"qtyUnitCd\": \"BG\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 4200000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"e2ec4c6e-a51d-44b2-989d-721f07d1da97\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 7000,\n                        \"ebmSynced\": null,\n                        \"id\": \"e2ec4c6e-a51d-44b2-989d-721f07d1da97\",\n                        \"initialStock\": 7000,\n                        \"lastTouched\": \"2026-06-12T14:36:44.93363+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 7000,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 4200000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"e2ec4c6e-a51d-44b2-989d-721f07d1da97\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 0,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"D\",\n                    \"taxblAmt\": 4200000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 4200000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                }\n            ]\n        },\n        {\n            \"_id\": \"cb690b04-f67c-483a-8119-de7974e3d0ee\",\n            \"approved\": null,\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"cfmDt\": \"2026-06-11 13:06:46\",\n            \"createdAt\": \"2026-06-12T14:36:29.717199+00:00\",\n            \"hasUnApprovedVariant\": true,\n            \"id\": \"cb690b04-f67c-483a-8119-de7974e3d0ee\",\n            \"pending\": null,\n            \"pmtTyCd\": \"01\",\n            \"rcptTyCd\": \"S\",\n            \"rejected\": null,\n            \"remark\": null,\n            \"salesDt\": \"20260611\",\n            \"spplrBhfId\": \"00\",\n            \"spplrInvcNo\": 11325737,\n            \"spplrNm\": \"KAPP\",\n            \"spplrTin\": \"999909680\",\n            \"stockRlsDt\": \"2026-06-11 13:06:46\",\n            \"taxAmtA\": 0,\n            \"taxAmtB\": 4118.64,\n            \"taxAmtC\": 0,\n            \"taxAmtD\": 0,\n            \"taxRtA\": 0,\n            \"taxRtB\": 18,\n            \"taxRtC\": 0,\n            \"taxRtD\": 0,\n            \"taxblAmtA\": 0,\n            \"taxblAmtB\": 27000,\n            \"taxblAmtC\": 0,\n            \"taxblAmtD\": 0,\n            \"totAmt\": 27000,\n            \"totItemCnt\": 5,\n            \"totTaxAmt\": 4118.64,\n            \"totTaxblAmt\": 27000,\n            \"variants\": [\n                {\n                    \"_id\": \"88d1f7a0-287d-4bcd-954d-79a52f37eaee\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"0330451685\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"88d1f7a0-287d-4bcd-954d-79a52f37eaee\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000202\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"Chips Banana And Salad\",\n                    \"itemSeq\": 1,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Chips Banana And Salad\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 3000,\n                    \"productId\": \"152c3bf4-f365-4cd0-974c-144da2d2ec76\",\n                    \"productName\": \"Chips Banana And Salad\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"cb690b04-f67c-483a-8119-de7974e3d0ee\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 3000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"0f3cf9f2-b282-42a2-9b67-8ac4f9090cd9\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"0f3cf9f2-b282-42a2-9b67-8ac4f9090cd9\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:31.364037+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 3000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"0f3cf9f2-b282-42a2-9b67-8ac4f9090cd9\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 457.63,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 3000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 3000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"80e8abcb-b819-448c-b51b-75758a12f33e\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"3928985547\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"80e8abcb-b819-448c-b51b-75758a12f33e\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTGRM0000311\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"Chicken lag with accompaniments \",\n                    \"itemSeq\": 2,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Chicken lag with accompaniments \",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 10000,\n                    \"productId\": \"7121dcc7-b6ea-4dfa-ba25-a56298bee6ec\",\n                    \"productName\": \"Chicken lag with accompaniments \",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"cb690b04-f67c-483a-8119-de7974e3d0ee\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 10000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"f8b4ece3-453d-4172-88d6-1878c603a67a\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"f8b4ece3-453d-4172-88d6-1878c603a67a\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:33.389589+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 10000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"f8b4ece3-453d-4172-88d6-1878c603a67a\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 1525.42,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 10000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 10000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"83f98953-c4cb-44f1-b1c9-f15bb6cbbdef\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"8471519880\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"83f98953-c4cb-44f1-b1c9-f15bb6cbbdef\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000185\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"Zingalo \",\n                    \"itemSeq\": 3,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Zingalo \",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 3500,\n                    \"productId\": \"688ee6b6-f5bb-4c93-86e7-55ea7f52cfb7\",\n                    \"productName\": \"Zingalo \",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"cb690b04-f67c-483a-8119-de7974e3d0ee\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 7000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"5d5b25a9-b368-4994-b463-69fbfd93fc8b\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 2,\n                        \"ebmSynced\": null,\n                        \"id\": \"5d5b25a9-b368-4994-b463-69fbfd93fc8b\",\n                        \"initialStock\": 2,\n                        \"lastTouched\": \"2026-06-12T14:36:35.738069+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 2,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 7000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"5d5b25a9-b368-4994-b463-69fbfd93fc8b\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 1067.8,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 7000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 7000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"61bb9c2d-53de-43fc-835d-9d3a7a451379\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"3616912307\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"61bb9c2d-53de-43fc-835d-9d3a7a451379\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTBX0000141\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"S. WATER \",\n                    \"itemSeq\": 4,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"S. WATER \",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 1000,\n                    \"productId\": \"13cdb79c-77a9-4851-9c06-928c78010d31\",\n                    \"productName\": \"S. WATER \",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"cb690b04-f67c-483a-8119-de7974e3d0ee\",\n                    \"qtyUnitCd\": \"BX\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 3000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"0ed05323-6851-4ab8-9d41-5abe6a5b945f\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 3,\n                        \"ebmSynced\": null,\n                        \"id\": \"0ed05323-6851-4ab8-9d41-5abe6a5b945f\",\n                        \"initialStock\": 3,\n                        \"lastTouched\": \"2026-06-12T14:36:37.771574+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 3,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 3000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"0ed05323-6851-4ab8-9d41-5abe6a5b945f\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 457.63,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 3000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 3000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"4e729abb-2461-4cdc-9301-54c90450d0bb\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"1940716817\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"4e729abb-2461-4cdc-9301-54c90450d0bb\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTBX0000132\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"S. FANTA \",\n                    \"itemSeq\": 5,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"S. FANTA \",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 1000,\n                    \"productId\": \"87f4ccb9-1a60-42f0-b97e-0c79122739eb\",\n                    \"productName\": \"S. FANTA \",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"cb690b04-f67c-483a-8119-de7974e3d0ee\",\n                    \"qtyUnitCd\": \"BX\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 4000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"32cb6621-f60b-4284-8f59-a79cb6db43de\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 4,\n                        \"ebmSynced\": null,\n                        \"id\": \"32cb6621-f60b-4284-8f59-a79cb6db43de\",\n                        \"initialStock\": 4,\n                        \"lastTouched\": \"2026-06-12T14:36:39.87487+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 4,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 4000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"32cb6621-f60b-4284-8f59-a79cb6db43de\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 610.17,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 4000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 4000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                }\n            ]\n        },\n        {\n            \"_id\": \"a3be246d-22da-4e3b-b118-b5c3fb899052\",\n            \"approved\": null,\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"cfmDt\": \"2026-06-11 15:06:46\",\n            \"createdAt\": \"2026-06-12T14:36:26.90422+00:00\",\n            \"hasUnApprovedVariant\": true,\n            \"id\": \"a3be246d-22da-4e3b-b118-b5c3fb899052\",\n            \"pending\": null,\n            \"pmtTyCd\": \"06\",\n            \"rcptTyCd\": \"S\",\n            \"rejected\": null,\n            \"remark\": null,\n            \"salesDt\": \"20260611\",\n            \"spplrBhfId\": \"01\",\n            \"spplrInvcNo\": 12424,\n            \"spplrNm\": \"gilmed ltd\",\n            \"spplrTin\": \"999905447\",\n            \"stockRlsDt\": null,\n            \"taxAmtA\": 0,\n            \"taxAmtB\": 0,\n            \"taxAmtC\": 0,\n            \"taxAmtD\": 0,\n            \"taxRtA\": 0,\n            \"taxRtB\": 18,\n            \"taxRtC\": 0,\n            \"taxRtD\": 0,\n            \"taxblAmtA\": 200000,\n            \"taxblAmtB\": 0,\n            \"taxblAmtC\": 0,\n            \"taxblAmtD\": 0,\n            \"totAmt\": 200000,\n            \"totItemCnt\": 1,\n            \"totTaxAmt\": 0,\n            \"totTaxblAmt\": 200000,\n            \"variants\": [\n                {\n                    \"_id\": \"26cdae6b-7b0d-487a-9a10-ca15027440ee\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"6120951962\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"26cdae6b-7b0d-487a-9a10-ca15027440ee\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"AC2BEBL0000089\",\n                    \"itemClsCd\": \"4010210100\",\n                    \"itemNm\": \"Eucalyptus firewood\",\n                    \"itemSeq\": 1,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Eucalyptus firewood\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 10,\n                    \"pkgUnitCd\": \"BE\",\n                    \"prc\": 20000,\n                    \"productId\": \"91e42f7b-167b-4db4-b4ba-19986f4b84c0\",\n                    \"productName\": \"Eucalyptus firewood\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"a3be246d-22da-4e3b-b118-b5c3fb899052\",\n                    \"qtyUnitCd\": \"BL\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 200000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"51e3b90a-3ed2-4878-ab45-f6c498deea95\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 10,\n                        \"ebmSynced\": null,\n                        \"id\": \"51e3b90a-3ed2-4878-ab45-f6c498deea95\",\n                        \"initialStock\": 10,\n                        \"lastTouched\": \"2026-06-12T14:36:28.499539+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 10,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 200000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"51e3b90a-3ed2-4878-ab45-f6c498deea95\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 0,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"A\",\n                    \"taxblAmt\": 200000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 200000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                }\n            ]\n        },\n        {\n            \"_id\": \"d1687c62-710f-4878-95b7-404308f0499b\",\n            \"approved\": null,\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"cfmDt\": \"2026-06-04 01:01:01\",\n            \"createdAt\": \"2026-06-12T14:36:20.193001+00:00\",\n            \"hasUnApprovedVariant\": true,\n            \"id\": \"d1687c62-710f-4878-95b7-404308f0499b\",\n            \"pending\": null,\n            \"pmtTyCd\": \"01\",\n            \"rcptTyCd\": \"S\",\n            \"rejected\": null,\n            \"remark\": null,\n            \"salesDt\": \"20260604\",\n            \"spplrBhfId\": \"00\",\n            \"spplrInvcNo\": 305,\n            \"spplrNm\": \"The HUT RESTO Ltd\",\n            \"spplrTin\": \"999900124\",\n            \"stockRlsDt\": \"2026-06-04 01:01:01\",\n            \"taxAmtA\": 0,\n            \"taxAmtB\": 129.66,\n            \"taxAmtC\": 0,\n            \"taxAmtD\": 0,\n            \"taxRtA\": 0,\n            \"taxRtB\": 18,\n            \"taxRtC\": 0,\n            \"taxRtD\": 0,\n            \"taxblAmtA\": 100,\n            \"taxblAmtB\": 850,\n            \"taxblAmtC\": 0,\n            \"taxblAmtD\": 0,\n            \"totAmt\": 950,\n            \"totItemCnt\": 3,\n            \"totTaxAmt\": 129.66,\n            \"totTaxblAmt\": 950,\n            \"variants\": [\n                {\n                    \"_id\": \"81367bc0-fcf3-4a81-ba48-c27d08af8923\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"null\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"81367bc0-fcf3-4a81-ba48-c27d08af8923\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"IN2BQPA000006\",\n                    \"itemClsCd\": \"2513160400\",\n                    \"itemNm\": \"Tariff1\",\n                    \"itemSeq\": 1,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Tariff1\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 100,\n                    \"productId\": \"af5f493f-8fec-4940-aa4d-dbbb862950ae\",\n                    \"productName\": \"Tariff1\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"d1687c62-710f-4878-95b7-404308f0499b\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 100,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"085175e0-43d8-4368-be4a-1250fae08d73\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"085175e0-43d8-4368-be4a-1250fae08d73\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:21.756138+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 100,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"085175e0-43d8-4368-be4a-1250fae08d73\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 0,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"A\",\n                    \"taxblAmt\": 100,\n                    \"tin\": 999909695,\n                    \"totAmt\": 100,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"29f1b053-a29c-4c35-9aa1-fb4eba012059\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"null\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"29f1b053-a29c-4c35-9aa1-fb4eba012059\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"LR2NTNO000003\",\n                    \"itemClsCd\": \"4323160100\",\n                    \"itemNm\": \"Tariff2\",\n                    \"itemSeq\": 2,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Tariff2\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 150,\n                    \"productId\": \"28172d7f-0338-46be-8fd9-7dac02d13213\",\n                    \"productName\": \"Tariff2\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"d1687c62-710f-4878-95b7-404308f0499b\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 450,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"0a03223f-a476-476e-9bda-6adff5e8a928\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 3,\n                        \"ebmSynced\": null,\n                        \"id\": \"0a03223f-a476-476e-9bda-6adff5e8a928\",\n                        \"initialStock\": 3,\n                        \"lastTouched\": \"2026-06-12T14:36:23.716251+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 3,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 450,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"0a03223f-a476-476e-9bda-6adff5e8a928\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 68.64,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 450,\n                    \"tin\": 999909695,\n                    \"totAmt\": 450,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"ff328c0e-8c8b-4e0f-86b0-1af5d295f00e\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"null\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"ff328c0e-8c8b-4e0f-86b0-1af5d295f00e\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"LR2NTNO000004\",\n                    \"itemClsCd\": \"4323160100\",\n                    \"itemNm\": \"Tariff3\",\n                    \"itemSeq\": 3,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Tariff3\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 200,\n                    \"productId\": \"8e046f57-7976-49b5-9ed3-6668e41b344e\",\n                    \"productName\": \"Tariff3\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"d1687c62-710f-4878-95b7-404308f0499b\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 400,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"0fd2d725-cd3b-47ac-ae0c-fd38a5e88ee8\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 2,\n                        \"ebmSynced\": null,\n                        \"id\": \"0fd2d725-cd3b-47ac-ae0c-fd38a5e88ee8\",\n                        \"initialStock\": 2,\n                        \"lastTouched\": \"2026-06-12T14:36:25.731981+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 2,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 400,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"0fd2d725-cd3b-47ac-ae0c-fd38a5e88ee8\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 61.02,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 400,\n                    \"tin\": 999909695,\n                    \"totAmt\": 400,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                }\n            ]\n        },\n        {\n            \"_id\": \"96bdeee1-2335-4b4b-beb8-55afdf2325bc\",\n            \"approved\": null,\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"cfmDt\": \"2026-06-11 12:58:58\",\n            \"createdAt\": \"2026-06-12T14:36:17.315387+00:00\",\n            \"hasUnApprovedVariant\": true,\n            \"id\": \"96bdeee1-2335-4b4b-beb8-55afdf2325bc\",\n            \"pending\": null,\n            \"pmtTyCd\": \"06\",\n            \"rcptTyCd\": \"S\",\n            \"rejected\": null,\n            \"remark\": null,\n            \"salesDt\": \"20260611\",\n            \"spplrBhfId\": \"00\",\n            \"spplrInvcNo\": 11325735,\n            \"spplrNm\": \"KAPP\",\n            \"spplrTin\": \"999909680\",\n            \"stockRlsDt\": \"2026-06-11 12:58:58\",\n            \"taxAmtA\": 0,\n            \"taxAmtB\": 152.54,\n            \"taxAmtC\": 0,\n            \"taxAmtD\": 0,\n            \"taxRtA\": 0,\n            \"taxRtB\": 18,\n            \"taxRtC\": 0,\n            \"taxRtD\": 0,\n            \"taxblAmtA\": 0,\n            \"taxblAmtB\": 1000,\n            \"taxblAmtC\": 0,\n            \"taxblAmtD\": 0,\n            \"totAmt\": 1000,\n            \"totItemCnt\": 1,\n            \"totTaxAmt\": 152.54,\n            \"totTaxblAmt\": 1000,\n            \"variants\": [\n                {\n                    \"_id\": \"2df299b0-d5e5-4f9d-ba83-60fe3e9e0d96\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"0202692364\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"2df299b0-d5e5-4f9d-ba83-60fe3e9e0d96\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTBX0000132\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"S. FANTA \",\n                    \"itemSeq\": 1,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"S. FANTA \",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 1000,\n                    \"productId\": \"37a0aa77-bf05-4ec3-9b37-c76eaae8c50b\",\n                    \"productName\": \"S. FANTA \",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"96bdeee1-2335-4b4b-beb8-55afdf2325bc\",\n                    \"qtyUnitCd\": \"BX\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 1000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"b383c6b4-d3c5-4c90-a54c-f51fe80caed8\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"b383c6b4-d3c5-4c90-a54c-f51fe80caed8\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:18.942338+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 1000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"b383c6b4-d3c5-4c90-a54c-f51fe80caed8\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 152.54,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 1000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 1000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                }\n            ]\n        },\n        {\n            \"_id\": \"854b3120-9611-4372-afd5-45c57882e4b1\",\n            \"approved\": null,\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"cfmDt\": \"2026-06-11 12:56:32\",\n            \"createdAt\": \"2026-06-12T14:36:08.774784+00:00\",\n            \"hasUnApprovedVariant\": true,\n            \"id\": \"854b3120-9611-4372-afd5-45c57882e4b1\",\n            \"pending\": null,\n            \"pmtTyCd\": \"06\",\n            \"rcptTyCd\": \"S\",\n            \"rejected\": null,\n            \"remark\": null,\n            \"salesDt\": \"20260611\",\n            \"spplrBhfId\": \"00\",\n            \"spplrInvcNo\": 13488951,\n            \"spplrNm\": \"KAPP\",\n            \"spplrTin\": \"999951560\",\n            \"stockRlsDt\": \"2026-06-11 12:56:32\",\n            \"taxAmtA\": 0,\n            \"taxAmtB\": 2135.59,\n            \"taxAmtC\": 0,\n            \"taxAmtD\": 0,\n            \"taxRtA\": 0,\n            \"taxRtB\": 18,\n            \"taxRtC\": 0,\n            \"taxRtD\": 0,\n            \"taxblAmtA\": 0,\n            \"taxblAmtB\": 14000,\n            \"taxblAmtC\": 0,\n            \"taxblAmtD\": 0,\n            \"totAmt\": 14000,\n            \"totItemCnt\": 4,\n            \"totTaxAmt\": 2135.59,\n            \"totTaxblAmt\": 14000,\n            \"variants\": [\n                {\n                    \"_id\": \"3861fb7f-3e49-4a8d-91bc-a1ddd8bb44de\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"1832501242\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"3861fb7f-3e49-4a8d-91bc-a1ddd8bb44de\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000063\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"Big Heineken\",\n                    \"itemSeq\": 3,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Big Heineken\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 2500,\n                    \"productId\": \"52200d70-615e-4631-b64a-882b13878bdf\",\n                    \"productName\": \"Big Heineken\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"854b3120-9611-4372-afd5-45c57882e4b1\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 5000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"511029df-f749-49f4-95c8-320d15e36624\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 2,\n                        \"ebmSynced\": null,\n                        \"id\": \"511029df-f749-49f4-95c8-320d15e36624\",\n                        \"initialStock\": 2,\n                        \"lastTouched\": \"2026-06-12T14:36:14.222039+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 2,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 5000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"511029df-f749-49f4-95c8-320d15e36624\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 762.71,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 5000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 5000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"37aea83c-9d46-4231-a4ff-7d2ca95ee309\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"1157239385\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"37aea83c-9d46-4231-a4ff-7d2ca95ee309\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000590\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"Virunga Sparkling water\",\n                    \"itemSeq\": 2,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Virunga Sparkling water\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 2000,\n                    \"productId\": \"7d614e63-a177-4359-ac82-123f38769857\",\n                    \"productName\": \"Virunga Sparkling water\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"854b3120-9611-4372-afd5-45c57882e4b1\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 2000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"a8705a81-df59-4a27-a7a5-dbd06bb4b4f4\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"a8705a81-df59-4a27-a7a5-dbd06bb4b4f4\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:12.304085+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 2000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"a8705a81-df59-4a27-a7a5-dbd06bb4b4f4\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 305.08,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 2000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 2000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"1ab33984-1fc2-447c-8c82-a2838460f153\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"4685696052\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"1ab33984-1fc2-447c-8c82-a2838460f153\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000053\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"Soda\",\n                    \"itemSeq\": 1,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Soda\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 2000,\n                    \"productId\": \"0ae3b2b1-f72e-4063-988c-aea7337a1c50\",\n                    \"productName\": \"Soda\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"854b3120-9611-4372-afd5-45c57882e4b1\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 2000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"586fd764-4cac-4124-b620-0fdd8ecb287c\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"586fd764-4cac-4124-b620-0fdd8ecb287c\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:10.366855+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 2000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"586fd764-4cac-4124-b620-0fdd8ecb287c\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 305.08,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 2000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 2000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"33b455f3-c14a-4310-9e67-13b81690a8d7\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"8596820712\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"33b455f3-c14a-4310-9e67-13b81690a8d7\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000030\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"Pt Heineken\",\n                    \"itemSeq\": 4,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Pt Heineken\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 2500,\n                    \"productId\": \"84c8001d-43ef-4267-8c69-6ad3e3e5a97f\",\n                    \"productName\": \"Pt Heineken\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"854b3120-9611-4372-afd5-45c57882e4b1\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 5000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"a92a5a41-92c9-4797-8ba6-588eb9e3637b\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 2,\n                        \"ebmSynced\": null,\n                        \"id\": \"a92a5a41-92c9-4797-8ba6-588eb9e3637b\",\n                        \"initialStock\": 2,\n                        \"lastTouched\": \"2026-06-12T14:36:16.133328+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 2,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 5000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"a92a5a41-92c9-4797-8ba6-588eb9e3637b\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 762.71,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 5000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 5000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                }\n            ]\n        },\n        {\n            \"_id\": \"e2681949-2fbf-41c8-8a00-87bfc7238dca\",\n            \"approved\": null,\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"cfmDt\": \"2026-06-12 13:54:11\",\n            \"createdAt\": \"2026-06-12T14:36:03.914533+00:00\",\n            \"hasUnApprovedVariant\": true,\n            \"id\": \"e2681949-2fbf-41c8-8a00-87bfc7238dca\",\n            \"pending\": null,\n            \"pmtTyCd\": \"06\",\n            \"rcptTyCd\": \"S\",\n            \"rejected\": null,\n            \"remark\": null,\n            \"salesDt\": \"20260612\",\n            \"spplrBhfId\": \"00\",\n            \"spplrInvcNo\": 11325802,\n            \"spplrNm\": \"KAPP\",\n            \"spplrTin\": \"999909680\",\n            \"stockRlsDt\": \"2026-06-12 13:54:11\",\n            \"taxAmtA\": 0,\n            \"taxAmtB\": 1906.78,\n            \"taxAmtC\": 0,\n            \"taxAmtD\": 0,\n            \"taxRtA\": 0,\n            \"taxRtB\": 18,\n            \"taxRtC\": 0,\n            \"taxRtD\": 0,\n            \"taxblAmtA\": 0,\n            \"taxblAmtB\": 12500,\n            \"taxblAmtC\": 0,\n            \"taxblAmtD\": 0,\n            \"totAmt\": 12500,\n            \"totItemCnt\": 2,\n            \"totTaxAmt\": 1906.78,\n            \"totTaxblAmt\": 12500,\n            \"variants\": [\n                {\n                    \"_id\": \"9b38ee08-3032-4bb7-9f12-0b2b427fbbef\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"5281415890\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"9b38ee08-3032-4bb7-9f12-0b2b427fbbef\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTBX0000001\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"English Breakfast\",\n                    \"itemSeq\": 1,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"English Breakfast\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 10000,\n                    \"productId\": \"50dfa668-5b42-4bcb-bd60-cfa1cf78fd58\",\n                    \"productName\": \"English Breakfast\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"e2681949-2fbf-41c8-8a00-87bfc7238dca\",\n                    \"qtyUnitCd\": \"BX\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 10000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"054d55bd-f804-4fd4-8190-89c5588443a0\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"054d55bd-f804-4fd4-8190-89c5588443a0\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:05.601501+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 10000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"054d55bd-f804-4fd4-8190-89c5588443a0\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 1525.42,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 10000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 10000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"6e6ae18a-a09c-4f25-a22d-b7d4a116ee3f\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"1376997447\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"6e6ae18a-a09c-4f25-a22d-b7d4a116ee3f\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000222\",\n                    \"itemClsCd\": \"5059690800\",\n                    \"itemNm\": \"Single Espresso\",\n                    \"itemSeq\": 2,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Single Espresso\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 2500,\n                    \"productId\": \"fd0f6c0d-a5f0-4a0b-b862-453a27d6e675\",\n                    \"productName\": \"Single Espresso\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"e2681949-2fbf-41c8-8a00-87bfc7238dca\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 2500,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"b382c12e-10d4-4e88-a15e-66926729a488\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"b382c12e-10d4-4e88-a15e-66926729a488\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:07.54055+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 2500,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"b382c12e-10d4-4e88-a15e-66926729a488\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 381.36,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 2500,\n                    \"tin\": 999909695,\n                    \"totAmt\": 2500,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                }\n            ]\n        },\n        {\n            \"_id\": \"4e7729eb-85b6-482b-b6f2-032adc011c02\",\n            \"approved\": null,\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"cfmDt\": \"2026-06-12 16:11:47\",\n            \"createdAt\": \"2026-06-12T14:35:58.853732+00:00\",\n            \"hasUnApprovedVariant\": true,\n            \"id\": \"4e7729eb-85b6-482b-b6f2-032adc011c02\",\n            \"pending\": null,\n            \"pmtTyCd\": \"06\",\n            \"rcptTyCd\": \"S\",\n            \"rejected\": null,\n            \"remark\": null,\n            \"salesDt\": \"20260612\",\n            \"spplrBhfId\": \"01\",\n            \"spplrInvcNo\": 12440,\n            \"spplrNm\": \"gilmed ltd\",\n            \"spplrTin\": \"999905447\",\n            \"stockRlsDt\": null,\n            \"taxAmtA\": 0,\n            \"taxAmtB\": 1830.51,\n            \"taxAmtC\": 0,\n            \"taxAmtD\": 0,\n            \"taxRtA\": 0,\n            \"taxRtB\": 18,\n            \"taxRtC\": 0,\n            \"taxRtD\": 0,\n            \"taxblAmtA\": 0,\n            \"taxblAmtB\": 12000,\n            \"taxblAmtC\": 0,\n            \"taxblAmtD\": 0,\n            \"totAmt\": 12000,\n            \"totItemCnt\": 2,\n            \"totTaxAmt\": 1830.51,\n            \"totTaxblAmt\": 12000,\n            \"variants\": [\n                {\n                    \"_id\": \"300521cf-3cc3-4b7c-91e1-9896cd40d09a\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"2142749023\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"300521cf-3cc3-4b7c-91e1-9896cd40d09a\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000011\",\n                    \"itemClsCd\": \"5313160700\",\n                    \"itemNm\": \"Organic Patchouli Oil(10ml/Bottle)\",\n                    \"itemSeq\": 2,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Organic Patchouli Oil(10ml/Bottle)\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 5000,\n                    \"productId\": \"7ef43949-4e12-44f9-af7e-698b8707e975\",\n                    \"productName\": \"Organic Patchouli Oil(10ml/Bottle)\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"4e7729eb-85b6-482b-b6f2-032adc011c02\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 5000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"110e68cb-85b1-40f7-b3df-a96ce6850291\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"110e68cb-85b1-40f7-b3df-a96ce6850291\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:02.625128+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 5000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"110e68cb-85b1-40f7-b3df-a96ce6850291\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 762.71,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 5000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 5000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                },\n                {\n                    \"_id\": \"1de47b92-b9be-4e51-abef-ef0ba84efc51\",\n                    \"addInfo\": null,\n                    \"agntNm\": null,\n                    \"assigned\": false,\n                    \"bcd\": \"8786915794\",\n                    \"bhfId\": \"00\",\n                    \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                    \"categoryId\": null,\n                    \"categoryName\": null,\n                    \"color\": null,\n                    \"dcAmt\": 0,\n                    \"dcRt\": 0,\n                    \"dclDe\": null,\n                    \"dclNo\": null,\n                    \"dftPrc\": null,\n                    \"ebmSynced\": false,\n                    \"expirationDate\": null,\n                    \"exptNatCd\": null,\n                    \"hsCd\": null,\n                    \"id\": \"1de47b92-b9be-4e51-abef-ef0ba84efc51\",\n                    \"imageUrl\": null,\n                    \"imptItemSttsCd\": null,\n                    \"invcFcurAmt\": null,\n                    \"invcFcurCd\": null,\n                    \"invcFcurExcrt\": null,\n                    \"invfCurAmt\": null,\n                    \"isShared\": null,\n                    \"isrcAmt\": null,\n                    \"isrcAplcbYn\": null,\n                    \"isrcRt\": null,\n                    \"isrccCd\": null,\n                    \"isrccNm\": null,\n                    \"itemCd\": \"RW2NTU0000021\",\n                    \"itemClsCd\": \"5313160700\",\n                    \"itemNm\": \"Lavender Oil (10ML BOTTLE)\",\n                    \"itemSeq\": 1,\n                    \"itemStdNm\": null,\n                    \"itemTyCd\": null,\n                    \"lastTouched\": null,\n                    \"modrId\": null,\n                    \"modrNm\": null,\n                    \"name\": \"Lavender Oil (10ML BOTTLE)\",\n                    \"netWt\": null,\n                    \"orgnNatCd\": null,\n                    \"pchsSttsCd\": \"01\",\n                    \"pkg\": 1,\n                    \"pkgUnitCd\": \"NT\",\n                    \"prc\": 7000,\n                    \"productId\": \"c1064fd6-c69b-498d-98c1-d5e3f5a5e38a\",\n                    \"productName\": \"Lavender Oil (10ML BOTTLE)\",\n                    \"propertyTyCd\": null,\n                    \"purchaseId\": \"4e7729eb-85b6-482b-b6f2-032adc011c02\",\n                    \"qtyUnitCd\": \"U\",\n                    \"regrId\": null,\n                    \"regrNm\": null,\n                    \"retailPrice\": null,\n                    \"roomTypeCd\": null,\n                    \"sku\": null,\n                    \"splyAmt\": 7000,\n                    \"spplrItemCd\": null,\n                    \"spplrItemClsCd\": null,\n                    \"spplrItemNm\": null,\n                    \"spplrNm\": null,\n                    \"stock\": {\n                        \"_id\": \"3a5080d8-8648-49c4-9bbc-2256298d2d89\",\n                        \"active\": null,\n                        \"bhfId\": null,\n                        \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n                        \"canTrackingStock\": null,\n                        \"currentStock\": 1,\n                        \"ebmSynced\": null,\n                        \"id\": \"3a5080d8-8648-49c4-9bbc-2256298d2d89\",\n                        \"initialStock\": 1,\n                        \"lastTouched\": \"2026-06-12T14:36:00.527136+00:00\",\n                        \"lowStock\": null,\n                        \"retailPrice\": null,\n                        \"rsdQty\": 1,\n                        \"showLowStockAlert\": null,\n                        \"sold\": null,\n                        \"supplyPrice\": null,\n                        \"tin\": null,\n                        \"updatableStockQty\": 0,\n                        \"value\": 7000,\n                        \"variantId\": null\n                    },\n                    \"stockId\": \"3a5080d8-8648-49c4-9bbc-2256298d2d89\",\n                    \"stockSynchronized\": null,\n                    \"supplyPrice\": null,\n                    \"taskCd\": null,\n                    \"taxAmt\": 1067.8,\n                    \"taxName\": null,\n                    \"taxPercentage\": null,\n                    \"taxTyCd\": \"B\",\n                    \"taxblAmt\": 7000,\n                    \"tin\": 999909695,\n                    \"totAmt\": 7000,\n                    \"totWt\": null,\n                    \"ttCatCd\": null,\n                    \"unit\": null,\n                    \"useYn\": null\n                }\n            ]\n        }\n    ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "List purchases — all (no status)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchases?branchId={{branchId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchases"
+              ],
+              "query": [
+                {
+                  "key": "branchId",
+                  "value": "{{branchId}}"
+                }
+              ]
+            },
+            "description": "Default set: variants with pchs_stts_cd IN ('01','02','04')."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve purchase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.expect(pm.response.code).to.eql(202));",
+                  "const j = pm.response.json();",
+                  "if (j && j.jobId) { pm.collectionVariables.set('jobId', j.jobId); console.log('jobId =', j.jobId); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"purchaseId\": \"{{purchaseId}}\",\n  \"itemMapper\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/purchases/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchases",
+                "approve"
+              ]
+            },
+            "description": "savePurchases(02) first. itemMapper maps existing variants to purchase lines: { \"<targetVariantId>\": [\"<purchaseVariantId>\", ...] }. Mapped lines → assigned 03 + stock-in/master; unmapped lines → new variants. Empty itemMapper {} = create all as new variants."
+          },
+          "response": [
+            {
+              "name": "Approve purchase",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"purchaseId\": \"{{purchaseId}}\",\n  \"itemMapper\": {}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/purchases/approve",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "purchases",
+                    "approve"
+                  ]
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "origin, access-control-request-method, access-control-request-headers"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                },
+                {
+                  "key": "access-control-expose-headers",
+                  "value": "*"
+                },
+                {
+                  "key": "content-length",
+                  "value": "83"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 12 Jun 2026 14:55:12 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"jobId\": \"imp_pur_1781276112712_1\",\n    \"operation\": \"approvePurchase\",\n    \"status\": \"queued\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reject purchase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.expect(pm.response.code).to.eql(202));",
+                  "const j = pm.response.json();",
+                  "if (j && j.jobId) { pm.collectionVariables.set('jobId', j.jobId); console.log('jobId =', j.jobId); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxServerUrl\": \"{{taxServerUrl}}\",\n  \"tinNumber\": \"{{tinNumber}}\",\n  \"bhfId\": \"{{bhfId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"purchaseId\": \"{{purchaseId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/purchases/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "purchases",
+                "reject"
+              ]
+            },
+            "description": "savePurchases(04); marks all purchase variants pchsSttsCd='04' in Supabase only."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Get job status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/imports-purchases/jobs/{{jobId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "imports-purchases",
+                "jobs",
+                "{{jobId}}"
+              ]
+            },
+            "description": "Poll until status is 'success' or 'failed'. The job doc includes operation, status, steps[] (each RRA call's resultCd/resultMsg), and error on failure."
+          },
+          "response": [
+            {
+              "name": "Get job status",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/imports-purchases/jobs/{{jobId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "imports-purchases",
+                    "jobs",
+                    "{{jobId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "vary",
+                  "value": "origin, access-control-request-method, access-control-request-headers"
+                },
+                {
+                  "key": "access-control-allow-origin",
+                  "value": "*"
+                },
+                {
+                  "key": "access-control-expose-headers",
+                  "value": "*"
+                },
+                {
+                  "key": "content-length",
+                  "value": "779"
+                },
+                {
+                  "key": "date",
+                  "value": "Fri, 12 Jun 2026 15:01:29 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"jobId\": \"imp_pur_1781276475753_5\",\n    \"operation\": \"syncImports\",\n    \"status\": \"success\",\n    \"job\": {\n        \"_id\": \"imp_pur_1781276475753_5\",\n        \"createdAt\": 1781276475753,\n        \"fetched\": 5,\n        \"id\": \"imp_pur_1781276475753_5\",\n        \"lastReqDt\": \"20260605165154\",\n        \"newCursor\": \"20260612170127\",\n        \"operation\": \"syncImports\",\n        \"request\": {\n            \"bhfId\": \"00\",\n            \"branchId\": \"7c19b5e8-1201-47cc-ae23-8fa13be6d39e\",\n            \"businessId\": \"d8012247-3793-4767-831c-2d21c182699b\",\n            \"taxServerUrl\": \"\",\n            \"tinNumber\": \"999909695\",\n            \"vatEnabled\": true\n        },\n        \"requestType\": \"IMPORT\",\n        \"resultCd\": \"000\",\n        \"resultMsg\": \"OK\",\n        \"status\": \"success\",\n        \"steps\": [\n            {\n                \"lastReqDt\": \"20260605165154\",\n                \"requestType\": \"IMPORT\",\n                \"step\": \"lastReqDt\"\n            },\n            {\n                \"resultCd\": \"000\",\n                \"resultMsg\": \"It is succeeded\",\n                \"step\": \"selectImportItems\"\n            },\n            {\n                \"imports\": 5,\n                \"lastReqDt\": \"20260605165154\",\n                \"step\": \"saved\"\n            }\n        ],\n        \"updatedAt\": 1781276488646\n    }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8084",
+      "type": "string"
+    },
+    {
+      "key": "tinNumber",
+      "value": "999909695",
+      "type": "string"
+    },
+    {
+      "key": "bhfId",
+      "value": "00",
+      "type": "string"
+    },
+    {
+      "key": "branchId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "businessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "taxServerUrl",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "variantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetVariantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "purchaseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

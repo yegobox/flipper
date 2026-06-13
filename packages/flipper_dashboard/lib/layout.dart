@@ -15,7 +15,6 @@ import 'package:flipper_dashboard/features/daily_report_files/daily_report_files
 import 'package:flipper_dashboard/features/leads/leads_desktop_screen.dart';
 import 'package:flipper_dashboard/shift_history_content.dart';
 import 'package:flipper_dashboard/import_purchase_page_view.dart';
-import 'package:flipper_dashboard/manual_purchase/manual_purchase_page_view.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/hooks/use_access_permissions_realtime.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -172,8 +171,6 @@ class DashboardLayout extends HookConsumerWidget {
         return const AgentCommissionScreen(embeddedInDashboard: true);
       case DashboardPage.purchases:
         return const ImportPurchasePageView();
-      case DashboardPage.recordPurchase:
-        return const ManualPurchasePageView();
     }
   }
 }

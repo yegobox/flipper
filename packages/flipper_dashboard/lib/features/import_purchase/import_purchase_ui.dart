@@ -87,10 +87,15 @@ class IpmStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg, dot) = switch (statusKey) {
-      'wait' || 'waiting' => (
+      'pending' || 'wait' || 'waiting' => (
         ImportPurchaseTokens.amberWash,
         ImportPurchaseTokens.amber,
         ImportPurchaseTokens.amberDot,
+      ),
+      'processing' => (
+        ImportPurchaseTokens.accentWash,
+        ImportPurchaseTokens.accentStrong,
+        ImportPurchaseTokens.accent,
       ),
       'approved' => (
         ImportPurchaseTokens.greenWash,
@@ -103,9 +108,12 @@ class IpmStatusBadge extends StatelessWidget {
         ImportPurchaseTokens.red,
       ),
     };
-    final label = statusKey == 'waiting'
-        ? 'Waiting'
-        : ImportPurchaseHelpers.importStatusLabel(statusKey);
+    final label = switch (statusKey) {
+      'waiting' => 'Pending',
+      'wait' => 'Pending',
+      'processing' => 'Processing',
+      _ => ImportPurchaseHelpers.importStatusLabel(statusKey),
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

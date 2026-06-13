@@ -99,16 +99,17 @@ function Modal({ icon, title, sub, onClose, children, foot }) {
 /* ---------- toasts ---------- */
 function useToasts() {
   const [items, setItems] = useState([]);
-  const push = useCallback((msg, kind = "ok") => {
+  const push = useCallback((msg, kind = "ok", ttl = 2600) => {
     const id = uid();
     setItems((s) => [...s, { id, msg, kind }]);
-    setTimeout(() => setItems((s) => s.filter((t) => t.id !== id)), 2600);
+    setTimeout(() => setItems((s) => s.filter((t) => t.id !== id)), ttl);
+    return id;
   }, []);
   const node = (
     <div className="toasts">
       {items.map((t) => (
         <div key={t.id} className={"toast " + t.kind}>
-          {t.kind === "ok" ? <Icon.checkCircle /> : <Icon.xCircle />}{t.msg}
+          {t.kind === "ok" ? <Icon.checkCircle /> : t.kind === "bad" ? <Icon.xCircle /> : <span className="spin"><Icon.spinner /></span>}{t.msg}
         </div>
       ))}
     </div>
@@ -143,17 +144,18 @@ function EditFields({ draft, set }) {
 }
 
 const STATUS_OPTS = [
-  { v: "all", l: "All" }, { v: "wait", l: "Wait" }, { v: "approved", l: "Approved" }, { v: "rejected", l: "Rejected" },
+  { v: "all", l: "All" }, { v: "pending", l: "Pending" }, { v: "approved", l: "Approved" }, { v: "rejected", l: "Rejected" },
 ];
 const blankDraft = { name: "", supply: "", retail: "", variant: "" };
 
 /* ============================================================
    Import view
    ============================================================ */
-function ImportView({ items, setItems, statusFilter, setStatusFilter, toast, isMobile, showSecondary }) {
+function ImportView({ items, setItems, statusFilter, setStatusFilter, toast, job, isMobile, showSecondary }) {
   const [selectedId, setSelectedId] = useState(null);
   const [draft, setDraftRaw] = useState(blankDraft);
   const [sheet, setSheet] = useState(false);
+  const [approve, setApprove] = useState(null); // { id, mode:'new'|'existing', variant }
   const set = (patch) => setDraftRaw((d) => ({ ...d, ...patch }));
 
   const filtered = useMemo(
@@ -181,16 +183,30 @@ function ImportView({ items, setItems, statusFilter, setStatusFilter, toast, isM
   };
 
   const setStatus = (id, status) => setItems((s) => s.map((it) => it.id === id ? { ...it, status } : it));
-  const accept = (id) => { setStatus(id, "approved"); toast("Item approved"); };
-  const reject = (id) => { setStatus(id, "rejected"); toast("Item rejected", "bad"); };
+  const openApprove = (it) => setApprove({ id: it.id, mode: it.variant ? "existing" : "new", variant: it.variant || "" });
+  const confirmApprove = () => {
+    const { id, mode, variant } = approve;
+    const merge = mode === "existing";
+    setApprove(null);
+    setStatus(id, "processing");
+    job(merge ? "Merging into existing variant" : "Approving as new variant",
+      () => setItems((s) => s.map((it) => it.id === id ? { ...it, status: "approved", variant: merge ? variant : it.variant } : it)),
+      merge ? "Merged into existing variant" : "Approved as new variant");
+  };
+  const reject = (id) => {
+    setStatus(id, "processing");
+    job("Rejecting item", () => setItems((s) => s.map((it) => it.id === id ? { ...it, status: "rejected" } : it)), "Item rejected", "bad");
+  };
   const acceptAll = () => {
-    const ids = filtered.filter((it) => it.status === "wait").map((it) => it.id);
-    if (!ids.length) { toast("Nothing waiting to approve", "bad"); return; }
-    setItems((s) => s.map((it) => ids.includes(it.id) ? { ...it, status: "approved" } : it));
-    toast(`Approved ${ids.length} item${ids.length > 1 ? "s" : ""}`);
+    const ids = filtered.filter((it) => it.status === "pending").map((it) => it.id);
+    if (!ids.length) { toast("Nothing pending to approve", "bad"); return; }
+    setItems((s) => s.map((it) => ids.includes(it.id) ? { ...it, status: "processing" } : it));
+    job(`Approving ${ids.length} items`,
+      () => setItems((s) => s.map((it) => ids.includes(it.id) ? { ...it, status: "approved" } : it)),
+      `Approved ${ids.length} item${ids.length > 1 ? "s" : ""}`);
   };
 
-  const Badge = ({ s }) => <span className={"badge " + s}><span className="dot" />{({ wait: "Wait", approved: "Approved", rejected: "Rejected" })[s]}</span>;
+  const Badge = ({ s }) => <span className={"badge " + s}>{s === "processing" ? <span className="spin"><Icon.spinner /></span> : <span className="dot" />}{STATUS_LABEL[s]}</span>;
 
   const cols = showSecondary
     ? "46px minmax(140px,1.4fr) 140px 110px 116px 116px 104px 150px 130px 92px"
@@ -262,7 +278,7 @@ function ImportView({ items, setItems, statusFilter, setStatusFilter, toast, isM
                   {showSecondary && <div className="cell">{it.supplier}</div>}
                   {showSecondary && <div className="cell">{it.date}</div>}
                   <div className="rowacts" onClick={(e) => e.stopPropagation()}>
-                    <button className="act act-accept" title="Approve" onClick={() => accept(it.id)}><Icon.checkCircle /></button>
+                    <button className="act act-accept" title="Approve" onClick={() => openApprove(it)}><Icon.checkCircle /></button>
                     <button className="act act-reject" title="Reject" onClick={() => reject(it.id)}><Icon.xCircle /></button>
                   </div>
                 </div>
@@ -280,10 +296,10 @@ function ImportView({ items, setItems, statusFilter, setStatusFilter, toast, isM
                   <div className="nm">{it.item}</div>
                   {it.variant ? <div className="vtag">Variant · {it.variant}</div> : <div className="vtag" style={{ color: "var(--faint)" }}>No variant assigned</div>}
                 </div>
-                <span className={"badge " + it.status}><span className="dot" />{({ wait: "Wait", approved: "Approved", rejected: "Rejected" })[it.status]}</span>
+                <span className={"badge " + it.status}>{it.status === "processing" ? <span className="spin"><Icon.spinner /></span> : <span className="dot" />}{STATUS_LABEL[it.status]}</span>
               </div>
               <div className="icard-grid">
-                <div><div className="lab">HS Code</div><div className="val">{it.hs}</div></div>
+                <div><div className="lab">Barcode</div><div className="val">{it.bcd}</div></div>
                 <div><div className="lab">Quantity</div><div className="val">{it.qty}</div></div>
                 <div><div className="lab">Supply Price</div><div className="val">{fmt(it.supply)}</div></div>
                 <div><div className="lab">Retail Price</div><div className="val">{fmt(it.retail)}</div></div>
@@ -292,7 +308,7 @@ function ImportView({ items, setItems, statusFilter, setStatusFilter, toast, isM
               </div>
               <div className="icard-foot">
                 <button className="edit" onClick={() => selectRow(it, true)}><Icon.pencil /> Edit</button>
-                <button className="act act-accept" title="Approve" onClick={() => accept(it.id)}><Icon.checkCircle /></button>
+                <button className="act act-accept" title="Approve" onClick={() => openApprove(it)}><Icon.checkCircle /></button>
                 <button className="act act-reject" title="Reject" onClick={() => reject(it.id)}><Icon.xCircle /></button>
               </div>
             </div>
@@ -309,6 +325,35 @@ function ImportView({ items, setItems, statusFilter, setStatusFilter, toast, isM
             <button className="btn btn-primary" onClick={saveDraft}><Icon.check /> Save Changes</button>
           </React.Fragment>}>
           <EditFields draft={draft} set={set} />
+        </Modal>
+      )}
+
+      {/* ----- approve choice: new vs merge (imports/approve targetVariantId) ----- */}
+      {approve && (
+        <Modal icon={<Icon.checkCircle />} title="Approve import item" sub={items.find((i) => i.id === approve.id)?.item}
+          onClose={() => setApprove(null)}
+          foot={<React.Fragment>
+            <button className="btn btn-ghost" onClick={() => setApprove(null)}>Cancel</button>
+            <button className="btn btn-green" disabled={approve.mode === "existing" && !approve.variant} onClick={confirmApprove}><Icon.check /> Approve</button>
+          </React.Fragment>}>
+          <div className="choice">
+            <button className="choice-opt" aria-pressed={approve.mode === "new"} onClick={() => setApprove((a) => ({ ...a, mode: "new" }))}>
+              <span className="ci"><Icon.plusCircle /></span>
+              <span className="ct"><span className="h">Create new variant</span><span className="d">Registers a brand-new item, then runs RRA save &amp; stock-in.</span></span>
+              <span className="rad" />
+            </button>
+            <button className="choice-opt" aria-pressed={approve.mode === "existing"} onClick={() => setApprove((a) => ({ ...a, mode: "existing" }))}>
+              <span className="ci"><Icon.merge /></span>
+              <span className="ct"><span className="h">Merge into existing variant</span><span className="d">Adds the imported quantity to a variant you already stock.</span></span>
+              <span className="rad" />
+            </button>
+            {approve.mode === "existing" && (
+              <div className="choice-sub field">
+                <label>Target variant</label>
+                <Combo value={approve.variant} onChange={(v) => setApprove((a) => ({ ...a, variant: v }))} options={VARIANTS} placeholder="Select a variant to merge into…" />
+              </div>
+            )}
+          </div>
         </Modal>
       )}
     </React.Fragment>

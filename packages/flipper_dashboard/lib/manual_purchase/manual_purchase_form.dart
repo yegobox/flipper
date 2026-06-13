@@ -1,9 +1,11 @@
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
 import 'package:flipper_dashboard/manual_purchase/supplier_search_field.dart';
 import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
@@ -106,7 +108,6 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   Future<void> _save({required bool approve}) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final notifier = ref.read(manualPurchaseProvider.notifier);
-    final linesSnapshot = ref.read(manualPurchaseProvider).lines;
 
     if (await notifier.invoiceAlreadyExists()) {
       if (!mounted) return;
@@ -138,24 +139,9 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
 
     if (approve) {
       try {
-        final itemMapper = <String, List<Variant>>{};
-        final savedVariants = saved.variants ?? [];
-        for (
-          var i = 0;
-          i < linesSnapshot.length && i < savedVariants.length;
-          i++
-        ) {
-          final catalogId = linesSnapshot[i].catalogVariantId;
-          if (catalogId != null) {
-            itemMapper.putIfAbsent(catalogId, () => []).add(savedVariants[i]);
-          }
-        }
-        final coreViewModel = CoreViewModel();
-        await coreViewModel.acceptPurchase(
-          purchases: [saved],
-          itemMapper: itemMapper,
-          pchsSttsCd: '02',
+        await ManualPurchaseDitto.setPurchaseStatus(
           purchase: saved,
+          pchsSttsCd: '02',
         );
         await PosPurchaseJournalPoster.postPurchase(
           purchase: saved,
@@ -174,7 +160,10 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
       toast('Purchase saved as waiting');
     }
 
-    if (mounted) _goBackToPurchases();
+    if (mounted) {
+      _goBackToPurchases();
+      await ref.read(importPurchaseViewModelProvider.notifier).loadList();
+    }
   }
 
   double get _padX => widget.useImportPurchaseTheme ? 30 : 24;

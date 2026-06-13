@@ -21,11 +21,13 @@ class ImportPurchaseImportView extends ConsumerStatefulWidget {
     required this.saveChangeMadeOnItem,
     required this.acceptAllImport,
     required this.selectItem,
-    required this.finalItemList,
     required this.variantMap,
     required this.onApprove,
     required this.onReject,
     required this.catalogVariants,
+    required this.statusFilter,
+    required this.onStatusFilterChanged,
+    required this.isProcessing,
   });
 
   final List<Variant> items;
@@ -36,11 +38,13 @@ class ImportPurchaseImportView extends ConsumerStatefulWidget {
   final VoidCallback saveChangeMadeOnItem;
   final void Function(List<Variant> variants) acceptAllImport;
   final void Function(Variant? selectedItem) selectItem;
-  final List<Variant> finalItemList;
   final Map<String, List<Variant>> variantMap;
   final Future<void> Function(Variant, Map<String, List<Variant>>) onApprove;
   final Future<void> Function(Variant, Map<String, List<Variant>>) onReject;
   final List<Variant> catalogVariants;
+  final String statusFilter;
+  final ValueChanged<String> onStatusFilterChanged;
+  final bool Function(String id) isProcessing;
 
   @override
   ConsumerState<ImportPurchaseImportView> createState() =>
@@ -49,16 +53,13 @@ class ImportPurchaseImportView extends ConsumerStatefulWidget {
 
 class _ImportPurchaseImportViewState
     extends ConsumerState<ImportPurchaseImportView> {
-  String _statusFilter = 'wait';
   Variant? _selectedItem;
-  final Map<String, bool> _approveLoading = {};
-  final Map<String, bool> _rejectLoading = {};
   final Map<String, Stock> _stockMap = {};
   final Set<String> _fetchedStockIds = {};
 
   static const _filterOptions = [
     MapEntry('all', 'All'),
-    MapEntry('wait', 'Wait'),
+    MapEntry('pending', 'Pending'),
     MapEntry('approved', 'Approved'),
     MapEntry('rejected', 'Rejected'),
   ];
@@ -99,7 +100,7 @@ class _ImportPurchaseImportViewState
   }
 
   List<Variant> get _filtered => widget.items
-      .where((v) => ImportPurchaseHelpers.matchesImportFilter(v, _statusFilter))
+      .where((v) => ImportPurchaseHelpers.matchesImportFilter(v, widget.statusFilter))
       .toList();
 
   String? _catalogNameFor(Variant item) {
@@ -147,21 +148,11 @@ class _ImportPurchaseImportViewState
   }
 
   Future<void> _approve(Variant item) async {
-    setState(() => _approveLoading[item.id] = true);
-    try {
-      await widget.onApprove(item, widget.variantMap);
-    } finally {
-      if (mounted) setState(() => _approveLoading[item.id] = false);
-    }
+    await widget.onApprove(item, widget.variantMap);
   }
 
   Future<void> _reject(Variant item) async {
-    setState(() => _rejectLoading[item.id] = true);
-    try {
-      await widget.onReject(item, widget.variantMap);
-    } finally {
-      if (mounted) setState(() => _rejectLoading[item.id] = false);
-    }
+    await widget.onReject(item, widget.variantMap);
   }
 
   String _qtyLabel(Variant variant) {
@@ -176,10 +167,6 @@ class _ImportPurchaseImportViewState
     final isMobile = width <= ImportPurchaseTokens.mobileBreakpoint;
     final gutter = ImportPurchaseTokens.gutter(width);
     final filtered = _filtered;
-
-    widget.finalItemList
-      ..clear()
-      ..addAll(filtered);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(gutter, 18, gutter, 30),
@@ -376,9 +363,9 @@ class _ImportPurchaseImportViewState
               SizedBox(
                 width: 200,
                 child: IpmStatusFilter(
-                  value: _statusFilter,
+                  value: widget.statusFilter,
                   options: _filterOptions,
-                  onChanged: (v) => setState(() => _statusFilter = v),
+                  onChanged: widget.onStatusFilterChanged,
                 ),
               ),
             ],
@@ -402,7 +389,7 @@ class _ImportPurchaseImportViewState
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _statusFilter,
+                value: widget.statusFilter,
                 isExpanded: true,
                 icon: const Icon(Icons.keyboard_arrow_down,
                     color: ImportPurchaseTokens.muted),
@@ -410,7 +397,7 @@ class _ImportPurchaseImportViewState
                     .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
                     .toList(),
                 onChanged: (v) {
-                  if (v != null) setState(() => _statusFilter = v);
+                  if (v != null) widget.onStatusFilterChanged(v);
                 },
               ),
             ),
@@ -464,7 +451,7 @@ class _ImportPurchaseImportViewState
                 const Expanded(flex: 15, child: IpmColumnHeader('Supplier')),
                 const SizedBox(width: 130, child: IpmColumnHeader('Date')),
                 const SizedBox(
-                  width: 92,
+                  width: 100,
                   child: IpmColumnHeader('Actions', align: TextAlign.end),
                 ),
               ],
@@ -617,26 +604,40 @@ class _ImportPurchaseImportViewState
                             ),
                           ),
                           SizedBox(
-                            width: 92,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                if (statusKey == 'wait') ...[
-                                  IpmIconActionButton(
-                                    icon: Icons.check_circle_outline,
-                                    loading: _approveLoading[item.id] ?? false,
-                                    onPressed: () => _approve(item),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  IpmIconActionButton(
-                                    icon: Icons.cancel_outlined,
-                                    accept: false,
-                                    loading: _rejectLoading[item.id] ?? false,
-                                    onPressed: () => _reject(item),
-                                  ),
-                                ] else
-                                  IpmStatusBadge(statusKey: statusKey),
-                              ],
+                            width: 100,
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerRight,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (statusKey == 'pending' ||
+                                        statusKey == 'wait') ...[
+                                      if (widget.isProcessing(item.id))
+                                        const IpmStatusBadge(
+                                          statusKey: 'processing',
+                                        )
+                                      else ...[
+                                        IpmIconActionButton(
+                                          icon: Icons.check_circle_outline,
+                                          size: 36,
+                                          onPressed: () => _approve(item),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        IpmIconActionButton(
+                                          icon: Icons.cancel_outlined,
+                                          accept: false,
+                                          size: 36,
+                                          onPressed: () => _reject(item),
+                                        ),
+                                      ],
+                                    ] else
+                                      IpmStatusBadge(statusKey: statusKey),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -782,21 +783,23 @@ class _ImportPurchaseImportViewState
                     ),
                   ),
                   const SizedBox(width: 10),
-                  if (statusKey == 'wait') ...[
-                    IpmIconActionButton(
-                      icon: Icons.check_circle_outline,
-                      size: 44,
-                      loading: _approveLoading[item.id] ?? false,
-                      onPressed: () => _approve(item),
-                    ),
-                    const SizedBox(width: 10),
-                    IpmIconActionButton(
-                      icon: Icons.cancel_outlined,
-                      accept: false,
-                      size: 44,
-                      loading: _rejectLoading[item.id] ?? false,
-                      onPressed: () => _reject(item),
-                    ),
+                  if (statusKey == 'pending' || statusKey == 'wait') ...[
+                    if (widget.isProcessing(item.id))
+                      const IpmStatusBadge(statusKey: 'processing')
+                    else ...[
+                      IpmIconActionButton(
+                        icon: Icons.check_circle_outline,
+                        size: 44,
+                        onPressed: () => _approve(item),
+                      ),
+                      const SizedBox(width: 10),
+                      IpmIconActionButton(
+                        icon: Icons.cancel_outlined,
+                        accept: false,
+                        size: 44,
+                        onPressed: () => _reject(item),
+                      ),
+                    ],
                   ],
                 ],
               ),

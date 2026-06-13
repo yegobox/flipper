@@ -13,11 +13,12 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 /// Full-page wrapper around [ImportPurchasePage], shown as a dashboard page
 /// (DashboardPage.purchases). Header + subbar match design_handoff_import_purchase.
 class ImportPurchasePageView extends StatefulHookConsumerWidget {
-  const ImportPurchasePageView({Key? key}) : super(key: key);
+  const ImportPurchasePageView({super.key});
 
   @override
   ConsumerState<ImportPurchasePageView> createState() =>
@@ -42,19 +43,23 @@ class _ImportPurchasePageViewState
     super.dispose();
   }
 
+  Future<void> _syncFromRra() async {
+    final notifier = ref.read(importPurchaseViewModelProvider.notifier);
+    try {
+      final message = await notifier.syncFromRra();
+      if (message != null && mounted) {
+        showImportPurchaseToast(context, message);
+      }
+    } catch (e) {
+      if (mounted) {
+        showImportPurchaseToast(context, 'Sync failed: $e', isError: true);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(importPurchaseViewModelProvider);
-    final isImport = state.when(
-      data: (s) => s.isImport,
-      loading: () => false,
-      error: (_, __) => false,
-    );
-    final isExporting = state.when(
-      data: (s) => s.isExporting,
-      loading: () => false,
-      error: (_, __) => false,
-    );
     final width = MediaQuery.sizeOf(context).width;
     final gutter = ImportPurchaseTokens.gutter(width);
 
@@ -79,13 +84,8 @@ class _ImportPurchasePageViewState
               ),
             ),
           ),
-          _buildSubbar(
-            context,
-            isImport: isImport,
-            isExporting: isExporting,
-            gutter: gutter,
-          ),
-          Expanded(child: ImportPurchasePage()),
+          _buildSubbar(context, state: state, gutter: gutter),
+          const Expanded(child: ImportPurchasePage()),
         ],
       ),
     );
@@ -93,11 +93,10 @@ class _ImportPurchasePageViewState
 
   Widget _buildSubbar(
     BuildContext context, {
-    required bool isImport,
-    required bool isExporting,
+    required ImportPurchaseState state,
     required double gutter,
   }) {
-    final requestType = isImport ? 'IMPORT' : 'PURCHASE';
+    final requestType = state.isImport ? 'IMPORT' : 'PURCHASE';
     final activeBranchAsync = ref.watch(activeBranchProvider);
 
     Widget dateWidget = activeBranchAsync.when(
@@ -110,26 +109,32 @@ class _ImportPurchasePageViewState
         );
         return lastDateAsync.when(
           data: (lastDate) => _dateField(
-            isImport: isImport,
+            isImport: state.isImport,
             date: lastDate ?? DateTime.now(),
           ),
           loading: () => _dateField(
-            isImport: isImport,
+            isImport: state.isImport,
             date: DateTime.now(),
             loading: true,
           ),
           error: (_, __) => _dateField(
-            isImport: isImport,
+            isImport: state.isImport,
             date: DateTime.now(),
           ),
         );
       },
-      loading: () => _dateField(isImport: isImport, date: DateTime.now()),
-      error: (_, __) => _dateField(isImport: isImport, date: DateTime.now()),
+      loading: () => _dateField(isImport: state.isImport, date: DateTime.now()),
+      error: (_, __) => _dateField(isImport: state.isImport, date: DateTime.now()),
     );
 
+    final syncedLabel = state.syncing
+        ? 'Syncing…'
+        : state.lastSyncAt != null
+        ? 'Synced ${timeago.format(state.lastSyncAt!, locale: 'en_short')}'
+        : 'Not synced yet';
+
     final modeControl = IpmSegmentedControl(
-      isImport: isImport,
+      isImport: state.isImport,
       onChanged: (value) {
         ref.read(importPurchaseViewModelProvider.notifier).toggleImportPurchase(value);
       },
@@ -146,6 +151,40 @@ class _ImportPurchasePageViewState
           final isMobile =
               constraints.maxWidth <= ImportPurchaseTokens.mobileBreakpoint;
 
+          final exportButton = _SubbarIconButton(
+            icon: Icons.file_download_outlined,
+            label: 'Export',
+            variant: _SubbarButtonVariant.ghost,
+            showLabel: !isMobile,
+            loading: state.isExporting,
+            onPressed: state.isExporting
+                ? null
+                : () => _export(state.isImport),
+          );
+
+          final recordPurchaseButton = !state.isImport
+              ? _SubbarIconButton(
+                  icon: Icons.post_add_outlined,
+                  label: 'Record Purchase',
+                  variant: _SubbarButtonVariant.primary,
+                  showLabel: !isMobile,
+                  onPressed: () => showRecordPurchaseModal(context, ref),
+                )
+              : null;
+
+          final syncButton = _SubbarIconButton(
+            icon: Icons.sync,
+            label: 'Sync from RRA',
+            variant: recordPurchaseButton == null
+                ? _SubbarButtonVariant.primary
+                : _SubbarButtonVariant.ghost,
+            showLabel: !isMobile,
+            loading: state.syncing,
+            onPressed: state.syncing ? null : _syncFromRra,
+          );
+
+          final syncedPill = _SyncedPill(syncing: state.syncing, label: syncedLabel);
+
           if (isMobile) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -153,25 +192,27 @@ class _ImportPurchasePageViewState
                 Row(
                   children: [
                     Flexible(child: dateWidget),
-                    const SizedBox(width: 12),
-                    _SubbarIconButton(
-                      icon: Icons.file_download_outlined,
-                      label: 'Export',
-                      variant: _SubbarButtonVariant.ghost,
-                      showLabel: false,
-                      loading: isExporting,
-                      onPressed: isExporting ? null : () => _export(isImport),
-                    ),
                     const SizedBox(width: 8),
-                    _SubbarIconButton(
-                      icon: Icons.post_add_outlined,
-                      label: 'Record Purchase',
-                      variant: _SubbarButtonVariant.primary,
-                      showLabel: false,
-                      onPressed: () => showRecordPurchaseModal(context, ref),
-                    ),
+                    syncedPill,
                   ],
                 ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    exportButton,
+                    if (recordPurchaseButton != null) ...[
+                      const SizedBox(width: 8),
+                      Expanded(child: recordPurchaseButton),
+                    ] else ...[
+                      const SizedBox(width: 8),
+                      Expanded(child: syncButton),
+                    ],
+                  ],
+                ),
+                if (recordPurchaseButton != null) ...[
+                  const SizedBox(height: 8),
+                  syncButton,
+                ],
                 const SizedBox(height: 12),
                 modeControl,
               ],
@@ -181,23 +222,16 @@ class _ImportPurchasePageViewState
           return Row(
             children: [
               dateWidget,
-              const SizedBox(width: 16),
-              _SubbarIconButton(
-                icon: Icons.file_download_outlined,
-                label: 'Export',
-                variant: _SubbarButtonVariant.ghost,
-                showLabel: true,
-                loading: isExporting,
-                onPressed: isExporting ? null : () => _export(isImport),
-              ),
               const SizedBox(width: 12),
-              _SubbarIconButton(
-                icon: Icons.post_add_outlined,
-                label: 'Record Purchase',
-                variant: _SubbarButtonVariant.primary,
-                showLabel: true,
-                onPressed: () => showRecordPurchaseModal(context, ref),
-              ),
+              syncedPill,
+              const SizedBox(width: 16),
+              exportButton,
+              if (recordPurchaseButton != null) ...[
+                const SizedBox(width: 12),
+                recordPurchaseButton,
+              ],
+              const SizedBox(width: 12),
+              syncButton,
               const Spacer(),
               modeControl,
             ],
@@ -264,9 +298,57 @@ class _ImportPurchasePageViewState
   }
 }
 
+class _SyncedPill extends StatelessWidget {
+  const _SyncedPill({required this.syncing, required this.label});
+
+  final bool syncing;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: ImportPurchaseTokens.surface2,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: ImportPurchaseTokens.line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (syncing)
+            const SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: ImportPurchaseTokens.green,
+                shape: BoxShape.circle,
+              ),
+            ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: ImportPurchaseHelpers.text(
+              size: 12.5,
+              weight: FontWeight.w600,
+              color: ImportPurchaseTokens.ink2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 enum _SubbarButtonVariant { primary, ghost }
 
-/// Subbar action buttons — 38px tall per design handoff §5.
 class _SubbarIconButton extends StatelessWidget {
   const _SubbarIconButton({
     required this.icon,
@@ -315,10 +397,7 @@ class _SubbarIconButton extends StatelessWidget {
                   SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: fg,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: fg),
                   )
                 else
                   Icon(

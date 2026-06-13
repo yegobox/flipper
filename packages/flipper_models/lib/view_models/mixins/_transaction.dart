@@ -69,14 +69,13 @@ mixin TransactionMixinOld {
       if (businessId == null || branchId == null) {
         throw Exception('Business ID or Branch ID not found');
       }
-      final taxEnabled =
-          await ProxyService.getStrategy(Strategy.capella).isTaxEnabled(
-        businessId: businessId,
-        branchId: branchId,
-      );
+      final taxEnabled = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).isTaxEnabled(businessId: businessId, branchId: branchId);
       RwApiResponse? response;
-      final ebm = await ProxyService.getStrategy(Strategy.capella)
-          .ebm(branchId: branchId);
+      final ebm = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).ebm(branchId: branchId);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
@@ -176,9 +175,12 @@ mixin TransactionMixinOld {
           talker.debug(
             '[sale_completion_timing] collect_payment_ms=${collectSw.elapsedMilliseconds}',
           );
+          final onCompleteSw = Stopwatch()..start();
+          await _awaitPossibleFuture(onComplete());
+          talker.debug(
+            '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
+          );
 
-          // PDF/print does not need the completion Ditto write or deferred
-          // payment rows (pay mode falls back to CASH). Overlap with onComplete.
           scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
           unawaited(
             _presentReceiptAfterSale(
@@ -191,12 +193,6 @@ mixin TransactionMixinOld {
               transactionItems: preloadedLineItemsForCollectPayment,
               presentationReceipt: signOutcome.presentationReceipt,
             ),
-          );
-
-          final onCompleteSw = Stopwatch()..start();
-          await _awaitPossibleFuture(onComplete());
-          talker.debug(
-            '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
           );
           talker.debug(
             '[sale_completion_timing] finalize_payment_quick_sell_ms='
@@ -356,11 +352,14 @@ mixin TransactionMixinOld {
     }
   }
 
-  Future<({
-    RwApiResponse response,
-    DeferredSaleReceiptPersist? deferredPersist,
-    Receipt? presentationReceipt,
-  })> handleReceiptGeneration({
+  Future<
+    ({
+      RwApiResponse response,
+      DeferredSaleReceiptPersist? deferredPersist,
+      Receipt? presentationReceipt,
+    })
+  >
+  handleReceiptGeneration({
     String? purchaseCode,
     ITransaction? transaction,
     required GlobalKey<FormState> formKey,
@@ -394,12 +393,8 @@ mixin TransactionMixinOld {
             presentationReceiptForPdf: presentationReceiptForPdf,
             customer: customer,
           );
-      final (
-        :response,
-        :bytes,
-        :deferredPersist,
-        :presentationReceipt,
-      ) = responseFrom;
+      final (:response, :bytes, :deferredPersist, :presentationReceipt) =
+          responseFrom;
 
       if (!signOnly) {
         try {
@@ -431,16 +426,17 @@ mixin TransactionMixinOld {
     Receipt? presentationReceipt,
   }) async {
     try {
-      final responseFrom = await TaxController(object: transaction).handleReceipt(
-        purchaseCode: purchaseCode,
-        filterType: getFilterType(transactionType: transaction.receiptType),
-        persistReceiptTransactionFields: false,
-        skipPresentation: sendDigitalReceipt,
-        presentationOnly: true,
-        signedResponse: signedResponse,
-        transactionItems: transactionItems,
-        presentationReceiptForPdf: presentationReceipt,
-      );
+      final responseFrom = await TaxController(object: transaction)
+          .handleReceipt(
+            purchaseCode: purchaseCode,
+            filterType: getFilterType(transactionType: transaction.receiptType),
+            persistReceiptTransactionFields: false,
+            skipPresentation: sendDigitalReceipt,
+            presentationOnly: true,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceipt,
+          );
       final bytes = responseFrom.bytes;
       if (!context.mounted) return;
       try {
@@ -477,14 +473,13 @@ mixin TransactionMixinOld {
       throw Exception('Business ID or Branch ID not found');
     }
 
-    Business? business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
-      businessId: businessId,
-    );
+    Business? business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: businessId);
 
-    final bool isEbmEnabled = await ProxyService.getStrategy(Strategy.capella).isTaxEnabled(
-      businessId: business!.id,
-      branchId: branchId,
-    );
+    final bool isEbmEnabled = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).isTaxEnabled(businessId: business!.id, branchId: branchId);
     if (isEbmEnabled) {
       try {
         await ProxyService.getStrategy(Strategy.capella).updateTransaction(

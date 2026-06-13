@@ -1,17 +1,24 @@
 import 'dart:convert';
 
+import 'package:flipper_models/data_connector_http_log.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:http/http.dart' as http;
 
 /// HTTP client for data-connector bulk RRA jobs (`POST /rra/products/bulk-add`).
 class BulkRraClient {
-  BulkRraClient({required this.baseUrl, http.Client? httpClient})
-    : _http = httpClient ?? http.Client(),
-      _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+  BulkRraClient({
+    required this.baseUrl,
+    http.Client? httpClient,
+    this.logHttp = true,
+  }) : _http = httpClient ?? http.Client(),
+       _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
 
   final String baseUrl;
   final http.Client _http;
   final String _base;
+  final bool logHttp;
+
+  static const _jsonHeaders = {'Content-Type': 'application/json'};
 
   Future<BulkRraJobAccepted> submitBulkAdd({
     required String tinNumber,
@@ -35,10 +42,20 @@ class BulkRraClient {
       body['taxServerUrl'] = taxServerUrl;
     }
 
+    if (logHttp) {
+      DataConnectorHttpLog.request(
+        method: 'POST',
+        uri: uri,
+        body: jsonEncode(body),
+        headers: _jsonHeaders,
+        operation: 'bulk-add submit',
+      );
+    }
+    final started = Stopwatch()..start();
     final response = await _http
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: _jsonHeaders,
           body: jsonEncode(body),
         )
         .timeout(
@@ -50,6 +67,18 @@ class BulkRraClient {
             );
           },
         );
+
+    started.stop();
+    if (logHttp) {
+      DataConnectorHttpLog.response(
+        method: 'POST',
+        uri: uri,
+        statusCode: response.statusCode,
+        body: response.body,
+        elapsed: started.elapsed,
+        operation: 'bulk-add submit',
+      );
+    }
 
     if (response.statusCode != 202) {
       talker.error('bulk-add failed ${response.statusCode}: ${response.body}');
@@ -68,7 +97,26 @@ class BulkRraClient {
 
   Future<BulkRraJobStatus> pollJob(String jobId) async {
     final uri = Uri.parse('${_base}rra/jobs/$jobId');
+    if (logHttp) {
+      DataConnectorHttpLog.request(
+        method: 'GET',
+        uri: uri,
+        operation: 'bulk job poll',
+      );
+    }
+    final started = Stopwatch()..start();
     final response = await _http.get(uri);
+    started.stop();
+    if (logHttp) {
+      DataConnectorHttpLog.response(
+        method: 'GET',
+        uri: uri,
+        statusCode: response.statusCode,
+        body: response.body,
+        elapsed: started.elapsed,
+        operation: 'bulk job poll',
+      );
+    }
     if (response.statusCode != 200) {
       throw Exception(
         'Bulk RRA job poll failed (${response.statusCode}): ${response.body}',

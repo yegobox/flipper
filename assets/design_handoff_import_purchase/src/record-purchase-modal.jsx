@@ -14,6 +14,8 @@
     trash: (p) => (<svg width="17" height="17" viewBox="0 0 24 24" fill="none" {...p}><path d="M5 7h14M10 7V5.5A1.5 1.5 0 0 1 11.5 4h1A1.5 1.5 0 0 1 14 5.5V7m4 0-.8 11.2A2 2 0 0 1 15.2 20H8.8a2 2 0 0 1-2-1.8L6 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>),
     check: (p) => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" {...p}><path d="m5 12.5 4.5 4.5L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>),
     box: (p) => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" {...p}><path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m4 7 8 4 8-4M12 21V11" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>),
+    building: (p) => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" {...p}><path d="M5 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M3 21h18M9 7h2M9 11h2M9 15h2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>),
+    back: (p) => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" {...p}><path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/></svg>),
   };
 
   const CATS = {
@@ -35,6 +37,13 @@
     { name: "Laptop Repair Service", cat: "B", price: 80000 },
   ];
   const PAYMENTS = ["01 – Cash", "02 – Credit", "03 – Cash/Credit", "04 – Bank transfer", "05 – Mobile money"];
+  const SUPPLIERS_SEED = [
+    { name: "MUVURA LTD", tin: "1000345678", phone: "+250 788 120 045" },
+    { name: "Equator Imports", tin: "1000912233", phone: "+250 782 554 110" },
+    { name: "Kampala Footwear", tin: "1000559921", phone: "+250 733 201 884" },
+    { name: "Nile Traders", tin: "", phone: "+250 788 660 412" },
+    { name: "Sandals Wholesale Co.", tin: "1000776654", phone: "" },
+  ];
   const rfmt = (n) => n === 0 ? "0" : new Intl.NumberFormat("en-US").format(Math.round(n));
   let _ruid = 1; const ruid = () => _ruid++;
 
@@ -43,6 +52,108 @@
       <div className="field">
         <label>{label}{opt && <span className="opt"> (optional)</span>}</label>
         {children}
+      </div>
+    );
+  }
+
+  function SupplierField({ value, onChange, onSelect, suppliers, onCreate }) {
+    const [open, setOpen] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [draft, setDraft] = useState({ name: "", tin: "", phone: "" });
+    const ref = useRef(null);
+    useEffect(() => {
+      const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+      document.addEventListener("mousedown", h);
+      return () => document.removeEventListener("mousedown", h);
+    }, []);
+
+    const q = value || "";
+    const list = suppliers.filter((s) => s.name.toLowerCase().includes(q.toLowerCase()));
+    const startCreate = () => { setDraft({ name: q.trim(), tin: "", phone: "" }); setOpen(false); setCreating(true); };
+    const submitCreate = () => {
+      const name = draft.name.trim();
+      if (!name) return;
+      onCreate({ name, tin: draft.tin.trim(), phone: draft.phone.trim() });
+      setCreating(false);
+    };
+    useEffect(() => {
+      if (!creating) return;
+      const h = (e) => { if (e.key === "Escape") { e.stopPropagation(); setCreating(false); } };
+      document.addEventListener("keydown", h, true);
+      return () => document.removeEventListener("keydown", h, true);
+    }, [creating]);
+
+    return (
+      <div className="combo-field" ref={ref}>
+        <div className="ctrl-wrap">
+          <span className="lead"><RI.search /></span>
+          <input className="ctrl with-icon" placeholder="Search or enter supplier name" value={q}
+            onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)} />
+        </div>
+        {open && (
+          <div className="combo-pop">
+            <div className="sup-list">
+              {list.map((s) => (
+                <div key={s.name} className="sup-opt" onClick={() => { onSelect(s); setOpen(false); }}>
+                  <span className="sup-av">{s.name.slice(0, 1).toUpperCase()}</span>
+                  <div className="sup-txt">
+                    <div className="sup-nm">{s.name}</div>
+                    <div className="sup-meta">{s.tin ? "TIN " + s.tin : "No TIN"}{s.phone ? " · " + s.phone : ""}</div>
+                  </div>
+                  {value === s.name && <span className="sup-ck"><RI.check /></span>}
+                </div>
+              ))}
+              {list.length === 0 && <div className="cat-empty">No matching suppliers.</div>}
+            </div>
+            <button className="sup-create" onClick={startCreate}>
+              <span className="sup-add"><RI.plus /></span>
+              {q.trim()
+                ? <span>Create supplier "<strong>{q.trim()}</strong>"</span>
+                : <span>Create a new supplier</span>}
+            </button>
+          </div>
+        )}
+
+        {creating && (
+          <div className="sup-modal-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) setCreating(false); }}>
+            <div className="sup-modal" role="dialog" aria-modal="true" aria-label="New supplier">
+              <div className="sup-modal-head">
+                <span className="sup-add lg"><RI.building /></span>
+                <div>
+                  <h3>New supplier</h3>
+                  <div className="sub">Created without leaving this purchase</div>
+                </div>
+                <span className="spacer" />
+                <button className="x-btn" title="Close" onClick={() => setCreating(false)}><RI.x /></button>
+              </div>
+              <div className="sup-modal-body">
+                <div className="sup-fg">
+                  <label>Supplier name</label>
+                  <input className="ctrl" autoFocus value={draft.name} placeholder="e.g. Acme Distributors Ltd"
+                    onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === "Enter") submitCreate(); }} />
+                </div>
+                <div className="sup-form-2">
+                  <div className="sup-fg">
+                    <label>TIN <span className="opt">(optional)</span></label>
+                    <input className="ctrl" value={draft.tin} placeholder="1000123456"
+                      onChange={(e) => setDraft({ ...draft, tin: e.target.value.replace(/[^0-9]/g, "") })} />
+                  </div>
+                  <div className="sup-fg">
+                    <label>Phone <span className="opt">(optional)</span></label>
+                    <input className="ctrl" value={draft.phone} placeholder="+250 7…"
+                      onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+              <div className="sup-modal-foot">
+                <button className="btn btn-ghost" onClick={() => setCreating(false)}>Cancel</button>
+                <button className="btn btn-primary" disabled={!draft.name.trim()} onClick={submitCreate}><RI.check /> Create &amp; select</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -129,9 +240,16 @@
     const [payment, setPayment] = useState(PAYMENTS[0]);
     const [items, setItems] = useState([]);
     const [showCat, setShowCat] = useState(false);
+    const [suppliers, setSuppliers] = useState(SUPPLIERS_SEED);
+
+    const selectSupplier = (s) => { setSupplier(s.name); setTin(s.tin || ""); };
+    const createSupplier = (d) => {
+      setSuppliers((s) => [d, ...s.filter((x) => x.name.toLowerCase() !== d.name.toLowerCase())]);
+      setSupplier(d.name); setTin(d.tin || "");
+    };
 
     useEffect(() => {
-      const h = (e) => { if (e.key === "Escape") onClose(); };
+      const h = (e) => { if (e.key === "Escape" && !document.querySelector(".rp .sup-modal-scrim")) onClose(); };
       document.addEventListener("keydown", h);
       return () => document.removeEventListener("keydown", h);
     }, [onClose]);
@@ -173,7 +291,7 @@
             <div className="m-body">
               <div className="field-grid">
                 <Field label="Supplier">
-                  <input className="ctrl" placeholder="Search or enter supplier name" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
+                  <SupplierField value={supplier} onChange={setSupplier} onSelect={selectSupplier} suppliers={suppliers} onCreate={createSupplier} />
                 </Field>
                 <Field label="Supplier TIN" opt>
                   <input className="ctrl" placeholder="e.g. 1000123456" value={tin} onChange={(e) => setTin(e.target.value)} />

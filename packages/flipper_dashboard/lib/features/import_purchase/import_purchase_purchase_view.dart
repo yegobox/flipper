@@ -22,6 +22,9 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
     required this.selectSale,
     required this.variants,
     required this.itemMapper,
+    required this.statusFilter,
+    required this.onStatusFilterChanged,
+    required this.isProcessing,
   });
 
   final List<Purchase> purchases;
@@ -39,6 +42,9 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
       selectSale;
   final List<Variant> variants;
   final Map<String, List<Variant>> itemMapper;
+  final String statusFilter;
+  final ValueChanged<String> onStatusFilterChanged;
+  final bool Function(String id) isProcessing;
 
   @override
   ConsumerState<ImportPurchasePurchaseView> createState() =>
@@ -48,24 +54,24 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
 class _ImportPurchasePurchaseViewState
     extends ConsumerState<ImportPurchasePurchaseView> {
   static const _pageSize = 4;
-  String _statusFilter = 'waiting';
   int _page = 0;
   final Map<String, bool> _expanded = {};
-  final Map<String, String?> _loadingAction = {};
   final Map<String, Stock> _stockMap = {};
   final Set<String> _fetchedStockIds = {};
 
   static const _filterOptions = [
     MapEntry('all', 'All'),
-    MapEntry('waiting', 'Waiting'),
+    MapEntry('pending', 'Pending'),
     MapEntry('approved', 'Approved'),
     MapEntry('rejected', 'Rejected'),
   ];
 
   List<Variant> _filterVariants(List<Variant> variants) {
     return variants
-        .where((v) =>
-            ImportPurchaseHelpers.matchesPurchaseVariantFilter(v, _statusFilter))
+        .where((v) => ImportPurchaseHelpers.matchesPurchaseVariantFilter(
+              v,
+              widget.statusFilter,
+            ))
         .toList();
   }
 
@@ -172,12 +178,12 @@ class _ImportPurchasePurchaseViewState
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 380),
                   child: IpmStatusFilter(
-                    value: _statusFilter,
+                    value: widget.statusFilter,
                     options: _filterOptions,
-                    onChanged: (v) => setState(() {
-                      _statusFilter = v;
-                      _page = 0;
-                    }),
+                    onChanged: (v) {
+                      widget.onStatusFilterChanged(v);
+                      setState(() => _page = 0);
+                    },
                   ),
                 ),
               ),
@@ -457,43 +463,39 @@ class _ImportPurchasePurchaseViewState
   }
 
   Widget _acceptAllButton(Purchase purchase) {
-    final loading = _loadingAction[purchase.id] == 'accept';
+    final loading = widget.isProcessing(purchase.id);
     return IpmButton(
-      label: 'Accept All',
+      label: loading ? 'Processing…' : 'Accept All',
       icon: Icons.check_circle_outline,
       variant: IpmButtonVariant.greenSoft,
       compact: true,
       onPressed: loading
           ? null
           : () async {
-              setState(() => _loadingAction[purchase.id] = 'accept');
               await widget.acceptPurchases(
                 purchases: [purchase],
                 pchsSttsCd: '02',
                 purchase: purchase,
               );
-              if (mounted) setState(() => _loadingAction[purchase.id] = null);
             },
     );
   }
 
   Widget _declineAllButton(Purchase purchase) {
-    final loading = _loadingAction[purchase.id] == 'decline';
+    final loading = widget.isProcessing(purchase.id);
     return IpmButton(
-      label: 'Decline All',
+      label: loading ? 'Processing…' : 'Decline All',
       icon: Icons.cancel_outlined,
       variant: IpmButtonVariant.dangerSoft,
       compact: true,
       onPressed: loading
           ? null
           : () async {
-              setState(() => _loadingAction[purchase.id] = 'decline');
               await widget.acceptPurchases(
                 purchases: [purchase],
                 pchsSttsCd: '04',
                 purchase: purchase,
               );
-              if (mounted) setState(() => _loadingAction[purchase.id] = null);
             },
     );
   }

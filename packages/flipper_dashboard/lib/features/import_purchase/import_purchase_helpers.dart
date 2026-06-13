@@ -29,21 +29,22 @@ abstract final class ImportPurchaseHelpers {
   }
 
   static String importStatusKey(Variant variant) {
-    if (variant.imptItemSttsCd == '2') return 'wait';
+    if (variant.imptItemSttsCd == '2') return 'pending';
     if (variant.imptItemSttsCd == '3') return 'approved';
     return 'rejected';
   }
 
   static String importStatusLabel(String key) => switch (key) {
-    'wait' => 'Wait',
+    'pending' || 'wait' => 'Pending',
     'approved' => 'Approved',
     'rejected' => 'Rejected',
+    'processing' => 'Processing',
     _ => key,
   };
 
   static String? importFilterCode(String? filterKey) => switch (filterKey) {
     'all' => null,
-    'wait' => '2',
+    'pending' || 'wait' => '2',
     'approved' => '3',
     'rejected' => '4',
     _ => filterKey,
@@ -59,7 +60,7 @@ abstract final class ImportPurchaseHelpers {
   }
 
   static String purchaseStatusKey(Variant variant) {
-    if (variant.pchsSttsCd == '01') return 'waiting';
+    if (variant.pchsSttsCd == '01') return 'pending';
     if (variant.pchsSttsCd == '02' || variant.pchsSttsCd == '03') {
       return 'approved';
     }
@@ -67,15 +68,16 @@ abstract final class ImportPurchaseHelpers {
   }
 
   static String purchaseStatusLabel(String key) => switch (key) {
-    'waiting' => 'Waiting',
+    'pending' || 'waiting' => 'Pending',
     'approved' => 'Approved',
     'rejected' => 'Rejected',
+    'processing' => 'Processing',
     _ => key,
   };
 
   static String? purchaseFilterCode(String? filterKey) => switch (filterKey) {
     'all' => null,
-    'waiting' => '01',
+    'pending' || 'waiting' => '01',
     'approved' => '02',
     'rejected' => '04',
     _ => filterKey,
