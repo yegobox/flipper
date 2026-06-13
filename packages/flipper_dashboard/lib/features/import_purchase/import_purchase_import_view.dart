@@ -28,6 +28,8 @@ class ImportPurchaseImportView extends ConsumerStatefulWidget {
     required this.statusFilter,
     required this.onStatusFilterChanged,
     required this.isProcessing,
+    required this.canRetry,
+    required this.onRetry,
   });
 
   final List<Variant> items;
@@ -45,6 +47,8 @@ class ImportPurchaseImportView extends ConsumerStatefulWidget {
   final String statusFilter;
   final ValueChanged<String> onStatusFilterChanged;
   final bool Function(String id) isProcessing;
+  final bool Function(String id) canRetry;
+  final Future<void> Function(String rowId) onRetry;
 
   @override
   ConsumerState<ImportPurchaseImportView> createState() =>
@@ -148,11 +152,72 @@ class _ImportPurchaseImportViewState
   }
 
   Future<void> _approve(Variant item) async {
+    if (_selectedItem?.id == item.id) {
+      final supply = double.tryParse(widget.supplyPriceController.text);
+      final retail = double.tryParse(widget.retailPriceController.text);
+      if (supply != null && supply > 0) item.supplyPrice = supply;
+      if (retail != null && retail > 0) {
+        item.retailPrice = retail;
+        item.prc = retail;
+        item.dftPrc = retail;
+      }
+      final name = widget.nameController.text.trim();
+      if (name.isNotEmpty) item.itemNm = name;
+    }
     await widget.onApprove(item, widget.variantMap);
   }
 
   Future<void> _reject(Variant item) async {
     await widget.onReject(item, widget.variantMap);
+  }
+
+  Future<void> _retry(Variant item) async {
+    await widget.onRetry(item.id);
+  }
+
+  List<Widget> _rowActionButtons(Variant item, String statusKey, {double size = 36}) {
+    if (widget.isProcessing(item.id)) {
+      return [const IpmStatusBadge(statusKey: 'processing')];
+    }
+
+    final actions = <Widget>[];
+    if (widget.canRetry(item.id)) {
+      actions.add(
+        Tooltip(
+          message: 'Retry failed job',
+          child: IpmIconActionButton(
+            icon: Icons.refresh,
+            retry: true,
+            size: size,
+            onPressed: () => _retry(item),
+          ),
+        ),
+      );
+    }
+
+    if (statusKey == 'pending' || statusKey == 'wait') {
+      if (actions.isNotEmpty) {
+        actions.add(SizedBox(width: size <= 36 ? 6 : 10));
+      }
+      actions.addAll([
+        IpmIconActionButton(
+          icon: Icons.check_circle_outline,
+          size: size,
+          onPressed: () => _approve(item),
+        ),
+        SizedBox(width: size <= 36 ? 6 : 10),
+        IpmIconActionButton(
+          icon: Icons.cancel_outlined,
+          accept: false,
+          size: size,
+          onPressed: () => _reject(item),
+        ),
+      ]);
+      return actions;
+    }
+
+    if (actions.isNotEmpty) return actions;
+    return [IpmStatusBadge(statusKey: statusKey)];
   }
 
   String _qtyLabel(Variant variant) {
@@ -612,30 +677,7 @@ class _ImportPurchaseImportViewState
                                 alignment: Alignment.centerRight,
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (statusKey == 'pending' ||
-                                        statusKey == 'wait') ...[
-                                      if (widget.isProcessing(item.id))
-                                        const IpmStatusBadge(
-                                          statusKey: 'processing',
-                                        )
-                                      else ...[
-                                        IpmIconActionButton(
-                                          icon: Icons.check_circle_outline,
-                                          size: 36,
-                                          onPressed: () => _approve(item),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        IpmIconActionButton(
-                                          icon: Icons.cancel_outlined,
-                                          accept: false,
-                                          size: 36,
-                                          onPressed: () => _reject(item),
-                                        ),
-                                      ],
-                                    ] else
-                                      IpmStatusBadge(statusKey: statusKey),
-                                  ],
+                                  children: _rowActionButtons(item, statusKey),
                                 ),
                               ),
                             ),
@@ -783,24 +825,7 @@ class _ImportPurchaseImportViewState
                     ),
                   ),
                   const SizedBox(width: 10),
-                  if (statusKey == 'pending' || statusKey == 'wait') ...[
-                    if (widget.isProcessing(item.id))
-                      const IpmStatusBadge(statusKey: 'processing')
-                    else ...[
-                      IpmIconActionButton(
-                        icon: Icons.check_circle_outline,
-                        size: 44,
-                        onPressed: () => _approve(item),
-                      ),
-                      const SizedBox(width: 10),
-                      IpmIconActionButton(
-                        icon: Icons.cancel_outlined,
-                        accept: false,
-                        size: 44,
-                        onPressed: () => _reject(item),
-                      ),
-                    ],
-                  ],
+                  ..._rowActionButtons(item, statusKey, size: 44),
                 ],
               ),
             ],

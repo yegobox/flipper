@@ -202,7 +202,7 @@ class IpmEmptyState extends StatelessWidget {
   }
 }
 
-enum IpmButtonVariant { primary, green, ghost, greenSoft, dangerSoft }
+enum IpmButtonVariant { primary, green, ghost, greenSoft, dangerSoft, amberSoft }
 
 class IpmButton extends StatelessWidget {
   const IpmButton({
@@ -249,6 +249,11 @@ class IpmButton extends StatelessWidget {
       IpmButtonVariant.dangerSoft => (
         ImportPurchaseTokens.redWash,
         ImportPurchaseTokens.redStrong,
+        Colors.transparent,
+      ),
+      IpmButtonVariant.amberSoft => (
+        ImportPurchaseTokens.amberWash,
+        ImportPurchaseTokens.amber,
         Colors.transparent,
       ),
     };
@@ -305,6 +310,7 @@ class IpmIconActionButton extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     this.accept = true,
+    this.retry = false,
     this.loading = false,
     this.size = 38,
   });
@@ -312,16 +318,26 @@ class IpmIconActionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onPressed;
   final bool accept;
+  final bool retry;
   final bool loading;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final bg = accept
-        ? ImportPurchaseTokens.greenWash
-        : ImportPurchaseTokens.redWash;
-    final fg =
-        accept ? ImportPurchaseTokens.green : ImportPurchaseTokens.red;
+    final (bg, fg) = switch ((retry, accept)) {
+      (true, _) => (
+        ImportPurchaseTokens.amberWash,
+        ImportPurchaseTokens.amber,
+      ),
+      (false, true) => (
+        ImportPurchaseTokens.greenWash,
+        ImportPurchaseTokens.green,
+      ),
+      (false, false) => (
+        ImportPurchaseTokens.redWash,
+        ImportPurchaseTokens.red,
+      ),
+    };
 
     return SizedBox(
       width: size,

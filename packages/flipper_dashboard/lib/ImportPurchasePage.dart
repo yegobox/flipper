@@ -65,15 +65,35 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
     if (_importFormKey.currentState?.validate() != true) return;
     final state = ref.read(importPurchaseViewModelProvider);
     if (state.isImport && _selectedItem != null) {
-      setState(() {
-        _selectedItem!.itemNm = _nameController.text;
-        _selectedItem!.supplyPrice = double.tryParse(_supplyPriceController.text);
-        _selectedItem!.retailPrice = double.tryParse(_retailPriceController.text);
-      });
+      _applyControllerPricingTo(_selectedItem!);
     }
     _nameController.clear();
     _supplyPriceController.clear();
     _retailPriceController.clear();
+  }
+
+  /// Mirror legacy ImportPurchasePage: prices live on the [Variant] before approve.
+  void _applyControllerPricingTo(model.Variant item) {
+    if (_selectedItem?.id != item.id) return;
+    final supply = double.tryParse(_supplyPriceController.text);
+    final retail = double.tryParse(_retailPriceController.text);
+    final name = _nameController.text.trim();
+    if (name.isNotEmpty) {
+      item.itemNm = name;
+    }
+    if (supply != null && supply > 0) {
+      item.supplyPrice = supply;
+    }
+    if (retail != null && retail > 0) {
+      item.retailPrice = retail;
+      item.prc = retail;
+      item.dftPrc = retail;
+    }
+  }
+
+  model.Variant _variantForApprove(model.Variant item) {
+    _applyControllerPricingTo(item);
+    return item;
   }
 
   void _assignPurchaseItem({
@@ -148,6 +168,15 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
       statusFilter: state.importStatusFilter,
       onStatusFilterChanged: notifier.setImportStatusFilter,
       isProcessing: notifier.isProcessing,
+      canRetry: notifier.canRetryRow,
+      onRetry: (rowId) async {
+        try {
+          await notifier.replayRowJob(rowId);
+          _notify('Retry succeeded');
+        } catch (e) {
+          _notify('Retry failed: $e', success: false);
+        }
+      },
       acceptAllImport: (variants) async {
         for (final variant in variants) {
           final isAssigned = _variantMap.values.any(
@@ -167,7 +196,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
         }
         try {
           await notifier.approveAllImports(
-            variants: variants,
+            variants: variants.map(_variantForApprove).toList(),
             variantMap: _variantMap,
           );
           _notify('Approved ${variants.length} item(s)');
@@ -195,8 +224,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
           }
         }
         try {
+          final prepared = _variantForApprove(item);
           await notifier.approveImport(
-            variant: item,
+            variant: prepared,
             targetVariantId: targetId,
           );
           _notify('Approved "${item.itemNm ?? item.name}"');
@@ -239,6 +269,15 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
       statusFilter: state.purchaseStatusFilter,
       onStatusFilterChanged: notifier.setPurchaseStatusFilter,
       isProcessing: notifier.isProcessing,
+      canRetry: notifier.canRetryRow,
+      onRetry: (rowId) async {
+        try {
+          await notifier.replayRowJob(rowId);
+          _notify('Retry succeeded');
+        } catch (e) {
+          _notify('Retry failed: $e', success: false);
+        }
+      },
       acceptPurchases: ({
         required List<model.Purchase> purchases,
         required String pchsSttsCd,

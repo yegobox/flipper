@@ -107,6 +107,65 @@ void main() {
       });
     });
 
+    test('approveImport serializes pricing overrides', () async {
+      Map<String, dynamic>? capturedBody;
+      final client = ImportsPurchasesClient(
+        baseUrl: 'http://127.0.0.1:8084/',
+        logHttp: false,
+        httpClient: _MockClient((request) async {
+          capturedBody =
+              jsonDecode(await _requestBody(request)) as Map<String, dynamic>;
+          return http.Response(
+            jsonEncode({
+              'jobId': 'imp_pur_approve',
+              'operation': 'approveImport',
+              'status': 'queued',
+            }),
+            202,
+          );
+        }),
+      );
+
+      await client.approveImport(
+        _ctx(),
+        variantId: 'import-1',
+        targetVariantId: 'catalog-9',
+        retailPrice: 1500,
+        supplyPrice: 900,
+        itemNm: 'Widget A',
+      );
+
+      expect(capturedBody?['variantId'], 'import-1');
+      expect(capturedBody?['targetVariantId'], 'catalog-9');
+      expect(capturedBody?['retailPrice'], 1500);
+      expect(capturedBody?['supplyPrice'], 900);
+      expect(capturedBody?['itemNm'], 'Widget A');
+    });
+
+    test('replayJob posts to replay endpoint and returns 202', () async {
+      final client = ImportsPurchasesClient(
+        baseUrl: 'http://127.0.0.1:8084/',
+        logHttp: false,
+        httpClient: _MockClient((request) async {
+          expect(request.method, 'POST');
+          expect(request.url.path, '/imports-purchases/jobs/imp_pur_failed/replay');
+          return http.Response(
+            jsonEncode({
+              'jobId': 'imp_pur_failed',
+              'operation': 'approveImport',
+              'status': 'queued',
+            }),
+            202,
+          );
+        }),
+      );
+
+      final accepted = await client.replayJob('imp_pur_failed');
+      expect(accepted.jobId, 'imp_pur_failed');
+      expect(accepted.operation, 'approveImport');
+      expect(accepted.status, 'queued');
+    });
+
     test('pollJobUntilTerminal returns on success', () async {
       var polls = 0;
       final client = ImportsPurchasesClient(

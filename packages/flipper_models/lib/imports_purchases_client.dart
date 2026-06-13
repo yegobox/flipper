@@ -131,11 +131,23 @@ class ImportsPurchasesClient {
     ImportPurchaseContext ctx, {
     required String variantId,
     String? targetVariantId,
+    double? retailPrice,
+    double? supplyPrice,
+    String? itemNm,
   }) async {
     final body = ctx.toJson()
       ..['variantId'] = variantId;
     if (targetVariantId != null && targetVariantId.isNotEmpty) {
       body['targetVariantId'] = targetVariantId;
+    }
+    if (retailPrice != null && retailPrice > 0) {
+      body['retailPrice'] = retailPrice;
+    }
+    if (supplyPrice != null && supplyPrice > 0) {
+      body['supplyPrice'] = supplyPrice;
+    }
+    if (itemNm != null && itemNm.isNotEmpty) {
+      body['itemNm'] = itemNm;
     }
     return _postJob('${_base}imports/approve', body, label: 'approve import');
   }
@@ -165,6 +177,36 @@ class ImportsPurchasesClient {
   }) async {
     final body = ctx.toJson()..['purchaseId'] = purchaseId;
     return _postJob('${_base}purchases/reject', body, label: 'reject purchase');
+  }
+
+  /// Re-queue a failed job (same [jobId] and stored request payload).
+  Future<ImportPurchaseJobAccepted> replayJob(String jobId) async {
+    final uri = Uri.parse('${_base}imports-purchases/jobs/$jobId/replay');
+    final response = await _post(uri, body: '{}', label: 'replay job');
+    if (response.statusCode != 202) {
+      throw Exception(
+        'Import/purchase job replay failed (${response.statusCode}): ${response.body}',
+      );
+    }
+    final decoded = _decodeJsonObject(response);
+    return ImportPurchaseJobAccepted(
+      jobId: decoded['jobId'] as String? ?? jobId,
+      operation: decoded['operation'] as String? ?? '',
+      status: decoded['status'] as String? ?? 'queued',
+    );
+  }
+
+  Future<ImportPurchaseJobStatus> replayJobUntilTerminal(
+    String jobId, {
+    Duration interval = const Duration(seconds: 1),
+    Duration timeout = const Duration(minutes: 5),
+  }) async {
+    final accepted = await replayJob(jobId);
+    return pollJobUntilTerminal(
+      accepted.jobId,
+      interval: interval,
+      timeout: timeout,
+    );
   }
 
   Future<ImportPurchaseJobStatus> pollJob(

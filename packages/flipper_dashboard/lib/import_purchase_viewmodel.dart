@@ -204,35 +204,54 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
   Future<void> approveImport({
     required model.Variant variant,
     String? targetVariantId,
+    double? retailPrice,
+    double? supplyPrice,
+    String? itemNm,
   }) async {
+    final resolvedRetail = retailPrice ?? variant.retailPrice;
+    final resolvedSupply = supplyPrice ?? variant.supplyPrice;
+    final resolvedName = itemNm ?? variant.itemNm ?? variant.name;
     await _runRowJob(
       rowId: variant.id,
-      action: () async {
-        final ctx = await _resolveContext();
-        final client = await _client();
-        final accepted = await client.approveImport(
+      action: () => _submitAndPoll(
+        variant.id,
+        (client, ctx) => client.approveImport(
           ctx,
           variantId: variant.id,
           targetVariantId: targetVariantId,
-        );
+          retailPrice: resolvedRetail,
+          supplyPrice: resolvedSupply,
+          itemNm: resolvedName,
+        ),
+      ),
+      successMessage: 'Approved "${variant.itemNm ?? variant.name}"',
+    );
+  }
+
+  /// Retry the last failed job for [rowId] (same job id + stored request).
+  Future<void> replayRowJob(String rowId) async {
+    final jobId = state.rowJobIds[rowId];
+    if (jobId == null || jobId.isEmpty) {
+      throw Exception('No job id recorded for this row — approve/sync again first');
+    }
+    await _runRowJob(
+      rowId: rowId,
+      action: () async {
+        final client = await _client();
+        final accepted = await client.replayJob(jobId);
         return client.pollJobUntilTerminal(accepted.jobId);
       },
-      successMessage: 'Approved "${variant.itemNm ?? variant.name}"',
+      successMessage: 'Retry succeeded',
     );
   }
 
   Future<void> rejectImport({required model.Variant variant}) async {
     await _runRowJob(
       rowId: variant.id,
-      action: () async {
-        final ctx = await _resolveContext();
-        final client = await _client();
-        final accepted = await client.rejectImport(
-          ctx,
-          variantId: variant.id,
-        );
-        return client.pollJobUntilTerminal(accepted.jobId);
-      },
+      action: () => _submitAndPoll(
+        variant.id,
+        (client, ctx) => client.rejectImport(ctx, variantId: variant.id),
+      ),
       successMessage: 'Rejected "${variant.itemNm ?? variant.name}"',
     );
   }
@@ -250,7 +269,13 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
           break;
         }
       }
-      await approveImport(variant: variant, targetVariantId: targetId);
+      await approveImport(
+        variant: variant,
+        targetVariantId: targetId,
+        retailPrice: variant.retailPrice,
+        supplyPrice: variant.supplyPrice,
+        itemNm: variant.itemNm ?? variant.name,
+      );
     }
   }
 
@@ -269,16 +294,14 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     }
     await _runRowJob(
       rowId: purchase.id,
-      action: () async {
-        final ctx = await _resolveContext();
-        final client = await _client();
-        final accepted = await client.approvePurchase(
+      action: () => _submitAndPoll(
+        purchase.id,
+        (client, ctx) => client.approvePurchase(
           ctx,
           purchaseId: purchase.id,
           itemMapper: buildPurchaseItemMapper(itemMapper),
-        );
-        return client.pollJobUntilTerminal(accepted.jobId);
-      },
+        ),
+      ),
       successMessage: 'Purchase accepted',
     );
   }
@@ -295,15 +318,10 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     }
     await _runRowJob(
       rowId: purchase.id,
-      action: () async {
-        final ctx = await _resolveContext();
-        final client = await _client();
-        final accepted = await client.rejectPurchase(
-          ctx,
-          purchaseId: purchase.id,
-        );
-        return client.pollJobUntilTerminal(accepted.jobId);
-      },
+      action: () => _submitAndPoll(
+        purchase.id,
+        (client, ctx) => client.rejectPurchase(ctx, purchaseId: purchase.id),
+      ),
       successMessage: 'Purchase declined',
     );
   }
@@ -352,6 +370,23 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     return merged;
   }
 
+  Future<ImportPurchaseJobStatus> _submitAndPoll(
+    String rowId,
+    Future<ImportPurchaseJobAccepted> Function(
+      ImportsPurchasesClient client,
+      ImportPurchaseContext ctx,
+    )
+    submit,
+  ) async {
+    final ctx = await _resolveContext();
+    final client = await _client();
+    final accepted = await submit(client, ctx);
+    _patchState(
+      (s) => s.copyWith(rowJobIds: {...s.rowJobIds, rowId: accepted.jobId}),
+    );
+    return client.pollJobUntilTerminal(accepted.jobId);
+  }
+
   Future<void> _runRowJob({
     required String rowId,
     required Future<ImportPurchaseJobStatus> Function() action,
@@ -366,9 +401,17 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
         throw Exception(result.error ?? result.resultMsg ?? 'Job failed');
       }
       await loadList();
+      _patchState(
+        (s) => s.copyWith(failedRowIds: {...s.failedRowIds}..remove(rowId)),
+      );
     } catch (e, s) {
       talker.error('Import/purchase job failed', e, s);
-      _patchState((s) => s.copyWith(error: e.toString()));
+      _patchState(
+        (s) => s.copyWith(
+          failedRowIds: {...s.failedRowIds, rowId},
+          error: e.toString(),
+        ),
+      );
       rethrow;
     } finally {
       if (!mounted) return;
@@ -378,6 +421,9 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
   }
 
   bool isProcessing(String id) => state.processingIds.contains(id);
+
+  bool canRetryRow(String id) =>
+      state.failedRowIds.contains(id) && state.rowJobIds.containsKey(id);
 
   Future<void> exportImport() async {
     if (!mounted) return;
@@ -449,6 +495,8 @@ class ImportPurchaseState {
     this.syncing = false,
     this.isExporting = false,
     this.processingIds = const {},
+    this.rowJobIds = const {},
+    this.failedRowIds = const {},
     this.lastSyncAt,
     this.error,
   });
@@ -468,6 +516,8 @@ class ImportPurchaseState {
   final bool syncing;
   final bool isExporting;
   final Set<String> processingIds;
+  final Map<String, String> rowJobIds;
+  final Set<String> failedRowIds;
   final DateTime? lastSyncAt;
   final String? error;
 
@@ -481,6 +531,8 @@ class ImportPurchaseState {
     bool? syncing,
     bool? isExporting,
     Set<String>? processingIds,
+    Map<String, String>? rowJobIds,
+    Set<String>? failedRowIds,
     DateTime? lastSyncAt,
     String? error,
     bool clearError = false,
@@ -495,6 +547,8 @@ class ImportPurchaseState {
       syncing: syncing ?? this.syncing,
       isExporting: isExporting ?? this.isExporting,
       processingIds: processingIds ?? this.processingIds,
+      rowJobIds: rowJobIds ?? this.rowJobIds,
+      failedRowIds: failedRowIds ?? this.failedRowIds,
       lastSyncAt: lastSyncAt ?? this.lastSyncAt,
       error: clearError ? null : (error ?? this.error),
     );

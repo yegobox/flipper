@@ -25,6 +25,8 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
     required this.statusFilter,
     required this.onStatusFilterChanged,
     required this.isProcessing,
+    required this.canRetry,
+    required this.onRetry,
   });
 
   final List<Purchase> purchases;
@@ -45,6 +47,8 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
   final String statusFilter;
   final ValueChanged<String> onStatusFilterChanged;
   final bool Function(String id) isProcessing;
+  final bool Function(String id) canRetry;
+  final Future<void> Function(String rowId) onRetry;
 
   @override
   ConsumerState<ImportPurchasePurchaseView> createState() =>
@@ -453,8 +457,29 @@ class _ImportPurchasePurchaseViewState
   }
 
   Widget _groupActions(Purchase purchase) {
+    final loading = widget.isProcessing(purchase.id);
+    if (loading) {
+      return IpmButton(
+        label: 'Processing…',
+        icon: Icons.hourglass_top,
+        variant: IpmButtonVariant.ghost,
+        compact: true,
+        onPressed: null,
+      );
+    }
+
     return Row(
       children: [
+        if (widget.canRetry(purchase.id)) ...[
+          IpmButton(
+            label: 'Retry',
+            icon: Icons.refresh,
+            variant: IpmButtonVariant.amberSoft,
+            compact: true,
+            onPressed: () => widget.onRetry(purchase.id),
+          ),
+          const SizedBox(width: 10),
+        ],
         _acceptAllButton(purchase),
         const SizedBox(width: 10),
         _declineAllButton(purchase),
