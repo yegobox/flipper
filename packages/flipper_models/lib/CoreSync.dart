@@ -2503,7 +2503,7 @@ class CoreSync extends AiStrategyImpl
   FutureOr<T?> create<T>({required T data}) async {
     try {
       if (data is Counter) {
-        await repository.upsert<Counter>(data);
+        await repository.upsert<Counter>(data, skipDittoSync: true);
         return data as T;
       }
 

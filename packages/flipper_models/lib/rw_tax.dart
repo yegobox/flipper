@@ -55,7 +55,7 @@ Future<void> persistCapellaCountersInvcNo(int invcNo) async {
     counter.invcNo = invcNo;
     counter.lastTouched = now;
     counter.createdAt = now;
-    final doc = await CounterDittoAdapter.instance.toDittoDocument(counter);
+    final doc = counter.toDittoDocument();
     await ditto.store.execute(
       'INSERT INTO counters DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},

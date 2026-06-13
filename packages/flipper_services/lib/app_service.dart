@@ -201,6 +201,8 @@ class AppService with ListenableServiceMixin {
       ProxyService.box.writeString(key: 'currentBranchId', value: branch.id),
     ]);
 
+    _registerBranchDittoSubscriptions(branchId: branch.id);
+
     // Defer SQLite updates to avoid blocking UI - runs in background
     Future.delayed(Duration.zero, () async {
       await updateAllBranchesInactive();
@@ -255,6 +257,31 @@ class AppService with ListenableServiceMixin {
     if (futures.isNotEmpty) {
       await Future.wait(futures);
     }
+  }
+
+  void _registerBranchDittoSubscriptions({required String branchId}) {
+    final ditto = DittoSingleton.instance.ditto;
+    if (ditto == null || branchId.isEmpty) return;
+
+    unawaited(
+      ensureBranchCatalogCloudSubscriptions(
+        ditto: ditto,
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId(),
+      ),
+    );
+    unawaited(
+      ensureBranchCounterCloudSubscription(
+        ditto: ditto,
+        branchId: branchId,
+      ),
+    );
+    unawaited(
+      ensureDailyReportFilesCloudSubscription(
+        ditto: ditto,
+        branchId: branchId,
+      ),
+    );
   }
 
   /// Initialize Ditto for the desktop login screen (using login code as temp ID)
@@ -341,21 +368,8 @@ class AppService with ListenableServiceMixin {
       }
 
       final branchId = ProxyService.box.getBranchId();
-      final ditto = DittoSingleton.instance.ditto;
-      if (branchId != null && ditto != null) {
-        unawaited(
-          ensureBranchCatalogCloudSubscriptions(
-            ditto: ditto,
-            branchId: branchId,
-            businessId: ProxyService.box.getBusinessId(),
-          ),
-        );
-        unawaited(
-          ensureDailyReportFilesCloudSubscription(
-            ditto: ditto,
-            branchId: branchId,
-          ),
-        );
+      if (branchId != null && dittoAvailable) {
+        _registerBranchDittoSubscriptions(branchId: branchId);
         // Backfill journal entries for finalized transactions that were
         // never posted (crash, pre-rollout data). Idempotent via
         // deterministic entry ids.

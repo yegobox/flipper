@@ -79,7 +79,7 @@ mixin CounterMixin implements CounterInterface {
       counter.totRcptNo = newTotRcptNo;
       counter.invcNo = newInvcNo;
 
-      await repository.upsert(counter);
+      await repository.upsert(counter, skipDittoSync: true);
     }
 
     // NOTE: Do NOT write Sar.sarNo here. `sarNo` is the stock-movement (Stock

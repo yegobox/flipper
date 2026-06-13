@@ -46,6 +46,7 @@ Future<void> showIpmAssignVariantModal(
   ) onSave,
   String? initialCatalogVariantId,
   String? initialItemCd,
+  Variant? initialCatalogVariant,
 }) {
   return showDialog<void>(
     context: context,
@@ -59,6 +60,7 @@ Future<void> showIpmAssignVariantModal(
           initialMode: initialMode,
           initialCatalogVariantId: initialCatalogVariantId,
           initialItemCd: initialItemCd,
+          initialCatalogVariant: initialCatalogVariant,
           onSave: onSave,
           onClose: () => Navigator.of(dialogContext).pop(),
         ),
@@ -75,12 +77,14 @@ class _AssignVariantModalBody extends StatefulWidget {
     required this.onClose,
     this.initialCatalogVariantId,
     this.initialItemCd,
+    this.initialCatalogVariant,
   });
 
   final Variant item;
   final IpmPurchaseMappingMode initialMode;
   final String? initialCatalogVariantId;
   final String? initialItemCd;
+  final Variant? initialCatalogVariant;
   final Future<IpmPurchaseMappingSaveResult> Function(
     IpmPurchaseMappingResult result,
   ) onSave;
@@ -114,6 +118,27 @@ class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
     _retailController = TextEditingController(
       text: widget.item.retailPrice?.toString() ?? '',
     );
+    if (widget.initialCatalogVariant != null) {
+      _applyCatalogVariant(widget.initialCatalogVariant);
+    }
+  }
+
+  void _applyCatalogVariant(Variant? catalog) {
+    if (catalog == null) return;
+    _selectedCatalogVariant = catalog;
+    _selectedCatalogVariantId = catalog.id;
+    _displayItemCd = catalog.itemCd;
+    if (_nameController.text.trim().isEmpty) {
+      _nameController.text = catalog.name;
+    }
+    final supply = catalog.supplyPrice;
+    final retail = catalog.retailPrice ?? catalog.prc ?? catalog.dftPrc;
+    if (supply != null && supply > 0) {
+      _supplyController.text = supply.toString();
+    }
+    if (retail != null && retail > 0) {
+      _retailController.text = retail.toString();
+    }
   }
 
   @override
@@ -231,14 +256,7 @@ class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
                 selectedVariantId: _selectedCatalogVariantId,
                 placeholder: 'Select a variant…',
                 onSelected: (catalog) {
-                  setState(() {
-                    _selectedCatalogVariant = catalog;
-                    _selectedCatalogVariantId = catalog?.id;
-                    _displayItemCd = catalog?.itemCd;
-                    if (catalog != null && _nameController.text.trim().isEmpty) {
-                      _nameController.text = catalog.name;
-                    }
-                  });
+                  setState(() => _applyCatalogVariant(catalog));
                 },
               ),
             ],

@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/sync/interfaces/counter_interface.dart';
-import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -144,8 +144,7 @@ mixin CapellaCounterMixin implements CounterInterface {
       counter.totRcptNo = newTotRcptNo;
       counter.invcNo = newInvcNo;
 
-      final doc =
-          await CounterDittoAdapter.instance.toDittoDocument(counter);
+      final doc = counter.toDittoDocument();
       await ditto.store.execute(
         'INSERT INTO counters DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
         arguments: {'doc': doc},
@@ -170,13 +169,8 @@ mixin CapellaCounterMixin implements CounterInterface {
       final controller = StreamController<List<Counter>>.broadcast();
       dynamic observer;
 
-      final preparedCnt = prepareDqlSyncSubscription(
-        "SELECT * FROM counters WHERE branchId = :branchId",
-        {'branchId': branchId},
-      );
-      ditto.sync.registerSubscription(
-        preparedCnt.dql,
-        arguments: preparedCnt.arguments,
+      unawaited(
+        ensureBranchCounterCloudSubscription(ditto: ditto, branchId: branchId),
       );
 
       observer = ditto.store.registerObserver(

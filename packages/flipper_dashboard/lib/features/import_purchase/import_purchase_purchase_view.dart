@@ -150,6 +150,15 @@ class _ImportPurchasePurchaseViewState
     return const IpmMappingBadge.unmapped();
   }
 
+  Variant? _assignedCatalogVariant(Variant lineItem) {
+    final id = _assignedCatalogId(lineItem);
+    if (id == null) return null;
+    for (final v in widget.variants) {
+      if (v.id == id) return v;
+    }
+    return null;
+  }
+
   void _openAssign(
     BuildContext context,
     Purchase purchase,
@@ -161,6 +170,7 @@ class _ImportPurchasePurchaseViewState
       initialMode: _initialMappingMode(item),
       initialCatalogVariantId: _assignedCatalogId(item),
       initialItemCd: _assignedCatalogItemCd(item),
+      initialCatalogVariant: _assignedCatalogVariant(item),
       onSave: (result) => widget.onSavePurchaseMapping(item, result),
     );
   }

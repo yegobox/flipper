@@ -800,12 +800,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       // Small delay to prevent SQLite lock
       await Future.delayed(const Duration(milliseconds: 100));
 
-      // Step 3: Hydrate counters after branch context is set
-      await DittoSyncCoordinator.instance.hydrate<Counter>();
-
-      // Small delay to allow DB to settle
-      await Future.delayed(const Duration(milliseconds: 100));
-
       if (!isMobile) {
         // Choose default app if not set
         String? defaultApp = ProxyService.box.getDefaultApp();

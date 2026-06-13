@@ -8,6 +8,46 @@ import 'package:flutter/foundation.dart';
 /// Ditto cloud subscriptions for catalog collections (data-connector bulk writes).
 final Set<String> _branchCatalogSubscriptionKeys = {};
 
+/// Ditto cloud/P2P pull for receipt counters (Capella-owned; not Brick-seeded).
+final Set<String> _branchCounterSubscriptionKeys = {};
+
+/// Registers a branch-scoped counter subscription once per branch.
+/// Pulls fresh `counters` rows from Ditto mesh/cloud without pushing SQLite.
+Future<void> ensureBranchCounterCloudSubscription({
+  required Ditto ditto,
+  required String branchId,
+}) async {
+  if (branchId.isEmpty) return;
+
+  final key = 'counters|$branchId';
+  if (!_branchCounterSubscriptionKeys.add(key)) {
+    return;
+  }
+
+  const sql = 'SELECT * FROM counters WHERE branchId = :branchId';
+  final args = <String, dynamic>{'branchId': branchId};
+
+  try {
+    final prepared = prepareDqlSyncSubscription(sql, args);
+    await ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+    if (kDebugMode) {
+      debugPrint(
+        'ensureBranchCounterCloudSubscription: registered $key',
+      );
+    }
+  } catch (e, st) {
+    _branchCounterSubscriptionKeys.remove(key);
+    debugPrint(
+      'ensureBranchCounterCloudSubscription: failed $key: $e\n'
+      '${describeDqlSyncSubscriptionAttempt(sql, args)}\n'
+      '$st',
+    );
+  }
+}
+
 /// Registers branch-scoped cloud pull subscriptions once per key.
 /// Safe to call repeatedly; duplicate keys are skipped.
 Future<void> ensureBranchCatalogCloudSubscriptions({
