@@ -144,6 +144,164 @@ class IpmStatusBadge extends StatelessWidget {
   }
 }
 
+class IpmMappingBadge extends StatelessWidget {
+  const IpmMappingBadge.unmapped({super.key})
+      : label = 'Map variant',
+        showWarning = true,
+        accent = true;
+
+  const IpmMappingBadge.newVariant({super.key})
+      : label = 'New variant',
+        showWarning = false,
+        accent = true;
+
+  const IpmMappingBadge.mapped(this.label, {super.key})
+      : showWarning = false,
+        accent = false;
+
+  final String label;
+  final bool showWarning;
+  final bool accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = accent
+        ? ImportPurchaseTokens.accentStrong
+        : ImportPurchaseTokens.ink2;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          showWarning ? Icons.warning_amber_rounded : Icons.local_offer_outlined,
+          size: 14,
+          color: showWarning ? ImportPurchaseTokens.amber : fg,
+        ),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: ImportPurchaseHelpers.text(
+              size: 12,
+              weight: FontWeight.w700,
+              color: fg,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class IpmChoiceOption extends StatelessWidget {
+  const IpmChoiceOption({
+    super.key,
+    required this.selected,
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? ImportPurchaseTokens.accentWash : ImportPurchaseTokens.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(ImportPurchaseTokens.radius),
+        side: BorderSide(
+          color: selected ? ImportPurchaseTokens.accent : ImportPurchaseTokens.line2,
+          width: 1.5,
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(ImportPurchaseTokens.radius),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? ImportPurchaseTokens.accent
+                      : ImportPurchaseTokens.surface3,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  size: 19,
+                  color: selected ? Colors.white : ImportPurchaseTokens.ink2,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: ImportPurchaseHelpers.text(
+                        size: 14.5,
+                        weight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: ImportPurchaseHelpers.text(
+                        size: 12.5,
+                        weight: FontWeight.w500,
+                        color: ImportPurchaseTokens.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 20,
+                height: 20,
+                margin: const EdgeInsets.only(top: 2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected
+                        ? ImportPurchaseTokens.accent
+                        : ImportPurchaseTokens.line2,
+                    width: 2,
+                  ),
+                ),
+                child: selected
+                    ? Center(
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: ImportPurchaseTokens.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class IpmEmptyState extends StatelessWidget {
   const IpmEmptyState({
     super.key,
@@ -383,6 +541,57 @@ class IpmFieldLabel extends StatelessWidget {
           weight: FontWeight.w700,
           color: uppercase ? ImportPurchaseTokens.muted : ImportPurchaseTokens.ink2,
           letterSpacing: uppercase ? 0.55 : 0.1,
+        ),
+      ),
+    );
+  }
+}
+
+class IpmCopyableValue extends StatelessWidget {
+  const IpmCopyableValue({
+    super.key,
+    required this.value,
+    required this.onCopy,
+  });
+
+  final String value;
+  final VoidCallback onCopy;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: ImportPurchaseTokens.accentWash,
+      borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+      child: InkWell(
+        onTap: onCopy,
+        borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+            border: Border.all(color: ImportPurchaseTokens.accent.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  value,
+                  style: ImportPurchaseHelpers.text(
+                    size: 14.5,
+                    weight: FontWeight.w700,
+                    color: ImportPurchaseTokens.accentStrong,
+                    tabular: true,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.content_copy,
+                size: 18,
+                color: ImportPurchaseTokens.accentStrong,
+              ),
+            ],
+          ),
         ),
       ),
     );

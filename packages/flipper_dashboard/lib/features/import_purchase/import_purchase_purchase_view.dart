@@ -14,12 +14,8 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
   const ImportPurchasePurchaseView({
     super.key,
     required this.purchases,
-    required this.nameController,
-    required this.supplyPriceController,
-    required this.retailPriceController,
-    required this.saveItemName,
     required this.acceptPurchases,
-    required this.selectSale,
+    required this.onSavePurchaseMapping,
     required this.variants,
     required this.itemMapper,
     required this.statusFilter,
@@ -30,18 +26,16 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
   });
 
   final List<Purchase> purchases;
-  final TextEditingController nameController;
-  final TextEditingController supplyPriceController;
-  final TextEditingController retailPriceController;
-  final VoidCallback saveItemName;
   final Future<void> Function({
     required List<Purchase> purchases,
     required String pchsSttsCd,
     required Purchase purchase,
     Variant? clickedVariant,
   }) acceptPurchases;
-  final void Function(Variant? itemToAssign, Variant? itemFromPurchase)
-      selectSale;
+  final Future<IpmPurchaseMappingSaveResult> Function(
+    Variant line,
+    IpmPurchaseMappingResult result,
+  ) onSavePurchaseMapping;
   final List<Variant> variants;
   final Map<String, List<Variant>> itemMapper;
   final String statusFilter;
@@ -129,6 +123,33 @@ class _ImportPurchasePurchaseViewState
     return null;
   }
 
+  String? _assignedCatalogItemCd(Variant lineItem) {
+    final id = _assignedCatalogId(lineItem);
+    if (id == null) return null;
+    for (final v in widget.variants) {
+      if (v.id == id) return v.itemCd;
+    }
+    return null;
+  }
+
+  IpmPurchaseMappingMode _initialMappingMode(Variant item) {
+    if (_assignedCatalogId(item) != null) {
+      return IpmPurchaseMappingMode.mapExisting;
+    }
+    return IpmPurchaseMappingMode.createNew;
+  }
+
+  Widget _mappingBadge(Variant item) {
+    final catalogName = _assignedCatalogName(item);
+    final itemCd = _assignedCatalogItemCd(item);
+    if (catalogName != null) {
+      return IpmMappingBadge.mapped(
+        itemCd != null && itemCd.isNotEmpty ? itemCd : catalogName,
+      );
+    }
+    return const IpmMappingBadge.unmapped();
+  }
+
   void _openAssign(
     BuildContext context,
     Purchase purchase,
@@ -137,12 +158,10 @@ class _ImportPurchasePurchaseViewState
     showIpmAssignVariantModal(
       context,
       item: item,
-      nameController: widget.nameController,
-      supplyPriceController: widget.supplyPriceController,
-      retailPriceController: widget.retailPriceController,
-      saveItemName: widget.saveItemName,
-      selectSale: widget.selectSale,
+      initialMode: _initialMappingMode(item),
       initialCatalogVariantId: _assignedCatalogId(item),
+      initialItemCd: _assignedCatalogItemCd(item),
+      onSave: (result) => widget.onSavePurchaseMapping(item, result),
     );
   }
 
@@ -586,7 +605,7 @@ class _ImportPurchasePurchaseViewState
                   width: 130,
                   child: IpmColumnHeader('Retail', align: TextAlign.end),
                 ),
-                SizedBox(width: 110, child: IpmColumnHeader('Status')),
+                SizedBox(width: 118, child: IpmColumnHeader('Mapping')),
               ],
             ),
           ),
@@ -594,7 +613,6 @@ class _ImportPurchasePurchaseViewState
             final i = entry.key;
             final item = entry.value;
             final vtag = _assignedCatalogName(item);
-            final statusKey = ImportPurchaseHelpers.purchaseStatusKey(item);
 
             return Material(
               color: Colors.transparent,
@@ -684,30 +702,7 @@ class _ImportPurchasePurchaseViewState
                       ),
                       SizedBox(
                         width: 118,
-                        child: vtag == null
-                            ? Row(
-                                children: [
-                                  const Icon(
-                                    Icons.local_offer_outlined,
-                                    size: 14,
-                                    color: ImportPurchaseTokens.accentStrong,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      'Assign variant',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: ImportPurchaseHelpers.text(
-                                        size: 12,
-                                        weight: FontWeight.w700,
-                                        color: ImportPurchaseTokens.accentStrong,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : IpmStatusBadge(statusKey: statusKey),
+                        child: _mappingBadge(item),
                       ),
                     ],
                   ),
@@ -730,7 +725,6 @@ class _ImportPurchasePurchaseViewState
         final i = entry.key;
         final item = entry.value;
         final vtag = _assignedCatalogName(item);
-        final statusKey = ImportPurchaseHelpers.purchaseStatusKey(item);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
@@ -759,7 +753,7 @@ class _ImportPurchasePurchaseViewState
                             ),
                           ),
                         ),
-                        IpmStatusBadge(statusKey: statusKey),
+                        _mappingBadge(item),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -789,26 +783,7 @@ class _ImportPurchasePurchaseViewState
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.local_offer_outlined,
-                          size: 15,
-                          color: ImportPurchaseTokens.accentStrong,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          vtag != null
-                              ? 'Variant · $vtag — tap to edit'
-                              : 'Tap to assign variant',
-                          style: ImportPurchaseHelpers.text(
-                            size: 12.5,
-                            weight: FontWeight.w700,
-                            color: ImportPurchaseTokens.accentStrong,
-                          ),
-                        ),
-                      ],
-                    ),
+                    _mappingHint(item, vtag),
                   ],
                 ),
               ),
@@ -816,6 +791,35 @@ class _ImportPurchasePurchaseViewState
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _mappingHint(Variant item, String? catalogName) {
+    final itemCd = _assignedCatalogItemCd(item);
+    final text = catalogName != null
+        ? (itemCd != null && itemCd.isNotEmpty
+            ? 'Mapped · $itemCd — tap to change'
+            : 'Mapped · $catalogName — tap to change')
+        : 'Tap to map this line';
+    return Row(
+      children: [
+        const Icon(
+          Icons.local_offer_outlined,
+          size: 15,
+          color: ImportPurchaseTokens.accentStrong,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: ImportPurchaseHelpers.text(
+              size: 12.5,
+              weight: FontWeight.w700,
+              color: ImportPurchaseTokens.accentStrong,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
