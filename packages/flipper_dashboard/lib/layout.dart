@@ -19,6 +19,7 @@ import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/hooks/use_access_permissions_realtime.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -99,8 +100,24 @@ class DashboardLayout extends HookConsumerWidget {
                     ),
                     child: SizedBox(
                       height: PosLayoutBreakpoints.desktopTopBarHeight,
-                      child: UnifiedTopBar(
-                        searchController: searchController,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: PosLayoutBreakpoints.sideMenuWidth,
+                            child: Center(
+                              child: PosHandoffIcons.svg(
+                                'flipper-logo',
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: UnifiedTopBar(
+                              searchController: searchController,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
