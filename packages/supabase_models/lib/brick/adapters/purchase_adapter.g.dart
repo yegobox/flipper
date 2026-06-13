@@ -8,6 +8,21 @@ Future<Purchase> _$PurchaseFromSupabase(
 }) async {
   return Purchase(
     id: data['id'] as String?,
+    variants: data['variants'] == null
+        ? null
+        : await Future.wait<Variant>(
+            data['variants']
+                    ?.map(
+                      (d) => VariantAdapter().fromSupabase(
+                        d,
+                        provider: provider,
+                        repository: repository,
+                      ),
+                    )
+                    .toList()
+                    .cast<Future<Variant>>() ??
+                [],
+          ),
     spplrTin: data['spplr_tin'] as String,
     spplrNm: data['spplr_nm'] as String,
     spplrBhfId: data['spplr_bhf_id'] as String,
@@ -55,6 +70,18 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(
 }) async {
   return {
     'id': instance.id,
+    'variants': await Future.wait<Map<String, dynamic>>(
+      instance.variants
+              ?.map(
+                (s) => VariantAdapter().toSupabase(
+                  s,
+                  provider: provider,
+                  repository: repository,
+                ),
+              )
+              .toList() ??
+          [],
+    ),
     'spplr_tin': instance.spplrTin,
     'spplr_nm': instance.spplrNm,
     'spplr_bhf_id': instance.spplrBhfId,
@@ -98,6 +125,26 @@ Future<Purchase> _$PurchaseFromSqlite(
 }) async {
   return Purchase(
     id: data['id'] as String,
+    variants:
+        (await provider
+                .rawQuery(
+                  'SELECT DISTINCT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE l_Purchase_brick_id = ?',
+                  [data['_brick_id'] as int],
+                )
+                .then((results) {
+                  final ids = results.map((r) => r['f_Variant_brick_id']);
+                  return Future.wait<Variant>(
+                    ids.map(
+                      (primaryKey) => repository!
+                          .getAssociation<Variant>(
+                            Query.where('primaryKey', primaryKey, limit1: true),
+                          )
+                          .then((r) => r!.first),
+                    ),
+                  );
+                }))
+            .toList()
+            .cast<Variant>(),
     spplrTin: data['spplr_tin'] as String,
     spplrNm: data['spplr_nm'] as String,
     spplrBhfId: data['spplr_bhf_id'] as String,
@@ -196,6 +243,12 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
+    ),
+    'variants': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'variants',
+      associationType: Variant,
+      associationIsNullable: true,
     ),
     'spplrTin': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -347,6 +400,12 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
       columnName: 'id',
       iterable: false,
       type: String,
+    ),
+    'variants': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'variants',
+      iterable: true,
+      type: Variant,
     ),
     'spplrTin': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -568,6 +627,47 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
 
   @override
   final String tableName = 'Purchase';
+  @override
+  Future<void> afterSave(instance, {required provider, repository}) async {
+    if (instance.primaryKey != null) {
+      final variantsOldColumns = await provider.rawQuery(
+        'SELECT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ?',
+        [instance.primaryKey],
+      );
+      final variantsOldIds = variantsOldColumns.map(
+        (a) => a['f_Variant_brick_id'],
+      );
+      final variantsNewIds =
+          instance.variants?.map((s) => s.primaryKey).whereType<int>() ?? [];
+      final variantsIdsToDelete = variantsOldIds.where(
+        (id) => !variantsNewIds.contains(id),
+      );
+
+      await Future.wait<void>(
+        variantsIdsToDelete.map((id) async {
+          return await provider
+              .rawExecute(
+                'DELETE FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ? AND `f_Variant_brick_id` = ?',
+                [instance.primaryKey, id],
+              )
+              .catchError((e) => null);
+        }),
+      );
+
+      await Future.wait<int?>(
+        instance.variants?.map((s) async {
+              final id =
+                  s.primaryKey ??
+                  await provider.upsert<Variant>(s, repository: repository);
+              return await provider.rawInsert(
+                'INSERT OR IGNORE INTO `_brick_Purchase_variants` (`l_Purchase_brick_id`, `f_Variant_brick_id`) VALUES (?, ?)',
+                [instance.primaryKey, id],
+              );
+            }) ??
+            [],
+      );
+    }
+  }
 
   @override
   Future<Purchase> fromSupabase(
