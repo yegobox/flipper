@@ -927,6 +927,7 @@ class TaxController<OBJ> {
     String receiptType, {
     required DateTime whenCreated,
     required int invoiceNumber,
+    bool skipDittoSync = false,
   }) async {
     try {
       await ProxyService.getStrategy(Strategy.capella).createReceipt(
@@ -938,6 +939,7 @@ class TaxController<OBJ> {
         receiptType: receiptType,
         whenCreated: whenCreated,
         invoiceNumber: invoiceNumber,
+        skipDittoSync: skipDittoSync,
       );
     } catch (e) {
       rethrow;

@@ -70,6 +70,7 @@ Receipt buildPresentationReceipt({
 Future<void> persistDeferredSaleReceipt(DeferredSaleReceiptPersist deferred) async {
   final sw = Stopwatch()..start();
   final tax = TaxController<ITransaction>(object: deferred.transaction);
+  // SQLite-only during hot path; avoid contending with print/PDF on Ditto queue.
   await tax.saveReceipt(
     deferred.receiptSignature,
     deferred.transaction,
@@ -78,6 +79,7 @@ Future<void> persistDeferredSaleReceipt(DeferredSaleReceiptPersist deferred) asy
     deferred.receiptNumber,
     whenCreated: deferred.whenCreated,
     invoiceNumber: deferred.highestInvcNo,
+    skipDittoSync: true,
   );
   await ProxyService.getStrategy(Strategy.capella).updateCounters(
     counters: deferred.counters,

@@ -482,6 +482,7 @@ class CoreSync extends AiStrategyImpl
     required int highestInvcNo,
     required int invoiceNumber,
     required String timeReceivedFromserver,
+    bool skipDittoSync = false,
   }) async {
     String branchId = ProxyService.box.getBranchId()!;
 
@@ -531,11 +532,13 @@ class CoreSync extends AiStrategyImpl
       return await repository.upsert(
         existingReceipt,
         query: brick.Query(action: QueryAction.update),
+        skipDittoSync: skipDittoSync,
       );
     } else {
       return await repository.upsert(
         receipt,
         query: brick.Query(action: QueryAction.insert),
+        skipDittoSync: skipDittoSync,
       );
     }
   }

@@ -181,9 +181,11 @@ mixin TransactionMixinOld {
             '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
           );
 
-          scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
-          unawaited(
-            _presentReceiptAfterSale(
+          // Print before heavy Ditto writes (createReceipt/updateCounters) so PDF
+          // generation is not stuck behind a congested store queue.
+          final printSw = Stopwatch()..start();
+          try {
+            await _presentReceiptAfterSale(
               formKey: formKey,
               context: context,
               transaction: transaction,
@@ -192,8 +194,15 @@ mixin TransactionMixinOld {
               sendDigitalReceipt: sendDigitalReceipt,
               transactionItems: preloadedLineItemsForCollectPayment,
               presentationReceipt: signOutcome.presentationReceipt,
-            ),
+            );
+          } catch (e, s) {
+            talker.error('Receipt print after sale failed: $e', s);
+          }
+          talker.debug(
+            '[sale_completion_timing] present_receipt_ms=${printSw.elapsedMilliseconds}',
           );
+
+          scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
           talker.debug(
             '[sale_completion_timing] finalize_payment_quick_sell_ms='
             '${completionSw.elapsedMilliseconds}',

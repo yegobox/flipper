@@ -758,13 +758,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 ),
               );
             }
-            unawaited(() async {
-              try {
-                await _invokeCompleteTransactionCallback(completeTransaction);
-              } catch (e) {
-                talker.error("Error in completeTransaction callback: $e");
-              }
-            }());
+            try {
+              await _invokeCompleteTransactionCallback(completeTransaction);
+            } catch (e, s) {
+              talker.error('Error in completeTransaction callback: $e', s);
+            }
             _resetDigitalReceiptToggleAfterSale();
           },
         );
