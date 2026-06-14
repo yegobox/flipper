@@ -8,6 +8,8 @@ class AppInputDecoration {
     required String hintText,
     IconData? prefixIcon,
     Widget? suffixIcon,
+    BoxConstraints? suffixIconConstraints,
+    Widget? suffix,
     TextEditingController? controller,
     VoidCallback? onClearPressed,
     /// When set, used for enabled/focused borders instead of [Theme.primaryColor].
@@ -19,12 +21,37 @@ class AppInputDecoration {
     Color? labelColor,
     Color? fillColor,
   }) {
-    Widget? resolvedSuffix = suffixIcon;
-    if (resolvedSuffix == null &&
+    Widget? resolvedSuffixIcon = suffixIcon;
+    final showClear =
+        resolvedSuffixIcon == null &&
         controller != null &&
         controller.text.isNotEmpty &&
-        onClearPressed != null) {
-      resolvedSuffix = IconButton(
+        onClearPressed != null;
+
+    if (suffix != null) {
+      resolvedSuffixIcon = Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          suffix,
+          if (showClear) ...[
+            const SizedBox(width: 2),
+            IconButton(
+              icon: Icon(
+                Icons.clear,
+                color: Colors.grey.shade600,
+                size: 20.0,
+              ),
+              onPressed: onClearPressed,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ],
+      );
+    } else if (showClear) {
+      resolvedSuffixIcon = IconButton(
         icon: Icon(
           Icons.clear,
           color: Colors.grey.shade600,
@@ -35,10 +62,10 @@ class AppInputDecoration {
     }
     // Keep suffix content inset from the outline so icons/text do not sit on
     // the border (common with rounded/focused outlines).
-    if (resolvedSuffix != null) {
-      resolvedSuffix = Padding(
+    if (resolvedSuffixIcon != null) {
+      resolvedSuffixIcon = Padding(
         padding: const EdgeInsetsDirectional.only(end: 10.0),
-        child: resolvedSuffix,
+        child: resolvedSuffixIcon,
       );
     }
 
@@ -73,7 +100,8 @@ class AppInputDecoration {
               size: 22.0,
             )
           : null,
-      suffixIcon: resolvedSuffix,
+      suffixIcon: resolvedSuffixIcon,
+      suffixIconConstraints: suffixIconConstraints,
       border: _outlineBorder(
         borderRadius: radius,
         color: baseColor.withValues(alpha: 0.55),
@@ -148,6 +176,8 @@ class StyledTextFormField {
     int? minLines,
     IconData? prefixIcon,
     Widget? suffixIcon,
+    BoxConstraints? suffixIconConstraints,
+    Widget? suffix,
     String? Function(String?)? validator,
     void Function(String)? onChanged,
     Key? key, // Add optional Key parameter
@@ -179,6 +209,8 @@ class StyledTextFormField {
         hintText: hintText,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon, // Pass the custom suffixIcon
+        suffixIconConstraints: suffixIconConstraints,
+        suffix: suffix,
         controller: controller,
         onClearPressed: controller != null
             ? () {

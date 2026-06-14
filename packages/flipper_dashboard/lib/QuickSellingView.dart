@@ -2444,21 +2444,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           fontSize: 22,
           fontWeight: FontWeight.w600,
         ),
-        suffixIcon: Container(
-          margin: const EdgeInsetsDirectional.only(end: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-          ),
-          child: Text(
-            ProxyService.box.defaultCurrency(),
-            style: const TextStyle(
-              color: Color(0xFF6B7280),
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+        suffix: Text(
+          ProxyService.box.defaultCurrency(),
+          style: const TextStyle(
+            color: Color(0xFF9CA3AF),
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
         onChanged: (value) => setState(() {
