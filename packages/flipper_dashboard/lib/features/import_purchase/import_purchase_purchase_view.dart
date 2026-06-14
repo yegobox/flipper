@@ -31,11 +31,13 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
     required String pchsSttsCd,
     required Purchase purchase,
     Variant? clickedVariant,
-  }) acceptPurchases;
+  })
+  acceptPurchases;
   final Future<IpmPurchaseMappingSaveResult> Function(
     Variant line,
     IpmPurchaseMappingResult result,
-  ) onSavePurchaseMapping;
+  )
+  onSavePurchaseMapping;
   final List<Variant> variants;
   final Map<String, List<Variant>> itemMapper;
   final String statusFilter;
@@ -51,7 +53,7 @@ class ImportPurchasePurchaseView extends ConsumerStatefulWidget {
 
 class _ImportPurchasePurchaseViewState
     extends ConsumerState<ImportPurchasePurchaseView> {
-  static const _pageSize = 4;
+  static const _pageSize = 8;
   int _page = 0;
   final Map<String, bool> _expanded = {};
   final Map<String, Stock> _stockMap = {};
@@ -66,10 +68,12 @@ class _ImportPurchasePurchaseViewState
 
   List<Variant> _filterVariants(List<Variant> variants) {
     return variants
-        .where((v) => ImportPurchaseHelpers.matchesPurchaseVariantFilter(
-              v,
-              widget.statusFilter,
-            ))
+        .where(
+          (v) => ImportPurchaseHelpers.matchesPurchaseVariantFilter(
+            v,
+            widget.statusFilter,
+          ),
+        )
         .toList();
   }
 
@@ -159,11 +163,7 @@ class _ImportPurchasePurchaseViewState
     return null;
   }
 
-  void _openAssign(
-    BuildContext context,
-    Purchase purchase,
-    Variant item,
-  ) {
+  void _openAssign(BuildContext context, Purchase purchase, Variant item) {
     showIpmAssignVariantModal(
       context,
       item: item,
@@ -259,7 +259,11 @@ class _ImportPurchasePurchaseViewState
     );
   }
 
-  Widget _pagerArrow(IconData icon, {required bool enabled, VoidCallback? onTap}) {
+  Widget _pagerArrow(
+    IconData icon, {
+    required bool enabled,
+    VoidCallback? onTap,
+  }) {
     return Material(
       color: ImportPurchaseTokens.surface,
       shape: RoundedRectangleBorder(
@@ -275,7 +279,9 @@ class _ImportPurchasePurchaseViewState
           child: Icon(
             icon,
             size: 18,
-            color: enabled ? ImportPurchaseTokens.ink2 : ImportPurchaseTokens.faint,
+            color: enabled
+                ? ImportPurchaseTokens.ink2
+                : ImportPurchaseTokens.faint,
           ),
         ),
       ),
@@ -404,10 +410,7 @@ class _ImportPurchasePurchaseViewState
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [
-            _timePill(purchase),
-            _totalPill(total),
-          ],
+          children: [_timePill(purchase), _totalPill(total)],
         ),
         const SizedBox(height: 10),
         Row(
@@ -544,7 +547,9 @@ class _ImportPurchasePurchaseViewState
 
   Widget _expandButton(bool open, Purchase purchase) {
     return Material(
-      color: open ? ImportPurchaseTokens.accentWash : ImportPurchaseTokens.surface,
+      color: open
+          ? ImportPurchaseTokens.accentWash
+          : ImportPurchaseTokens.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(9),
         side: BorderSide(
@@ -597,7 +602,9 @@ class _ImportPurchasePurchaseViewState
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: const BoxDecoration(
               color: ImportPurchaseTokens.surface2,
-              border: Border(bottom: BorderSide(color: ImportPurchaseTokens.line)),
+              border: Border(
+                bottom: BorderSide(color: ImportPurchaseTokens.line),
+              ),
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(ImportPurchaseTokens.radius),
               ),
@@ -606,7 +613,10 @@ class _ImportPurchasePurchaseViewState
               children: [
                 SizedBox(width: 50, child: IpmColumnHeader('No.')),
                 Expanded(child: IpmColumnHeader('Name')),
-                SizedBox(width: 90, child: IpmColumnHeader('Qty', align: TextAlign.end)),
+                SizedBox(
+                  width: 90,
+                  child: IpmColumnHeader('Qty', align: TextAlign.end),
+                ),
                 SizedBox(
                   width: 130,
                   child: IpmColumnHeader('Supply', align: TextAlign.end),
@@ -632,7 +642,9 @@ class _ImportPurchasePurchaseViewState
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   constraints: const BoxConstraints(minHeight: 56),
                   decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: ImportPurchaseTokens.line)),
+                    border: Border(
+                      bottom: BorderSide(color: ImportPurchaseTokens.line),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -710,10 +722,7 @@ class _ImportPurchasePurchaseViewState
                           ),
                         ),
                       ),
-                      SizedBox(
-                        width: 118,
-                        child: _mappingBadge(item),
-                      ),
+                      SizedBox(width: 118, child: _mappingBadge(item)),
                     ],
                   ),
                 ),
@@ -741,12 +750,16 @@ class _ImportPurchasePurchaseViewState
           child: Material(
             color: ImportPurchaseTokens.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+              borderRadius: BorderRadius.circular(
+                ImportPurchaseTokens.radiusSm,
+              ),
               side: const BorderSide(color: ImportPurchaseTokens.line),
             ),
             child: InkWell(
               onTap: () => _openAssign(context, purchase, item),
-              borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+              borderRadius: BorderRadius.circular(
+                ImportPurchaseTokens.radiusSm,
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(
@@ -808,8 +821,8 @@ class _ImportPurchasePurchaseViewState
     final itemCd = _assignedCatalogItemCd(item);
     final text = catalogName != null
         ? (itemCd != null && itemCd.isNotEmpty
-            ? 'Mapped · $itemCd — tap to change'
-            : 'Mapped · $catalogName — tap to change')
+              ? 'Mapped · $itemCd — tap to change'
+              : 'Mapped · $catalogName — tap to change')
         : 'Tap to map this line';
     return Row(
       children: [
