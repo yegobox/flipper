@@ -200,7 +200,7 @@ class DashboardQuickAccessSvgs {
   static String drawerAuthShieldIcon() =>
       '''
 <svg viewBox="0 0 24 24" fill="none" $_xmlns>
-  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
 </svg>''';
 
   static String drawerOnlinePrintSyncIcon() =>
