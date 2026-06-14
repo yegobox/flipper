@@ -2611,126 +2611,140 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildCustomerPhoneField() {
+    const accent = PosLayoutBreakpoints.posAccentBlue;
+
     return Semantics(
       label: context.flipperL10n.customerPhoneNumber,
       hint: context.flipperL10n.customerPhoneNumberHint,
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-          borderRadius: BorderRadius.circular(8),
-          color:
-              Theme.of(context).inputDecorationTheme.fillColor ?? Colors.white,
-        ),
-        child: Row(
-          children: [
-            // Country code picker with consistent padding and height
-            Container(
-              height: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  bottomLeft: Radius.circular(8),
-                ),
+      child: ListenableBuilder(
+        listenable: _customerPhoneFocusNode,
+        builder: (context, _) {
+          final focused = _customerPhoneFocusNode.hasFocus;
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: focused ? accent : const Color(0xFFE5E7EB),
+                width: focused ? 2 : 1,
               ),
-              child: Center(
-                child: ExcludeFocus(
-                  child: DefaultTextStyle(
-                    style: const TextStyle(
-                      color: PosLayoutBreakpoints.posAccentBlue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    child: CountryCodePicker(
-                      onChanged: (countryCode) {
-                        widget.countryCodeController.text =
-                            countryCode.dialCode!;
-                      },
-                      initialSelection: 'RW',
-                      favorite: const ['+250', 'RW'],
-                      showCountryOnly: false,
-                      showOnlyCountryWhenClosed: false,
-                      alignLeft: false,
-                      padding: EdgeInsets.zero,
-                      textStyle: const TextStyle(
-                        color: PosLayoutBreakpoints.posAccentBlue,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ExcludeFocus(
+                  child: CountryCodePicker(
+                    onChanged: (countryCode) {
+                      widget.countryCodeController.text =
+                          countryCode.dialCode!;
+                    },
+                    initialSelection: 'RW',
+                    favorite: const ['+250', 'RW'],
+                    showCountryOnly: false,
+                    showOnlyCountryWhenClosed: false,
+                    showDropDownButton: false,
+                    alignLeft: false,
+                    padding: EdgeInsets.zero,
+                    flagWidth: 22,
+                    builder: (country) {
+                      final dialCode = country?.dialCode ?? '+250';
+                      final flagUri = country?.flagUri;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (flagUri != null)
+                              Image.asset(
+                                flagUri,
+                                package: 'country_code_picker',
+                                width: 22,
+                              ),
+                            const SizedBox(width: 6),
+                            Text(
+                              dialCode,
+                              style: const TextStyle(
+                                color: accent,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
-              ),
-            ),
-
-            // No divider — we make it feel seamless
-            Expanded(
-              child: StyledTextFormField.create(
-                context: context,
-                labelText: null,
-                hintText: context.flipperL10n.phoneNumber,
-                controller: widget.customerPhoneNumberController,
-                focusNode: _customerPhoneFocusNode,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) {
-                  final isOrdering = ProxyService.box.isOrdering() ?? false;
-                  if (isOrdering) {
-                    _deliveryNoteFocusNode.requestFocus();
-                  } else {
-                    FocusScope.of(context).nextFocus();
-                  }
-                },
-                maxLines: 1,
-                minLines: 1,
-                outlineColor: PosLayoutBreakpoints.posAccentBlue,
-                borderRadius: 8,
-                outlineBorderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(8),
-                  bottomRight: Radius.circular(8),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: const Color(0xFFE5E7EB),
                 ),
-                fillColor: Colors.white,
-                hintColor: const Color(0xFF6B7280),
-                suffixIcon: Icon(
-                  FluentIcons.call_20_regular,
-                  color: PosLayoutBreakpoints.posAccentBlue,
+                Expanded(
+                  child: StyledTextFormField.create(
+                    context: context,
+                    labelText: null,
+                    hintText: context.flipperL10n.phoneNumber,
+                    controller: widget.customerPhoneNumberController,
+                    focusNode: _customerPhoneFocusNode,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                      final isOrdering = ProxyService.box.isOrdering() ?? false;
+                      if (isOrdering) {
+                        _deliveryNoteFocusNode.requestFocus();
+                      } else {
+                        FocusScope.of(context).nextFocus();
+                      }
+                    },
+                    maxLines: 1,
+                    minLines: 1,
+                    borderless: true,
+                    fillColor: Colors.transparent,
+                    hintColor: const Color(0xFF6B7280),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    suffixIcon: const Icon(
+                      FluentIcons.call_20_regular,
+                      color: accent,
+                    ),
+                    onChanged: (value) {
+                      ProxyService.box.writeString(
+                        key: 'currentSaleCustomerPhoneNumber',
+                        value: value,
+                      );
+
+                      talker.info('Customer phone set to: $value');
+
+                      _schedulePersistCustomerPhone(value);
+                    },
+                    validator: (String? value) {
+                      final customerTin = ProxyService.box.customerTin();
+
+                      if ((customerTin == null || customerTin.isEmpty) &&
+                          (value == null || value.isEmpty)) {
+                        ref.read(payButtonStateProvider.notifier).stopLoading();
+                        return context.flipperL10n.phoneRequiredWhenTinMissing;
+                      }
+
+                      if (value != null && value.isEmpty) {
+                        final phoneExp = RegExp(r'^[1-9]\d{8}$');
+                        if (!phoneExp.hasMatch(value)) {
+                          ref.read(payButtonStateProvider.notifier).stopLoading();
+                          return context.flipperL10n.invalidNumber;
+                        }
+                      }
+
+                      return null;
+                    },
+                  ),
                 ),
-                onChanged: (value) {
-                  // Store the customer phone number
-                  ProxyService.box.writeString(
-                    key: 'currentSaleCustomerPhoneNumber',
-                    value: value,
-                  );
-
-                  // For debugging
-                  talker.info('Customer phone set to: $value');
-
-                  _schedulePersistCustomerPhone(value);
-                },
-                validator: (String? value) {
-                  final customerTin = ProxyService.box.customerTin();
-
-                  if ((customerTin == null || customerTin.isEmpty) &&
-                      (value == null || value.isEmpty)) {
-                    ref.read(payButtonStateProvider.notifier).stopLoading();
-                    return context.flipperL10n.phoneRequiredWhenTinMissing;
-                  }
-
-                  if (value != null && value.isEmpty) {
-                    final phoneExp = RegExp(r'^[1-9]\d{8}$');
-                    if (!phoneExp.hasMatch(value)) {
-                      ref.read(payButtonStateProvider.notifier).stopLoading();
-                      return context.flipperL10n.invalidNumber;
-                    }
-                  }
-
-                  return null;
-                },
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

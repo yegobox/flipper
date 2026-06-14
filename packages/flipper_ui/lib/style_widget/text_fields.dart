@@ -20,6 +20,8 @@ class AppInputDecoration {
     Color? hintColor,
     Color? labelColor,
     Color? fillColor,
+    bool borderless = false,
+    EdgeInsetsGeometry? contentPadding,
   }) {
     Widget? resolvedSuffixIcon = suffixIcon;
     final showClear =
@@ -77,6 +79,29 @@ class AppInputDecoration {
     final resolvedHintColor =
         hintColor ?? Theme.of(context).hintColor.withValues(alpha: .7);
     final resolvedFill = fillColor ?? Theme.of(context).cardColor;
+    final inputBorder = borderless
+        ? InputBorder.none
+        : _outlineBorder(
+            borderRadius: radius,
+            color: baseColor.withValues(alpha: 0.55),
+          );
+    final focusedInputBorder = borderless
+        ? InputBorder.none
+        : _outlineBorder(
+            borderRadius: radius,
+            color: baseColor,
+            width: 2.0,
+          );
+    final errorInputBorder = borderless
+        ? InputBorder.none
+        : _buildErrorBorder(context, borderRadius: radius);
+    final focusedErrorInputBorder = borderless
+        ? InputBorder.none
+        : _buildErrorBorder(
+            context,
+            borderRadius: radius,
+            width: 2.0,
+          );
 
     return InputDecoration(
       labelText: labelText,
@@ -102,31 +127,19 @@ class AppInputDecoration {
           : null,
       suffixIcon: resolvedSuffixIcon,
       suffixIconConstraints: suffixIconConstraints,
-      border: _outlineBorder(
-        borderRadius: radius,
-        color: baseColor.withValues(alpha: 0.55),
-      ),
-      enabledBorder: _outlineBorder(
-        borderRadius: radius,
-        color: baseColor.withValues(alpha: 0.55),
-      ),
-      focusedBorder: _outlineBorder(
-        borderRadius: radius,
-        color: baseColor,
-        width: 2.0,
-      ),
-      errorBorder: _buildErrorBorder(context, borderRadius: radius),
-      focusedErrorBorder: _buildErrorBorder(
-        context,
-        borderRadius: radius,
-        width: 2.0,
-      ),
+      border: inputBorder,
+      enabledBorder: inputBorder,
+      focusedBorder: focusedInputBorder,
+      errorBorder: errorInputBorder,
+      focusedErrorBorder: focusedErrorInputBorder,
       filled: true,
       fillColor: resolvedFill,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 12.0,
-      ),
+      contentPadding:
+          contentPadding ??
+          const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 12.0,
+          ),
     );
   }
 
@@ -190,6 +203,8 @@ class StyledTextFormField {
     TextStyle? style,
     TextInputAction? textInputAction,
     void Function(String)? onFieldSubmitted,
+    bool borderless = false,
+    EdgeInsetsGeometry? contentPadding,
   }) {
     return TextFormField(
       key: key, // Pass the key to the TextFormField
@@ -224,6 +239,8 @@ class StyledTextFormField {
         hintColor: hintColor,
         labelColor: labelColor,
         fillColor: fillColor,
+        borderless: borderless,
+        contentPadding: contentPadding,
       ),
     );
   }
