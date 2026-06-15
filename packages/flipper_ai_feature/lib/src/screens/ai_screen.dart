@@ -13,6 +13,7 @@ import '../providers/whatsapp_connection_provider.dart';
 import '../providers/whatsapp_message_provider.dart';
 import '../models/flo_models.dart';
 import '../services/flo_chat_service.dart';
+import '../services/flo_local_briefing_service.dart';
 import '../theme/flo_theme.dart';
 import '../widgets/conversation_list.dart';
 import '../widgets/data_source/data_source_list_screen.dart';
@@ -34,7 +35,7 @@ class AiScreen extends ConsumerStatefulWidget {
   ConsumerState<AiScreen> createState() => _AiScreenState();
 }
 
-class _AiScreenState extends ConsumerState<AiScreen> {
+class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final _chatService = FloChatService();
@@ -43,6 +44,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   String _currentConversationId = '';
   List<Message> _messages = [];
   StreamSubscription<List<Message>>? _messageSub;
+  StreamSubscription<FloDailyBriefing?>? _localBriefingSub;
   bool _isLoading = false;
   bool _menuOpen = false;
   FloPanelMode _mode = FloPanelMode.askFlo;
@@ -51,15 +53,39 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   String? _attachedFilePath;
   String _shopName = 'your shop';
   FloDailyBriefing? _briefing;
+  FloDailyBriefing? _remoteBriefing;
   bool _briefingLoading = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(whatsappMessageSyncProvider);
       _loadShopName();
       _loadBriefing();
+      _subscribeLocalBriefing();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadBriefing();
+    }
+  }
+
+  void _subscribeLocalBriefing() {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
+    _localBriefingSub?.cancel();
+    _localBriefingSub =
+        FloLocalBriefingService.watchToday(branchId).listen((local) {
+      if (!mounted) return;
+      setState(() {
+        _briefing = FloLocalBriefingService.merge(_remoteBriefing, local);
+        if (local != null) _briefingLoading = false;
+      });
     });
   }
 
@@ -75,7 +101,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           await _chatService.fetchDailyBriefing(branchId: branchId);
       if (mounted) {
         setState(() {
-          _briefing = briefing;
+          _remoteBriefing = briefing;
+          _briefing = FloLocalBriefingService.merge(briefing, _briefing);
           _briefingLoading = false;
         });
       }
@@ -99,7 +126,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _messageSub?.cancel();
+    _localBriefingSub?.cancel();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -131,6 +160,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       _scrollController.jumpTo(0);
     }
     _loadBriefing();
+    _subscribeLocalBriefing();
   }
 
   Future<void> _ensureConversation() async {
@@ -232,6 +262,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       }
 
       final history = _buildHistory();
+      final deviceSales =
+          await FloLocalBriefingService.todayDeviceSalesContext(branchId);
       FloChatResponse? response;
       final steps = <String>[];
 
@@ -241,6 +273,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         history: history,
         mode: 'business',
         conversationId: conversationId,
+        deviceSales: deviceSales,
+        shopName: _shopName,
       )) {
         if (event.event == 'thinking') {
           steps.add(event.data);
@@ -289,6 +323,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         message: text,
         history: history,
         conversationId: conversationId,
+        deviceSales: deviceSales,
+        shopName: _shopName,
       );
 
       final payload = FloMessagePayload(blocks: response.blocks);
@@ -455,7 +491,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             children: [
               FloHeader(
                 mode: _mode,
-                onModeChanged: (m) => setState(() => _mode = m),
+                onModeChanged: (m) {
+                  setState(() => _mode = m);
+                  if (m == FloPanelMode.askFlo && _showHome) {
+                    _loadBriefing();
+                  }
+                },
                 isMobile: _isMobile,
                 miniDataConnected: true,
                 whatsAppConnected: waConnected,

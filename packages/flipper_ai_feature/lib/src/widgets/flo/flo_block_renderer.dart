@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../theme/flo_theme.dart';
+import '../../utils/visualization_utils.dart';
 import 'flo_charts.dart';
 import 'flo_icons.dart';
 
@@ -111,6 +114,7 @@ class _TextBlock extends StatelessWidget {
 
 List<InlineSpan> _parseFloHtml(String raw) {
   var html = raw
+      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
       .replaceAll('&lt;', '<')
       .replaceAll('&gt;', '>')
       .replaceAll('&nbsp;', ' ')
@@ -266,62 +270,129 @@ class _MetricsBlock extends StatelessWidget {
   }
 }
 
-class _VizBlock extends StatelessWidget {
+class _VizBlock extends StatefulWidget {
   const _VizBlock({required this.block});
   final Map<String, dynamic> block;
 
   @override
+  State<_VizBlock> createState() => _VizBlockState();
+}
+
+class _VizBlockState extends State<_VizBlock> {
+  final _captureKey = GlobalKey();
+  bool _copied = false;
+  Timer? _copiedTimer;
+
+  void _copyChart() {
+    VisualizationUtils.copyToClipboard(
+      context,
+      _captureKey,
+      onSuccess: () {
+        if (!mounted) return;
+        setState(() => _copied = true);
+        _copiedTimer?.cancel();
+        _copiedTimer = Timer(const Duration(seconds: 2), () {
+          if (mounted) setState(() => _copied = false);
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _copiedTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-      decoration: BoxDecoration(
-        border: Border.all(color: FloTheme.line),
-        borderRadius: BorderRadius.circular(FloTheme.radiusLg),
-        color: FloTheme.surface,
-        boxShadow: const [FloTheme.sh1],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Expanded(
-                child: Text(
-                  block['title']?.toString() ?? '',
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.01,
-                    color: FloTheme.ink1,
+    final block = widget.block;
+    return RepaintBoundary(
+      key: _captureKey,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+        decoration: BoxDecoration(
+          border: Border.all(color: FloTheme.line),
+          borderRadius: BorderRadius.circular(FloTheme.radiusLg),
+          color: FloTheme.surface,
+          boxShadow: const [FloTheme.sh1],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          block['title']?.toString() ?? '',
+                          style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.01,
+                            color: FloTheme.ink1,
+                          ),
+                        ),
+                      ),
+                      if (block['sub'] != null) ...[
+                        const SizedBox(width: 10),
+                        Text(
+                          block['sub'].toString(),
+                          style: FloTheme.mono(11.5).copyWith(color: FloTheme.ink3),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-              ),
-              if (block['sub'] != null)
-                Text(
-                  block['sub'].toString(),
-                  style: FloTheme.mono(11.5).copyWith(color: FloTheme.ink3),
+                const SizedBox(width: 8),
+                Tooltip(
+                  message: _copied ? 'Copied!' : 'Copy chart',
+                  child: Material(
+                    color: FloTheme.surface2,
+                    borderRadius: BorderRadius.circular(8),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: _copyChart,
+                      child: Padding(
+                        padding: const EdgeInsets.all(7),
+                        child: _copied
+                            ? const Icon(
+                                Icons.check_rounded,
+                                size: 16,
+                                color: FloTheme.gainInk,
+                              )
+                            : FloIcons.copy(size: 16, color: FloTheme.ink3),
+                      ),
+                    ),
+                  ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (block['kind'] == 'bar')
-            FloBarChart(
-              data: (block['data'] as List?)
-                      ?.whereType<Map>()
-                      .map((e) => Map<String, dynamic>.from(e))
-                      .toList() ??
-                  const [],
-            )
-          else
-            FloAreaChart(
-              points: (block['points'] as List?)?.cast<num>() ?? const [],
-              labels: (block['labels'] as List?)?.map((e) => e.toString()).toList() ??
-                  const [],
-              peak: (block['peak'] as num?)?.toInt() ?? 0,
+              ],
             ),
-        ],
+            const SizedBox(height: 12),
+            if (block['kind'] == 'bar')
+              FloBarChart(
+                data: (block['data'] as List?)
+                        ?.whereType<Map>()
+                        .map((e) => Map<String, dynamic>.from(e))
+                        .toList() ??
+                    const [],
+              )
+            else
+              FloAreaChart(
+                points: (block['points'] as List?)?.cast<num>() ?? const [],
+                labels: (block['labels'] as List?)
+                        ?.map((e) => e.toString())
+                        .toList() ??
+                    const [],
+                peak: (block['peak'] as num?)?.toInt() ?? 0,
+              ),
+          ],
+        ),
       ),
     );
   }

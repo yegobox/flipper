@@ -47,6 +47,8 @@ class FloChatService {
     List<Map<String, String>> history = const [],
     String mode = 'business',
     String? conversationId,
+    Map<String, dynamic>? deviceSales,
+    String? shopName,
   }) async {
     final base = await _baseUrl();
     final uri = Uri.parse('${base}api/ai/chat');
@@ -61,6 +63,8 @@ class FloChatService {
           'history': history,
           'mode': mode,
           if (conversationId != null) 'conversation_id': conversationId,
+          if (deviceSales != null) 'device_sales': deviceSales,
+          if (shopName != null && shopName.isNotEmpty) 'shop_name': shopName,
         }),
       );
     } catch (e) {
@@ -80,6 +84,8 @@ class FloChatService {
     List<Map<String, String>> history = const [],
     String mode = 'business',
     String? conversationId,
+    Map<String, dynamic>? deviceSales,
+    String? shopName,
   }) async* {
     final base = await _baseUrl();
     final uri = Uri.parse('${base}api/ai/chat/stream');
@@ -92,6 +98,8 @@ class FloChatService {
       'history': history,
       'mode': mode,
       if (conversationId != null) 'conversation_id': conversationId,
+      if (deviceSales != null) 'device_sales': deviceSales,
+      if (shopName != null && shopName.isNotEmpty) 'shop_name': shopName,
     });
 
     http.StreamedResponse streamed;

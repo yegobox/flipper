@@ -81,6 +81,13 @@ abstract final class FloIcons {
         color: color,
       );
 
+  static Widget copy({double size = 16, Color? color}) => svg(
+        '<rect $_stroke x="9" y="9" width="11" height="11" rx="2"/>'
+        '<path $_stroke d="M5 15V5a2 2 0 0 1 2-2h8"/>',
+        size: size,
+        color: color,
+      );
+
   static Widget chart({double size = 19, Color? color}) => svg(
         '<path $_stroke d="M4 4v16h16"/>'
         '<path $_stroke d="m7 14 3-3 3 3 5-6"/>',
@@ -206,18 +213,38 @@ abstract final class FloIcons {
     }
   }
 
-  /// Flipper swirl — white on gradient mark.
-  static Widget flipperMark({required double size}) {
+  /// Flo robot mark — gradient tile with face icon.
+  static Widget floMark({required double size, required String gradientId}) {
     return SvgPicture.string(
-      _flipperMarkSvg,
+      _floMarkSvg(gradientId),
       width: size,
       height: size,
     );
   }
 
-  static const _flipperMarkSvg = '''
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="66.993 897.484 26 26">
-  <path fill="#FFFFFF" d="m89.318 903.552-2.135 2.122c-.376.337-.558.879-.347 1.337 1.422 2.976.882 6.524-1.452 8.856-2.335 2.331-5.887 2.87-8.866 1.449-.439-.197-.954-.03-1.292.312l-2.17 2.167a1.154 1.154 0 0 0 .208 1.81 13.005 13.005 0 0 0 15.91-1.912 12.97 12.97 0 0 0 1.956-15.887 1.154 1.154 0 0 0-1.812-.254zm-18.467-2.305a12.969 12.969 0 0 0-2.02 15.885 1.154 1.154 0 0 0 1.812.254l2.124-2.11c.385-.336.572-.884.359-1.348-1.423-2.976-.884-6.524 1.451-8.856 2.334-2.332 5.887-2.871 8.866-1.45.434.194.942.033 1.281-.3l2.182-2.18a1.152 1.152 0 0 0-.208-1.81 13.009 13.009 0 0 0-15.893 1.973z"/>
+  @Deprecated('Use floMark')
+  static Widget flipperMark({required double size}) =>
+      floMark(size: size, gradientId: 'floGrad');
+
+  static String _floMarkSvg(String gradientId) => '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" role="img" aria-label="Flo">
+  <defs>
+    <linearGradient id="$gradientId" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="0.52" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="56" height="56" rx="16" fill="url(#$gradientId)"/>
+  <g transform="translate(7.6,12.6) scale(1.7)" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3.2v2.3"/>
+    <circle cx="12" cy="2.4" r="1.25" fill="#fff" stroke="none"/>
+    <rect x="4.4" y="5.6" width="15.2" height="12.4" rx="4.4"/>
+    <path d="M4.4 10.2H3.1M19.6 10.2h1.3"/>
+    <circle cx="9.3" cy="11.6" r="1.45" fill="#fff" stroke="none"/>
+    <circle cx="14.7" cy="11.6" r="1.45" fill="#fff" stroke="none"/>
+    <path d="M9.4 14.7c.7.7 1.6 1.05 2.6 1.05s1.9-.35 2.6-1.05" stroke-width="1.6"/>
+  </g>
 </svg>''';
 }
 

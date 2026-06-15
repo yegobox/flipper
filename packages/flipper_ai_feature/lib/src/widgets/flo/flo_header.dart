@@ -50,8 +50,6 @@ class FloHeader extends StatelessWidget {
       child: Row(
         children: [
           if (!isMobile) ...[
-            const FloMark(size: 38),
-            const SizedBox(width: 13),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,

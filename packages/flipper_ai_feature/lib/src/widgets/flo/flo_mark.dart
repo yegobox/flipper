@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/flo_theme.dart';
 import 'flo_icons.dart';
 
-/// Flipper swirl brand mark on gradient (Flo avatar).
+/// Flo robot brand mark (gradient tile + face icon).
 class FloMark extends StatelessWidget {
   const FloMark({super.key, this.size = 38, this.small = false});
 
@@ -12,18 +12,13 @@ class FloMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = small ? 10.0 : 12.0;
-    final iconSize = size * (small ? 0.57 : 0.58);
-    return Container(
-      width: size,
-      height: size,
+    final radius = size * 16 / 56;
+    return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: FloTheme.gradBrand,
         borderRadius: BorderRadius.circular(radius),
         boxShadow: const [FloTheme.markShadow],
       ),
-      alignment: Alignment.center,
-      child: FloIcons.flipperMark(size: iconSize),
+      child: FloIcons.floMark(size: size, gradientId: 'floGrad_$hashCode'),
     );
   }
 }

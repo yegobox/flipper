@@ -31,6 +31,7 @@ class FloHtmlText extends StatelessWidget {
 
 List<InlineSpan> parseFloHtml(String raw) {
   var html = raw
+      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
       .replaceAll('&lt;', '<')
       .replaceAll('&gt;', '>')
       .replaceAll('&nbsp;', ' ')
