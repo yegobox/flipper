@@ -7,9 +7,11 @@ import 'package:intl/intl.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 
 import '../utils/visualization_utils.dart';
-
+import '../models/flo_models.dart';
 import '../theme/ai_theme.dart';
+import '../theme/flo_theme.dart';
 import 'data_visualization.dart';
+import 'flo/flo_block_renderer.dart';
 
 /// A chat message bubble with a modern and clean design.
 class MessageBubble extends StatefulWidget {
@@ -76,6 +78,17 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.isUser && FloMessagePayload.isFloMessage(widget.message.text)) {
+      final payload = FloMessagePayload.tryParse(widget.message.text);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: FloBlockRenderer(
+          blocks: payload.blocks,
+          isMobile: MediaQuery.sizeOf(context).width < FloTheme.mobileBreakpoint,
+        ),
+      );
+    }
+
     final hasVisualization = _shouldShowDataVisualization(widget.message.text);
 
     return Padding(

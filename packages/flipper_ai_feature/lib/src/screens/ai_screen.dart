@@ -1,667 +1,335 @@
 import 'dart:async';
+import 'dart:convert';
 
-// import '../widgets/audio_player_widget.dart';
-import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase_models/brick/models/conversation.model.dart';
-import 'package:supabase_models/brick/models/message.model.dart';
-import 'package:supabase_models/brick/repository.dart';
-
-import 'package:flipper_models/models/ai_model.dart';
-import '../widgets/message_bubble.dart';
-import '../widgets/ai_input_field.dart';
-import '../widgets/conversation_list.dart';
-import '../theme/ai_theme.dart';
-import '../widgets/welcome_view.dart';
-import '../providers/whatsapp_message_provider.dart';
-import '../providers/conversation_provider.dart';
 import 'package:flipper_services/whatsapp_service.dart';
-import '../widgets/excel_analysis_modal.dart';
-import '../widgets/data_source/data_source_list_screen.dart';
-import '../providers/data_source_provider.dart';
-import '../services/data_source/ai_connected_data_context.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:supabase_models/brick/models/message.model.dart';
 
-/// Main screen for the AI feature with a modern, polished UI.
+import '../providers/conversation_provider.dart';
+import '../providers/whatsapp_connection_provider.dart';
+import '../providers/whatsapp_message_provider.dart';
+import '../models/flo_models.dart';
+import '../services/flo_chat_service.dart';
+import '../theme/flo_theme.dart';
+import '../widgets/conversation_list.dart';
+import '../widgets/data_source/data_source_list_screen.dart';
+import '../widgets/excel_analysis_modal.dart';
+import '../widgets/flo/flo_composer.dart';
+import '../widgets/flo/flo_header.dart';
+import '../widgets/flo/flo_home_view.dart';
+import '../widgets/flo/flo_inbox_view.dart';
+import '../widgets/flo/flo_thread_view.dart';
+import '../widgets/whatsapp_connection_dialog.dart';
+
+/// Flo — redesigned AI business assistant (Ask Flo + Messages).
 class AiScreen extends ConsumerStatefulWidget {
-  final VoidCallback? onPurchaseCredits;
+  const AiScreen({super.key, this.onPurchaseCredits});
 
-  const AiScreen({
-    super.key,
-    this.onPurchaseCredits,
-  });
+  final VoidCallback? onPurchaseCredits;
 
   @override
   ConsumerState<AiScreen> createState() => _AiScreenState();
 }
 
 class _AiScreenState extends ConsumerState<AiScreen> {
-  final TextEditingController _controller = TextEditingController();
-  // List<Conversation> _conversations = []; // Removed
+  final _controller = TextEditingController();
+  final _scrollController = ScrollController();
+  final _chatService = FloChatService();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   String _currentConversationId = '';
   List<Message> _messages = [];
+  StreamSubscription<List<Message>>? _messageSub;
   bool _isLoading = false;
-  bool _isCreatingConversation = false;
-  StreamSubscription<List<Message>>? _subscription;
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String? _attachedFilePath; // New variable to store attached file path
-  List<Content> _conversationHistory =
-      []; // To store conversation history for AI
-  AIModel? _selectedModel; // State for selected AI model
-  String _selectedUseCase = 'business'; // State for selected mode
-
-  /// Connections whose schema/samples were included in the last AI reply (for attribution UI).
-  List<String>? _lastExternalDataSourcesAttribution;
-
-  String _cleanResponse(String text) {
-    return text
-        .replaceAll(
-          RegExp(
-            r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
-            dotAll: true,
-          ),
-          '',
-        )
-        .replaceAll(
-          RegExp(r'\{\{REASONING\}\}.*?\{\{/REASONING\}\}', dotAll: true),
-          '',
-        )
-        .replaceAll(RegExp(r'\{\{.*?\}\}'), '') // Remove any orphaned tags
-        .trim();
-  }
-
-  void _handleAttachedFile(String filePath) {
-    // Check if it's an Excel file
-    if (filePath.endsWith('.xlsx') || filePath.endsWith('.xls')) {
-      // Launch the dedicated Excel analysis modal
-      ExcelAnalysisModal.show(
-        context,
-        filePath,
-        preSelectedModel: _selectedModel,
-      );
-      return;
-    }
-
-    // For other files, use the standard attachment flow
-    setState(() {
-      _attachedFilePath = filePath;
-    });
-    // Send a placeholder message to display the file in the chat bubble
-    _sendMessage('[file]($filePath)');
-  }
+  bool _menuOpen = false;
+  FloPanelMode _mode = FloPanelMode.askFlo;
+  List<String> _thinkingSteps = [];
+  int? _thinkingActiveIndex;
+  String? _attachedFilePath;
+  String _shopName = 'your shop';
+  FloDailyBriefing? _briefing;
+  bool _briefingLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // Initialize WhatsApp message sync by reading the provider
-    // The provider uses keepAlive to maintain lifecycle
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(whatsappMessageSyncProvider);
-      ref.read(initDataSourceManagerProvider.future).catchError((_) {});
+      _loadShopName();
+      _loadBriefing();
     });
+  }
+
+  Future<void> _loadBriefing() async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      if (mounted) setState(() => _briefingLoading = false);
+      return;
+    }
+    if (mounted) setState(() => _briefingLoading = true);
+    try {
+      final briefing =
+          await _chatService.fetchDailyBriefing(branchId: branchId);
+      if (mounted) {
+        setState(() {
+          _briefing = briefing;
+          _briefingLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _briefingLoading = false);
+    }
+  }
+
+  Future<void> _loadShopName() async {
+    try {
+      final businessId = ProxyService.box.getBusinessId();
+      if (businessId == null) return;
+      final business =
+          await ProxyService.strategy.getBusiness(businessId: businessId);
+      final name = business?.name?.trim();
+      if (name != null && name.isNotEmpty && mounted) {
+        setState(() => _shopName = name);
+      }
+    } catch (_) {}
   }
 
   @override
   void dispose() {
+    _messageSub?.cancel();
     _controller.dispose();
-    _subscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _startNewConversation() async {
-    if (_isCreatingConversation) return;
-    setState(() => _isCreatingConversation = true);
-    try {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) throw Exception('Branch ID is required');
+  bool get _isMobile =>
+      MediaQuery.sizeOf(context).width < FloTheme.mobileBreakpoint;
 
-      final conversation = await ProxyService.strategy.createConversation(
-        title: 'New Conversation',
-        branchId: branchId,
-        useCase: _selectedUseCase,
-      );
+  bool get _showHome =>
+      _mode == FloPanelMode.askFlo &&
+      _messages.isEmpty &&
+      !_isLoading &&
+      _currentConversationId.isEmpty;
 
-      if (mounted) {
-        setState(() {
-          _currentConversationId = conversation.id;
-          _messages = [];
-          _conversationHistory = []; // Clear history on new conversation
-        });
-        _subscribeToCurrentConversation();
-        _scrollToBottom();
-      }
-    } catch (e) {
-      if (mounted) _showError('Error creating conversation: ${e.toString()}');
-    } finally {
-      if (mounted) setState(() => _isCreatingConversation = false);
+  Future<void> _newChat() async {
+    await _messageSub?.cancel();
+    _messageSub = null;
+    if (!mounted) return;
+    setState(() {
+      _currentConversationId = '';
+      _messages = [];
+      _thinkingSteps = [];
+      _thinkingActiveIndex = null;
+      _isLoading = false;
+      _menuOpen = false;
+    });
+    _controller.clear();
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
     }
+    _loadBriefing();
   }
 
-  Future<void> _deleteCurrentConversation(String conversationId) async {
-    try {
-      await ProxyService.strategy.deleteConversation(conversationId);
-      // State update handled by stream listener
-    } catch (e) {
-      if (mounted) _showError('Error deleting conversation: ${e.toString()}');
-    }
-  }
-
-  void _subscribeToCurrentConversation() {
-    _subscription?.cancel();
-
-    // Subscribe to real-time updates - the stream returns existing messages immediately
-    _subscription = ProxyService.strategy
-        .subscribeToMessages(_currentConversationId)
-        .listen(
-      (messages) {
-        if (mounted) {
-          setState(() {
-            _messages = messages;
-          });
-          // Only scroll to bottom if we have messages
-          if (messages.isNotEmpty) {
-            _scrollToBottom();
-          }
-        }
-      },
-      onError: (e) {
-        if (mounted) {
-          _showError('Error subscribing to messages: ${e.toString()}');
-        }
-      },
+  Future<void> _ensureConversation() async {
+    if (_currentConversationId.isNotEmpty) return;
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
+    final conversation = await ProxyService.strategy.createConversation(
+      title: 'New Conversation',
+      branchId: branchId,
+      useCase: 'business',
     );
+    if (!mounted) return;
+    setState(() => _currentConversationId = conversation.id);
+    _subscribeToMessages(conversation.id);
   }
 
-  Future<void> _sendMessage(String text, {String? conversationId}) async {
-    String targetConversationId = conversationId ?? _currentConversationId;
-    if (text.isEmpty) return;
+  void _subscribeToMessages(String conversationId) {
+    _messageSub?.cancel();
+    _messageSub =
+        ProxyService.strategy.subscribeToMessages(conversationId).listen((msgs) {
+      if (mounted) setState(() => _messages = msgs);
+    });
+  }
 
-    setState(() => _isLoading = true);
+  Future<void> _sendMessage(String text) async {
+    if (text.trim().isEmpty) return;
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      _showError('Branch ID is required');
+      return;
+    }
+    if (text.startsWith('[file](')) return;
+
+    setState(() {
+      _isLoading = true;
+      _thinkingSteps = [];
+      _thinkingActiveIndex = 0;
+    });
 
     try {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) throw Exception('Branch ID is required');
+      if (_currentConversationId.isEmpty) {
+        await _ensureConversation();
+      }
+      final conversationId = _currentConversationId;
 
-      bool isFirstMessage = false;
-
-      // Ensure we have a valid conversation ID. The auto-creation logic in build()
-      // should guarantee this, but we place a fallback here just in case.
-      if (targetConversationId.isEmpty) {
-        isFirstMessage = true;
-        final conversation = await ProxyService.strategy.createConversation(
-          title: text.length > 30 ? '${text.substring(0, 30)}...' : text,
-          branchId: branchId,
-          useCase: _selectedUseCase,
-        );
-        targetConversationId = conversation.id;
-
-        if (mounted) {
-          setState(() {
-            _currentConversationId = targetConversationId;
-            _conversationHistory = [];
-          });
-          _subscribeToCurrentConversation();
+      Message? lastWa;
+      for (final m in _messages.reversed) {
+        if (m.messageSource == 'whatsapp') {
+          lastWa = m;
+          break;
         }
-      } else {
-        // Check if this is the first message in an existing 'New Conversation'
-        try {
-          final conversations = ref.read(conversationProvider).value ?? [];
-          final currentConv = conversations.firstWhere(
-            (c) => c.id == targetConversationId,
-          );
-          if (currentConv.title == 'New Conversation' && _messages.isEmpty) {
-            isFirstMessage = true;
-          }
-        } catch (_) {}
       }
+      final isWhatsAppReply = lastWa != null;
 
-      // Get the useCase for the current conversation
-      String currentUseCase = _selectedUseCase;
-      try {
-        final conversations = ref.read(conversationProvider).value ?? [];
-        final currentConv = conversations.firstWhere(
-          (c) => c.id == targetConversationId,
-        );
-        currentUseCase = currentConv.useCase;
-      } catch (e) {
-        // Fallback to selected useCase if conversation not yet in provider
-      }
-
-      // Check context: Is this a reply to a WhatsApp message?
-      // We look at the last message in the conversation history (that isn't from the user)
-      final repository = Repository();
-      // Fetch specifically from DB to ensure accuracy
-      final lastMessages = await repository.get<Message>(
-        query: Query(
-          where: [Where('conversationId').isExactly(targetConversationId)],
-          orderBy: [OrderBy('timestamp', ascending: false)],
-          limit: 10,
-        ),
-      );
-
-      final lastMessage = lastMessages.firstWhere(
-        (m) => m.messageSource == 'whatsapp',
-        orElse: () => Message(
-          text: '',
-          phoneNumber: '',
-          delivered: false,
-          branchId: "0",
-          messageSource: 'ai',
-        ),
-      );
-
-      final isWhatsAppReply = lastMessage.messageSource == 'whatsapp';
-
-      // Save user message to local database immediately for UI responsiveness
-      // We'll update the message source if it's a WhatsApp reply
       await ProxyService.strategy.saveMessage(
         text: text,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'user',
-        conversationId: targetConversationId,
+        conversationId: conversationId,
         messageSource: isWhatsAppReply ? 'whatsapp' : 'ai',
       );
-
       _controller.clear();
-      _scrollToBottom();
-
-      // If the message is a file placeholder, we just save it and wait for a follow-up question.
-      if (text.startsWith('[file](')) {
-        setState(() => _isLoading = false);
-        return; // Do not hit AI provider yet
-      }
 
       if (isWhatsAppReply) {
-        // Handle WhatsApp Reply
-        await _handleWhatsAppReply(
-          text,
-          lastMessage,
-          branchId,
-          targetConversationId,
-        );
-        // Do NOT proceed to AI logic
+        await _sendWhatsAppReply(text, lastWa, branchId, conversationId);
         return;
       }
 
-      // --- AI Logic (Only if NOT WhatsApp) ---
+      final history = _buildHistory();
+      FloChatResponse? response;
+      final steps = <String>[];
 
-      setState(() => _lastExternalDataSourcesAttribution = null);
-
-      String? connectedExternalDataContext;
-      var externalSourceNames = <String>[];
-      try {
-        await ref.read(initDataSourceManagerProvider.future);
-        final manager = ref.read(dataSourceManagerProvider);
-        final built = await buildConnectedDataContextForAi(manager);
-        connectedExternalDataContext = built.context;
-        externalSourceNames = built.sourceNames;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.invalidate(dataSourceManagerProvider);
-        });
-      } catch (e) {
-        debugPrint('Connected data context: $e');
-      }
-
-      // Prepare parts for the AI prompt
-      String processedText = text;
-      String? fileToAnalyzePath = _attachedFilePath;
-
-      // Prepare the user's content for the history, including any attached files.
-      final List<Part> userPartsForHistory = [Part.text(processedText)];
-      if (fileToAnalyzePath != null) {
-        try {
-          final fileData = await fileToBase64(fileToAnalyzePath);
-          userPartsForHistory.add(
-            Part.inlineData(fileData['mime_type'], fileData['data']),
+      await for (final event in _chatService.streamChat(
+        branchId: branchId,
+        message: text,
+        history: history,
+        mode: 'business',
+        conversationId: conversationId,
+      )) {
+        if (event.event == 'thinking') {
+          steps.add(event.data);
+          if (mounted) {
+            setState(() {
+              _thinkingSteps = List.from(steps);
+              _thinkingActiveIndex = steps.length - 1;
+            });
+          }
+        } else if (event.event == 'blocks') {
+          final blocks = (jsonDecode(event.data) as List)
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
+          response = FloChatResponse(
+            blocks: blocks,
+            modelUsed: '',
+            thinking: steps,
           );
-        } catch (e) {
-          _showError("Error processing attached file: ${e.toString()}");
-          setState(() => _isLoading = false);
-          return;
+        } else if (event.event == 'meta') {
+          try {
+            final meta = jsonDecode(event.data) as Map<String, dynamic>;
+            if (response != null) {
+              response = FloChatResponse(
+                blocks: response!.blocks,
+                modelUsed: meta['model_used'] as String? ?? '',
+                thinking: (meta['thinking'] as List?)
+                        ?.map((e) => e.toString())
+                        .toList() ??
+                    steps,
+              );
+            }
+          } catch (_) {}
         }
       }
-      final userContentForHistory = Content(
-        role: "user",
-        parts: userPartsForHistory,
+
+      response ??= await _chatService.chat(
+        branchId: branchId,
+        message: text,
+        history: history,
+        conversationId: conversationId,
       );
 
-      // Clear attached file path after it's used for AI analysis for the current turn
-      if (_attachedFilePath != null) {
-        _attachedFilePath = null;
-      }
-
-      final aiResponseText = await ref
-          .refresh(
-        geminiBusinessAnalyticsProvider(
-          branchId,
-          processedText,
-          filePath:
-              fileToAnalyzePath, // Provider still needs the path for the current call
-          history: _conversationHistory, // Pass conversation history
-          aiModel: _selectedModel, // Pass the selected model
-          useCase: currentUseCase, // Pass the useCase
-          connectedExternalDataContext: connectedExternalDataContext,
-        ).future,
-      )
-          .catchError((e) {
-        if (e.toString().contains('RESOURCE_EXHAUSTED')) {
-          return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
-        } else if (e.toString().contains('Operation cancelled')) {
-          return 'The operation was cancelled. Please try again.';
-        } else if (e.toString().contains('Upgrade Required')) {
-          // Extract the model name from the error message for a more personalized message
-          final modelMatch = RegExp(
-            r'The selected model \(([^)]+)\)',
-          ).firstMatch(e.toString());
-          final modelName = modelMatch?.group(1) ?? 'this AI model';
-          return "To use $modelName, you need either a Pro plan subscription or sufficient credits. You can upgrade your subscription or purchase credits to access this feature.";
-        }
-        throw e;
-      });
-
-      // Always save the full, original AI response first.
+      final payload = FloMessagePayload(blocks: response.blocks);
       await ProxyService.strategy.saveMessage(
-        text: aiResponseText,
+        text: payload.toStorageString(),
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'assistant',
-        conversationId: targetConversationId,
-        aiResponse: aiResponseText,
+        conversationId: conversationId,
+        aiResponse: payload.toStorageString(),
         aiContext: text,
         messageSource: 'ai',
       );
 
+      if (_messages.length <= 2) {
+        final title = text.length > 40 ? '${text.substring(0, 40)}…' : text;
+        try {
+          final convs = ref.read(conversationProvider).value ?? [];
+          final conv = convs.firstWhere((c) => c.id == conversationId);
+          conv.title = title;
+          await ProxyService.strategy.updateConversation(conv);
+          ref.invalidate(conversationProvider);
+        } catch (_) {}
+      }
+    } on FloChatException catch (e) {
+      _showError(e.message);
+    } catch (e) {
+      _showError('Error: $e');
+    } finally {
       if (mounted) {
         setState(() {
-          _lastExternalDataSourcesAttribution =
-              externalSourceNames.isNotEmpty ? externalSourceNames : null;
+          _isLoading = false;
+          _thinkingActiveIndex = null;
         });
       }
-
-      // Clean the response for conversation history to avoid confusing the AI.
-      final cleanedForHistory = _cleanResponse(aiResponseText);
-
-      // Update conversation history with the user's prompt and the cleaned AI response.
-      _conversationHistory.add(userContentForHistory);
-      _conversationHistory.add(
-        Content(role: "assistant", parts: [Part.text(cleanedForHistory)]),
-      );
-
-      // If the response contained visualization data, generate and save a separate summary message.
-      if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
-        // Use a cleaner prompt that clearly separates the visualization data from the instructions.
-        final summaryPrompt =
-            "The following is a data visualization provided to the user. Briefly explain what this data means for their business in one or two friendly, professional sentences. "
-            "IMPORTANT: Your response MUST be plain text only. DO NOT include any JSON, bracketed tags like {{VISUALIZATION_DATA}}, or code blocks.\n\n"
-            "Data to summarize:\n"
-            "$aiResponseText";
-
-        final summaryText = await ref
-            .refresh(
-          geminiSummaryProvider(
-            summaryPrompt,
-            aiModel: _selectedModel,
-          ).future,
-        )
-            .onError((error, stackTrace) {
-          debugPrint("Failed to generate summary: $error");
-          return "";
-        });
-
-        final cleanedSummary = _cleanResponse(summaryText);
-
-        if (cleanedSummary.isNotEmpty) {
-          await ProxyService.strategy.saveMessage(
-            text: cleanedSummary,
-            phoneNumber: ProxyService.box.getUserPhone() ?? '',
-            branchId: branchId,
-            role: 'assistant',
-            conversationId: targetConversationId,
-            messageSource: 'ai',
-          );
-
-          // Also add the summary to the conversation history for complete context.
-          _conversationHistory.add(
-            Content(role: "assistant", parts: [Part.text(cleanedSummary)]),
-          );
-        }
-      }
-
-      _scrollToBottom();
-
-      // Generate a dynamic conversation title if this is the first message
-      if (isFirstMessage && !isWhatsAppReply) {
-        Future.microtask(() async {
-          try {
-            final titlePrompt =
-                "Generate a concise, descriptive title (maximum 5 words) for a conversation that starts with this user message: \"$processedText\". Only return the plain text title and nothing else. DO NOT include quotes, reasoning or internal tags.";
-            final generatedTitle = await ref.read(
-              geminiSummaryProvider(titlePrompt, aiModel: _selectedModel)
-                  .future,
-            );
-            final cleanTitle = _cleanResponse(generatedTitle)
-                .replaceAll('"', '')
-                .replaceAll(RegExp(r'[{}]+'), '')
-                .trim();
-
-            if (cleanTitle.isNotEmpty) {
-              final conversations = ref.read(conversationProvider).value ?? [];
-              final currentConv = conversations.firstWhere(
-                (c) => c.id == targetConversationId,
-              );
-              currentConv.title = cleanTitle;
-              await ProxyService.strategy.updateConversation(currentConv);
-              debugPrint('Saved new conversation title: $cleanTitle');
-              // Force the UI stream to refresh so the new title appears
-              if (mounted) {
-                ref.invalidate(conversationProvider);
-              }
-            }
-          } catch (e) {
-            debugPrint('Failed to generate conversation title: $e');
-          }
-        });
-      }
-
-      // Generate a dynamic conversation title if this is the first message
-      if (isFirstMessage && !isWhatsAppReply) {
-        Future.microtask(() async {
-          try {
-            final titlePrompt =
-                "Generate a concise, descriptive title (maximum 5 words) for a conversation that starts with this user message: \"$processedText\". Only return the title and nothing else without quotes.";
-            final generatedTitle = await ref.read(
-              geminiSummaryProvider(titlePrompt, aiModel: _selectedModel)
-                  .future,
-            );
-            final cleanTitle = generatedTitle.replaceAll('"', '').trim();
-
-            if (cleanTitle.isNotEmpty) {
-              final conversations = ref.read(conversationProvider).value ?? [];
-              final currentConv = conversations.firstWhere(
-                (c) => c.id == targetConversationId,
-              );
-              currentConv.title = cleanTitle;
-              await ProxyService.strategy.updateConversation(currentConv);
-              debugPrint('Saved new conversation title: $cleanTitle');
-              // Force the UI stream to refresh so the new title appears
-              if (mounted) {
-                ref.invalidate(conversationProvider);
-              }
-            }
-          } catch (e) {
-            debugPrint('Failed to generate conversation title: $e');
-          }
-        });
-      }
-
-      _scrollToBottom();
-    } catch (e) {
-      _showError('Error: ${e.toString()}');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _handleWhatsAppReply(
+  List<Map<String, String>> _buildHistory() {
+    final history = <Map<String, String>>[];
+    for (final msg in _messages) {
+      if (msg.role != 'user' && msg.role != 'assistant') continue;
+      var content = msg.text;
+      if (FloMessagePayload.isFloMessage(content)) {
+        content = FloMessagePayload.tryParse(content).blocks
+            .where((b) => b['type'] == 'text')
+            .map((b) => b['html']?.toString() ?? '')
+            .join('\n');
+      }
+      history.add({'role': msg.role ?? 'user', 'content': content});
+    }
+    return history;
+  }
+
+  Future<void> _sendWhatsAppReply(
     String text,
     Message lastMessage,
     String branchId,
     String conversationId,
   ) async {
     try {
-      // 1. Get Business Configuration for WhatsApp
       final businessId = ProxyService.box.getBusinessId();
       if (businessId == null) throw Exception('Business ID not found');
-
-      final business = await ProxyService.strategy.getBusiness(
-        businessId: businessId,
-      );
-      if (business == null) throw Exception('Business not found');
-
-      final phoneNumberId = business.getWhatsAppPhoneNumberId();
+      final business =
+          await ProxyService.strategy.getBusiness(businessId: businessId);
+      final phoneNumberId = business?.getWhatsAppPhoneNumberId();
       if (phoneNumberId == null) {
-        throw Exception('WhatsApp not configured for this business');
+        throw Exception('WhatsApp not configured');
       }
-
-      // 2. Validate and sanitize recipient phone number
-      String? recipientPhone = lastMessage.phoneNumber;
-
-      if (recipientPhone.trim().isEmpty) {
-        _showError('Recipient phone number is missing');
-        return; // Exit early without calling the service
-      }
-
-      // Remove whitespace and non-digit characters
-      recipientPhone = recipientPhone.replaceAll(RegExp(r'[^\d+]'), '');
-
-      // Validate format (E.164 format: + followed by 7-14 digits, or just 7-14 digits)
-      if (!RegExp(r'^\+?[1-9]\d{7,14}$').hasMatch(recipientPhone)) {
-        _showError(
-          'Invalid phone number format. Please use E.164 format (e.g., +1234567890).',
-        );
-        return; // Exit early without calling the service
-      }
-
-      // Ensure the phone number is in E.164 format (with + prefix)
-      if (!recipientPhone.startsWith('+')) {
-        recipientPhone = '+$recipientPhone';
-      }
-
-      // 3. Instantiate WhatsApp Service
-      final whatsAppService = WhatsAppService();
-
-      // 4. Send Message
-      await whatsAppService.sendWhatsAppMessage(
+      var recipient = lastMessage.phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      if (!recipient.startsWith('+')) recipient = '+$recipient';
+      await WhatsAppService().sendWhatsAppMessage(
         phoneNumberId: phoneNumberId,
-        recipientPhone:
-            recipientPhone, // The validated and sanitized phone number
+        recipientPhone: recipient,
         messageBody: text,
-        replyToMessageId: lastMessage
-            .whatsappMessageId, // Context: replying to specific message
+        replyToMessageId: lastMessage.whatsappMessageId,
       );
-
-      // Update the message to mark it as delivered after successful WhatsApp send
-      try {
-        final repository = Repository();
-        final messages = await repository.get<Message>(
-          query: Query(
-            where: [
-              Where('conversationId').isExactly(conversationId),
-              Where('role').isExactly('user'),
-              Where('text').isExactly(text), // Match the text that was sent
-            ],
-            orderBy: [OrderBy('timestamp', ascending: false)],
-            limit: 1,
-          ),
-        );
-
-        if (messages.isNotEmpty) {
-          final latestUserMessage = messages.first;
-          // Update the message to mark it as delivered by creating a new instance
-          final updatedMessage = Message(
-            id: latestUserMessage.id,
-            text: latestUserMessage.text,
-            phoneNumber: latestUserMessage.phoneNumber,
-            delivered: true, // Mark as delivered after successful WhatsApp send
-            branchId: latestUserMessage.branchId,
-            role: latestUserMessage.role,
-            timestamp: latestUserMessage.timestamp,
-            conversationId: latestUserMessage.conversationId,
-            aiResponse: latestUserMessage.aiResponse,
-            aiContext: latestUserMessage.aiContext,
-            messageType: latestUserMessage.messageType,
-            messageSource: latestUserMessage.messageSource,
-            whatsappMessageId: latestUserMessage.whatsappMessageId,
-            whatsappPhoneNumberId: latestUserMessage.whatsappPhoneNumberId,
-            contactName: latestUserMessage.contactName,
-            waId: latestUserMessage.waId,
-            replyToMessageId: latestUserMessage.replyToMessageId,
-          );
-
-          await repository.upsert<Message>(updatedMessage);
-        }
-      } catch (updateError) {
-        // If update fails, just log the error and continue
-        print(
-          'Failed to update message status after successful WhatsApp send: $updateError',
-        );
-      }
     } catch (e) {
-      // If sending fails, update the message status to reflect the failure
-      // Find the most recently saved user message in this conversation and mark it as not delivered
-      try {
-        final repository = Repository();
-        final messages = await repository.get<Message>(
-          query: Query(
-            where: [
-              Where('conversationId').isExactly(conversationId),
-              Where('role').isExactly('user'),
-              Where('text').isExactly(text), // Match the text that was sent
-            ],
-            orderBy: [OrderBy('timestamp', ascending: false)],
-            limit: 1,
-          ),
-        );
-
-        if (messages.isNotEmpty) {
-          final latestUserMessage = messages.first;
-          // Update the message by creating a new one with same data but mark as not delivered
-          final updatedMessage = Message(
-            id: latestUserMessage.id,
-            text: latestUserMessage.text,
-            phoneNumber: latestUserMessage.phoneNumber,
-            delivered:
-                false, // Mark as not delivered due to WhatsApp API failure
-            branchId: latestUserMessage.branchId,
-            role: latestUserMessage.role,
-            timestamp: latestUserMessage.timestamp,
-            conversationId: latestUserMessage.conversationId,
-            aiResponse: latestUserMessage.aiResponse,
-            aiContext: latestUserMessage.aiContext,
-            messageType: latestUserMessage.messageType,
-            messageSource: latestUserMessage.messageSource,
-            whatsappMessageId: latestUserMessage.whatsappMessageId,
-            whatsappPhoneNumberId: latestUserMessage.whatsappPhoneNumberId,
-            contactName: latestUserMessage.contactName,
-            waId: latestUserMessage.waId,
-            replyToMessageId: latestUserMessage.replyToMessageId,
-          );
-
-          await repository.upsert<Message>(updatedMessage);
-        }
-      } catch (updateError) {
-        // If update fails, just log the error and continue
-        print(
-          'Failed to update message status after WhatsApp send failure: $updateError',
-        );
-      }
-
-      _showError('Failed to send WhatsApp message: ${e.toString()}');
+      _showError('Failed to send WhatsApp message: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -669,543 +337,168 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showCustomSnackBarUtil(context, message, backgroundColor: Colors.red);
   }
 
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+  void _openWhatsAppModal() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => WhatsAppConnectionDialog(
+        onConnectionChanged: () =>
+            ref.invalidate(whatsAppConnectionStateProvider),
+      ),
+    );
+  }
+
+  void _openSources() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const DataSourceListScreen()),
+    );
+  }
+
+  void _handleAttach() {
+    if (_attachedFilePath != null &&
+        (_attachedFilePath!.endsWith('.xlsx') ||
+            _attachedFilePath!.endsWith('.xls'))) {
+      ExcelAnalysisModal.show(context, _attachedFilePath!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final conversationsAsync = ref.watch(conversationProvider);
-    final availableModelsAsync = ref.watch(availableModelsProvider);
-
-    // Initialize selected model if not set
-    if (_selectedModel == null &&
-        availableModelsAsync.value != null &&
-        availableModelsAsync.value!.isNotEmpty) {
-      // Prefer default model, otherwise first active
-      try {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {
-              _selectedModel = availableModelsAsync.value!.firstWhere(
-                (m) => m.isDefault,
-                orElse: () => availableModelsAsync.value!.first,
-              );
-            });
-          }
-        });
-      } catch (e) {
-        // Log the exception and handle gracefully
-        debugPrint('Error initializing selected AI model: $e');
-        // Set to null to indicate no model is available
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {
-              _selectedModel = null;
-            });
-          }
-        });
-      }
-    }
-
-    // Handle initial selection if needed — defer setState so we never mutate layout mid-layout.
-    ref.listen(conversationProvider, (previous, next) {
-      next.whenData((conversations) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          if (conversations.isEmpty) {
-            // If no conversations exist, reset state and start a new one
-            if (_currentConversationId.isNotEmpty) {
-              setState(() {
-                _currentConversationId = '';
-                _messages = [];
-              });
-            }
-            _startNewConversation();
-            return;
-          }
-
-          // We have conversations
-          if (_currentConversationId.isEmpty ||
-              !conversations.any((c) => c.id == _currentConversationId)) {
-            // Auto-select first conversation if none selected or current is gone
-            setState(() {
-              _currentConversationId = conversations.first.id;
-              _messages = []; // Will be populated by stream
-            });
-            _subscribeToCurrentConversation();
-          }
-        });
-      });
-    });
-
-    // Listen to available models to ensure selected model is valid
-    ref.listen<AsyncValue<List<AIModel>>>(availableModelsProvider, (
-      previous,
-      next,
-    ) {
-      if (next.hasValue && next.value != null) {
-        final availableModels = next.value!;
-        if (_selectedModel != null &&
-            !availableModels.any((model) => model.id == _selectedModel!.id)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            setState(() {
-              // Set to first available model if current selection is not in the list
-              _selectedModel =
-                  availableModels.isNotEmpty ? availableModels.first : null;
-            });
-          });
-        }
-      }
-    });
-
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final waState = ref.watch(whatsAppConnectionStateProvider);
+    final waConnected = waState.value?.isConnected ?? false;
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: AiTheme.backgroundColor,
-      appBar: isMobile
-          ? _buildMobileAppBar(availableModelsAsync.value ?? [])
+      backgroundColor: FloTheme.chatBg,
+      drawer: _isMobile
+          ? Drawer(
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final conversations =
+                      ref.watch(conversationProvider).value ?? [];
+                  return ConversationList(
+                    conversations: conversations,
+                    currentConversationId: _currentConversationId,
+                    onConversationSelected: (id) {
+                      setState(() => _currentConversationId = id);
+                      _subscribeToMessages(id);
+                      Navigator.pop(context);
+                    },
+                    onDeleteConversation: (id) async {
+                      await ProxyService.strategy.deleteConversation(id);
+                      if (_currentConversationId == id) {
+                        await _messageSub?.cancel();
+                        _messageSub = null;
+                        setState(() {
+                          _currentConversationId = '';
+                          _messages = [];
+                        });
+                      }
+                    },
+                    onNewConversation: () {
+                      _newChat();
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            )
           : null,
-      drawer: isMobile ? _buildDrawer(conversationsAsync.value ?? []) : null,
-      body: isMobile
-          ? _buildMobileLayout()
-          : _buildDesktopLayout(
-              conversationsAsync.value ?? [],
-              availableModelsAsync.value ?? [],
-            ),
-    );
-  }
-
-  AppBar _buildMobileAppBar(List<AIModel> availableModels) {
-    return AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.menu_rounded, color: AiTheme.secondaryColor),
-        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-      ),
-      title: const Text(
-        'AI Assistant',
-        style: TextStyle(color: AiTheme.textColor),
-      ),
-      actions: [
-        _buildModeSelector(),
-        _buildDataSourcesNavButton(mobile: true),
-        if (availableModels.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: _buildModelSelector(availableModels),
-          ),
-      ],
-      backgroundColor: AiTheme.surfaceColor,
-      elevation: 1,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
-    );
-  }
-
-  Widget _buildDrawer(List<Conversation> conversations) {
-    return Drawer(
-      child: ConversationList(
-        conversations: conversations,
-        currentConversationId: _currentConversationId,
-        onConversationSelected: (id) {
-          setState(() {
-            _currentConversationId = id;
-            _messages = []; // Will be populated by stream
-          });
-          _subscribeToCurrentConversation();
-          _scrollToBottom();
-          Navigator.of(context).pop();
-        },
-        onDeleteConversation: (id) => _deleteCurrentConversation(id),
-        onNewConversation: () {
-          _startNewConversation();
-          Navigator.of(context).pop();
-        },
-      ),
-    );
-  }
-
-  Widget _buildDataSourceAttributionBanner() {
-    final names = _lastExternalDataSourcesAttribution;
-    if (names == null || names.isEmpty) return const SizedBox.shrink();
-
-    return Material(
-      color: AiTheme.surfaceColor,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            Icon(Icons.dataset_linked_outlined, size: 18, color: AiTheme.primaryColor),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'This reply used schema and samples from your connected data: '
-                '${names.join(', ')}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AiTheme.textColor.withValues(alpha: 0.85),
-                    ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDataSourcesNavButton({required bool mobile}) {
-    final hasConnected = ref.watch(hasConnectedDataSourceProvider);
-
-    return Tooltip(
-      message: 'Data Sources',
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          IconButton(
-            icon: Icon(
-              Icons.storage_rounded,
-              color: mobile ? AiTheme.secondaryColor : AiTheme.primaryColor,
-            ),
-            onPressed: () {
-              // Defer push to after layout — avoids nested LayoutBuilder mutation
-              // (DevicePreview/MaterialApp) when the new route builds immediately.
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!context.mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DataSourceListScreen(),
-                  ),
-                );
-              });
-            },
-          ),
-          if (hasConnected)
-            Positioned(
-              right: 10,
-              top: 10,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: AiTheme.primaryColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AiTheme.surfaceColor,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileLayout() {
-    return Column(
-      children: [
-        Expanded(child: _buildMessageList()),
-        _buildDataSourceAttributionBanner(),
-        AiInputField(
-          controller: _controller,
-          onSend: (text) =>
-              _sendMessage(text, conversationId: _currentConversationId),
-          isLoading: _isLoading,
-          onAttachFile: _handleAttachedFile,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDesktopLayout(
-    List<Conversation> conversations,
-    List<AIModel> availableModels,
-  ) {
-    return Row(
-      children: [
-        ConversationList(
-          conversations: conversations,
-          currentConversationId: _currentConversationId,
-          onConversationSelected: (id) {
-            setState(() {
-              _currentConversationId = id;
-              _messages = []; // Will be populated by stream
-            });
-            _subscribeToCurrentConversation();
-            _scrollToBottom();
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            if (_menuOpen) setState(() => _menuOpen = false);
           },
-          onDeleteConversation: (id) => _deleteCurrentConversation(id),
-          onNewConversation: _startNewConversation,
-        ),
-        const VerticalDivider(width: 1, color: AiTheme.borderColor),
-        Expanded(
           child: Column(
             children: [
-              // Desktop Header with Model Selector
-              Container(
-                height: 60,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: const BoxDecoration(
-                  color: AiTheme.surfaceColor,
-                  border: Border(
-                    bottom: BorderSide(color: AiTheme.borderColor, width: 1),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        _buildModeSelector(),
-                        const SizedBox(width: 8),
-                        if (availableModels.isNotEmpty)
-                          _buildModelSelector(availableModels),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        _buildDataSourcesNavButton(mobile: false),
-                      ],
-                    ),
-                  ],
-                ),
+              FloHeader(
+                mode: _mode,
+                onModeChanged: (m) => setState(() => _mode = m),
+                isMobile: _isMobile,
+                miniDataConnected: true,
+                whatsAppConnected: waConnected,
+                onNewChat: _newChat,
+                onConnectWhatsApp: _openWhatsAppModal,
+                onManageSources: _openSources,
+                menuOpen: _menuOpen,
+                onMenuToggle: () {
+                  if (_isMobile) {
+                    _scaffoldKey.currentState?.openDrawer();
+                  } else {
+                    setState(() => _menuOpen = !_menuOpen);
+                  }
+                },
+                menuContent: _menuOpen && !_isMobile
+                    ? FloMenuPopover(
+                        onNewChat: () {
+                          setState(() => _menuOpen = false);
+                          _newChat();
+                        },
+                        onWhatsApp: () {
+                          setState(() => _menuOpen = false);
+                          _openWhatsAppModal();
+                        },
+                        onSources: () {
+                          setState(() => _menuOpen = false);
+                          _openSources();
+                        },
+                        whatsAppConnected: waConnected,
+                      )
+                    : null,
               ),
-              Expanded(child: _buildMessageList()),
-              _buildDataSourceAttributionBanner(),
-              AiInputField(
-                controller: _controller,
-                onSend: (text) =>
-                    _sendMessage(text, conversationId: _currentConversationId),
-                isLoading: _isLoading,
-                onAttachFile: _handleAttachedFile,
+              Expanded(
+                child: _mode == FloPanelMode.messages
+                    ? FloInboxView(
+                        connected: waConnected,
+                        onConnect: _openWhatsAppModal,
+                        chatService: _chatService,
+                      )
+                    : _showHome
+                        ? SingleChildScrollView(
+                            controller: _scrollController,
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: FloTheme.contentMaxWidth,
+                                ),
+                                child: FloHomeView(
+                                  shopName: _shopName,
+                                  isMobile: _isMobile,
+                                  briefing: _briefing,
+                                  briefingLoading: _briefingLoading,
+                                  onSuggestionTap: _sendMessage,
+                                  whatsAppConnected: waConnected,
+                                  onConnectWhatsApp: _openWhatsAppModal,
+                                  onManageSources: _openSources,
+                                ),
+                              ),
+                            ),
+                          )
+                        : FloThreadView(
+                            scrollController: _scrollController,
+                            messages: _messages,
+                            thinkingSteps: _thinkingSteps,
+                            thinkingActiveIndex: _thinkingActiveIndex,
+                            isLoading: _isLoading,
+                            isMobile: _isMobile,
+                            onAsk: _sendMessage,
+                          ),
               ),
+              if (_mode == FloPanelMode.askFlo)
+                FloComposer(
+                  controller: _controller,
+                  enabled: !_isLoading,
+                  isMobile: _isMobile,
+                  showQuickPrompts: !_showHome && _messages.isNotEmpty,
+                  onSend: () => _sendMessage(_controller.text),
+                  onAttach: _handleAttach,
+                ),
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildModeSelector() {
-    return PopupMenuButton<String>(
-      initialValue: _selectedUseCase,
-      icon: Icon(
-        _selectedUseCase == 'business'
-            ? Icons.business_center_rounded
-            : Icons.person_rounded,
-        color: AiTheme.primaryColor,
       ),
-      tooltip: 'Select AI Mode',
-      onSelected: (String mode) {
-        setState(() {
-          _selectedUseCase = mode;
-        });
-        // If we choose a different mode, suggest starting a new conversation
-        if (_messages.isNotEmpty) {
-          showCustomSnackBarUtil(
-            context,
-            'Mode changed to ${mode == 'business' ? 'Business' : 'Personal'}. Start a new conversation to use this mode.',
-            type: NotificationType.info,
-            actionLabel: 'New Chat',
-            onAction: _startNewConversation,
-          );
-        }
-      },
-      itemBuilder: (BuildContext context) {
-        return [
-          const PopupMenuItem<String>(
-            value: 'business',
-            child: Row(
-              children: [
-                Icon(Icons.business_center_rounded, size: 20),
-                SizedBox(width: 8),
-                Text('Business Assistant'),
-              ],
-            ),
-          ),
-          const PopupMenuItem<String>(
-            value: 'personal',
-            child: Row(
-              children: [
-                Icon(Icons.person_rounded, size: 20),
-                SizedBox(width: 8),
-                Text('Personal Assistant'),
-              ],
-            ),
-          ),
-        ];
-      },
-    );
-  }
-
-  Widget _buildModelSelector(List<AIModel> availableModels) {
-    return PopupMenuButton<AIModel>(
-      initialValue: _selectedModel,
-      icon: const Icon(Icons.psychology, color: AiTheme.primaryColor),
-      tooltip: 'Select AI Model',
-      onSelected: (AIModel model) {
-        setState(() {
-          _selectedModel = model;
-        });
-      },
-      itemBuilder: (BuildContext context) {
-        return availableModels.map((AIModel model) {
-          return PopupMenuItem<AIModel>(
-            value: model,
-            child: Row(
-              children: [
-                if (model.id == _selectedModel?.id)
-                  const Icon(
-                    Icons.check,
-                    color: AiTheme.primaryColor,
-                    size: 18,
-                  ),
-                if (model.id == _selectedModel?.id) const SizedBox(width: 8),
-                Text(
-                  model.name,
-                  style: TextStyle(
-                    fontWeight: model.id == _selectedModel?.id
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                ),
-                if (model.isPaidOnly) const SizedBox(width: 8),
-                if (model.isPaidOnly)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.amber),
-                    ),
-                    child: const Text(
-                      'PRO',
-                      style: TextStyle(fontSize: 10, color: Colors.amber),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }).toList();
-      },
-    );
-  }
-
-  Widget _buildMessageList() {
-    if (_messages.isEmpty) {
-      // Get the useCase for the current conversation
-      String currentUseCase = _selectedUseCase;
-      try {
-        final conversations = ref.read(conversationProvider).value ?? [];
-        final currentConv = conversations.firstWhere(
-          (c) => c.id == _currentConversationId,
-        );
-        currentUseCase = currentConv.useCase;
-      } catch (e) {
-        // Fallback
-      }
-
-      return WelcomeView(
-        onSend: (text) =>
-            _sendMessage(text, conversationId: _currentConversationId),
-        useCase: currentUseCase,
-      );
-    }
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      itemCount: _messages.length,
-      itemBuilder: (context, index) {
-        final message = _messages[index];
-        final isUser = message.role == 'user';
-
-        if (message.text.startsWith('[voice](')) {
-          //TODO: resume this when just_audio is updated to support 16 page size
-          // final path = message.text.substring(8, message.text.length - 1);
-          // return Align(
-          //   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-          //   child: Padding(
-          //     padding: const EdgeInsets.symmetric(vertical: 4.0),
-          //     child: AudioPlayerWidget(audioPath: path),
-          //   ),
-          // );
-        } else if (message.text.startsWith('[file](')) {
-          final path = message.text.substring(7, message.text.length - 1);
-          final fileName = path.split('/').last;
-          return Align(
-            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Card(
-                color: isUser ? AiTheme.userBubbleColor : AiTheme.aiBubbleColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Attached File:',
-                        style: TextStyle(
-                          color: isUser ? Colors.white70 : Colors.black54,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.attach_file,
-                            color: isUser ? Colors.white : Colors.black87,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              fileName,
-                              style: TextStyle(
-                                color: isUser ? Colors.white : Colors.black87,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        }
-
-        return MessageBubble(
-          message: message,
-          isUser: isUser,
-          onPurchaseCredits: widget.onPurchaseCredits,
-        );
-      },
     );
   }
 }

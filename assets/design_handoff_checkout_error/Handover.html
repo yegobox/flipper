@@ -1,0 +1,3070 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flo — Developer Handover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#0B1220; --ink2:#41506A; --ink3:#73819B; --line:#E4EAF3; --line2:#EEF2F8;
+    --bg:#F6F8FC; --surf:#fff; --blue:#2563EB; --blue7:#1D4ED8; --blueT:#EAF1FE;
+    --wa:#0E8A47; --waT:#E7F7EE; --code-bg:#0E1525; --code-ink:#D6E0F5;
+    --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:248px 1fr;gap:0;align-items:start}
+
+  /* sidebar */
+  .toc{position:sticky;top:0;height:100vh;overflow-y:auto;padding:26px 16px 40px;border-right:1px solid var(--line);background:var(--surf)}
+  .toc::-webkit-scrollbar{width:0}
+  .toc .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .toc .mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#22D3EE,#2563EB 52%,#4F46E5);display:grid;place-items:center}
+  .toc .mark svg{width:20px;height:20px}
+  .toc .bn{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .toc .bs{font-size:11px;color:var(--ink3);font-weight:600}
+  .toc a{display:block;padding:6px 10px;border-radius:8px;color:var(--ink2);text-decoration:none;font-size:13px;font-weight:500}
+  .toc a:hover{background:var(--line2);color:var(--ink)}
+  .toc .sec{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin:16px 10px 6px}
+
+  /* content */
+  main{padding:46px 54px 120px;min-width:0}
+  .hero-eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+  h1{font-size:34px;letter-spacing:-.03em;margin:8px 0 10px;line-height:1.1}
+  .lede{font-size:16px;color:var(--ink2);max-width:70ch}
+  section{padding-top:40px;scroll-margin-top:20px}
+  h2{font-size:23px;letter-spacing:-.02em;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:10px}
+  h2 .num{font-family:var(--mono);font-size:14px;color:#fff;background:var(--blue);width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+  h3{font-size:16px;margin:22px 0 6px;letter-spacing:-.01em}
+  p{margin:8px 0;max-width:74ch;color:var(--ink2)}
+  p strong,li strong{color:var(--ink);font-weight:700}
+  ul,ol{margin:8px 0 8px 22px;color:var(--ink2)}
+  li{margin:4px 0;max-width:72ch}
+  code{font-family:var(--mono);font-size:.88em;background:var(--blueT);color:var(--blue7);padding:1px 6px;border-radius:5px}
+  a.inline{color:var(--blue7);font-weight:600}
+
+  .callout{border:1px solid var(--line);border-left:3px solid var(--blue);background:var(--surf);border-radius:10px;padding:12px 16px;margin:14px 0}
+  .callout.warn{border-left-color:#E08600;background:#FFFaf2}
+  .callout.wa{border-left-color:var(--wa);background:var(--waT)}
+  .callout .h{font-weight:700;color:var(--ink);font-size:13.5px;margin-bottom:2px}
+  .callout p{margin:0;font-size:13.5px}
+
+  table.t{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px;background:var(--surf);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  table.t th{text-align:left;background:#F3F6FB;color:var(--ink3);font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:9px 13px;border-bottom:1px solid var(--line)}
+  table.t td{padding:9px 13px;border-bottom:1px solid var(--line2);color:var(--ink2);vertical-align:top}
+  table.t tr:last-child td{border-bottom:0}
+  table.t td code{background:none;padding:0;color:var(--blue7)}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid rgba(0,0,0,.08)}
+
+  details{margin:14px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--code-bg)}
+  details>summary{cursor:pointer;list-style:none;padding:11px 16px;background:#141C30;color:#9FB3D9;font-family:var(--mono);font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:9px;user-select:none}
+  details>summary::-webkit-details-marker{display:none}
+  details>summary::before{content:'▸';color:#5B6B8C}
+  details[open]>summary::before{content:'▾'}
+  details>summary .fp{margin-left:auto;color:#5B6B8C;font-weight:500}
+  pre{margin:0;max-height:560px;overflow:auto;padding:16px 18px}
+  pre::-webkit-scrollbar{height:9px;width:9px}
+  pre::-webkit-scrollbar-thumb{background:#2A3654;border-radius:9px;border:2px solid var(--code-bg)}
+  pre code{display:block;background:none;color:var(--code-ink);font-size:12px;line-height:1.65;white-space:pre;padding:0;border-radius:0}
+
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;font-family:var(--mono)}
+  .pill.blue{background:var(--blueT);color:var(--blue7)}
+  .pill.wa{background:var(--waT);color:var(--wa)}
+  .pill.mut{background:#EEF2F8;color:var(--ink3)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+  @media(max-width:880px){.wrap{grid-template-columns:1fr}.toc{display:none}main{padding:30px 22px 80px}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc">
+    <div class="brand">
+      <span class="mark"><svg viewBox="66.993 897.484 26 26"><path fill="#fff" d="m89.318 903.552-2.135 2.122c-.376.337-.558.879-.347 1.337 1.422 2.976.882 6.524-1.452 8.856-2.335 2.331-5.887 2.87-8.866 1.449-.439-.197-.954-.03-1.292.312l-2.17 2.167a1.154 1.154 0 0 0 .208 1.81 13.005 13.005 0 0 0 15.91-1.912 12.97 12.97 0 0 0 1.956-15.887 1.154 1.154 0 0 0-1.812-.254zm-18.467-2.305a12.969 12.969 0 0 0-2.02 15.885 1.154 1.154 0 0 0 1.812.254l2.124-2.11c.385-.336.572-.884.359-1.348-1.423-2.976-.884-6.524 1.451-8.856 2.334-2.332 5.887-2.871 8.866-1.45.434.194.942.033 1.281-.3l2.182-2.18a1.152 1.152 0 0 0-.208-1.81 13.009 13.009 0 0 0-15.893 1.973z"/></svg></span>
+      <span><span class="bn">Flo</span><br /><span class="bs">Dev Handover</span></span>
+    </div>
+    <div class="sec">Foundations</div>
+    <a href="#overview">1 · Overview</a>
+    <a href="#arch">2 · Architecture & files</a>
+    <a href="#tokens">3 · Design tokens</a>
+    <a href="#shell">4 · Panel shell & surfaces</a>
+    <a href="#header">5 · Header & modes</a>
+    <div class="sec">Ask Flo</div>
+    <a href="#home">6 · Home / empty state</a>
+    <a href="#thread">7 · Conversation & thinking</a>
+    <a href="#blocks">8 · Answer-block schema</a>
+    <a href="#composer">9 · Composer</a>
+    <div class="sec">WhatsApp</div>
+    <a href="#connect">10 · Connect flow</a>
+    <a href="#inbox">11 · Messages inbox</a>
+    <div class="sec">Build it for real</div>
+    <a href="#backend">12 · Backend contracts</a>
+    <a href="#state">13 · State & acceptance</a>
+    <div class="sec">Full source</div>
+    <a href="#src-css">CSS — assist.css</a>
+    <a href="#src-tokens">CSS — base tokens</a>
+    <a href="#src-icons">JS — icons</a>
+    <a href="#src-charts">JS — charts</a>
+    <a href="#src-data">JS — Ask-Flo data</a>
+    <a href="#src-inbox">JS — inbox</a>
+    <a href="#src-app">JS — app</a>
+    <a href="#src-html">HTML — shell</a>
+  </nav>
+
+  <main>
+    <div class="hero-eyebrow">Flipper · AI Business Assistant</div>
+    <h1>“Flo” — Developer Handover</h1>
+    <p class="lede">Everything needed to implement the redesigned chat panel: design tokens, every component, the answer-block contract, the WhatsApp connect + inbox flows, backend integration points, and the <strong>complete annotated source</strong> (CSS + JSX) inlined at the bottom. Goal: match SAP Joule’s capability in Flipper’s brand. Scope is the chat panel only — no global left nav.</p>
+
+    <section id="overview">
+      <h2><span class="num">1</span> Overview &amp; goals</h2>
+      <p>One panel hosts <strong>two modes</strong> toggled in the header:</p>
+      <ul>
+        <li><strong>Ask Flo</strong> — a conversational AI that answers business questions from live data with rich cards (metrics, charts, tables), source grounding, follow-ups, and a proactive daily briefing.</li>
+        <li><strong>Messages</strong> — a WhatsApp inbox where customer chats land and Flo drafts replies grounded in your data.</li>
+      </ul>
+      <p>Currency is <strong>RWF</strong>; locale is Rwanda (EBM tax context). Data source is <strong>MiniData</strong> (a Supabase project: <code>sales</code>, <code>users</code>, <code>products</code>, <code>payments</code>). Reference product: SAP Joule.</p>
+      <div class="callout"><div class="h">Naming</div><p>The assistant is <strong>Flo</strong> (“Flipper flow”). Brand mark = the Flipper swirl on a cyan→blue→indigo gradient. The mark doubles as the bot avatar.</p></div>
+    </section>
+
+    <section id="arch">
+      <h2><span class="num">2</span> Architecture &amp; files</h2>
+      <p>React 18 + hooks, no router. The prototype loads via Babel-in-browser; in production compile normally and split into the same modules. Load order matters (each file attaches exports to <code>window</code>):</p>
+      <table class="t">
+        <tr><th>File</th><th>Responsibility</th></tr>
+        <tr><td><code>onboarding/styles.css</code></td><td>Base design tokens (<code>:root</code>), fonts, phone shell. Load first.</td></tr>
+        <tr><td><code>assist.css</code></td><td>All chat-specific styling (header, home, blocks, composer, modals, inbox).</td></tr>
+        <tr><td><code>chat-icons.jsx</code></td><td><code>Ic</code> icon set + <code>FloMark</code> brand mark.</td></tr>
+        <tr><td><code>chat-charts.jsx</code></td><td><code>BarChart</code> (signed bars) + <code>AreaChart</code> (7-day trend), pure SVG.</td></tr>
+        <tr><td><code>chat-data.jsx</code></td><td>Ask-Flo demo content: <code>SUGGESTIONS, QUICK, PROMPT_TEXT, ANSWERS, FALLBACK</code> + inbox seed <code>INBOX</code>.</td></tr>
+        <tr><td><code>chat-inbox.jsx</code></td><td><code>Inbox</code> (list + thread + Flo-draft + reply + locked state).</td></tr>
+        <tr><td><code>chat-app.jsx</code></td><td><code>Chat</code> root: header, mode switch, Ask-Flo thread, modals.</td></tr>
+        <tr><td><code>Flipper Assistant.html</code></td><td>Shell: fonts, surfaces (desktop frame / phone), Tweaks, accent theming.</td></tr>
+      </table>
+      <div class="callout warn"><div class="h">Animation gotcha (learned the hard way)</div><p>Never rely on an entrance animation that starts at <code>opacity:0</code>/<code>scaleY(0)</code> for content that must be visible — some capture/print contexts freeze the animation timeline at frame 0 and the content vanishes. Make the <strong>rest state visible</strong>; treat animations as optional enhancement (gate behind <code>prefers-reduced-motion: no-preference</code>). Charts render at full state; modals appear without fade.</p></div>
+    </section>
+
+    <section id="tokens">
+      <h2><span class="num">3</span> Design tokens</h2>
+      <p>Use CSS variables for everything; never hardcode hexes in components. Full definitions are in the source (<a class="inline" href="#src-tokens">base tokens</a> + top of <a class="inline" href="#src-css">assist.css</a>). Key values:</p>
+      <h3>Ink &amp; surfaces</h3>
+      <table class="t">
+        <tr><th>Token</th><th>Value</th><th>Use</th></tr>
+        <tr><td><code>--ink-1</code></td><td><span class="sw" style="background:#0B1220"></span>#0B1220</td><td>Primary text</td></tr>
+        <tr><td><code>--ink-2</code></td><td><span class="sw" style="background:#4A5567"></span>#4A5567</td><td>Body</td></tr>
+        <tr><td><code>--ink-3</code></td><td><span class="sw" style="background:#7E8AA0"></span>#7E8AA0</td><td>Muted / labels</td></tr>
+        <tr><td><code>--ink-4</code></td><td><span class="sw" style="background:#AEB8CA"></span>#AEB8CA</td><td>Faint / placeholder</td></tr>
+        <tr><td><code>--surface</code> / chat bg</td><td><span class="sw" style="background:#fff"></span>#FFFFFF / <span class="sw" style="background:#FBFCFE"></span>#FBFCFE</td><td>Cards / panel base</td></tr>
+        <tr><td><code>--line</code> / <code>--line-strong</code></td><td><span class="sw" style="background:#E6ECF5"></span>#E6ECF5 / <span class="sw" style="background:#D6DEEA"></span>#D6DEEA</td><td>Borders</td></tr>
+      </table>
+      <h3>Brand, semantic &amp; WhatsApp</h3>
+      <table class="t">
+        <tr><th>Token</th><th>Value</th><th>Use</th></tr>
+        <tr><td><code>--blue</code></td><td><span class="sw" style="background:#2563EB"></span>#2563EB</td><td>Primary accent</td></tr>
+        <tr><td><code>--grad-brand</code></td><td><span class="sw" style="background:#22D3EE"></span>→<span class="sw" style="background:#2563EB"></span>→<span class="sw" style="background:#4F46E5"></span></td><td>Mark / em text (cyan→blue→indigo)</td></tr>
+        <tr><td><code>--grad-btn</code></td><td><span class="sw" style="background:#2C6BF0"></span>→<span class="sw" style="background:#1D4ED8"></span></td><td>Primary buttons, user bubbles</td></tr>
+        <tr><td>gain</td><td><span class="sw" style="background:#10B981"></span>#10B981 / ink #047857 / tint #E6F7EF</td><td>Positive deltas</td></tr>
+        <tr><td>loss</td><td><span class="sw" style="background:#E5484D"></span>#E5484D / ink #B42318 / tint #FDECEC</td><td>Negative / profit loss</td></tr>
+        <tr><td>warn</td><td><span class="sw" style="background:#E08600"></span>ico #E08600 / bg #FFF8EC</td><td>Callouts</td></tr>
+        <tr><td><code>--wa</code> / <code>--wa-deep</code> / tint</td><td><span class="sw" style="background:#1EAE54"></span>#1EAE54 / <span class="sw" style="background:#0E8A47"></span>#0E8A47 / #E7F7EE</td><td>WhatsApp surfaces</td></tr>
+      </table>
+      <h3>Type, radii, shadow</h3>
+      <ul>
+        <li><strong>Fonts:</strong> <code>--sans</code> Geist (UI), <strong><code>--mono</code> Geist Mono for ALL numbers, currency, IDs, timestamps</strong>.</li>
+        <li><strong>Radii:</strong> <code>--r-sm 10</code> · <code>--r-md 14</code> · <code>--r-lg 20</code> · <code>--r-xl 26</code> · <code>--r-pill 999</code>.</li>
+        <li><strong>Shadow:</strong> <code>--sh-1</code> (hairline) · <code>--sh-2</code> (card) · <code>--sh-3</code> (panel/modal) · <code>--sh-blue</code> (primary buttons).</li>
+        <li><strong>Min sizes:</strong> body ≥14px, labels ≥10.5px uppercase, touch targets ≥44px.</li>
+      </ul>
+    </section>
+
+    <section id="shell">
+      <h2><span class="num">4</span> Panel shell &amp; surfaces</h2>
+      <p>The chat is a single flex column: <strong>header</strong> (fixed) → <strong>body</strong> → composer/inbox. Modals overlay the panel (<code>position:absolute; inset:0</code>) — not the viewport.</p>
+      <ul>
+        <li><strong>Desktop:</strong> centered card ~<code>1040×860</code>, radius 24, <code>--sh-3</code>.</li>
+        <li><strong>Mobile:</strong> 412×892 device frame (status bar + notch). Add class <code>is-mobile</code> on the chat root; it drives all mobile rules (hide identity text + chips, stack inbox, 2-col metrics, etc.).</li>
+      </ul>
+      <p>In the prototype, surface is a Tweak (Desktop/Mobile). In production, make it responsive: apply <code>is-mobile</code> below ~640px.</p>
+    </section>
+
+    <section id="header">
+      <h2><span class="num">5</span> Header &amp; modes</h2>
+      <p>Left→right:</p>
+      <ol>
+        <li><strong>Identity:</strong> brand mark + “Flo” + <span class="pill blue">Business AI</span> + status <code>● MiniData connected · live</code> (green live dot). Hidden on mobile.</li>
+        <li><strong>Mode toggle</strong> (segmented, centered): <span class="pill mut">✦ Ask Flo</span> <span class="pill mut">⌾ Messages</span>. Messages shows a green unread badge — only when WhatsApp is connected and unread&gt;0.</li>
+        <li><strong>Channel chips</strong> (hidden on mobile): <span class="pill blue">⛁ MiniData</span> (green dot) and either a dashed <span class="pill mut">Connect WhatsApp</span> or solid <span class="pill wa">⌾ WhatsApp</span> when connected. Both open their modal.</li>
+        <li><strong>New chat</strong> button (hidden on mobile — redundant with menu).</li>
+        <li><strong>“+” menu</strong> popover (closes on outside click): New conversation · Connect WhatsApp (On/Off badge) · Manage data sources.</li>
+      </ol>
+    </section>
+
+    <section id="home">
+      <h2><span class="num">6</span> Ask Flo — home / empty state</h2>
+      <p>Shown when the Ask-Flo thread is empty:</p>
+      <ul>
+        <li><strong>Greeting:</strong> eyebrow (day · time), headline “Good evening, {Shop}. Ask me <em>anything</em>…” (the em word uses <code>--grad-brand</code> as clipped text), sub paragraph.</li>
+        <li><strong>Daily briefing</strong> card (proactive, generated daily): badge + auto timestamp, headline, paragraph with bold figures, 3 mini-stats (Revenue / Net profit / Units, each with up/down delta).</li>
+        <li><strong>Try asking</strong> grid (2-col desktop, 1-col mobile) of suggestion cards <code>{icon, tone, title, desc, q}</code> → clicking sends <code>q</code>.</li>
+        <li><strong>Channels</strong> grid: MiniData (Connected · Manage→sources) + WhatsApp (Connected/Not set up · Connect/Manage).</li>
+      </ul>
+    </section>
+
+    <section id="thread">
+      <h2><span class="num">7</span> Conversation &amp; thinking</h2>
+      <ul>
+        <li><strong>User row:</strong> right-aligned bubble, <code>--grad-btn</code>, radius 20/20/6/20, white text.</li>
+        <li><strong>Bot row:</strong> brand-mark avatar + a column that renders the <a class="inline" href="#blocks">answer-block array</a> (gap 13).</li>
+        <li><strong>Thinking:</strong> before the answer, show the avatar + a vertical step list animating done→active→pending (tick / spinner / dashed). ~0.4–0.5s/step; in production stream these from your real query/tool phases (e.g. “Querying MiniData · sales”).</li>
+        <li>Auto-scroll to bottom on each new message/block.</li>
+      </ul>
+    </section>
+
+    <section id="blocks">
+      <h2><span class="num">8</span> Answer-block schema <span class="pill blue">core contract</span></h2>
+      <p>An answer is an <strong>ordered array of typed blocks</strong>. Your LLM/back end returns this JSON; the renderer maps each <code>type</code> to a component. Implement all eight. Always include a <code>source</code> block (grounding) and, when relevant, <code>followups</code>.</p>
+      <table class="t">
+        <tr><th>type</th><th>shape</th><th>notes</th></tr>
+        <tr><td><code>text</code></td><td><code>{html}</code></td><td>Allows <code>&lt;b&gt;</code>, <code>&lt;span class="pos|neg"&gt;</code>.</td></tr>
+        <tr><td><code>metrics</code></td><td><code>{cols:2|3|4, items:[{k,v,unit?,delta?,dir:'up'|'down'|'flat',neg?,hl?}]}</code></td><td>Tiles; value mono; dir→arrow+color; <code>hl</code>=blue tint; mobile forces 2-col.</td></tr>
+        <tr><td><code>viz</code> (bar)</td><td><code>{kind:'bar',title,sub,data:[{label,value,tone:'blue'|'gain'|'loss',display}]}</code></td><td>Signed bars + zero baseline; negative value label sits inside the bar.</td></tr>
+        <tr><td><code>viz</code> (area)</td><td><code>{kind:'area',title,sub,points:number[],labels:string[],peak:index}</code></td><td>7-day line+area, peak marker.</td></tr>
+        <tr><td><code>table</code></td><td><code>{cols:[{label,num?}],rows:[cell...]}</code></td><td>cell = string | <code>{t,cls:'pos'|'neg'}</code> | <code>{lead,sw:'#hex'}</code>. <code>num</code> cols right-align mono.</td></tr>
+        <tr><td><code>callout</code></td><td><code>{tone:'warn'|'info',h,p}</code></td><td>Icon chip + heading + body.</td></tr>
+        <tr><td><code>source</code></td><td><code>{items:[...]}</code></td><td>Grounding chip; first item bold (e.g. <code>MiniData · sales · today</code>).</td></tr>
+        <tr><td><code>actions</code></td><td><code>{items:[{label,icon,primary?}]}</code></td><td>e.g. View EOD report, Export.</td></tr>
+        <tr><td><code>followups</code></td><td><code>{items:[{label,q}]}</code></td><td>Chips → send <code>q</code>.</td></tr>
+      </table>
+      <p>See <a class="inline" href="#src-data">chat-data.jsx</a> for six fully-worked example answers (<code>today, users, trend, profit-products, why-negative, compare</code>) and the renderer in <a class="inline" href="#src-app">chat-app.jsx</a> (<code>Block</code>).</p>
+    </section>
+
+    <section id="composer">
+      <h2><span class="num">9</span> Composer (Ask Flo)</h2>
+      <ul>
+        <li>Rounded bar: left <strong>“+”</strong> (attach/data source), <strong>scope pill</strong> <code>⛁ MiniData ⌄</code>, autogrow textarea (≤120px, Enter=send, Shift+Enter=newline), <strong>mic</strong>, <strong>send</strong> (disabled when empty).</li>
+        <li>Quick-prompt chip row appears above the input once a conversation exists.</li>
+        <li>Footer disclaimer: “Flo can make mistakes — check important figures. <strong>Grounded in MiniData</strong>.”</li>
+      </ul>
+    </section>
+
+    <section id="connect">
+      <h2><span class="num">10</span> WhatsApp connect flow</h2>
+      <p>Four entry points all open the connect modal: header chip, “+” menu, home Channels card, and the Messages locked-state button.</p>
+      <div class="grid2">
+        <div class="callout wa"><div class="h">Connect modal (not connected)</div><p>WA-green header; intro; 3 numbered steps (Open Meta Business Suite ↗ · Find Phone Number ID 🔍 · Paste &amp; connect ⧉); <strong>Phone Number ID</strong> input (mono/numeric); privacy hint; <strong>Connect WhatsApp</strong> (disabled until ≥6 chars).</p></div>
+        <div class="callout wa"><div class="h">Success state (connected)</div><p>Green check, “You’re connected”, account row (number + “Phone Number ID · {shop}” + ● Live), <strong>Disconnect</strong> button.</p></div>
+      </div>
+      <p>On connect, persist <code>{connected:true, phoneNumberId}</code>; the header chip turns solid green, the menu badge flips On, and the Messages tab becomes usable.</p>
+    </section>
+
+    <section id="inbox">
+      <h2><span class="num">11</span> Messages inbox</h2>
+      <p><strong>Not connected →</strong> a locked state: WA icon, “Answer customers on WhatsApp”, explainer, Connect button, 3-step strip. This is the answer to “how do I see WhatsApp messages?” — they land here once connected.</p>
+      <p><strong>Connected →</strong> master-detail (both panes on desktop; stacked with a back arrow on mobile):</p>
+      <ul>
+        <li><strong>List</strong> (~326px): header “Customers / N unread / via WhatsApp”; rows = avatar(initials+tone) + name + time(mono) + last-message snippet (prefix “You: ” for outbound) + green unread badge. Selecting clears that thread’s unread.</li>
+        <li><strong>Thread:</strong> head (back on mobile + avatar + name + <code>WhatsApp · {phone}</code> + actions); messages — inbound = neutral left bubble, outbound = WA-green right bubble; “Today” divider; mono times.</li>
+        <li><strong>Flo suggested reply</strong> card (when last message is inbound and a draft exists): mark + “Flo suggested reply” + source chip + draft text + <strong>Send reply</strong> / <strong>Edit first</strong> / <strong>Dismiss</strong>.</li>
+        <li><strong>Reply composer:</strong> optional <strong>Draft</strong> button (loads Flo’s draft), textarea (Enter=send), green send.</li>
+      </ul>
+      <p>Inbox item shape: <code>{id, name, initials, tone, phone, time, unread, last, msgs:[{from:'them'|'me',t,time}], flo:{src,draft}|null}</code>. See <a class="inline" href="#src-inbox">chat-inbox.jsx</a>.</p>
+    </section>
+
+    <section id="backend">
+      <h2><span class="num">12</span> Backend contracts (build for real)</h2>
+      <h3>MiniData = Supabase</h3>
+      <p>Tables: <code>sales, users, products, payments</code>. The Data Sources modal lists/adds/edits/removes connections (status Active). Flo’s answers, the daily briefing, and reply drafts all query this.</p>
+      <h3>Flo answers (Ask Flo)</h3>
+      <p>Pipeline: user question → retrieve schema + run read-only queries over MiniData (RAG / tool-calls) → LLM composes the <strong>block array</strong> (§8) as JSON. Stream the thinking steps from the query phases. Rules: format money as RWF, mono numerals; always attach a <code>source</code> block; never fabricate — when data is missing, return a <code>callout</code> saying so (mirrors today’s “No tax/traffic data” case).</p>
+      <h3>WhatsApp (Meta Cloud API)</h3>
+      <ul>
+        <li><strong>Connect:</strong> store Phone Number ID + access token. Prefer Meta Embedded Signup/OAuth; the manual “Phone Number ID” paste matches the current prototype.</li>
+        <li><strong>Inbound:</strong> webhook → upsert message into the thread keyed by <code>wa_id</code>/phone → realtime push to the inbox. Unread = inbound since last read.</li>
+        <li><strong>Outbound:</strong> POST to the messages endpoint; append as <code>{from:'me'}</code>.</li>
+        <li><strong>Drafts:</strong> on inbound, call the LLM with the customer message + MiniData context → <code>{src, draft}</code>. Roadmap: live regenerate, auto-reply toggle for FAQs (hours/stock), canned quick-replies, customer order side-panel.</li>
+      </ul>
+    </section>
+
+    <section id="state">
+      <h2><span class="num">13</span> State model &amp; acceptance</h2>
+      <p><strong>Session state:</strong> <code>mode:'flo'|'inbox'</code> · <code>messages[]</code> (Ask-Flo thread) · <code>wa:{connected,phoneNumberId}</code> · <code>modal:null|'whatsapp'|'sources'</code> · <code>menuOpen</code> · inbox <code>threads{id:{msgs,unread}}, selected</code> + per-thread reply input &amp; <code>floState:'open'|'used'|'dismissed'</code>.</p>
+      <h3>Acceptance checklist</h3>
+      <ul>
+        <li>Empty Ask-Flo shows Home; sending hides Home, reveals thread + quick prompts; thinking always resolves to a visible answer.</li>
+        <li>Charts/areas render at rest (no opacity-0 dependency); modals appear without relying on animation.</li>
+        <li>Messages badge only when connected + unread; disconnected shows locked state.</li>
+        <li>Mobile: list↔thread with back; header collapses; metrics 2-col; composer clears the home indicator.</li>
+        <li>Connect needs ID ≥6 chars; connection reflects in header chip, menu, home card, Messages.</li>
+        <li>Negative profit = red + minus; all money RWF + mono.</li>
+      </ul>
+      <div class="callout"><div class="h">Mocked in the prototype → build real</div><p>Scripted Flo answers &amp; drafts (→ live LLM + Supabase); simulated WhatsApp connect (→ Cloud API + webhooks); static inbox seed (→ live threads); no auth/persistence.</p></div>
+    </section>
+
+    <h2 style="margin-top:48px">Complete source</h2>
+    <p>The full, current files — copy verbatim or use as the implementation reference. Every class referenced above is defined in <code>assist.css</code>.</p>
+
+    <section id="src-css"><h3>CSS — assist.css <span class="pill mut">chat styling</span></h3>
+      <details><summary>assist.css<span class="fp">all chat-specific CSS</span></summary><pre><code>/* ===========================================================
+   Flipper · AI Business Assistant ("Flo") — chat redesign
+   Joule-grade conversational surface on Flipper tokens.
+   Tokens (--blue, --ink-*, gradients, Geist) come from
+   onboarding/styles.css, loaded first.
+   =========================================================== */
+
+:root {
+  --gain:      #10B981;
+  --gain-tint: #E6F7EF;
+  --gain-ink:  #047857;
+  --loss:      #E5484D;
+  --loss-tint: #FDECEC;
+  --loss-ink:  #B42318;
+  --warn-bg:   #FFF8EC;
+  --warn-line: #F6E3BC;
+  --warn-ico:  #E08600;
+  --warn-ink:  #8A5300;
+  --chat-bg:   #FBFCFE;
+  --bubble-radius: 20px;
+}
+
+/* ---------- Studio stage ---------- */
+.studio {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 28px;
+}
+
+/* ===========================================================
+   Desktop panel frame
+   =========================================================== */
+.app-frame {
+  width: 1040px;
+  height: 860px;
+  max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--sh-3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* phone frame reuse */
+.devicephone {
+  position: relative;
+  width: 412px; height: 892px;
+  border-radius: 52px;
+  background: #0B1220;
+  padding: 11px;
+  box-shadow: 0 50px 110px -30px rgba(11,18,32,.55), 0 20px 50px -20px rgba(11,18,32,.4), inset 0 0 0 2px rgba(255,255,255,.06);
+}
+.devicephone .device-screen {
+  position: relative; width: 100%; height: 100%;
+  border-radius: 42px; overflow: hidden; background: var(--chat-bg);
+  display: flex; flex-direction: column;
+}
+.device-notch {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  width: 108px; height: 28px; background: #0B1220; border-radius: 999px; z-index: 30;
+}
+.device-statusbar {
+  height: 50px; flex-shrink: 0; z-index: 6;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 26px 0 30px;
+  font-size: 14.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-1);
+}
+.device-statusbar .sb-right { display: flex; align-items: center; gap: 7px; }
+
+/* ===========================================================
+   Chat root
+   =========================================================== */
+.chat {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--chat-bg);
+  font-family: var(--sans);
+  color: var(--ink-1);
+}
+
+/* ---------- Header ---------- */
+.chat-head {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 13px;
+  padding: 14px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.is-mobile .chat-head { padding: 6px 12px 12px; }
+.is-mobile .chat-head-id { display: none; }
+.is-mobile .mode-tabs { margin-left: 4px; }
+.is-mobile .newchat-btn { display: none; }
+.flo-mark {
+  width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
+  background: var(--grad-brand);
+  display: grid; place-items: center;
+  box-shadow: 0 6px 16px -6px rgba(37,99,235,.55);
+  position: relative;
+}
+.flo-mark svg { width: 22px; height: 22px; }
+.flo-mark.sm { width: 30px; height: 30px; border-radius: 10px; }
+.flo-mark.sm svg { width: 17px; height: 17px; }
+.chat-head-id { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex-shrink: 0; }
+.chat-head-name { font-size: 16px; font-weight: 700; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.chat-head-name .ver { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; color: var(--blue); background: var(--blue-tint); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+.chat-head-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); font-weight: 500; white-space: nowrap; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gain); box-shadow: 0 0 0 3px var(--gain-tint); }
+.chat-head-spacer { flex: 1; }
+.head-btn {
+  height: 36px; padding: 0 13px;
+  display: inline-flex; align-items: center; gap: 7px;
+  border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2);
+  font-size: 13.5px; font-weight: 600;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.head-btn:hover { background: var(--surface-2); border-color: var(--line-strong); color: var(--ink-1); }
+.head-btn.icon { width: 36px; padding: 0; justify-content: center; }
+.head-btn svg { width: 17px; height: 17px; }
+
+/* ---------- Scroll region ---------- */
+.chat-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+.chat-scroll::-webkit-scrollbar { width: 10px; }
+.chat-scroll::-webkit-scrollbar-thumb { background: #E2E8F2; border: 3px solid var(--chat-bg); border-radius: 999px; }
+.chat-scroll::-webkit-scrollbar-thumb:hover { background: #CBD5E6; }
+.chat-thread {
+  max-width: 760px; margin: 0 auto;
+  padding: 26px 28px 18px;
+  display: flex; flex-direction: column; gap: 22px;
+}
+.is-mobile .chat-thread { padding: 16px 16px 12px; gap: 18px; }
+
+/* ===========================================================
+   Empty / home state
+   =========================================================== */
+.home { padding: 8px 2px 0; }
+.home-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+.home-greet-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.home-greet { font-size: 27px; font-weight: 700; letter-spacing: -.03em; line-height: 1.12; margin-top: 4px; text-wrap: balance; }
+.is-mobile .home-greet { font-size: 23px; }
+.home-greet em { font-style: normal; background: var(--grad-brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.home-sub { font-size: 14.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.5; max-width: 48ch; text-wrap: pretty; }
+
+/* daily briefing (proactive) */
+.briefing {
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(180deg, #F4F8FF 0%, var(--surface) 46%);
+  box-shadow: var(--sh-2);
+  overflow: hidden;
+}
+.briefing-top { display: flex; align-items: center; gap: 10px; padding: 15px 18px 12px; }
+.briefing-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--blue); background: var(--blue-tint);
+  padding: 4px 9px; border-radius: var(--r-pill);
+}
+.briefing-badge svg { width: 13px; height: 13px; }
+.briefing-time { margin-left: auto; font-size: 12px; color: var(--ink-3); font-family: var(--mono); }
+.briefing-body { padding: 0 18px 16px; }
+.briefing-h { font-size: 16px; font-weight: 700; letter-spacing: -.02em; }
+.briefing-p { font-size: 14px; color: var(--ink-2); line-height: 1.55; margin-top: 5px; text-wrap: pretty; }
+.briefing-p b { color: var(--ink-1); font-weight: 700; }
+.briefing-stats { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.brief-stat {
+  flex: 1; min-width: 120px;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); padding: 11px 13px;
+}
+.brief-stat .k { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+.brief-stat .v { font-family: var(--mono); font-size: 18px; font-weight: 600; letter-spacing: -.02em; margin-top: 4px; }
+.brief-stat .v small { font-size: 11px; color: var(--ink-3); font-weight: 600; }
+.brief-stat .d { font-size: 11px; font-weight: 700; margin-top: 4px; display: inline-flex; align-items: center; gap: 3px; }
+.brief-stat .d.up { color: var(--gain-ink); }
+.brief-stat .d.down { color: var(--loss-ink); }
+
+/* suggestion grid */
+.home-sec-label { font-size: 11.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); margin: 26px 2px 12px; }
+.suggest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.is-mobile .suggest-grid { grid-template-columns: 1fr; }
+.suggest-card {
+  display: flex; align-items: flex-start; gap: 12px; text-align: left;
+  padding: 14px 15px;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); box-shadow: var(--sh-1);
+  transition: border-color .15s, box-shadow .2s, transform .12s;
+}
+.suggest-card:hover { border-color: var(--blue-tint2); box-shadow: var(--sh-2); transform: translateY(-1px); }
+.suggest-card:active { transform: scale(.99); }
+.suggest-ico { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; display: grid; place-items: center; }
+.suggest-ico svg { width: 19px; height: 19px; }
+.tone-blue   { background: var(--blue-tint); color: var(--blue); }
+.tone-gain   { background: var(--gain-tint); color: var(--gain-ink); }
+.tone-violet { background: #F1ECFB; color: var(--violet); }
+.tone-xp     { background: var(--xp-tint); color: var(--xp-2); }
+.suggest-txt { min-width: 0; display: flex; flex-direction: column; }
+.suggest-t { display: block; font-size: 14px; font-weight: 600; letter-spacing: -.01em; line-height: 1.3; }
+.suggest-d { display: block; font-size: 12px; color: var(--ink-3); margin-top: 3px; line-height: 1.4; }
+
+/* ===========================================================
+   Message rows
+   =========================================================== */
+.msg { display: flex; gap: 12px; }
+.msg-user { justify-content: flex-end; }
+
+.bubble {
+  max-width: 78%;
+  padding: 11px 15px;
+  background: var(--grad-btn); color: #fff;
+  border-radius: var(--bubble-radius) var(--bubble-radius) 6px var(--bubble-radius);
+  font-size: 14.5px; line-height: 1.5; font-weight: 500;
+  box-shadow: var(--sh-blue);
+}
+
+.msg-bot { align-items: flex-start; }
+.msg-bot .flo-mark { margin-top: 2px; }
+.bot-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 13px; }
+.bot-text { font-size: 14.5px; line-height: 1.6; color: var(--ink-1); text-wrap: pretty; }
+.bot-text b { font-weight: 700; }
+.bot-text .pos { color: var(--gain-ink); font-weight: 700; }
+.bot-text .neg { color: var(--loss-ink); font-weight: 700; }
+
+/* ---------- thinking ---------- */
+.thinking { display: flex; flex-direction: column; gap: 9px; padding: 2px 0; }
+.think-row { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-3); font-weight: 500; }
+.think-row .tick { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
+.think-row .tick.done { background: var(--gain-tint); color: var(--gain-ink); }
+.think-row .tick.done svg { width: 10px; height: 10px; }
+.think-row.is-active { color: var(--ink-1); font-weight: 600; }
+.think-row .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--blue-tint2); border-top-color: var(--blue); animation: spin 0.7s linear infinite; }
+.think-row .pend { width: 16px; height: 16px; border-radius: 50%; border: 1.5px dashed var(--line-strong); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===========================================================
+   Rich answer blocks
+   =========================================================== */
+/* metric tiles */
+.metric-grid { display: grid; gap: 10px; grid-template-columns: repeat(var(--cols, 4), 1fr); }
+.is-mobile .metric-grid { grid-template-columns: repeat(2, 1fr) !important; }
+.metric {
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); padding: 13px 14px;
+}
+.metric.hl { background: linear-gradient(180deg,#F7FAFF,var(--surface)); border-color: var(--blue-tint2); }
+.metric .m-k { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 5px; }
+.metric .m-v { font-family: var(--mono); font-size: 21px; font-weight: 600; letter-spacing: -.025em; margin-top: 6px; line-height: 1.05; }
+.metric .m-v small { font-size: 11px; color: var(--ink-3); font-weight: 600; margin-right: 2px; }
+.metric .m-v.neg { color: var(--loss-ink); }
+.metric .m-d { font-size: 11px; font-weight: 700; margin-top: 7px; display: inline-flex; align-items: center; gap: 3px; }
+.metric .m-d svg { width: 12px; height: 12px; }
+.metric .m-d.up { color: var(--gain-ink); }
+.metric .m-d.down { color: var(--loss-ink); }
+.metric .m-d.flat { color: var(--ink-3); }
+
+/* chart card */
+.viz {
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--surface); box-shadow: var(--sh-1);
+  padding: 16px 18px 14px;
+}
+.viz-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.viz-title { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; }
+.viz-sub { font-size: 11.5px; color: var(--ink-3); font-family: var(--mono); }
+.viz svg { display: block; width: 100%; height: auto; overflow: visible; }
+.viz-legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+.viz-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); font-weight: 600; }
+.viz-leg i { width: 9px; height: 9px; border-radius: 3px; }
+
+/* table */
+.dtable {
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); overflow: hidden;
+}
+.dtable table { width: 100%; border-collapse: collapse; }
+.dtable th {
+  text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink-3); padding: 11px 14px; background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+.dtable th.num, .dtable td.num { text-align: right; font-family: var(--mono); }
+.dtable td { font-size: 13px; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); color: var(--ink-1); font-weight: 500; }
+.dtable tr:last-child td { border-bottom: 0; }
+.dtable td.num { font-weight: 600; }
+.dtable td .neg { color: var(--loss-ink); }
+.dtable td .pos { color: var(--gain-ink); }
+.dtable .lead { display: flex; align-items: center; gap: 9px; }
+.dtable .lead .sw { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+
+/* callout */
+.callout {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 15px; border-radius: var(--r-md);
+  border: 1px solid var(--warn-line); background: var(--warn-bg);
+}
+.callout.info { border-color: var(--blue-tint2); background: #F4F8FF; }
+.callout .c-ico { width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; }
+.callout .c-ico svg { width: 17px; height: 17px; }
+.callout.warn .c-ico { background: #FCEFD2; color: var(--warn-ico); }
+.callout.info .c-ico { background: var(--blue-tint); color: var(--blue); }
+.callout .c-txt { font-size: 13px; line-height: 1.5; }
+.callout .c-h { font-weight: 700; display: block; margin-bottom: 2px; }
+.callout.warn .c-h { color: var(--warn-ink); }
+.callout.info .c-h { color: var(--blue-700); }
+.callout .c-txt p { color: var(--ink-2); }
+
+/* source grounding */
+.source {
+  display: inline-flex; align-items: center; gap: 7px; align-self: flex-start;
+  padding: 5px 11px; border-radius: var(--r-pill);
+  background: var(--surface-2); border: 1px solid var(--line);
+  font-size: 11.5px; color: var(--ink-3); font-weight: 600;
+}
+.source svg { width: 13px; height: 13px; color: var(--ink-4); }
+.source b { color: var(--ink-2); font-weight: 700; }
+.source .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--ink-4); }
+
+/* action buttons */
+.actions { display: flex; gap: 9px; flex-wrap: wrap; }
+.act {
+  height: 36px; padding: 0 14px;
+  display: inline-flex; align-items: center; gap: 7px;
+  border-radius: 10px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-1);
+  box-shadow: var(--sh-1);
+  transition: background .15s, border-color .15s, transform .12s;
+}
+.act:hover { background: var(--surface-2); border-color: var(--ink-4); }
+.act:active { transform: scale(.97); }
+.act svg { width: 15px; height: 15px; color: var(--ink-2); }
+.act.primary { background: var(--grad-btn); color: #fff; border: 0; box-shadow: var(--sh-blue); }
+.act.primary svg { color: #fff; }
+
+/* followup chips */
+.followups { display: flex; flex-direction: column; gap: 8px; padding-top: 2px; }
+.followups-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-4); }
+.followup-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.followup {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 13px; border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong); background: var(--surface);
+  font-size: 13px; font-weight: 600; color: var(--ink-2);
+  transition: background .15s, border-color .15s, color .15s, transform .12s;
+}
+.followup:hover { background: var(--blue-tint); border-color: var(--blue-tint2); color: var(--blue-700); }
+.followup:active { transform: scale(.97); }
+.followup svg { width: 14px; height: 14px; color: var(--blue); }
+
+/* ===========================================================
+   Composer
+   =========================================================== */
+.composer-wrap {
+  flex-shrink: 0;
+  padding: 12px 20px 16px;
+  background: linear-gradient(180deg, rgba(251,252,254,0) 0%, var(--chat-bg) 26%);
+  border-top: 1px solid var(--line);
+}
+.is-mobile .composer-wrap { padding: 8px 14px 22px; }
+.composer-inner { max-width: 760px; margin: 0 auto; }
+
+/* quick prompt chips above input */
+.qprompts { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.qprompts::-webkit-scrollbar { display: none; }
+.qprompt {
+  flex-shrink: 0; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: var(--r-pill);
+  border: 1px solid var(--line); background: var(--surface);
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  box-shadow: var(--sh-1);
+  transition: border-color .15s, color .15s, background .15s;
+}
+.qprompt:hover { border-color: var(--blue-tint2); color: var(--blue-700); background: var(--blue-tint); }
+.qprompt svg { width: 14px; height: 14px; color: var(--ink-3); }
+.qprompt:hover svg { color: var(--blue); }
+
+.composer {
+  display: flex; align-items: flex-end; gap: 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  padding: 8px 8px 8px 12px;
+  box-shadow: var(--sh-2);
+  transition: border-color .15s, box-shadow .15s;
+}
+.composer.is-focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-tint), var(--sh-2); }
+.comp-btn {
+  width: 38px; height: 38px; flex-shrink: 0;
+  border-radius: 11px; display: grid; place-items: center;
+  color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line);
+  transition: background .15s, color .15s;
+}
+.comp-btn:hover { background: var(--blue-tint); color: var(--blue); }
+.comp-btn svg { width: 19px; height: 19px; }
+.comp-field { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.comp-input {
+  width: 100%; border: 0; outline: 0; background: transparent; resize: none;
+  font-family: var(--sans); font-size: 14.5px; color: var(--ink-1);
+  line-height: 1.5; padding: 9px 4px; max-height: 120px;
+}
+.comp-input::placeholder { color: var(--ink-4); }
+.comp-scope {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  margin: 0 0 2px 4px; padding: 3px 9px 3px 7px; border-radius: var(--r-pill);
+  background: var(--surface-2); border: 1px solid var(--line);
+  font-size: 11px; font-weight: 700; color: var(--ink-2);
+}
+.comp-scope svg { width: 12px; height: 12px; color: var(--gain); }
+.comp-scope .chev { color: var(--ink-4); width: 12px; height: 12px; }
+.comp-send {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 12px; display: grid; place-items: center;
+  background: var(--grad-btn); color: #fff;
+  box-shadow: var(--sh-blue);
+  transition: transform .12s, opacity .15s;
+}
+.comp-send:active { transform: scale(.94); }
+.comp-send:disabled { opacity: .4; box-shadow: none; cursor: default; background: var(--ink-4); }
+.comp-send svg { width: 19px; height: 19px; }
+.comp-foot { text-align: center; font-size: 11px; color: var(--ink-4); margin-top: 9px; }
+.comp-foot b { color: var(--ink-3); font-weight: 600; }
+
+/* ---------- animations ---------- */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* bar grow */
+@keyframes barGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes dashDraw { to { stroke-dashoffset: 0; } }
+
+/* ---------- density + toggles ---------- */
+.dens-compact .chat-thread { gap: 16px; }
+.dens-compact .bot-body { gap: 10px; }
+.dens-comfy .chat-thread { gap: 28px; }
+.dens-comfy .bot-body { gap: 16px; }
+.hide-briefing .briefing { display: none; }
+
+/* ===========================================================
+   Channels — header chips, menu, home card
+   =========================================================== */
+:root { --wa: #1EAE54; --wa-deep: #0E8A47; --wa-tint: #E7F7EE; }
+
+.chat { position: relative; }
+
+/* header connection chips */
+.chan-chips { display: flex; align-items: center; gap: 8px; }
+.is-mobile .chan-chips { display: none; }
+.chan-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 32px; padding: 0 11px; border-radius: var(--r-pill);
+  border: 1px solid var(--line); background: var(--surface-2);
+  font-size: 12px; font-weight: 600; color: var(--ink-2);
+  transition: border-color .15s, background .15s, color .15s;
+}
+.chan-chip svg { width: 14px; height: 14px; }
+.chan-chip .cc-dot { width: 7px; height: 7px; border-radius: 50%; }
+.chan-chip.on { background: var(--surface); }
+.chan-chip.minidata svg { color: var(--blue); }
+.chan-chip.minidata .cc-dot { background: var(--gain); box-shadow: 0 0 0 3px var(--gain-tint); }
+.chan-chip.wa.on { border-color: #BCE7CC; background: var(--wa-tint); color: var(--wa-deep); }
+.chan-chip.wa.on svg { color: var(--wa-deep); }
+.chan-chip.wa.on .cc-dot { background: var(--wa); box-shadow: 0 0 0 3px #CFF0DC; }
+.chan-chip.connect { cursor: pointer; border-style: dashed; border-color: var(--line-strong); color: var(--ink-2); }
+.chan-chip.connect:hover { border-color: var(--wa); color: var(--wa-deep); background: var(--wa-tint); }
+.chan-chip.connect svg { color: var(--wa); }
+
+/* header + menu */
+.head-menu-wrap { position: relative; }
+.menu-pop {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  width: 246px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-md); box-shadow: var(--sh-3);
+}
+.menu-item {
+  display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  padding: 10px 11px; border-radius: 10px; color: var(--ink-1);
+  font-size: 13.5px; font-weight: 600; transition: background .12s;
+}
+.menu-item:hover { background: var(--surface-2); }
+.menu-item .mi-ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0; }
+.menu-item .mi-ico svg { width: 16px; height: 16px; }
+.menu-item .mi-sub { display: block; font-size: 11.5px; font-weight: 500; color: var(--ink-3); margin-top: 1px; }
+.menu-item .mi-txt { min-width: 0; }
+.menu-sep { height: 1px; background: var(--line-soft); margin: 5px 8px; }
+.menu-badge { margin-left: auto; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: var(--r-pill); }
+.menu-badge.on { color: var(--wa-deep); background: var(--wa-tint); }
+.menu-badge.off { color: var(--ink-3); background: var(--surface-2); border: 1px solid var(--line); }
+
+/* home channels card */
+.channels { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.is-mobile .channels { grid-template-columns: 1fr; }
+.chan-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 15px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); box-shadow: var(--sh-1);
+}
+.chan-card .ch-ico { width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; display: grid; place-items: center; }
+.chan-card .ch-ico svg { width: 21px; height: 21px; }
+.chan-card .ch-ico.wa { background: var(--wa-tint); color: var(--wa-deep); }
+.chan-card .ch-ico.data { background: var(--blue-tint); color: var(--blue); }
+.chan-card .ch-txt { flex: 1; min-width: 0; }
+.chan-card .ch-t { font-size: 14px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.chan-card .ch-d { font-size: 12px; color: var(--ink-3); margin-top: 2px; line-height: 1.4; }
+.chip-status { font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: 2px 7px; border-radius: var(--r-pill); }
+.chip-status.on { color: var(--gain-ink); background: var(--gain-tint); }
+.chip-status.off { color: var(--ink-3); background: var(--surface-2); border: 1px solid var(--line); }
+.ch-btn {
+  height: 34px; padding: 0 14px; flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 7px;
+  border-radius: 10px; font-size: 13px; font-weight: 700;
+  color: #fff; background: linear-gradient(180deg, #25BD60 0%, var(--wa-deep) 100%);
+  box-shadow: 0 8px 18px -8px rgba(14,138,71,.6);
+  transition: transform .12s, opacity .15s;
+}
+.ch-btn:active { transform: scale(.97); }
+.ch-btn svg { width: 15px; height: 15px; }
+.ch-btn.ghost { background: none; color: var(--ink-2); border: 1px solid var(--line-strong); box-shadow: none; }
+.ch-btn.ghost:hover { background: var(--surface-2); }
+
+/* ===========================================================
+   Modal
+   =========================================================== */
+.modal-scrim {
+  position: absolute; inset: 0; z-index: 80;
+  background: rgba(11,18,32,.42); backdrop-filter: blur(3px);
+  display: grid; place-items: center; padding: 24px;
+}
+.modal {
+  width: 100%; max-width: 440px; max-height: 100%;
+  background: var(--surface); border-radius: var(--r-xl);
+  box-shadow: 0 32px 70px -16px rgba(11,18,32,.5);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.is-mobile .modal { max-width: 360px; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(12px) scale(.97); } }
+.modal-head { display: flex; align-items: center; gap: 12px; padding: 18px 18px 14px; }
+.modal-head .mh-ico { width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0; display: grid; place-items: center; }
+.modal-head .mh-ico svg { width: 24px; height: 24px; }
+.modal-head .mh-ico.wa { background: linear-gradient(135deg, #34C76A, var(--wa-deep)); color: #fff; box-shadow: 0 8px 20px -8px rgba(14,138,71,.6); }
+.modal-head .mh-ico.data { background: var(--blue-tint); color: var(--blue); }
+.modal-head .mh-t { font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+.modal-head .mh-s { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; display: flex; align-items: center; gap: 6px; }
+.modal-head .mh-s .s-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-4); }
+.modal-head .mh-s.connected { color: var(--wa-deep); font-weight: 600; }
+.modal-head .mh-s.connected .s-dot { background: var(--wa); }
+.modal-close { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); flex-shrink: 0; transition: background .15s; }
+.modal-close:hover { background: var(--line); }
+.modal-body { padding: 4px 18px 18px; overflow-y: auto; }
+.modal-body::-webkit-scrollbar { width: 0; }
+.modal-intro { font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin-bottom: 16px; }
+
+/* whatsapp steps */
+.wa-steps { display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px; }
+.wa-step { display: flex; align-items: center; gap: 12px; padding: 9px 4px; }
+.wa-step .ws-n { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: var(--wa-tint); color: var(--wa-deep); font-family: var(--mono); font-size: 12px; font-weight: 700; }
+.wa-step .ws-t { flex: 1; font-size: 13.5px; font-weight: 500; color: var(--ink-1); }
+.wa-step .ws-act { color: var(--ink-3); width: 17px; height: 17px; }
+.wa-step:hover .ws-act { color: var(--wa-deep); }
+
+.modal-field-label { font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 7px; display: block; }
+.modal-field {
+  display: flex; align-items: center; gap: 11px;
+  height: 52px; padding: 0 14px; border-radius: var(--r-md);
+  background: var(--surface); border: 1.5px solid var(--line);
+  transition: border-color .15s, box-shadow .15s;
+}
+.modal-field:focus-within { border-color: var(--wa); box-shadow: 0 0 0 4px var(--wa-tint); }
+.modal-field svg { color: var(--ink-3); flex-shrink: 0; }
+.modal-field:focus-within svg { color: var(--wa-deep); }
+.modal-field input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 15px; font-weight: 500; font-family: var(--mono); letter-spacing: .01em; }
+.modal-field input::placeholder { color: var(--ink-4); font-family: var(--sans); letter-spacing: 0; }
+.modal-hint { display: flex; gap: 7px; align-items: flex-start; font-size: 12px; color: var(--ink-3); line-height: 1.45; margin: 9px 2px 0; }
+.modal-hint svg { flex-shrink: 0; margin-top: 1px; color: var(--blue); }
+
+.modal-foot { padding: 14px 18px 18px; border-top: 1px solid var(--line-soft); }
+.btn-wa {
+  width: 100%; height: 50px; border-radius: var(--r-md);
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  color: #fff; font-size: 15px; font-weight: 700;
+  background: linear-gradient(180deg, #25BD60 0%, var(--wa-deep) 100%);
+  box-shadow: 0 12px 26px -8px rgba(14,138,71,.55);
+  transition: transform .12s, opacity .2s;
+}
+.btn-wa:active { transform: scale(.985); }
+.btn-wa:disabled { opacity: .45; box-shadow: none; cursor: default; }
+.btn-wa svg { width: 18px; height: 18px; }
+
+/* whatsapp success */
+.wa-success { text-align: center; padding: 8px 6px 4px; }
+.wa-check { width: 68px; height: 68px; border-radius: 50%; margin: 6px auto 14px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #34C76A, var(--wa-deep)); box-shadow: 0 14px 30px -10px rgba(14,138,71,.6); }
+.wa-check svg { width: 36px; height: 36px; }
+.wa-success-h { font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
+.wa-success-p { font-size: 13.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.5; }
+.wa-account { display: flex; align-items: center; gap: 11px; margin: 16px 0 4px; padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2); text-align: left; }
+.wa-account .wa-av { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; background: var(--wa-tint); color: var(--wa-deep); display: grid; place-items: center; }
+.wa-account .wa-num { font-family: var(--mono); font-size: 14px; font-weight: 600; }
+.wa-account .wa-meta { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+.wa-account .wa-live { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--wa-deep); }
+.wa-account .wa-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--wa); }
+
+/* data sources */
+.src-list { display: flex; flex-direction: column; gap: 10px; }
+.src-row { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-1); }
+.src-row .src-ico { width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; display: grid; place-items: center; color: #fff; }
+.src-row .src-ico.supa { background: linear-gradient(135deg, #3ECF8E, #249b6b); }
+.src-row .src-ico svg { width: 21px; height: 21px; }
+.src-row .src-txt { flex: 1; min-width: 0; }
+.src-row .src-name { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.src-row .src-meta { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.src-row .src-acts { display: flex; align-items: center; gap: 4px; }
+.src-row .src-iconbtn { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: var(--ink-3); transition: background .12s, color .12s; }
+.src-row .src-iconbtn:hover { background: var(--surface-2); color: var(--ink-1); }
+.src-row .src-iconbtn.danger:hover { background: var(--loss-tint); color: var(--loss); }
+.src-row .src-iconbtn svg { width: 16px; height: 16px; }
+.src-add { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border: 1.5px dashed var(--line-strong); border-radius: var(--r-md); color: var(--ink-2); font-size: 13.5px; font-weight: 600; transition: border-color .15s, color .15s, background .15s; margin-top: 2px; }
+.src-add:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-tint); }
+.src-add svg { width: 16px; height: 16px; }
+
+/* ===========================================================
+   Mode tabs (Ask Flo / Messages)
+   =========================================================== */
+.mode-tabs {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px; border-radius: var(--r-pill);
+  background: var(--surface-2); border: 1px solid var(--line);
+}
+.mode-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 32px; padding: 0 14px; border-radius: var(--r-pill);
+  font-size: 13px; font-weight: 600; color: var(--ink-3);
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.mode-tab svg { width: 15px; height: 15px; }
+.mode-tab.is-on { background: var(--surface); color: var(--ink-1); box-shadow: var(--sh-1); }
+.mode-tab .tab-badge {
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--wa); color: #fff; font-size: 10.5px; font-weight: 700;
+  font-family: var(--mono); display: inline-grid; place-items: center;
+}
+.is-mobile .mode-tab { padding: 0 11px; }
+
+/* ===========================================================
+   Inbox
+   =========================================================== */
+.inbox { flex: 1; min-height: 0; display: flex; background: var(--chat-bg); }
+
+.inbox-list {
+  width: 326px; flex-shrink: 0; overflow-y: auto;
+  border-right: 1px solid var(--line); background: var(--surface);
+}
+.inbox-list::-webkit-scrollbar { width: 0; }
+.inbox-list-head {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 16px 10px; background: var(--surface);
+  border-bottom: 1px solid var(--line-soft);
+}
+.inbox-list-h { font-size: 13px; font-weight: 700; }
+.inbox-list-count { font-size: 11.5px; color: var(--ink-3); font-family: var(--mono); }
+.inbox-via { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--wa-deep); background: var(--wa-tint); padding: 3px 9px; border-radius: var(--r-pill); }
+.inbox-via svg { width: 12px; height: 12px; }
+
+.convo {
+  display: flex; gap: 11px; align-items: center; width: 100%; text-align: left;
+  padding: 12px 16px; border-bottom: 1px solid var(--line-soft);
+  transition: background .12s;
+}
+.convo:hover { background: var(--surface-2); }
+.convo.is-on { background: var(--blue-tint); }
+.convo-av { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; color: #fff; font-size: 14px; font-weight: 700; position: relative; }
+.convo-av .wa-badge { position: absolute; right: -2px; bottom: -2px; width: 17px; height: 17px; border-radius: 50%; background: var(--wa); border: 2px solid var(--surface); display: grid; place-items: center; }
+.convo-av .wa-badge svg { width: 9px; height: 9px; color: #fff; }
+.convo-main { flex: 1; min-width: 0; }
+.convo-top { display: flex; align-items: baseline; gap: 8px; }
+.convo-name { font-size: 14px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convo-time { margin-left: auto; font-size: 11px; color: var(--ink-4); font-family: var(--mono); flex-shrink: 0; }
+.convo-snip { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convo.unread .convo-snip { color: var(--ink-1); font-weight: 600; }
+.convo-unread { width: 19px; height: 19px; border-radius: 50%; background: var(--wa); color: #fff; font-size: 10.5px; font-weight: 700; font-family: var(--mono); display: grid; place-items: center; flex-shrink: 0; }
+
+/* thread */
+.inbox-thread { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--chat-bg); }
+.thread-head { display: flex; align-items: center; gap: 11px; padding: 12px 18px; background: var(--surface); border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.thread-back { width: 34px; height: 34px; border-radius: 10px; display: none; place-items: center; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); flex-shrink: 0; }
+.is-mobile .thread-back { display: grid; }
+.thread-av { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 700; }
+.thread-id { min-width: 0; }
+.thread-name { font-size: 14.5px; font-weight: 700; }
+.thread-sub { font-size: 11.5px; color: var(--ink-3); display: flex; align-items: center; gap: 6px; margin-top: 1px; }
+.thread-sub .wa-i { color: var(--wa-deep); display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+.thread-sub .wa-i svg { width: 12px; height: 12px; }
+.thread-actions { margin-left: auto; display: flex; gap: 6px; }
+
+.thread-msgs { flex: 1; overflow-y: auto; padding: 20px 18px; display: flex; flex-direction: column; gap: 8px; }
+.thread-msgs::-webkit-scrollbar { width: 8px; }
+.thread-msgs::-webkit-scrollbar-thumb { background: #E2E8F2; border: 2px solid var(--chat-bg); border-radius: 999px; }
+.thread-day { align-self: center; font-size: 11px; font-weight: 600; color: var(--ink-3); background: var(--surface); border: 1px solid var(--line); padding: 4px 12px; border-radius: var(--r-pill); margin-bottom: 6px; }
+.ibub { max-width: 74%; padding: 9px 13px; font-size: 14px; line-height: 1.45; border-radius: 16px; position: relative; }
+.ibub .ib-time { font-size: 10px; margin-top: 4px; display: block; text-align: right; font-family: var(--mono); }
+.ibub.them { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); color: var(--ink-1); border-bottom-left-radius: 5px; }
+.ibub.them .ib-time { color: var(--ink-4); }
+.ibub.me { align-self: flex-end; background: linear-gradient(180deg, #25BD60 0%, var(--wa-deep) 100%); color: #fff; border-bottom-right-radius: 5px; }
+.ibub.me .ib-time { color: rgba(255,255,255,.8); }
+
+/* Flo-assist reply card */
+.flo-suggest {
+  margin: 6px 18px 0; flex-shrink: 0;
+  border: 1px solid var(--blue-tint2); border-radius: var(--r-md);
+  background: linear-gradient(180deg, #F4F8FF, var(--surface));
+  box-shadow: var(--sh-1); overflow: hidden;
+}
+.flo-suggest-top { display: flex; align-items: center; gap: 8px; padding: 10px 13px 6px; }
+.flo-suggest-top .fs-mark { width: 24px; height: 24px; border-radius: 7px; background: var(--grad-brand); display: grid; place-items: center; flex-shrink: 0; }
+.flo-suggest-top .fs-mark svg { width: 13px; height: 13px; }
+.flo-suggest-top .fs-t { font-size: 12.5px; font-weight: 700; }
+.flo-suggest-top .fs-src { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--ink-3); font-weight: 600; }
+.flo-suggest-top .fs-src svg { width: 12px; height: 12px; color: var(--ink-4); }
+.flo-suggest-body { padding: 0 13px 11px; font-size: 13.5px; line-height: 1.5; color: var(--ink-1); }
+.flo-suggest-acts { display: flex; gap: 8px; padding: 0 13px 12px; }
+.fs-btn { height: 34px; padding: 0 14px; border-radius: 9px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; transition: transform .12s, background .15s; }
+.fs-btn svg { width: 14px; height: 14px; }
+.fs-btn.send { color: #fff; background: linear-gradient(180deg, #25BD60 0%, var(--wa-deep) 100%); box-shadow: 0 8px 16px -8px rgba(14,138,71,.5); }
+.fs-btn.send:active { transform: scale(.97); }
+.fs-btn.edit { color: var(--ink-2); border: 1px solid var(--line-strong); background: var(--surface); }
+.fs-btn.edit:hover { background: var(--surface-2); }
+.fs-btn.ghost { color: var(--ink-3); margin-left: auto; }
+.fs-btn.ghost:hover { color: var(--ink-1); }
+
+/* reply composer */
+.reply-wrap { flex-shrink: 0; padding: 12px 18px 16px; background: var(--chat-bg); border-top: 1px solid var(--line); }
+.reply { display: flex; align-items: flex-end; gap: 10px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 16px; padding: 7px 7px 7px 12px; box-shadow: var(--sh-1); transition: border-color .15s, box-shadow .15s; }
+.reply.is-focus { border-color: var(--wa); box-shadow: 0 0 0 4px var(--wa-tint), var(--sh-1); }
+.reply .flo-draft-btn { height: 38px; padding: 0 12px; flex-shrink: 0; border-radius: 11px; display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--blue-700); background: var(--blue-tint); border: 1px solid var(--blue-tint2); transition: background .15s; }
+.reply .flo-draft-btn svg { width: 15px; height: 15px; }
+.reply .flo-draft-btn:hover { background: var(--blue-tint2); }
+.reply textarea { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; resize: none; font-family: var(--sans); font-size: 14px; line-height: 1.5; padding: 9px 2px; max-height: 110px; }
+.reply textarea::placeholder { color: var(--ink-4); }
+.reply-send { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(180deg, #25BD60 0%, var(--wa-deep) 100%); box-shadow: 0 8px 18px -8px rgba(14,138,71,.5); transition: transform .12s, opacity .15s; }
+.reply-send:disabled { opacity: .4; box-shadow: none; background: var(--ink-4); cursor: default; }
+.reply-send:active { transform: scale(.94); }
+.reply-send svg { width: 19px; height: 19px; }
+
+/* inbox empty / locked */
+.inbox-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+.inbox-empty .ie-ico { width: 72px; height: 72px; border-radius: 22px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #34C76A, var(--wa-deep)); box-shadow: 0 16px 34px -12px rgba(14,138,71,.5); margin-bottom: 18px; }
+.inbox-empty .ie-ico svg { width: 38px; height: 38px; }
+.inbox-empty .ie-h { font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+.inbox-empty .ie-p { font-size: 14px; color: var(--ink-2); margin-top: 8px; line-height: 1.55; max-width: 38ch; }
+.inbox-empty .ie-btn { margin-top: 20px; height: 48px; padding: 0 22px; border-radius: var(--r-md); display: inline-flex; align-items: center; gap: 9px; color: #fff; font-size: 15px; font-weight: 700; background: linear-gradient(180deg, #25BD60 0%, var(--wa-deep) 100%); box-shadow: 0 12px 26px -8px rgba(14,138,71,.5); transition: transform .12s; }
+.inbox-empty .ie-btn:active { transform: scale(.97); }
+.inbox-empty .ie-btn svg { width: 18px; height: 18px; }
+.inbox-empty .ie-steps { margin-top: 26px; display: flex; gap: 22px; }
+.inbox-empty .ie-step { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 130px; }
+.inbox-empty .ie-step .n { width: 28px; height: 28px; border-radius: 50%; background: var(--wa-tint); color: var(--wa-deep); font-family: var(--mono); font-weight: 700; font-size: 13px; display: grid; place-items: center; }
+.inbox-empty .ie-step .s { font-size: 12px; color: var(--ink-3); line-height: 1.4; }
+
+/* mobile: stack list/thread */
+.is-mobile .inbox-list { width: 100%; border-right: 0; }
+.is-mobile .inbox.show-thread .inbox-list { display: none; }
+.is-mobile .inbox:not(.show-thread) .inbox-thread { display: none; }
+
+</code></pre></details></section>
+    <section id="src-tokens"><h3>CSS — base tokens &amp; primitives (onboarding/styles.css)</h3>
+      <p>Only the <code>:root</code> tokens, <code>.phone</code> shell, and button primitives are used by this design; the rest are onboarding screens, included for completeness.</p>
+      <details><summary>onboarding/styles.css<span class="fp">tokens + shell</span></summary><pre><code>/* ===========================================================
+   Flipper · Onboarding (gamified)
+   Clean light · blue accent · cyan→blue→indigo brand gradient
+   =========================================================== */
+
+:root {
+  /* surfaces */
+  --bg:          #EEF2F9;        /* studio behind the phone */
+  --app:         #F5F8FD;        /* screen base */
+  --app-2:       #EDF2FB;
+  --surface:     #FFFFFF;
+  --surface-2:   #F7F9FE;
+
+  /* ink */
+  --ink-1: #0B1220;
+  --ink-2: #4A5567;
+  --ink-3: #7E8AA0;
+  --ink-4: #AEB8CA;
+
+  /* lines */
+  --line:        #E6ECF5;
+  --line-soft:   #EFF3F9;
+  --line-strong: #D6DEEA;
+
+  /* brand */
+  --blue:    #2563EB;
+  --blue-600:#2563EB;
+  --blue-700:#1D4ED8;
+  --blue-800:#1E40AF;
+  --cyan:    #22D3EE;
+  --indigo:  #4F46E5;
+  --blue-tint:  #EAF1FE;
+  --blue-tint2: #DEEAFD;
+  --grad-brand: linear-gradient(135deg, #22D3EE 0%, #2563EB 52%, #4F46E5 100%);
+  --grad-brand-soft: linear-gradient(135deg, #E7FBFE 0%, #EAF1FE 60%, #EEECFE 100%);
+  --grad-btn: linear-gradient(180deg, #2C6BF0 0%, #1D4ED8 100%);
+
+  /* gamification */
+  --xp:        #FB9D00;          /* amber/gold points */
+  --xp-2:      #FF8A00;
+  --xp-tint:   #FFF3DC;
+  --xp-ink:    #8A5300;
+  --grad-xp:   linear-gradient(135deg, #FFC24B 0%, #FB9D00 60%, #FF7A00 100%);
+  --win:       #10B981;          /* success / level */
+  --win-tint:  #DEF7EC;
+  --violet:    #7C3AED;
+
+  /* radii */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 26px;
+  --r-pill: 999px;
+
+  /* shadow */
+  --sh-1: 0 1px 2px rgba(16,32,64,.05), 0 1px 1px rgba(16,32,64,.04);
+  --sh-2: 0 6px 18px -6px rgba(16,32,64,.14), 0 2px 6px rgba(16,32,64,.06);
+  --sh-3: 0 18px 44px -12px rgba(16,32,64,.22), 0 6px 14px rgba(16,32,64,.08);
+  --sh-blue: 0 12px 28px -8px rgba(37,99,235,.45), 0 3px 8px rgba(37,99,235,.25);
+  --sh-xp: 0 10px 24px -8px rgba(251,157,0,.5);
+
+  --sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--sans);
+  background:
+    radial-gradient(1200px 700px at 50% -8%, #F4F7FE 0%, var(--bg) 60%),
+    var(--bg);
+  color: var(--ink-1);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input { font: inherit; color: inherit; }
+
+/* ===========================================================
+   Stage + phone shell
+   =========================================================== */
+.stage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+
+.phone {
+  position: relative;
+  width: 412px;
+  height: 892px;
+  border-radius: 52px;
+  background: #0B1220;
+  padding: 11px;
+  box-shadow:
+    0 50px 110px -30px rgba(11,18,32,.55),
+    0 20px 50px -20px rgba(11,18,32,.4),
+    inset 0 0 0 2px rgba(255,255,255,.06);
+}
+.phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 42px;
+  overflow: hidden;
+  background: var(--app);
+  display: flex;
+  flex-direction: column;
+}
+
+/* status bar */
+.statusbar {
+  position: relative;
+  z-index: 6;
+  height: 50px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 26px 0 30px;
+  font-size: 14.5px; font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--ink-1);
+}
+.statusbar.on-dark { color: #fff; }
+.statusbar-time { font-variant-numeric: tabular-nums; }
+.statusbar-right { display: flex; align-items: center; gap: 7px; }
+.statusbar-right svg { display: block; }
+.notch {
+  position: absolute;
+  top: 13px; left: 50%; transform: translateX(-50%);
+  width: 108px; height: 28px;
+  background: #0B1220;
+  border-radius: 999px;
+  z-index: 7;
+}
+
+/* content region */
+.screen {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.screen-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.screen-scroll::-webkit-scrollbar { width: 0; }
+
+/* home indicator */
+.home-ind {
+  flex-shrink: 0;
+  height: 26px;
+  display: grid; place-items: center;
+}
+.home-ind &gt; div {
+  width: 132px; height: 5px; border-radius: 3px;
+  background: var(--ink-1); opacity: .85;
+}
+.home-ind.on-dark &gt; div { background: #fff; opacity: .9; }
+
+/* screen transition */
+.fade-screen { animation: scrIn .42s cubic-bezier(.22,.9,.3,1); }
+@keyframes scrIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ===========================================================
+   Brand bits
+   =========================================================== */
+.brandmark {
+  display: inline-grid; place-items: center;
+  border-radius: 30%;
+}
+.wordmark {
+  font-size: 19px; font-weight: 700; letter-spacing: -.02em; color: var(--ink-1);
+}
+.wordmark.on-dark { color: #fff; }
+
+/* ===========================================================
+   Buttons
+   =========================================================== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  height: 56px; width: 100%;
+  border-radius: var(--r-md);
+  font-size: 16px; font-weight: 600; letter-spacing: -.01em;
+  transition: transform .12s, box-shadow .2s, background .2s, opacity .2s;
+}
+.btn:active { transform: scale(.975); }
+.btn-primary {
+  color: #fff;
+  background: var(--grad-btn);
+  box-shadow: var(--sh-blue);
+}
+.btn-primary:disabled { opacity: .45; box-shadow: none; cursor: default; }
+.btn-ghost {
+  background: var(--surface);
+  color: var(--ink-1);
+  border: 1.5px solid var(--line-strong);
+  box-shadow: var(--sh-1);
+}
+.btn-ghost.on-dark {
+  background: rgba(255,255,255,.10);
+  color: #fff;
+  border-color: rgba(255,255,255,.32);
+  box-shadow: none;
+  backdrop-filter: blur(4px);
+}
+.btn-text {
+  height: auto; width: auto; background: none;
+  color: var(--ink-2); font-weight: 600; font-size: 15px;
+}
+.btn-text b { color: var(--blue); }
+.btn-xp {
+  color: #fff;
+  background: var(--grad-xp);
+  box-shadow: var(--sh-xp);
+}
+
+.icon-circle {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface); color: var(--ink-2);
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-1);
+  transition: transform .12s, background .15s;
+}
+.icon-circle:active { transform: scale(.92); }
+.icon-circle.on-dark {
+  background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.2);
+  box-shadow: none;
+}
+
+/* ===========================================================
+   Welcome carousel
+   =========================================================== */
+.welcome {
+  position: relative;
+  height: 100%;
+  display: flex; flex-direction: column;
+  background:
+    radial-gradient(120% 70% at 50% -10%, #FFFFFF 0%, var(--app) 46%, var(--app-2) 100%);
+}
+.welcome-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 22px 0;
+  flex-shrink: 0;
+}
+.welcome-brand { display: flex; align-items: center; gap: 10px; }
+.skip-btn {
+  font-size: 14.5px; font-weight: 600; color: var(--ink-3);
+  padding: 8px 6px;
+}
+
+/* hero stage with floating product cards */
+.hero {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 6px 0 0;
+}
+.hero-glow {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(360px 300px at 50% 42%, rgba(37,99,235,.16), transparent 70%),
+    radial-gradient(240px 220px at 74% 30%, rgba(34,211,238,.18), transparent 70%);
+  filter: blur(2px);
+}
+.hero-rings {
+  position: absolute; left: 50%; top: 46%;
+  width: 280px; height: 280px; transform: translate(-50%,-50%);
+  border-radius: 50%;
+  border: 1.5px solid rgba(37,99,235,.12);
+}
+.hero-rings::after {
+  content: ''; position: absolute; inset: 36px; border-radius: 50%;
+  border: 1.5px dashed rgba(37,99,235,.14);
+}
+
+.float {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-3);
+  animation: floaty 6s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes floaty {
+  0%,100% { transform: translateY(0) rotate(var(--rot,0deg)); }
+  50%     { transform: translateY(-9px) rotate(var(--rot,0deg)); }
+}
+
+/* slide copy */
+.welcome-copy {
+  flex-shrink: 0;
+  padding: 0 30px;
+  text-align: center;
+  min-height: 116px;
+}
+.welcome-h {
+  font-size: 27px; line-height: 1.16; font-weight: 700; letter-spacing: -.025em;
+  color: var(--ink-1);
+  text-wrap: balance;
+}
+.welcome-h em {
+  font-style: normal;
+  background: var(--grad-brand);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.welcome-sub {
+  margin-top: 10px;
+  font-size: 15px; line-height: 1.5; color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+/* dots */
+.dots { display: flex; gap: 7px; justify-content: center; padding: 22px 0 16px; flex-shrink: 0; }
+.dot {
+  height: 7px; width: 7px; border-radius: 999px;
+  background: var(--line-strong);
+  transition: width .3s, background .3s;
+}
+.dot.is-on { width: 26px; background: var(--blue); }
+
+.welcome-cta {
+  flex-shrink: 0;
+  padding: 0 22px 14px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* mini product-card primitives (used inside floats) */
+.pc { padding: 12px 13px; }
+.pc-row { display: flex; align-items: center; gap: 9px; }
+.pc-label { font-size: 10.5px; color: var(--ink-3); font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+.pc-big { font-family: var(--mono); font-weight: 600; letter-spacing: -.02em; color: var(--ink-1); }
+.pc-up { color: var(--win); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 2px; }
+.pc-ico {
+  width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0;
+}
+.bars { display: flex; align-items: flex-end; gap: 5px; height: 38px; }
+.bars i { width: 9px; border-radius: 3px 3px 0 0; display: block; }
+.spark { display: block; }
+
+/* ===========================================================
+   Signup (multi-step)
+   =========================================================== */
+.signup { height: 100%; display: flex; flex-direction: column; background: var(--app); }
+.su-head {
+  flex-shrink: 0;
+  padding: 2px 20px 0;
+  display: flex; align-items: center; gap: 14px;
+}
+.su-progress-wrap { flex: 1; }
+.su-steplabel {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 7px;
+}
+.su-step-t { font-size: 12.5px; font-weight: 700; color: var(--ink-2); letter-spacing: .01em; }
+.su-step-n { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.su-track {
+  height: 7px; border-radius: 999px; background: var(--line);
+  overflow: hidden; display: flex;
+}
+.su-track &gt; i {
+  display: block; height: 100%;
+  background: var(--grad-brand);
+  border-radius: 999px;
+  transition: width .5s cubic-bezier(.22,.9,.3,1);
+}
+
+/* XP chip */
+.xp-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 12px 0 9px;
+  border-radius: var(--r-pill);
+  background: var(--xp-tint);
+  color: var(--xp-ink);
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid #FCE6BC;
+  flex-shrink: 0;
+  transition: transform .2s;
+}
+.xp-chip .xp-coin {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--grad-xp);
+  display: grid; place-items: center; color: #fff;
+  box-shadow: 0 2px 4px rgba(251,157,0,.4);
+}
+.xp-chip.bump { animation: bump .5s cubic-bezier(.2,1.4,.4,1); }
+@keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.18)} 100%{transform:scale(1)} }
+
+/* reward banner */
+.reward-banner {
+  margin: 16px 20px 0;
+  border-radius: var(--r-md);
+  padding: 13px 14px;
+  background: linear-gradient(120deg, #FFFCF4 0%, #FFF6E6 100%);
+  border: 1px solid #FBE7C0;
+  display: flex; align-items: center; gap: 12px;
+  position: relative; overflow: hidden;
+}
+.reward-gift {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  background: var(--grad-xp); color: #fff;
+  display: grid; place-items: center;
+  box-shadow: var(--sh-xp);
+}
+.reward-txt { flex: 1; min-width: 0; }
+.reward-h { font-size: 13.5px; font-weight: 700; color: var(--ink-1); }
+.reward-p { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+.reward-mini-track {
+  margin-top: 7px; height: 5px; border-radius: 999px; background: #F2E2C2; overflow: hidden;
+}
+.reward-mini-track &gt; i { display: block; height: 100%; background: var(--grad-xp); transition: width .5s; }
+.reward-pts {
+  font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--xp-2);
+  flex-shrink: 0;
+}
+
+/* step body */
+.su-body { flex: 1; overflow-y: auto; padding: 4px 20px 16px; }
+.su-body::-webkit-scrollbar { width: 0; }
+.su-title { font-size: 23px; font-weight: 700; letter-spacing: -.02em; margin: 18px 0 4px; }
+.su-desc { font-size: 14px; color: var(--ink-2); margin-bottom: 18px; }
+
+/* field */
+.field { margin-bottom: 14px; }
+.field-label {
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  margin-bottom: 7px; display: flex; align-items: center; gap: 6px;
+}
+.field-box {
+  display: flex; align-items: center; gap: 11px;
+  height: 56px; padding: 0 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.field-box:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px var(--blue-tint);
+}
+.field-box.is-done {
+  border-color: #BFE6CF;
+  background: #FAFEFB;
+}
+.field-box.has-action { padding-right: 6px; }
+.field-ico { color: var(--ink-3); flex-shrink: 0; display: grid; place-items:center; }
+.field-box:focus-within .field-ico { color: var(--blue); }
+.field-box input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+  font-size: 16px; font-weight: 500;
+}
+.field-box input::placeholder { color: var(--ink-4); font-weight: 400; }
+.field-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--win); color: #fff;
+  display: grid; place-items: center; flex-shrink: 0;
+  animation: pop .35s cubic-bezier(.2,1.5,.4,1);
+}
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+.field-xp-pop {
+  position: absolute; right: 8px;
+  font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--xp-2);
+  pointer-events: none;
+  animation: xpFloat 1s ease-out forwards;
+}
+@keyframes xpFloat {
+  0% { opacity: 0; transform: translateY(4px) scale(.8); }
+  25% { opacity: 1; transform: translateY(-2px) scale(1); }
+  100% { opacity: 0; transform: translateY(-22px); }
+}
+.send-code {
+  height: 44px; padding: 0 16px; border-radius: 10px;
+  background: var(--blue-tint); color: var(--blue);
+  font-size: 13.5px; font-weight: 700; white-space: nowrap;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.send-code:active { background: var(--blue-tint2); }
+.send-code.sent { background: var(--win-tint); color: var(--win); }
+
+/* OTP */
+.field-hint {
+  display: flex; align-items: flex-start; gap: 7px;
+  margin: -4px 2px 4px; padding: 0;
+  font-size: 12.5px; line-height: 1.45; color: var(--ink-3);
+}
+.field-hint svg { flex-shrink: 0; margin-top: 1px; color: var(--blue); }
+.field-hint b { color: var(--ink-2); font-weight: 700; }
+
+.otp-single {
+  width: 100%; height: 60px; border-radius: var(--r-md);
+  border: 1.5px solid var(--line); background: var(--surface);
+  text-align: center;
+  font-family: var(--mono); font-size: 26px; font-weight: 600;
+  letter-spacing: .62em; text-indent: .62em;
+  color: var(--ink-1); outline: 0;
+  transition: border-color .15s, box-shadow .15s;
+}
+.otp-single::placeholder { color: var(--ink-4); }
+.otp-single:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-tint); }
+.otp-single.filled { border-color: var(--blue); color: var(--blue); }
+
+.otp-row { display: flex; gap: 9px; }
+.otp-cell {
+  flex: 1; height: 58px; border-radius: var(--r-md);
+  border: 1.5px solid var(--line); background: var(--surface);
+  text-align: center; font-family: var(--mono); font-size: 22px; font-weight: 600;
+  outline: 0; transition: border-color .15s, box-shadow .15s;
+}
+.otp-cell:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-tint); }
+.otp-cell.filled { border-color: var(--blue); color: var(--blue); }
+
+/* segmented usage */
+.seg2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.seg2-opt {
+  display: flex; flex-direction: column; gap: 9px;
+  padding: 16px 14px; border-radius: var(--r-md);
+  background: var(--surface); border: 1.5px solid var(--line);
+  text-align: left; transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.seg2-opt:active { transform: scale(.98); }
+.seg2-opt.is-on { border-color: var(--blue); background: var(--blue-tint); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+.seg2-ico {
+  width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line);
+}
+.seg2-opt.is-on .seg2-ico { background: var(--blue); color: #fff; border-color: var(--blue); }
+.seg2-t { font-size: 15px; font-weight: 700; }
+.seg2-d { font-size: 12px; color: var(--ink-3); line-height: 1.35; }
+
+/* select-style field */
+.select-box {
+  display: flex; align-items: center; gap: 11px;
+  height: 56px; padding: 0 14px;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r-md);
+}
+.select-flag { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display:grid; place-items:center; font-size: 15px; background: var(--surface-2); border: 1px solid var(--line); }
+.select-box .sel-val { flex: 1; font-size: 16px; font-weight: 600; }
+.select-box .sel-chev { color: var(--ink-3); }
+
+.su-foot {
+  flex-shrink: 0;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--line-soft);
+  background: var(--surface);
+}
+.su-foot-hint {
+  text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 11px;
+}
+.su-foot-hint b { color: var(--blue); }
+
+/* ===========================================================
+   Celebration
+   =========================================================== */
+.celebrate {
+  position: relative;
+  height: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+  background:
+    radial-gradient(130% 80% at 50% 0%, #2C6BF0 0%, #1D4ED8 42%, #1E3A9E 100%);
+  color: #fff;
+  overflow: hidden;
+}
+.celebrate-glow {
+  position: absolute; left: 50%; top: 30%; transform: translate(-50%,-50%);
+  width: 460px; height: 460px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(34,211,238,.45) 0%, transparent 62%);
+  pointer-events: none;
+}
+.cel-scroll { position: relative; z-index: 2; flex: 1; width: 100%; overflow-y: auto; padding: 8px 26px 0; display: flex; flex-direction: column; align-items: center; }
+.cel-scroll::-webkit-scrollbar { width: 0; }
+
+.trophy {
+  width: 116px; height: 116px; border-radius: 34px;
+  margin-top: 30px;
+  background: var(--grad-xp);
+  display: grid; place-items: center;
+  box-shadow: 0 24px 50px -10px rgba(251,157,0,.6), inset 0 2px 0 rgba(255,255,255,.4);
+  animation: trophyIn .6s cubic-bezier(.2,1.4,.4,1) both;
+}
+@keyframes trophyIn { from { transform: scale(0) rotate(-25deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.cel-badge-ring {
+  position: absolute; width: 168px; height: 168px; border-radius: 50%;
+  border: 2px dashed rgba(255,255,255,.3);
+  top: 30px;
+  animation: spin 18s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.cel-eyebrow {
+  margin-top: 26px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: #BFD3FF;
+}
+.cel-h { font-size: 32px; font-weight: 800; letter-spacing: -.025em; margin-top: 8px; }
+.cel-sub { font-size: 15px; color: #D6E2FF; margin-top: 8px; line-height: 1.45; max-width: 30ch; }
+
+.reward-card {
+  width: 100%;
+  margin-top: 26px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  backdrop-filter: blur(8px);
+  animation: scrIn .6s .2s both;
+}
+.reward-card-top { display: flex; align-items: center; gap: 13px; }
+.reward-coin-lg {
+  width: 50px; height: 50px; border-radius: 16px; flex-shrink: 0;
+  background: var(--grad-xp); display: grid; place-items: center; color: #fff;
+  box-shadow: var(--sh-xp);
+}
+.reward-card-amt { font-family: var(--mono); font-size: 28px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+.reward-card-lbl { font-size: 12.5px; color: #C8D7FB; margin-top: 3px; }
+.reward-card-divider { height: 1px; background: rgba(255,255,255,.16); margin: 16px 0; }
+
+.lvl-row { display: flex; align-items: center; gap: 12px; }
+.lvl-medal {
+  width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg,#E8A972,#B06A2C);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.35);
+}
+.lvl-info { flex: 1; text-align: left; }
+.lvl-name { font-size: 14.5px; font-weight: 700; }
+.lvl-next { font-size: 11.5px; color: #C8D7FB; margin-top: 1px; }
+.lvl-track { margin-top: 7px; height: 6px; border-radius: 999px; background: rgba(255,255,255,.18); overflow: hidden; }
+.lvl-track &gt; i { display: block; height: 100%; background: linear-gradient(90deg,#FFC24B,#FF8A00); width: 50%; }
+
+.streak-row {
+  width: 100%; margin-top: 12px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: var(--r-md); padding: 12px 14px;
+  animation: scrIn .6s .32s both;
+}
+.streak-flame {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg,#FF8A3D,#FF5A36); display: grid; place-items: center;
+}
+.streak-txt { text-align: left; flex: 1; }
+.streak-t { font-size: 13.5px; font-weight: 700; }
+.streak-d { font-size: 11.5px; color: #D6E2FF; }
+.streak-pips { display: flex; gap: 4px; }
+.streak-pips i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.25); }
+.streak-pips i.on { background: #FFC24B; }
+
+.cel-foot { position: relative; z-index: 2; width: 100%; padding: 14px 26px 8px; flex-shrink: 0; }
+.btn-on-blue {
+  background: #fff; color: var(--blue-700);
+  box-shadow: 0 12px 28px -8px rgba(0,0,0,.35);
+}
+
+/* confetti */
+.confetti-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; }
+.confetti {
+  position: absolute; top: -20px;
+  width: 9px; height: 14px; border-radius: 2px;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  0%   { transform: translateY(-20px) rotate(0); opacity: 1; }
+  100% { transform: translateY(940px) rotate(720deg); opacity: 1; }
+}
+
+/* dashboard peek */
+.peek { padding: 18px; }
+
+/* ===========================================================
+   Choose profile / branch (selection screens)
+   =========================================================== */
+.sel {
+  height: 100%;
+  display: flex; flex-direction: column;
+  background: radial-gradient(120% 60% at 50% -10%, #FFFFFF 0%, var(--app) 46%, var(--app-2) 100%);
+}
+.sel-head { padding: 6px 22px 12px; flex-shrink: 0; }
+.sel-toprow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; min-height: 44px; }
+.sel-h { font-size: 27px; font-weight: 700; letter-spacing: -.025em; margin: 4px 0 5px; }
+.sel-sub { font-size: 15px; color: var(--ink-2); }
+
+.sel-greet {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 40px; padding: 0 8px 0 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--sh-1); color: var(--ink-3);
+}
+.sel-greet-av {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--grad-brand); color: #fff;
+  display: grid; place-items: center; font-size: 13px; font-weight: 700;
+}
+.sel-org-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 14px 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--sh-1);
+  font-size: 13.5px; font-weight: 600; color: var(--ink-1);
+}
+.sel-org-ico { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-tint); color: var(--blue); display: grid; place-items: center; }
+
+.sel-list { padding: 4px 22px 22px; display: flex; flex-direction: column; gap: 10px; }
+
+.sel-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 15px 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-1);
+  text-align: left;
+  transition: border-color .15s, box-shadow .2s, transform .12s, background .15s;
+}
+.sel-card:hover { border-color: var(--line-strong); box-shadow: var(--sh-2); }
+.sel-card:active { transform: scale(.99); }
+.sel-card.is-on { border-color: var(--blue); background: var(--blue-tint); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+
+.sel-ico { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; flex-shrink: 0; transition: background .15s, color .15s; }
+.sel-ico.tone-blue   { background: var(--blue-tint); color: var(--blue); }
+.sel-ico.tone-violet { background: #F3EEFB; color: var(--violet); }
+.sel-ico.tone-win    { background: var(--win-tint); color: var(--win); }
+.sel-ico.tone-xp     { background: var(--xp-tint); color: var(--xp-2); }
+.sel-ico.tone-mute   { background: var(--surface-2); color: var(--ink-3); border: 1px solid var(--line); }
+
+.sel-card-txt { flex: 1; min-width: 0; }
+.sel-card-name { font-size: 16px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; }
+.sel-card-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+.sel-chev { color: var(--ink-4); }
+
+.sel-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+  color: var(--blue); background: var(--blue-tint);
+  padding: 2px 7px; border-radius: var(--r-pill); margin-left: 9px;
+}
+.sel-card.is-on .sel-tag { background: rgba(37,99,235,.16); }
+
+.sel-check {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--blue); color: #fff;
+  display: grid; place-items: center; flex-shrink: 0;
+  animation: pop .3s cubic-bezier(.2,1.5,.4,1);
+}
+.sel-radio {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--line-strong); flex-shrink: 0;
+}
+
+.sel-add {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 15px;
+  border: 1.5px dashed var(--line-strong); border-radius: var(--r-md);
+  color: var(--ink-2); font-size: 14.5px; font-weight: 600;
+  background: transparent; margin-top: 2px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.sel-add:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-tint); }
+
+.sel-foot { flex-shrink: 0; padding: 12px 22px 16px; }
+
+/* generic helpers */
+.row { display: flex; align-items: center; }
+.spacer { flex: 1; }
+</code></pre></details></section>
+    <section id="src-icons"><h3>JS — chat-icons.jsx</h3>
+      <details><summary>chat-icons.jsx<span class="fp">Ic set + FloMark</span></summary><pre><code>// Flipper Assistant — icon set (1.6 stroke) + brand mark.
+const FI = ({ d, size = 18, stroke = 1.6, fill = 'none', extra }) =&gt; (
+  &lt;svg width={size} height={size} viewBox="0 0 24 24" fill={fill}
+       stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
+       aria-hidden="true"&gt;
+    {typeof d === 'string' ? &lt;path d={d} /&gt; : d}
+    {extra}
+  &lt;/svg&gt;
+);
+
+// Flipper brand swirl mark (white, for gradient avatar)
+const FloMark = ({ size = 22 }) =&gt; (
+  &lt;svg width={size} height={size} viewBox="66.993 897.484 26 26" aria-hidden="true"&gt;
+    &lt;path fill="#fff" d="m89.318 903.552-2.135 2.122c-.376.337-.558.879-.347 1.337 1.422 2.976.882 6.524-1.452 8.856-2.335 2.331-5.887 2.87-8.866 1.449-.439-.197-.954-.03-1.292.312l-2.17 2.167a1.154 1.154 0 0 0 .208 1.81 13.005 13.005 0 0 0 15.91-1.912 12.97 12.97 0 0 0 1.956-15.887 1.154 1.154 0 0 0-1.812-.254zm-18.467-2.305a12.969 12.969 0 0 0-2.02 15.885 1.154 1.154 0 0 0 1.812.254l2.124-2.11c.385-.336.572-.884.359-1.348-1.423-2.976-.884-6.524 1.451-8.856 2.334-2.332 5.887-2.871 8.866-1.45.434.194.942.033 1.281-.3l2.182-2.18a1.152 1.152 0 0 0-.208-1.81 13.009 13.009 0 0 0-15.893 1.973z"/&gt;
+  &lt;/svg&gt;
+);
+
+const Ic = {
+  Send:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M5 12h13" /&gt;&lt;path d="m12 5 7 7-7 7" /&gt;&lt;/&gt;} /&gt;,
+  Mic:     (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;rect x="9" y="3" width="6" height="11" rx="3" /&gt;&lt;path d="M5 11a7 7 0 0 0 14 0" /&gt;&lt;path d="M12 18v3" /&gt;&lt;/&gt;} /&gt;,
+  Plus:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M12 5v14" /&gt;&lt;path d="M5 12h14" /&gt;&lt;/&gt;} /&gt;,
+  Sparkle: (p) =&gt; &lt;FI {...p} d="M12 3 13.7 8.6 19.5 10.5 13.7 12.4 12 18 10.3 12.4 4.5 10.5 10.3 8.6z" /&gt;,
+  Database:(p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;ellipse cx="12" cy="5.5" rx="7" ry="2.8" /&gt;&lt;path d="M5 5.5v6c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8v-6" /&gt;&lt;path d="M5 11.5v6c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8v-6" /&gt;&lt;/&gt;} /&gt;,
+  Chart:   (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M4 4v16h16" /&gt;&lt;path d="m7 14 3-3 3 3 5-6" /&gt;&lt;/&gt;} /&gt;,
+  Trend:   (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="m4 15 5-5 4 4 7-7" /&gt;&lt;path d="M16 7h4v4" /&gt;&lt;/&gt;} /&gt;,
+  Users:   (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;circle cx="9" cy="9" r="3.5" /&gt;&lt;path d="M3 19c0-3 3-5 6-5s6 2 6 5" /&gt;&lt;circle cx="17" cy="8" r="2.5" /&gt;&lt;path d="M16 14c2 0 5 1.5 5 4" /&gt;&lt;/&gt;} /&gt;,
+  Box:     (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z" /&gt;&lt;path d="M3 7.5 12 12l9-4.5" /&gt;&lt;path d="M12 12v9" /&gt;&lt;/&gt;} /&gt;,
+  Receipt: (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /&gt;&lt;path d="M9 8h6" /&gt;&lt;path d="M9 12h5" /&gt;&lt;/&gt;} /&gt;,
+  Wallet:  (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M3 7a2 2 0 0 1 2-2h12v3" /&gt;&lt;path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z" /&gt;&lt;circle cx="17" cy="13.5" r="1.3" fill="currentColor" stroke="none" /&gt;&lt;/&gt;} /&gt;,
+  Coins:   (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;ellipse cx="9" cy="7" rx="5" ry="2.5" /&gt;&lt;path d="M4 7v5c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V7" /&gt;&lt;path d="M10 14.5c.6 1.2 2.6 2 5 2 2.8 0 5-1.1 5-2.5v-5c0-1.4-2.2-2.5-5-2.5-1 0-1.9.1-2.7.4" /&gt;&lt;/&gt;} /&gt;,
+  Check:   (p) =&gt; &lt;FI {...p} d="M5 12.5 10 17 19 7.5" /&gt;,
+  Up:      (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M12 19V6" /&gt;&lt;path d="m6 11 6-6 6 6" /&gt;&lt;/&gt;} /&gt;,
+  Down:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M12 5v13" /&gt;&lt;path d="m6 13 6 6 6-6" /&gt;&lt;/&gt;} /&gt;,
+  Warn:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M12 3 2.5 20h19z" /&gt;&lt;path d="M12 10v4" /&gt;&lt;path d="M12 17.5h.01" /&gt;&lt;/&gt;} /&gt;,
+  Info:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;circle cx="12" cy="12" r="9" /&gt;&lt;path d="M12 11v5" /&gt;&lt;path d="M12 7.5h.01" /&gt;&lt;/&gt;} /&gt;,
+  Download:(p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M12 4v12" /&gt;&lt;path d="m7 11 5 5 5-5" /&gt;&lt;path d="M5 20h14" /&gt;&lt;/&gt;} /&gt;,
+  Eye:     (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /&gt;&lt;circle cx="12" cy="12" r="3" /&gt;&lt;/&gt;} /&gt;,
+  Edit:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M4 20h4L19 9l-4-4L4 16z" /&gt;&lt;path d="m14 6 4 4" /&gt;&lt;/&gt;} /&gt;,
+  Refresh: (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M4 12a8 8 0 0 1 14-5.3L20 9" /&gt;&lt;path d="M20 4v5h-5" /&gt;&lt;path d="M20 12a8 8 0 0 1-14 5.3L4 15" /&gt;&lt;path d="M4 20v-5h5" /&gt;&lt;/&gt;} /&gt;,
+  ChevDown:(p) =&gt; &lt;FI {...p} d="m6 9 6 6 6-6" /&gt;,
+  ChevRight:(p)=&gt; &lt;FI {...p} d="m9 6 6 6-6 6" /&gt;,
+  ChevLeft:(p) =&gt; &lt;FI {...p} d="m15 6-6 6 6 6" /&gt;,
+  More:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none" /&gt;&lt;circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" /&gt;&lt;circle cx="19" cy="12" r="1.3" fill="currentColor" stroke="none" /&gt;&lt;/&gt;} /&gt;,
+  NewChat: (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M20 11.5a8 8 0 0 1-11.5 7.2L4 20l1.3-4.5A8 8 0 1 1 20 11.5Z" /&gt;&lt;path d="M12 8v6M9 11h6" /&gt;&lt;/&gt;} /&gt;,
+  Clock:   (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;circle cx="12" cy="12" r="9" /&gt;&lt;path d="M12 7v5l3 2" /&gt;&lt;/&gt;} /&gt;,
+  Bolt:    (p) =&gt; &lt;FI {...p} fill="currentColor" stroke="none" d="M13 2 4.5 13.5H11l-1 8.5 8.5-12H12z" /&gt;,
+  Tag:     (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9z" /&gt;&lt;circle cx="8" cy="8" r="1.6" /&gt;&lt;/&gt;} /&gt;,
+  ArrowUpRight:(p)=&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M7 17 17 7" /&gt;&lt;path d="M8 7h9v9" /&gt;&lt;/&gt;} /&gt;,
+  Filter:  (p) =&gt; &lt;FI {...p} d="M3 5h18l-7 9v6l-4-2v-4z" /&gt;,
+  X:       (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="m6 6 12 12" /&gt;&lt;path d="m18 6-12 12" /&gt;&lt;/&gt;} /&gt;,
+  Link:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M9 15 15 9" /&gt;&lt;path d="M11 6.5 13 4.5a4 4 0 0 1 5.7 5.7l-2 2" /&gt;&lt;path d="M13 17.5 11 19.5a4 4 0 0 1-5.7-5.7l2-2" /&gt;&lt;/&gt;} /&gt;,
+  CheckCircle:(p)=&gt; &lt;FI {...p} d={&lt;&gt;&lt;circle cx="12" cy="12" r="9" /&gt;&lt;path d="m8 12 3 3 5-6" /&gt;&lt;/&gt;} /&gt;,
+  Trash:   (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M4 7h16" /&gt;&lt;path d="M9 7V5h6v2" /&gt;&lt;path d="M6 7l1 13h10l1-13" /&gt;&lt;path d="M10 11v6M14 11v6" /&gt;&lt;/&gt;} /&gt;,
+  Copy:    (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;rect x="9" y="9" width="11" height="11" rx="2" /&gt;&lt;path d="M5 15V5a2 2 0 0 1 2-2h8" /&gt;&lt;/&gt;} /&gt;,
+  External:(p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M14 4h6v6" /&gt;&lt;path d="M20 4 10 14" /&gt;&lt;path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /&gt;&lt;/&gt;} /&gt;,
+  Power:   (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M12 4v8" /&gt;&lt;path d="M7.5 7a7 7 0 1 0 9 0" /&gt;&lt;/&gt;} /&gt;,
+  Cloud:   (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;path d="M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 9.5a3.5 3.5 0 0 1 0 8.5z" /&gt;&lt;/&gt;} /&gt;,
+  Search:  (p) =&gt; &lt;FI {...p} d={&lt;&gt;&lt;circle cx="11" cy="11" r="7" /&gt;&lt;path d="m20 20-3.5-3.5" /&gt;&lt;/&gt;} /&gt;,
+  WhatsApp:(p) =&gt; &lt;FI {...p} fill="currentColor" stroke="none" d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.02zm-7.01 15.22a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.36c0-4.54 3.7-8.23 8.24-8.23a8.2 8.2 0 0 1 5.82 2.41 8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.23 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z" /&gt;,
+};
+
+Object.assign(window, { FI, FloMark, Ic });
+</code></pre></details></section>
+    <section id="src-charts"><h3>JS — chat-charts.jsx</h3>
+      <details><summary>chat-charts.jsx<span class="fp">BarChart + AreaChart</span></summary><pre><code>// Flipper Assistant — SVG chart components (Flipper visual language).
+// All charts use a viewBox and scale to container width.
+
+// ---- Triple bar: Revenue / Profit (can be negative) / Units ----
+function BarChart({ data, unit = 'RWF' }) {
+  // data: [{label, value, tone}]  tone: 'blue'|'gain'|'loss'
+  const W = 520, H = 220, padX = 16, padTop = 24, padBot = 38;
+  const plotH = H - padTop - padBot;
+  const max = Math.max(...data.map(d =&gt; d.value), 0);
+  const min = Math.min(...data.map(d =&gt; d.value), 0);
+  const span = (max - min) || 1;
+  const zeroY = padTop + (max / span) * plotH;
+  const n = data.length;
+  const slot = (W - padX * 2) / n;
+  const bw = Math.min(78, slot * 0.42);
+  const colorOf = (t) =&gt; t === 'loss' ? '#E5484D' : t === 'gain' ? '#10B981' : '#2563EB';
+  const fmt = (v) =&gt; {
+    const a = Math.abs(v);
+    if (a &gt;= 1000) return (v / 1000).toFixed(a &gt;= 10000 ? 0 : 1) + 'K';
+    return String(v);
+  };
+  // gridlines (include a solid zero baseline when bars span 0)
+  const mid = (min &lt; 0 &amp;&amp; max &gt; 0) ? 0 : (max + min) / 2;
+  const lines = [max, mid, min].filter((v, i, arr) =&gt; arr.indexOf(v) === i);
+  return (
+    &lt;svg viewBox={`0 0 ${W} ${H}`} role="img"&gt;
+      {/* gridlines */}
+      {lines.map((lv, i) =&gt; {
+        const y = padTop + ((max - lv) / span) * plotH;
+        return (
+          &lt;g key={i}&gt;
+            &lt;line x1={padX} x2={W - padX} y1={y} y2={y} stroke="#EDF1F7" strokeWidth="1" strokeDasharray={lv === 0 ? '0' : '3 4'} /&gt;
+            &lt;text x={padX} y={y - 4} fontSize="10" fill="#AEB8CA" fontFamily="'Geist Mono',monospace"&gt;{fmt(lv)}&lt;/text&gt;
+          &lt;/g&gt;
+        );
+      })}
+      {data.map((d, i) =&gt; {
+        const cx = padX + slot * i + slot / 2;
+        const v = d.value;
+        const topY = padTop + ((max - Math.max(v, 0)) / span) * plotH;
+        const botY = padTop + ((max - Math.min(v, 0)) / span) * plotH;
+        const h = Math.max(2, botY - topY);
+        const c = colorOf(d.tone);
+        const isNeg = v &lt; 0;
+        const labelY = isNeg ? botY - 10 : topY - 7;
+        return (
+          &lt;g key={i}&gt;
+            &lt;rect x={cx - bw / 2} y={topY} width={bw} height={h} rx="6" fill={c} /&gt;
+            &lt;text x={cx} y={labelY} fontSize="11.5" fontWeight="700" textAnchor="middle"
+              fill={isNeg ? '#fff' : c} fontFamily="'Geist Mono',monospace"&gt;{d.display ?? fmt(v)}&lt;/text&gt;
+            &lt;text x={cx} y={H - 16} fontSize="11.5" textAnchor="middle" fill="#7E8AA0" fontWeight="600" fontFamily="'Geist',sans-serif"&gt;{d.label}&lt;/text&gt;
+          &lt;/g&gt;
+        );
+      })}
+    &lt;/svg&gt;
+  );
+}
+
+// ---- Area trend (7-day) ----
+function AreaChart({ points, labels, peak }) {
+  const W = 520, H = 200, padL = 8, padR = 8, padTop = 18, padBot = 30;
+  const plotW = W - padL - padR, plotH = H - padTop - padBot;
+  const max = Math.max(...points) * 1.12, min = Math.min(...points) * 0.78;
+  const span = (max - min) || 1;
+  const xs = points.map((_, i) =&gt; padL + (i / (points.length - 1)) * plotW);
+  const ys = points.map(v =&gt; padTop + ((max - v) / span) * plotH);
+  const line = xs.map((x, i) =&gt; `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${ys[i].toFixed(1)}`).join(' ');
+  const area = `${line} L ${xs[xs.length - 1].toFixed(1)} ${padTop + plotH} L ${xs[0].toFixed(1)} ${padTop + plotH} Z`;
+  const totLen = 900;
+  return (
+    &lt;svg viewBox={`0 0 ${W} ${H}`} role="img"&gt;
+      &lt;defs&gt;
+        &lt;linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"&gt;
+          &lt;stop offset="0" stopColor="#2563EB" stopOpacity="0.20" /&gt;
+          &lt;stop offset="1" stopColor="#2563EB" stopOpacity="0" /&gt;
+        &lt;/linearGradient&gt;
+      &lt;/defs&gt;
+      {/* gridlines */}
+      {[0, 0.5, 1].map((t, i) =&gt; {
+        const y = padTop + t * plotH;
+        return &lt;line key={i} x1={padL} x2={W - padR} y1={y} y2={y} stroke="#EDF1F7" strokeWidth="1" strokeDasharray="3 4" /&gt;;
+      })}
+      &lt;path d={area} fill="url(#areaFill)" /&gt;
+      &lt;path d={line} fill="none" stroke="#2563EB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /&gt;
+      {xs.map((x, i) =&gt; {
+        const isPeak = i === peak;
+        return (
+          &lt;g key={i}&gt;
+            &lt;circle cx={x} cy={ys[i]} r={isPeak ? 5 : 3.5} fill="#fff" stroke="#2563EB" strokeWidth={isPeak ? 3 : 2} /&gt;
+            {isPeak &amp;&amp; &lt;text x={x} y={ys[i] - 12} fontSize="11" fontWeight="700" textAnchor="middle" fill="#1D4ED8" fontFamily="'Geist Mono',monospace"&gt;peak&lt;/text&gt;}
+            &lt;text x={x} y={H - 10} fontSize="11" textAnchor="middle" fill="#7E8AA0" fontWeight="600" fontFamily="'Geist',sans-serif"&gt;{labels[i]}&lt;/text&gt;
+          &lt;/g&gt;
+        );
+      })}
+    &lt;/svg&gt;
+  );
+}
+
+Object.assign(window, { BarChart, AreaChart });
+</code></pre></details></section>
+    <section id="src-data"><h3>JS — chat-data.jsx</h3>
+      <details><summary>chat-data.jsx<span class="fp">answers + inbox seed</span></summary><pre><code>// Flipper Assistant — demo conversation content.
+// Answers are arrays of typed blocks; the renderer maps them to components.
+
+// Home suggestion cards
+const SUGGESTIONS = [
+  { icon: 'Chart',  tone: 'tone-blue',   t: "Summarize today's performance", d: 'Revenue, profit &amp; units at a glance', q: 'today' },
+  { icon: 'Coins',  tone: 'tone-gain',   t: 'Most profitable products',       d: 'Ranked by margin this week',          q: 'profit-products' },
+  { icon: 'Users',  tone: 'tone-violet', t: 'How many users in MiniData?',    d: 'Counts &amp; recent activity',            q: 'users' },
+  { icon: 'Trend',  tone: 'tone-xp',     t: "This week's sales trend",        d: '7-day revenue movement',              q: 'trend' },
+];
+
+// Composer quick-prompts
+const QUICK = [
+  { icon: 'Bolt',    label: 'Summarize today', q: 'today' },
+  { icon: 'Coins',   label: 'Top products',    q: 'profit-products' },
+  { icon: 'Users',   label: 'User count',      q: 'users' },
+  { icon: 'Trend',   label: 'Sales trend',     q: 'trend' },
+];
+
+// Prompt text shown as the user bubble for each id
+const PROMPT_TEXT = {
+  'today': "Summarize today's business performance",
+  'users': 'How many users do we have in MiniData?',
+  'trend': "Show this week's sales trend",
+  'profit-products': 'Which products are most profitable this week?',
+  'why-negative': 'Why is profit negative?',
+  'compare': 'Compare today to yesterday',
+};
+
+const src = (...items) =&gt; ({ type: 'source', items });
+
+const ANSWERS = {
+  today: {
+    think: ['Reading your question', 'Querying MiniData · sales', 'Computing today\u2019s totals', 'Composing summary'],
+    blocks: [
+      { type: 'text', html: "Here's how &lt;b&gt;Demo Shop&lt;/b&gt; closed today, 14 Jun. Sales are flowing, but the day ended in the red \u2014 you're currently &lt;span class='neg'&gt;selling below cost&lt;/span&gt;." },
+      { type: 'metrics', cols: 4, items: [
+        { k: 'Revenue', unit: 'RWF', v: '7,999.80', delta: '+12.4%', dir: 'up' },
+        { k: 'Net profit', unit: 'RWF', v: '\u221267,000', neg: true, delta: '\u221218.6%', dir: 'down' },
+        { k: 'Units sold', v: '320', delta: '+9.1%', dir: 'up' },
+        { k: 'Transactions', v: '18', delta: '+2', dir: 'up' },
+      ]},
+      { type: 'viz', kind: 'bar', title: "Today at a glance", sub: 'RWF · Units \u00d7100',
+        data: [
+          { label: 'Revenue', value: 7999.8, tone: 'blue', display: '8.0K' },
+          { label: 'Profit',  value: -67000.2, tone: 'loss', display: '\u221267K' },
+          { label: 'Units \u00d7100', value: 32000, tone: 'gain', display: '320' },
+        ] },
+      { type: 'callout', tone: 'warn', h: 'Test EBM is priced below cost',
+        p: 'It sells at RWF 25.00/unit against a landed cost of ~RWF 234 \u2014 a loss of ~RWF 209 per unit. Raise the price or correct the supplier cost to restore margin.' },
+      src('MiniData', 'sales', 'today \u00b7 14 Jun'),
+      { type: 'actions', items: [
+        { label: 'View EOD report', icon: 'Receipt', primary: true },
+        { label: 'Export', icon: 'Download' },
+      ]},
+      { type: 'followups', items: [
+        { label: 'Why is profit negative?', q: 'why-negative' },
+        { label: 'Compare to yesterday', q: 'compare' },
+        { label: 'Top products by margin', q: 'profit-products' },
+      ]},
+    ],
+  },
+
+  users: {
+    think: ['Reading your question', 'Querying MiniData · users', 'Counting rows &amp; activity', 'Composing answer'],
+    blocks: [
+      { type: 'text', html: "&lt;b&gt;MiniData&lt;/b&gt; currently holds &lt;b&gt;1,248 users&lt;/b&gt;. &lt;b&gt;312&lt;/b&gt; have been active in the last 7 days \u2014 steady week-on-week." },
+      { type: 'metrics', cols: 3, items: [
+        { k: 'Total users', v: '1,248', delta: '+48 this mo', dir: 'up', hl: true },
+        { k: 'Active \u00b7 7d', v: '312', delta: '+4.2%', dir: 'up' },
+        { k: 'New today', v: '6', delta: 'on pace', dir: 'flat' },
+      ]},
+      { type: 'table',
+        cols: [{ label: 'Role' }, { label: 'Users', num: true }, { label: 'Share', num: true }],
+        rows: [
+          [{ lead: 'Customers', sw: '#2563EB' }, '1,146', '91.8%'],
+          [{ lead: 'Cashiers',  sw: '#22D3EE' }, '86', '6.9%'],
+          [{ lead: 'Managers',  sw: '#7C3AED' }, '12', '1.0%'],
+          [{ lead: 'Owners',    sw: '#FB9D00' }, '4', '0.3%'],
+        ] },
+      src('MiniData', 'users table'),
+      { type: 'followups', items: [
+        { label: "This week's sales trend", q: 'trend' },
+        { label: 'Most profitable products', q: 'profit-products' },
+        { label: 'Summarize today', q: 'today' },
+      ]},
+    ],
+  },
+
+  trend: {
+    think: ['Reading your question', 'Querying MiniData · sales', 'Aggregating last 7 days', 'Drawing the trend'],
+    blocks: [
+      { type: 'text', html: "Revenue this week reached &lt;b&gt;RWF 1.62M&lt;/b&gt; across 7 days \u2014 &lt;span class='pos'&gt;up 8.3%&lt;/span&gt; on last week. &lt;b&gt;Thursday&lt;/b&gt; was your strongest day." },
+      { type: 'viz', kind: 'area', title: 'Daily revenue', sub: 'RWF \u00b7 last 7 days',
+        points: [198, 176, 205, 318, 261, 232, 230], labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], peak: 3 },
+      { type: 'metrics', cols: 3, items: [
+        { k: 'This week', unit: 'RWF', v: '1.62M', delta: '+8.3%', dir: 'up', hl: true },
+        { k: 'Avg / day', unit: 'RWF', v: '231K', delta: '+6.1%', dir: 'up' },
+        { k: 'Best day', v: 'Thu', delta: 'RWF 318K', dir: 'up' },
+      ]},
+      src('MiniData', 'sales', 'last 7 days'),
+      { type: 'followups', items: [
+        { label: 'Break down by product', q: 'profit-products' },
+        { label: 'Compare to yesterday', q: 'compare' },
+        { label: 'Summarize today', q: 'today' },
+      ]},
+    ],
+  },
+
+  'profit-products': {
+    think: ['Reading your question', 'Querying MiniData · sales \u00d7 products', 'Ranking by margin', 'Composing answer'],
+    blocks: [
+      { type: 'text', html: "Your &lt;b&gt;top products by margin&lt;/b&gt; this week. &lt;b&gt;Amasa Milk 1L&lt;/b&gt; leads on profit, while &lt;span class='neg'&gt;Test EBM&lt;/span&gt; is dragging the total down." },
+      { type: 'table',
+        cols: [{ label: 'Product' }, { label: 'Units', num: true }, { label: 'Revenue', num: true }, { label: 'Margin', num: true }],
+        rows: [
+          [{ lead: 'Amasa Milk 1L',   sw: '#2563EB' }, '428', 'RWF 642K', { t: '+38%', cls: 'pos' }],
+          [{ lead: 'Inyange Water 5L',sw: '#22D3EE' }, '390', 'RWF 351K', { t: '+31%', cls: 'pos' }],
+          [{ lead: 'Sugar 1kg',       sw: '#10B981' }, '276', 'RWF 248K', { t: '+22%', cls: 'pos' }],
+          [{ lead: 'Bread Loaf',      sw: '#FB9D00' }, '512', 'RWF 205K', { t: '+12%', cls: 'pos' }],
+          [{ lead: 'Test EBM',        sw: '#E5484D' }, '320', 'RWF 8K',   { t: '\u221296%', cls: 'neg' }],
+        ] },
+      { type: 'callout', tone: 'info', h: 'Pricing opportunity',
+        p: 'Bread Loaf sells in high volume at a thin margin. A 5% price increase could add ~RWF 51K/week with minimal impact on demand.' },
+      src('MiniData', 'sales \u00b7 products', 'last 7 days'),
+      { type: 'actions', items: [
+        { label: 'Open Analytics', icon: 'Chart', primary: true },
+        { label: 'Export', icon: 'Download' },
+      ]},
+      { type: 'followups', items: [
+        { label: 'Why is Test EBM losing money?', q: 'why-negative' },
+        { label: "This week's sales trend", q: 'trend' },
+      ]},
+    ],
+  },
+
+  'why-negative': {
+    think: ['Reading your question', 'Querying MiniData · Test EBM', 'Checking cost vs price', 'Composing answer'],
+    blocks: [
+      { type: 'text', html: "&lt;b&gt;Test EBM&lt;/b&gt; is the only loss-maker. It sells at &lt;b&gt;RWF 25.00&lt;/b&gt;/unit against a landed cost of &lt;b&gt;RWF 234.38&lt;/b&gt; \u2014 so every sale loses money." },
+      { type: 'table',
+        cols: [{ label: 'Line item' }, { label: 'Per unit', num: true }, { label: '\u00d7 320 units', num: true }],
+        rows: [
+          ['Sale price', 'RWF 25.00', 'RWF 8,000'],
+          ['Cost of goods', { t: 'RWF \u2212234.38', cls: 'neg' }, { t: 'RWF \u221275,000', cls: 'neg' }],
+          [{ lead: 'Net result', sw: '#E5484D' }, { t: 'RWF \u2212209.38', cls: 'neg' }, { t: 'RWF \u221267,000', cls: 'neg' }],
+        ] },
+      { type: 'callout', tone: 'warn', h: 'Action needed',
+        p: 'To break even, raise Test EBM to at least RWF 235 \u2014 or pause sales until the supplier cost is corrected in MiniData.' },
+      src('MiniData', 'sales \u00b7 Test EBM', 'today'),
+      { type: 'actions', items: [
+        { label: 'Adjust price', icon: 'Edit', primary: true },
+        { label: 'View product', icon: 'Eye' },
+      ]},
+      { type: 'followups', items: [
+        { label: 'Summarize today again', q: 'today' },
+        { label: 'Top profitable products', q: 'profit-products' },
+      ]},
+    ],
+  },
+
+  compare: {
+    think: ['Reading your question', 'Querying MiniData · sales', 'Comparing 13\u201314 Jun', 'Composing answer'],
+    blocks: [
+      { type: 'text', html: "Versus yesterday (13 Jun): revenue is &lt;span class='pos'&gt;up 12.4%&lt;/span&gt;, but profit fell further into loss as Test EBM volume rose." },
+      { type: 'table',
+        cols: [{ label: 'Day' }, { label: 'Revenue', num: true }, { label: 'Profit', num: true }, { label: 'Units', num: true }],
+        rows: [
+          ['Yesterday', 'RWF 7,117', { t: 'RWF \u221256K', cls: 'neg' }, '294'],
+          ['Today', 'RWF 8,000', { t: 'RWF \u221267K', cls: 'neg' }, '320'],
+          [{ lead: 'Change', sw: '#2563EB' }, { t: '+12.4%', cls: 'pos' }, { t: '\u221218.6%', cls: 'neg' }, { t: '+8.8%', cls: 'pos' }],
+        ] },
+      src('MiniData', 'sales', '13\u201314 Jun'),
+      { type: 'followups', items: [
+        { label: 'Why is profit negative?', q: 'why-negative' },
+        { label: "This week's sales trend", q: 'trend' },
+      ]},
+    ],
+  },
+};
+
+// Fallback for free-typed questions
+const FALLBACK = {
+  think: ['Reading your question', 'Searching MiniData', 'Composing answer'],
+  blocks: [
+    { type: 'text', html: "I can pull that from &lt;b&gt;MiniData&lt;/b&gt;. Here are the areas I have live data for right now \u2014 pick one and I'll dig in." },
+    { type: 'followups', items: [
+      { label: 'Summarize today', q: 'today' },
+      { label: 'Most profitable products', q: 'profit-products' },
+      { label: 'User count', q: 'users' },
+      { label: "This week's sales trend", q: 'trend' },
+    ]},
+  ],
+};
+
+// WhatsApp inbox — customer conversations received via WhatsApp
+const INBOX = [
+  {
+    id: 'aline', name: 'Aline Uwase', initials: 'AU', tone: '#2563EB',
+    phone: '+250 788 412 095', time: '2m', unread: 2,
+    last: 'I need about 20 packs for an event',
+    msgs: [
+      { from: 'them', t: 'Muraho! Do you have Amasa Milk 1L in stock?', time: '9:58' },
+      { from: 'them', t: 'I need about 20 packs for an event \uD83C\uDF89', time: '9:58' },
+    ],
+    flo: {
+      src: 'MiniData \u00b7 products',
+      draft: 'Muraho Aline! Yes \u2014 we have 428 packs of Amasa Milk 1L in stock at RWF 1,500 each. 20 packs would come to RWF 30,000. Would you like me to reserve them for your event?',
+    },
+  },
+  {
+    id: 'jp', name: 'Jean-Paul M.', initials: 'JP', tone: '#7C3AED',
+    phone: '+250 722 330 871', time: '14m', unread: 1,
+    last: 'Can I pay on delivery?',
+    msgs: [
+      { from: 'them', t: 'Hello, can I pay on delivery for my order?', time: '9:46' },
+    ],
+    flo: {
+      src: 'MiniData \u00b7 payments',
+      draft: 'Hello Jean-Paul! Yes, we accept cash and Mobile Money on delivery within Kigali. Your order total is RWF 12,400. Shall I confirm it for delivery today?',
+    },
+  },
+  {
+    id: 'claudine', name: 'Claudine N.', initials: 'CN', tone: '#10B981',
+    phone: '+250 788 905 244', time: '1h', unread: 0,
+    last: 'Thanks! Order received \uD83D\uDE4F',
+    msgs: [
+      { from: 'them', t: 'Thanks! Order received \uD83D\uDE4F', time: '8:30' },
+      { from: 'me', t: 'Thank you Claudine! Enjoy \uD83D\uDE0A', time: '8:31' },
+    ],
+    flo: null,
+  },
+  {
+    id: 'eric', name: 'Eric Habimana', initials: 'EH', tone: '#FB9D00',
+    phone: '+250 733 118 460', time: '3h', unread: 0,
+    last: 'What time do you close today?',
+    msgs: [
+      { from: 'them', t: 'What time do you close today?', time: '6:40' },
+      { from: 'me', t: 'We close at 8:00 PM today. Karibu!', time: '6:42' },
+    ],
+    flo: null,
+  },
+];
+
+Object.assign(window, { SUGGESTIONS, QUICK, PROMPT_TEXT, ANSWERS, FALLBACK, INBOX });
+</code></pre></details></section>
+    <section id="src-inbox"><h3>JS — chat-inbox.jsx</h3>
+      <details><summary>chat-inbox.jsx<span class="fp">Inbox component</span></summary><pre><code>// Flipper Assistant — WhatsApp inbox (customer messages + Flo-assisted replies).
+const { useState: useStateIb, useRef: useRefIb, useEffect: useEffectIb } = React;
+
+function InboxEmpty({ onConnect }) {
+  return (
+    &lt;div className="inbox-empty"&gt;
+      &lt;div className="ie-ico"&gt;&lt;Ic.WhatsApp size={38} /&gt;&lt;/div&gt;
+      &lt;div className="ie-h"&gt;Answer customers on WhatsApp&lt;/div&gt;
+      &lt;div className="ie-p"&gt;Connect your WhatsApp Business number and every customer message lands right here. Flo drafts replies from your live data so you respond in one tap.&lt;/div&gt;
+      &lt;button className="ie-btn" onClick={onConnect}&gt;&lt;Ic.Link size={18} /&gt;Connect WhatsApp&lt;/button&gt;
+      &lt;div className="ie-steps"&gt;
+        &lt;div className="ie-step"&gt;&lt;span className="n"&gt;1&lt;/span&gt;&lt;span className="s"&gt;Link your WhatsApp Business number&lt;/span&gt;&lt;/div&gt;
+        &lt;div className="ie-step"&gt;&lt;span className="n"&gt;2&lt;/span&gt;&lt;span className="s"&gt;Customer chats appear in this inbox&lt;/span&gt;&lt;/div&gt;
+        &lt;div className="ie-step"&gt;&lt;span className="n"&gt;3&lt;/span&gt;&lt;span className="s"&gt;Flo drafts replies, you send&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function Thread({ convo, msgs, onBack, onSend }) {
+  const [val, setVal] = useStateIb('');
+  const [focus, setFocus] = useStateIb(false);
+  const [floState, setFloState] = useStateIb('open'); // open | used | dismissed
+  const taRef = useRefIb(null);
+  const msgRef = useRefIb(null);
+
+  useEffectIb(() =&gt; { setVal(''); setFloState('open'); }, [convo.id]);
+  useEffectIb(() =&gt; {
+    const el = msgRef.current; if (el) requestAnimationFrame(() =&gt; { el.scrollTop = el.scrollHeight; });
+  }, [msgs.length, convo.id]);
+
+  const grow = (el) =&gt; { if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 110) + 'px'; };
+  const send = (text) =&gt; { const v = (text ?? val).trim(); if (!v) return; onSend(convo.id, v); setVal(''); if (taRef.current) taRef.current.style.height = 'auto'; };
+  const useDraft = () =&gt; { if (convo.flo) { setVal(convo.flo.draft); setFloState('dismissed'); setFocus(true); requestAnimationFrame(() =&gt; { if (taRef.current) { taRef.current.focus(); grow(taRef.current); } }); } };
+
+  const showFlo = convo.flo &amp;&amp; floState === 'open' &amp;&amp; msgs[msgs.length - 1] &amp;&amp; msgs[msgs.length - 1].from === 'them';
+
+  return (
+    &lt;div className="inbox-thread"&gt;
+      &lt;div className="thread-head"&gt;
+        &lt;button className="thread-back" onClick={onBack}&gt;&lt;Ic.ChevLeft size={18} /&gt;&lt;/button&gt;
+        &lt;div className="thread-av" style={{ background: convo.tone }}&gt;{convo.initials}&lt;/div&gt;
+        &lt;div className="thread-id"&gt;
+          &lt;div className="thread-name"&gt;{convo.name}&lt;/div&gt;
+          &lt;div className="thread-sub"&gt;&lt;span className="wa-i"&gt;&lt;Ic.WhatsApp size={12} /&gt;WhatsApp&lt;/span&gt;&lt;span&gt;{convo.phone}&lt;/span&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div className="thread-actions"&gt;
+          &lt;button className="head-btn icon" title="Customer profile"&gt;&lt;Ic.Users size={17} /&gt;&lt;/button&gt;
+          &lt;button className="head-btn icon" title="More"&gt;&lt;Ic.More size={17} /&gt;&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="thread-msgs" ref={msgRef}&gt;
+        &lt;div className="thread-day"&gt;Today&lt;/div&gt;
+        {msgs.map((m, i) =&gt; (
+          &lt;div key={i} className={'ibub ' + m.from}&gt;
+            {m.t}&lt;span className="ib-time"&gt;{m.time}&lt;/span&gt;
+          &lt;/div&gt;
+        ))}
+      &lt;/div&gt;
+
+      {showFlo &amp;&amp; (
+        &lt;div className="flo-suggest"&gt;
+          &lt;div className="flo-suggest-top"&gt;
+            &lt;span className="fs-mark"&gt;&lt;FloMark size={13} /&gt;&lt;/span&gt;
+            &lt;span className="fs-t"&gt;Flo suggested reply&lt;/span&gt;
+            &lt;span className="fs-src"&gt;&lt;Ic.Database size={12} /&gt;{convo.flo.src}&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div className="flo-suggest-body"&gt;{convo.flo.draft}&lt;/div&gt;
+          &lt;div className="flo-suggest-acts"&gt;
+            &lt;button className="fs-btn send" onClick={() =&gt; { send(convo.flo.draft); setFloState('used'); }}&gt;&lt;Ic.Send size={14} /&gt;Send reply&lt;/button&gt;
+            &lt;button className="fs-btn edit" onClick={useDraft}&gt;&lt;Ic.Edit size={14} /&gt;Edit first&lt;/button&gt;
+            &lt;button className="fs-btn ghost" onClick={() =&gt; setFloState('dismissed')}&gt;Dismiss&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+
+      &lt;div className="reply-wrap"&gt;
+        &lt;div className={'reply' + (focus ? ' is-focus' : '')}&gt;
+          {convo.flo &amp;&amp; floState !== 'used' &amp;&amp; (
+            &lt;button className="flo-draft-btn" onClick={useDraft} title="Draft with Flo"&gt;&lt;FloMark size={15} /&gt;Draft&lt;/button&gt;
+          )}
+          &lt;textarea ref={taRef} rows={1} value={val} placeholder="Reply to this customer…"
+            onFocus={() =&gt; setFocus(true)} onBlur={() =&gt; setFocus(false)}
+            onChange={(e) =&gt; { setVal(e.target.value); grow(e.target); }}
+            onKeyDown={(e) =&gt; { if (e.key === 'Enter' &amp;&amp; !e.shiftKey) { e.preventDefault(); send(); } }} /&gt;
+          &lt;button className="reply-send" disabled={!val.trim()} onClick={() =&gt; send()}&gt;&lt;Ic.Send size={19} /&gt;&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function Inbox({ isMobile, connected, onConnect }) {
+  const [threads, setThreads] = useStateIb(() =&gt; {
+    const o = {}; INBOX.forEach(c =&gt; { o[c.id] = { msgs: c.msgs.slice(), unread: c.unread }; }); return o;
+  });
+  const [selected, setSelected] = useStateIb(isMobile ? null : INBOX[0].id);
+
+  useEffectIb(() =&gt; {
+    if (selected) setThreads(t =&gt; (t[selected].unread ? { ...t, [selected]: { ...t[selected], unread: 0 } } : t));
+  }, [selected]);
+
+  if (!connected) return &lt;InboxEmpty onConnect={onConnect} /&gt;;
+
+  const open = (id) =&gt; { setSelected(id); setThreads(t =&gt; ({ ...t, [id]: { ...t[id], unread: 0 } })); };
+  const send = (id, text) =&gt; setThreads(t =&gt; ({ ...t, [id]: { ...t[id], msgs: [...t[id].msgs, { from: 'me', t: text, time: 'now' }] } }));
+
+  const convo = INBOX.find(c =&gt; c.id === selected);
+  const totalUnread = Object.values(threads).reduce((s, x) =&gt; s + x.unread, 0);
+
+  return (
+    &lt;div className={'inbox' + (isMobile &amp;&amp; selected ? ' show-thread' : '')}&gt;
+      &lt;div className="inbox-list"&gt;
+        &lt;div className="inbox-list-head"&gt;
+          &lt;span className="inbox-list-h"&gt;Customers&lt;/span&gt;
+          &lt;span className="inbox-list-count"&gt;{totalUnread &gt; 0 ? totalUnread + ' unread' : 'All read'}&lt;/span&gt;
+          &lt;span className="inbox-via"&gt;&lt;Ic.WhatsApp size={12} /&gt;WhatsApp&lt;/span&gt;
+        &lt;/div&gt;
+        {INBOX.map(c =&gt; {
+          const th = threads[c.id];
+          return (
+            &lt;button key={c.id} className={'convo' + (c.id === selected ? ' is-on' : '') + (th.unread ? ' unread' : '')} onClick={() =&gt; open(c.id)}&gt;
+              &lt;span className="convo-av" style={{ background: c.tone }}&gt;{c.initials}
+                &lt;span className="wa-badge"&gt;&lt;Ic.WhatsApp size={9} /&gt;&lt;/span&gt;
+              &lt;/span&gt;
+              &lt;span className="convo-main"&gt;
+                &lt;span className="convo-top"&gt;
+                  &lt;span className="convo-name"&gt;{c.name}&lt;/span&gt;
+                  &lt;span className="convo-time"&gt;{c.time}&lt;/span&gt;
+                &lt;/span&gt;
+                &lt;span className="convo-snip"&gt;{th.msgs[th.msgs.length - 1].from === 'me' ? 'You: ' : ''}{th.msgs[th.msgs.length - 1].t}&lt;/span&gt;
+              &lt;/span&gt;
+              {th.unread &gt; 0 &amp;&amp; &lt;span className="convo-unread"&gt;{th.unread}&lt;/span&gt;}
+            &lt;/button&gt;
+          );
+        })}
+      &lt;/div&gt;
+
+      {convo
+        ? &lt;Thread convo={convo} msgs={threads[convo.id].msgs} onBack={() =&gt; setSelected(null)} onSend={send} /&gt;
+        : &lt;div className="inbox-thread" style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center' }}&gt;
+            &lt;div style={{ textAlign: 'center', color: 'var(--ink-3)', fontSize: 14 }}&gt;Select a conversation&lt;/div&gt;
+          &lt;/div&gt;}
+    &lt;/div&gt;
+  );
+}
+
+Object.assign(window, { Inbox });
+</code></pre></details></section>
+    <section id="src-app"><h3>JS — chat-app.jsx</h3>
+      <details><summary>chat-app.jsx<span class="fp">Chat root + renderer</span></summary><pre><code>// Flipper Assistant — chat app.
+const { useState, useRef, useEffect, useCallback } = React;
+
+/* ---------------- block renderer ---------------- */
+function Metric({ m }) {
+  const DirIcon = m.dir === 'up' ? Ic.Up : m.dir === 'down' ? Ic.Down : null;
+  return (
+    &lt;div className={'metric' + (m.hl ? ' hl' : '')}&gt;
+      &lt;div className="m-k"&gt;{m.k}&lt;/div&gt;
+      &lt;div className={'m-v' + (m.neg ? ' neg' : '')}&gt;
+        {m.unit &amp;&amp; &lt;small&gt;{m.unit}&lt;/small&gt;}{m.v}
+      &lt;/div&gt;
+      {m.delta &amp;&amp; (
+        &lt;div className={'m-d ' + (m.dir || 'flat')}&gt;
+          {DirIcon &amp;&amp; &lt;DirIcon size={12} /&gt;}{m.delta}
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function Cell({ c, isNum }) {
+  if (c &amp;&amp; typeof c === 'object') {
+    if (c.lead !== undefined) {
+      return &lt;td className={isNum ? 'num' : ''}&gt;&lt;span className="lead"&gt;{c.sw &amp;&amp; &lt;i className="sw" style={{ background: c.sw }} /&gt;}&lt;b style={{ fontWeight: 700 }}&gt;{c.lead}&lt;/b&gt;&lt;/span&gt;&lt;/td&gt;;
+    }
+    return &lt;td className={isNum ? 'num' : ''}&gt;&lt;span className={c.cls || ''}&gt;{c.t}&lt;/span&gt;&lt;/td&gt;;
+  }
+  return &lt;td className={isNum ? 'num' : ''}&gt;{c}&lt;/td&gt;;
+}
+
+function Block({ b, ask, isMobile }) {
+  switch (b.type) {
+    case 'text':
+      return &lt;div className="bot-text" dangerouslySetInnerHTML={{ __html: b.html }} /&gt;;
+
+    case 'metrics':
+      return (
+        &lt;div className="metric-grid" style={{ '--cols': b.cols || 4 }}&gt;
+          {b.items.map((m, i) =&gt; &lt;Metric key={i} m={m} /&gt;)}
+        &lt;/div&gt;
+      );
+
+    case 'viz':
+      return (
+        &lt;div className="viz"&gt;
+          &lt;div className="viz-head"&gt;
+            &lt;span className="viz-title"&gt;{b.title}&lt;/span&gt;
+            {b.sub &amp;&amp; &lt;span className="viz-sub"&gt;{b.sub}&lt;/span&gt;}
+          &lt;/div&gt;
+          {b.kind === 'bar'
+            ? &lt;BarChart data={b.data} /&gt;
+            : &lt;AreaChart points={b.points} labels={b.labels} peak={b.peak} /&gt;}
+          {b.kind === 'bar' &amp;&amp; (
+            &lt;div className="viz-legend"&gt;
+              &lt;span className="viz-leg"&gt;&lt;i style={{ background: '#2563EB' }} /&gt;Revenue&lt;/span&gt;
+              &lt;span className="viz-leg"&gt;&lt;i style={{ background: '#E5484D' }} /&gt;Loss&lt;/span&gt;
+              &lt;span className="viz-leg"&gt;&lt;i style={{ background: '#10B981' }} /&gt;Units&lt;/span&gt;
+            &lt;/div&gt;
+          )}
+        &lt;/div&gt;
+      );
+
+    case 'table':
+      return (
+        &lt;div className="dtable"&gt;
+          &lt;table&gt;
+            &lt;thead&gt;
+              &lt;tr&gt;{b.cols.map((c, i) =&gt; &lt;th key={i} className={c.num ? 'num' : ''}&gt;{c.label}&lt;/th&gt;)}&lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+              {b.rows.map((row, ri) =&gt; (
+                &lt;tr key={ri}&gt;{row.map((c, ci) =&gt; &lt;Cell key={ci} c={c} isNum={b.cols[ci] &amp;&amp; b.cols[ci].num} /&gt;)}&lt;/tr&gt;
+              ))}
+            &lt;/tbody&gt;
+          &lt;/table&gt;
+        &lt;/div&gt;
+      );
+
+    case 'callout': {
+      const WIco = b.tone === 'warn' ? Ic.Warn : Ic.Info;
+      return (
+        &lt;div className={'callout ' + b.tone}&gt;
+          &lt;div className="c-ico"&gt;&lt;WIco size={17} /&gt;&lt;/div&gt;
+          &lt;div className="c-txt"&gt;&lt;span className="c-h"&gt;{b.h}&lt;/span&gt;&lt;p&gt;{b.p}&lt;/p&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      );
+    }
+
+    case 'source':
+      return (
+        &lt;div className="source"&gt;
+          &lt;Ic.Database size={13} /&gt;
+          {b.items.map((it, i) =&gt; (
+            &lt;React.Fragment key={i}&gt;
+              {i === 0 ? &lt;b&gt;{it}&lt;/b&gt; : &lt;span&gt;{it}&lt;/span&gt;}
+              {i &lt; b.items.length - 1 &amp;&amp; &lt;span className="dot" /&gt;}
+            &lt;/React.Fragment&gt;
+          ))}
+        &lt;/div&gt;
+      );
+
+    case 'actions':
+      return (
+        &lt;div className="actions"&gt;
+          {b.items.map((a, i) =&gt; {
+            const AI = Ic[a.icon] || Ic.ArrowUpRight;
+            return &lt;button key={i} className={'act' + (a.primary ? ' primary' : '')}&gt;&lt;AI size={15} /&gt;{a.label}&lt;/button&gt;;
+          })}
+        &lt;/div&gt;
+      );
+
+    case 'followups':
+      return (
+        &lt;div className="followups"&gt;
+          &lt;div className="followups-label"&gt;Suggested follow-ups&lt;/div&gt;
+          &lt;div className="followup-row"&gt;
+            {b.items.map((f, i) =&gt; (
+              &lt;button key={i} className="followup" onClick={() =&gt; ask(f.q)}&gt;
+                &lt;Ic.Sparkle size={13} /&gt;{f.label}
+              &lt;/button&gt;
+            ))}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      );
+
+    default: return null;
+  }
+}
+
+/* ---------------- thinking ---------------- */
+function Thinking({ steps, onDone }) {
+  const [active, setActive] = useState(0);
+  useEffect(() =&gt; {
+    if (active &gt;= steps.length) { const t = setTimeout(onDone, 220); return () =&gt; clearTimeout(t); }
+    const t = setTimeout(() =&gt; setActive(a =&gt; a + 1), active === 0 ? 380 : 460);
+    return () =&gt; clearTimeout(t);
+  }, [active, steps.length]);
+  return (
+    &lt;div className="thinking"&gt;
+      {steps.map((s, i) =&gt; {
+        const done = i &lt; active, isActive = i === active;
+        return (
+          &lt;div key={i} className={'think-row' + (isActive ? ' is-active' : '')}&gt;
+            {done ? &lt;span className="tick done"&gt;&lt;Ic.Check size={10} /&gt;&lt;/span&gt;
+              : isActive ? &lt;span className="spin" /&gt;
+              : &lt;span className="pend" /&gt;}
+            {s}
+          &lt;/div&gt;
+        );
+      })}
+    &lt;/div&gt;
+  );
+}
+
+/* ---------------- message rows ---------------- */
+function BotMessage({ msg, ask, isMobile, onDone }) {
+  return (
+    &lt;div className="msg msg-bot"&gt;
+      &lt;div className="flo-mark sm"&gt;&lt;FloMark size={17} /&gt;&lt;/div&gt;
+      &lt;div className="bot-body"&gt;
+        {msg.state === 'thinking'
+          ? &lt;Thinking steps={msg.think} onDone={onDone} /&gt;
+          : msg.blocks.map((b, i) =&gt; &lt;Block key={i} b={b} ask={ask} isMobile={isMobile} /&gt;)}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ---------------- home / empty ---------------- */
+function Home({ ask, isMobile, channels, openModal }) {
+  return (
+    &lt;div className="home"&gt;
+      &lt;div className="home-hero"&gt;
+        &lt;div className="flo-mark"&gt;&lt;FloMark size={22} /&gt;&lt;/div&gt;
+        &lt;div&gt;
+          &lt;div className="home-greet-eyebrow"&gt;Friday · 6:42 PM&lt;/div&gt;
+          &lt;div className="home-greet"&gt;Good evening, Demo Shop.&lt;br /&gt;Ask me &lt;em&gt;anything&lt;/em&gt; about your business.&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="home-sub"&gt;I read live from your connected data and answer with numbers, charts and next steps — in plain language.&lt;/div&gt;
+
+      &lt;div className="briefing"&gt;
+        &lt;div className="briefing-top"&gt;
+          &lt;span className="briefing-badge"&gt;&lt;Ic.Sparkle size={13} /&gt;Daily briefing&lt;/span&gt;
+          &lt;span className="briefing-time"&gt;14 Jun · auto&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div className="briefing-body"&gt;
+          &lt;div className="briefing-h"&gt;Sales are up, but you're trading at a loss today.&lt;/div&gt;
+          &lt;div className="briefing-p"&gt;Revenue reached &lt;b&gt;RWF 8,000&lt;/b&gt; across &lt;b&gt;18 transactions&lt;/b&gt;, yet the day closed &lt;b&gt;RWF 67K&lt;/b&gt; down — driven entirely by &lt;b&gt;Test EBM&lt;/b&gt; selling below cost.&lt;/div&gt;
+          &lt;div className="briefing-stats"&gt;
+            &lt;div className="brief-stat"&gt;&lt;div className="k"&gt;Revenue&lt;/div&gt;&lt;div className="v"&gt;&lt;small&gt;RWF&lt;/small&gt;8,000&lt;/div&gt;&lt;div className="d up"&gt;&lt;Ic.Up size={11} /&gt;+12.4%&lt;/div&gt;&lt;/div&gt;
+            &lt;div className="brief-stat"&gt;&lt;div className="k"&gt;Net profit&lt;/div&gt;&lt;div className="v" style={{ color: 'var(--loss-ink)' }}&gt;&lt;small&gt;RWF&lt;/small&gt;−67K&lt;/div&gt;&lt;div className="d down"&gt;&lt;Ic.Down size={11} /&gt;−18.6%&lt;/div&gt;&lt;/div&gt;
+            &lt;div className="brief-stat"&gt;&lt;div className="k"&gt;Units sold&lt;/div&gt;&lt;div className="v"&gt;320&lt;/div&gt;&lt;div className="d up"&gt;&lt;Ic.Up size={11} /&gt;+9.1%&lt;/div&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="home-sec-label"&gt;Try asking&lt;/div&gt;
+      &lt;div className="suggest-grid"&gt;
+        {SUGGESTIONS.map((s, i) =&gt; {
+          const SI = Ic[s.icon];
+          return (
+            &lt;button key={i} className="suggest-card" onClick={() =&gt; ask(s.q)}&gt;
+              &lt;span className={'suggest-ico ' + s.tone}&gt;&lt;SI size={19} /&gt;&lt;/span&gt;
+              &lt;span className="suggest-txt"&gt;
+                &lt;span className="suggest-t"&gt;{s.t}&lt;/span&gt;
+                &lt;span className="suggest-d"&gt;{s.d}&lt;/span&gt;
+              &lt;/span&gt;
+            &lt;/button&gt;
+          );
+        })}
+      &lt;/div&gt;
+
+      &lt;div className="home-sec-label"&gt;Channels&lt;/div&gt;
+      &lt;div className="channels"&gt;
+        &lt;div className="chan-card"&gt;
+          &lt;div className="ch-ico data"&gt;&lt;Ic.Database size={21} /&gt;&lt;/div&gt;
+          &lt;div className="ch-txt"&gt;
+            &lt;div className="ch-t"&gt;MiniData&lt;span className="chip-status on"&gt;Connected&lt;/span&gt;&lt;/div&gt;
+            &lt;div className="ch-d"&gt;Live Supabase data — sales, users, products.&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;button className="ch-btn ghost" onClick={() =&gt; openModal('sources')}&gt;Manage&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div className="chan-card"&gt;
+          &lt;div className="ch-ico wa"&gt;&lt;Ic.WhatsApp size={21} /&gt;&lt;/div&gt;
+          &lt;div className="ch-txt"&gt;
+            &lt;div className="ch-t"&gt;WhatsApp{channels.whatsapp ? &lt;span className="chip-status on"&gt;Connected&lt;/span&gt; : &lt;span className="chip-status off"&gt;Not set up&lt;/span&gt;}&lt;/div&gt;
+            &lt;div className="ch-d"&gt;{channels.whatsapp ? 'You can chat with Flo over WhatsApp.' : 'Talk to Flo from your phone — set up in a minute.'}&lt;/div&gt;
+          &lt;/div&gt;
+          {channels.whatsapp
+            ? &lt;button className="ch-btn ghost" onClick={() =&gt; openModal('whatsapp')}&gt;Manage&lt;/button&gt;
+            : &lt;button className="ch-btn" onClick={() =&gt; openModal('whatsapp')}&gt;&lt;Ic.Link size={15} /&gt;Connect&lt;/button&gt;}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ---------------- modals ---------------- */
+function Modal({ onClose, children }) {
+  return (
+    &lt;div className="modal-scrim" onClick={onClose}&gt;
+      &lt;div className="modal" onClick={(e) =&gt; e.stopPropagation()}&gt;{children}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function WhatsAppConnect({ connected, number, onConnect, onClose, onDisconnect }) {
+  const [val, setVal] = useState('');
+  const [done, setDone] = useState(connected);
+  const connect = () =&gt; { if (val.trim().length &lt; 6) return; onConnect(val.trim()); setDone(true); };
+  if (done) {
+    return (
+      &lt;&gt;
+        &lt;div className="modal-head"&gt;
+          &lt;div className="mh-ico wa"&gt;&lt;Ic.WhatsApp size={24} /&gt;&lt;/div&gt;
+          &lt;div&gt;
+            &lt;div className="mh-t"&gt;WhatsApp Business&lt;/div&gt;
+            &lt;div className="mh-s connected"&gt;&lt;span className="s-dot" /&gt;Connected&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;button className="modal-close" onClick={onClose}&gt;&lt;Ic.X size={17} /&gt;&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div className="modal-body"&gt;
+          &lt;div className="wa-success"&gt;
+            &lt;div className="wa-check"&gt;&lt;Ic.Check size={36} /&gt;&lt;/div&gt;
+            &lt;div className="wa-success-h"&gt;You’re connected&lt;/div&gt;
+            &lt;div className="wa-success-p"&gt;Flo can now answer your questions and handle customer chats over WhatsApp. Message your number and ask anything.&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div className="wa-account"&gt;
+            &lt;div className="wa-av"&gt;&lt;Ic.WhatsApp size={20} /&gt;&lt;/div&gt;
+            &lt;div&gt;
+              &lt;div className="wa-num"&gt;{number || '109876543210987'}&lt;/div&gt;
+              &lt;div className="wa-meta"&gt;Phone Number ID · Demo Shop&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;span className="wa-live"&gt;&lt;i /&gt;Live&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div className="modal-foot"&gt;
+          &lt;button className="ch-btn ghost" style={{ width: '100%', height: 46, justifyContent: 'center' }} onClick={onDisconnect}&gt;&lt;Ic.Power size={15} /&gt;Disconnect WhatsApp&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/&gt;
+    );
+  }
+  return (
+    &lt;&gt;
+      &lt;div className="modal-head"&gt;
+        &lt;div className="mh-ico wa"&gt;&lt;Ic.WhatsApp size={24} /&gt;&lt;/div&gt;
+        &lt;div&gt;
+          &lt;div className="mh-t"&gt;Connect WhatsApp&lt;/div&gt;
+          &lt;div className="mh-s"&gt;&lt;span className="s-dot" /&gt;Not connected&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;button className="modal-close" onClick={onClose}&gt;&lt;Ic.X size={17} /&gt;&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div className="modal-body"&gt;
+        &lt;div className="modal-intro"&gt;Link your WhatsApp Business number so you can chat with &lt;b&gt;Flo&lt;/b&gt; — and reply to customers — straight from WhatsApp. Takes about a minute.&lt;/div&gt;
+        &lt;div className="wa-steps"&gt;
+          &lt;div className="wa-step"&gt;&lt;span className="ws-n"&gt;1&lt;/span&gt;&lt;span className="ws-t"&gt;Open your Meta Business Suite&lt;/span&gt;&lt;Ic.External className="ws-act" size={17} /&gt;&lt;/div&gt;
+          &lt;div className="wa-step"&gt;&lt;span className="ws-n"&gt;2&lt;/span&gt;&lt;span className="ws-t"&gt;Find your Phone Number ID in WhatsApp settings&lt;/span&gt;&lt;Ic.Search className="ws-act" size={17} /&gt;&lt;/div&gt;
+          &lt;div className="wa-step"&gt;&lt;span className="ws-n"&gt;3&lt;/span&gt;&lt;span className="ws-t"&gt;Paste it below and connect&lt;/span&gt;&lt;Ic.Copy className="ws-act" size={17} /&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;label className="modal-field-label"&gt;Phone Number ID&lt;/label&gt;
+        &lt;div className="modal-field"&gt;
+          &lt;Ic.WhatsApp size={18} /&gt;
+          &lt;input value={val} onChange={(e) =&gt; setVal(e.target.value)} placeholder="e.g. 109876543210987" inputMode="numeric"
+            onKeyDown={(e) =&gt; { if (e.key === 'Enter') connect(); }} /&gt;
+        &lt;/div&gt;
+        &lt;div className="modal-hint"&gt;&lt;Ic.Info size={14} /&gt;Your number stays private. Flo only uses it to send and receive messages on your behalf.&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="modal-foot"&gt;
+        &lt;button className="btn-wa" disabled={val.trim().length &lt; 6} onClick={connect}&gt;&lt;Ic.Link size={18} /&gt;Connect WhatsApp&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/&gt;
+  );
+}
+
+function DataSources({ onClose }) {
+  return (
+    &lt;&gt;
+      &lt;div className="modal-head"&gt;
+        &lt;div className="mh-ico data"&gt;&lt;Ic.Database size={24} /&gt;&lt;/div&gt;
+        &lt;div&gt;
+          &lt;div className="mh-t"&gt;Data sources&lt;/div&gt;
+          &lt;div className="mh-s"&gt;&lt;span className="s-dot" style={{ background: 'var(--gain)' }} /&gt;1 connected&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;button className="modal-close" onClick={onClose}&gt;&lt;Ic.X size={17} /&gt;&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div className="modal-body"&gt;
+        &lt;div className="modal-intro"&gt;Flo answers only from the sources you connect here. Add more to widen what it can reason about.&lt;/div&gt;
+        &lt;div className="src-list"&gt;
+          &lt;div className="src-row"&gt;
+            &lt;div className="src-ico supa"&gt;&lt;Ic.Cloud size={21} /&gt;&lt;/div&gt;
+            &lt;div className="src-txt"&gt;
+              &lt;div className="src-name"&gt;MiniData&lt;span className="chip-status on"&gt;Active&lt;/span&gt;&lt;/div&gt;
+              &lt;div className="src-meta"&gt;Supabase · sales, users, products&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div className="src-acts"&gt;
+              &lt;button className="src-iconbtn" title="Edit"&gt;&lt;Ic.Edit size={16} /&gt;&lt;/button&gt;
+              &lt;button className="src-iconbtn danger" title="Remove"&gt;&lt;Ic.Trash size={16} /&gt;&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;button className="src-add"&gt;&lt;Ic.Plus size={16} /&gt;Add data source&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/&gt;
+  );
+}
+
+/* ---------------- composer ---------------- */
+function Composer({ onSend, showQuick, isMobile }) {
+  const [val, setVal] = useState('');
+  const [focus, setFocus] = useState(false);
+  const taRef = useRef(null);
+  const grow = (el) =&gt; { if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; };
+  const submit = () =&gt; { const v = val.trim(); if (!v) return; onSend(null, v); setVal(''); if (taRef.current) taRef.current.style.height = 'auto'; };
+  return (
+    &lt;div className="composer-wrap"&gt;
+      &lt;div className="composer-inner"&gt;
+        {showQuick &amp;&amp; (
+          &lt;div className="qprompts"&gt;
+            {QUICK.map((q, i) =&gt; { const QI = Ic[q.icon]; return (
+              &lt;button key={i} className="qprompt" onClick={() =&gt; onSend(q.q)}&gt;&lt;QI size={14} /&gt;{q.label}&lt;/button&gt;
+            ); })}
+          &lt;/div&gt;
+        )}
+        &lt;div className={'composer' + (focus ? ' is-focus' : '')}&gt;
+          &lt;button className="comp-btn" title="Attach data source"&gt;&lt;Ic.Plus size={19} /&gt;&lt;/button&gt;
+          &lt;div className="comp-field"&gt;
+            &lt;span className="comp-scope"&gt;&lt;Ic.Database size={12} /&gt;MiniData&lt;Ic.ChevDown className="chev" size={12} /&gt;&lt;/span&gt;
+            &lt;textarea ref={taRef} className="comp-input" rows={1} value={val}
+              placeholder="Ask about sales, stock, customers or tax…"
+              onFocus={() =&gt; setFocus(true)} onBlur={() =&gt; setFocus(false)}
+              onChange={(e) =&gt; { setVal(e.target.value); grow(e.target); }}
+              onKeyDown={(e) =&gt; { if (e.key === 'Enter' &amp;&amp; !e.shiftKey) { e.preventDefault(); submit(); } }} /&gt;
+          &lt;/div&gt;
+          &lt;button className="comp-btn" title="Voice input"&gt;&lt;Ic.Mic size={19} /&gt;&lt;/button&gt;
+          &lt;button className="comp-send" disabled={!val.trim()} onClick={submit}&gt;&lt;Ic.Send size={19} /&gt;&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div className="comp-foot"&gt;Flo can make mistakes — check important figures. &lt;b&gt;Grounded in MiniData&lt;/b&gt;.&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ---------------- chat ---------------- */
+let MID = 0;
+function Chat({ isMobile }) {
+  const [msgs, setMsgs] = useState([]);
+  const [mode, setMode] = useState('flo'); // 'flo' | 'inbox'
+  const [modal, setModal] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [wa, setWa] = useState({ connected: false, number: '' });
+  const scRef = useRef(null);
+  const pendingRef = useRef({});
+  const newChat = () =&gt; { setMsgs([]); pendingRef.current = {}; };
+
+  const scrollDown = useCallback(() =&gt; {
+    const el = scRef.current; if (!el) return;
+    requestAnimationFrame(() =&gt; { el.scrollTop = el.scrollHeight; });
+  }, []);
+
+  useEffect(() =&gt; { scrollDown(); }, [msgs, scrollDown]);
+
+  const ask = useCallback((q, customText) =&gt; {
+    const answer = (q &amp;&amp; ANSWERS[q]) || FALLBACK;
+    const userText = customText || PROMPT_TEXT[q] || q || '';
+    const botId = ++MID;
+    pendingRef.current[botId] = answer;
+    setMsgs(m =&gt; [
+      ...m,
+      { id: ++MID, role: 'user', text: userText },
+      { id: botId, role: 'bot', state: 'thinking', think: answer.think },
+    ]);
+  }, []);
+
+  const finishBot = useCallback((botId) =&gt; {
+    const answer = pendingRef.current[botId];
+    if (!answer) return;
+    setMsgs(m =&gt; m.map(x =&gt; x.id === botId ? { ...x, state: 'done', blocks: answer.blocks } : x));
+    delete pendingRef.current[botId];
+  }, []);
+
+  const empty = msgs.length === 0;
+  const unread = wa.connected ? INBOX.reduce((s, c) =&gt; s + c.unread, 0) : 0;
+
+  return (
+    &lt;div className={'chat' + (isMobile ? ' is-mobile' : '')}&gt;
+      &lt;div className="chat-head"&gt;
+        &lt;div className="flo-mark"&gt;&lt;FloMark size={22} /&gt;&lt;/div&gt;
+        &lt;div className="chat-head-id"&gt;
+          &lt;div className="chat-head-name"&gt;Flo&lt;span className="ver"&gt;Business AI&lt;/span&gt;&lt;/div&gt;
+          &lt;div className="chat-head-status"&gt;&lt;span className="live-dot" /&gt;MiniData connected · live&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div className="chat-head-spacer" /&gt;
+        &lt;div className="mode-tabs"&gt;
+          &lt;button className={'mode-tab' + (mode === 'flo' ? ' is-on' : '')} onClick={() =&gt; setMode('flo')}&gt;&lt;Ic.Sparkle size={15} /&gt;Ask Flo&lt;/button&gt;
+          &lt;button className={'mode-tab' + (mode === 'inbox' ? ' is-on' : '')} onClick={() =&gt; setMode('inbox')}&gt;&lt;Ic.WhatsApp size={15} /&gt;Messages{unread &gt; 0 &amp;&amp; &lt;span className="tab-badge"&gt;{unread}&lt;/span&gt;}&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div className="chat-head-spacer" /&gt;
+        &lt;div className="chan-chips"&gt;
+          &lt;span className="chan-chip minidata on"&gt;&lt;span className="cc-dot" /&gt;&lt;Ic.Database size={14} /&gt;MiniData&lt;/span&gt;
+          {wa.connected
+            ? &lt;span className="chan-chip wa on" onClick={() =&gt; setModal('whatsapp')} role="button"&gt;&lt;span className="cc-dot" /&gt;&lt;Ic.WhatsApp size={14} /&gt;WhatsApp&lt;/span&gt;
+            : &lt;button className="chan-chip connect" onClick={() =&gt; setModal('whatsapp')}&gt;&lt;Ic.WhatsApp size={14} /&gt;Connect WhatsApp&lt;/button&gt;}
+        &lt;/div&gt;
+        &lt;button className="head-btn newchat-btn" onClick={newChat}&gt;&lt;Ic.NewChat size={17} /&gt;{!isMobile &amp;&amp; 'New chat'}&lt;/button&gt;
+        &lt;div className="head-menu-wrap"&gt;
+          &lt;button className="head-btn icon" onClick={() =&gt; setMenuOpen(o =&gt; !o)} title="Menu"&gt;&lt;Ic.Plus size={17} /&gt;&lt;/button&gt;
+          {menuOpen &amp;&amp; (
+            &lt;&gt;
+              &lt;div style={{ position: 'fixed', inset: 0, zIndex: 55 }} onClick={() =&gt; setMenuOpen(false)} /&gt;
+              &lt;div className="menu-pop"&gt;
+                &lt;button className="menu-item" onClick={() =&gt; { newChat(); setMenuOpen(false); }}&gt;
+                  &lt;span className="mi-ico" style={{ background: 'var(--blue-tint)', color: 'var(--blue)' }}&gt;&lt;Ic.NewChat size={16} /&gt;&lt;/span&gt;
+                  &lt;span className="mi-txt"&gt;New conversation&lt;/span&gt;
+                &lt;/button&gt;
+                &lt;div className="menu-sep" /&gt;
+                &lt;button className="menu-item" onClick={() =&gt; { setModal('whatsapp'); setMenuOpen(false); }}&gt;
+                  &lt;span className="mi-ico" style={{ background: 'var(--wa-tint)', color: 'var(--wa-deep)' }}&gt;&lt;Ic.WhatsApp size={16} /&gt;&lt;/span&gt;
+                  &lt;span className="mi-txt"&gt;Connect WhatsApp&lt;span className="mi-sub"&gt;Chat with Flo &amp;amp; customers&lt;/span&gt;&lt;/span&gt;
+                  &lt;span className={'menu-badge ' + (wa.connected ? 'on' : 'off')}&gt;{wa.connected ? 'On' : 'Off'}&lt;/span&gt;
+                &lt;/button&gt;
+                &lt;button className="menu-item" onClick={() =&gt; { setModal('sources'); setMenuOpen(false); }}&gt;
+                  &lt;span className="mi-ico" style={{ background: 'var(--blue-tint)', color: 'var(--blue)' }}&gt;&lt;Ic.Database size={16} /&gt;&lt;/span&gt;
+                  &lt;span className="mi-txt"&gt;Manage data sources&lt;span className="mi-sub"&gt;MiniData · Supabase&lt;/span&gt;&lt;/span&gt;
+                &lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/&gt;
+          )}
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      {mode === 'flo' ? (
+        &lt;&gt;
+          &lt;div className="chat-scroll" ref={scRef}&gt;
+            &lt;div className="chat-thread"&gt;
+              {empty &amp;&amp; &lt;Home ask={ask} isMobile={isMobile} channels={{ whatsapp: wa.connected }} openModal={setModal} /&gt;}
+              {msgs.map(m =&gt; (
+                m.role === 'user'
+                  ? &lt;div key={m.id} className="msg msg-user"&gt;&lt;div className="bubble"&gt;{m.text}&lt;/div&gt;&lt;/div&gt;
+                  : &lt;BotMessage key={m.id} msg={m} ask={ask} isMobile={isMobile} onDone={() =&gt; finishBot(m.id)} /&gt;
+              ))}
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;Composer onSend={ask} showQuick={!empty} isMobile={isMobile} /&gt;
+        &lt;/&gt;
+      ) : (
+        &lt;Inbox isMobile={isMobile} connected={wa.connected} onConnect={() =&gt; setModal('whatsapp')} /&gt;
+      )}
+
+      {modal === 'whatsapp' &amp;&amp; (
+        &lt;Modal onClose={() =&gt; setModal(null)}&gt;
+          &lt;WhatsAppConnect connected={wa.connected} number={wa.number}
+            onConnect={(n) =&gt; setWa({ connected: true, number: n })}
+            onClose={() =&gt; setModal(null)}
+            onDisconnect={() =&gt; { setWa({ connected: false, number: '' }); setModal(null); }} /&gt;
+        &lt;/Modal&gt;
+      )}
+      {modal === 'sources' &amp;&amp; (
+        &lt;Modal onClose={() =&gt; setModal(null)}&gt;&lt;DataSources onClose={() =&gt; setModal(null)} /&gt;&lt;/Modal&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+Object.assign(window, { Chat });
+</code></pre></details></section>
+    <section id="src-html"><h3>HTML — Flipper Assistant.html (shell)</h3>
+      <details><summary>Flipper Assistant.html<span class="fp">surfaces + theming</span></summary><pre><code>&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8" /&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1" /&gt;
+  &lt;title&gt;Flipper · AI Business Assistant&lt;/title&gt;
+
+  &lt;link rel="preconnect" href="https://fonts.googleapis.com" /&gt;
+  &lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /&gt;
+  &lt;link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600;700&amp;display=swap" rel="stylesheet" /&gt;
+
+  &lt;link rel="stylesheet" href="../onboarding/styles.css" /&gt;
+  &lt;link rel="stylesheet" href="assist.css" /&gt;
+
+  &lt;script src="https://unpkg.com/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8dacdc9cbdce89990869b8699">[email&#160;protected]</a>/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"&gt;&lt;/script&gt;
+  &lt;script src="https://unpkg.com/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2e5c4b4f4d5a034a41436e1f16001d001f">[email&#160;protected]</a>/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"&gt;&lt;/script&gt;
+  &lt;script src="https://unpkg.com/@babel/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9cefe8fdf2f8fdf0f3f2f9dcabb2aea5b2ac">[email&#160;protected]</a>/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"&gt;&lt;/script&gt;
+
+  &lt;style&gt;
+    body { background: radial-gradient(1200px 760px at 50% -6%, #F2F6FE 0%, #E7EDF7 62%, #E2E8F4 100%); }
+    .device-statusbar .sb-right svg { display: block; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="root"&gt;&lt;/div&gt;
+
+  &lt;script type="text/babel" src="tweaks-panel.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="chat-icons.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="chat-charts.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="chat-data.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="chat-inbox.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="chat-app.jsx"&gt;&lt;/script&gt;
+
+  &lt;script type="text/babel" data-presets="react"&gt;
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "surface": "Desktop",
+      "accent": "#2563EB",
+      "density": "regular",
+      "briefing": true
+    }/*EDITMODE-END*/;
+
+    function hexToRgb(h){const x=h.replace('#','');const n=parseInt(x.length===3?x.split('').map(c=&gt;c+c).join(''):x,16);return [(n&gt;&gt;16)&amp;255,(n&gt;&gt;8)&amp;255,n&amp;255];}
+    function rgbToHex(r,g,b){const c=(v)=&gt;Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0');return '#'+c(r)+c(g)+c(b);}
+    function shade(hex,amt){const [r,g,b]=hexToRgb(hex);const f=1+amt;return rgbToHex(r*f,g*f,b*f);}
+    function tint(hex,ratio){const [r,g,b]=hexToRgb(hex);return rgbToHex(r+(255-r)*ratio,g+(255-g)*ratio,b+(255-b)*ratio);}
+    function rgba(hex,a){const [r,g,b]=hexToRgb(hex);return `rgba(${r},${g},${b},${a})`;}
+
+    function StatusBar() {
+      return (
+        &lt;div className="device-statusbar"&gt;
+          &lt;span style={{ fontVariantNumeric: 'tabular-nums' }}&gt;6:42&lt;/span&gt;
+          &lt;span className="sb-right"&gt;
+            &lt;svg width="17" height="11" viewBox="0 0 17 11" fill="none"&gt;&lt;rect x="0" y="6" width="3" height="5" rx="1" fill="#0B1220"/&gt;&lt;rect x="4.5" y="4" width="3" height="7" rx="1" fill="#0B1220"/&gt;&lt;rect x="9" y="2" width="3" height="9" rx="1" fill="#0B1220"/&gt;&lt;rect x="13.5" y="0" width="3" height="11" rx="1" fill="#0B1220" opacity="0.3"/&gt;&lt;/svg&gt;
+            &lt;svg width="22" height="11" viewBox="0 0 22 11" fill="none"&gt;&lt;rect x="0.5" y="0.5" width="18" height="10" rx="2.5" stroke="#0B1220" opacity="0.4"/&gt;&lt;rect x="2" y="2" width="14" height="7" rx="1.5" fill="#0B1220"/&gt;&lt;rect x="19.5" y="3.5" width="1.5" height="4" rx="0.75" fill="#0B1220" opacity="0.4"/&gt;&lt;/svg&gt;
+          &lt;/span&gt;
+        &lt;/div&gt;
+      );
+    }
+
+    function Root() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      React.useEffect(() =&gt; {
+        const r = document.documentElement;
+        const a = t.accent;
+        r.style.setProperty('--blue', a);
+        r.style.setProperty('--blue-700', shade(a, -0.16));
+        r.style.setProperty('--blue-800', shade(a, -0.28));
+        r.style.setProperty('--grad-btn', `linear-gradient(180deg, ${tint(a,0.10)} 0%, ${shade(a,-0.18)} 100%)`);
+        r.style.setProperty('--blue-tint', tint(a, 0.90));
+        r.style.setProperty('--blue-tint2', tint(a, 0.80));
+        r.style.setProperty('--sh-blue', `0 12px 28px -8px ${rgba(a,.45)}, 0 3px 8px ${rgba(a,.25)}`);
+      }, [t.accent]);
+
+      React.useEffect(() =&gt; {
+        document.body.classList.toggle('hide-briefing', !t.briefing);
+      }, [t.briefing]);
+
+      const isMobile = t.surface === 'Mobile';
+      const denseClass = ' dens-' + t.density;
+
+      return (
+        &lt;&gt;
+          &lt;div className={'studio' + denseClass}&gt;
+            {isMobile ? (
+              &lt;div className="devicephone"&gt;
+                &lt;div className="device-notch" /&gt;
+                &lt;div className="device-screen"&gt;
+                  &lt;StatusBar /&gt;
+                  &lt;Chat isMobile={true} /&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            ) : (
+              &lt;div className="app-frame"&gt;
+                &lt;Chat isMobile={false} /&gt;
+              &lt;/div&gt;
+            )}
+          &lt;/div&gt;
+
+          &lt;TweaksPanel&gt;
+            &lt;TweakSection label="Surface" /&gt;
+            &lt;TweakRadio label="Device" value={t.surface}
+              options={['Desktop', 'Mobile']}
+              onChange={(v) =&gt; setTweak('surface', v)} /&gt;
+            &lt;TweakSection label="Brand" /&gt;
+            &lt;TweakColor label="Accent" value={t.accent}
+              options={['#2563EB', '#1D4ED8', '#0EA5E9', '#4F46E5', '#0E5132']}
+              onChange={(v) =&gt; setTweak('accent', v)} /&gt;
+            &lt;TweakSection label="Layout" /&gt;
+            &lt;TweakRadio label="Density" value={t.density}
+              options={['compact', 'regular', 'comfy']}
+              onChange={(v) =&gt; setTweak('density', v)} /&gt;
+            &lt;TweakToggle label="Daily briefing on home" value={t.briefing}
+              onChange={(v) =&gt; setTweak('briefing', v)} /&gt;
+            &lt;div style={{ fontSize: 11.5, color: '#8A8A82', padding: '2px', lineHeight: 1.4 }}&gt;
+              Click a suggestion, a follow-up chip, or type a question. Try “Summarize today”, then “Why is profit negative?”.
+            &lt;/div&gt;
+          &lt;/TweaksPanel&gt;
+        &lt;/&gt;
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(&lt;Root /&gt;);
+  &lt;/script&gt;
+
+  &lt;template id="__bundler_thumbnail"&gt;
+    &lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"&gt;
+      &lt;rect width="100" height="100" fill="#2563EB"/&gt;
+      &lt;g transform="translate(30 30) scale(1.55)" fill="#fff"&gt;
+        &lt;path d="m22.3 6.1-2.1 2.1c-.4.3-.6.9-.3 1.3 1.4 3 .9 6.5-1.5 8.9-2.3 2.3-5.9 2.9-8.9 1.4-.4-.2-1 0-1.3.3l-2.2 2.2c-.5.5-.4 1.3.2 1.8a13 13 0 0 0 15.9-1.9 13 13 0 0 0 2-15.9 1.2 1.2 0 0 0-1.8-.3zm-18.5-2.3a13 13 0 0 0-2 15.9c.4.5 1.2.6 1.8.2l2.1-2.1c.4-.3.6-.9.4-1.3-1.4-3-.9-6.5 1.5-8.9 2.3-2.3 5.9-2.9 8.9-1.4.4.2.9 0 1.3-.3l2.2-2.2c.5-.5.4-1.3-.2-1.8a13 13 0 0 0-15.9 2z"/&gt;
+      &lt;/g&gt;
+    &lt;/svg&gt;
+  &lt;/template&gt;
+
+  &lt;style id="__om-edit-overrides"&gt;&lt;/style&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre></details></section>
+
+    <p style="margin-top:40px;color:var(--ink3);font-size:13px">Flipper · Flo AI Business Assistant — handover generated from the live prototype source.</p>
+  </main>
+</div>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>

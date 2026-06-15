@@ -32,6 +32,7 @@ dependencies:
   record: ^6.2.0
   file_picker: ^10.3.7
   mime: any
+  flutter_svg: any
   
   # Flipper packages
   flipper_services: any
