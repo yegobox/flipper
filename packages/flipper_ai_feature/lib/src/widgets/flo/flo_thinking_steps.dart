@@ -13,6 +13,13 @@ class FloThinkingSteps extends StatelessWidget {
   final List<String> steps;
   final int? activeIndex;
 
+  /// When [activeIndex] equals [steps.length], every step is shown as complete.
+  bool _isDone(int index) =>
+      activeIndex != null && index < activeIndex!;
+
+  bool _isActive(int index) =>
+      activeIndex != null && index == activeIndex && index < steps.length;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -24,8 +31,8 @@ class FloThinkingSteps extends StatelessWidget {
             child: Row(
               children: [
                 _StepIcon(
-                  done: activeIndex == null || i < activeIndex!,
-                  active: activeIndex != null && i == activeIndex,
+                  done: _isDone(i),
+                  active: _isActive(i),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -33,7 +40,7 @@ class FloThinkingSteps extends StatelessWidget {
                     steps[i],
                     style: TextStyle(
                       fontSize: 13,
-                      color: i <= (activeIndex ?? steps.length)
+                      color: _isDone(i) || _isActive(i)
                           ? FloTheme.ink2
                           : FloTheme.ink4,
                     ),

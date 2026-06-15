@@ -108,8 +108,12 @@ class FloChatService {
     }
 
     var currentEvent = 'message';
+    var lineBuffer = '';
     await for (final chunk in streamed.stream.transform(utf8.decoder)) {
-      for (final line in chunk.split('\n')) {
+      lineBuffer += chunk;
+      final lines = lineBuffer.split('\n');
+      lineBuffer = lines.removeLast();
+      for (final line in lines) {
         if (line.startsWith('event:')) {
           currentEvent = line.substring(6).trim();
         } else if (line.startsWith('data:')) {

@@ -151,8 +151,38 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     _messageSub?.cancel();
     _messageSub =
         ProxyService.strategy.subscribeToMessages(conversationId).listen((msgs) {
-      if (mounted) setState(() => _messages = msgs);
+      if (!mounted) return;
+      setState(() => _messages = msgs);
+      _scrollToBottom();
     });
+  }
+
+  void _scrollToBottom({bool animated = true, int layoutFrames = 1}) {
+    void scroll() {
+      if (!_scrollController.hasClients) return;
+      final target = _scrollController.position.maxScrollExtent;
+      if (animated) {
+        _scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+        );
+      } else {
+        _scrollController.jumpTo(target);
+      }
+    }
+
+    void afterFrames(int remaining) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (remaining <= 1) {
+          scroll();
+        } else {
+          afterFrames(remaining - 1);
+        }
+      });
+    }
+
+    afterFrames(layoutFrames);
   }
 
   Future<void> _sendMessage(String text) async {
@@ -169,6 +199,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       _thinkingSteps = [];
       _thinkingActiveIndex = 0;
     });
+    _scrollToBottom();
 
     try {
       if (_currentConversationId.isEmpty) {
@@ -218,8 +249,15 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               _thinkingSteps = List.from(steps);
               _thinkingActiveIndex = steps.length - 1;
             });
+            _scrollToBottom();
           }
+        } else if (event.event == 'error') {
+          throw FloChatException(event.data);
         } else if (event.event == 'blocks') {
+          if (mounted && steps.isNotEmpty) {
+            setState(() => _thinkingActiveIndex = steps.length);
+            await Future<void>.delayed(const Duration(milliseconds: 400));
+          }
           final blocks = (jsonDecode(event.data) as List)
               .whereType<Map>()
               .map((e) => Map<String, dynamic>.from(e))
@@ -285,6 +323,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           _isLoading = false;
           _thinkingActiveIndex = null;
         });
+        _scrollToBottom(layoutFrames: 2);
       }
     }
   }
@@ -384,6 +423,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                     onConversationSelected: (id) {
                       setState(() => _currentConversationId = id);
                       _subscribeToMessages(id);
+                      _scrollToBottom(animated: false);
                       Navigator.pop(context);
                     },
                     onDeleteConversation: (id) async {
