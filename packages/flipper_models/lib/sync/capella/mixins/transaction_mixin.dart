@@ -16,6 +16,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
@@ -2348,12 +2349,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   @override
   Future<Sar?> getSar({required String branchId}) async {
-    return (await repository.get<Sar>(
-      query: Query(
-        orderBy: [const OrderBy('createdAt', ascending: false)],
-        where: [Where('branchId').isExactly(branchId)],
-      ),
-    )).firstOrNull;
+    return resolveSarForBranch(
+      repository: repository,
+      branchId: branchId,
+      ditto: DittoService.instance.dittoInstance,
+    );
   }
 
   @override

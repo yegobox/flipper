@@ -17,6 +17,7 @@ import 'package:supabase_models/brick/models/integration_config.model.dart' as i
 import 'package:supabase_models/brick/models/itemCode.model.dart' as itemCode_model;
 import 'package:supabase_models/brick/models/message.model.dart' as message_model;
 import 'package:supabase_models/brick/models/purchase.model.dart' as purchase_model;
+import 'package:supabase_models/brick/models/sars.model.dart' as sars_model;
 import 'package:supabase_models/brick/models/stock.model.dart' as stock_model;
 import 'package:supabase_models/brick/models/stock_recount.model.dart' as stock_recount_model;
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as stock_recount_item_model;
@@ -46,6 +47,7 @@ void ensureDittoAdaptersLoaded() {
   itemCode_model.ItemCodeDittoAdapter.registryToken; // ignore: unnecessary_statements
   message_model.MessageDittoAdapter.registryToken; // ignore: unnecessary_statements
   purchase_model.PurchaseDittoAdapter.registryToken; // ignore: unnecessary_statements
+  sars_model.SarDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_model.StockDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_model.StockRecountDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_item_model.StockRecountItemDittoAdapter.registryToken; // ignore: unnecessary_statements

@@ -141,8 +141,9 @@ mixin ProductMixin {
           ..itemStdNm = productName
           ..regrNm = productName
           ..spplrItemNm = productName
+          ..modrNm = displayName
           ..dcRt = dcRt
-          ..itemSeq = i
+          ..itemSeq = i + 1
           ..ttCatCd = ttCatCd
           ..propertyTyCd = propertyTyCd
           ..roomTypeCd = roomTypeCd

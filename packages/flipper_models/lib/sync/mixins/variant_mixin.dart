@@ -66,17 +66,22 @@ mixin VariantMixin implements VariantInterface {
 
   @override
   Future<Map<String, Variant>> batchGetVariantsByIds(List<String> ids) async {
-    final unique =
-        ids.where((id) => id.trim().isNotEmpty).map((id) => id.trim()).toSet().toList();
+    final unique = ids
+        .where((id) => id.trim().isNotEmpty)
+        .map((id) => id.trim())
+        .toSet()
+        .toList();
     if (unique.isEmpty) return {};
 
     final branchId = ProxyService.box.getBranchId()!;
     try {
       final variants = await repository.get<Variant>(
-        query: Query(where: [
-          Where('branchId').isExactly(branchId),
-          Where('id').isIn(unique),
-        ]),
+        query: Query(
+          where: [
+            Where('branchId').isExactly(branchId),
+            Where('id').isIn(unique),
+          ],
+        ),
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       );
       final out = <String, Variant>{};
@@ -142,14 +147,11 @@ mixin VariantMixin implements VariantInterface {
         // Use [Where] then [Or] so SQL is (... OR ... OR ...), not three ANDed LIKEs.
         final key = name.toLowerCase();
         conditions.add(
-          WherePhrase(
-            [
-              Where('name').contains(key),
-              Or('productName').contains(key),
-              Or('bcd').isExactly(key),
-            ],
-            isRequired: true,
-          ),
+          WherePhrase([
+            Where('name').contains(key),
+            Or('productName').contains(key),
+            Or('bcd').isExactly(key),
+          ], isRequired: true),
         );
       } else if (stockSynchronized != null) {
         conditions.add(Where('stockSynchronized').isExactly(stockSynchronized));
@@ -361,59 +363,51 @@ mixin VariantMixin implements VariantInterface {
             variantToSave.bhfId = ebm.bhfId;
           }
 
-          final alreadyInRra = variantToSave.ebmSynced == true;
           final supplyUnit = variantToSave.supplyPrice ?? 0;
           final retailUnit = variantToSave.retailPrice ?? 0;
 
-          if (!alreadyInRra) {
-            final saveResp = await ProxyService.tax.saveItem(
-              variation: variantToSave,
+          final saveResp = await ProxyService.tax.saveItem(
+            variation: variantToSave,
+            URI: serverUrl,
+          );
+          if (saveResp.resultCd != '000') {
+            throw Exception(
+              'RRA saveItems failed for ${variantToSave.name}: '
+              '${saveResp.resultMsg} (${saveResp.resultCd})',
+            );
+          }
+
+          var sar = await ProxyService.strategy.getSar(
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          sar ??= Sar(sarNo: 0, branchId: branchId);
+          sar.sarNo = sar.sarNo + 1;
+          await repository.upsert<Sar>(sar);
+
+          if (variantToSave.itemTyCd != "3") {
+            final stockIoResp = await ProxyService.tax.saveStockItems(
+              updateMaster: false,
+              items: [
+                TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
+              ],
+              tinNumber: ebm.tinNumber.toString(),
+              bhFId: ebm.bhfId,
+              totalSupplyPrice: supplyUnit * stockQty,
+              totalvat: 0,
+              totalAmount: retailUnit * stockQty,
+              sarTyCd: "06",
+              sarNo: sar.sarNo.toString(),
+              invoiceNumber: sar.sarNo,
+              remark: "Stock In from adding new item",
+              ocrnDt: DateTime.now().toUtc(),
               URI: serverUrl,
             );
-            if (saveResp.resultCd != '000') {
+            if (stockIoResp.resultCd != '000') {
               throw Exception(
-                'RRA saveItems failed for ${variantToSave.name}: '
-                '${saveResp.resultMsg} (${saveResp.resultCd})',
+                'RRA saveStockItems failed for ${variantToSave.name}: '
+                '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
               );
             }
-
-            var sar = await ProxyService.strategy.getSar(
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            sar ??= Sar(sarNo: 0, branchId: branchId);
-            sar.sarNo = sar.sarNo + 1;
-            await repository.upsert<Sar>(sar);
-
-            if (variantToSave.itemTyCd != "3") {
-              final stockIoResp = await ProxyService.tax.saveStockItems(
-                updateMaster: false,
-                items: [
-                  TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
-                ],
-                tinNumber: ebm.tinNumber.toString(),
-                bhFId: ebm.bhfId,
-                totalSupplyPrice: supplyUnit * stockQty,
-                totalvat: 0,
-                totalAmount: retailUnit * stockQty,
-                sarTyCd: "06",
-                sarNo: sar.sarNo.toString(),
-                invoiceNumber: sar.sarNo,
-                remark: "Stock In from adding new item",
-                ocrnDt: DateTime.now().toUtc(),
-                URI: serverUrl,
-              );
-              if (stockIoResp.resultCd != '000') {
-                throw Exception(
-                  'RRA saveStockItems failed for ${variantToSave.name}: '
-                  '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
-                );
-              }
-            }
-          } else {
-            talker.info(
-              'RRA: ${variantToSave.itemCd} already registered — '
-              'updating stock master only',
-            );
           }
 
           if (variantToSave.itemTyCd != "3") {
@@ -430,10 +424,8 @@ mixin VariantMixin implements VariantInterface {
             }
           }
 
-          if (!alreadyInRra) {
-            variantToSave.ebmSynced = true;
-            await repository.upsert<Variant>(variantToSave);
-          }
+          variantToSave.ebmSynced = true;
+          await repository.upsert<Variant>(variantToSave);
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;

@@ -398,7 +398,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       orgnNatCd: "RW", // Origin National Code (Rwanda)
       // regrId: Random 5-digit number as per product_mixin
       regrId: randomNumber().toString().padLeft(5, '0').substring(0, 5),
-      modrNm: productTitle,
+      modrNm: variantRowName,
       isrcAplcbYn: "N", // Insurance Applicable Yes/No
       tin: ebm?.tinNumber ?? -1,
       bhfId: resolvedBhfId,
@@ -665,9 +665,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             variant.tin = (await loadEbm())?.tinNumber ?? -1;
           }
           if (variant.modrNm == null || variant.modrNm!.isEmpty) {
-            variant.modrNm = productName.isNotEmpty
-                ? productName
-                : variant.name;
+            variant.modrNm = variant.name.isNotEmpty
+                ? variant.name
+                : productName;
           }
           if (variant.itemCd == null || variant.itemCd!.isEmpty) {
             variant.itemCd = await ProxyService.strategy.itemCode(

@@ -2032,6 +2032,8 @@ Future<void> _showVariantSheet({
                                                 : null);
                                       if (v != null) {
                                         v.name = variantName;
+                                        v.itemNm = variantName;
+                                        v.modrNm = variantName;
                                         v.taxTyCd = effectiveTaxTyCd;
                                         v.taxName = effectiveTaxTyCd;
                                         v.dcRt = discount.toDouble();
@@ -2052,6 +2054,8 @@ Future<void> _showVariantSheet({
                                       }
                                     } else {
                                       existingVariant.name = variantName;
+                                      existingVariant.itemNm = variantName;
+                                      existingVariant.modrNm = variantName;
                                       existingVariant.bcd = effectiveBarcode;
                                       existingVariant.sku = effectiveBarcode;
                                       existingVariant.taxTyCd =

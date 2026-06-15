@@ -20,6 +20,27 @@ mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
   Repository get repository;
   Talker get talker;
+
+  bool get isMobileDevice => isAndroid || isIos;
+
+  Future<void> _syncStockToDitto(Stock stock) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await ditto.store.execute(
+      "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+      arguments: {'doc': stock.toJson()},
+    );
+  }
+
+  Future<void> _syncVariantToDitto(Variant variant) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await ditto.store.execute(
+      "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+      arguments: {'doc': variant.toFlipperJson()},
+    );
+  }
+
   @override
   Future<PagedVariants> variants({
     required String branchId,
@@ -864,80 +885,55 @@ mixin CapellaVariantMixin implements VariantInterface {
               ? variant.copyWith(id: const Uuid().v4(), branchId: branchId)
               : variant.copyWith(branchId: branchId);
 
-          final ditto = dittoService.dittoInstance;
-
           // Handle stock if it exists
           if (variantToSave.stock != null) {
-            String stockId;
-            Stock stockToSave;
-
             if (variantToSave.stock!.id.isEmpty) {
-              stockId = const Uuid().v4();
+              final newStockId = const Uuid().v4();
               // Create a new Stock instance with the new ID
-              stockToSave = variantToSave.stock!.copyWith(id: stockId);
-            } else {
-              stockId = variantToSave.stock!.id;
-              stockToSave = variantToSave.stock!;
-            }
-
-            // Upsert stock to repository
-            await repository.upsert<Stock>(stockToSave);
-
-            // Sync stock to Ditto
-            if (ditto != null) {
-              await ditto.store.execute(
-                "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-                arguments: {'doc': stockToSave.toJson()},
+              final updatedStock = variantToSave.stock!.copyWith(
+                id: newStockId,
               );
+              await repository.upsert<Stock>(updatedStock);
+              await _syncStockToDitto(updatedStock);
+
+              // Update the variant with the new stock and stockId
+              variantToSave = variantToSave.copyWith(
+                stock: updatedStock,
+                stockId: newStockId,
+              );
+            } else {
+              // Even if stock has an ID, upsert it to ensure it's synced to Ditto
+              await repository.upsert<Stock>(variantToSave.stock!);
+              await _syncStockToDitto(variantToSave.stock!);
             }
-
-            // Update the variant with the new stock and stockId
-            variantToSave = variantToSave.copyWith(
-              stock: stockToSave,
-              stockId: stockId,
-            );
           }
-
-          // Ensure EBM sync flag if applicable (from CoreSync logic but adapted)
-          // CoreSync logic: Ebm? ebm = await ProxyService.strategy.ebm(...)
-
-          // Upsert Variant to Repository
           await repository.upsert<Variant>(variantToSave);
-
-          // Sync Variant to Ditto
-          if (ditto != null) {
-            await ditto.store.execute(
-              "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-              arguments: {'doc': variantToSave.toFlipperJson()},
-            );
-          }
-
-          if (skipRRaCall) {
-            return;
-          }
-
+          await _syncVariantToDitto(variantToSave);
           Ebm? ebm = await ProxyService.strategy.ebm(
             branchId: ProxyService.box.getBranchId()!,
           );
+          if (variantToSave.splyAmt != null) {
+            variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
+          }
+          await repository.upsert<Variant>(variantToSave);
+          await _syncVariantToDitto(variantToSave);
+          if (skipRRaCall) {
+            return;
+          }
 
           final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
           );
 
-          if (!isTaxEnabled || ebm == null) {
+          if (!isTaxEnabled) {
             return;
           }
 
-          String serverUrl = ebm.taxServerUrl;
-          // if (isMobileDevice) { ... } // Assuming serverUrl handling is standard
+          String serverUrl = ebm!.taxServerUrl;
 
-          if (variantToSave.tin == null || variantToSave.tin == 0) {
-            variantToSave.tin = ebm.tinNumber;
-          }
-          if (variantToSave.bhfId == null ||
-              variantToSave.bhfId!.trim().isEmpty) {
-            variantToSave.bhfId = ebm.bhfId;
+          if (isMobileDevice) {
+            serverUrl = ebm.remoteServerUrl ?? serverUrl;
           }
 
           final stockQty = variantToSave.stock?.currentStock ?? 0;
@@ -948,62 +944,61 @@ mixin CapellaVariantMixin implements VariantInterface {
             );
           }
 
-          final alreadyInRra = variantToSave.ebmSynced == true;
+          if (variantToSave.tin == null || variantToSave.tin == 0) {
+            variantToSave.tin = ebm.tinNumber;
+          }
+          if (variantToSave.bhfId == null ||
+              variantToSave.bhfId!.trim().isEmpty) {
+            variantToSave.bhfId = ebm.bhfId;
+          }
+
           final supplyUnit = variantToSave.supplyPrice ?? 0;
           final retailUnit = variantToSave.retailPrice ?? 0;
 
-          if (!alreadyInRra) {
-            final saveResp = await ProxyService.tax.saveItem(
-              variation: variantToSave,
-              URI: serverUrl,
-            );
-            if (saveResp.resultCd != '000') {
-              throw Exception(
-                'RRA saveItems failed for ${variantToSave.name}: '
-                '${saveResp.resultMsg} (${saveResp.resultCd})',
-              );
-            }
-
-            var sar = await ProxyService.strategy.getSar(
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            sar ??= Sar(sarNo: 0, branchId: branchId);
-            sar.sarNo = sar.sarNo + 1;
-            await repository.upsert<Sar>(sar);
-
-            if (variantToSave.itemTyCd != "3") {
-              final stockIoResp = await ProxyService.tax.saveStockItems(
-                updateMaster: false,
-                items: [
-                  TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
-                ],
-                tinNumber: ebm.tinNumber.toString(),
-                bhFId: ebm.bhfId,
-                totalSupplyPrice: supplyUnit * stockQty,
-                totalvat: 0,
-                totalAmount: retailUnit * stockQty,
-                sarTyCd: "06",
-                sarNo: sar.sarNo.toString(),
-                invoiceNumber: sar.sarNo,
-                remark: "Stock In from adding new item",
-                ocrnDt: DateTime.now().toUtc(),
-                URI: serverUrl,
-              );
-              if (stockIoResp.resultCd != '000') {
-                throw Exception(
-                  'RRA saveStockItems failed for ${variantToSave.name}: '
-                  '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
-                );
-              }
-            }
-          } else {
-            talker.info(
-              'RRA: ${variantToSave.itemCd} already registered — '
-              'updating stock master only',
+          final saveResp = await ProxyService.tax.saveItem(
+            variation: variantToSave,
+            URI: serverUrl,
+          );
+          if (saveResp.resultCd != '000') {
+            throw Exception(
+              'RRA saveItems failed for ${variantToSave.name}: '
+              '${saveResp.resultMsg} (${saveResp.resultCd})',
             );
           }
 
-          // Skip stock master reporting for services (itemTyCd: "3")
+          var sar = await ProxyService.strategy.getSar(
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          sar ??= Sar(sarNo: 0, branchId: branchId);
+          sar.sarNo = sar.sarNo + 1;
+          await repository.upsert<Sar>(sar);
+
+          if (variantToSave.itemTyCd != "3") {
+            final stockIoResp = await ProxyService.tax.saveStockItems(
+              updateMaster: false,
+              items: [
+                TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
+              ],
+              tinNumber: ebm.tinNumber.toString(),
+              bhFId: ebm.bhfId,
+              totalSupplyPrice: supplyUnit * stockQty,
+              totalvat: 0,
+              totalAmount: retailUnit * stockQty,
+              sarTyCd: "06",
+              sarNo: sar.sarNo.toString(),
+              invoiceNumber: sar.sarNo,
+              remark: "Stock In from adding new item",
+              ocrnDt: DateTime.now().toUtc(),
+              URI: serverUrl,
+            );
+            if (stockIoResp.resultCd != '000') {
+              throw Exception(
+                'RRA saveStockItems failed for ${variantToSave.name}: '
+                '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
+              );
+            }
+          }
+
           if (variantToSave.itemTyCd != "3") {
             final masterResp = await ProxyService.tax.saveStockMaster(
               variant: variantToSave,
@@ -1018,10 +1013,9 @@ mixin CapellaVariantMixin implements VariantInterface {
             }
           }
 
-          if (!alreadyInRra) {
-            variantToSave.ebmSynced = true;
-            await repository.upsert<Variant>(variantToSave);
-          }
+          variantToSave.ebmSynced = true;
+          await repository.upsert<Variant>(variantToSave);
+          await _syncVariantToDitto(variantToSave);
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;

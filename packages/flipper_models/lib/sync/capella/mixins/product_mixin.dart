@@ -332,7 +332,7 @@ mixin CapellaProductMixin implements ProductInterface {
           talker.info(
             'Variant already exists with ID: ${existing.id}; ebmSynced=${existing.ebmSynced}',
           );
-          if (!skipRRaCall && existing.ebmSynced != true) {
+          if (!skipRRaCall) {
             var toSync = existing;
             if (toSync.stock != null && qty > 0) {
               final s = toSync.stock!;

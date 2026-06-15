@@ -5,6 +5,8 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/sync/interfaces/counter_interface.dart';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:supabase_models/brick/repository.dart';
+import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:talker/talker.dart';
 
@@ -90,11 +92,11 @@ mixin CounterMixin implements CounterInterface {
   }
 
   Future<Sar?> getSar({required String branchId}) async {
-    return (await repository.get<Sar>(
-            query: brick.Query(where: [
-      brick.Where('branchId').isExactly(branchId),
-    ])))
-        .firstOrNull;
+    return resolveSarForBranch(
+      repository: repository,
+      branchId: branchId,
+      ditto: DittoService.instance.dittoInstance,
+    );
   }
 
   Stream<List<Counter>> listenCounters({required String branchId}) {
