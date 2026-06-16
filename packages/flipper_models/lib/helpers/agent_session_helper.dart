@@ -67,24 +67,25 @@ Future<bool> resolveCommissionOnlyLogin({
     return false;
   }
 
+  // One targeted, authoritative tenant lookup, time-bounded so a slow or
+  // offline network can never stall navigation into the app (this runs on the
+  // blocking login path before routing). On timeout/error we keep the last
+  // resolved value persisted by [setCommissionOnlySession] rather than firing
+  // another network query, so we stay both fresh-when-online and fast-when-not.
   try {
     final row = await Supabase.instance.client
         .from('tenants')
         .select('type, allow_business_login')
         .eq('user_id', uid)
         .eq('business_id', bid)
-        .maybeSingle();
-    if (row != null) {
-      final type = (row['type'] as String?) ?? '';
-      final allowLogin = row['allow_business_login'] as bool? ?? false;
-      return type == 'Agent' && !allowLogin;
-    }
+        .maybeSingle()
+        .timeout(const Duration(seconds: 5));
+    if (row == null) return false;
+    final type = (row['type'] as String?) ?? '';
+    final allowLogin = row['allow_business_login'] as bool? ?? false;
+    return type == 'Agent' && !allowLogin;
   } catch (_) {
-    // Fall back to local tenant cache when offline.
+    // Slow/offline network — preserve the last authoritative result.
+    return isCommissionOnlySession();
   }
-
-  final tenants = await ProxyService.strategy.tenants(businessId: bid);
-  final match = tenants.where((t) => t.userId == uid).firstOrNull;
-  if (match == null) return false;
-  return match.type == 'Agent' && !match.allowBusinessLogin;
 }

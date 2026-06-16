@@ -17,12 +17,10 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_personal/flipper_personal.dart';
 import 'dart:async';
 import 'dart:io';
-import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_routing/app.dialogs.dart';
-import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -136,7 +134,6 @@ class LoginChoices extends StatefulHookConsumerWidget {
 class _LoginChoicesState extends ConsumerState<LoginChoices>
     with BranchSelectionMixin {
   bool _isSelectingBranch = false;
-  bool _isLoading = false;
   bool _isSigningOut = false;
   String? _loadingItemId;
   String? _selectedBranchId;
@@ -358,26 +355,14 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           titleGap: isDesktopLayout ? 28 : 20,
           listGap: isDesktopLayout ? 24 : 20,
         );
-        final content = !_isLoading
-            ? _isSelectingBranch
-                  ? _buildBranchSelectionScreen(
-                      branchesAsync: branches,
-                      layout: layout,
-                    )
-                  : _buildBusinessSelectionScreen(
-                      businesses: businesses.value,
-                      layout: layout,
-                    )
-            : Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                    strokeWidth: 3,
-                    backgroundColor: Colors.grey.shade300,
-                  ),
-                ),
+        final content = _isSelectingBranch
+            ? _buildBranchSelectionScreen(
+                branchesAsync: branches,
+                layout: layout,
+              )
+            : _buildBusinessSelectionScreen(
+                businesses: businesses.value,
+                layout: layout,
               );
 
         return Stack(
@@ -414,7 +399,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                       : Align(
                           alignment: Alignment.topCenter,
                           child: ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: layout.maxWidth),
+                            constraints: BoxConstraints(
+                              maxWidth: layout.maxWidth,
+                            ),
                             child: Padding(
                               padding: EdgeInsets.fromLTRB(
                                 layout.horizontalPadding,
@@ -612,7 +599,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           FlipperGradientButton(
             text: 'Continue to ${selectedBranch?.name ?? 'branch'}',
             icon: Icons.arrow_outward_rounded,
-            isLoading: _isLoading,
+            isLoading: _loadingItemId == branchToContinue?.id.toString(),
             onPressed: branchToContinue == null
                 ? null
                 : () => _handleBranchSelection(branchToContinue, context),
@@ -649,18 +636,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       // Save business ID to local storage (Hive - fast)
       await ProxyService.box.writeString(key: 'businessId', value: business.id);
 
-      // Set default business (Hive write + deferred SQLite)
-      await locator<AppService>().setDefaultBusiness(business);
-
-      // Small delay to prevent SQLite lock from previous operation
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // Get the latest payment plan online (non-blocking, doesn't block UI)
-      unawaited(
-        ProxyService.strategy.getPaymentPlan(
-          businessId: business.id,
-          fetchOnline: true,
-        ),
+      // Set default business (Hive + Ditto only; SQLite deferred until dashboard)
+      await locator<AppService>().setDefaultBusiness(
+        business,
+        persistToSqlite: false,
       );
 
       final userId = ProxyService.box.getUserId();
@@ -672,9 +651,11 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
       if (branches.length == 1) {
         // If there's only one branch, set it as default and complete login
-        await locator<AppService>().setDefaultBranch(branches.first);
-        // Small delay to allow Hive writes to complete
-        await Future.delayed(const Duration(milliseconds: 100));
+        await locator<AppService>().setDefaultBranch(
+          branches.first,
+          registerDittoSubscriptions: false,
+          persistToSqlite: false,
+        );
 
         // For non-mobile: prompt app choice if not yet set
         if (!isMobileDevice) {
@@ -691,19 +672,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
               });
               return;
             }
-          }
-        }
-
-        // For POS, ensure a shift is open before navigating
-        final effectiveApp = ProxyService.box.getDefaultApp() ?? 'POS';
-        if (effectiveApp == 'POS') {
-          final shiftReady =
-              await ProxyService.app.checkAndStartShift(userId: userId);
-          if (!shiftReady) {
-            setState(() {
-              _loadingItemId = null;
-            });
-            return;
           }
         }
 
@@ -775,7 +743,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         Theme.of(context).platform == TargetPlatform.iOS;
     setState(() {
       _loadingItemId = branch.id.toString();
-      _isLoading = true;
     });
 
     await ProxyService.box.writeBool(
@@ -784,21 +751,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
 
     try {
-      final userId = ProxyService.box.getUserId();
-
-      // Step 1: Set default branch (Hive writes are synchronous, SQLite is deferred)
-      await locator<AppService>().setDefaultBranch(branch);
-
-      // Small delay to allow Hive writes to complete
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      ref.invalidate(activeBranchProvider);
-
-      // Step 2: Save device record (deferred to avoid blocking)
-      unawaited(_saveDeviceRecord());
-
-      // Small delay to prevent SQLite lock
-      await Future.delayed(const Duration(milliseconds: 100));
+      // Hive + Ditto only during login; SQLite/shift/device run after navigation.
+      await locator<AppService>().setDefaultBranch(
+        branch,
+        registerDittoSubscriptions: false,
+        persistToSqlite: false,
+      );
 
       if (!isMobile) {
         // Choose default app if not set
@@ -814,38 +772,21 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             defaultApp = response!.data['defaultApp'];
           } else {
             // User cancelled app choice, maybe default to POS or stay here
-            setState(() => _isLoading = false);
             return; // Stop if no app is chosen
           }
         }
       }
 
-      // Step 4: For POS, ensure a shift is open before navigating
-      if (userId != null) {
-        final effectiveApp = ProxyService.box.getDefaultApp() ?? 'POS';
-        if (effectiveApp == 'POS') {
-          final shiftReady =
-              await ProxyService.app.checkAndStartShift(userId: userId);
-          if (!shiftReady) {
-            setState(() => _isLoading = false);
-            return;
-          }
-        }
-      }
-
-      // Final delay before navigation
-      await Future.delayed(const Duration(milliseconds: 100));
-
       await _completeAuthenticationFlow();
     } catch (e) {
       talker.error('Error handling branch selection: $e');
       if (!mounted) return;
-      // Reset loading state so user can try again
-      setState(() {
-        _isLoading = false;
-      });
       ErrorHandler.showErrorSnackBar(context, e);
     } finally {
+      await ProxyService.box.writeBool(
+        key: 'branch_navigation_in_progress',
+        value: false,
+      );
       if (mounted) {
         setState(() {
           _loadingItemId = null;
@@ -872,10 +813,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
 
     if (commissionOnly) {
-      _routerService.navigateTo(const AgentCommissionRoute());
+      await _routerService.clearStackAndShow(const AgentCommissionRoute());
     } else {
-      _routerService.navigateTo(FlipperAppRoute());
+      await _routerService.clearStackAndShow(FlipperAppRoute());
     }
+
+    // Start Ditto catalog sync after leaving login — avoids memory spikes and
+    // main-isolate contention while the branch picker is still mounted.
+    locator<AppService>().ensureBranchDittoSubscriptionsForCurrentBranch();
+    unawaited(locator<AppService>().completePostLoginLocalSetup());
 
     // Clear the navigation flag after a delay
     _navigationTimer?.cancel();
@@ -903,46 +849,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   bool get isMobileDevice {
     return Platform.isAndroid || Platform.isIOS;
-  }
-
-  Future<void> _saveDeviceRecord() async {
-    try {
-      final userId = ProxyService.box.getUserId();
-      final businessId = ProxyService.box.getBusinessId();
-      final branchId = ProxyService.box.getBranchId();
-      final phone = ProxyService.box.getUserPhone();
-      final defaultApp = ProxyService.box.getDefaultApp();
-
-      if (userId == null || businessId == null || branchId == null) {
-        talker.warning('Cannot save device: missing required user data');
-        return;
-      }
-
-      // Get device info
-      final deviceName = Platform.operatingSystem;
-      final deviceVersion = await CoreMiscellaneous.getDeviceVersionStatic();
-
-      // Check if device already exists
-      if (!isMobileDevice) {
-        await ProxyService.strategy.create(
-          data: Device(
-            pubNubPublished: false,
-            branchId: branchId,
-            businessId: businessId,
-            defaultApp: defaultApp ?? 'POS',
-            phone: phone ?? '',
-            userId: userId,
-            deviceName: deviceName,
-            deviceVersion: deviceVersion,
-          ),
-        );
-      }
-
-      talker.debug('Device record created successfully');
-    } catch (e) {
-      talker.error('Error saving device record: $e');
-      // Don't throw - device creation failure shouldn't block login
-    }
   }
 
   String _userPillInitial(List<Business>? businesses) {

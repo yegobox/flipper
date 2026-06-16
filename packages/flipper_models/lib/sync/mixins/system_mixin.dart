@@ -2,6 +2,7 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/sync/interfaces/system_interface.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/supabase_session_service.dart';
+import 'dart:async';
 
 mixin SystemMixin implements SystemInterface {
   @override
@@ -30,7 +31,8 @@ mixin SystemMixin implements SystemInterface {
     await configureTheBox(userPhone, user);
     await saveNeccessaryData(user);
     if (!offlineLogin) {
-      await suserbaseAuth();
+      // Login choices does not need Supabase immediately; avoid blocking PIN login.
+      unawaited(suserbaseAuth());
     }
   }
 

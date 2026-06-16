@@ -249,12 +249,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) {
-    // TODO: implement tenants
-    throw UnimplementedError();
-  }
-
-  @override
   ReceivePort? receivePort;
 
   @override

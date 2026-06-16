@@ -94,14 +94,6 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) async {
-    return TenantSupabaseQueries.listForBusiness(
-      businessId,
-      excludeUserId: excludeUserId?.toString(),
-    );
-  }
-
-  @override
   Future<void> updateTenant({
     String? tenantId,
     String? name,
