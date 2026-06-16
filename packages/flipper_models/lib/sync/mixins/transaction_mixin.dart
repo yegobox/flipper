@@ -1397,7 +1397,6 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   Future<Sar?> getSar({required String branchId}) async {
     return resolveSarForBranch(
-      repository: repository,
       branchId: branchId,
       ditto: DittoService.instance.dittoInstance,
     );

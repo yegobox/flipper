@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase_models/brick/models/sars.model.dart';
-import 'package:supabase_models/brick/models/transactionItemUtil.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:uuid/uuid.dart';
@@ -358,86 +358,15 @@ mixin VariantMixin implements VariantInterface {
             serverUrl = ebm.remoteServerUrl ?? serverUrl;
           }
 
-          final stockQty = variantToSave.stock?.currentStock ?? 0;
-          if (stockQty > 0) {
-            variantToSave = variantToSave.copyWith(
-              qty: stockQty,
-              rsdQty: stockQty,
-            );
-          }
-
-          if (variantToSave.tin == null || variantToSave.tin == 0) {
-            variantToSave.tin = ebm.tinNumber;
-          }
-          if (variantToSave.bhfId == null ||
-              variantToSave.bhfId!.trim().isEmpty) {
-            variantToSave.bhfId = ebm.bhfId;
-          }
-
-          final supplyUnit = variantToSave.supplyPrice ?? 0;
-          final retailUnit = variantToSave.retailPrice ?? 0;
-
-          final saveResp = await ProxyService.tax.saveItem(
-            variation: variantToSave,
-            URI: serverUrl,
+          await registerVariantWithRraForAdd(
+            repository: repository,
+            branchId: branchId,
+            variantToSave: variantToSave,
+            variantInput: variant,
+            serverUrl: serverUrl,
+            ebm: ebm,
+            ditto: DittoService.instance.dittoInstance,
           );
-          if (saveResp.resultCd != '000') {
-            throw Exception(
-              'RRA saveItems failed for ${variantToSave.name}: '
-              '${saveResp.resultMsg} (${saveResp.resultCd})',
-            );
-          }
-
-          var sar = await ProxyService.strategy.getSar(
-            branchId: ProxyService.box.getBranchId()!,
-          );
-          sar ??= Sar(sarNo: 0, branchId: branchId);
-          sar.sarNo = sar.sarNo + 1;
-          await repository.upsert<Sar>(sar);
-
-          if (variantToSave.itemTyCd != "3") {
-            final stockIoResp = await ProxyService.tax.saveStockItems(
-              updateMaster: false,
-              items: [
-                TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
-              ],
-              tinNumber: ebm.tinNumber.toString(),
-              bhFId: ebm.bhfId,
-              totalSupplyPrice: supplyUnit * stockQty,
-              totalvat: 0,
-              totalAmount: retailUnit * stockQty,
-              sarTyCd: "06",
-              sarNo: sar.sarNo.toString(),
-              invoiceNumber: sar.sarNo,
-              remark: "Stock In from adding new item",
-              ocrnDt: DateTime.now().toUtc(),
-              URI: serverUrl,
-            );
-            if (stockIoResp.resultCd != '000') {
-              throw Exception(
-                'RRA saveStockItems failed for ${variantToSave.name}: '
-                '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
-              );
-            }
-          }
-
-          if (variantToSave.itemTyCd != "3") {
-            final masterResp = await ProxyService.tax.saveStockMaster(
-              variant: variantToSave,
-              URI: serverUrl,
-              stockMasterQty: stockQty,
-            );
-            if (masterResp.resultCd != '000') {
-              throw Exception(
-                'RRA saveStockMaster failed for ${variantToSave.name}: '
-                '${masterResp.resultMsg} (${masterResp.resultCd})',
-              );
-            }
-          }
-
-          variantToSave.ebmSynced = true;
-          variant.ebmSynced = true;
-          await repository.upsert<Variant>(variantToSave);
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;

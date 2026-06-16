@@ -5,6 +5,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/log_service.dart';
@@ -760,8 +761,12 @@ mixin CapellaProductMixin implements ProductInterface {
   }
 
   @override
-  Future<void> hydrateSars({required String branchId}) {
-    // TODO: implement hydrateSars
-    throw UnimplementedError();
+  Future<void> hydrateSars({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await ensureBranchSarCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
+    );
   }
 }

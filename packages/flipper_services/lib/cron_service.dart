@@ -414,6 +414,7 @@ class CronService {
       }
 
       await ProxyService.strategy.hydrateCodes(branchId: branchId);
+      // Registers Ditto cloud pull for `sars` + hydrates SQLite mirror (Brick).
       await ProxyService.strategy.hydrateSars(branchId: branchId);
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");

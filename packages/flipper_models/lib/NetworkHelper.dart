@@ -18,6 +18,7 @@ mixin NetworkHelper {
         data: json.encode(data),
         options: Options(
           headers: headers,
+          connectTimeout: const Duration(seconds: 120),
           sendTimeout: const Duration(seconds: 120),
           receiveTimeout: const Duration(seconds: 120),
         ),

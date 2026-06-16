@@ -170,7 +170,8 @@ mixin ProductMixin {
           prepared.rsdQty = stockQty;
         }
 
-        updatables.add(prepared);
+        _applyPreparedVariantFields(existing, prepared);
+        updatables.add(existing);
       }
 
       await ProxyService.strategy.addVariant(
@@ -178,14 +179,6 @@ mixin ProductMixin {
           variations: updatables,
           branchId: ProxyService.box.getBranchId()!);
 
-      for (var i = 0; i < variations.length; i++) {
-        variations[i].id = updatables[i].id;
-        variations[i].ebmSynced = updatables[i].ebmSynced;
-        if (updatables[i].itemCd != null &&
-            updatables[i].itemCd!.trim().isNotEmpty) {
-          variations[i].itemCd = updatables[i].itemCd;
-        }
-      }
       model.notifyListeners();
 
       onCompleteCallback(updatables);
@@ -194,6 +187,53 @@ mixin ProductMixin {
       talker.error(s);
       rethrow;
     }
+  }
+
+  void _applyPreparedVariantFields(Variant target, Variant source) {
+    target
+      ..id = source.id
+      ..itemCd = source.itemCd
+      ..itemClsCd = source.itemClsCd
+      ..itemTyCd = source.itemTyCd
+      ..taxTyCd = source.taxTyCd
+      ..taxName = source.taxName
+      ..taxPercentage = source.taxPercentage
+      ..pkgUnitCd = source.pkgUnitCd
+      ..qtyUnitCd = source.qtyUnitCd
+      ..orgnNatCd = source.orgnNatCd
+      ..color = source.color
+      ..name = source.name
+      ..itemNm = source.itemNm
+      ..itemStdNm = source.itemStdNm
+      ..regrNm = source.regrNm
+      ..regrId = source.regrId
+      ..modrNm = source.modrNm
+      ..modrId = source.modrId
+      ..spplrItemNm = source.spplrItemNm
+      ..dcRt = source.dcRt
+      ..itemSeq = source.itemSeq
+      ..retailPrice = source.retailPrice
+      ..supplyPrice = source.supplyPrice
+      ..prc = source.prc
+      ..dftPrc = source.dftPrc
+      ..splyAmt = source.splyAmt
+      ..tin = source.tin
+      ..bhfId = source.bhfId
+      ..ebmSynced = source.ebmSynced
+      ..stockSynchronized = source.stockSynchronized
+      ..qty = source.qty
+      ..rsdQty = source.rsdQty
+      ..categoryId = source.categoryId
+      ..categoryName = source.categoryName
+      ..productId = source.productId
+      ..productName = source.productName
+      ..branchId = source.branchId
+      ..useYn = source.useYn
+      ..isrcAplcbYn = source.isrcAplcbYn
+      ..addInfo = source.addInfo
+      ..ttCatCd = source.ttCatCd
+      ..propertyTyCd = source.propertyTyCd
+      ..roomTypeCd = source.roomTypeCd;
   }
 
   Future<double> setTaxPercentage(Variant variant) async {

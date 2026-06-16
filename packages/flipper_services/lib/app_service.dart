@@ -277,6 +277,12 @@ class AppService with ListenableServiceMixin {
       ),
     );
     unawaited(
+      ensureBranchSarCloudSubscription(
+        ditto: ditto,
+        branchId: branchId,
+      ),
+    );
+    unawaited(
       ensureDailyReportFilesCloudSubscription(
         ditto: ditto,
         branchId: branchId,

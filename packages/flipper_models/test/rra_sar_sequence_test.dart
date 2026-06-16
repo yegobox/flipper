@@ -10,4 +10,15 @@ void main() {
       expect(parseSarNoValue('bad'), 0);
     });
   });
+
+  group('resolveSarForBranch', () {
+    test('without Ditto returns zero counter', () async {
+      final sar = await resolveSarForBranch(
+        branchId: 'branch-1',
+        ditto: null,
+      );
+      expect(sar.sarNo, 0);
+      expect(sar.id, 'sar_branch-1');
+    });
+  });
 }

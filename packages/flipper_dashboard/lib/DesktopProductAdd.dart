@@ -167,6 +167,23 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     showWarningNotification(context, 'No product saved!');
   }
 
+  String _productSaveErrorMessage(Object error) {
+    final raw = error.toString().replaceFirst('Exception: ', '');
+    final lower = raw.toLowerCase();
+    if (lower.contains('timeout') || lower.contains('connection')) {
+      return 'RRA tax server timed out. The product is saved locally but not '
+          'fully reported to RRA yet. Check the tax server, then tap Save again.';
+    }
+    if (lower.contains('saveitems') ||
+        lower.contains('savestockitems') ||
+        lower.contains('savestockmaster') ||
+        lower.contains('rra ')) {
+      return 'Product saved locally but RRA reporting failed: $raw. '
+          'Tap Save again to retry.';
+    }
+    return 'Could not save product: $raw';
+  }
+
   /// Keeps [ScannViewModel.kProductName] and in-memory variant titles aligned with
   /// the product name field before persistence (fixes stale `temp` / placeholder).
   String _syncProductNameFromForm(ScannViewModel model, Product productRef) {
@@ -333,14 +350,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       );
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
-        showWarningNotification(
+        showErrorNotification(
           context,
-          'We did not close normally, check if your product is saved',
-          duration: const Duration(seconds: 6),
+          _productSaveErrorMessage(e),
+          duration: const Duration(seconds: 8),
         );
-        Navigator.pop(context); // Always close the modal, even on error
       }
-      rethrow;
     }
   }
 
@@ -577,7 +592,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       );
     } catch (e) {
       if (mounted) {
-        showErrorNotification(context, 'Error saving product: ${e.toString()}');
+        showErrorNotification(
+          context,
+          _productSaveErrorMessage(e),
+          duration: const Duration(seconds: 8),
+        );
         talker.error("Error in _onSaveButtonPressed: $e");
       }
     } finally {

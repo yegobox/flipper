@@ -173,12 +173,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     _talker = Talker();
     _dio = Dio(
       BaseOptions(
-        // Set default connect timeout to 5 seconds
-        connectTimeout: const Duration(seconds: 5),
-        // Set default receive timeout to 3 seconds
-        receiveTimeout: const Duration(seconds: 30),
-        // Set default send timeout to 3 seconds
-        sendTimeout: const Duration(seconds: 3),
+        connectTimeout: const Duration(seconds: 120),
+        receiveTimeout: const Duration(seconds: 120),
+        sendTimeout: const Duration(seconds: 120),
       ),
     );
 

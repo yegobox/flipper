@@ -11,6 +11,9 @@ final Set<String> _branchCatalogSubscriptionKeys = {};
 /// Ditto cloud/P2P pull for receipt counters (Capella-owned; not Brick-seeded).
 final Set<String> _branchCounterSubscriptionKeys = {};
 
+/// Ditto cloud/P2P pull for stock-activity SAR rows (data-connector / peers).
+final Set<String> _branchSarSubscriptionKeys = {};
+
 /// Registers a branch-scoped counter subscription once per branch.
 /// Pulls fresh `counters` rows from Ditto mesh/cloud without pushing SQLite.
 Future<void> ensureBranchCounterCloudSubscription({
@@ -42,6 +45,43 @@ Future<void> ensureBranchCounterCloudSubscription({
     _branchCounterSubscriptionKeys.remove(key);
     debugPrint(
       'ensureBranchCounterCloudSubscription: failed $key: $e\n'
+      '${describeDqlSyncSubscriptionAttempt(sql, args)}\n'
+      '$st',
+    );
+  }
+}
+
+/// Registers a branch-scoped SAR subscription once per branch.
+/// Pulls fresh `sars` rows from Ditto mesh/cloud (e.g. data-connector bulk-add).
+Future<void> ensureBranchSarCloudSubscription({
+  required Ditto ditto,
+  required String branchId,
+}) async {
+  if (branchId.isEmpty) return;
+
+  final key = 'sars|$branchId';
+  if (!_branchSarSubscriptionKeys.add(key)) {
+    return;
+  }
+
+  const sql = 'SELECT * FROM sars WHERE branchId = :branchId';
+  final args = <String, dynamic>{'branchId': branchId};
+
+  try {
+    final prepared = prepareDqlSyncSubscription(sql, args);
+    await ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+    if (kDebugMode) {
+      debugPrint(
+        'ensureBranchSarCloudSubscription: registered $key',
+      );
+    }
+  } catch (e, st) {
+    _branchSarSubscriptionKeys.remove(key);
+    debugPrint(
+      'ensureBranchSarCloudSubscription: failed $key: $e\n'
       '${describeDqlSyncSubscriptionAttempt(sql, args)}\n'
       '$st',
     );
