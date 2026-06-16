@@ -31,6 +31,23 @@ class SharedPreferenceStorage implements LocalStorage {
   // The in-memory cache of preferences
   Map<String, dynamic> _cache = {};
 
+  /// Prevent concurrent `attachDittoPersistence()` calls from racing.
+  ///
+  /// `attachDittoPersistence()` reads/writes the Ditto-backed prefs doc.
+  /// If multiple app flows (e.g. startup + drawer background sync) call this
+  /// at the same time, Ditto's local persistence can surface SQLite
+  /// "database is locked"/"busy" errors.
+  static Future<void>? _attachDittoPersistenceInFlight;
+
+  /// Coalesces background Ditto prefs upserts so a burst of writes (e.g. ~15
+  /// during login) does not fire ~15 serial Ditto upserts that contend with
+  /// catalog sync on the shared Ditto SQLite store. The local JSON file remains
+  /// the synchronous durable store; the Ditto copy (used only for cross-device
+  /// restore via [attachDittoPersistence]) is flushed in the background and
+  /// always writes the latest `_cache`.
+  Future<void>? _dittoFlushInFlight;
+  bool _dittoFlushDirty = false;
+
   // The file path where preferences are stored
   late String _filePath;
   late String _backupFilePath;
@@ -154,33 +171,51 @@ class SharedPreferenceStorage implements LocalStorage {
     if (kIsWeb || _isFlutterTestEnv) return;
     if (!DittoService.instance.isReady()) return;
 
-    final legacy = Map<String, dynamic>.from(_cache);
-    final dittoMap = await _readDittoPayloadMap();
-
-    if (dittoMap == null || dittoMap.isEmpty) {
-      await _writeDittoPayload();
-      await _savePreferences();
+    final inFlight = _attachDittoPersistenceInFlight;
+    if (inFlight != null) {
+      await inFlight;
       return;
     }
 
-    final lVer = (legacy['_preferencesVersion'] as num?)?.toInt() ?? 0;
-    final dVer = (dittoMap['_preferencesVersion'] as num?)?.toInt() ?? 0;
-    final lDb = (legacy['dbVersion'] as num?)?.toInt() ?? 0;
-    final dDb = (dittoMap['dbVersion'] as num?)?.toInt() ?? 0;
+    final operation = () async {
+      final legacy = Map<String, dynamic>.from(_cache);
+      final dittoMap = await _readDittoPayloadMap();
 
-    final legacyWins = lVer > dVer || (lVer == dVer && lDb > dDb);
-    if (legacyWins) {
-      _cache = Map<String, dynamic>.from(dittoMap)..addAll(legacy);
-    } else {
-      _cache = Map<String, dynamic>.from(legacy)..addAll(dittoMap);
+      if (dittoMap == null || dittoMap.isEmpty) {
+        await _writeDittoPayload();
+        await _savePreferences();
+        return;
+      }
+
+      final lVer = (legacy['_preferencesVersion'] as num?)?.toInt() ?? 0;
+      final dVer = (dittoMap['_preferencesVersion'] as num?)?.toInt() ?? 0;
+      final lDb = (legacy['dbVersion'] as num?)?.toInt() ?? 0;
+      final dDb = (dittoMap['dbVersion'] as num?)?.toInt() ?? 0;
+
+      final legacyWins = lVer > dVer || (lVer == dVer && lDb > dDb);
+      if (legacyWins) {
+        _cache = Map<String, dynamic>.from(dittoMap)..addAll(legacy);
+      } else {
+        _cache = Map<String, dynamic>.from(legacy)..addAll(dittoMap);
+      }
+
+      // Ditto merge can reintroduce a previous user's id from flipper_local_prefs.
+      // Restore in-memory session identity (API user id + branch/business picks).
+      _restoreSessionIdentity(_cache, legacy, dittoMap);
+
+      await _writeDittoPayload();
+      await _savePreferences();
+    }();
+
+    _attachDittoPersistenceInFlight = operation;
+    try {
+      await operation;
+    } finally {
+      // Always clear even if attach fails so later retries are possible.
+      if (identical(_attachDittoPersistenceInFlight, operation)) {
+        _attachDittoPersistenceInFlight = null;
+      }
     }
-
-    // Ditto merge can reintroduce a previous user's id from flipper_local_prefs.
-    // Restore in-memory session identity (API user id + branch/business picks).
-    _restoreSessionIdentity(_cache, legacy, dittoMap);
-
-    await _writeDittoPayload();
-    await _savePreferences();
   }
 
   static const Set<String> _sessionContextKeys = {
@@ -268,15 +303,41 @@ class SharedPreferenceStorage implements LocalStorage {
       await _savePreferences();
       return;
     }
-    if (DittoService.instance.isReady()) {
-      try {
-        await _writeDittoPayload();
-      } catch (e) {
-        print(
-            'SharedPreferenceStorage: Ditto write failed, using JSON only: $e');
-      }
-    }
+    // Local JSON file is the synchronous durable store and is written on every
+    // call. The Ditto upsert is only needed for cross-device restore, so it is
+    // flushed in the background and coalesced — see [_scheduleDittoFlush]. This
+    // keeps the hot write path (login fires ~15 writes serially) off the shared
+    // Ditto store that catalog sync is busy with.
     await _savePreferences();
+    _scheduleDittoFlush();
+  }
+
+  /// Schedules a coalesced background flush of `_cache` to the Ditto prefs doc.
+  /// Multiple rapid writes collapse into at most one in-flight upsert plus one
+  /// trailing upsert that captures the latest cache.
+  void _scheduleDittoFlush() {
+    if (kIsWeb || _isFlutterTestEnv) return;
+    if (!DittoService.instance.isReady()) return;
+
+    _dittoFlushDirty = true;
+    if (_dittoFlushInFlight != null) return;
+    _dittoFlushInFlight = _runDittoFlush();
+  }
+
+  Future<void> _runDittoFlush() async {
+    try {
+      while (_dittoFlushDirty) {
+        _dittoFlushDirty = false;
+        try {
+          await _writeDittoPayload();
+        } catch (e) {
+          print(
+              'SharedPreferenceStorage: Ditto write failed, using JSON only: $e');
+        }
+      }
+    } finally {
+      _dittoFlushInFlight = null;
+    }
   }
 
   /// Initialize the preferences by loading from the JSON file
@@ -634,7 +695,18 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   Future<void> clear() async {
     _cache.clear();
-    await _persist();
+    await _savePreferences();
+    // Logout must durably wipe the Ditto prefs copy. A backgrounded flush
+    // (see [_scheduleDittoFlush]) could be lost on app-kill and then resurrect
+    // the prior session's prefs on the next [attachDittoPersistence] merge, so
+    // write the cleared payload synchronously here.
+    if (!kIsWeb && !_isFlutterTestEnv && DittoService.instance.isReady()) {
+      try {
+        await _writeDittoPayload();
+      } catch (e) {
+        print('SharedPreferenceStorage: Ditto clear failed, JSON cleared: $e');
+      }
+    }
     // Also clear the stream controllers
     _proformaModeController.add(false);
     _trainingModeController.add(false);
