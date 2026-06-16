@@ -6,8 +6,9 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
         branchSelectionProvider,
         businessesProvider,
         buttonIndexProvider;
-import 'package:flipper_dashboard/logout/shift_before_logout.dart';
-import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_dashboard/logout/dashboard_sign_out.dart';
+import 'package:flipper_dashboard/logout/end_of_shift_dialog.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flutter/foundation.dart';
@@ -62,10 +63,40 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
     ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
   }
 
-  Future<void> _openEodBranchSwitchDialog() async {
+  Future<void> _openEndOfShiftMenu() async {
     final ok = await _verifyAdminPinIfRequired(context);
     if (!ok || !mounted) return;
 
+    final branchName = ref.read(activeBranchProvider).maybeWhen(
+          data: (b) => b.name,
+          orElse: () => null,
+        );
+    final action = await EndOfShiftDialog.show(
+      context,
+      branchName: branchName,
+    );
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case EndOfShiftAction.signOut:
+        await _signOutCurrentAgent();
+      case EndOfShiftAction.switchBranch:
+        await _openBranchSwitchDialog();
+    }
+  }
+
+  Future<void> _signOutCurrentAgent() async {
+    final dialogService = locator<DialogService>();
+    final routerService = locator<RouterService>();
+    await completeDashboardSignOut(
+      context: context,
+      dialogService: dialogService,
+      routerService: routerService,
+      loaderUseRootNavigator: true,
+    );
+  }
+
+  Future<void> _openBranchSwitchDialog() async {
     ref.read(buttonIndexProvider.notifier).setIndex(2);
     await showBranchSwitchDialog(
       context: context,
@@ -88,22 +119,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         );
       },
       handleBranchSelection: handleBranchSelection,
-      onLogout: () async {
-        final dialogService = locator<DialogService>();
-        final routerService = locator<RouterService>();
-        final proceed = await prepareSessionExitAfterShiftHandling(
-          context: context,
-          dialogService: dialogService,
-          loaderUseRootNavigator: false,
-        );
-        if (!proceed || !mounted) return;
-
-        await handleLogout(
-          context: context,
-          onLogout: CoreMiscellaneous.logoutStatic,
-          routerService: routerService,
-        );
-      },
+      onLogout: _signOutCurrentAgent,
       setLoadingState: (String? id) {
         setState(() {
           _loadingItemId = id;
@@ -317,8 +333,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         key: const Key('eod_desktop'),
         iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.logout, c),
         isSelected: selectedItem == 4,
-        onTap: () => _openEodBranchSwitchDialog(),
-        tooltip: 'Log Out Shift',
+        onTap: () => _openEndOfShiftMenu(),
+        tooltip: 'End shift',
         isLogout: true,
       ),
     ];

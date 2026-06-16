@@ -97,6 +97,20 @@ Future<bool> prepareSessionExitAfterShiftHandling({
     if (!context.mounted) return false;
 
     if (currentShift != null) {
+      // Only close a shift owned by the signed-in agent.
+      if (currentShift.userId != userId) {
+        if (context.mounted) {
+          await dialogService.showCustomDialog(
+            variant: DialogType.info,
+            title: 'Cannot close shift',
+            description:
+                'The open shift belongs to another user. Sign out without '
+                'closing it, or ask that agent to close their shift first.',
+          );
+        }
+        return false;
+      }
+
       final cashSales = currentShift.cashSales ?? 0.0;
 
       // Shift has no sales — close it silently, no reconciliation needed

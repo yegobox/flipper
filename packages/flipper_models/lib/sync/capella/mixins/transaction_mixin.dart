@@ -2620,6 +2620,52 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  /// Completed POS sales stamped with [shiftId] for the open shift.
+  ///
+  /// Does not fall back to a time window — an old open shift would otherwise
+  /// pull lifetime sales for the agent.
+  Future<List<ITransaction>> listSalesForOpenShift({
+    required String shiftId,
+    required String agentId,
+    required String branchId,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) return [];
+
+      final query =
+          'SELECT * FROM transactions WHERE '
+          'shiftId = :shiftId AND agentId = :agentId AND branchId = :branchId '
+          'AND status = :statusComplete AND subTotal > 0 '
+          'AND transactionType != :adjustmentType '
+          'ORDER BY createdAt DESC';
+      final queryResult = await ditto.store.execute(
+        query,
+        arguments: {
+          'shiftId': shiftId,
+          'agentId': agentId,
+          'branchId': branchId,
+          'statusComplete': COMPLETE,
+          'adjustmentType': 'Adjustment',
+        },
+      );
+
+      final list = <ITransaction>[];
+      for (final item in queryResult.items) {
+        try {
+          final transactionData = Map<String, dynamic>.from(item.value);
+          list.add(_convertFromDittoDocument(transactionData));
+        } catch (e) {
+          talker.error('listSalesForOpenShift convert: $e');
+        }
+      }
+      return list;
+    } catch (e, stackTrace) {
+      talker.error('listSalesForOpenShift: $e', stackTrace);
+      return [];
+    }
+  }
+
   @override
   FutureOr<void> deletePaymentRecords({required String transactionId}) async {
     try {
