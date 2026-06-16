@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
+
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
@@ -20,10 +23,42 @@ import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/helperModels/business_type.dart' as helper;
+import 'package:flipper_services/Miscellaneous.dart';
 
 const socialApp = "socials";
 
 class AppService with ListenableServiceMixin {
+  /// Shared QR-login teardown started from desktop login or PIN screen.
+  static Future<void>? _qrLoginTeardownInFlight;
+
+  /// Idempotent: stop QR polling immediately, close login Ditto in background.
+  Future<void> beginQrLoginTeardown() {
+    _qrLoginTeardownInFlight ??= _runQrLoginTeardown();
+    return _qrLoginTeardownInFlight!;
+  }
+
+  static void resetQrLoginTeardownState() {
+    _qrLoginTeardownInFlight = null;
+  }
+
+  Future<void> _runQrLoginTeardown() async {
+    // Stop polling/observers first — cheap and must not wait on Ditto.close().
+    ProxyService.event.unsubscribeLoginEvent();
+    AuthMixin.resetDittoInitializationStatic();
+
+    try {
+      await DittoSyncCoordinator.instance.setDitto(null);
+      final persistenceUserId = DittoSingleton.persistenceUserId;
+      final isQrIdentity = persistenceUserId?.startsWith('login-') ?? false;
+      if (DittoSingleton.instance.ditto != null || isQrIdentity) {
+        await DittoSingleton.instance.dispose(quick: true);
+        print('Ditto QR-login singleton disposed');
+      }
+    } catch (e) {
+      print('beginQrLoginTeardown: $e');
+    }
+  }
+
   // required constants
   String? get userid => ProxyService.box.getUserId();
   String? get businessId => ProxyService.box.getBusinessId();
@@ -164,26 +199,35 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  Future<void> setDefaultBusiness(Business business) async {
+  Future<void> setDefaultBusiness(
+    Business business, {
+    bool persistToSqlite = true,
+  }) async {
     // Update Hive preferences first (fast, no DB locks)
     await _updateBusinessPreferences(business);
 
-    // Defer SQLite updates to avoid blocking UI - runs in background
-    Future.delayed(Duration.zero, () async {
-      await updateAllBusinessesInactive();
-      await ProxyService.strategy.updateBusiness(
-        businessId: business.id,
-        active: true,
-        isDefault: true,
-      );
-    });
+    if (persistToSqlite) {
+      // Defer SQLite updates to avoid blocking UI - runs in background
+      Future.delayed(Duration.zero, () async {
+        await updateAllBusinessesInactive();
+        await ProxyService.strategy.updateBusiness(
+          businessId: business.id,
+          active: true,
+          isDefault: true,
+        );
+      });
+    }
 
     if (ProxyService.ditto.isReady()) {
       loadFeatures();
     }
   }
 
-  Future<void> setDefaultBranch(Branch branch) async {
+  Future<void> setDefaultBranch(
+    Branch branch, {
+    bool registerDittoSubscriptions = true,
+    bool persistToSqlite = true,
+  }) async {
     // Batch all Hive writes together first (fast, no DB locks)
     await Future.wait<void>([
       ProxyService.box.writeString(key: 'branchId', value: branch.id),
@@ -201,17 +245,101 @@ class AppService with ListenableServiceMixin {
       ProxyService.box.writeString(key: 'currentBranchId', value: branch.id),
     ]);
 
-    _registerBranchDittoSubscriptions(branchId: branch.id);
+    if (registerDittoSubscriptions) {
+      _registerBranchDittoSubscriptions(branchId: branch.id);
+    }
 
-    // Defer SQLite updates to avoid blocking UI - runs in background
-    Future.delayed(Duration.zero, () async {
-      await updateAllBranchesInactive();
-      await ProxyService.strategy.updateBranch(
-        branchId: branch.id,
+    if (persistToSqlite) {
+      // Defer SQLite updates to avoid blocking UI - runs in background
+      Future.delayed(Duration.zero, () async {
+        await updateAllBranchesInactive();
+        await ProxyService.strategy.updateBranch(
+          branchId: branch.id,
+          active: true,
+          isDefault: true,
+        );
+      });
+    }
+  }
+
+  /// Mirrors business/branch active flags into Brick/SQLite after login choices.
+  /// Login selection uses Ditto + Hive only; call once the dashboard is mounted.
+  Future<void> persistBusinessBranchSelectionToSqlite() async {
+    final businessId = ProxyService.box.getBusinessId();
+    final branchId = ProxyService.box.getBranchId();
+    if (businessId == null || branchId == null) return;
+
+    try {
+      await updateAllBusinessesInactive();
+      await ProxyService.strategy.updateBusiness(
+        businessId: businessId,
         active: true,
         isDefault: true,
       );
-    });
+      await updateAllBranchesInactive();
+      await ProxyService.strategy.updateBranch(
+        branchId: branchId,
+        active: true,
+        isDefault: true,
+      );
+    } catch (e) {
+      print('⚠️ persistBusinessBranchSelectionToSqlite failed: $e');
+    }
+  }
+
+  /// SQLite-backed setup deferred from [LoginChoices] (shift, device, payment plan).
+  Future<void> completePostLoginLocalSetup() async {
+    final userId = ProxyService.box.getUserId();
+    final businessId = ProxyService.box.getBusinessId();
+    if (userId == null) return;
+
+    await persistBusinessBranchSelectionToSqlite();
+
+    if (businessId != null) {
+      unawaited(
+        ProxyService.strategy.getPaymentPlan(
+          businessId: businessId,
+          fetchOnline: true,
+        ),
+      );
+    }
+
+    final effectiveApp = ProxyService.box.getDefaultApp() ?? 'POS';
+    if (effectiveApp == 'POS') {
+      await checkAndStartShift(userId: userId);
+    }
+
+    await _saveDesktopDeviceRecordIfNeeded();
+  }
+
+  Future<void> _saveDesktopDeviceRecordIfNeeded() async {
+    if (Platform.isAndroid || Platform.isIOS) return;
+
+    try {
+      final userId = ProxyService.box.getUserId();
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+      final phone = ProxyService.box.getUserPhone();
+      final defaultApp = ProxyService.box.getDefaultApp();
+
+      if (userId == null || businessId == null || branchId == null) return;
+
+      final deviceVersion = await CoreMiscellaneous.getDeviceVersionStatic();
+      await ProxyService.strategy.create(
+        data: Device(
+          pubNubPublished: false,
+          branchId: branchId,
+          businessId: businessId,
+          defaultApp: defaultApp ?? 'POS',
+          phone: phone ?? '',
+          userId: userId,
+          deviceName: Platform.operatingSystem,
+          deviceVersion: deviceVersion,
+        ),
+      );
+    } catch (e) {
+      print('⚠️ _saveDesktopDeviceRecordIfNeeded failed: $e');
+    }
   }
 
   Future<void> _updateBusinessPreferences(Business business) async {
@@ -259,6 +387,13 @@ class AppService with ListenableServiceMixin {
     }
   }
 
+  /// Registers Ditto cloud pull subscriptions for the active branch (catalog, counters, SARs).
+  void ensureBranchDittoSubscriptionsForCurrentBranch() {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) return;
+    _registerBranchDittoSubscriptions(branchId: branchId);
+  }
+
   void _registerBranchDittoSubscriptions({required String branchId}) {
     final ditto = DittoSingleton.instance.ditto;
     if (ditto == null || branchId.isEmpty) return;
@@ -271,28 +406,20 @@ class AppService with ListenableServiceMixin {
       ),
     );
     unawaited(
-      ensureBranchCounterCloudSubscription(
-        ditto: ditto,
-        branchId: branchId,
-      ),
+      ensureBranchCounterCloudSubscription(ditto: ditto, branchId: branchId),
     );
     unawaited(
-      ensureBranchSarCloudSubscription(
-        ditto: ditto,
-        branchId: branchId,
-      ),
+      ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId),
     );
     unawaited(
-      ensureDailyReportFilesCloudSubscription(
-        ditto: ditto,
-        branchId: branchId,
-      ),
+      ensureDailyReportFilesCloudSubscription(ditto: ditto, branchId: branchId),
     );
   }
 
   /// Initialize Ditto for the desktop login screen (using login code as temp ID)
   Future<void> initDittoForLogin(String tempUserId) async {
     print("Initialize Ditto for login with tempId: $tempUserId");
+    resetQrLoginTeardownState();
     final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
 
     // Initialize DittoSingleton with the temporary ID
@@ -304,17 +431,32 @@ class AppService with ListenableServiceMixin {
     print("Ditto initialized for login flow");
   }
 
+  /// Opens Ditto for a returning session (real user id) before LoginChoices.
+  ///
+  /// Unlike [initDittoForLogin], this does not tear down the sync coordinator and
+  /// does not start replication until [appInit] — avoids Ditto sqlite3 + Brick
+  /// sqlite opening at the same time on macOS.
+  Future<void> initDittoEarlyForSession(String userId) async {
+    final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+    await DittoSingleton.instance.initialize(
+      appId: appID,
+      userId: userId,
+      deferSyncStart: true,
+    );
+
+    final ditto = DittoSingleton.instance.ditto;
+    if (ditto != null && !ProxyService.ditto.isReady()) {
+      ProxyService.ditto.setDitto(ditto);
+    }
+
+    // Auth for local reads; replication starts in appInit.
+    await DittoSingleton.instance.ensureAuthenticated(appId: appID);
+    print('Ditto early session init complete (sync deferred)');
+  }
+
   /// Tear down Ditto started for desktop QR login (temp identity + replication).
   /// Call when the user switches to PIN so sync does not compete with SQLite/Brick.
-  Future<void> disposeQrLoginDitto() async {
-    try {
-      await DittoSyncCoordinator.instance.setDitto(null);
-      await DittoSingleton.instance.dispose();
-      print('Ditto QR-login singleton disposed');
-    } catch (e) {
-      print('disposeQrLoginDitto: $e');
-    }
-  }
+  Future<void> disposeQrLoginDitto() => beginQrLoginTeardown();
 
   Future<void> _attachLocalStorageDittoIfReady() async {
     if (!ProxyService.ditto.isReady()) return;
@@ -360,6 +502,9 @@ class AppService with ListenableServiceMixin {
     try {
       final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
       await DittoSingleton.instance.initialize(appId: appID, userId: userId);
+      // Startup may have opened Ditto with deferSyncStart; start replication here
+      // after Brick is initialized, not during LoginChoices.
+      await DittoSingleton.instance.ensureAuthenticatedAndSyncing(appId: appID);
       await DittoSyncCoordinator.instance.setDitto(
         DittoSingleton.instance.ditto,
         skipInitialFetch: true,
@@ -506,9 +651,17 @@ class AppService with ListenableServiceMixin {
   /// Returns `true` if a shift is open (or was just started), `false` if the
   /// user cancelled the start-shift dialog.
   Future<bool> checkAndStartShift({required String userId}) async {
-    final currentShift = await ProxyService.strategy.getCurrentShift(
-      userId: userId,
-    );
+    dynamic currentShift;
+    try {
+      currentShift = await ProxyService.strategy
+          .getCurrentShift(userId: userId)
+          .timeout(const Duration(seconds: 12));
+    } on TimeoutException {
+      print(
+        '⚠️ getCurrentShift timed out during login; continuing without blocking',
+      );
+      return true;
+    }
     if (currentShift == null) {
       final dialogService = locator<DialogService>();
       final response = await dialogService.showCustomDialog(
@@ -518,8 +671,7 @@ class AppService with ListenableServiceMixin {
       if (response == null || !response.confirmed) {
         return false;
       }
-      final openingBalance =
-          response.data['openingBalance'] as double? ?? 0.0;
+      final openingBalance = response.data['openingBalance'] as double? ?? 0.0;
       final notes = response.data['notes'] as String?;
       await ProxyService.strategy.startShift(
         userId: userId,

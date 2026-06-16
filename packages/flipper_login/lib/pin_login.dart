@@ -14,6 +14,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +23,9 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 enum AuthMethod { authenticator, sms }
+
+/// Cold Ditto init + Firebase + business setup can exceed 3 minutes on desktop.
+const Duration _kLoginPipelineTimeout = Duration(seconds: 300);
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
@@ -48,6 +52,7 @@ class _PinLoginState extends State<PinLogin>
 
   AuthMethod _authMethod = AuthMethod.authenticator;
   final MfaProvider _mfa = const MfaProvider();
+  Future<void>? _qrLoginTeardown;
 
   late AnimationController _fadeController;
   late AnimationController _shakeController;
@@ -62,8 +67,32 @@ class _PinLoginState extends State<PinLogin>
     _initializeAnimations();
     _pinFocusNode.addListener(_onFocusChange);
     _pinController.addListener(_onPinTextChanged);
+    // Paint PIN UI first; join any in-flight QR teardown after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _qrLoginTeardown = locator<AppService>().beginQrLoginTeardown();
+    });
     unawaited(_loadLocalAccount());
   }
+
+  Future<void> _ensureQrLoginTeardownComplete() async {
+    final pending =
+        _qrLoginTeardown ?? locator<AppService>().beginQrLoginTeardown();
+    try {
+      await pending.timeout(const Duration(seconds: 2));
+    } on TimeoutException {
+      // PIN login can still dispose stale login-* identity during API auth.
+    }
+  }
+
+  Never _loginPipelineTimedOut() => throw TimeoutException(
+        'Sign-in timed out. Check your connection and try again.',
+      );
+
+  Future<T> _withLoginPipelineTimeout<T>(Future<T> future) => future.timeout(
+        _kLoginPipelineTimeout,
+        onTimeout: _loginPipelineTimedOut,
+      );
 
   Future<void> _loadLocalAccount() async {
     try {
@@ -268,6 +297,8 @@ class _PinLoginState extends State<PinLogin>
     HapticFeedback.lightImpact();
 
     try {
+      await _ensureQrLoginTeardownComplete();
+
       if (_showOtpField) {
         final pinRecord = await _getPin();
         if (_authMethod == AuthMethod.authenticator) {
@@ -283,9 +314,11 @@ class _PinLoginState extends State<PinLogin>
             return;
           }
 
-          final ok = await _mfa.validateTotpThenLogin(
-            pin: pinRecord,
-            code: otpCode,
+          final ok = await _withLoginPipelineTimeout(
+            _mfa.validateTotpThenLogin(
+              pin: pinRecord,
+              code: otpCode,
+            ),
           );
           if (!ok) {
             setState(() {
@@ -309,17 +342,12 @@ class _PinLoginState extends State<PinLogin>
             _playPinShake();
             return;
           }
-          await _mfa
-              .verifySmsOtpThenLogin(
-                otp: _otpController.text,
-                pin: pinRecord,
-              )
-              .timeout(
-                const Duration(seconds: 90),
-                onTimeout: () => throw TimeoutException(
-                  'Sign-in timed out. Check your connection and try again.',
-                ),
-              );
+          await _withLoginPipelineTimeout(
+            _mfa.verifySmsOtpThenLogin(
+              otp: _otpController.text,
+              pin: pinRecord,
+            ),
+          );
           _markSignInSuccess();
         }
       } else {
@@ -335,19 +363,21 @@ class _PinLoginState extends State<PinLogin>
             final pinRecord = await _getPin();
             if (pinRecord != null) {
               _markSignInSuccess();
-              await ProxyService.strategy.login(
-                userPhone: pinRecord.phoneNumber,
-                isInSignUpProgress: false,
-                skipDefaultAppSetup: false,
-                pin: Pin(
-                  userId: pinRecord.userId,
-                  pin: pinRecord.pin,
-                  businessId: pinRecord.businessId,
-                  branchId: pinRecord.branchId,
-                  ownerName: pinRecord.ownerName ?? '',
-                  phoneNumber: pinRecord.phoneNumber,
+              await _withLoginPipelineTimeout(
+                ProxyService.strategy.login(
+                  userPhone: pinRecord.phoneNumber,
+                  isInSignUpProgress: false,
+                  skipDefaultAppSetup: false,
+                  pin: Pin(
+                    userId: pinRecord.userId,
+                    pin: pinRecord.pin,
+                    businessId: pinRecord.businessId,
+                    branchId: pinRecord.branchId,
+                    ownerName: pinRecord.ownerName ?? '',
+                    phoneNumber: pinRecord.phoneNumber,
+                  ),
+                  flipperHttpClient: ProxyService.http,
                 ),
-                flipperHttpClient: ProxyService.http,
               );
             } else {
               setState(() {
