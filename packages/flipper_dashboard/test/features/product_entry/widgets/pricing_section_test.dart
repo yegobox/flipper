@@ -36,8 +36,8 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
 
       expect(find.text('Pricing'), findsOneWidget);
-      expect(find.text('Retail Price'), findsOneWidget);
-      expect(find.text('Supply Price'), findsOneWidget);
+      expect(find.text('Retail price'), findsOneWidget);
+      expect(find.text('Supply price'), findsOneWidget);
       expect(find.byType(TextFormField), findsNWidgets(2));
     });
 

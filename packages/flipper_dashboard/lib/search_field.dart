@@ -11,10 +11,9 @@ import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
-import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -432,33 +431,7 @@ class SearchFieldState extends ConsumerState<SearchField>
             );
           } else if (choice == 'single') {
             Navigator.of(dialogContext).maybePop();
-
-            final isPhone =
-                responsive.ResponsiveLayout.isPhone(rootContext) ||
-                responsive.ResponsiveLayout.isTinyLimit(rootContext);
-
-            if (isPhone) {
-              Navigator.of(rootContext).push(
-                MaterialPageRoute(
-                  builder: (ctx) => Scaffold(
-                    appBar: AppBar(
-                      title: const Text('Add New Product'),
-                      leading: IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.of(ctx).maybePop(),
-                      ),
-                    ),
-                    body: const SafeArea(child: ProductEntryScreen()),
-                  ),
-                ),
-              );
-            } else {
-              showDialog(
-                barrierDismissible: true,
-                context: rootContext,
-                builder: (context) => OptionModal(child: ProductEntryScreen()),
-              );
-            }
+            openProductEntryScreen(rootContext);
           } else if (choice == 'rooms') {
             showDialog(
               barrierDismissible: true,

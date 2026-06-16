@@ -33,6 +33,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   final Map<String, TextEditingController> _discountControllers = {};
   final Map<String, TextEditingController> _dateControllers = {};
   final Map<String, TextEditingController> _lowStockControllers = {};
+  final Map<String, TextEditingController> _priceControllers = {};
 
   // Toggles selection for a specific variant.
   void toggleSelect(String variantId) {
@@ -162,6 +163,24 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     }
   }
 
+  /// Retail price controller for card-layout inline editing.
+  TextEditingController getPriceController(String variantId) {
+    if (!_priceControllers.containsKey(variantId)) {
+      final variant = scannedVariants.firstWhere(
+        (v) => v.id == variantId,
+        orElse: () => Variant(
+          id: variantId,
+          name: '',
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      );
+      final price = variant.retailPrice;
+      final text = price == null ? '' : price.toStringAsFixed(2);
+      _priceControllers[variantId] = TextEditingController(text: text);
+    }
+    return _priceControllers[variantId]!;
+  }
+
   /// Low stock / reorder threshold for table inline editing.
   TextEditingController getLowStockController(String variantId) {
     if (!_lowStockControllers.containsKey(variantId)) {
@@ -252,6 +271,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       controller.dispose();
     }
     for (var controller in _lowStockControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _priceControllers.values) {
       controller.dispose();
     }
     super.dispose();

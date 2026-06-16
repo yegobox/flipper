@@ -42,7 +42,7 @@ void main() {
       );
 
       expect(find.text('Quick Scan'), findsOneWidget);
-      expect(find.text('Scan or Type Barcode'), findsOneWidget);
+      expect(find.text('Scan or Type Variant Name'), findsOneWidget);
       expect(find.byType(TextFormField), findsOneWidget);
     });
 

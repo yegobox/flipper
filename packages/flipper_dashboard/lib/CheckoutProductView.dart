@@ -38,7 +38,7 @@ import 'package:flipper_dashboard/checkout_scanner_actions.dart';
 import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/AddRoomDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
-import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
@@ -986,33 +986,7 @@ class _CheckoutPosProductSearchState
             );
           } else if (choice == 'single') {
             Navigator.of(dialogContext).maybePop();
-
-            final isPhone =
-                responsive.ResponsiveLayout.isPhone(rootContext) ||
-                responsive.ResponsiveLayout.isTinyLimit(rootContext);
-
-            if (isPhone) {
-              Navigator.of(rootContext).push(
-                MaterialPageRoute<void>(
-                  builder: (ctx) => Scaffold(
-                    appBar: AppBar(
-                      title: const Text('Add New Product'),
-                      leading: IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.of(ctx).maybePop(),
-                      ),
-                    ),
-                    body: const SafeArea(child: ProductEntryScreen()),
-                  ),
-                ),
-              );
-            } else {
-              showDialog<void>(
-                barrierDismissible: true,
-                context: rootContext,
-                builder: (context) => OptionModal(child: ProductEntryScreen()),
-              );
-            }
+            openProductEntryScreen(rootContext);
           } else if (choice == 'rooms') {
             showDialog<void>(
               barrierDismissible: true,
