@@ -424,13 +424,19 @@ class CronService {
         /// end of work around
         // Hydrate essential data
         try {
-          // Skip fetchNotices if on mobile device and URI is localhost
-          if (isMobileDevice && (uri?.contains('localhost') ?? false)) {
+          // Skip fetchNotices when the server URL is unset, or on mobile with a
+          // localhost URI. Force-unwrapping `uri` here crashed hydration when
+          // the server URL was not yet configured.
+          if (uri == null || uri.isEmpty) {
+            talker.info(
+              "Skipping fetchNotices: server URL is not configured",
+            );
+          } else if (isMobileDevice && uri.contains('localhost')) {
             talker.info(
               "Skipping fetchNotices on mobile device with localhost URI",
             );
           } else {
-            await ProxyService.tax.fetchNotices(URI: uri!);
+            await ProxyService.tax.fetchNotices(URI: uri);
           }
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
