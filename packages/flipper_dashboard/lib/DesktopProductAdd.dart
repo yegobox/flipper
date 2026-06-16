@@ -11,10 +11,8 @@ import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/all_providers.dart';
-import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -23,9 +21,8 @@ import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_dashboard/features/product/widgets/invoice_number_modal.dart';
 import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
 import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
 import 'package:flipper_dashboard/features/product_entry/widgets/basic_info_section.dart';
@@ -47,8 +44,7 @@ class ProductEntryScreen extends StatefulHookConsumerWidget {
   ProductEntryScreenState createState() => ProductEntryScreenState();
 }
 
-class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
-    with TransactionMixinOld {
+class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   Color pickerColor =
       Colors.blue; // Add this to your State class if not already present
   bool isColorPicked = false;
@@ -72,6 +68,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   Timer? _inputTimer;
   final _formKey = GlobalKey<FormState>();
   final _fieldComposite = GlobalKey<FormState>();
+  bool _saveInProgress = false;
 
   // Helper function to get a valid color or a default color
   Color getColorOrDefault(String? hexColor) {
@@ -162,12 +159,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     super.dispose();
   }
 
-  void _showNoProductNameToast() {
-    toast('No product name!');
+  void _showNoProductNameToast(BuildContext context) {
+    showWarningNotification(context, 'No product name!');
   }
 
-  void _showNoProductSavedToast() {
-    toast('No Product saved!');
+  void _showNoProductSavedToast(BuildContext context) {
+    showWarningNotification(context, 'No product saved!');
   }
 
   /// Keeps [ScannViewModel.kProductName] and in-memory variant titles aligned with
@@ -209,7 +206,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           !ref.watch(isCompositeProvider)) {
         final syncedProductName = _syncProductNameFromForm(model, productRef);
         if (syncedProductName.length < 3) {
-          _showNoProductNameToast();
+          _showNoProductNameToast(context);
           ref.read(loadingProvider.notifier).stopLoading();
           return;
         }
@@ -229,45 +226,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             dates: _dates,
             onCompleteCallback: (List<Variant> variants) async {
               _addVariantsToProvider(variants);
-              if (!mounted) return;
-              final invoiceNumber = await showInvoiceNumberModal(context);
-              if (invoiceNumber == null) return;
-
-              if (!mounted) return;
-              final pendingTransaction =
-                  await ProxyService.getStrategy(
-                    Strategy.capella,
-                  ).manageTransaction(
-                    transactionType: TransactionType.adjustment,
-                    isExpense: true,
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
-              Business? business = await ProxyService.strategy.getBusiness(
-                businessId: ProxyService.box.getBusinessId()!,
-              );
-              if (!mounted) return;
-
-              for (Variant variant in variants) {
-                // Handle the transaction for stock adjustment
-                await ProxyService.strategy.assignTransaction(
-                  variant: variant,
-                  doneWithTransaction: true,
-                  invoiceNumber: invoiceNumber,
-                  pendingTransaction: pendingTransaction!,
-                  business: business!,
-                  randomNumber: randomNumber(),
-                  // 06 is incoming adjustment.
-                  sarTyCd: "06",
-                );
-              }
-
-              if (pendingTransaction != null) {
-                if (!mounted) return;
-
-                await completeTransaction(
-                  pendingTransaction: pendingTransaction,
-                );
-              }
             },
           );
         } else {
@@ -291,45 +249,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             categoryId: selectedCategoryId,
             onCompleteCallback: (List<Variant> variants) async {
               _addVariantsToProvider(variants);
-              if (!mounted) return;
-              final invoiceNumber = await showInvoiceNumberModal(context);
-              if (invoiceNumber == null) return;
-
-              if (!mounted) return;
-              final pendingTransaction =
-                  await ProxyService.getStrategy(
-                    Strategy.capella,
-                  ).manageTransaction(
-                    transactionType: TransactionType.adjustment,
-                    isExpense: true,
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
-              Business? business = await ProxyService.strategy.getBusiness(
-                businessId: ProxyService.box.getBusinessId()!,
-              );
-              if (!mounted) return;
-
-              for (Variant variant in variants) {
-                // Handle the transaction for stock adjustment
-                await ProxyService.strategy.assignTransaction(
-                  variant: variant,
-                  doneWithTransaction: true,
-                  invoiceNumber: invoiceNumber,
-                  pendingTransaction: pendingTransaction!,
-                  business: business!,
-                  randomNumber: randomNumber(),
-                  // 06 is incoming adjustment.
-                  sarTyCd: "06",
-                );
-              }
-
-              if (pendingTransaction != null) {
-                if (!mounted) return;
-
-                await completeTransaction(
-                  pendingTransaction: pendingTransaction,
-                );
-              }
             },
           );
         }
@@ -360,7 +279,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast("Product saved successfully!");
+          showSuccessNotification(context, 'Product saved successfully!');
           final isPhone =
               responsive.ResponsiveLayout.isPhone(context) ||
               responsive.ResponsiveLayout.isTinyLimit(context);
@@ -414,9 +333,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       );
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
-        toast(
-          "We did not close normally, check if your product is saved",
-          duration: Toast.LENGTH_LONG,
+        showWarningNotification(
+          context,
+          'We did not close normally, check if your product is saved',
+          duration: const Duration(seconds: 6),
         );
         Navigator.pop(context); // Always close the modal, even on error
       }
@@ -425,7 +345,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   }
 
   Future<void> _handleCompositeProductSave(ScannViewModel model) async {
-    if (!mounted) return;
+    if (!mounted || _saveInProgress) return;
+    _saveInProgress = true;
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
@@ -434,7 +355,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (product == null) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast("Product not initialized. Please try again.");
+          showErrorNotification(
+            context,
+            'Product not initialized. Please try again.',
+          );
           talker.error("Error: unsavedProductProvider is null");
         }
         return;
@@ -447,7 +371,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (branchId == null) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast(
+          showErrorNotification(
+            context,
             "Branch ID not found. Please ensure you're logged in properly.",
           );
           talker.error("Error: getBranchId() returned null");
@@ -458,7 +383,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (businessId == null) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast(
+          showErrorNotification(
+            context,
             "Business ID not found. Please ensure you're logged in properly.",
           );
           talker.error("Error: getBusinessId() returned null");
@@ -474,7 +400,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (partOfComposite.isEmpty) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast("Please add at least one component to the composite product.");
+          showWarningNotification(
+            context,
+            'Please add at least one component to the composite product.',
+          );
           talker.warning("No composite components selected");
         }
         return;
@@ -605,7 +534,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (!mounted) return;
 
       // Show success message and close dialog
-      toast("Composite product saved successfully!");
+      showSuccessNotification(context, 'Composite product saved successfully!');
       Navigator.pop(context);
 
       // Clear the state after closing the dialog to prevent visual glitch
@@ -613,12 +542,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     } catch (e, stackTrace) {
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
-        toast("Failed to save composite product: ${e.toString()}");
+        showErrorNotification(
+          context,
+          'Failed to save composite product: ${e.toString()}',
+        );
         talker.error(
           "Error saving composite product: $e\nStack trace: $stackTrace",
         );
       }
       // Don't close the dialog automatically on error
+    } finally {
+      _saveInProgress = false;
     }
   }
 
@@ -628,13 +562,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     Product product, {
     required String selectedProductType,
   }) async {
-    if (!mounted) return;
+    if (!mounted || _saveInProgress) return;
+    _saveInProgress = true;
     try {
       if (model.scannedVariants.isEmpty && widget.productId == null) {
-        _showNoProductSavedToast();
+        _showNoProductSavedToast(context);
         return;
       }
-      //
       await _saveProductAndVariants(
         model,
         context,
@@ -643,9 +577,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       );
     } catch (e) {
       if (mounted) {
-        toast("Error saving product: ${e.toString()}");
+        showErrorNotification(context, 'Error saving product: ${e.toString()}');
         talker.error("Error in _onSaveButtonPressed: $e");
       }
+    } finally {
+      _saveInProgress = false;
     }
   }
 
@@ -661,8 +597,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   ) {
     if (barCodeInput.trim().isNotEmpty) {
       if (productRef == null) {
-        toast(
-          "Invalid product reference. Please select or create a product first.",
+        showErrorNotification(
+          context,
+          'Invalid product reference. Please select or create a product first.',
         );
         talker.error(
           "Attempted to scan barcode with null productRef. Skipping scan.",
@@ -684,7 +621,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         _scannedInputFocusNode.requestFocus();
       } catch (e, s) {
         talker.error("Error in onAddVariant: $e", s);
-        toast("We faced unexpected error, close this window and open again");
+        showErrorNotification(
+          context,
+          'We faced unexpected error, close this window and open again',
+        );
       }
     }
   }
@@ -802,7 +742,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       if (!mounted) return;
                       if (_formKey.currentState!.validate()) {
                         if (productRef == null) {
-                          toast("Invalid product reference");
+                          showErrorNotification(
+                            context,
+                            'Invalid product reference',
+                          );
                           return;
                         }
                         await _onSaveButtonPressed(
@@ -1242,7 +1185,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                 if (_formKey.currentState!.validate() &&
                                     !ref.read(isCompositeProvider)) {
                                   if (productRef == null) {
-                                    toast("Invalid product reference");
+                                    showErrorNotification(
+                                      context,
+                                      'Invalid product reference',
+                                    );
                                     return;
                                   }
                                   if (!mounted) return;
@@ -1258,7 +1204,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                   await _handleCompositeProductSave(model);
                                 }
                               } catch (e) {
-                                toast("An unexpected error occurred");
+                                showErrorNotification(
+                                  context,
+                                  'An unexpected error occurred',
+                                );
                                 talker.error("Error in save button: $e");
                               }
                             },
@@ -1604,7 +1553,10 @@ Future<void> _showVariantSheet({
                                       ? null
                                       : () async {
                                           if (productRef == null) {
-                                            toast('Invalid product reference');
+                                            showErrorNotification(
+                                              ctx,
+                                              'Invalid product reference',
+                                            );
                                             return;
                                           }
                                           final sourceResult =
@@ -1651,7 +1603,8 @@ Future<void> _showVariantSheet({
                                               e,
                                               st,
                                             );
-                                            toast(
+                                            showErrorNotification(
+                                              ctx,
                                               'Could not upload image. Please try again.',
                                             );
                                           } finally {
@@ -1963,7 +1916,10 @@ Future<void> _showVariantSheet({
                                     return;
                                   }
                                   if (productRef == null) {
-                                    toast('Invalid product reference');
+                                    showErrorNotification(
+                                      ctx,
+                                      'Invalid product reference',
+                                    );
                                     return;
                                   }
 
@@ -2099,7 +2055,8 @@ Future<void> _showVariantSheet({
                                       st,
                                     );
                                     if (ctx.mounted) {
-                                      toast(
+                                      showErrorNotification(
+                                        ctx,
                                         'Could not save variant. Please try again.',
                                       );
                                     }

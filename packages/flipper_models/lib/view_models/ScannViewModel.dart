@@ -705,7 +705,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           await ProxyService.strategy.addVariant(
             variations: [variant],
             branchId: branchId,
-            skipRRaCall: false,
+            skipRRaCall: variant.ebmSynced == true,
           );
         }
 

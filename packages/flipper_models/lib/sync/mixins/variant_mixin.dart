@@ -332,6 +332,17 @@ mixin VariantMixin implements VariantInterface {
             return;
           }
 
+          if (variant.ebmSynced == true) {
+            return;
+          }
+          final persisted = (await repository.get<Variant>(
+            query: Query(where: [Where('id').isExactly(variantToSave.id)]),
+          )).firstOrNull;
+          if (persisted?.ebmSynced == true) {
+            variant.ebmSynced = true;
+            return;
+          }
+
           final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
@@ -425,6 +436,7 @@ mixin VariantMixin implements VariantInterface {
           }
 
           variantToSave.ebmSynced = true;
+          variant.ebmSynced = true;
           await repository.upsert<Variant>(variantToSave);
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);

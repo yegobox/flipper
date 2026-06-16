@@ -153,7 +153,11 @@ mixin ProductMixin {
           ..imageUrl = existing.imageUrl
           ..barCode = existing.barCode
           ..bcd = existing.bcd ?? prepared.bcd
-          ..ebmSynced = false;
+          ..ebmSynced = existing.ebmSynced ?? false;
+
+        if (existing.itemCd != null && existing.itemCd!.trim().isNotEmpty) {
+          prepared.itemCd = existing.itemCd;
+        }
 
         if (existing.addInfo != null &&
             existing.addInfo!.trim().startsWith('asset:')) {
@@ -173,7 +177,16 @@ mixin ProductMixin {
           skipRRaCall: false,
           variations: updatables,
           branchId: ProxyService.box.getBranchId()!);
-      // add this variant to rra
+
+      for (var i = 0; i < variations.length; i++) {
+        variations[i].id = updatables[i].id;
+        variations[i].ebmSynced = updatables[i].ebmSynced;
+        if (updatables[i].itemCd != null &&
+            updatables[i].itemCd!.trim().isNotEmpty) {
+          variations[i].itemCd = updatables[i].itemCd;
+        }
+      }
+      model.notifyListeners();
 
       onCompleteCallback(updatables);
     } catch (e, s) {
