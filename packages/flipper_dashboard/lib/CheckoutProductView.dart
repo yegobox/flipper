@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'package:flipper_routing/app.locator.dart';
@@ -37,6 +38,7 @@ import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_dashboard/checkout_scanner_actions.dart';
 import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/AddRoomDialog.dart';
+import 'package:flipper_dashboard/SyncFuelDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
@@ -913,7 +915,7 @@ class _CheckoutPosProductSearchState
     hasText = widget.controller.text.isNotEmpty;
     widget.controller.addListener(_onControllerChanged);
     _debounceSub = _textSubject
-        .debounceTime(const Duration(milliseconds: 400))
+        .debounceTime(posCatalogSearchDebounce)
         .listen(_onDebounced);
     _textSubject.add(widget.controller.text);
   }
@@ -938,7 +940,6 @@ class _CheckoutPosProductSearchState
       return;
     }
     if (ref.read(searchStringProvider) == value) return;
-    if (_isSearching) return;
     setState(() => _isSearching = true);
     try {
       await processDebouncedValue(value, _model, widget.controller);
@@ -996,6 +997,12 @@ class _CheckoutPosProductSearchState
                   // Room flow; keep parity with SearchField.
                 },
               ),
+            );
+          } else if (choice == 'fuel') {
+            showDialog<void>(
+              barrierDismissible: true,
+              context: rootContext,
+              builder: (context) => SyncFuelDialog(hostContext: rootContext),
             );
           }
         },

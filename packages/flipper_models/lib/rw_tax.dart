@@ -72,34 +72,34 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
     'B': 0.0,
     'C': 0.0,
     'D': 0.0,
-    'ttTaxAmt': 0.0, // Sum of all TT tax amounts from items
-    'ttTaxblAmt': 0.0, // Sum of all TT taxable amounts from items
+    'F': 0.0,
+    'ttTaxAmt': 0.0,
+    'ttTaxblAmt': 0.0,
   };
 
   for (var item in items) {
     try {
-      // Validate and fetch data with default fallback
       String taxType = (item['taxTyCd'] as String?) ?? 'B';
+      taxType = taxType.toUpperCase();
 
-      // Ensure taxType is one of the valid types
       if (!taxTotals.containsKey(taxType)) {
         print('Warning: Invalid tax type $taxType found. Using default type B');
         taxType = 'B';
       }
 
-      final unitPrice = item['price'];
+      final unitPrice = (item['price'] as num?)?.toDouble() ?? 0.0;
       final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
-      final discountRate = item['dcRt'];
+      final discountRate = (item['dcRt'] as num?)?.toDouble() ?? 0.0;
+      final prftDcAmt = (item['prftDcAmt'] as num?)?.toDouble() ?? 0.0;
 
-      // Calculate unit discount and taxable amount
       double unitDiscount = (unitPrice * discountRate) / 100;
-      double unitTaxableAmount = unitPrice - unitDiscount;
+      double lineGross = (unitPrice - unitDiscount) * quantity;
+      if (taxType == 'F') {
+        lineGross -= prftDcAmt;
+      }
+      if (lineGross < 0) lineGross = 0;
 
-      // Multiply by quantity
-      double totalTaxableAmount = unitTaxableAmount * quantity;
-
-      // Add to the appropriate tax type total using direct addition
-      taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
+      taxTotals[taxType] = taxTotals[taxType]! + lineGross;
 
       // Sum up TT tax amounts and taxable amounts from items
       if (item.containsKey('ttTaxAmt')) {
@@ -114,7 +114,7 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
 
       // Optional: Add debug print to verify calculations
       print(
-        'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}',
+        'Processing item - Tax Type: $taxType, Amount: $lineGross, New Total: ${taxTotals[taxType]}',
       );
     } catch (e) {
       print('Error processing item: $item');
@@ -1376,6 +1376,34 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       itemJson['ttCatCd'] = "TT";
     }
 
+    if ((item.taxTyCd ?? '').toUpperCase() == 'F') {
+      final rrp = (item as dynamic).rrp as num?;
+      final prftDcAmt = (item as dynamic).prftDcAmt as num? ?? 0;
+      final unitPrice = item.price.toDouble();
+      final quantity = (approvedQty ?? item.qty).toDouble();
+      final splyAmt = unitPrice * quantity;
+      final taxableBase = splyAmt - prftDcAmt.toDouble();
+      final fuelTaxPct = taxPercentage;
+      final fuelTaxAmt = taxableBase > 0
+          ? double.parse(
+              (taxableBase * fuelTaxPct / (100 + fuelTaxPct)).toStringAsFixed(
+                2,
+              ),
+            )
+          : 0.0;
+      final fuelTaxbl = taxableBase - fuelTaxAmt;
+      itemJson['taxTyCd'] = 'F';
+      itemJson['rrp'] = (rrp ?? unitPrice).toDouble().roundToTwoDecimalPlaces();
+      itemJson['prc'] = unitPrice.roundToTwoDecimalPlaces();
+      itemJson['prftDcAmt'] = prftDcAmt.toDouble().roundToTwoDecimalPlaces();
+      itemJson['splyAmt'] = splyAmt.roundToTwoDecimalPlaces();
+      itemJson['taxblAmt'] = fuelTaxbl.roundToTwoDecimalPlaces();
+      itemJson['taxAmt'] = fuelTaxAmt.roundToTwoDecimalPlaces();
+      itemJson['totAmt'] = splyAmt.roundToTwoDecimalPlaces();
+      itemJson['dcRt'] = 0;
+      itemJson['dcAmt'] = 0;
+    }
+
     // always make itemSeq be first in object
     Map<String, dynamic> sortedItemJson = Map.from(itemJson);
     final itemSeqValue = sortedItemJson.remove('itemSeq');
@@ -1388,68 +1416,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         : 'U';
 
     return sortedItemJson;
-  }
-
-  Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
-    // Initialize tax totals with zero values
-    Map<String, double> taxTotals = {
-      'A': 0.0,
-      'B': 0.0,
-      'C': 0.0,
-      'D': 0.0,
-      'ttTaxAmt': 0.0, // Sum of all TT tax amounts from items
-      'ttTaxblAmt': 0.0, // Sum of all TT taxable amounts from items
-    };
-
-    for (var item in items) {
-      try {
-        // Validate and fetch data with default fallback
-        String taxType = (item['taxTyCd'] as String?) ?? 'B';
-
-        // Ensure taxType is one of the valid types
-        if (!taxTotals.containsKey(taxType)) {
-          print(
-            'Warning: Invalid tax type $taxType found. Using default type B',
-          );
-          taxType = 'B';
-        }
-
-        final unitPrice = item['price'];
-        final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
-        final discountRate = item['dcRt'];
-
-        // Calculate unit discount and taxable amount
-        double unitDiscount = (unitPrice * discountRate) / 100;
-        double unitTaxableAmount = unitPrice - unitDiscount;
-
-        // Multiply by quantity
-        double totalTaxableAmount = unitTaxableAmount * quantity;
-
-        // Add to the appropriate tax type total using direct addition
-        taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
-
-        // Sum up TT tax amounts and taxable amounts from items
-        if (item.containsKey('ttTaxAmt')) {
-          double ttTaxAmt = (item['ttTaxAmt'] as num?)?.toDouble() ?? 0.0;
-          taxTotals['ttTaxAmt'] = taxTotals['ttTaxAmt']! + ttTaxAmt;
-        }
-
-        if (item.containsKey('ttTaxblAmt')) {
-          double ttTaxblAmt = (item['ttTaxblAmt'] as num?)?.toDouble() ?? 0.0;
-          taxTotals['ttTaxblAmt'] = taxTotals['ttTaxblAmt']! + ttTaxblAmt;
-        }
-
-        // Optional: Add debug print to verify calculations
-        print(
-          'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}',
-        );
-      } catch (e) {
-        print('Error processing item: $item');
-        print('Error details: $e');
-      }
-    }
-
-    return taxTotals;
   }
 
   // Helper function to determine receipt type codes
@@ -1511,11 +1477,24 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     odm.Configurations? taxConfigTaxTT = await capella.getByTaxType(
       taxtype: "TT",
     );
+    odm.Configurations? taxConfigTaxF = await capella.getByTaxType(
+      taxtype: "F",
+    );
 
-    /// TODO: for totalTax we are not accounting other taxes only B
-    /// so need to account them in future
-    final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
+    final fuelTaxRate = taxConfigTaxF?.taxPercentage ?? 18.0;
+    final taxAmtF = double.parse(
+      ((taxTotals['F'] ?? 0.0) * fuelTaxRate / (100 + fuelTaxRate))
+          .toStringAsFixed(2),
+    );
+    final taxAmtB = double.parse(
+      ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2),
+    );
+    final totalTax = taxAmtB + taxAmtF;
     talker.warning("HARD COPY TOTALTAX: ${totalTax.toStringAsFixed(2)}");
+
+    final hasFuelLine = itemsList.any(
+      (line) => (line['taxTyCd'] as String?)?.toUpperCase() == 'F',
+    );
 
     final topMessage = [
       business?.name ?? 'Our Business',
@@ -1559,15 +1538,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "taxblAmtC": (taxTotals['C'] ?? 0.0).roundToTwoDecimalPlaces(),
       "taxblAmtD": (taxTotals['D'] ?? 0.0).roundToTwoDecimalPlaces(),
       "taxblAmtTt": (taxTotals['ttTaxblAmt'] ?? 0.0).roundToTwoDecimalPlaces(),
+      "taxblAmtF": (taxTotals['F'] ?? 0.0).roundToTwoDecimalPlaces(),
 
       "taxAmtA":
           ((taxTotals['A'] ?? 0.0) *
                   (taxConfigTaxA!.taxPercentage ?? 0) /
                   (100 + (taxConfigTaxA.taxPercentage ?? 0)))
               .toStringAsFixed(2),
-      "taxAmtB": double.parse(
-        ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2),
-      ),
+      "taxAmtB": taxAmtB,
       "taxAmtC": double.parse(
         ((taxTotals['C'] ?? 0.0) *
                 (taxConfigTaxC!.taxPercentage ?? 0) /
@@ -1581,11 +1559,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             .toStringAsFixed(2),
       ),
       "ttTaxAmt": (taxTotals['ttTaxAmt'] ?? 0.0),
+      "taxAmtF": taxAmtF,
 
       "taxRtA": taxConfigTaxA.taxPercentage,
       "taxRtB": taxConfigTaxB!.taxPercentage,
       "taxRtC": taxConfigTaxC.taxPercentage,
       "taxRtD": taxConfigTaxD.taxPercentage,
+      "taxRtF": fuelTaxRate,
       "ttTaxRt": taxConfigTaxTT!.taxPercentage,
 
       "totTaxblAmt": totalTaxable.roundToTwoDecimalPlaces(),
@@ -1613,6 +1593,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       },
       "itemList": itemsList,
     };
+    if (hasFuelLine) {
+      final salePurpose = (transaction as dynamic).salePurposeCd as String?;
+      if (salePurpose != null && salePurpose.isNotEmpty) {
+        json['salePurposeCd'] = salePurpose;
+      }
+    }
     if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {
       json['rfdRsnCd'] = ProxyService.box.getRefundReason() ?? "05";
 

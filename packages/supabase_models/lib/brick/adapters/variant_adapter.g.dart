@@ -144,6 +144,15 @@ Future<Variant> _$VariantFromSupabase(
         ? null
         : data['room_type_cd'] as String?,
     ttCatCd: data['tt_cat_cd'] == null ? null : data['tt_cat_cd'] as String?,
+    isFuelManaged: data['is_fuel_managed'] == null
+        ? null
+        : data['is_fuel_managed'] as bool? ?? false,
+    rrp: data['rrp'] == null ? null : data['rrp'] as double?,
+    rrpEffectiveDt: data['rrp_effective_dt'] == null
+        ? null
+        : data['rrp_effective_dt'] == null
+        ? null
+        : DateTime.tryParse(data['rrp_effective_dt'] as String),
     isShared: data['is_shared'] == null
         ? null
         : data['is_shared'] as bool? ?? false,
@@ -241,6 +250,9 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'property_ty_cd': instance.propertyTyCd,
     'room_type_cd': instance.roomTypeCd,
     'tt_cat_cd': instance.ttCatCd,
+    'is_fuel_managed': instance.isFuelManaged,
+    'rrp': instance.rrp,
+    'rrp_effective_dt': instance.rrpEffectiveDt?.toIso8601String(),
     'is_shared': instance.isShared,
     'assigned': instance.assigned,
     'stock_synchronized': instance.stockSynchronized,
@@ -394,6 +406,15 @@ Future<Variant> _$VariantFromSqlite(
         ? null
         : data['room_type_cd'] as String?,
     ttCatCd: data['tt_cat_cd'] == null ? null : data['tt_cat_cd'] as String?,
+    isFuelManaged: data['is_fuel_managed'] == null
+        ? null
+        : data['is_fuel_managed'] == 1,
+    rrp: data['rrp'] == null ? null : data['rrp'] as double?,
+    rrpEffectiveDt: data['rrp_effective_dt'] == null
+        ? null
+        : data['rrp_effective_dt'] == null
+        ? null
+        : DateTime.tryParse(data['rrp_effective_dt'] as String),
     isShared: data['is_shared'] == null ? null : data['is_shared'] == 1,
     assigned: data['assigned'] == null ? null : data['assigned'] == 1,
     stockSynchronized: data['stock_synchronized'] == null
@@ -489,6 +510,11 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'property_ty_cd': instance.propertyTyCd,
     'room_type_cd': instance.roomTypeCd,
     'tt_cat_cd': instance.ttCatCd,
+    'is_fuel_managed': instance.isFuelManaged == null
+        ? null
+        : (instance.isFuelManaged! ? 1 : 0),
+    'rrp': instance.rrp,
+    'rrp_effective_dt': instance.rrpEffectiveDt?.toIso8601String(),
     'is_shared': instance.isShared == null
         ? null
         : (instance.isShared! ? 1 : 0),
@@ -803,6 +829,18 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'ttCatCd': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'tt_cat_cd',
+    ),
+    'isFuelManaged': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_fuel_managed',
+    ),
+    'rrp': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'rrp',
+    ),
+    'rrpEffectiveDt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'rrp_effective_dt',
     ),
     'isShared': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -1266,6 +1304,24 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'tt_cat_cd',
       iterable: false,
       type: String,
+    ),
+    'isFuelManaged': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_fuel_managed',
+      iterable: false,
+      type: bool,
+    ),
+    'rrp': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'rrp',
+      iterable: false,
+      type: double,
+    ),
+    'rrpEffectiveDt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'rrp_effective_dt',
+      iterable: false,
+      type: DateTime,
     ),
     'isShared': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -6,6 +6,7 @@ part '20260527030019.migration.dart';
 part '20260603185233.migration.dart';
 part '20260610091903.migration.dart';
 part '20260611094026.migration.dart';
+part '20260617083057.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -14,11 +15,12 @@ final migrations = <Migration>{
   const Migration20260603185233(),
   const Migration20260610091903(),
   const Migration20260611094026(),
+  const Migration20260617083057(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260611094026,
+  20260617083057,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1960,6 +1962,9 @@ final schema = Schema(
         SchemaColumn('property_ty_cd', Column.varchar),
         SchemaColumn('room_type_cd', Column.varchar),
         SchemaColumn('tt_cat_cd', Column.varchar),
+        SchemaColumn('is_fuel_managed', Column.boolean),
+        SchemaColumn('rrp', Column.Double),
+        SchemaColumn('rrp_effective_dt', Column.datetime),
         SchemaColumn('is_shared', Column.boolean),
         SchemaColumn('assigned', Column.boolean),
         SchemaColumn('stock_synchronized', Column.boolean),

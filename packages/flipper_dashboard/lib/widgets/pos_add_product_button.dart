@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
+import 'package:flipper_dashboard/SyncFuelDialog.dart';
 import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -44,6 +45,12 @@ class PosAddProductButton extends ConsumerWidget {
           } else if (choice == 'single') {
             Navigator.of(dialogContext).maybePop();
             openProductEntryScreen(rootContext);
+          } else if (choice == 'fuel') {
+            showDialog<void>(
+              barrierDismissible: true,
+              context: rootContext,
+              builder: (context) => SyncFuelDialog(hostContext: rootContext),
+            );
           }
         },
       ),

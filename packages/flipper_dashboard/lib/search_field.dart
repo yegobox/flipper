@@ -1,7 +1,10 @@
 // ignore_for_file: unused_result
 
+import 'dart:async';
+
 import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/AddRoomDialog.dart';
+import 'package:flipper_dashboard/SyncFuelDialog.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
@@ -21,6 +24,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -63,6 +67,8 @@ class SearchField extends StatefulHookConsumerWidget {
 class SearchFieldState extends ConsumerState<SearchField>
     with DateCoreWidget, HandleScannWhileSelling<SearchField> {
   final _textSubject = BehaviorSubject<String>();
+  final _model = CoreViewModel();
+  StreamSubscription<String>? _debounceSub;
 
   bool hasText = false;
   bool isSearching = false;
@@ -75,6 +81,27 @@ class SearchFieldState extends ConsumerState<SearchField>
         ref.read(pendingCartSaleSessionProvider);
     focusNode = FocusNode();
     widget.controller.addListener(_handleTextChange);
+    _debounceSub = _textSubject
+        .debounceTime(posCatalogSearchDebounce)
+        .listen((value) => unawaited(_onDebounced(value)));
+    _textSubject.add(widget.controller.text);
+  }
+
+  Future<void> _onDebounced(String value) async {
+    if (!mounted) return;
+    if (ref.read(pendingCartSaleSessionProvider) !=
+        _saleSessionSnapshotAtLastTextChange) {
+      return;
+    }
+    if (ref.read(searchStringProvider) == value) return;
+    setState(() => isSearching = true);
+    try {
+      await processDebouncedValue(value, _model, widget.controller);
+    } finally {
+      if (mounted) {
+        setState(() => isSearching = false);
+      }
+    }
   }
 
   void _handleTextChange() {
@@ -92,6 +119,7 @@ class SearchFieldState extends ConsumerState<SearchField>
   @override
   void dispose() {
     widget.controller.removeListener(_handleTextChange);
+    _debounceSub?.cancel();
     focusNode.dispose();
     _textSubject.close();
     super.dispose();
@@ -108,45 +136,7 @@ class SearchFieldState extends ConsumerState<SearchField>
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: padding),
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
-        viewModelBuilder: () => CoreViewModel(),
-        onViewModelReady: (model) {
-          _textSubject.debounceTime(const Duration(milliseconds: 50)).listen((
-            value,
-          ) {
-            if (ref.read(pendingCartSaleSessionProvider) !=
-                _saleSessionSnapshotAtLastTextChange) {
-              if (mounted) {
-                setState(() {
-                  isSearching = false;
-                });
-              }
-              return;
-            }
-            if (ref.read(searchStringProvider) != value) {
-              if (!isSearching) {
-                setState(() {
-                  isSearching = true;
-                });
-
-                processDebouncedValue(value, model, widget.controller)
-                    .then((_) {
-                      if (mounted) {
-                        setState(() {
-                          isSearching = false;
-                        });
-                      }
-                    })
-                    .catchError((error) {
-                      if (mounted) {
-                        setState(() {
-                          isSearching = false;
-                        });
-                      }
-                    });
-              }
-            }
-          });
-        },
+        viewModelBuilder: () => _model,
         builder: (context, model, _) {
           return TextFormField(
             controller: widget.controller,
@@ -158,14 +148,7 @@ class SearchFieldState extends ConsumerState<SearchField>
               final trimmed = value.trim();
               if (trimmed.isEmpty) return;
               if (ref.read(searchStringProvider) == trimmed) return;
-              if (isSearching) return;
-              setState(() => isSearching = true);
-              processDebouncedValue(trimmed, model, widget.controller)
-                  .whenComplete(() {
-                if (mounted) {
-                  setState(() => isSearching = false);
-                }
-              });
+              unawaited(_onDebounced(trimmed));
             },
             decoration: InputDecoration(
               focusedBorder: OutlineInputBorder(
@@ -442,6 +425,12 @@ class SearchFieldState extends ConsumerState<SearchField>
                   print('Room added: $roomData');
                 },
               ),
+            );
+          } else if (choice == 'fuel') {
+            showDialog(
+              barrierDismissible: true,
+              context: rootContext,
+              builder: (context) => SyncFuelDialog(hostContext: rootContext),
             );
           }
         },

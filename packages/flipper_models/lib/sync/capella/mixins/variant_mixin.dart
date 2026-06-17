@@ -9,6 +9,7 @@ import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -193,16 +194,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         talker.info('Added exact barcode filter');
       }
 
-      // Name / product name search (substring). Barcode uses exact match above.
-      if (name != null && name.isNotEmpty) {
-        final q = name.trim();
-        query +=
-            " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
-            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
-            "LOWER(COALESCE(productName, '')) LIKE :searchLike)";
-        arguments['searchLike'] = '%$q%';
-        arguments['bcdExact'] = q.toLowerCase();
-        talker.info('Added variant text search filter (case-insensitive): $q');
+      var orderSuffix = ' ORDER BY lastTouched DESC';
+      if (page != null && itemsPerPage != null) {
+        final offset = page * itemsPerPage;
+        orderSuffix += ' LIMIT :limit OFFSET :offset';
+        arguments['limit'] = itemsPerPage;
+        arguments['offset'] = offset;
       }
 
       // Product filter
@@ -211,16 +208,28 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments['productId'] = productId;
       }
 
-      // Sorting
-      query += ' ORDER BY lastTouched DESC';
+      final bool isCatalogTextSearch =
+          bcd == null && name != null && name.trim().isNotEmpty;
+      final String? searchTerm =
+          isCatalogTextSearch ? name.trim().toLowerCase() : null;
 
-      // Pagination
-      if (page != null && itemsPerPage != null) {
-        final offset = page * itemsPerPage;
-        query += ' LIMIT :limit OFFSET :offset';
-        arguments['limit'] = itemsPerPage;
-        arguments['offset'] = offset;
+      // Name / product name / RRA item name search (substring). Barcode uses exact match.
+      if (searchTerm != null &&
+          !isLikelyCatalogBarcodeQuery(searchTerm)) {
+        query +=
+            " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
+            "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
+            "LOWER(COALESCE(productName, '')) LIKE :searchLike OR "
+            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
+            "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)";
+        arguments['searchLike'] = '%$searchTerm%';
+        arguments['bcdExact'] = searchTerm;
+        talker.info(
+          'Added variant text search filter (case-insensitive): $searchTerm',
+        );
       }
+
+      query += orderSuffix;
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(
@@ -258,12 +267,32 @@ mixin CapellaVariantMixin implements VariantInterface {
       // taxes, pagination) runs via execute below; Ditto 5 can reject complex
       // subscription predicates even after ORDER BY/LIMIT stripping.
 
-      Future<List<dynamic>> runExecute() async {
-        final r = await ditto.store.execute(query, arguments: arguments);
+      Future<List<dynamic>> runExecute(String sql, Map<String, dynamic> args) async {
+        final r = await ditto.store.execute(sql, arguments: args);
         return r.items.toList();
       }
 
-      items = await runExecute();
+      if (searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm)) {
+        final barcodeQuery =
+            '$query AND (LOWER(TRIM(COALESCE(bcd, \'\'))) = :bcdExact OR '
+            "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)$orderSuffix";
+        final barcodeArgs = Map<String, dynamic>.from(arguments)
+          ..['bcdExact'] = searchTerm;
+        talker.info('Catalog barcode search (exact): $searchTerm');
+        items = await runExecute(barcodeQuery, barcodeArgs);
+        if (items.isEmpty) {
+          final fallbackQuery =
+              '$query AND (LOWER(COALESCE(name, \'\'))) LIKE :searchLike OR '
+              "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
+              "LOWER(COALESCE(productName, '')) LIKE :searchLike)$orderSuffix";
+          final fallbackArgs = Map<String, dynamic>.from(arguments)
+            ..['searchLike'] = '%$searchTerm%';
+          talker.info('Catalog barcode fallback to name search: $searchTerm');
+          items = await runExecute(fallbackQuery, fallbackArgs);
+        }
+      } else {
+        items = await runExecute(query, arguments);
+      }
 
       // First page only: empty may mean sync not landed yet; later pages empty
       // usually means end of list, not worth waiting.
@@ -283,7 +312,7 @@ mixin CapellaVariantMixin implements VariantInterface {
         ];
         for (final d in delays) {
           await Future.delayed(d);
-          items = await runExecute();
+          items = await runExecute(query, arguments);
           if (items.isNotEmpty) break;
         }
       }
@@ -307,8 +336,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
-      // Prepare count query if pagination enabled
-      if (page != null && itemsPerPage != null) {
+      // Prepare count query if pagination enabled (skip during catalog text search —
+      // LIKE across thousands of variants is slow and blocks showing the first page).
+      if (page != null && itemsPerPage != null && !isCatalogTextSearch) {
         try {
           String countQuery =
               'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
@@ -354,8 +384,10 @@ mixin CapellaVariantMixin implements VariantInterface {
           if (name != null && name.isNotEmpty) {
             countQuery +=
                 " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
+                "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
+                "LOWER(COALESCE(productName, '')) LIKE :searchLike OR "
                 "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
-                "LOWER(COALESCE(productName, '')) LIKE :searchLike)";
+                "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)";
           }
 
           if (productId != null) {
@@ -378,6 +410,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         } catch (e) {
           talker.warning('Count query failed: $e');
         }
+      } else if (isCatalogTextSearch && page != null && itemsPerPage != null) {
+        final base = page * itemsPerPage + items.length;
+        totalCount = items.length < itemsPerPage ? base : base + 1;
       }
 
       final stockIds = items

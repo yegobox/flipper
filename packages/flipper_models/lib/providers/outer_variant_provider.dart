@@ -10,6 +10,7 @@ import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_tax_ty_cds.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'outer_variant_provider.g.dart';
@@ -25,6 +26,7 @@ class OuterVariants extends _$OuterVariants {
   static const int _maxCachedPages = 10;
 
   String _currentSearch = '';
+  int _searchGeneration = 0;
   int? _totalCount;
   int? _itemsPerPage;
   bool _isVatEnabled = false;
@@ -85,16 +87,12 @@ class OuterVariants extends _$OuterVariants {
     // Shared with home pre-warm ([warmMobilePosForCheckout] reads [ebmVatEnabledProvider]).
     _isVatEnabled = await ref.watch(ebmVatEnabledProvider.future);
 
-    // Watch for search string changes and react accordingly.
-    final searchString = ref.watch(searchStringProvider);
+    _currentSearch = ref.read(searchStringProvider);
 
-    // Always update current search and page when they change
-    if (searchString != _currentSearch) {
-      _currentSearch = searchString;
-      _pageCache.clear();
-      _firstCachedPage = 0;
-      _lastCachedPage = -1;
-    }
+    ref.listen(searchStringProvider, (previous, next) {
+      if (next == _currentSearch) return;
+      unawaited(_applySearchQuery(next));
+    });
 
     const int fetchPageIndex = 0;
 
@@ -114,6 +112,29 @@ class OuterVariants extends _$OuterVariants {
     _lastCachedPage = 0;
 
     return _flattenContiguousPages();
+  }
+
+  /// Search updates without re-running [build] (keeps current grid visible).
+  Future<void> _applySearchQuery(String searchString) async {
+    final generation = ++_searchGeneration;
+    _currentSearch = searchString;
+    _pageCache.clear();
+    _firstCachedPage = 0;
+    _lastCachedPage = -1;
+
+    try {
+      final paged = await _fetchVariants(branchId, 0, searchString);
+      if (generation != _searchGeneration) return;
+
+      _totalCount = paged.totalCount;
+      _pageCache[0] = List<Variant>.from(paged.variants);
+      _firstCachedPage = 0;
+      _lastCachedPage = 0;
+      state = AsyncValue.data(_flattenContiguousPages());
+    } catch (error, stackTrace) {
+      if (generation != _searchGeneration) return;
+      state = AsyncValue.error(error, stackTrace);
+    }
   }
 
   /// Extra backoff after an empty first fetch so products appear on cold start
@@ -151,7 +172,7 @@ class OuterVariants extends _$OuterVariants {
       'OuterVariants: _fetchVariants called (page=$page, itemsPerPage=${_itemsPerPage ?? 'null'}, searchString="$searchString")',
     );
 
-    final taxTyCds = _isVatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+    final taxTyCds = posCatalogTaxTyCds(vatEnabled: _isVatEnabled);
     final currentScanMode = ref.read(scanningModeProvider);
 
     final paged = await ProxyService.getStrategy(Strategy.capella).variants(
@@ -321,7 +342,7 @@ class OuterVariants extends _$OuterVariants {
   /// Fetches all variants for the branch, bypassing pagination.
   /// Useful for data export (e.g., Excel).
   Future<List<Variant>> futureFetchAllVariants() async {
-    final taxTyCds = _isVatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+    final taxTyCds = posCatalogTaxTyCds(vatEnabled: _isVatEnabled);
     final currentScanMode = ref.read(scanningModeProvider);
 
     final paged = await ProxyService.getStrategy(Strategy.capella).variants(

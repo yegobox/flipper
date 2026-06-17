@@ -951,3 +951,19 @@ class App {}
 
 // I verified with flutter pub get. Remaining latest packages still do not include Package.swift, so they cannot be fixed just by upgrading today: patrol, location, printing, open_filex, amplify_secure_storage, amplify_auth_cognito, ditto_live, flutter_keyboard_visibility, desktop_webview_auth, plus macOS tray_manager and screen_retriever_maco
 // attempt to automatically print on windows on sale complete Printing.layoutPdf(
+
+// Error to fix:
+// Error retrieving user access data from Ditto: DittoException(This ditto instance is closed, so all operations are invalid)
+// flutter: ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// flutter: │ [error] | 15:26:06 873ms | Error checking for new events: DittoException(This ditto instance is closed, so all operations are invalid)
+// flutter: └──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+// git bisect start
+// git bisect bad HEAD
+// git bisect good 978af768e   # before this session's commits
+
+// When you have the prod RRA URL, change only the prod nginx header:
+
+
+// proxy_set_header x-rra-base-url https://your-prod-rra.example/rra/;
+// in /etc/nginx/sites-available/prod.api.yegobox.com, then nginx -t && systemctl reload nginx. UAT can keep its own header in uat.api.yegobox.com when that URL is ready.

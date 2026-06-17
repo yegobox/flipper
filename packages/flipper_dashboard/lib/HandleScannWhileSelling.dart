@@ -4,6 +4,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_tax_ty_cds.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,7 +46,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     if (branchId == null || branchId.isEmpty) return const [];
 
     final vatEnabled = await getVatEnabledFromEbm();
-    final taxTyCds = vatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+    final taxTyCds = posCatalogTaxTyCds(vatEnabled: vatEnabled);
 
     final paged = await ProxyService.getStrategy(Strategy.capella).variants(
       branchId: branchId,
