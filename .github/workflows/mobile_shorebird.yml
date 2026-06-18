@@ -33,7 +33,7 @@ on:
       - main
 
 env:
-  FLUTTER_VERSION: "3.41.9"
+  FLUTTER_VERSION: "3.44.2" # flutter_gemma >=1.0.0 requires Dart SDK >=3.12.0
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
 jobs:
