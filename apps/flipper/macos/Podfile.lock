@@ -136,6 +136,8 @@ PODS:
     - PromisesSwift (~> 2.1)
   - flutter_contacts (0.0.1):
     - FlutterMacOS
+  - flutter_gemma (0.16.3):
+    - FlutterMacOS
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
   - flutter_localization (0.0.1):
@@ -215,6 +217,8 @@ PODS:
   - GTMSessionFetcher/Core (3.5.0)
   - GTMSessionFetcher/Full (3.5.0):
     - GTMSessionFetcher/Core
+  - large_file_handler (0.5.0):
+    - FlutterMacOS
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -289,11 +293,13 @@ DEPENDENCIES:
   - firebase_crashlytics (from `Flutter/ephemeral/.symlinks/plugins/firebase_crashlytics/macos`)
   - firebase_messaging (from `Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos`)
   - flutter_contacts (from `Flutter/ephemeral/.symlinks/plugins/flutter_contacts/macos`)
+  - flutter_gemma (from `Flutter/ephemeral/.symlinks/plugins/flutter_gemma/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_localization (from `Flutter/ephemeral/.symlinks/plugins/flutter_localization/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - geolocator_apple (from `Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin`)
   - google_sign_in_ios (from `Flutter/ephemeral/.symlinks/plugins/google_sign_in_ios/darwin`)
+  - large_file_handler (from `Flutter/ephemeral/.symlinks/plugins/large_file_handler/macos`)
   - local_auth_darwin (from `Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin`)
   - location (from `Flutter/ephemeral/.symlinks/plugins/location/macos`)
   - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin`)
@@ -375,6 +381,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos
   flutter_contacts:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_contacts/macos
+  flutter_gemma:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_gemma/macos
   flutter_local_notifications:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
   flutter_localization:
@@ -385,6 +393,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin
   google_sign_in_ios:
     :path: Flutter/ephemeral/.symlinks/plugins/google_sign_in_ios/darwin
+  large_file_handler:
+    :path: Flutter/ephemeral/.symlinks/plugins/large_file_handler/macos
   local_auth_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin
   location:
@@ -455,6 +465,7 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfigInterop: 23996ab7397494722df4fdd1fd398024389d5da8
   FirebaseSessions: 804bd321f2d2f2ddafe74ef7856062aa19f179c2
   flutter_contacts: 79bd91c6f0edbe70e001ec3f0ded2ef1a1e9711e
+  flutter_gemma: b7c86902cf69f6c9a1eea947f1f23a9fe8ce82ba
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_localization: 98afcba7642d9909fd5bfc62b62d4cc2cd15727b
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
@@ -466,6 +477,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  large_file_handler: 93ec41c82af8081dc884ff586f8cc5ca23843c75
   local_auth_darwin: 63c73d6d28cc3e239be2b6aa460ea6e317cd5100
   location: 7cdb0665bd6577d382b0a343acdadbcb7f964775
   mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e

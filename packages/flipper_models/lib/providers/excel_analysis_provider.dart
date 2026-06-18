@@ -1,8 +1,8 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/utils/excel_utility.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
+import 'package:flipper_models/repositories/ai_model_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flipper_models/models/ai_model.dart';
 import 'package:flipper_models/providers/unified_ai_input.dart';
@@ -108,19 +108,7 @@ class ExcelAnalysis extends _$ExcelAnalysis {
         'ExcelAnalysis: Generated markdown (${markdown.length} chars)',
       );
 
-      final supabase = Supabase.instance.client;
-
-      // Fetch models directly from Supabase
-      final response = await supabase
-          .from('ai_models')
-          .select()
-          .eq('is_active', true)
-          .order('is_default', ascending: false)
-          .order('name', ascending: true);
-
-      final models = (response as List)
-          .map((json) => AIModel.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final models = await AIModelRepository().getAvailableModels();
 
       final defaultModel = models.firstWhere(
         (m) => m.isDefault,

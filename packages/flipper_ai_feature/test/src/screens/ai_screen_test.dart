@@ -191,7 +191,7 @@ void main() {
     return ProviderScope(
       overrides: [
         // Mock the available models provider to avoid Supabase initialization in tests
-        availableModelsProvider.overrideWith((ref) => Stream.value([])),
+        availableModelsProvider.overrideWith((ref) async => []),
         ...overrides,
       ],
       child: MaterialApp(home: ScaffoldMessenger(child: widget)),
