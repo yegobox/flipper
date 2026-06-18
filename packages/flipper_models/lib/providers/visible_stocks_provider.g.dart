@@ -72,7 +72,7 @@ final class StocksForVisibleVariantsProvider
 }
 
 String _$stocksForVisibleVariantsHash() =>
-    r'df297185b1531514c9cfc701cca353a73c474eef';
+    r'53186bc8ff11755ef95de7a9fd3578971cc3fce9';
 
 /// One Ditto observer for all stock rows on the current catalog page (max ~15).
 

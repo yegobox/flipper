@@ -36,7 +36,7 @@ final class ParkTransactionProvider
   ParkTransaction create() => ParkTransaction();
 }
 
-String _$parkTransactionHash() => r'e96931c1f05197f120bd9d20d8ba9eddad216b0a';
+String _$parkTransactionHash() => r'6e488e2c3ca2f0b96ab69e2ebcacf05102e7ada2';
 
 /// Riverpod wrapper for [ParkTransactionService] with explicit loading state.
 
