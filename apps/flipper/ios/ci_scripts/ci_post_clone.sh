@@ -141,7 +141,7 @@ log_step "Flutter SDK"
 
 FLUTTER_DIR="$HOME/flutter"
 if [[ ! -x "$FLUTTER_DIR/bin/flutter" ]]; then
-  FLUTTER_VERSION="${FLUTTER_VERSION:-3.41.9}"
+  FLUTTER_VERSION="${FLUTTER_VERSION:-3.44.2}"
   FLUTTER_ARCHIVE="flutter_macos_${FLUTTER_VERSION}-stable.zip"
   FLUTTER_URL="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/$FLUTTER_ARCHIVE"
   echo "Downloading Flutter $FLUTTER_VERSION from $FLUTTER_URL"
