@@ -21,6 +21,7 @@ class FloHeader extends StatelessWidget {
     this.onMenuToggle,
     this.menuOpen = false,
     this.menuContent,
+    this.modelSelector,
   });
 
   final FloPanelMode mode;
@@ -35,6 +36,9 @@ class FloHeader extends StatelessWidget {
   final VoidCallback? onMenuToggle;
   final bool menuOpen;
   final Widget? menuContent;
+
+  /// Optional AI model picker (local vs cloud) rendered in the header.
+  final Widget? modelSelector;
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +128,10 @@ class FloHeader extends StatelessWidget {
               icon: FloIcons.newChat(size: 17, color: FloTheme.ink2),
               onTap: onNewChat,
             ),
+            const SizedBox(width: 8),
+          ],
+          if (modelSelector != null && mode == FloPanelMode.askFlo) ...[
+            modelSelector!,
             const SizedBox(width: 8),
           ],
           Stack(

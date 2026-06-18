@@ -80,6 +80,10 @@ export 'src/providers/data_source_provider.dart';
 export 'src/services/ai_service.dart';
 export 'src/services/data_source/data_source_services.dart';
 
+// On-device AI (iOS + desktop) — bootstrap + local chat
+export 'src/local/local_ai_bootstrap.dart';
+export 'src/services/local_flo_service.dart';
+
 // Widgets
 export 'src/screens/ai_screen.dart';
 export 'src/widgets/ai_feature_container.dart';

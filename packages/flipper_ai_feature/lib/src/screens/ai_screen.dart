@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_models/providers/local_inference_engine.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/whatsapp_service.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -12,7 +13,9 @@ import '../providers/conversation_provider.dart';
 import '../providers/whatsapp_connection_provider.dart';
 import '../providers/whatsapp_message_provider.dart';
 import '../models/flo_models.dart';
+import '../local/sales_rag_indexer.dart';
 import '../services/flo_chat_service.dart';
+import '../services/local_flo_service.dart';
 import '../services/flo_local_briefing_service.dart';
 import '../theme/flo_theme.dart';
 import '../widgets/conversation_list.dart';
@@ -20,6 +23,7 @@ import '../widgets/data_source/data_source_list_screen.dart';
 import '../widgets/excel_analysis_modal.dart';
 import '../widgets/flo/flo_composer.dart';
 import '../widgets/flo/flo_header.dart';
+import '../widgets/flo/flo_model_selector.dart';
 import '../widgets/flo/flo_home_view.dart';
 import '../widgets/flo/flo_inbox_view.dart';
 import '../widgets/flo/flo_thread_view.dart';
@@ -39,7 +43,17 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final _chatService = FloChatService();
+  final _localFloService = const LocalFloService();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// AI mode: true = on-device (local), false = cloud (via data-connector).
+  /// Defaults tier-aware (local for free users on capable devices, cloud
+  /// otherwise) and is forced to cloud when on-device isn't supported.
+  /// The user toggles it via the header selector.
+  bool _useLocal = false;
+  bool _modeInitialized = false;
+
+  bool get _localAvailable => LocalInferenceRegistry.isAvailable;
 
   String _currentConversationId = '';
   List<Message> _messages = [];
@@ -65,6 +79,7 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
       _loadShopName();
       _loadBriefing();
       _subscribeLocalBriefing();
+      _loadDefaultModel();
     });
   }
 
@@ -109,6 +124,33 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
     } catch (_) {
       if (mounted) setState(() => _briefingLoading = false);
     }
+  }
+
+  Future<void> _loadDefaultModel() async {
+    if (_modeInitialized) return;
+    // Tier-aware default: free users on a capable device get on-device; paid
+    // users and unsupported devices get cloud. defaultAiModelProvider already
+    // filters local models out where unsupported, so this falls back to cloud.
+    var useLocal = false;
+    try {
+      final model = await ref.read(defaultAiModelProvider.future);
+      useLocal = (model?.isLocal ?? false) && _localAvailable;
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      _useLocal = useLocal;
+      _modeInitialized = true;
+    });
+    _maybeIndexLocalRag();
+  }
+
+  /// Warm the on-device sales index when local mode is active (background,
+  /// best-effort; no-op in cloud mode or on unsupported platforms).
+  void _maybeIndexLocalRag() {
+    if (!_useLocal || !_localAvailable) return;
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
+    unawaited(SalesRagIndexer.maybeIndex(branchId));
   }
 
   Future<void> _loadShopName() async {
@@ -267,15 +309,28 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
       FloChatResponse? response;
       final steps = <String>[];
 
-      await for (final event in _chatService.streamChat(
-        branchId: branchId,
-        message: text,
-        history: history,
-        mode: 'business',
-        conversationId: conversationId,
-        deviceSales: deviceSales,
-        shopName: _shopName,
-      )) {
+      // Route to the on-device model in local mode; otherwise the cloud
+      // data-connector. Both yield the same FloChatEvent shape.
+      final useLocal = _useLocal && _localAvailable;
+      final eventStream = useLocal
+          ? _localFloService.streamChat(
+              branchId: branchId,
+              message: text,
+              history: history,
+              deviceSales: deviceSales,
+              shopName: _shopName,
+            )
+          : _chatService.streamChat(
+              branchId: branchId,
+              message: text,
+              history: history,
+              mode: 'business',
+              conversationId: conversationId,
+              deviceSales: deviceSales,
+              shopName: _shopName,
+            );
+
+      await for (final event in eventStream) {
         if (event.event == 'thinking') {
           steps.add(event.data);
           if (mounted) {
@@ -306,7 +361,7 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
             final meta = jsonDecode(event.data) as Map<String, dynamic>;
             if (response != null) {
               response = FloChatResponse(
-                blocks: response!.blocks,
+                blocks: response.blocks,
                 modelUsed: meta['model_used'] as String? ?? '',
                 thinking: (meta['thinking'] as List?)
                         ?.map((e) => e.toString())
@@ -318,13 +373,25 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
         }
       }
 
-      response ??= await _chatService.chat(
-        branchId: branchId,
-        message: text,
-        history: history,
-        conversationId: conversationId,
-        deviceSales: deviceSales,
-        shopName: _shopName,
+      if (response == null && !useLocal) {
+        response = await _chatService.chat(
+          branchId: branchId,
+          message: text,
+          history: history,
+          conversationId: conversationId,
+          deviceSales: deviceSales,
+          shopName: _shopName,
+        );
+      }
+      response ??= const FloChatResponse(
+        blocks: [
+          {
+            'type': 'text',
+            'html': 'No response was produced. Please try again.',
+          },
+        ],
+        modelUsed: '',
+        thinking: [],
       );
 
       final payload = FloMessagePayload(blocks: response.blocks);
@@ -500,6 +567,14 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
                 isMobile: _isMobile,
                 miniDataConnected: true,
                 whatsAppConnected: waConnected,
+                modelSelector: FloModelSelector(
+                  localAvailable: _localAvailable,
+                  useLocal: _useLocal,
+                  onChanged: (useLocal) {
+                    setState(() => _useLocal = useLocal);
+                    _maybeIndexLocalRag();
+                  },
+                ),
                 onNewChat: _newChat,
                 onConnectWhatsApp: _openWhatsAppModal,
                 onManageSources: _openSources,

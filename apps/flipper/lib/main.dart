@@ -10,6 +10,8 @@ import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flipper_models/providers/provider_perf_observer.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+// ignore: depend_on_referenced_packages
+import 'package:flipper_ai_feature/flipper_ai_feature.dart' show initLocalAi;
 import 'package:flipper_dashboard/features/personal_goals/personal_goal_remote_contribution_listener.dart';
 import 'package:flipper_models/services/personal_goal_notification_service.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -141,6 +143,9 @@ Future<void> main() async {
       unawaited(PersonalGoalNotificationService.instance.initialize());
 
       debugPrint('🎉 [main] initializeApp completed successfully!');
+
+      // Register the on-device AI engine (no-op on Android/web → cloud only).
+      initLocalAi();
     }
   }
 

@@ -44,4 +44,26 @@ class UnifiedAIInput {
       },
     };
   }
+
+  /// Flatten the conversation into a single role-tagged prompt string for
+  /// on-device engines that take plain text rather than a structured request.
+  /// Non-text parts (e.g. inline image data) are skipped — local models in
+  /// this tier are text-only.
+  String toPlainPrompt() {
+    final buffer = StringBuffer();
+    for (final content in contents) {
+      final role = content.role == 'model'
+          ? 'Assistant'
+          : (content.role == null
+              ? 'User'
+              : '${content.role![0].toUpperCase()}${content.role!.substring(1)}');
+      final text = content.parts
+          .where((p) => p.text != null && p.text!.trim().isNotEmpty)
+          .map((p) => p.text!.trim())
+          .join('\n');
+      if (text.isEmpty) continue;
+      buffer.writeln('$role: $text');
+    }
+    return buffer.toString().trim();
+  }
 }

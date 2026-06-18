@@ -20,7 +20,10 @@ Future<void> main() async {
     url: AppSecrets.superbaseurl,
     anonKey: AppSecrets.supabaseAnonKey,
   );
-  
+
+  // Register on-device AI engine (no-op on Android/web → cloud only).
+  initLocalAi();
+
   runApp(const ProviderScope(child: AiApp()));
 }
 
