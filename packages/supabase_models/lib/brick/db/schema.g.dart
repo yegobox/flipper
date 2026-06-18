@@ -1,20 +1,26 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260603185233.migration.dart';
 part '20260522081221.migration.dart';
 part '20260527030019.migration.dart';
+part '20260603185233.migration.dart';
+part '20260610091903.migration.dart';
+part '20260611094026.migration.dart';
+part '20260617083057.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260603185233(),
   const Migration20260522081221(),
   const Migration20260527030019(),
+  const Migration20260603185233(),
+  const Migration20260610091903(),
+  const Migration20260611094026(),
+  const Migration20260617083057(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260527030019,
+  20260617083057,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1134,6 +1140,7 @@ final schema = Schema(
         SchemaColumn('approved', Column.integer),
         SchemaColumn('rejected', Column.integer),
         SchemaColumn('pending', Column.integer),
+        SchemaColumn('reg_ty_cd', Column.varchar),
         SchemaColumn('created_at', Column.datetime),
       },
       indices: <SchemaIndex>{
@@ -1411,6 +1418,38 @@ final schema = Schema(
         SchemaIndex(columns: ['recount_id'], unique: false),
         SchemaIndex(columns: ['variant_id'], unique: false),
         SchemaIndex(columns: ['stock_id'], unique: false),
+      },
+    ),
+    SchemaTable(
+      'Supplier',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('cust_nm', Column.varchar),
+        SchemaColumn('email', Column.varchar),
+        SchemaColumn('tel_no', Column.varchar),
+        SchemaColumn('adrs', Column.varchar),
+        SchemaColumn('branch_id', Column.varchar),
+        SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('cust_no', Column.varchar),
+        SchemaColumn('cust_tin', Column.varchar),
+        SchemaColumn('regr_nm', Column.varchar),
+        SchemaColumn('regr_id', Column.varchar),
+        SchemaColumn('modr_nm', Column.varchar),
+        SchemaColumn('modr_id', Column.varchar),
+        SchemaColumn('ebm_synced', Column.boolean),
+        SchemaColumn('bhf_id', Column.varchar),
+        SchemaColumn('use_yn', Column.varchar),
+        SchemaColumn('customer_type', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
       },
     ),
     SchemaTable(
@@ -1923,6 +1962,9 @@ final schema = Schema(
         SchemaColumn('property_ty_cd', Column.varchar),
         SchemaColumn('room_type_cd', Column.varchar),
         SchemaColumn('tt_cat_cd', Column.varchar),
+        SchemaColumn('is_fuel_managed', Column.boolean),
+        SchemaColumn('rrp', Column.Double),
+        SchemaColumn('rrp_effective_dt', Column.datetime),
         SchemaColumn('is_shared', Column.boolean),
         SchemaColumn('assigned', Column.boolean),
         SchemaColumn('stock_synchronized', Column.boolean),

@@ -1,10 +1,15 @@
 import 'package:flipper_models/models/ai_model.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/business_ai_config.dart';
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AIModelRepository {
   AIModelRepository();
+
+  Future<void> _ensureAuthenticatedSession() async {
+    await SupabaseSessionService.ensureAccessToken();
+  }
 
   /// Get all available AI models
   /// Returns global models
@@ -12,10 +17,12 @@ class AIModelRepository {
     try {
       talker.info('AIModelRepository: Fetching available models');
 
+      await _ensureAuthenticatedSession();
+
       final supabase = Supabase.instance.client;
       final response = await supabase
           .from('ai_models')
-          .select()
+          .select(kAiModelCatalogSelect)
           .eq('is_active', true)
           .order('is_default', ascending: false)
           .order('name', ascending: true);
@@ -52,6 +59,8 @@ class AIModelRepository {
   /// Get AI configuration for a business (creates row if missing).
   Future<BusinessAIConfig?> getBusinessConfig(String businessId) async {
     try {
+      await _ensureAuthenticatedSession();
+
       final supabase = Supabase.instance.client;
 
       var row = await supabase
@@ -114,7 +123,6 @@ class AIModelRepository {
     return DateTime.now().toUtc();
   }
 
-
   /// Increment usage for a business config
   Future<void> incrementUsage(String configId) async {
     try {
@@ -134,9 +142,14 @@ class AIModelRepository {
   /// Get a specific model by ID
   Future<AIModel?> getModelById(String modelId) async {
     try {
+      await _ensureAuthenticatedSession();
+
       final supabase = Supabase.instance.client;
-      final response =
-          await supabase.from('ai_models').select().eq('id', modelId).single();
+      final response = await supabase
+          .from('ai_models')
+          .select(kAiModelCatalogSelect)
+          .eq('id', modelId)
+          .single();
 
       return AIModel.fromJson(response);
     } catch (e) {

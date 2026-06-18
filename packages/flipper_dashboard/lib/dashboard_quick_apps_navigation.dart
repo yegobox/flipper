@@ -1,13 +1,16 @@
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
+import 'package:flipper_dashboard/books_module_navigation.dart';
 import 'package:flipper_dashboard/features/daily_report_files/daily_report_files_app.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.dart';
 import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
+import 'package:flipper_dashboard/features/stock_recount/stock_recount_list_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/services_gigs_app.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -18,6 +21,8 @@ Future<void> navigateToDashboardAppPage({
   required BuildContext context,
   required bool isBigScreen,
   required String page,
+  WidgetRef? ref,
+  NavigatorState? navigator,
   void Function(String page)? onAppSelected,
 }) async {
   if (onAppSelected != null) {
@@ -25,8 +30,18 @@ Future<void> navigateToDashboardAppPage({
     return;
   }
 
+  final nav = navigator ?? Navigator.maybeOf(context, rootNavigator: true);
+
+  if (page != 'Accounting' && nav != null) {
+    popBooksModuleIfOpen(nav);
+  }
+
   final routerService = locator<RouterService>();
   switch (page) {
+    case 'Accounting':
+      if (ref == null) return;
+      await navigateToBooksModule(context, ref, navigator: nav);
+      break;
     case 'POS':
       await routerService.navigateTo(
         CheckOutRoute(isBigScreen: isBigScreen),
@@ -114,6 +129,13 @@ Future<void> navigateToDashboardAppPage({
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => const DailyReportFilesApp(),
+        ),
+      );
+      break;
+    case 'StockRecount':
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const StockRecountListScreen(),
         ),
       );
       break;

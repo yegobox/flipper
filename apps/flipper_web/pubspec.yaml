@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.489+1405
+version: 1.0.622+1538
 
 
 environment:
@@ -28,19 +28,28 @@ dependencies:
   equatable: ^2.0.7
   firebase_auth: ^6.1.0
   ditto_live: ^5.0.1
+  flipper_accounting: any
   flipper_models: any
   permission_handler: ^12.0.1
   wolt_modal_sheet: 0.11.0
   google_fonts: ^6.2.1
+  flutter_svg: ^2.2.4
   path: ^1.9.1
   intl: ^0.20.2
+  file_picker: 10.3.7
+  uuid: ^4.5.1
   path_provider: ^2.1.5
   riverpod_annotation: ^3.0.3
   sqflite_common: ^2.5.4+6
   supabase_models: any
+  shared_preferences: ^2.5.3
 dependency_overrides:
   archive: ^4.0.9
   sqlite3: ^3.3.1
+  # Wasm-safe replacement: upstream flutter_keyboard_visibility_web 2.0.0 imports
+  # dart:html, which dart2wasm cannot compile. See open-sources package.
+  flutter_keyboard_visibility_web:
+    path: ../../open-sources/flutter_keyboard_visibility_web
 
 dev_dependencies:
   integration_test:
@@ -58,3 +67,4 @@ flutter:
 
   assets:
     - assets/
+    - assets/icons/

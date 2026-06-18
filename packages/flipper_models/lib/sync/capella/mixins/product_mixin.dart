@@ -5,6 +5,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/log_service.dart';
@@ -332,7 +333,7 @@ mixin CapellaProductMixin implements ProductInterface {
           talker.info(
             'Variant already exists with ID: ${existing.id}; ebmSynced=${existing.ebmSynced}',
           );
-          if (!skipRRaCall && existing.ebmSynced != true) {
+          if (!skipRRaCall) {
             var toSync = existing;
             if (toSync.stock != null && qty > 0) {
               final s = toSync.stock!;
@@ -463,11 +464,13 @@ mixin CapellaProductMixin implements ProductInterface {
               await repository.upsert<Variant>(savedVariant);
               // Ditto sync for variant done in addVariant? Yes.
               await repository.upsert<Purchase>(purchase);
-              // Ditto sync for purchase?
               if (ditto != null) {
-                // Assuming Purchase has toJson
-                // await ditto.store.execute(...)
-                // Not strictly in scope for "Fixing upsert", but good hygiene.
+                final doc = await PurchaseDittoAdapter.instance
+                    .toDittoDocument(purchase);
+                await ditto.store.execute(
+                  'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+                  arguments: {'doc': doc},
+                );
               }
 
               talker.info(
@@ -486,6 +489,14 @@ mixin CapellaProductMixin implements ProductInterface {
       }
       if (purchase != null) {
         await repository.upsert<Purchase>(purchase);
+        if (ditto != null) {
+          final doc =
+              await PurchaseDittoAdapter.instance.toDittoDocument(purchase);
+          await ditto.store.execute(
+            'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+            arguments: {'doc': doc},
+          );
+        }
       }
 
       return createdProduct;
@@ -750,8 +761,12 @@ mixin CapellaProductMixin implements ProductInterface {
   }
 
   @override
-  Future<void> hydrateSars({required String branchId}) {
-    // TODO: implement hydrateSars
-    throw UnimplementedError();
+  Future<void> hydrateSars({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await ensureBranchSarCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
+    );
   }
 }

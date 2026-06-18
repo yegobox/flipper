@@ -21,6 +21,44 @@ typedef ReceiptHandleResult = ({
   DeferredSaleReceiptPersist? deferredPersist,
 });
 
+bool _nonEmptyCustomerField(String? value) =>
+    value != null && value.trim().isNotEmpty;
+
+/// Loads [Customer] only when RRA receipt signing may need fields missing on
+/// [transaction]. Skips Ditto/DB when [customer] is already provided or
+/// denormalized transaction/box fields are sufficient.
+Future<Customer?> resolveCustomerForReceipt({
+  required ITransaction transaction,
+  Customer? customer,
+  String? purchaseCode,
+}) async {
+  if (customer != null) return customer;
+
+  final customerId = transaction.customerId;
+  if (customerId == null || customerId.isEmpty) return null;
+
+  final hasName =
+      _nonEmptyCustomerField(transaction.customerName) ||
+      _nonEmptyCustomerField(ProxyService.box.customerName());
+  final effectivePurchaseCode =
+      purchaseCode ?? ProxyService.box.purchaseCode();
+  final needsTinFromCustomer =
+      _nonEmptyCustomerField(effectivePurchaseCode) &&
+      !_nonEmptyCustomerField(transaction.customerTin);
+
+  if (hasName && !needsTinFromCustomer) return null;
+
+  try {
+    final resolved = await ProxyService.getStrategy(Strategy.capella)
+        .customerById(customerId);
+    talker.info('Resolved customer from id: ${resolved?.id}');
+    return resolved;
+  } catch (e) {
+    talker.warning('Failed to resolve customer for id $customerId: $e');
+    return null;
+  }
+}
+
 class TaxController<OBJ> {
   TaxController({this.object});
 
@@ -41,18 +79,15 @@ class TaxController<OBJ> {
     RwApiResponse? signedResponse,
     List<TransactionItem>? transactionItems,
     Receipt? presentationReceiptForPdf,
+    Customer? customer,
   }) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
-      Customer? customer;
-      try {
-        customer = await ProxyService.strategy.customerById(
-          transaction.customerId!,
-        );
-        talker.info('Resolved customer from id: ${customer?.id}');
-      } catch (e) {
-        talker.warning(
-          'Failed to resolve customer for id ${transaction.customerId}: $e',
+      if (!presentationOnly) {
+        customer = await resolveCustomerForReceipt(
+          transaction: transaction,
+          customer: customer,
+          purchaseCode: purchaseCode,
         );
       }
       // Resolve phone number with normalization and null safety
@@ -323,13 +358,22 @@ class TaxController<OBJ> {
         lineItems = await ProxyService.getStrategy(Strategy.capella)
             .transactionItems(
               transactionId: transaction.id,
-              branchId: (await ProxyService.strategy.activeBranch(
+              branchId: (await ProxyService.getStrategy(Strategy.capella).activeBranch(
                 branchId: ProxyService.box.getBranchId()!,
               )).id,
+              doneWithTransaction: false,
+              active: true,
             );
       } catch (e) {
         talker.warning('Could not fetch transaction items: $e');
       }
+    }
+
+    if (lineItems.isEmpty) {
+      throw Exception(
+        'Cannot sign receipt: cart has no line items. '
+        'Wait for the cart to finish saving and try again.',
+      );
     }
 
     try {
@@ -452,15 +496,15 @@ class TaxController<OBJ> {
     bool skipPresentation = false,
     Receipt? presentationReceipt,
   }) async {
-    Business? business = await ProxyService.strategy.getBusiness(
+    Business? business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
       businessId: ProxyService.box.getBusinessId()!,
     );
-    final ebm = await ProxyService.strategy.ebm(
+    final ebm = await ProxyService.getStrategy(Strategy.capella).ebm(
       branchId: ProxyService.box.getBranchId()!,
     );
     final receipt =
         presentationReceipt ??
-        await ProxyService.strategy.getReceipt(transactionId: transaction.id);
+        await ProxyService.getStrategy(Strategy.capella).getReceipt(transactionId: transaction.id);
     if (receipt == null) {
       throw Exception(
         'Receipt not found for transaction ${transaction.id}. '
@@ -496,26 +540,33 @@ class TaxController<OBJ> {
       }
     }
 
-    final taxConfigTaxB = await ProxyService.strategy.getByTaxType(
+    final taxConfigTaxB = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
       taxtype: "B",
     );
-    final taxConfigTaxA = await ProxyService.strategy.getByTaxType(
+    final taxConfigTaxA = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
       taxtype: "A",
     );
-    final taxConfigTaxC = await ProxyService.strategy.getByTaxType(
+    final taxConfigTaxC = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
       taxtype: "C",
     );
-    final taxConfigTaxD = await ProxyService.strategy.getByTaxType(
+    final taxConfigTaxD = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
       taxtype: "D",
     );
-    final taxConfigTaxTT = await ProxyService.strategy.getByTaxType(
+    final taxConfigTaxTT = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
       taxtype: "TT",
     );
 
     Uint8List? bytes;
-    final paymentTypes = await ProxyService.strategy.getPaymentType(
+    final paymentTypes = await ProxyService.getStrategy(Strategy.capella).getPaymentType(
       transactionId: transaction.id,
     );
+
+    var customerNameForPrint =
+        transaction.customerName ?? ProxyService.box.customerName() ?? '';
+    customerNameForPrint = customerNameForPrint.trim();
+    if (customerNameForPrint.isEmpty) {
+      customerNameForPrint = 'Walk-in Customer';
+    }
 
     await Print().print(
       vatEnabled: ebm!.vatEnabled ?? false,
@@ -571,9 +622,7 @@ class TaxController<OBJ> {
           ? transaction.customerTin
           : ProxyService.box.customerTin(),
       receiptType: receiptType,
-      customerName: (transaction.customerName?.isNotEmpty ?? false)
-          ? transaction.customerName!
-          : ProxyService.box.customerName()!,
+      customerName: customerNameForPrint,
       printCallback: (Uint8List data) {
         bytes = data;
         onSuccess?.call();
@@ -648,7 +697,7 @@ class TaxController<OBJ> {
       // increment the counter before we pass it in
       // this is because if we don't then the EBM counter will give us the
 
-      Ebm? ebm = await ProxyService.strategy.ebm(
+      Ebm? ebm = await ProxyService.getStrategy(Strategy.capella).ebm(
         branchId: ProxyService.box.getBranchId()!,
       );
       DateTime now = DateTime.now();
@@ -682,6 +731,7 @@ class TaxController<OBJ> {
           );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
+        final usedInvcNo = receiptSignature.usedInvcNo ?? highestInvcNo;
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         // Convert the date string to DateTime first, then format it properly
@@ -708,13 +758,13 @@ class TaxController<OBJ> {
             agentId: transaction.agentId,
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
-            receiptNumber: highestInvcNo,
+            receiptNumber: usedInvcNo,
             customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
                 ? transaction.customerPhone!
                 : ProxyService.box.currentSaleCustomerPhoneNumber(),
-            totalReceiptNumber: highestInvcNo,
-            // Use the highest invoice number across counters as requested
-            invoiceNumber: highestInvcNo,
+            totalReceiptNumber: usedInvcNo,
+            // Use the invoice number actually consumed by saveSales (924 retries).
+            invoiceNumber: usedInvcNo,
             customerName: (transaction.customerName?.isNotEmpty ?? false)
                 ? transaction.customerName!
                 : ProxyService.box.customerName(),
@@ -750,13 +800,13 @@ class TaxController<OBJ> {
             sarTyCd: transaction.sarTyCd,
             taxAmount: transaction.taxAmount,
           );
-          await ProxyService.strategy.addTransaction(
+          await ProxyService.getStrategy(Strategy.capella).addTransaction(
             transaction: newTransaction,
           );
           //query item and re-assign
           final List<TransactionItem> items =
               await ProxyService.getStrategy(Strategy.capella).transactionItems(
-                branchId: (await ProxyService.strategy.activeBranch(
+                branchId: (await ProxyService.getStrategy(Strategy.capella).activeBranch(
                   branchId: ProxyService.box.getBranchId()!,
                 )).id,
                 transactionId: transaction.id,
@@ -770,7 +820,7 @@ class TaxController<OBJ> {
               variantId: transaction.id, // Update variantId
             );
             // get variant
-            Variant? variant = await ProxyService.strategy.getVariant(
+            Variant? variant = await ProxyService.getStrategy(Strategy.capella).getVariant(
               id: item.variantId,
             );
 
@@ -793,19 +843,19 @@ class TaxController<OBJ> {
             receiptType == "TS" ||
             receiptType == "PS") {
           transaction.receiptType = receiptType;
-          transaction.sarNo = highestInvcNo.toString();
-          transaction.receiptNumber = highestInvcNo;
-          transaction.totalReceiptNumber = highestInvcNo;
+          transaction.sarNo = usedInvcNo.toString();
+          transaction.receiptNumber = usedInvcNo;
+          transaction.totalReceiptNumber = usedInvcNo;
           transaction.invoiceNumber =
-              transaction.invoiceNumber ?? highestInvcNo;
+              transaction.invoiceNumber ?? usedInvcNo;
           if (persistReceiptTransactionFields) {
             await ProxyService.getStrategy(Strategy.capella).updateTransaction(
               transaction: transaction,
               receiptType: receiptType,
-              sarNo: highestInvcNo.toString(),
-              receiptNumber: highestInvcNo,
-              totalReceiptNumber: highestInvcNo,
-              invoiceNumber: transaction.invoiceNumber ?? highestInvcNo,
+              sarNo: usedInvcNo.toString(),
+              receiptNumber: usedInvcNo,
+              totalReceiptNumber: usedInvcNo,
+              invoiceNumber: transaction.invoiceNumber ?? usedInvcNo,
               isProformaMode: ProxyService.box.isProformaMode(),
               isTrainingMode: ProxyService.box.isTrainingMode(),
             );
@@ -814,15 +864,15 @@ class TaxController<OBJ> {
 
         if (deferPostSignReceiptPersist) {
           // In-memory fields for post-sale RRA stock sync (deferred persist path).
-          transaction.invoiceNumber = transaction.invoiceNumber ?? highestInvcNo;
-          transaction.receiptNumber = transaction.receiptNumber ?? highestInvcNo;
+          transaction.invoiceNumber = transaction.invoiceNumber ?? usedInvcNo;
+          transaction.receiptNumber = transaction.receiptNumber ?? usedInvcNo;
           transaction.totalReceiptNumber =
-              transaction.totalReceiptNumber ?? highestInvcNo;
+              transaction.totalReceiptNumber ?? usedInvcNo;
           presentationReceipt = buildPresentationReceipt(
             receiptSignature: receiptSignature,
             transaction: transaction,
             qrCode: qrCode,
-            highestInvcNo: highestInvcNo,
+            highestInvcNo: usedInvcNo,
             receiptNumber: receiptNumber,
             whenCreated: now,
             receiptType: receiptType,
@@ -831,7 +881,8 @@ class TaxController<OBJ> {
             receiptSignature: receiptSignature,
             transaction: transaction,
             qrCode: qrCode,
-            highestInvcNo: highestInvcNo,
+            highestInvcNo: usedInvcNo,
+            consumedInvcNo: usedInvcNo,
             receiptNumber: receiptNumber,
             whenCreated: now,
             counters: counters,
@@ -842,16 +893,17 @@ class TaxController<OBJ> {
             receiptSignature,
             transaction,
             qrCode,
-            highestInvcNo,
+            usedInvcNo,
             receiptNumber,
             whenCreated: now,
-            invoiceNumber: highestInvcNo,
+            invoiceNumber: usedInvcNo,
           );
 
           /// Ensure all counters of the same branch are synchronized
-          await ProxyService.strategy.updateCounters(
+          await ProxyService.getStrategy(Strategy.capella).updateCounters(
             counters: counters,
             receiptSignature: receiptSignature,
+            consumedInvcNo: usedInvcNo,
           );
         }
       }
@@ -875,9 +927,10 @@ class TaxController<OBJ> {
     String receiptType, {
     required DateTime whenCreated,
     required int invoiceNumber,
+    bool skipDittoSync = false,
   }) async {
     try {
-      await ProxyService.strategy.createReceipt(
+      await ProxyService.getStrategy(Strategy.capella).createReceipt(
         signature: receiptSignature,
         transaction: transaction,
         qrCode: qrCode,
@@ -886,6 +939,7 @@ class TaxController<OBJ> {
         receiptType: receiptType,
         whenCreated: whenCreated,
         invoiceNumber: invoiceNumber,
+        skipDittoSync: skipDittoSync,
       );
     } catch (e) {
       rethrow;

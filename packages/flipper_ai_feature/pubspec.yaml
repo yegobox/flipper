@@ -28,10 +28,12 @@ dependencies:
   shared_preferences: any
   path_provider: ^2.1.5
   intl: any
+  path: any
   markdown_widget: any
   record: ^6.2.0
   file_picker: ^10.3.7
   mime: any
+  flutter_svg: any
   
   # Flipper packages
   flipper_services: any
@@ -40,11 +42,14 @@ dependencies:
   supabase_models: any
   flipper_dashboard: any
 
-  # AI service SDKs - add your preferred AI provider
-  # For example:
-  # - google_generative_ai: ^0.4.0
-  # - openai_dart: ^0.3.0
-  
+  # On-device AI (iOS + desktop only; gated at runtime in GemmaInferenceEngine).
+  # litertlm runs .litertlm weights on both iOS and desktop (single format).
+  flutter_gemma: ^1.0.0
+  flutter_gemma_litertlm: any
+  # Phase 2 (on-device RAG over sales/transactions):
+  flutter_gemma_embeddings: any
+  flutter_gemma_rag_qdrant: any
+
   pasteboard: any
   brick_offline_first: any
   fl_chart: any
@@ -64,7 +69,6 @@ dev_dependencies:
   stacked_services: any
   sqflite_common_ffi: any
   visibility_detector: any
-  fl_chart: any
 
 dependency_overrides:
   sqlite3: ^3.3.1

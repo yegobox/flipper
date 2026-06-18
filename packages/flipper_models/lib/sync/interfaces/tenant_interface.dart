@@ -26,7 +26,6 @@ abstract class TenantInterface {
       String? userId,
       String? tenantId,
       required bool fetchRemote});
-  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId});
 
   /// Delete tenants that have a null `pin` value. If [businessId] is provided,
   /// only tenants for that business will be checked and deleted.

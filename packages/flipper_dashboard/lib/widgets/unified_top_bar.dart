@@ -14,6 +14,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/notice.model.dart';
 
 /// Desktop top bar: POS handoff layout on inventory, search + ribbon elsewhere.
+/// The shell ([DashboardLayout]) draws the logo column so this row aligns with
+/// the sidebar logo on every page.
 class UnifiedTopBar extends ConsumerWidget {
   final TextEditingController searchController;
 

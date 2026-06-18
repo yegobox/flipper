@@ -24,6 +24,8 @@ import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/services/loan_customer_linker.dart';
+import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
@@ -51,13 +53,15 @@ import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/personal_goals_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
+import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_models/sync/capella/mixins/production_output_mixin.dart';
 import 'package:flipper_models/sync/mixins/bulk_process_item_mixin.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
 import 'package:flipper_models/SyncStrategy.dart';
 
@@ -77,6 +81,7 @@ class CapellaSync extends AiStrategyImpl
         CoreMiscellaneous,
         CapellaGetterOperationsMixin,
         CapellaProductMixin,
+        PurchaseMixin,
         CapellaPurchaseMixin,
         CapellaReceiptMixin,
         CapellaStorageMixin,
@@ -240,12 +245,6 @@ class CapellaSync extends AiStrategyImpl
     required bool fetchRemote,
   }) {
     // TODO: implement tenant
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) {
-    // TODO: implement tenants
     throw UnimplementedError();
   }
 
@@ -687,6 +686,31 @@ class CapellaSync extends AiStrategyImpl
         }
       });
 
+      // Record the event in the accounting ledger so Books finds the journal
+      // entry already posted, whether or not the accounting app is running.
+      unawaited(
+        PosJournalPoster.onTransactionFinalized(
+          transaction: transaction,
+          items: items,
+          eventCashReceived: cashReceived,
+          completionStatus: completionStatus,
+          isProformaMode: isProformaMode,
+          isTrainingMode: isTrainingMode,
+        ),
+      );
+
+      // Link (or auto-create) the canonical customer record for loans so
+      // accounting tracks debtors by customer id — runs in the background,
+      // adds no latency to checkout. A parked sale is a loan even before
+      // markTransactionAsCompleted persists isLoan.
+      unawaited(
+        LoanCustomerLinker.ensureLinked(
+          transaction: transaction,
+          branchId: branchId,
+          markAsLoan: transaction.isLoan == true || completionStatus == PARKED,
+        ),
+      );
+
       return transaction;
     } catch (e, s) {
       talker.error('Capella collectPayment failed: $e', s);
@@ -798,9 +822,19 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<Composite>> composites({String? productId, String? variantId}) {
-    // TODO: implement composites
-    throw UnimplementedError();
+  FutureOr<List<Composite>> composites({
+    String? productId,
+    String? variantId,
+  }) async {
+    return repository.get<Composite>(
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(
+        where: [
+          if (productId != null) brick.Where('productId').isExactly(productId),
+          if (variantId != null) brick.Where('variantId').isExactly(variantId),
+        ],
+      ),
+    );
   }
 
   @override
@@ -1140,9 +1174,16 @@ class CapellaSync extends AiStrategyImpl
   FutureOr<bool> isBranchEnableForPayment({
     required String currentBranchId,
     bool fetchRemote = false,
-  }) {
-    // TODO: implement isBranchEnableForPayment
-    throw UnimplementedError();
+  }) async {
+    final paymentStatus = await repository.get<BranchPaymentIntegration>(
+      policy: fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(currentBranchId)],
+      ),
+    );
+    return paymentStatus.firstOrNull?.isEnabled ?? false;
   }
 
   @override
@@ -1155,9 +1196,94 @@ class CapellaSync extends AiStrategyImpl
   Future<bool> isTaxEnabled({
     required String businessId,
     required String branchId,
-  }) {
-    // TODO: implement isTaxEnabled
-    throw UnimplementedError();
+  }) async {
+    // Ported verbatim from the brick (CoreSync) Ditto-backed implementation so
+    // the Capella strategy resolves tax-enabled state identically (no regression).
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized:001');
+        return false;
+      }
+      final preparedEbm = prepareDqlSyncSubscription(
+        "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
+        {'businessId': businessId, 'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedEbm.dql,
+        arguments: preparedEbm.arguments,
+      );
+
+      // Query the ebms table using Ditto
+      String query =
+          'SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId';
+      final arguments = <String, dynamic>{
+        'businessId': businessId,
+        'branchId': branchId,
+      };
+
+      // Subscribe to ensure we have the latest data from Ditto mesh
+      final preparedEbm2 = prepareDqlSyncSubscription(query, arguments);
+      await ditto.sync.registerSubscription(
+        preparedEbm2.dql,
+        arguments: preparedEbm2.arguments,
+      );
+
+      // Use registerObserver to wait for data
+      final completer = Completer<List<dynamic>>();
+      final observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (result) {
+          if (!completer.isCompleted) {
+            completer.complete(result.items.toList());
+          }
+        },
+      );
+
+      List<dynamic> items = [];
+      try {
+        // Wait for data or timeout
+        items = await completer.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            if (!completer.isCompleted) {
+              talker.warning('Timeout waiting for ebms data');
+              completer.complete([]);
+            }
+            return [];
+          },
+        );
+      } finally {
+        observer.cancel();
+      }
+
+      // Check if any EBM configuration exists and if VAT is enabled
+      if (items.isNotEmpty) {
+        final ebmData = items.first.value as Map<String, dynamic>;
+        final vatEnabled = ebmData['vatEnabled'] as bool?;
+        final taxServerUrl = ebmData['taxServerUrl'] as String?;
+
+        final isMobile = defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android;
+
+        if (isMobile &&
+            taxServerUrl != null &&
+            taxServerUrl.contains('localhost')) {
+          talker.info('Tax disabled on mobile with localhost tax server');
+          return false;
+        }
+
+        return vatEnabled ==
+            true; // Return true if vatEnabled is true, false otherwise
+      }
+
+      // If no EBM configuration found, tax is not enabled
+      return false;
+    } catch (e, st) {
+      talker.error('Error checking if tax is enabled from Ditto: $e\n$st');
+      return false;
+    }
   }
 
   @override

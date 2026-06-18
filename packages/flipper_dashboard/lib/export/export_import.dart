@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +13,9 @@ import 'package:path/path.dart' as path;
 
 class ExportImport {
   Future<void> export(List<Variant> variants) async {
-    final business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
 
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();

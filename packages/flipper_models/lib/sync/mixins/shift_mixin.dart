@@ -113,7 +113,9 @@ mixin ShiftMixin implements ShiftApi {
       ]),
     );
     talker.debug('getCurrentShift: found ${shifts.length} shifts');
-    return shifts.lastOrNull;
+    if (shifts.isEmpty) return null;
+    shifts.sort((a, b) => b.startAt.compareTo(a.startAt));
+    return shifts.first;
   }
 
   @override

@@ -41,6 +41,15 @@ String posTileAbbr(String name) {
   return name.length > 3 ? name.substring(0, 3) : name;
 }
 
+/// Sellable qty for POS tiles: on-hand minus lines already on the pending cart.
+int posAvailableStockForDisplay({
+  required num physicalStock,
+  required int inCartQty,
+}) {
+  final available = physicalStock.floor().toInt() - inCartQty;
+  return available < 0 ? 0 : available;
+}
+
 PosStockVisual posStockVisual({
   required num currentStock,
   required num lowStockThreshold,

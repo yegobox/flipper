@@ -6,7 +6,6 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/business_analytic.model.dart'
     as models;
 import 'package:supabase_models/brick/models/credit.model.dart';
@@ -14,33 +13,28 @@ import 'package:mime/mime.dart'; // Import for lookupMimeType
 import 'package:flipper_models/utils/excel_utility.dart';
 
 import 'package:flipper_models/providers/unified_ai_input.dart';
+import 'package:flipper_models/providers/local_inference_engine.dart';
 import 'package:flipper_models/models/ai_model.dart';
 import 'package:flipper_models/repositories/ai_model_repository.dart';
 
 part 'ai_provider.g.dart';
 
 @riverpod
-Stream<List<AIModel>> availableModels(Ref ref) {
-  final supabase = Supabase.instance.client;
-  return supabase
-      .from('ai_models')
-      .stream(primaryKey: ['id'])
-      .eq('is_active', true)
-      .map((List<Map<String, dynamic>> data) {
-        final models = data.map((json) => AIModel.fromJson(json)).toList();
+Future<List<AIModel>> availableModels(Ref ref) async {
+  final allModels = await AIModelRepository().getAvailableModels();
+  final localSupported = LocalInferenceRegistry.isAvailable;
+  final models = allModels
+      .where((m) => !m.isLocal || localSupported)
+      .toList();
 
-        // Manual sorting:
-        // 1. Default models first (isDefault = true comes before false)
-        // 2. Alphabetical by name
-        models.sort((a, b) {
-          if (a.isDefault != b.isDefault) {
-            return a.isDefault ? -1 : 1;
-          }
-          return a.name.compareTo(b.name);
-        });
+  models.sort((a, b) {
+    if (a.isDefault != b.isDefault) {
+      return a.isDefault ? -1 : 1;
+    }
+    return a.name.compareTo(b.name);
+  });
 
-        return models;
-      });
+  return models;
 }
 
 /// Define the input data structure
@@ -141,6 +135,27 @@ Future<Map<String, dynamic>> fileToBase64(String filePath) async {
 class GeminiResponse extends _$GeminiResponse {
   @override
   Future<String> build(UnifiedAIInput input, AIModel? aiModel) async {
+    // ON-DEVICE PATH
+    // --------------
+    // Local models run fully offline via the registered LocalInferenceEngine.
+    // They are free, so we deliberately skip the credit/quota gating below.
+    if (aiModel != null && aiModel.isLocal) {
+      final engine = LocalInferenceRegistry.engine;
+      if (engine == null || !engine.isSupported) {
+        throw Exception(
+          'On-device AI is not available on this device. '
+          'Please switch to a cloud model.',
+        );
+      }
+      talker.info('AI Request (On-Device): ${aiModel.name}');
+      await engine.ensureModelReady();
+      return engine.complete(
+        input.toPlainPrompt(),
+        temperature: input.generationConfig?.temperature ?? aiModel.temperature,
+        maxTokens: input.generationConfig?.maxOutputTokens ?? aiModel.maxTokens,
+      );
+    }
+
     // Determine configuration
     final isGemini = aiModel?.isGeminiStandard ?? true;
     final apiUrl = aiModel?.apiUrl ?? AppSecrets.googleAiUrl;

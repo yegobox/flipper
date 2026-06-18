@@ -1,0 +1,170 @@
+/* ===========================================================
+   Flipper Accounting · interaction layer
+   Dropdown menus, toasts, detail modal — all positioned
+   INSIDE the scaled .acc canvas (absolute, not fixed) so they
+   track the transform: scale() correctly.
+   =========================================================== */
+
+/* the canvas needs to be a positioning context for overlays */
+.acc { position: relative; }
+
+/* ============================ dropdown shell ============================ */
+.acc-dd { position: relative; display: inline-flex; }
+.acc-dd.block { display: flex; }
+
+.acc-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 50;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  box-shadow: var(--sh-3);
+  padding: 7px;
+  animation: accMenuIn .14s cubic-bezier(.22,.9,.3,1);
+  transform-origin: top right;
+}
+.acc-menu.al-r { right: 0; }
+.acc-menu.al-l { left: 0; }
+.acc-menu.up { top: auto; bottom: calc(100% + 8px); transform-origin: bottom left; }
+@keyframes accMenuIn { from { opacity: 0; transform: translateY(-5px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .acc-menu { animation: none; } }
+
+.acc-menu-lbl {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-4); padding: 9px 11px 5px;
+}
+.acc-menu-sep { height: 1px; background: var(--line); margin: 6px 4px; }
+
+.acc-mi {
+  display: flex; align-items: center; gap: 11px; width: 100%;
+  padding: 9px 11px; border-radius: 9px; text-align: left;
+  font-size: 13.5px; font-weight: 600; color: var(--ink-1);
+  transition: background .1s, color .1s; cursor: pointer;
+}
+.acc-mi:hover { background: var(--surface-2); }
+.acc-mi .mi-ic { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); }
+.acc-mi:hover .mi-ic { background: var(--blue-tint); color: var(--blue); }
+.acc-mi .mi-tx { flex: 1; min-width: 0; }
+.acc-mi .mi-sub { font-size: 11.5px; font-weight: 500; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-mi .mi-right { font-size: 12px; font-weight: 600; color: var(--ink-3); font-family: var(--mono); flex-shrink: 0; }
+.acc-mi .mi-check { color: var(--blue); flex-shrink: 0; }
+.acc-mi.is-active { color: var(--blue); }
+.acc-mi.is-active .mi-ic { background: var(--blue-tint); color: var(--blue); }
+.acc-mi.danger { color: var(--loss-ink); }
+.acc-mi.danger:hover { background: var(--loss-tint); }
+.acc-mi.danger .mi-ic { background: var(--loss-tint); color: var(--loss); }
+.acc-mi .mi-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* notification toned tiles */
+.mi-ic.t-amber { background: var(--warn-tint); color: var(--warnamber); }
+.mi-ic.t-blue  { background: var(--blue-tint); color: var(--blue); }
+.mi-ic.t-green { background: var(--gain-tint); color: var(--gain-ink); }
+.mi-ic.t-red   { background: var(--loss-tint); color: var(--loss); }
+
+/* entity mark inside menu */
+.acc-mi .mi-mark { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; background: var(--grad-brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+
+.acc-menu-foot { padding: 7px 11px 4px; border-top: 1px solid var(--line); margin-top: 5px; }
+
+/* ============================ topbar search palette ============================ */
+.acc-search { position: relative; cursor: text; }
+.acc-search-panel {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 50;
+  background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: 14px; box-shadow: var(--sh-3); padding: 7px;
+  max-height: 420px; overflow-y: auto;
+  animation: accMenuIn .14s cubic-bezier(.22,.9,.3,1);
+}
+.acc-search-panel::-webkit-scrollbar { width: 8px; }
+.acc-search-panel::-webkit-scrollbar-thumb { background: #D4DCEA; border-radius: 8px; }
+.acc-search-empty { padding: 22px 12px; text-align: center; color: var(--ink-3); font-size: 13px; }
+.acc-search-hint { padding: 8px 11px 4px; font-size: 11.5px; color: var(--ink-4); }
+.acc-search-hint kbd { font-family: var(--mono); background: var(--surface-2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; font-size: 10.5px; }
+
+/* ============================ toasts ============================ */
+.acc-toasts {
+  position: absolute; right: 24px; bottom: 24px; z-index: 70;
+  display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
+  pointer-events: none;
+}
+.acc-toast {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 12px;
+  min-width: 280px; max-width: 400px;
+  padding: 13px 16px 13px 13px;
+  background: #0E1626; color: #EAF0FB;
+  border-radius: 13px; box-shadow: 0 18px 44px -12px rgba(8,12,22,.55), 0 4px 10px rgba(8,12,22,.3);
+  animation: accToastIn .26s cubic-bezier(.22,.9,.3,1);
+}
+.acc-toast.out { animation: accToastOut .22s ease forwards; }
+@keyframes accToastIn { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+@keyframes accToastOut { to { opacity: 0; transform: translateX(16px); } }
+.acc-toast-ic { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: grid; place-items: center; background: rgba(255,255,255,.1); color: #fff; }
+.acc-toast.success .acc-toast-ic { background: var(--gain); }
+.acc-toast.info .acc-toast-ic { background: var(--blue); }
+.acc-toast.warn .acc-toast-ic { background: #E89A2A; color: #3A2400; }
+.acc-toast-tx { flex: 1; min-width: 0; }
+.acc-toast-title { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; }
+.acc-toast-sub { font-size: 12px; color: #97A6C2; margin-top: 2px; }
+.acc-toast-x { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; color: #8595B4; flex-shrink: 0; }
+.acc-toast-x:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+/* ============================ generic detail modal ============================ */
+.acc-modal-scrim {
+  position: absolute; inset: 0; z-index: 55; background: rgba(8,12,22,.5);
+  display: grid; place-items: center; padding: 40px;
+  animation: accFade .16s;
+}
+.acc-modal {
+  width: 540px; max-width: 100%; max-height: 100%;
+  background: var(--surface); border-radius: 20px; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 40px 90px -30px rgba(8,12,22,.6);
+  animation: accModalIn .26s cubic-bezier(.22,.9,.3,1);
+}
+@keyframes accModalIn { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .acc-modal, .acc-modal-scrim { animation: none; } }
+.acc-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 20px 22px 16px; border-bottom: 1px solid var(--line); }
+.acc-modal-title { font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+.acc-modal-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 3px; }
+.acc-modal-body { padding: 18px 22px; overflow-y: auto; }
+.acc-modal-foot { display: flex; gap: 12px; padding: 16px 22px; border-top: 1px solid var(--line); }
+.acc-modal-foot .acc-btn { flex: 1; }
+
+/* JE detail line list */
+.je-line { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line-soft); }
+.je-line:last-child { border-bottom: 0; }
+.je-line .side { font-size: 11px; font-weight: 800; letter-spacing: .04em; }
+.je-line .side.dr { color: var(--dr-ink); }
+.je-line .side.cr { color: var(--cr-ink); }
+.je-line .ac-nm { font-size: 13.5px; font-weight: 600; }
+.je-line .ac-code { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+.je-line .amt { font-family: var(--mono); font-size: 14px; font-weight: 700; }
+.je-balstrip {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  margin-top: 16px; padding: 11px; border-radius: 12px;
+  background: var(--gain-tint); color: var(--gain-ink); font-size: 13px; font-weight: 700;
+}
+.je-balstrip .ic { width: 22px; height: 22px; border-radius: 50%; background: var(--gain); color: #fff; display: grid; place-items: center; }
+
+/* small form fields reused in create modals */
+.acc-mform { display: flex; flex-direction: column; gap: 14px; }
+.acc-mfield .acc-field-lbl { margin-bottom: 6px; }
+.acc-seg { display: inline-flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px; padding: 4px; flex-wrap: wrap; }
+.acc-seg button { height: 32px; padding: 0 13px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.acc-seg button.on { background: var(--surface); color: var(--ink-1); box-shadow: var(--sh-1); }
+
+/* clickable affordance for KPI cards */
+.acc-kpi.clickable { cursor: pointer; transition: transform .12s, box-shadow .2s, border-color .15s; }
+.acc-kpi.clickable:hover { transform: translateY(-2px); box-shadow: var(--sh-2); border-color: var(--line-strong); }
+.acc-kpi .kpi-go { position: absolute; top: 16px; right: 16px; color: var(--ink-4); opacity: 0; transition: opacity .15s; }
+.acc-kpi.clickable:hover .kpi-go { opacity: 1; }
+
+/* make card links behave like buttons */
+button.acc-card-link { cursor: pointer; }
+button.acc-card-link:hover { text-decoration: underline; }
+
+/* bell badge wiggle on the iconbtn when there are unread items handled via .dot already */
+.acc-period, .acc-iconbtn, .acc-entity { cursor: pointer; }

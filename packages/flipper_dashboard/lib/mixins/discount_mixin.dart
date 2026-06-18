@@ -32,7 +32,7 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
     ITransaction transaction,
   ) async {
     return await ProxyService.getStrategy(Strategy.capella).transactionItems(
-      branchId: (await ProxyService.strategy.activeBranch(
+      branchId: (await ProxyService.getStrategy(Strategy.capella).activeBranch(
         branchId: ProxyService.box.getBranchId()!,
       )).id,
       transactionId: transaction.id,

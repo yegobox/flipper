@@ -106,7 +106,6 @@ class PosCartAddService {
         isOrdering: isOrdering,
       );
       if (txn == null || txn.id.isEmpty) {
-        ref.read(optimisticOrderCountProvider.notifier).decrement();
         if (cartOptimismApplied) {
           final tid = readPendingCartTransactionId(ref, isExpense: isOrdering);
           if (tid != null) {
@@ -159,6 +158,10 @@ class PosCartAddService {
         ),
         cartOptimismApplied: cartOptimismApplied,
       );
+    } finally {
+      if (ref.mounted) {
+        ref.read(optimisticOrderCountProvider.notifier).decrement();
+      }
     }
   }
 }

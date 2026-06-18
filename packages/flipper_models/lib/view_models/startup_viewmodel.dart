@@ -80,9 +80,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         debugPrint(
           '🚀 [StartupViewModel] Initializing Ditto early for userId: $userId',
         );
-        await appService
-            .initDittoForLogin(userId)
-            .timeout(const Duration(seconds: 10));
+        final earlyInit = userId.startsWith('login-')
+            ? appService.initDittoForLogin(userId)
+            : appService.initDittoEarlyForSession(userId);
+        await earlyInit.timeout(const Duration(seconds: 10));
         debugPrint('🚀 [StartupViewModel] Ditto initialized early');
       } catch (e) {
         debugPrint(

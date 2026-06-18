@@ -58,6 +58,7 @@ Future<Purchase> _$PurchaseFromSupabase(
     approved: data['approved'] == null ? null : data['approved'] as int?,
     rejected: data['rejected'] == null ? null : data['rejected'] as int?,
     pending: data['pending'] == null ? null : data['pending'] as int?,
+    regTyCd: data['reg_ty_cd'] == null ? null : data['reg_ty_cd'] as String?,
     createdAt: DateTime.parse(data['created_at'] as String),
   );
 }
@@ -112,6 +113,7 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(
     'approved': instance.approved,
     'rejected': instance.rejected,
     'pending': instance.pending,
+    'reg_ty_cd': instance.regTyCd,
     'created_at': instance.createdAt.toIso8601String(),
   };
 }
@@ -178,6 +180,7 @@ Future<Purchase> _$PurchaseFromSqlite(
     approved: data['approved'] == null ? null : data['approved'] as int?,
     rejected: data['rejected'] == null ? null : data['rejected'] as int?,
     pending: data['pending'] == null ? null : data['pending'] as int?,
+    regTyCd: data['reg_ty_cd'] == null ? null : data['reg_ty_cd'] as String?,
     createdAt: DateTime.parse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
@@ -222,6 +225,7 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(
     'approved': instance.approved,
     'rejected': instance.rejected,
     'pending': instance.pending,
+    'reg_ty_cd': instance.regTyCd,
     'created_at': instance.createdAt.toIso8601String(),
   };
 }
@@ -369,6 +373,10 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
     'pending': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'pending',
+    ),
+    'regTyCd': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'reg_ty_cd',
     ),
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -584,6 +592,12 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
       columnName: 'pending',
       iterable: false,
       type: int,
+    ),
+    'regTyCd': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'reg_ty_cd',
+      iterable: false,
+      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

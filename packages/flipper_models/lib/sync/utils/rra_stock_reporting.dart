@@ -190,6 +190,34 @@ const String kRraSaleStockSnapshotPrefix = 'rra_sale_stock_snapshot_';
 String rraSaleStockSnapshotBoxKey(String transactionId) =>
     '$kRraSaleStockSnapshotPrefix$transactionId';
 
+/// Whether a sale line can skip local stock decrement.
+///
+/// [quantityShipped] alone is not trusted — a prior failed deduct can mark
+/// shipped without lowering Ditto stock (perf refactor regression).
+bool saleLineAlreadyStockDeducted({
+  required TransactionItem item,
+  required Map<String, Variant> variantsByVariantId,
+  required Map<String, Stock> stocksByStockId,
+  required Map<String, double>? preSaleStockByStockId,
+  double tolerance = 0.001,
+}) {
+  if (item.quantityShipped != item.qty.toInt()) return false;
+
+  final vid = item.variantId;
+  if (vid == null || vid.isEmpty) return true;
+
+  final sid = variantsByVariantId[vid]?.stockId;
+  if (sid == null || sid.isEmpty) return true;
+
+  final preSale = preSaleStockByStockId?[sid];
+  if (preSale == null) return true;
+
+  final current = stocksByStockId[sid]?.currentStock?.toDouble() ?? 0.0;
+  final expectedAfterSale = _roundMoney(preSale - item.qty.toDouble());
+  if (expectedAfterSale < 0) return current <= tolerance;
+  return current <= expectedAfterSale + tolerance;
+}
+
 /// Resolves [sarTyCd] for post-[saveSales] `stock/saveStockItems` (matches [TaxController]).
 ///
 /// Deferred post-sale sync ([runPostSaleStockDeductionAndRraSync]) must use the same
@@ -212,16 +240,24 @@ String resolveRraStockIoSarTyCd({
   String? transactionSarTyCd,
 }) {
   if (sarTyCd != null && sarTyCd.isNotEmpty) return sarTyCd;
-  if (transactionSarTyCd != null && transactionSarTyCd.isNotEmpty) {
-    return transactionSarTyCd;
-  }
+  // Retail sale receipts are always outgoing stock (11). Do not reuse
+  // [transactionSarTyCd] from prior stock adjustments (e.g. "06").
   switch (receiptType) {
+    case 'NS':
+    case 'CS':
+    case 'TS':
+    case 'PS':
+      return StockInOutType.sale;
     case 'NR':
     case 'TR':
       return StockInOutType.returnIn;
     default:
-      return StockInOutType.sale;
+      break;
   }
+  if (transactionSarTyCd != null && transactionSarTyCd.isNotEmpty) {
+    return transactionSarTyCd;
+  }
+  return StockInOutType.sale;
 }
 
 /// Parses [JSON-encoded] `{ stockId -> qty }` from [LocalStorage.writeString].

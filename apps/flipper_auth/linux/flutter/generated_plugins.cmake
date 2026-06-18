@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
   desktop_drop
   file_selector_linux
+  flutter_gemma
   flutter_localization
   gtk
   pasteboard

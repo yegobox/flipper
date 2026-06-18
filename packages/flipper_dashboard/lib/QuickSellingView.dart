@@ -111,12 +111,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  /// Prior non-credit payments from payment records, when loaded; otherwise
-  /// [ITransaction.cashReceived]. Must match [updatePaymentRemainder] /
-  /// [standardizedPaymentInitialization] so change/balance are not double-counted.
+  /// Prior non-credit payments from payment records, when loaded.
+  ///
+  /// Do not fall back to [ITransaction.cashReceived] for normal sales: item-add
+  /// updates mirror [ProxyService.box.getCashReceived] into that field, so it
+  /// often holds the current tender and would be double-counted with
+  /// [paymentMethodsProvider]. Loans may still use cashReceived until fetch completes.
   double _effectiveAlreadyPaid(ITransaction? transaction) {
     if (_cachedNonCreditPaid != null) return _cachedNonCreditPaid!;
-    return transaction?.cashReceived ?? 0.0;
+    if (transaction?.isLoan == true) {
+      return transaction?.cashReceived ?? 0.0;
+    }
+    return 0.0;
   }
 
   double get totalAfterDiscountAndShipping {
@@ -527,6 +533,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return payBusy || completing;
   }
 
+  Customer? _attachedCustomerHintFor(ITransaction transaction) {
+    final customerId = transaction.customerId;
+    if (customerId == null || customerId.isEmpty) return null;
+    return ref.read(attachedCustomerProvider(customerId)).asData?.value;
+  }
+
   void _prefillCustomerDetails(ITransaction transaction) {
     if (transaction.customerName != null &&
         transaction.customerName!.isNotEmpty &&
@@ -539,36 +551,41 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       );
     }
 
+    // Never overwrite the field while the cashier is actively typing into it,
+    // and never derive a phone via a blind substring (a half-entered "+2507"
+    // would otherwise collapse to a single "7" on the printed receipt).
     if (transaction.customerPhone != null &&
         transaction.customerPhone!.isNotEmpty &&
-        widget.customerPhoneNumberController.text.isEmpty) {
+        widget.customerPhoneNumberController.text.isEmpty &&
+        !_customerPhoneFocusNode.hasFocus) {
       talker.info('Pre-filling customer phone: ${transaction.customerPhone}');
-      String phone = transaction.customerPhone!;
-      // Handle country code if present (assuming +250 or 250)
-      if (phone.startsWith('+')) {
-        // Find dial code match if possible, or just strip commonly known ones
-        if (phone.startsWith('+250')) {
-          widget.countryCodeController.text = '+250';
-          widget.customerPhoneNumberController.text = phone.substring(4);
-        } else {
-          // Fallback: strip + and first 3 digits as a guess or just put all in phone
-          widget.customerPhoneNumberController.text = phone.substring(1);
-        }
-      } else if (phone.startsWith('250') && phone.length > 9) {
-        widget.countryCodeController.text = '+250';
-        widget.customerPhoneNumberController.text = phone.substring(3);
-      } else {
-        widget.customerPhoneNumberController.text = phone;
-      }
+      final local = _localPhoneFromStored(transaction.customerPhone!);
+      widget.customerPhoneNumberController.text = local;
       ProxyService.box.writeString(
         key: 'currentSaleCustomerPhoneNumber',
-        value: widget.customerPhoneNumberController.text,
+        value: local,
       );
     }
 
     // Payment initialization is deferred to the builder where items
     // are guaranteed to be loaded. Calling it here with an empty items
     // list would produce total=0 and zero-out the payment field.
+  }
+
+  /// Extracts the local subscriber number from a stored customer phone.
+  ///
+  /// Strips a leading Rwanda country code only when the full code + 9-digit
+  /// local number is present (>= 12 digits). Anything shorter is returned as-is
+  /// so a partially-entered value such as "+2507" yields "2507" rather than the
+  /// single "7" a blind `substring(4)` would produce. This is what previously
+  /// printed `TEL: 7` on receipts.
+  String _localPhoneFromStored(String raw) {
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.length >= 12 && digits.startsWith('250')) {
+      widget.countryCodeController.text = '+250';
+      return digits.substring(3);
+    }
+    return digits;
   }
 
   // Controllers for quantity inputs per item (small device view)
@@ -604,6 +621,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   // Ensure payment initialization runs once when both transaction & items are ready
   String? _lastPaymentInitTransactionId;
   double? _cachedNonCreditPaid;
+  Timer? _customerNamePersistTimer;
+  Timer? _customerPhonePersistTimer;
+  static const Duration _customerFieldPersistDebounce =
+      Duration(milliseconds: 450);
 
   bool _isPlainEnter(KeyEvent event) {
     if (event is! KeyDownEvent) {
@@ -685,6 +706,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   void dispose() {
     widget.discountController.removeListener(_onDiscountChanged);
+    _customerNamePersistTimer?.cancel();
+    _customerPhonePersistTimer?.cancel();
     for (final c in _quantityControllers.values) {
       c.dispose();
     }
@@ -725,6 +748,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     if (!mounted) {
       return;
     }
+
+    // Empty the cart immediately so the operator can start the next sale
+    // without waiting for the stream/pending providers below to reconcile.
+    // Suppress at the provider source so every consumer (list, totals, badges)
+    // clears in the same frame; also drop the mixin's in-widget line cache.
+    ref.read(suppressedCartTransactionIdProvider.notifier).state =
+        transaction.id;
+    clearCartLinesOptimistically();
 
     ref
         .read(optimisticCartProvider.notifier)
@@ -794,7 +825,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           _prefillCustomerDetails(next.value!);
           if (isNewTransaction) {
             resetDigitalReceiptToggle(ref);
-            _cachedNonCreditPaid = null;
+            _cachedNonCreditPaid = 0.0;
             _lastPaymentInitTransactionId = null;
             _updateReceivedAmountIfNeeded(next.value!);
           }
@@ -851,6 +882,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         isExpense: ProxyService.box.isOrdering() ?? false,
       ),
     );
+    final attachedCustomerId = transactionAsyncValue.value?.customerId;
+    if (attachedCustomerId != null && attachedCustomerId.isNotEmpty) {
+      ref.watch(attachedCustomerProvider(attachedCustomerId));
+    }
     if (kDebugMode) {
       tv_talk.talker.debug(
         'QuickSellingView.build pending '
@@ -1601,7 +1636,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           data: (branch) {
             return FutureBuilder<bool>(
               future:
-                  ProxyService.strategy.isBranchEnableForPayment(
+                  ProxyService.getStrategy(Strategy.capella).isBranchEnableForPayment(
                         currentBranchId: branch.id,
                       )
                       as Future<bool>,
@@ -1689,6 +1724,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                             paymentMethods: ref.watch(
                                               paymentMethodsProvider,
                                             ),
+                                            attachedCustomerHint:
+                                                _attachedCustomerHintFor(
+                                                  transaction,
+                                                ),
                                             onPaymentConfirmed:
                                                 onPaymentConfirmed,
                                             onPaymentFailed: onPaymentFailed,
@@ -2141,6 +2180,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     transactionHint: transaction,
                     transactionItemsHint: transactionItemsHint,
                     paymentMethods: ref.watch(paymentMethodsProvider),
+                    attachedCustomerHint: _attachedCustomerHintFor(transaction),
                   );
                 } catch (e, s) {
                   await ProxyService.box.writeBool(
@@ -2404,21 +2444,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           fontSize: 22,
           fontWeight: FontWeight.w600,
         ),
-        suffixIcon: Container(
-          margin: const EdgeInsetsDirectional.only(end: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-          ),
-          child: Text(
-            ProxyService.box.defaultCurrency(),
-            style: const TextStyle(
-              color: Color(0xFF6B7280),
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+        suffix: Text(
+          ProxyService.box.defaultCurrency(),
+          style: const TextStyle(
+            color: Color(0xFF9CA3AF),
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
         onChanged: (value) => setState(() {
@@ -2466,6 +2497,75 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  void _schedulePersistCustomerName(String value) {
+    _customerNamePersistTimer?.cancel();
+    _customerNamePersistTimer = Timer(_customerFieldPersistDebounce, () {
+      if (!mounted) return;
+      unawaited(_persistCustomerNameToPendingTransaction(value));
+    });
+  }
+
+  Future<void> _persistCustomerNameToPendingTransaction(String value) async {
+    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) return;
+    try {
+      final transactionAsync = ref.read(
+        pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        ),
+      );
+      final transaction = transactionAsync.asData?.value;
+      if (transaction != null && transaction.id.isNotEmpty) {
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+          transaction: transaction,
+          customerName: value,
+        );
+      }
+    } catch (e, s) {
+      talker.error(
+        'Failed to update transaction with customer name',
+        e,
+        s,
+      );
+    }
+  }
+
+  void _schedulePersistCustomerPhone(String value) {
+    _customerPhonePersistTimer?.cancel();
+    _customerPhonePersistTimer = Timer(_customerFieldPersistDebounce, () {
+      if (!mounted) return;
+      unawaited(_persistCustomerPhoneToPendingTransaction(value));
+    });
+  }
+
+  Future<void> _persistCustomerPhoneToPendingTransaction(String value) async {
+    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) return;
+    try {
+      final transactionAsync = ref.read(
+        pendingTransactionStreamProvider(
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        ),
+      );
+      final transaction = transactionAsync.asData?.value;
+      if (transaction != null && transaction.id.isNotEmpty) {
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+          transaction: transaction,
+          // Persist the bare local number — the same shape that
+          // `box` and sale completion store. Prefixing the
+          // country code here produced "+250<partial>" values
+          // that later got mis-stripped to a single digit on
+          // the printed receipt.
+          customerPhone: value,
+        );
+      }
+    } catch (e, s) {
+      talker.error(
+        'Failed to update transaction with customer phone',
+        e,
+        s,
+      );
+    }
+  }
+
   Widget _customerNameField() {
     final customerNameController = ref.watch(customerNameControllerProvider);
     return Semantics(
@@ -2497,197 +2597,154 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           }
           return null;
         },
-        onChanged: (value) async {
+        onChanged: (value) {
           // Store the customer name with the exact key expected by rw_tax.dart
           ProxyService.box.writeString(key: 'customerName', value: value);
 
           // For debugging
           talker.info('Customer name set to: $value');
 
-          // Persist to the pending transaction if one exists. Avoid creating a
-          // new transaction by only updating when there is an existing pending
-          // transaction instance available from the provider.
-          try {
-            if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
-              return;
-            }
-            final transactionAsync = ref.read(
-              pendingTransactionStreamProvider(
-                isExpense: ProxyService.box.isOrdering() ?? false,
-              ),
-            );
-            final transaction = transactionAsync.asData?.value;
-            if (transaction != null && transaction.id.isNotEmpty) {
-              unawaited(
-                ProxyService.getStrategy(Strategy.capella).updateTransaction(
-                  transaction: transaction,
-                  customerName: value,
-                ),
-              );
-            }
-          } catch (e, s) {
-            talker.error(
-              'Failed to update transaction with customer name',
-              e,
-              s,
-            );
-          }
+          _schedulePersistCustomerName(value);
         },
       ),
     );
   }
 
   Widget _buildCustomerPhoneField() {
+    const accent = PosLayoutBreakpoints.posAccentBlue;
+
     return Semantics(
       label: context.flipperL10n.customerPhoneNumber,
       hint: context.flipperL10n.customerPhoneNumberHint,
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-          borderRadius: BorderRadius.circular(8),
-          color:
-              Theme.of(context).inputDecorationTheme.fillColor ?? Colors.white,
-        ),
-        child: Row(
-          children: [
-            // Country code picker with consistent padding and height
-            Container(
-              height: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  bottomLeft: Radius.circular(8),
-                ),
-              ),
-              child: Center(
-                child: ExcludeFocus(
-                  child: DefaultTextStyle(
-                    style: const TextStyle(
-                      color: PosLayoutBreakpoints.posAccentBlue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    child: CountryCodePicker(
-                      onChanged: (countryCode) {
-                        widget.countryCodeController.text =
-                            countryCode.dialCode!;
-                      },
-                      initialSelection: 'RW',
-                      favorite: const ['+250', 'RW'],
-                      showCountryOnly: false,
-                      showOnlyCountryWhenClosed: false,
-                      alignLeft: false,
-                      padding: EdgeInsets.zero,
-                      textStyle: const TextStyle(
-                        color: PosLayoutBreakpoints.posAccentBlue,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
+      child: ListenableBuilder(
+        listenable: _customerPhoneFocusNode,
+        builder: (context, _) {
+          final focused = _customerPhoneFocusNode.hasFocus;
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: focused ? accent : const Color(0xFFE5E7EB),
+                width: focused ? 2 : 1,
               ),
             ),
-
-            // No divider — we make it feel seamless
-            Expanded(
-              child: StyledTextFormField.create(
-                context: context,
-                labelText: null,
-                hintText: context.flipperL10n.phoneNumber,
-                controller: widget.customerPhoneNumberController,
-                focusNode: _customerPhoneFocusNode,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) {
-                  final isOrdering = ProxyService.box.isOrdering() ?? false;
-                  if (isOrdering) {
-                    _deliveryNoteFocusNode.requestFocus();
-                  } else {
-                    FocusScope.of(context).nextFocus();
-                  }
-                },
-                maxLines: 1,
-                minLines: 1,
-                outlineColor: PosLayoutBreakpoints.posAccentBlue,
-                borderRadius: 8,
-                outlineBorderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(8),
-                  bottomRight: Radius.circular(8),
-                ),
-                fillColor: Colors.white,
-                hintColor: const Color(0xFF6B7280),
-                suffixIcon: Icon(
-                  FluentIcons.call_20_regular,
-                  color: PosLayoutBreakpoints.posAccentBlue,
-                ),
-                onChanged: (value) async {
-                  // Store the customer phone number
-                  ProxyService.box.writeString(
-                    key: 'currentSaleCustomerPhoneNumber',
-                    value: value,
-                  );
-
-                  // For debugging
-                  talker.info('Customer phone set to: $value');
-
-                  // Persist to the pending transaction if one exists. Avoid creating a
-                  // new transaction by only updating when there is an existing pending
-                  // transaction instance available from the provider.
-                  try {
-                    if (_skipLiveCustomerCapellaPersistDuringSaleCompletion()) {
-                      return;
-                    }
-                    final transactionAsync = ref.read(
-                      pendingTransactionStreamProvider(
-                        isExpense: ProxyService.box.isOrdering() ?? false,
-                      ),
-                    );
-                    final transaction = transactionAsync.asData?.value;
-                    if (transaction != null && transaction.id.isNotEmpty) {
-                      unawaited(
-                        ProxyService.getStrategy(
-                          Strategy.capella,
-                        ).updateTransaction(
-                          transaction: transaction,
-                          customerPhone:
-                              widget.countryCodeController.text + value,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ExcludeFocus(
+                  child: CountryCodePicker(
+                    onChanged: (countryCode) {
+                      widget.countryCodeController.text =
+                          countryCode.dialCode!;
+                    },
+                    initialSelection: 'RW',
+                    favorite: const ['+250', 'RW'],
+                    showCountryOnly: false,
+                    showOnlyCountryWhenClosed: false,
+                    showDropDownButton: false,
+                    alignLeft: false,
+                    padding: EdgeInsets.zero,
+                    flagWidth: 22,
+                    builder: (country) {
+                      final dialCode = country?.dialCode ?? '+250';
+                      final flagUri = country?.flagUri;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (flagUri != null)
+                              Image.asset(
+                                flagUri,
+                                package: 'country_code_picker',
+                                width: 22,
+                              ),
+                            const SizedBox(width: 6),
+                            Text(
+                              dialCode,
+                              style: const TextStyle(
+                                color: accent,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       );
-                    }
-                  } catch (e, s) {
-                    talker.error(
-                      'Failed to update transaction with customer phone',
-                      e,
-                      s,
-                    );
-                  }
-                },
-                validator: (String? value) {
-                  final customerTin = ProxyService.box.customerTin();
+                    },
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: const Color(0xFFE5E7EB),
+                ),
+                Expanded(
+                  child: StyledTextFormField.create(
+                    context: context,
+                    labelText: null,
+                    hintText: context.flipperL10n.phoneNumber,
+                    controller: widget.customerPhoneNumberController,
+                    focusNode: _customerPhoneFocusNode,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                      final isOrdering = ProxyService.box.isOrdering() ?? false;
+                      if (isOrdering) {
+                        _deliveryNoteFocusNode.requestFocus();
+                      } else {
+                        FocusScope.of(context).nextFocus();
+                      }
+                    },
+                    maxLines: 1,
+                    minLines: 1,
+                    borderless: true,
+                    fillColor: Colors.transparent,
+                    hintColor: const Color(0xFF6B7280),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    suffixIcon: const Icon(
+                      FluentIcons.call_20_regular,
+                      color: accent,
+                    ),
+                    onChanged: (value) {
+                      ProxyService.box.writeString(
+                        key: 'currentSaleCustomerPhoneNumber',
+                        value: value,
+                      );
 
-                  if ((customerTin == null || customerTin.isEmpty) &&
-                      (value == null || value.isEmpty)) {
-                    ref.read(payButtonStateProvider.notifier).stopLoading();
-                    return context.flipperL10n.phoneRequiredWhenTinMissing;
-                  }
+                      talker.info('Customer phone set to: $value');
 
-                  if (value != null && value.isEmpty) {
-                    final phoneExp = RegExp(r'^[1-9]\d{8}$');
-                    if (!phoneExp.hasMatch(value)) {
-                      ref.read(payButtonStateProvider.notifier).stopLoading();
-                      return context.flipperL10n.invalidNumber;
-                    }
-                  }
+                      _schedulePersistCustomerPhone(value);
+                    },
+                    validator: (String? value) {
+                      final customerTin = ProxyService.box.customerTin();
 
-                  return null;
-                },
-              ),
+                      if ((customerTin == null || customerTin.isEmpty) &&
+                          (value == null || value.isEmpty)) {
+                        ref.read(payButtonStateProvider.notifier).stopLoading();
+                        return context.flipperL10n.phoneRequiredWhenTinMissing;
+                      }
+
+                      if (value != null && value.isEmpty) {
+                        final phoneExp = RegExp(r'^[1-9]\d{8}$');
+                        if (!phoneExp.hasMatch(value)) {
+                          ref.read(payButtonStateProvider.notifier).stopLoading();
+                          return context.flipperL10n.invalidNumber;
+                        }
+                      }
+
+                      return null;
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

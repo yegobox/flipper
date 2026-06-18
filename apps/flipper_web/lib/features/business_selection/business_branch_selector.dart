@@ -1,3 +1,7 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_web/core/business_selection_persistence.dart';
+import 'package:flipper_web/core/session_persistence.dart';
+import 'package:flipper_web/features/business_selection/login_choices_ui.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -7,12 +11,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'business_branch_selector.g.dart';
 
-// Temporary enum for routes until the actual app_router is integrated
-enum AppRoute { dashboard, login, businessSelection }
+enum AppRoute { accounting, dashboard, login, businessSelection }
 
 extension AppRouteExtension on AppRoute {
   String get name {
     switch (this) {
+      case AppRoute.accounting:
+        return 'accounting';
       case AppRoute.dashboard:
         return 'dashboard';
       case AppRoute.login:
@@ -23,8 +28,7 @@ extension AppRouteExtension on AppRoute {
   }
 }
 
-/// Provider for the selected business
-@riverpod
+@Riverpod(keepAlive: true)
 class SelectedBusiness extends _$SelectedBusiness {
   @override
   Business? build() => null;
@@ -32,8 +36,7 @@ class SelectedBusiness extends _$SelectedBusiness {
   void set(Business? business) => state = business;
 }
 
-/// Provider for the selected branch
-@riverpod
+@Riverpod(keepAlive: true)
 class SelectedBranch extends _$SelectedBranch {
   @override
   Branch? build() => null;
@@ -41,12 +44,6 @@ class SelectedBranch extends _$SelectedBranch {
   void set(Branch? branch) => state = branch;
 }
 
-// Generated providers:
-// selectedBusinessProvider
-// selectedBranchProvider
-// No need for manual aliases if names match.
-
-/// Enum to track the current selection step
 enum SelectionStep { business, branch }
 
 class BusinessBranchSelector extends ConsumerStatefulWidget {
@@ -63,277 +60,311 @@ class _BusinessBranchSelectorState
     extends ConsumerState<BusinessBranchSelector> {
   SelectionStep _currentStep = SelectionStep.business;
   bool _isLoading = false;
+  bool _isSigningOut = false;
   String? _loadingItemId;
+  String? _selectedBranchId;
+  String? _selectedBusinessName;
   List<Branch> _businessBranches = [];
 
-  @override
-  Widget build(BuildContext context) {
-    // Since we know there's always only one tenant, get it directly
+  List<Business> get _businesses {
     final tenant = widget.userProfile.tenants.isNotEmpty
         ? widget.userProfile.tenants.first
         : null;
+    return tenant?.businesses ?? [];
+  }
+
+  int _branchCountFor(Business business) {
+    if (widget.userProfile.tenants.isEmpty) return 0;
+    final tenant = widget.userProfile.tenants.first;
+    return tenant.branches.where((b) => b.businessId == business.id).length;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final businesses = _businesses;
+    final userName = displayUserName(widget.userProfile, businesses);
+    final userContact = displayUserContact(widget.userProfile, businesses);
+    final userInitial = loginChoiceUserInitial(userName);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-          child: !_isLoading
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _currentStep == SelectionStep.business
-                          ? 'Choose a Business'
-                          : 'Choose a Branch',
-                      style: const TextStyle(
-                        fontSize: 32.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+      backgroundColor: LoginChoicesTokens.app,
+      body: LoginChoicesBackground(
+        child: SafeArea(
+          child: LoginChoicesDesktopScaffold(
+            userInitial: userInitial,
+            userName: userName,
+            userContact: userContact,
+            isSigningOut: _isSigningOut,
+            onSignOut: _logout,
+            child: _isLoading && _loadingItemId == null
+                ? const Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.black),
+                        strokeWidth: 3,
+                        backgroundColor: Color(0xFFE0E0E0),
                       ),
                     ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      _currentStep == SelectionStep.business
-                          ? 'Select the business you want to access'
-                          : 'Select the branch you want to access',
-                      style: TextStyle(fontSize: 16.0, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 32.0),
-                    Expanded(
-                      child: _currentStep == SelectionStep.business
-                          ? _buildBusinessList(tenant: tenant)
-                          : _buildBranchList(),
-                    ),
-                  ],
-                )
-              : Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                      strokeWidth: 3,
-                      backgroundColor: Colors.grey.shade300,
-                    ),
-                  ),
-                ),
+                  )
+                : _currentStep == SelectionStep.business
+                ? _buildBusinessSelection(businesses)
+                : _buildBranchSelection(),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildBusinessList({required Tenant? tenant}) {
-    if (tenant == null || tenant.businesses.isEmpty) {
+  Widget _buildBusinessSelection(List<Business> businesses) {
+    if (businesses.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('No businesses available'),
+            const Text(
+              'No businesses available',
+              style: TextStyle(color: LoginChoicesTokens.ink2),
+            ),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: _logout, child: const Text('Logout')),
+            TextButton(
+              onPressed: _isSigningOut ? null : _logout,
+              child: const Text('Sign out'),
+            ),
           ],
         ),
       );
     }
 
-    final selectedBusiness = ref.watch(selectedBusinessProvider);
-
-    return ListView.separated(
-      itemCount: tenant.businesses.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16.0),
-      itemBuilder: (context, index) {
-        final business = tenant.businesses[index];
-        return _buildSelectionTile(
-          title: business.name,
-          subtitle: business.fullName,
-          isSelected: business.id == selectedBusiness?.id,
-          onTap: () => _handleBusinessSelection(tenant, business),
-          icon: Icons.business,
-          isLoading: _loadingItemId == business.id,
-        );
-      },
-    );
-  }
-
-  Widget _buildBranchList() {
-    if (_businessBranches.isEmpty) {
-      return const Center(child: Text('No branches available'));
-    }
-
-    final selectedBranch = ref.watch(selectedBranchProvider);
-
-    return ListView.separated(
-      itemCount: _businessBranches.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16.0),
-      itemBuilder: (context, index) {
-        final branch = _businessBranches[index];
-        return _buildSelectionTile(
-          title: branch.name,
-          subtitle: branch.description,
-          isSelected: branch.id == selectedBranch?.id,
-          onTap: () => _handleBranchSelection(branch),
-          icon: Icons.store,
-          isLoading: _loadingItemId == branch.id,
-        );
-      },
-    );
-  }
-
-  Widget _buildSelectionTile({
-    required String title,
-    String? subtitle,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required IconData icon,
-    required bool isLoading,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Colors.blue.withValues(alpha: 0.1)
-                : Colors.grey[100],
-            borderRadius: BorderRadius.circular(12.0),
-            border: Border.all(
-              color: isSelected ? Colors.blue : Colors.transparent,
-              width: 2.0,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.blue.withValues(alpha: 0.3),
-                      blurRadius: 8.0,
-                    ),
-                  ]
-                : null,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Choose a business',
+          style: TextStyle(
+            color: LoginChoicesTokens.ink1,
+            fontWeight: FontWeight.w700,
+            height: 1.05,
+            fontSize: 27,
+            letterSpacing: -0.68,
           ),
-          child: Row(
+        ),
+        const SizedBox(height: 5),
+        const Text(
+          'Select the business you want to manage.',
+          style: TextStyle(
+            color: LoginChoicesTokens.ink2,
+            height: 1.35,
+            fontWeight: FontWeight.w400,
+            fontSize: 15,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Expanded(
+          child: ListView(
+            padding: EdgeInsets.zero,
             children: [
-              isLoading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      icon,
-                      color: isSelected ? Colors.blue : Colors.grey[600],
-                    ),
-              const SizedBox(width: 16.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.w500,
-                        color: isSelected ? Colors.blue : Colors.black,
-                      ),
-                    ),
-                    if (subtitle != null)
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          color: isSelected
-                              ? Colors.blue.shade700
-                              : Colors.grey[600],
-                        ),
-                      ),
-                  ],
+              for (var i = 0; i < businesses.length; i++) ...[
+                BusinessChoiceTile(
+                  name: businesses[i].name,
+                  subtitle: businessChoiceSubtitle(
+                    businesses[i],
+                    _branchCountFor(businesses[i]),
+                    widget.userProfile.id,
+                  ),
+                  iconTone: iconToneForIndex(i),
+                  isLoading: _loadingItemId == businesses[i].id,
+                  onTap: () => _handleBusinessSelection(businesses[i]),
                 ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: isSelected ? Colors.blue : Colors.grey[400],
+                if (i < businesses.length - 1)
+                  const SizedBox(height: LoginChoicesTokens.cardGap),
+              ],
+              const SizedBox(height: LoginChoicesTokens.cardGap),
+              AddBusinessTile(onTap: () {}),
+              const SizedBox(height: 22),
+              Center(
+                child: Text(
+                  'Not seeing your business? Ask the owner to invite you.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: LoginChoicesTokens.ink3,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
+                ),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 
-  void _handleBusinessSelection(Tenant tenant, Business business) async {
+  Widget _buildBranchSelection() {
+    final selectedBranchId =
+        _selectedBranchId ??
+        (_businessBranches.isNotEmpty ? _businessBranches.first.id : null);
+    Branch? selectedBranch;
+    for (final branch in _businessBranches) {
+      if (branch.id == selectedBranchId) {
+        selectedBranch = branch;
+        break;
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BranchSelectionTopRow(
+          businessName: _selectedBusinessName ?? 'Business',
+          onBack: () {
+            setState(() {
+              _currentStep = SelectionStep.business;
+              _loadingItemId = null;
+              _selectedBranchId = null;
+              _businessBranches = [];
+            });
+          },
+        ),
+        const SizedBox(height: 28),
+        const Text(
+          'Choose a branch',
+          style: TextStyle(
+            color: LoginChoicesTokens.ink1,
+            fontWeight: FontWeight.w700,
+            height: 1.05,
+            fontSize: 27,
+            letterSpacing: -0.68,
+          ),
+        ),
+        const SizedBox(height: 5),
+        const Text(
+          'Select the branch you want to access',
+          style: TextStyle(
+            color: LoginChoicesTokens.ink2,
+            height: 1.35,
+            fontWeight: FontWeight.w400,
+            fontSize: 15,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Expanded(
+          child: ListView.separated(
+            itemCount: _businessBranches.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
+            itemBuilder: (context, index) {
+              final branch = _businessBranches[index];
+              final isSelected =
+                  selectedBranchId == branch.id ||
+                  (selectedBranchId == null && index == 0);
+              return BranchChoiceTile(
+                name: branch.name,
+                subtitle: branch.description,
+                isDefault: branch.isDefault,
+                isSelected: isSelected,
+                isLoading: _loadingItemId == branch.id,
+                onTap: () {
+                  setState(() => _selectedBranchId = branch.id);
+                },
+              );
+            },
+          ),
+        ),
+        FlipperGradientButton(
+          text: 'Continue to ${selectedBranch?.name ?? 'branch'}',
+          icon: Icons.arrow_outward_rounded,
+          isLoading: _isLoading,
+          onPressed: selectedBranch == null
+              ? null
+              : () {
+                  final branch = selectedBranch;
+                  if (branch != null) _handleBranchSelection(branch);
+                },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleBusinessSelection(Business business) async {
     setState(() {
       _loadingItemId = business.id;
-      _isLoading = true;
+      _selectedBranchId = null;
     });
 
-    // Set the selected business in the provider
     ref.read(selectedBusinessProvider.notifier).set(business);
 
     try {
-      // Load branches for the selected business from tenant data (already in memory)
+      final tenant = widget.userProfile.tenants.first;
       _businessBranches = tenant.branches
           .where((branch) => branch.businessId == business.id)
           .toList();
 
-      if (mounted) {
-        setState(() {
-          _loadingItemId = null;
-          _isLoading = false;
+      if (!mounted) return;
 
-          // Check if the business has branches
-          if (_businessBranches.length == 1) {
-            // If there's only one branch, select it automatically
-            _handleBranchSelection(_businessBranches.first);
-          } else {
-            // Otherwise, move to branch selection step
-            _currentStep = SelectionStep.branch;
-          }
+      if (_businessBranches.length == 1) {
+        await _handleBranchSelection(_businessBranches.first);
+      } else {
+        setState(() {
+          _selectedBusinessName = business.name;
+          _currentStep = SelectionStep.branch;
+          _loadingItemId = null;
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Could not set business. Please try again.'),
+          const SnackBar(
+            content: Text('Could not set business. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
-
-        setState(() {
-          _loadingItemId = null;
-          _isLoading = false;
-        });
+        setState(() => _loadingItemId = null);
       }
     }
   }
 
-  void _handleBranchSelection(Branch branch) async {
-    // Set the selected branch in the provider
+  Future<void> _handleBranchSelection(Branch branch) async {
+    setState(() {
+      _loadingItemId = branch.id;
+      _isLoading = true;
+    });
+
     ref.read(selectedBranchProvider.notifier).set(branch);
 
-    // Complete the flow and navigate to the dashboard
-    _navigateToDashboard();
+    final business = ref.read(selectedBusinessProvider);
+    if (business != null) {
+      final apiUserId = await SessionPersistence.readApiUserId();
+      await BusinessSelectionPersistence.save(
+        userId: apiUserId ?? widget.userProfile.id,
+        businessId: business.id,
+        branchId: branch.id,
+      );
+    }
+
+    if (mounted) {
+      context.goNamed(AppRoute.accounting.name);
+    }
   }
 
-  // Method removed as it's no longer needed
-
-  void _navigateToDashboard() {
-    // Navigate to the dashboard
-    context.goNamed(AppRoute.dashboard.name);
-  }
-
-  void _logout() async {
+  Future<void> _logout() async {
+    if (_isSigningOut) return;
+    setState(() => _isSigningOut = true);
     try {
       final authService = ref.read(authServiceProvider);
       await authService.signOut();
       if (mounted) {
         context.goNamed(AppRoute.login.name);
       }
-    } catch (e) {
-      // If signOut fails, still navigate to login
+    } catch (_) {
       if (mounted) {
         context.goNamed(AppRoute.login.name);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSigningOut = false);
       }
     }
   }

@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_add_product_button.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
+import 'package:rxdart/rxdart.dart';
 
 /// Handoff-style catalog search + barcode scan button.
 class PosCatalogSearchRow extends ConsumerWidget {
@@ -25,6 +29,7 @@ class PosCatalogSearchRow extends ConsumerWidget {
             controller: controller,
             hintText: hintText,
             onChanged: (text) {
+              if (ref.read(searchStringProvider) == text) return;
               ref.read(searchStringProvider.notifier).emitString(value: text);
             },
           ),
@@ -58,6 +63,8 @@ class _PosSearchField extends StatefulWidget {
 
 class _PosSearchFieldState extends State<_PosSearchField> {
   final _focusNode = FocusNode();
+  final _textSubject = BehaviorSubject<String>();
+  StreamSubscription<String>? _debounceSub;
   bool _focused = false;
 
   @override
@@ -67,6 +74,10 @@ class _PosSearchFieldState extends State<_PosSearchField> {
       if (mounted) setState(() => _focused = _focusNode.hasFocus);
     });
     widget.controller.addListener(_syncSearch);
+    _debounceSub = _textSubject
+        .debounceTime(posCatalogSearchDebounce)
+        .listen(widget.onChanged);
+    _textSubject.add(widget.controller.text);
   }
 
   @override
@@ -81,11 +92,13 @@ class _PosSearchFieldState extends State<_PosSearchField> {
   @override
   void dispose() {
     widget.controller.removeListener(_syncSearch);
+    _debounceSub?.cancel();
+    _textSubject.close();
     _focusNode.dispose();
     super.dispose();
   }
 
-  void _syncSearch() => widget.onChanged(widget.controller.text);
+  void _syncSearch() => _textSubject.add(widget.controller.text);
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +150,7 @@ class _PosSearchFieldState extends State<_PosSearchField> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              onChanged: widget.onChanged,
+              onChanged: (text) => _textSubject.add(text),
             ),
           ),
         ],

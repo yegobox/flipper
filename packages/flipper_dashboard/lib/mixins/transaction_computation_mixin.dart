@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -21,11 +22,16 @@ mixin TransactionComputationMixin {
     final isCurrencyDecimal = settingsService.isCurrencyDecimal;
 
     double baseTotal = items.fold(0.0, (sum, item) {
-      final val = (item.price * item.qty).toDouble();
+      final lineNet = SaleLinePricing.subtotalNetForItem(
+        unitPrice: item.price.toDouble(),
+        qty: item.qty.toDouble(),
+        dcRt: item.dcRt?.toDouble(),
+        dcAmt: item.dcAmt?.toDouble(),
+      );
       return sum +
           (isCurrencyDecimal
-              ? val.roundToTwoDecimalPlaces()
-              : val.roundToDouble());
+              ? lineNet.roundToTwoDecimalPlaces()
+              : lineNet.roundToDouble());
     });
 
     // Fallback/Validation: REMOVED
@@ -127,23 +133,20 @@ mixin TransactionComputationMixin {
 
   /// Fetches the actual cash paid for a transaction from payment records,
   /// excluding CREDIT entries so only real money received is counted.
-  /// Tries Capella (Ditto) first, falls back to CloudSync (brick/SQLite).
   Future<double> fetchNonCreditPaid(String transactionId) async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return 0.0;
 
-    for (final strategy in [Strategy.capella, Strategy.cloudSync]) {
-      try {
-        final paid = await ProxyService.getStrategy(strategy)
-            .getTotalPaidForTransaction(
-              transactionId: transactionId,
-              branchId: branchId,
-              excludePaymentMethod: 'CREDIT',
-            );
-        if (paid != null && paid > 0) return paid;
-      } catch (_) {
-        // try next strategy
-      }
+    try {
+      final paid = await ProxyService.getStrategy(Strategy.capella)
+          .getTotalPaidForTransaction(
+            transactionId: transactionId,
+            branchId: branchId,
+            excludePaymentMethod: 'CREDIT',
+          );
+      if (paid != null && paid > 0) return paid;
+    } catch (_) {
+      // Capella/Ditto is the POS cart source of truth.
     }
     return 0.0;
   }

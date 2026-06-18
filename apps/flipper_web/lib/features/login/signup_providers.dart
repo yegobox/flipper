@@ -7,6 +7,7 @@ import 'package:flipper_models/ippis_service.dart';
 
 import '../../models/business_type.dart';
 import '../../repositories/signup_repository.dart';
+import '../../core/api_login_key.dart';
 import '../../core/secrets.dart';
 
 part 'signup_providers.g.dart';
@@ -365,7 +366,9 @@ class SignupForm extends _$SignupForm {
           '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/user',
         ),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phoneNumber': phoneNumber}),
+        body: jsonEncode({
+          'phoneNumber': normalizeApiUserLoginKey(phoneNumber),
+        }),
       );
 
       if (response.statusCode == 200) {

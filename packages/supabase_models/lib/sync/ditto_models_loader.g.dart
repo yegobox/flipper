@@ -9,16 +9,19 @@ import 'package:supabase_models/brick/models/branch.model.dart' as branch_model;
 import 'package:supabase_models/brick/models/business.model.dart' as business_model;
 import 'package:supabase_models/brick/models/business_analytic.model.dart' as business_analytic_model;
 import 'package:supabase_models/brick/models/category.model.dart' as category_model;
-import 'package:supabase_models/brick/models/counter.model.dart' as counter_model;
 import 'package:supabase_models/brick/models/customer.model.dart' as customer_model;
 import 'package:supabase_models/brick/models/device.model.dart' as device_model;
 import 'package:supabase_models/brick/models/ebm.model.dart' as ebm_model;
+import 'package:supabase_models/brick/models/import_purchase_dates.model.dart' as import_purchase_dates_model;
 import 'package:supabase_models/brick/models/integration_config.model.dart' as integration_config_model;
 import 'package:supabase_models/brick/models/itemCode.model.dart' as itemCode_model;
 import 'package:supabase_models/brick/models/message.model.dart' as message_model;
+import 'package:supabase_models/brick/models/purchase.model.dart' as purchase_model;
+import 'package:supabase_models/brick/models/sars.model.dart' as sars_model;
 import 'package:supabase_models/brick/models/stock.model.dart' as stock_model;
 import 'package:supabase_models/brick/models/stock_recount.model.dart' as stock_recount_model;
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as stock_recount_item_model;
+import 'package:supabase_models/brick/models/supplier.model.dart' as supplier_model;
 import 'package:supabase_models/brick/models/transaction.model.dart' as transaction_model;
 import 'package:supabase_models/brick/models/transactionItem.model.dart' as transactionItem_model;
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart' as transaction_delegation_model;
@@ -36,16 +39,19 @@ void ensureDittoAdaptersLoaded() {
   business_model.BusinessDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements
   category_model.CategoryDittoAdapter.registryToken; // ignore: unnecessary_statements
-  counter_model.CounterDittoAdapter.registryToken; // ignore: unnecessary_statements
   customer_model.CustomerDittoAdapter.registryToken; // ignore: unnecessary_statements
   device_model.DeviceDittoAdapter.registryToken; // ignore: unnecessary_statements
   ebm_model.EbmDittoAdapter.registryToken; // ignore: unnecessary_statements
+  import_purchase_dates_model.ImportPurchaseDatesDittoAdapter.registryToken; // ignore: unnecessary_statements
   integration_config_model.IntegrationConfigDittoAdapter.registryToken; // ignore: unnecessary_statements
   itemCode_model.ItemCodeDittoAdapter.registryToken; // ignore: unnecessary_statements
   message_model.MessageDittoAdapter.registryToken; // ignore: unnecessary_statements
+  purchase_model.PurchaseDittoAdapter.registryToken; // ignore: unnecessary_statements
+  sars_model.SarDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_model.StockDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_model.StockRecountDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_item_model.StockRecountItemDittoAdapter.registryToken; // ignore: unnecessary_statements
+  supplier_model.SupplierDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_model.ITransactionDittoAdapter.registryToken; // ignore: unnecessary_statements
   transactionItem_model.TransactionItemDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_delegation_model.TransactionDelegationDittoAdapter.registryToken; // ignore: unnecessary_statements

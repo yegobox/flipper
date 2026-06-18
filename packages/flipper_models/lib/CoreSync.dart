@@ -51,6 +51,9 @@ import 'package:flipper_models/Booting.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'dart:async';
+
+import 'package:flipper_models/services/loan_customer_linker.dart';
+import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flipper_models/exceptions.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -479,6 +482,7 @@ class CoreSync extends AiStrategyImpl
     required int highestInvcNo,
     required int invoiceNumber,
     required String timeReceivedFromserver,
+    bool skipDittoSync = false,
   }) async {
     String branchId = ProxyService.box.getBranchId()!;
 
@@ -528,11 +532,13 @@ class CoreSync extends AiStrategyImpl
       return await repository.upsert(
         existingReceipt,
         query: brick.Query(action: QueryAction.update),
+        skipDittoSync: skipDittoSync,
       );
     } else {
       return await repository.upsert(
         receipt,
         query: brick.Query(action: QueryAction.insert),
+        skipDittoSync: skipDittoSync,
       );
     }
   }
@@ -2305,6 +2311,34 @@ class CoreSync extends AiStrategyImpl
           await repository.upsert<ITransaction>(transaction);
           talker.info("collectPayment: Transaction upserted successfully");
         }
+
+        // Record the event in the accounting ledger so Books finds the
+        // journal entry already posted, whether or not the accounting app
+        // is running.
+        unawaited(
+          PosJournalPoster.onTransactionFinalized(
+            transaction: transaction,
+            items: items,
+            eventCashReceived: cashReceived,
+            completionStatus: completionStatus,
+            isProformaMode: isProformaMode,
+            isTrainingMode: isTrainingMode,
+          ),
+        );
+
+        // Link (or auto-create) the canonical customer record for loans so
+        // accounting tracks debtors by customer id — runs in the background,
+        // adds no latency to checkout. A parked sale is a loan even before
+        // markTransactionAsCompleted persists isLoan.
+        unawaited(
+          LoanCustomerLinker.ensureLinked(
+            transaction: transaction,
+            branchId: branchId,
+            markAsLoan:
+                transaction.isLoan == true || completionStatus == PARKED,
+          ),
+        );
+
         return transaction;
       } catch (e, s) {
         talker.error(s);
@@ -2472,7 +2506,7 @@ class CoreSync extends AiStrategyImpl
   FutureOr<T?> create<T>({required T data}) async {
     try {
       if (data is Counter) {
-        await repository.upsert<Counter>(data);
+        await repository.upsert<Counter>(data, skipDittoSync: true);
         return data as T;
       }
 

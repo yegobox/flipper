@@ -209,10 +209,16 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     required Future<void> Function() onLogout,
     required RouterService routerService,
   }) async {
-    await showLogoutLoadingDialog(context);
-    await onLogout();
-    Navigator.of(context).pop(); // Close loading dialog
-    routerService.replaceWith(LoginRoute());
+    showLogoutLoadingDialog(context, useRootNavigator: true);
+    try {
+      await onLogout();
+    } finally {
+      final rootNav = Navigator.of(context, rootNavigator: true);
+      if (rootNav.mounted && rootNav.canPop()) {
+        rootNav.pop();
+      }
+    }
+    routerService.clearStackAndShow(const LoginRoute());
   }
 
   Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
@@ -259,7 +265,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       required void Function(bool) setIsLoading,
     })
     handleBranchSelection,
-    required VoidCallback onLogout,
+    required Future<void> Function() onLogout,
     required void Function(String? id) setLoadingState,
   }) async {
     // Check if we're already in the middle of branch navigation
@@ -374,10 +380,14 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<void> showLogoutLoadingDialog(BuildContext context) {
-    return showDialog(
+  void showLogoutLoadingDialog(
+    BuildContext context, {
+    bool useRootNavigator = false,
+  }) {
+    showDialog(
       barrierDismissible: false,
       context: context,
+      useRootNavigator: useRootNavigator,
       builder: (_) => Dialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -497,7 +507,7 @@ class _BranchSwitchDialog extends StatefulWidget {
     required void Function(bool) setIsLoading,
   })
   handleBranchSelection;
-  final VoidCallback onLogout;
+  final Future<void> Function() onLogout;
   final void Function(String? id) setLoadingState;
 
   const _BranchSwitchDialog({
@@ -517,6 +527,11 @@ class _BranchSwitchDialog extends StatefulWidget {
 class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
   bool _isLoading = false;
   List<Branch>? _branches;
+
+  Future<void> _handleLogoutTap() async {
+    Navigator.of(context).pop();
+    await widget.onLogout();
+  }
 
   @override
   void initState() {
@@ -610,9 +625,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  widget.onLogout();
-                },
+                onTap: _handleLogoutTap,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -692,9 +705,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    widget.onLogout();
-                  },
+                  onTap: _handleLogoutTap,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -794,9 +805,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      widget.onLogout();
-                    },
+                    onTap: _handleLogoutTap,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,

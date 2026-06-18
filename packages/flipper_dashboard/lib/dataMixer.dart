@@ -1,9 +1,7 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/itemRow.dart';
-import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
+import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
@@ -48,36 +46,7 @@ String? variantRowImageAssetName(Variant v) {
 // Then update the mixin
 mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   void _openProductEntry(BuildContext context, {String? productId}) {
-    final isPhone =
-        responsive.ResponsiveLayout.isPhone(context) ||
-        responsive.ResponsiveLayout.isTinyLimit(context);
-
-    if (isPhone) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (ctx) => Scaffold(
-            appBar: AppBar(
-              title: Text(
-                productId == null ? 'Add New Product' : 'Edit Product',
-              ),
-              leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(ctx).maybePop(),
-              ),
-            ),
-            body: SafeArea(child: ProductEntryScreen(productId: productId)),
-          ),
-        ),
-      );
-      return;
-    }
-
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) =>
-          OptionModal(child: ProductEntryScreen(productId: productId)),
-    );
+    openProductEntryScreen(context, productId: productId);
   }
 
   Widget buildVariantRow({
@@ -324,13 +293,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   : false,
               edit: (productId, type) {
                 talker.info("navigating to Edit!");
-                showDialog(
-                  barrierDismissible: false,
-                  context: context,
-                  builder: (context) => OptionModal(
-                    child: ProductEntryScreen(productId: productId),
-                  ),
-                );
+                _openProductEntry(context, productId: productId);
               },
               delete: (productId, type) async {
                 await deleteFunc(productId, model);

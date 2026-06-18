@@ -200,7 +200,7 @@ class DashboardQuickAccessSvgs {
   static String drawerAuthShieldIcon() =>
       '''
 <svg viewBox="0 0 24 24" fill="none" $_xmlns>
-  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
 </svg>''';
 
   static String drawerOnlinePrintSyncIcon() =>
@@ -470,8 +470,15 @@ class DashboardQuickAccessSvgs {
   <rect x="11" y="11" width="6" height="6" rx="1" stroke="#3B6D11" stroke-width="1.5"/>
 </svg>''';
 
+  static String appSwitcherBooksIcon() =>
+      '''
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <path d="M4 3.5h12a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1v-11a1 1 0 011-1z" stroke="#2563EB" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M7 3.5v13M10 6.5h4M10 9.5h4M10 12.5h3" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round"/>
+</svg>''';
+
   static String appSwitcherCustomersIcon() =>
-      '''x
+      '''
 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
   <circle cx="10" cy="7" r="3" stroke="#993556" stroke-width="1.5"/>
   <path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#993556" stroke-width="1.5" stroke-linecap="round"/>

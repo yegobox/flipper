@@ -1,12 +1,28 @@
 // import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
+import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/repository.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flutter/foundation.dart' hide Category;
+
+import 'package:flipper_services/proxy.dart';
+
+part 'purchase.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'purchases'),
+)
+@DittoAdapter(
+  'purchases',
+  syncDirection: SyncDirection.sendOnly,
 )
 class Purchase extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -45,6 +61,10 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   int? approved;
   int? rejected;
   int? pending;
+
+  /// EBM registration type: 'A' = automatic (fetched from RRA),
+  /// 'M' = manual (recorded in-app). Null is treated as 'A'.
+  final String? regTyCd;
   @Supabase(name: 'created_at')
   @Sqlite(index: true)
   DateTime createdAt;
@@ -81,6 +101,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
     this.approved,
     this.rejected,
     this.pending,
+    this.regTyCd,
     this.remark,
     required this.createdAt,
     this.variants,
@@ -115,6 +136,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
       totTaxblAmt: (json['totTaxblAmt'] as num).toDouble(),
       totTaxAmt: (json['totTaxAmt'] as num).toDouble(),
       totAmt: (json['totAmt'] as num).toDouble(),
+      regTyCd: json['regTyCd'] as String?,
       remark: json['remark'] as String?,
       createdAt: json['created_at'] != null
           ? (json['created_at'] is String
@@ -157,6 +179,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
       'totTaxblAmt': totTaxblAmt,
       'totTaxAmt': totTaxAmt,
       'totAmt': totAmt,
+      'regTyCd': regTyCd,
       'remark': remark,
       'created_at': createdAt.toIso8601String(),
       'itemList': variants,

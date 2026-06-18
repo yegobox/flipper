@@ -17,6 +17,11 @@ class _AddProductPalette {
   static const Color tealBadgeBg = Color(0xFFD1FAE5);
   static const Color tealIconSquare = Color(0xFFD1FAE5);
 
+  static const Color amber = Color(0xFFF59E0B);
+  static const Color amberBg = Color(0xFFFFFBEB);
+  static const Color amberBadgeBg = Color(0xFFFEF3C7);
+  static const Color amberIconSquare = Color(0xFFFEF3C7);
+
   static const Color title = Color(0xFF0F172A);
   static const Color subtitle = Color(0xFF64748B);
   static const Color handle = Color(0xFFE2E8F0);
@@ -94,6 +99,19 @@ class AddProductDialog extends StatelessWidget {
                   badgeBackground: _AddProductPalette.tealBadgeBg,
                   leading: _roomsLeading(),
                   onTap: () => _handleSelection(context, 'rooms'),
+                ),
+                const SizedBox(height: 14),
+                _buildThemedOption(
+                  context: context,
+                  background: _AddProductPalette.amberBg,
+                  border: _AddProductPalette.amber,
+                  title: 'Sync Fuel',
+                  subtitle: 'Diesel & gasoline from RRA',
+                  badgeLabel: 'FUEL',
+                  badgeForeground: _AddProductPalette.amber,
+                  badgeBackground: _AddProductPalette.amberBadgeBg,
+                  leading: _fuelLeading(),
+                  onTap: () => _handleSelection(context, 'fuel'),
                 ),
                 const SizedBox(height: 20),
                 _buildCancelButton(context),
@@ -239,6 +257,22 @@ class AddProductDialog extends StatelessWidget {
       child: const Icon(
         Icons.home_rounded,
         color: _AddProductPalette.teal,
+        size: 28,
+      ),
+    );
+  }
+
+  Widget _fuelLeading() {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: _AddProductPalette.amberIconSquare,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Icon(
+        Icons.local_gas_station_rounded,
+        color: _AddProductPalette.amber,
         size: 28,
       ),
     );

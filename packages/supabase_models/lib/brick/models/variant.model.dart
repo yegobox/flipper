@@ -162,6 +162,19 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? propertyTyCd;
   String? roomTypeCd;
   String? ttCatCd;
+
+  @Sqlite(name: 'is_fuel_managed', defaultValue: "false")
+  @Supabase(name: 'is_fuel_managed', defaultValue: "false")
+  bool? isFuelManaged;
+
+  @Sqlite(name: 'rrp')
+  @Supabase(name: 'rrp')
+  double? rrp;
+
+  @Sqlite(name: 'rrp_effective_dt')
+  @Supabase(name: 'rrp_effective_dt')
+  DateTime? rrpEffectiveDt;
+
   // end of fields to ignore
   @Sqlite(defaultValue: "false")
   @Supabase(defaultValue: "false")
@@ -181,6 +194,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.propertyTyCd,
     this.roomTypeCd,
     this.ttCatCd,
+    bool? isFuelManaged,
+    this.rrp,
+    this.rrpEffectiveDt,
     this.purchaseId,
     bool? isShared,
     this.qty,
@@ -262,6 +278,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   })  : id = id ?? const Uuid().v4(),
         assigned = assigned ?? false,
         isShared = isShared ?? false,
+        isFuelManaged = isFuelManaged ?? false,
         modrId = modrId ?? const Uuid().v4().substring(0, 5);
 
   /// fromJson method
@@ -364,6 +381,11 @@ class Variant extends OfflineFirstWithSupabaseModel {
         propertyTyCd: parseOrDefault<String?>(json['propertyTyCd'], null),
         roomTypeCd: parseOrDefault<String?>(json['roomTypeCd'], null),
         ttCatCd: parseOrDefault<String?>(json['ttCatCd'], null),
+        isFuelManaged: parseOrDefault<bool>(json['isFuelManaged'], false),
+        rrp: (parseNum(json['rrp']) ?? parseNum(json['RRP']))?.toDouble(),
+        rrpEffectiveDt: (json['rrpEffectiveDt'] != null)
+            ? DateTime.tryParse(json['rrpEffectiveDt'] as String)
+            : null,
         expirationDate: (json['expirationDate'] != null)
             ? DateTime.tryParse(json['expirationDate'] as String)
             : null,
@@ -475,6 +497,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'propertyTyCd': propertyTyCd,
       'roomTypeCd': roomTypeCd,
       'ttCatCd': ttCatCd,
+      'isFuelManaged': isFuelManaged,
+      'rrp': rrp,
+      'rrpEffectiveDt': rrpEffectiveDt?.toIso8601String(),
     };
   }
 
@@ -557,6 +582,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
     double? taxAmt,
     String? purchaseId,
     bool? isShared,
+    bool? isFuelManaged,
+    double? rrp,
+    DateTime? rrpEffectiveDt,
   }) {
     return Variant(
       id: id ?? this.id,
@@ -636,9 +664,12 @@ class Variant extends OfflineFirstWithSupabaseModel {
       taxblAmt: taxblAmt ?? this.taxblAmt,
       taxAmt: taxAmt ?? this.taxAmt,
       purchaseId: purchaseId ?? this.purchaseId,
-      ttCatCd: ttCatCd ?? ttCatCd,
-      propertyTyCd: propertyTyCd ?? propertyTyCd,
-      roomTypeCd: roomTypeCd ?? roomTypeCd,
+      ttCatCd: ttCatCd ?? this.ttCatCd,
+      propertyTyCd: propertyTyCd ?? this.propertyTyCd,
+      roomTypeCd: roomTypeCd ?? this.roomTypeCd,
+      isFuelManaged: isFuelManaged ?? this.isFuelManaged,
+      rrp: rrp ?? this.rrp,
+      rrpEffectiveDt: rrpEffectiveDt ?? this.rrpEffectiveDt,
     );
   }
 

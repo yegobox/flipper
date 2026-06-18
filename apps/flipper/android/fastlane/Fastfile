@@ -1,10 +1,51 @@
 default_platform(:android)
 
+# Gradle redirects build output to apps/flipper/build (see android/build.gradle.kts).
+def release_aab_path
+  android_dir = File.expand_path('..', __dir__)
+  File.expand_path('../build/app/outputs/bundle/release/app-release.aab', android_dir)
+end
+
+def shorebird_cmd
+  env_bin = ENV['SHOREBIRD_BIN']
+  return env_bin if env_bin && !env_bin.empty? && File.executable?(env_bin)
+
+  xdg = ENV['XDG_CONFIG_HOME']
+  if xdg && !xdg.empty?
+    xdg_bin = File.join(xdg, 'shorebird', 'bin', 'shorebird')
+    return xdg_bin if File.executable?(xdg_bin)
+  end
+
+  home_bin = File.join(ENV['HOME'] || Dir.home, '.shorebird', 'bin', 'shorebird')
+  return home_bin if File.executable?(home_bin)
+
+  which = `command -v shorebird 2>/dev/null`.strip
+  return which unless which.empty?
+
+  UI.user_error!(
+    'shorebird CLI not found. Install it in CI or locally: https://docs.shorebird.dev'
+  )
+end
+
 def build_release_bundle
+  # CI builds the Shorebird AAB in a dedicated workflow step (SHOREBIRD_PREBUILT).
+  if ENV['SHOREBIRD_PREBUILT'] == 'true'
+    aab = release_aab_path
+    UI.user_error!("Shorebird AAB missing at #{aab}") unless File.exist?(aab)
+    return
+  end
+
   if ENV['USE_SHOREBIRD'] == 'true'
-    sh "cd .. && shorebird release android -- --no-android-gradle-daemon"
+    if ENV['SHOREBIRD_TOKEN'].to_s.strip.empty?
+      UI.user_error!(
+        'SHOREBIRD_TOKEN is not set. Create an API key at https://console.shorebird.dev ' \
+        '(Account → API Keys) and add it to GitHub Actions secrets.'
+      )
+    end
+
+    sh "cd .. && #{shorebird_cmd} release android -v -- --no-android-gradle-daemon"
   else
-    sh "cd .. && flutter build appbundle --no-android-gradle-daemon"
+    sh "cd .. && flutter build appbundle -- --no-android-gradle-daemon"
   end
 end
 
@@ -18,7 +59,7 @@ platform :android do
     upload_to_play_store(
       package_name: 'rw.flipper',
       track: 'internal',
-      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      aab: release_aab_path,
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       skip_upload_metadata: false,
       skip_upload_images: true,
@@ -46,7 +87,7 @@ platform :android do
     upload_to_play_store(
       track: 'beta',
       package_name: 'rw.flipper',
-      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      aab: release_aab_path,
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       skip_upload_metadata: false,
       skip_upload_images: true,
@@ -61,7 +102,7 @@ platform :android do
     upload_to_play_store(
       track: 'production',
       package_name: 'rw.flipper',
-      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      aab: release_aab_path,
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       skip_upload_metadata: false,
       skip_upload_images: true,

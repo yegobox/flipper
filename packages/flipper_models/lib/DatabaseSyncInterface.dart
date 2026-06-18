@@ -295,13 +295,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   FutureOr<List<Stock>> stocks({required String branchId});
   Future<Stock> getStockById({required String id});
 
-  Future<List<Purchase>> selectPurchases({
-    required String bhfId,
-    required int tin,
-    required String url,
-    String? pchsSttsCd,
-  });
-
   Future<Variant?> getVariant({
     String? id,
     String? modrId,
@@ -380,11 +373,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<Pin?> savePin({required Pin pin});
 
   Stream<double> totalSales({required String branchId});
-
-  Future<List<Variant>> selectImportItems({
-    required int tin,
-    required String bhfId,
-  });
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
 
@@ -578,6 +566,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
+    int? consumedInvcNo,
   });
 
   FutureOr<void> updateCategory({

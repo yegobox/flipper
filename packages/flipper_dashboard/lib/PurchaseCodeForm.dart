@@ -24,6 +24,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   Function onComplete;
   final bool skipTransactionPersist;
   final Future<bool>? sendDigitalReceiptFuture;
+  final Customer? customer;
 
   PurchaseCodeFormBloc({
     required this.customerNameController,
@@ -37,6 +38,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
     required this.onComplete,
     this.skipTransactionPersist = false,
     this.sendDigitalReceiptFuture,
+    this.customer,
   }) {
     addFieldBlocs(fieldBlocs: [purchaseCode]);
   }
@@ -61,6 +63,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
         skipTransactionPersist: skipTransactionPersist,
         deferPersistTaxReceiptFields: skipTransactionPersist,
         sendDigitalReceipt: sendDigitalReceipt,
+        customer: customer,
       );
 
       if (response.resultCd == "000") {

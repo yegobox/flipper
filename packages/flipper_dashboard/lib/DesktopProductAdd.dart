@@ -9,12 +9,9 @@ import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/all_providers.dart';
-import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -23,16 +20,21 @@ import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_dashboard/features/product/widgets/invoice_number_modal.dart';
 import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
 import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
 import 'package:flipper_dashboard/features/product_entry/widgets/basic_info_section.dart';
 import 'package:flipper_dashboard/features/product_entry/widgets/pricing_section.dart';
-import 'package:flipper_dashboard/features/product_entry/widgets/action_buttons.dart';
 import 'package:flipper_dashboard/features/product_entry/widgets/inventory_section.dart';
-import 'package:flipper_dashboard/features/product_entry/widgets/scan_section.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_inventory_section.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_scan_section.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/pe_field.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_color_picker.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_composite_toggle.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_margin_card.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_page.dart';
+import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_section_nav.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
@@ -47,8 +49,7 @@ class ProductEntryScreen extends StatefulHookConsumerWidget {
   ProductEntryScreenState createState() => ProductEntryScreenState();
 }
 
-class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
-    with TransactionMixinOld {
+class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   Color pickerColor =
       Colors.blue; // Add this to your State class if not already present
   bool isColorPicked = false;
@@ -70,8 +71,21 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   TextEditingController skuController = TextEditingController();
   FocusNode _scannedInputFocusNode = FocusNode();
   Timer? _inputTimer;
+
+  /// Tick counter notified whenever a form-affecting controller changes.
+  /// Passed as [formListenable] to [ProductEditorPage] so only the chrome
+  /// (top-bar title, nav badges, footer) rebuilds on every keystroke rather
+  /// than the entire ViewModelBuilder tree.
+  final ValueNotifier<int> _formTick = ValueNotifier(0);
+  void _onFormControllerChanged() => _formTick.value++;
   final _formKey = GlobalKey<FormState>();
   final _fieldComposite = GlobalKey<FormState>();
+  final _sectionBasicsKey = GlobalKey();
+  final _sectionPricingKey = GlobalKey();
+  final _sectionInventoryKey = GlobalKey();
+  final _sectionVariantsKey = GlobalKey();
+  final _sectionComponentsKey = GlobalKey();
+  bool _saveInProgress = false;
 
   // Helper function to get a valid color or a default color
   Color getColorOrDefault(String? hexColor) {
@@ -85,89 +99,52 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     }
   }
 
-  Future<void> _showProductColorPicker(BuildContext context) async {
-    Color tempColor = pickerColor;
-    final Color? newColor = await showDialog<Color>(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Pick a color'),
-              content: SingleChildScrollView(
-                child: ColorPicker(
-                  color: tempColor,
-                  onColorChanged: (Color color) {
-                    setDialogState(() {
-                      tempColor = color;
-                    });
-                  },
-                  pickersEnabled: const <ColorPickerType, bool>{
-                    ColorPickerType.both: false,
-                    ColorPickerType.primary: true,
-                    ColorPickerType.accent: true,
-                    ColorPickerType.bw: false,
-                    ColorPickerType.custom: true,
-                    ColorPickerType.wheel: true,
-                  },
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  spacing: 5,
-                  runSpacing: 5,
-                  wheelDiameter: 165,
-                  subheading: Text(
-                    'Select color shade',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  wheelSubheading: Text(
-                    'Selected color and its shades',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(tempColor),
-                  child: const Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-    if (newColor != null && mounted) {
-      setState(() {
-        pickerColor = newColor;
-        isColorPicked = true;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    productNameController.addListener(_onFormControllerChanged);
+    retailPriceController.addListener(_onFormControllerChanged);
+    supplyPriceController.addListener(_onFormControllerChanged);
   }
-
-  // Helper function to check if a string is a valid hexadecimal color code
 
   @override
   void dispose() {
     _inputTimer?.cancel();
+    productNameController.removeListener(_onFormControllerChanged);
+    retailPriceController.removeListener(_onFormControllerChanged);
+    supplyPriceController.removeListener(_onFormControllerChanged);
     productNameController.dispose();
     retailPriceController.dispose();
     scannedInputController.dispose();
     supplyPriceController.dispose();
     _scannedInputFocusNode.dispose();
+    _formTick.dispose();
     super.dispose();
   }
 
-  void _showNoProductNameToast() {
-    toast('No product name!');
+  void _showNoProductNameToast(BuildContext context) {
+    showWarningNotification(context, 'No product name!');
   }
 
-  void _showNoProductSavedToast() {
-    toast('No Product saved!');
+  void _showNoProductSavedToast(BuildContext context) {
+    showWarningNotification(context, 'No product saved!');
+  }
+
+  String _productSaveErrorMessage(Object error) {
+    final raw = error.toString().replaceFirst('Exception: ', '');
+    final lower = raw.toLowerCase();
+    if (lower.contains('timeout') || lower.contains('connection')) {
+      return 'RRA tax server timed out. The product is saved locally but not '
+          'fully reported to RRA yet. Check the tax server, then tap Save again.';
+    }
+    if (lower.contains('saveitems') ||
+        lower.contains('savestockitems') ||
+        lower.contains('savestockmaster') ||
+        lower.contains('rra ')) {
+      return 'Product saved locally but RRA reporting failed: $raw. '
+          'Tap Save again to retry.';
+    }
+    return 'Could not save product: $raw';
   }
 
   /// Keeps [ScannViewModel.kProductName] and in-memory variant titles aligned with
@@ -209,7 +186,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           !ref.watch(isCompositeProvider)) {
         final syncedProductName = _syncProductNameFromForm(model, productRef);
         if (syncedProductName.length < 3) {
-          _showNoProductNameToast();
+          _showNoProductNameToast(context);
           ref.read(loadingProvider.notifier).stopLoading();
           return;
         }
@@ -229,45 +206,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             dates: _dates,
             onCompleteCallback: (List<Variant> variants) async {
               _addVariantsToProvider(variants);
-              if (!mounted) return;
-              final invoiceNumber = await showInvoiceNumberModal(context);
-              if (invoiceNumber == null) return;
-
-              if (!mounted) return;
-              final pendingTransaction =
-                  await ProxyService.getStrategy(
-                    Strategy.capella,
-                  ).manageTransaction(
-                    transactionType: TransactionType.adjustment,
-                    isExpense: true,
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
-              Business? business = await ProxyService.strategy.getBusiness(
-                businessId: ProxyService.box.getBusinessId()!,
-              );
-              if (!mounted) return;
-
-              for (Variant variant in variants) {
-                // Handle the transaction for stock adjustment
-                await ProxyService.strategy.assignTransaction(
-                  variant: variant,
-                  doneWithTransaction: true,
-                  invoiceNumber: invoiceNumber,
-                  pendingTransaction: pendingTransaction!,
-                  business: business!,
-                  randomNumber: randomNumber(),
-                  // 06 is incoming adjustment.
-                  sarTyCd: "06",
-                );
-              }
-
-              if (pendingTransaction != null) {
-                if (!mounted) return;
-
-                await completeTransaction(
-                  pendingTransaction: pendingTransaction,
-                );
-              }
             },
           );
         } else {
@@ -291,45 +229,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             categoryId: selectedCategoryId,
             onCompleteCallback: (List<Variant> variants) async {
               _addVariantsToProvider(variants);
-              if (!mounted) return;
-              final invoiceNumber = await showInvoiceNumberModal(context);
-              if (invoiceNumber == null) return;
-
-              if (!mounted) return;
-              final pendingTransaction =
-                  await ProxyService.getStrategy(
-                    Strategy.capella,
-                  ).manageTransaction(
-                    transactionType: TransactionType.adjustment,
-                    isExpense: true,
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
-              Business? business = await ProxyService.strategy.getBusiness(
-                businessId: ProxyService.box.getBusinessId()!,
-              );
-              if (!mounted) return;
-
-              for (Variant variant in variants) {
-                // Handle the transaction for stock adjustment
-                await ProxyService.strategy.assignTransaction(
-                  variant: variant,
-                  doneWithTransaction: true,
-                  invoiceNumber: invoiceNumber,
-                  pendingTransaction: pendingTransaction!,
-                  business: business!,
-                  randomNumber: randomNumber(),
-                  // 06 is incoming adjustment.
-                  sarTyCd: "06",
-                );
-              }
-
-              if (pendingTransaction != null) {
-                if (!mounted) return;
-
-                await completeTransaction(
-                  pendingTransaction: pendingTransaction,
-                );
-              }
             },
           );
         }
@@ -360,7 +259,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast("Product saved successfully!");
+          showSuccessNotification(context, 'Product saved successfully!');
           final isPhone =
               responsive.ResponsiveLayout.isPhone(context) ||
               responsive.ResponsiveLayout.isTinyLimit(context);
@@ -414,18 +313,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       );
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
-        toast(
-          "We did not close normally, check if your product is saved",
-          duration: Toast.LENGTH_LONG,
+        showErrorNotification(
+          context,
+          _productSaveErrorMessage(e),
+          duration: const Duration(seconds: 8),
         );
-        Navigator.pop(context); // Always close the modal, even on error
       }
-      rethrow;
     }
   }
 
   Future<void> _handleCompositeProductSave(ScannViewModel model) async {
-    if (!mounted) return;
+    if (!mounted || _saveInProgress) return;
+    _saveInProgress = true;
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
@@ -434,7 +333,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (product == null) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast("Product not initialized. Please try again.");
+          showErrorNotification(
+            context,
+            'Product not initialized. Please try again.',
+          );
           talker.error("Error: unsavedProductProvider is null");
         }
         return;
@@ -447,7 +349,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (branchId == null) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast(
+          showErrorNotification(
+            context,
             "Branch ID not found. Please ensure you're logged in properly.",
           );
           talker.error("Error: getBranchId() returned null");
@@ -458,7 +361,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (businessId == null) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast(
+          showErrorNotification(
+            context,
             "Business ID not found. Please ensure you're logged in properly.",
           );
           talker.error("Error: getBusinessId() returned null");
@@ -474,7 +378,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (partOfComposite.isEmpty) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          toast("Please add at least one component to the composite product.");
+          showWarningNotification(
+            context,
+            'Please add at least one component to the composite product.',
+          );
           talker.warning("No composite components selected");
         }
         return;
@@ -605,7 +512,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (!mounted) return;
 
       // Show success message and close dialog
-      toast("Composite product saved successfully!");
+      showSuccessNotification(context, 'Composite product saved successfully!');
       Navigator.pop(context);
 
       // Clear the state after closing the dialog to prevent visual glitch
@@ -613,12 +520,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     } catch (e, stackTrace) {
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
-        toast("Failed to save composite product: ${e.toString()}");
+        showErrorNotification(
+          context,
+          'Failed to save composite product: ${e.toString()}',
+        );
         talker.error(
           "Error saving composite product: $e\nStack trace: $stackTrace",
         );
       }
       // Don't close the dialog automatically on error
+    } finally {
+      _saveInProgress = false;
     }
   }
 
@@ -628,13 +540,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     Product product, {
     required String selectedProductType,
   }) async {
-    if (!mounted) return;
+    if (!mounted || _saveInProgress) return;
+    _saveInProgress = true;
     try {
       if (model.scannedVariants.isEmpty && widget.productId == null) {
-        _showNoProductSavedToast();
+        _showNoProductSavedToast(context);
         return;
       }
-      //
       await _saveProductAndVariants(
         model,
         context,
@@ -643,9 +555,15 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       );
     } catch (e) {
       if (mounted) {
-        toast("Error saving product: ${e.toString()}");
+        showErrorNotification(
+          context,
+          _productSaveErrorMessage(e),
+          duration: const Duration(seconds: 8),
+        );
         talker.error("Error in _onSaveButtonPressed: $e");
       }
+    } finally {
+      _saveInProgress = false;
     }
   }
 
@@ -661,8 +579,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   ) {
     if (barCodeInput.trim().isNotEmpty) {
       if (productRef == null) {
-        toast(
-          "Invalid product reference. Please select or create a product first.",
+        showErrorNotification(
+          context,
+          'Invalid product reference. Please select or create a product first.',
         );
         talker.error(
           "Attempted to scan barcode with null productRef. Skipping scan.",
@@ -684,9 +603,469 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         _scannedInputFocusNode.requestFocus();
       } catch (e, s) {
         talker.error("Error in onAddVariant: $e", s);
-        toast("We faced unexpected error, close this window and open again");
+        showErrorNotification(
+          context,
+          'We faced unexpected error, close this window and open again',
+        );
       }
     }
+  }
+
+  Future<void> _onDesktopSave(ScannViewModel model, Product? productRef) async {
+    if (!mounted) return;
+    try {
+      if (_formKey.currentState!.validate() && !ref.read(isCompositeProvider)) {
+        if (productRef == null) {
+          showErrorNotification(context, 'Invalid product reference');
+          return;
+        }
+        if (!mounted) return;
+        await _onSaveButtonPressed(
+          model,
+          context,
+          productRef,
+          selectedProductType: selectedProductType,
+        );
+      } else if (_fieldComposite.currentState?.validate() ?? false) {
+        await _handleCompositeProductSave(model);
+      }
+    } catch (e) {
+      showErrorNotification(context, 'An unexpected error occurred');
+      talker.error("Error in save button: $e");
+    }
+  }
+
+  void _onUnitOfMeasureChanged(
+    String? unitCode,
+    String variantId,
+    ScannViewModel model,
+  ) {
+    if (unitCode == null) return;
+    final units = ref.read(unitsProvider).value?.value ?? [];
+    if (units.isEmpty) return;
+
+    IUnit? unit;
+    try {
+      unit = units.firstWhere((u) => u.code == unitCode);
+    } catch (e) {
+      try {
+        unit = units.firstWhere((u) => u.name == unitCode);
+      } catch (e) {
+        try {
+          if (model.scannedVariants.isNotEmpty) {
+            unit = units.firstWhere(
+              (u) => u.name == model.scannedVariants.first.unit,
+            );
+          } else {
+            unit = units.isNotEmpty ? units.first : null;
+          }
+        } catch (e) {
+          unit = units.isNotEmpty ? units.first : null;
+        }
+      }
+    }
+    if (unit == null) return;
+
+    final variantIndex = model.scannedVariants.indexWhere(
+      (v) => v.id == variantId,
+    );
+    if (variantIndex != -1) {
+      final variant = model.scannedVariants[variantIndex];
+      variant.qtyUnitCd = unitCode;
+      variant.unit = unit.name ?? unitCode;
+    }
+  }
+
+  Widget _buildDesktopProductEditor({
+    required BuildContext context,
+    required ScannViewModel model,
+    required Product? productRef,
+    required bool isLoading,
+  }) {
+    final isComposite = ref.watch(isCompositeProvider);
+    final components = ref.watch(selectedVariantsLocalProvider);
+    final nameFilled = productNameController.text.trim().isNotEmpty;
+    final retailFilled =
+        retailPriceController.text.trim().isNotEmpty &&
+        double.tryParse(retailPriceController.text) != null;
+    final inventoryFilled = selectedCategoryId != null;
+    final variantsFilled = model.scannedVariants.isNotEmpty;
+    final componentsFilled = components.isNotEmpty;
+
+    final sections = isComposite
+        ? [
+            ProductEditorSectionContent(
+              def: ProductEditorSectionDef(
+                id: 'basics',
+                title: 'Basics',
+                subtitle: 'Name & color',
+                icon: Icons.sell_outlined,
+                isFilled: nameFilled,
+              ),
+              sectionKey: _sectionBasicsKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PeField(
+                    label: 'Product color',
+                    child: ProductEditorColorPicker(
+                      color: pickerColor,
+                      onColorChanged: (color) {
+                        setState(() {
+                          pickerColor = color;
+                          isColorPicked = true;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  PeField(
+                    label: 'Product name',
+                    required: true,
+                    child: PeTextInput(
+                      controller: productNameController,
+                      placeholder: 'e.g. Fanta Orange 500ml',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Product name is required';
+                        } else if (value.length < 3) {
+                          return 'Product name must be at least 3 characters long';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const ProductEditorCompositeToggle(),
+                ],
+              ),
+            ),
+            ProductEditorSectionContent(
+              def: ProductEditorSectionDef(
+                id: 'pricing',
+                title: 'Pricing & codes',
+                subtitle: 'Price, SKU, barcode',
+                icon: Icons.payments_outlined,
+                isFilled: retailFilled,
+              ),
+              sectionKey: _sectionPricingKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: PeField(
+                          label: 'Retail price',
+                          required: true,
+                          hint: 'What the customer pays',
+                          child: PeTextInput(
+                            controller: retailPriceController,
+                            prefix: 'RWF',
+                            mono: true,
+                            placeholder: '0',
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Price is required';
+                              }
+                              if (double.tryParse(value) == null) {
+                                return 'Invalid price';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: PeField(
+                          label: 'Supply price',
+                          hint: 'Calculated from components',
+                          child: PeTextInput(
+                            controller: supplyPriceController,
+                            prefix: 'RWF',
+                            mono: true,
+                            locked: true,
+                            readOnly: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Fieldcompositeactivated(
+                    formKey: _fieldComposite,
+                    skuController: skuController,
+                    barCodeController: barCodeController,
+                  ),
+                  ProductEditorMarginCard(
+                    retailController: retailPriceController,
+                    supplyController: supplyPriceController,
+                    isComposite: true,
+                  ),
+                ],
+              ),
+            ),
+            ProductEditorSectionContent(
+              def: ProductEditorSectionDef(
+                id: 'components',
+                title: 'Components',
+                subtitle: 'Bill of materials',
+                icon: Icons.layers_outlined,
+                isFilled: componentsFilled,
+              ),
+              sectionKey: _sectionComponentsKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SearchProduct(),
+                  const SizedBox(height: 16),
+                  CompositeVariation(
+                    supplyPriceController: supplyPriceController,
+                    padding: EdgeInsets.zero,
+                  ),
+                ],
+              ),
+            ),
+          ]
+        : [
+            ProductEditorSectionContent(
+              def: ProductEditorSectionDef(
+                id: 'basics',
+                title: 'Basics',
+                subtitle: 'Name & color',
+                icon: Icons.sell_outlined,
+                isFilled: nameFilled,
+              ),
+              sectionKey: _sectionBasicsKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PeField(
+                    label: 'Product color',
+                    child: ProductEditorColorPicker(
+                      color: pickerColor,
+                      onColorChanged: (color) {
+                        setState(() {
+                          pickerColor = color;
+                          isColorPicked = true;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  PeField(
+                    label: 'Product name',
+                    required: true,
+                    child: PeTextInput(
+                      controller: productNameController,
+                      placeholder: 'e.g. Fanta Orange 500ml',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Product name is required';
+                        } else if (value.length < 3) {
+                          return 'Product name must be at least 3 characters long';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const ProductEditorCompositeToggle(),
+                ],
+              ),
+            ),
+            ProductEditorSectionContent(
+              def: ProductEditorSectionDef(
+                id: 'pricing',
+                title: 'Pricing',
+                subtitle: 'Retail & supply',
+                icon: Icons.payments_outlined,
+                isFilled: retailFilled,
+              ),
+              sectionKey: _sectionPricingKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: PeField(
+                          label: 'Retail price',
+                          required: true,
+                          hint: 'What the customer pays',
+                          child: PeTextInput(
+                            controller: retailPriceController,
+                            prefix: 'RWF',
+                            mono: true,
+                            placeholder: '0',
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Price is required';
+                              }
+                              if (double.tryParse(value) == null) {
+                                return 'Invalid price';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: PeField(
+                          label: 'Supply price',
+                          hint: 'Your cost per unit',
+                          child: PeTextInput(
+                            controller: supplyPriceController,
+                            prefix: 'RWF',
+                            mono: true,
+                            placeholder: '0',
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  ProductEditorMarginCard(
+                    retailController: retailPriceController,
+                    supplyController: supplyPriceController,
+                  ),
+                ],
+              ),
+            ),
+            ProductEditorSectionContent(
+              def: ProductEditorSectionDef(
+                id: 'inventory',
+                title: 'Inventory & categorization',
+                subtitle: 'Category & class',
+                icon: Icons.layers_outlined,
+                isFilled: inventoryFilled,
+              ),
+              sectionKey: _sectionInventoryKey,
+              child: ProductEditorInventorySection(
+                selectedPackageUnitValue: selectedPackageUnitValue,
+                pkgUnits: model.pkgUnits,
+                onPackageUnitChanged: (newValue) {
+                  if (newValue != null) {
+                    setState(() => selectedPackageUnitValue = newValue);
+                  }
+                },
+                selectedCategoryId: selectedCategoryId,
+                selectedCategoryName: selectedCategoryName,
+                onCategoryChanged: (newValue) {
+                  if (newValue != null) {
+                    setState(() => selectedCategoryId = newValue);
+                  }
+                },
+                onAddCategory: () => showAddCategoryModal(context),
+                selectedProductType: selectedProductType,
+                onProductTypeChanged: (newValue) {
+                  if (newValue != null) {
+                    setState(() => selectedProductType = newValue);
+                    // Sync in-memory variants to the new type outside build().
+                    for (final v in model.scannedVariants) {
+                      v.itemTyCd = newValue;
+                      if (newValue == "3") v.qty = 0;
+                    }
+                  }
+                },
+                countryOfOriginController: countryOfOriginController,
+                isEditMode: widget.productId != null,
+              ),
+            ),
+            ProductEditorSectionContent(
+              def: ProductEditorSectionDef(
+                id: 'variants',
+                title: 'Variants & stock',
+                subtitle: 'Stock & scan',
+                icon: Icons.qr_code_scanner,
+                isFilled: variantsFilled,
+              ),
+              sectionKey: _sectionVariantsKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ProductEditorScanSection(
+                    controller: scannedInputController,
+                    focusNode: _scannedInputFocusNode,
+                    onBarcodeScanned: (value) =>
+                        _handleBarcodeScan(value, model, productRef),
+                    onRequestCamera: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScannView(
+                            intent: BARCODE,
+                            scannerActions: DashboardScannerActions(
+                              context,
+                              ref,
+                            ),
+                          ),
+                        ),
+                      );
+                      final barcode = ProxyService.productService.barCode;
+                      if (barcode.trim().isNotEmpty) {
+                        scannedInputController.text = barcode.trim();
+                        _handleBarcodeScan(barcode.trim(), model, productRef);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TableVariants(
+                    productId: productRef?.id,
+                    isEbmEnabled:
+                        ref.watch(ebmVatEnabledProvider).value ?? false,
+                    isEditMode: widget.productId != null,
+                    useCardLayout: true,
+                    onDateChanged: (String variantId, DateTime date) {
+                      _dates[variantId] = TextEditingController(
+                        text: date.toIso8601String(),
+                      );
+                    },
+                    unversalProducts: ref.watch(universalProductsNames).value,
+                    units: ref.watch(unitsProvider).value?.value ?? [],
+                    scannedInputFocusNode: _scannedInputFocusNode,
+                    unitOfMeasures: [],
+                    model: model,
+                    onUnitOfMeasureChanged: (unitCode, variantId) =>
+                        _onUnitOfMeasureChanged(unitCode, variantId, model),
+                  ),
+                ],
+              ),
+            ),
+          ];
+
+    return Form(
+      key: _formKey,
+      child: ProductEditorPage(
+        isEditMode: widget.productId != null,
+        isComposite: isComposite,
+        productNameController: productNameController,
+        sections: sections,
+        onBack: () => Navigator.maybePop(context),
+        onClose: () => Navigator.maybePop(context),
+        onSave: () => _onDesktopSave(model, productRef),
+        formListenable: _formTick,
+        canSaveBuilder: () {
+          final nameFilled =
+              productNameController.text.trim().isNotEmpty;
+          final retailFilled =
+              retailPriceController.text.trim().isNotEmpty &&
+              double.tryParse(retailPriceController.text) != null;
+          final invFilled = selectedCategoryId != null;
+          final compFilled =
+              ref.read(selectedVariantsLocalProvider).isNotEmpty;
+          return nameFilled &&
+              retailFilled &&
+              (isComposite ? compFilled : invFilled);
+        },
+        sectionDefsBuilder: () => sections.map((s) => s.def).toList(),
+        isSaving: isLoading,
+      ),
+    );
   }
 
   @override
@@ -694,13 +1073,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     final productRef = ref.watch(unsavedProductProvider);
     final isLoading = ref.watch(loadingProvider).isLoading;
 
-    return Stack(
-      children: [
-        AbsorbPointer(
-          absorbing: isLoading,
-          child: ViewModelBuilder<ScannViewModel>.reactive(
-            viewModelBuilder: () => ScannViewModel(),
-            onViewModelReady: (model) async {
+    return ViewModelBuilder<ScannViewModel>.reactive(
+      viewModelBuilder: () => ScannViewModel(),
+      onViewModelReady: (model) async {
               if (widget.productId != null) {
                 Product product = await model.getProduct(
                   productId: widget.productId!,
@@ -782,14 +1157,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               final isPhone =
                   responsive.ResponsiveLayout.isPhone(context) ||
                   responsive.ResponsiveLayout.isTinyLimit(context);
-              for (var variant in model.scannedVariants) {
-                if (variant.itemTyCd != selectedProductType) {
-                  variant.itemTyCd = selectedProductType;
-                  if (selectedProductType == "3") {
-                    variant.qty = 0;
-                  }
-                }
-              }
+              // itemTyCd sync is done in _onProductTypeChanged; avoid
+              // mutating variants inside build() to prevent unnecessary jank.
               if (isPhone && !ref.watch(isCompositeProvider)) {
                 return Form(
                   key: _formKey,
@@ -802,7 +1171,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       if (!mounted) return;
                       if (_formKey.currentState!.validate()) {
                         if (productRef == null) {
-                          toast("Invalid product reference");
+                          showErrorNotification(
+                            context,
+                            'Invalid product reference',
+                          );
                           return;
                         }
                         await _onSaveButtonPressed(
@@ -912,379 +1284,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 );
               }
 
-              return Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: 18,
-                      right: 18,
-                      bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Product color',
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () =>
-                                            _showProductColorPicker(context),
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Ink(
-                                          width: 56,
-                                          height: 56,
-                                          decoration: BoxDecoration(
-                                            color: pickerColor,
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            border: Border.all(
-                                              color: Colors.grey.shade400,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            Icons.palette_outlined,
-                                            color:
-                                                pickerColor.computeLuminance() >
-                                                    0.5
-                                                ? Colors.black87
-                                                : Colors.white,
-                                            shadows: const [
-                                              Shadow(
-                                                color: Colors.black26,
-                                                blurRadius: 4,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    TextButton.icon(
-                                      onPressed: () =>
-                                          _showProductColorPicker(context),
-                                      icon: const Icon(
-                                        Icons.color_lens_outlined,
-                                      ),
-                                      label: const Text('Choose color'),
-                                    ),
-                                  ],
-                                ),
-                                if (!ref.watch(isCompositeProvider)) ...[
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Add photos on each variant in the table below.',
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(color: Colors.grey.shade700),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Toggle for Composite/Simple
-                          ToggleButtonWidget(),
-                          const SizedBox(height: 16),
-
-                          BasicInfoSection(
-                            productNameController: productNameController,
-                            model: model,
-                            isEditMode: widget.productId != null,
-                          ),
-                          const SizedBox(height: 16),
-                          PricingSection(
-                            retailPriceController: retailPriceController,
-                            supplyPriceController: supplyPriceController,
-                            model: model,
-                            isComposite: ref.watch(isCompositeProvider),
-                          ),
-
-                          if (!ref.watch(isCompositeProvider)) ...[
-                            const SizedBox(height: 16),
-                            if (isPhone)
-                              ExpansionTile(
-                                initiallyExpanded: false,
-                                tilePadding: EdgeInsets.zero,
-                                childrenPadding: const EdgeInsets.only(top: 8),
-                                title: Text(
-                                  'Advanced',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                                children: [
-                                  InventorySection(
-                                    selectedPackageUnitValue:
-                                        selectedPackageUnitValue,
-                                    pkgUnits: model.pkgUnits,
-                                    onPackageUnitChanged: (newValue) {
-                                      if (newValue != null) {
-                                        setState(() {
-                                          selectedPackageUnitValue = newValue;
-                                        });
-                                      }
-                                    },
-                                    selectedCategoryId: selectedCategoryId,
-                                    selectedCategoryName: selectedCategoryName,
-                                    onCategoryChanged: (newValue) {
-                                      if (newValue != null) {
-                                        setState(() {
-                                          selectedCategoryId = newValue;
-                                        });
-                                      }
-                                    },
-                                    onAddCategory: () {
-                                      showAddCategoryModal(context);
-                                    },
-                                    selectedProductType: selectedProductType,
-                                    onProductTypeChanged: (newValue) {
-                                      if (newValue != null) {
-                                        setState(() {
-                                          selectedProductType = newValue;
-                                        });
-                                      }
-                                    },
-                                    countryOfOriginController:
-                                        countryOfOriginController,
-                                    isEditMode: widget.productId != null,
-                                  ),
-                                ],
-                              )
-                            else
-                              InventorySection(
-                                selectedPackageUnitValue:
-                                    selectedPackageUnitValue,
-                                pkgUnits: model.pkgUnits,
-                                onPackageUnitChanged: (newValue) {
-                                  if (newValue != null) {
-                                    setState(() {
-                                      selectedPackageUnitValue = newValue;
-                                    });
-                                  }
-                                },
-                                selectedCategoryId: selectedCategoryId,
-                                selectedCategoryName: selectedCategoryName,
-                                onCategoryChanged: (newValue) {
-                                  if (newValue != null) {
-                                    setState(() {
-                                      selectedCategoryId = newValue;
-                                    });
-                                  }
-                                },
-                                onAddCategory: () {
-                                  showAddCategoryModal(context);
-                                },
-                                selectedProductType: selectedProductType,
-                                onProductTypeChanged: (newValue) {
-                                  if (newValue != null) {
-                                    setState(() {
-                                      selectedProductType = newValue;
-                                    });
-                                  }
-                                },
-                                countryOfOriginController:
-                                    countryOfOriginController,
-                                isEditMode: widget.productId != null,
-                              ),
-                            const SizedBox(height: 16),
-                            ScanSection(
-                              controller: scannedInputController,
-                              focusNode: _scannedInputFocusNode,
-                              onBarcodeScanned: (value) =>
-                                  _handleBarcodeScan(value, model, productRef),
-                              onRequestCamera: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ScannView(
-                                      intent: BARCODE,
-                                      scannerActions: DashboardScannerActions(
-                                        context,
-                                        ref,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                                String barcode =
-                                    ProxyService.productService.barCode;
-                                if (barcode.trim().isNotEmpty) {
-                                  scannedInputController.text = barcode.trim();
-                                  _handleBarcodeScan(
-                                    barcode.trim(),
-                                    model,
-                                    productRef,
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-
-                          const SizedBox(height: 16),
-                          if (!ref.watch(isCompositeProvider))
-                            TableVariants(
-                              productId: productRef?.id,
-                              isEbmEnabled:
-                                  ref.watch(ebmVatEnabledProvider).value ??
-                                  false,
-                              isEditMode: widget.productId != null,
-                              onDateChanged: (String variantId, DateTime date) {
-                                _dates[variantId] = TextEditingController(
-                                  text: date.toIso8601String(),
-                                );
-                              },
-                              unversalProducts: ref
-                                  .watch(universalProductsNames)
-                                  .value,
-                              units:
-                                  ref.watch(unitsProvider).value?.value ?? [],
-                              scannedInputFocusNode: _scannedInputFocusNode,
-                              unitOfMeasures: [],
-                              model: model,
-                              onUnitOfMeasureChanged: (unitCode, variantId) {
-                                final units =
-                                    ref.read(unitsProvider).value?.value ?? [];
-
-                                // Guard against empty units list to prevent StateError
-                                if (units.isEmpty) {
-                                  // Skip updating the variant if no units are available
-                                  return;
-                                }
-
-                                // Safely find the unit with fallback options
-                                IUnit? unit;
-
-                                try {
-                                  // Find by code first
-                                  unit = units.firstWhere(
-                                    (u) => u.code == unitCode,
-                                  );
-                                } catch (e) {
-                                  try {
-                                    // If not found by code, try by name
-                                    unit = units.firstWhere(
-                                      (u) => u.name == unitCode,
-                                    );
-                                  } catch (e) {
-                                    try {
-                                      // If not found by name, try to match with first variant's unit
-                                      if (model.scannedVariants.isNotEmpty) {
-                                        unit = units.firstWhere(
-                                          (u) =>
-                                              u.name ==
-                                              model.scannedVariants.first.unit,
-                                        );
-                                      } else {
-                                        // If no scanned variants, just return the first unit if available
-                                        unit = units.isNotEmpty
-                                            ? units.first
-                                            : null;
-                                      }
-                                    } catch (e) {
-                                      // Ultimate fallback to first unit if available
-                                      unit = units.isNotEmpty
-                                          ? units.first
-                                          : null;
-                                    }
-                                  }
-                                }
-
-                                // If no unit was found, return early
-                                if (unit == null) {
-                                  return;
-                                }
-
-                                final variantIndex = model.scannedVariants
-                                    .indexWhere((v) => v.id == variantId);
-                                if (variantIndex != -1) {
-                                  final variant =
-                                      model.scannedVariants[variantIndex];
-                                  variant.qtyUnitCd = unitCode;
-                                  variant.unit = unit.name ?? unitCode;
-                                }
-                              },
-                            ),
-
-                          if (ref.watch(isCompositeProvider)) ...[
-                            Fieldcompositeactivated(
-                              formKey: _fieldComposite,
-                              skuController: skuController,
-                              barCodeController: barCodeController,
-                            ),
-                            SearchProduct(),
-                            Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Text("Components"),
-                            ),
-                            CompositeVariation(
-                              supplyPriceController: supplyPriceController,
-                            ),
-                          ],
-
-                          ActionButtons(
-                            isSaving: isLoading,
-                            onSave: () async {
-                              if (!mounted) return;
-                              try {
-                                if (_formKey.currentState!.validate() &&
-                                    !ref.read(isCompositeProvider)) {
-                                  if (productRef == null) {
-                                    toast("Invalid product reference");
-                                    return;
-                                  }
-                                  if (!mounted) return;
-                                  await _onSaveButtonPressed(
-                                    model,
-                                    context,
-                                    productRef,
-                                    selectedProductType: selectedProductType,
-                                  );
-                                } else if (_fieldComposite.currentState
-                                        ?.validate() ??
-                                    false) {
-                                  await _handleCompositeProductSave(model);
-                                }
-                              } catch (e) {
-                                toast("An unexpected error occurred");
-                                talker.error("Error in save button: $e");
-                              }
-                            },
-                            onClose: () {
-                              Navigator.maybePop(context);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              return _buildDesktopProductEditor(
+                context: context,
+                model: model,
+                productRef: productRef,
+                isLoading: isLoading,
               );
             },
-          ),
-        ),
-        if (isLoading)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.3),
-              child: const SafeArea(
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
@@ -1604,7 +1610,10 @@ Future<void> _showVariantSheet({
                                       ? null
                                       : () async {
                                           if (productRef == null) {
-                                            toast('Invalid product reference');
+                                            showErrorNotification(
+                                              ctx,
+                                              'Invalid product reference',
+                                            );
                                             return;
                                           }
                                           final sourceResult =
@@ -1651,7 +1660,8 @@ Future<void> _showVariantSheet({
                                               e,
                                               st,
                                             );
-                                            toast(
+                                            showErrorNotification(
+                                              ctx,
                                               'Could not upload image. Please try again.',
                                             );
                                           } finally {
@@ -1963,7 +1973,10 @@ Future<void> _showVariantSheet({
                                     return;
                                   }
                                   if (productRef == null) {
-                                    toast('Invalid product reference');
+                                    showErrorNotification(
+                                      ctx,
+                                      'Invalid product reference',
+                                    );
                                     return;
                                   }
 
@@ -2032,6 +2045,8 @@ Future<void> _showVariantSheet({
                                                 : null);
                                       if (v != null) {
                                         v.name = variantName;
+                                        v.itemNm = variantName;
+                                        v.modrNm = variantName;
                                         v.taxTyCd = effectiveTaxTyCd;
                                         v.taxName = effectiveTaxTyCd;
                                         v.dcRt = discount.toDouble();
@@ -2052,6 +2067,8 @@ Future<void> _showVariantSheet({
                                       }
                                     } else {
                                       existingVariant.name = variantName;
+                                      existingVariant.itemNm = variantName;
+                                      existingVariant.modrNm = variantName;
                                       existingVariant.bcd = effectiveBarcode;
                                       existingVariant.sku = effectiveBarcode;
                                       existingVariant.taxTyCd =
@@ -2095,7 +2112,8 @@ Future<void> _showVariantSheet({
                                       st,
                                     );
                                     if (ctx.mounted) {
-                                      toast(
+                                      showErrorNotification(
+                                        ctx,
                                         'Could not save variant. Please try again.',
                                       );
                                     }

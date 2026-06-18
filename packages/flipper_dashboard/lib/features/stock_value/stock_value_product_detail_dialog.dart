@@ -11,7 +11,7 @@ import 'package:flipper_services/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
 
 /// Range for chart + summary figures (mock: 7D / 30D / 90D).
 enum _SalesRange { d7, d30, d90 }
@@ -780,13 +780,8 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
               ? null
               : () {
                   final id = productId;
-                  final nav = Navigator.of(context, rootNavigator: true);
-                  nav.pop();
-                  nav.push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ProductEntryScreen(productId: id),
-                    ),
-                  );
+                  Navigator.of(context, rootNavigator: true).pop();
+                  openProductEntryScreen(context, productId: id);
                 },
           icon: const Icon(Icons.edit, size: 18),
           label: Text('Edit product', style: GoogleFonts.outfit()),

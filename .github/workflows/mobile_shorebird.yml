@@ -73,10 +73,17 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
 
-      - name: Install Shorebird
+      - name: Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Verify Shorebird auth
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          echo "$HOME/.shorebird/bin" >> "$GITHUB_PATH"
+          bash scripts/ci/verify_shorebird_token.sh
+          shorebird --version
+          shorebird doctor -v
 
       - name: Install Melos
         run: |

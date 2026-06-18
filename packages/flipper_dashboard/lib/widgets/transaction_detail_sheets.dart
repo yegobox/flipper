@@ -656,7 +656,7 @@ Widget _sectionLabel(String text) {
   return Padding(
     padding: const EdgeInsets.fromLTRB(2, 16, 2, 8),
     child: Text(
-      text,
+      text.toUpperCase(),
       style: GoogleFonts.outfit(
         fontSize: 12,
         fontWeight: FontWeight.w700,

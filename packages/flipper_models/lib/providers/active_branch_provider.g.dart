@@ -40,4 +40,4 @@ final class ActiveBranchProvider
   }
 }
 
-String _$activeBranchHash() => r'53fc326d14873800a194ed238de662f506f639ed';
+String _$activeBranchHash() => r'a7bc8cca7ed986fab9321b5e013e389caaec5dd7';

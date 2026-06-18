@@ -1,30 +1,137 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
+import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    show
+        branchSelectionProvider,
+        businessesProvider,
+        buttonIndexProvider;
+import 'package:flipper_dashboard/logout/dashboard_sign_out.dart';
+import 'package:flipper_dashboard/logout/end_of_shift_dialog.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
 
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'providers/navigation_providers.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
-import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
-class EnhancedSideMenu extends ConsumerWidget {
+
+class EnhancedSideMenu extends ConsumerStatefulWidget {
   const EnhancedSideMenu({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EnhancedSideMenu> createState() => _EnhancedSideMenuState();
+}
+
+class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
+    with BranchSelectionMixin {
+  String? _loadingItemId;
+
+  Future<bool> _verifyAdminPinIfRequired(BuildContext context) async {
+    final settingsService = ProxyService.settings;
+    if (!settingsService.isAdminPinEnabled) return true;
+    final setting = await settingsService.settings();
+    final confirmed = await showAdminPinDialog(
+      context: context,
+      mode: AdminPinMode.verify,
+      expectedPin: setting?.adminPin,
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _setDefaultBranch(Branch branch) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+    _refreshBusinessAndBranchProviders();
+  }
+
+  void _refreshBusinessAndBranchProviders() {
+    // ignore: unused_result
+    ref.refresh(businessesProvider);
+    // ignore: unused_result
+    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
+  }
+
+  Future<void> _openEndOfShiftMenu() async {
+    final ok = await _verifyAdminPinIfRequired(context);
+    if (!ok || !mounted) return;
+
+    final branchName = ref.read(activeBranchProvider).maybeWhen(
+          data: (b) => b.name,
+          orElse: () => null,
+        );
+    final action = await EndOfShiftDialog.show(
+      context,
+      branchName: branchName,
+    );
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case EndOfShiftAction.signOut:
+        await _signOutCurrentAgent();
+      case EndOfShiftAction.switchBranch:
+        await _openBranchSwitchDialog();
+    }
+  }
+
+  Future<void> _signOutCurrentAgent() async {
+    final dialogService = locator<DialogService>();
+    final routerService = locator<RouterService>();
+    await completeDashboardSignOut(
+      context: context,
+      dialogService: dialogService,
+      routerService: routerService,
+      loaderUseRootNavigator: true,
+    );
+  }
+
+  Future<void> _openBranchSwitchDialog() async {
+    ref.read(buttonIndexProvider.notifier).setIndex(2);
+    await showBranchSwitchDialog(
+      context: context,
+      branches: null,
+      loadingItemId: _loadingItemId,
+      setDefaultBranch: (branch) async {
+        await handleBranchSelection(
+          branch,
+          context,
+          setLoadingState: (String? id) {
+            setState(() {
+              _loadingItemId = id;
+            });
+          },
+          setDefaultBranch: _setDefaultBranch,
+          onComplete: () {
+            Navigator.of(context).pop();
+          },
+          setIsLoading: (_) {},
+        );
+      },
+      handleBranchSelection: handleBranchSelection,
+      onLogout: _signOutCurrentAgent,
+      setLoadingState: (String? id) {
+        setState(() {
+          _loadingItemId = id;
+        });
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedItem = ref.watch(selectedMenuItemProvider);
     final _dialogService = locator<DialogService>();
-    final _routerService = locator<RouterService>();
 
     final isDesktop =
         kIsWeb ||
@@ -48,8 +155,7 @@ class EnhancedSideMenu extends ConsumerWidget {
 
     final menuItems = [
       _SideMenuItem(
-        iconBuilder: (_) =>
-            SvgPicture.string(_SideMenuSvgs.appGrid, width: 24, height: 24),
+        iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.appGrid, c),
         isSelected: selectedItem == 0,
         onTap: () {
           ref.read(selectedMenuItemProvider.notifier).state = 0;
@@ -59,8 +165,7 @@ class EnhancedSideMenu extends ConsumerWidget {
         tooltip: 'Overview',
       ),
       _SideMenuItem(
-        iconBuilder: (_) =>
-            SvgPicture.string(_SideMenuSvgs.aiChat, width: 24, height: 24),
+        iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.aiChat, c),
         isSelected: selectedItem == 1,
         onTap: () {
           ref.read(selectedMenuItemProvider.notifier).state = 1;
@@ -85,10 +190,9 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (isDesktop)
         _SideMenuItem(
-          iconBuilder: (_) => DashboardQuickAccessSvgs.icon(
+          iconBuilder: (c) => _coloredSideMenuSvg(
             DashboardQuickAccessSvgs.drawerAuthShieldIcon(),
-            width: 24,
-            height: 24,
+            c,
           ),
           isSelected: false,
           onTap: () {
@@ -122,8 +226,7 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (showItems)
         _SideMenuItem(
-          iconBuilder: (_) =>
-              SvgPicture.string(_SideMenuSvgs.inventory, width: 24, height: 24),
+          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.inventory, c),
           isSelected: selectedItem == 2,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 2;
@@ -160,11 +263,8 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (showStockRecount)
         _SideMenuItem(
-          iconBuilder: (_) => SvgPicture.string(
-            _SideMenuSvgs.stockRecount,
-            width: 24,
-            height: 24,
-          ),
+          iconBuilder: (c) =>
+              _coloredSideMenuSvg(_SideMenuSvgs.stockRecount, c),
           isSelected: selectedItem == 6,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 6;
@@ -186,11 +286,8 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (showIncomingOrders)
         _SideMenuItem(
-          iconBuilder: (_) => SvgPicture.string(
-            _SideMenuSvgs.inboxImport,
-            width: 24,
-            height: 24,
-          ),
+          iconBuilder: (c) =>
+              _coloredSideMenuSvg(_SideMenuSvgs.inboxImport, c),
           isSelected: selectedItem == 8,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 8;
@@ -201,11 +298,7 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (showProduction)
         _SideMenuItem(
-          iconBuilder: (_) => SvgPicture.string(
-            _SideMenuSvgs.production,
-            width: 24,
-            height: 24,
-          ),
+          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.production, c),
           isSelected: selectedItem == 9,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 9;
@@ -216,8 +309,7 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (showShiftHistory)
         _SideMenuItem(
-          iconBuilder: (_) =>
-              SvgPicture.string(_SideMenuSvgs.history, width: 24, height: 24),
+          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.history, c),
           isSelected: selectedItem == 5,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 5;
@@ -238,33 +330,11 @@ class EnhancedSideMenu extends ConsumerWidget {
           tooltip: 'Agent commission',
         ),
       _SideMenuItem(
-        iconBuilder: (_) =>
-            SvgPicture.string(_SideMenuSvgs.logout, width: 24, height: 24),
+        key: const Key('eod_desktop'),
+        iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.logout, c),
         isSelected: selectedItem == 4,
-        onTap: () async {
-          final userId = ProxyService.box.getUserId();
-          if (userId == null) {
-            _routerService.replaceWith(const LoginRoute());
-            return;
-          }
-          try {
-            final proceed = await prepareSessionExitAfterShiftHandling(
-              context: context,
-              dialogService: _dialogService,
-            );
-            if (proceed) {
-              _routerService.replaceWith(const LoginRoute());
-            }
-          } catch (e) {
-            print('Error during logout flow: $e');
-            await _dialogService.showCustomDialog(
-              variant: DialogType.info,
-              title: 'Error',
-              description: 'An error occurred during logout: $e',
-            );
-          }
-        },
-        tooltip: 'Log Out Shift',
+        onTap: () => _openEndOfShiftMenu(),
+        tooltip: 'End shift',
         isLogout: true,
       ),
     ];
@@ -281,10 +351,9 @@ class EnhancedSideMenu extends ConsumerWidget {
         Column(
           children: [
             IconButton(
-              icon: SvgPicture.string(
+              icon: _coloredSideMenuSvg(
                 _SideMenuSvgs.appGrid,
-                width: 24,
-                height: 24,
+                PosTokens.ink3,
               ),
               onPressed: () {
                 _dialogService.showCustomDialog(
@@ -309,71 +378,80 @@ class _SideMenuSvgs {
 
   static const inventory =
       '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#5B6478" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M2 17l10 5 10-5" stroke="#5B6478" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M2 12l10 5 10-5" stroke="#5B6478" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
 </svg>''';
 
   static const stockRecount =
       '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="#5B6478" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="9" y="3" width="6" height="4" rx="1" stroke="#5B6478" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9 12h1M12 12h1M15 12h1" stroke="#5B6478" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M9 15.5h1M12 15.5h1" stroke="#5B6478" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M14.5 14.5l1.5 1.5-1.5 1.5" stroke="#5B6478" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9 12h1M12 12h1M15 12h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M9 15.5h1M12 15.5h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M14.5 14.5l1.5 1.5-1.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>''';
 
   static const inboxImport =
       '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="2" y="4" width="20" height="16" rx="2" stroke="#5B6478" stroke-width="1.7"/>
-  <path d="M2 9h20" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M12 13v4M10 15l2 2 2-2" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/>
+  <path d="M2 9h20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M12 13v4M10 15l2 2 2-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>''';
 
   static const history =
       '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M20.5 12A8.5 8.5 0 1112 3.5" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M12 3.5V7M9 5h6" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M12 8v4l3 2" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20.5 12A8.5 8.5 0 1112 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M12 3.5V7M9 5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>''';
 
   static const logout =
       '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4" stroke="#E24B4A" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M15 16l4-4-4-4" stroke="#E24B4A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9 12h10" stroke="#E24B4A" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M15 16l4-4-4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9 12h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
 </svg>''';
 
   static const appGrid =
       '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="5" cy="5" r="1.5" fill="#5B6478"/>
-  <circle cx="12" cy="5" r="1.5" fill="#5B6478"/>
-  <circle cx="19" cy="5" r="1.5" fill="#5B6478"/>
-  <circle cx="5" cy="12" r="1.5" fill="#5B6478"/>
-  <circle cx="12" cy="12" r="1.5" fill="#5B6478"/>
-  <circle cx="19" cy="12" r="1.5" fill="#5B6478"/>
-  <circle cx="5" cy="19" r="1.5" fill="#5B6478"/>
-  <circle cx="12" cy="19" r="1.5" fill="#5B6478"/>
-  <circle cx="19" cy="19" r="1.5" fill="#5B6478"/>
+  <circle cx="5" cy="5" r="1.5" fill="currentColor"/>
+  <circle cx="12" cy="5" r="1.5" fill="currentColor"/>
+  <circle cx="19" cy="5" r="1.5" fill="currentColor"/>
+  <circle cx="5" cy="12" r="1.5" fill="currentColor"/>
+  <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+  <circle cx="19" cy="12" r="1.5" fill="currentColor"/>
+  <circle cx="5" cy="19" r="1.5" fill="currentColor"/>
+  <circle cx="12" cy="19" r="1.5" fill="currentColor"/>
+  <circle cx="19" cy="19" r="1.5" fill="currentColor"/>
 </svg>''';
 
   static const aiChat =
       '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#7C3AED" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="8.5" cy="11" r="1" fill="#7C3AED"/>
-  <circle cx="12" cy="11" r="1" fill="#7C3AED"/>
-  <circle cx="15.5" cy="11" r="1" fill="#7C3AED"/>
+  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="8.5" cy="11" r="1" fill="currentColor"/>
+  <circle cx="12" cy="11" r="1" fill="currentColor"/>
+  <circle cx="15.5" cy="11" r="1" fill="currentColor"/>
 </svg>''';
 
   static const production =
       '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="2" y="7" width="20" height="13" rx="2" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M2 10h20" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
-  <path d="M6 4h12" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
-  <rect x="5" y="14" width="3" height="2" rx="0.5" fill="#2563EB"/>
-  <rect x="10" y="14" width="3" height="2" rx="0.5" fill="#2563EB"/>
-  <rect x="15" y="14" width="4" height="2" rx="0.5" fill="#2563EB"/>
+  <rect x="2" y="7" width="20" height="13" rx="2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M2 10h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M6 4h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="5" y="14" width="3" height="2" rx="0.5" fill="currentColor"/>
+  <rect x="10" y="14" width="3" height="2" rx="0.5" fill="currentColor"/>
+  <rect x="15" y="14" width="4" height="2" rx="0.5" fill="currentColor"/>
 </svg>''';
+}
+
+Widget _coloredSideMenuSvg(String svg, Color color) {
+  return SvgPicture.string(
+    svg,
+    width: 24,
+    height: 24,
+    colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+  );
 }
 
 class _SideMenuItem extends StatelessWidget {
@@ -384,6 +462,7 @@ class _SideMenuItem extends StatelessWidget {
   final bool isLogout;
 
   const _SideMenuItem({
+    super.key,
     required this.iconBuilder,
     required this.isSelected,
     required this.onTap,

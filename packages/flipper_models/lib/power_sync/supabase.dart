@@ -11,7 +11,12 @@ Future<void> loadSupabase() async {
     if (kDebugMode) {
       debugPrint('Initializing Supabase with:');
       debugPrint('  URL: $supabaseUrl');
-      debugPrint('  Anon Key: $supabaseAnonKey');
+      // Never log the key itself. Emit only a non-sensitive hint so debug
+      // output can confirm a key is present without exposing its value.
+      final keyHint = supabaseAnonKey.isEmpty
+          ? '<empty>'
+          : '${supabaseAnonKey.split('_').take(2).join('_')}_… (len ${supabaseAnonKey.length})';
+      debugPrint('  Key: $keyHint');
     }
 
     debugPrint(

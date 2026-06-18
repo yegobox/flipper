@@ -11,5 +11,6 @@ abstract class ReceiptInterface {
     required int highestInvcNo,
     required int invoiceNumber,
     required String timeReceivedFromserver,
+    bool skipDittoSync = false,
   });
 }

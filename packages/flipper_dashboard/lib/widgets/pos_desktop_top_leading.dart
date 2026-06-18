@@ -1,9 +1,9 @@
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
-import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// Left cluster of the desktop POS top bar: branding only (tools live in ribbon + catalog search).
+/// Left cluster of the desktop POS top bar: wordmark only. The Flipper logo
+/// mark lives in [DashboardLayout]'s sidebar header column on every page.
 class PosDesktopTopLeading extends ConsumerWidget {
   const PosDesktopTopLeading({super.key});
 
@@ -12,8 +12,6 @@ class PosDesktopTopLeading extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        PosHandoffIcons.svg('flipper-logo', size: 30),
-        const SizedBox(width: 11),
         const Text(
           'FLIPPER',
           style: TextStyle(

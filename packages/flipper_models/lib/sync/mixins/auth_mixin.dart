@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -23,11 +22,9 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
-import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 mixin AuthMixin implements AuthInterface {
@@ -561,7 +558,10 @@ mixin AuthMixin implements AuthInterface {
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
     print('After setting authComplete');
 
-    if (stopAfterConfigure) return user;
+    if (stopAfterConfigure) {
+      unawaited(_completeDittoLoginSetup());
+      return user;
+    }
     if (!skipDefaultAppSetup) {
       // Ensure business and branch IDs are set in storage
       // This is critical for when a user logs in again
@@ -574,21 +574,18 @@ mixin AuthMixin implements AuthInterface {
 
         // Also set business preferences
         try {
-          final businesses = await this.businesses(userId: user.id);
+          final resolvedBusinesses = await _businessesForLogin(user);
           Business? selectedBusiness;
 
-          // Find the matching business or use the first one if none matches
-          for (final business in businesses) {
-            // Compare serverId with pin.businessId, handling both string and int types
-            if (business.id.toString() == pin.businessId.toString()) {
+          for (final business in resolvedBusinesses) {
+            if (_pinMatchesBusiness(pin, business)) {
               selectedBusiness = business;
               break;
             }
           }
 
-          // If no match found, use the first business if available
-          if (selectedBusiness == null && businesses.isNotEmpty) {
-            selectedBusiness = businesses.first;
+          if (selectedBusiness == null && resolvedBusinesses.isNotEmpty) {
+            selectedBusiness = resolvedBusinesses.first;
           }
 
           if (selectedBusiness != null) {
@@ -600,21 +597,11 @@ mixin AuthMixin implements AuthInterface {
               value: (await ProxyService.box.bhfId()) ?? "00",
             );
 
-            // Get existing tin value if available
             final existingTin = ProxyService.box.readInt(key: 'tin');
-
-            // Resolve effective TIN (prefer Ebm) and update box if needed
-            final resolvedTin = await effectiveTin(business: selectedBusiness);
-            if (resolvedTin != null || existingTin == null) {
-              await ProxyService.box.writeInt(
-                key: 'tin',
-                value: resolvedTin ?? existingTin ?? 0,
-              );
-              talker.debug(
-                'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})',
-              );
-            } else {
-              talker.debug('Preserving existing tin value: $existingTin');
+            final tinToStore = selectedBusiness.tinNumber ?? existingTin;
+            if (tinToStore != null) {
+              await ProxyService.box.writeInt(key: 'tin', value: tinToStore);
+              talker.debug('Setting tin to $tinToStore (from login payload)');
             }
 
             await ProxyService.box.writeString(
@@ -651,24 +638,41 @@ mixin AuthMixin implements AuthInterface {
         );
 
         try {
-          // Get the branch ID string if available
-          final branches = await ProxyService.strategy.branches(
-            businessId: pin.businessId!,
-          );
           Branch? selectedBranch;
-
-          // Find the matching branch or use the first one if none matches
-          for (final branch in branches) {
-            // Compare serverId with pin.branchId, handling both string and int types
-            if (branch.id.toString() == pin.branchId.toString()) {
-              selectedBranch = branch;
+          Business? pinBusiness;
+          for (final business in _businessesFromUser(user)) {
+            if (_pinMatchesBusiness(pin, business)) {
+              pinBusiness = business;
               break;
             }
           }
-
-          // If no match found, use the first branch if available
-          if (selectedBranch == null && branches.isNotEmpty) {
-            selectedBranch = branches.first;
+          final nestedBranches = pinBusiness?.branches;
+          if (nestedBranches != null && nestedBranches.isNotEmpty) {
+            for (final branch in nestedBranches) {
+              if (pin.branchId != null &&
+                  pin.branchId!.isNotEmpty &&
+                  branch.id.toString() == pin.branchId.toString()) {
+                selectedBranch = branch;
+                break;
+              }
+            }
+            selectedBranch ??= nestedBranches.first;
+          } else {
+            final branchesJson = await ProxyService.ditto.getBranches(
+              user.id,
+              pin.businessId!,
+            );
+            final branches =
+                branchesJson.map((j) => Branch.fromMap(j)).toList();
+            for (final branch in branches) {
+              if (branch.id.toString() == pin.branchId.toString()) {
+                selectedBranch = branch;
+                break;
+              }
+            }
+            if (selectedBranch == null && branches.isNotEmpty) {
+              selectedBranch = branches.first;
+            }
           }
 
           if (selectedBranch != null) {
@@ -720,7 +724,51 @@ mixin AuthMixin implements AuthInterface {
       }
     }
 
+    unawaited(_completeDittoLoginSetup());
+
     return user;
+  }
+
+  bool _pinMatchesBusiness(Pin pin, Business business) {
+    final target = pin.businessId?.toString();
+    if (target == null || target.isEmpty) return false;
+    return business.id == target || business.serverId.toString() == target;
+  }
+
+  List<Business> _businessesFromUser(IUser user) {
+    final fromApi = user.businesses;
+    if (fromApi == null || fromApi.isEmpty) return [];
+    return fromApi.map((b) {
+      final map = Map<String, dynamic>.from(b.toJson());
+      if (b.branches != null) {
+        map['branches'] = b.branches!.map((br) => br.toJson()).toList();
+      }
+      return Business.fromMap(map);
+    }).toList();
+  }
+
+  /// Login reads tenant data from the API response or Ditto `user_access` only.
+  Future<List<Business>> _businessesForLogin(IUser user) async {
+    final fromUser = _businessesFromUser(user);
+    if (fromUser.isNotEmpty) return fromUser;
+
+    final access = await ProxyService.ditto.getUserAccess(user.id);
+    if (access == null || !access.containsKey('businesses')) return [];
+
+    return (access['businesses'] as List)
+        .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
+        .toList();
+  }
+
+  /// Legacy box default when the account has a single business + branch.
+  void _applyLoginBoxDefaultsFromApi(List<dynamic> businessesData) {
+    if (businessesData.length != 1) return;
+    final branches = businessesData.first['branches'] as List? ?? [];
+    if (branches.length != 1) return;
+    final branchId = branches.first['id']?.toString();
+    if (branchId != null && branchId.isNotEmpty) {
+      ProxyService.box.writeString(key: 'branchId', value: branchId);
+    }
   }
 
   String _formatPhoneNumber(String phoneNumber) {
@@ -833,56 +881,18 @@ mixin AuthMixin implements AuthInterface {
         throw Exception("Missing user ID in server response");
       }
 
-      // Process businesses and branches
+      // Tenant data: Ditto user_access only (login choices / businessesProvider).
       final List<dynamic> businessesData = responseBody['businesses'] ?? [];
-
-      // Save businesses and branches locally
-      for (var businessData in businessesData) {
-        final iBusiness = IBusiness.fromJson(businessData);
-        // Save business locally
-        await ProxyService.strategy.getBusinessById(
-          businessId: iBusiness.id,
-          fetchOnline: true,
-        );
-
-        // Process branches if they are nested in the business (new structure)
-        final List<dynamic> branchesData = businessData['branches'] ?? [];
-
-        for (var branchData in branchesData) {
-          final iBranch = IBranch.fromJson(branchData);
-          // Only set the last branch ID if there's only one branch total (legacy behavior)
-          if (branchesData.length == 1 && businessesData.length == 1) {
-            ProxyService.box.writeString(key: 'branchId', value: iBranch.id!);
-          }
-
-          final branch = Branch(
-            id: iBranch.id!,
-            serverId: iBranch.serverId,
-            description: iBranch.description,
-            name: iBranch.name,
-            businessId: iBranch.businessId,
-            longitude: iBranch.longitude,
-            latitude: iBranch.latitude,
-            location: iBranch.location,
-            isDefault: iBranch.isDefault ?? false,
-          );
-          await repository.upsert<Branch>(
-            branch,
-            policy: OfflineFirstUpsertPolicy.localOnly,
-          );
-          talker.debug(
-            "Saved branch locally: ${branch.name} (isDefault: ${branch.isDefault})",
-          );
-        }
-      }
+      final userId = responseBody['id'].toString();
 
       ProxyService.box.writeString(key: 'userPhone', value: lookupPhone);
       final apiName = responseBody['name']?.toString().trim();
       if (apiName != null && apiName.isNotEmpty) {
         await ProxyService.box.writeString(key: 'userName', value: apiName);
       }
-      await _initializeDitto(responseBody['id'].toString());
-      // Save user access to Ditto for cross-device synchronization
+      _applyLoginBoxDefaultsFromApi(businessesData);
+
+      await _initializeDitto(userId, loginFastPath: true);
       await ProxyService.ditto.saveUserAccess(responseBody);
 
       return http.Response(
@@ -1101,9 +1111,24 @@ mixin AuthMixin implements AuthInterface {
 
   /// Helper function to initialize Ditto with proper guards against repeated initialization
   /// This prevents double initialization while preserving skipInitialFetch and error logging behavior
-  Future<void> _initializeDitto(String userId) async {
+  Future<void> _initializeDitto(
+    String userId, {
+    bool loginFastPath = false,
+  }) async {
     final existingDitto = DittoSingleton.instance.ditto;
     final existingUserId = DittoSingleton.persistenceUserId;
+
+    // QR-login uses a temporary `login-*` identity in an isolated store. Tear it
+    // down before opening the real user's db2 directory during PIN login.
+    if (existingUserId != null &&
+        existingUserId.startsWith('login-') &&
+        existingUserId != userId) {
+      talker.debug(
+        'Disposing QR-login Ditto ($existingUserId) before init for $userId',
+      );
+      await DittoSingleton.instance.dispose(quick: true);
+      _isDittoInitialized = false;
+    }
 
     // Only skip when the singleton truly matches this user. Otherwise a stale
     // [_isDittoInitialized] flag (e.g. after Ditto.dispose or QR-login teardown)
@@ -1132,22 +1157,58 @@ mixin AuthMixin implements AuthInterface {
         : AppSecrets.appId;
     print("User id set to $userId and Ditto initializing now");
     try {
-      await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-      DittoSyncCoordinator.instance.setDitto(
-        DittoSingleton.instance.ditto,
-        skipInitialFetch:
-            true, // Skip initial fetch to prevent upserting all models on startup
+      await DittoSingleton.instance.initialize(
+        appId: appID,
+        userId: userId,
+        deferSyncStart: loginFastPath,
       );
-      _isDittoInitialized = true; // Mark as initialized after successful setup
-      final box = ProxyService.box;
-      if (box is SharedPreferenceStorage) {
-        await box.attachDittoPersistence();
+      _isDittoInitialized = true;
+      if (!loginFastPath) {
+        await _attachDittoCoordinatorAndStorage();
       }
     } catch (e) {
       talker.error("Failed to initialize Ditto: $e");
       rethrow;
     }
     print("Ditto initialized");
+  }
+
+  static bool _dittoCoordinatorAttached = false;
+  static bool _dittoLoginSetupComplete = false;
+
+  Future<void> _attachDittoCoordinatorAndStorage() async {
+    if (_dittoCoordinatorAttached) return;
+    final ditto = DittoSingleton.instance.ditto;
+    if (ditto == null) return;
+
+    await DittoSyncCoordinator.instance.setDitto(
+      ditto,
+      skipInitialFetch: true,
+    );
+    final box = ProxyService.box;
+    if (box is SharedPreferenceStorage) {
+      await box.attachDittoPersistence();
+    }
+    _dittoCoordinatorAttached = true;
+  }
+
+  Future<void> _completeDittoLoginSetup() async {
+    if (_dittoLoginSetupComplete) return;
+    final ditto = DittoSingleton.instance.ditto;
+    if (ditto == null) return;
+
+    final appID = foundation.kDebugMode
+        ? AppSecrets.appIdDebug
+        : AppSecrets.appId;
+    try {
+      await DittoSingleton.instance.ensureAuthenticatedAndSyncing(
+        appId: appID,
+      );
+      await _attachDittoCoordinatorAndStorage();
+      _dittoLoginSetupComplete = true;
+    } catch (e, s) {
+      talker.warning('Background Ditto login setup failed: $e\n$s');
+    }
   }
 
   // Static flag to track Ditto initialization status
@@ -1161,6 +1222,8 @@ mixin AuthMixin implements AuthInterface {
   /// Static method to reset Ditto initialization state, can be called from anywhere
   static void resetDittoInitializationStatic() {
     _isDittoInitialized = false;
+    _dittoCoordinatorAttached = false;
+    _dittoLoginSetupComplete = false;
   }
 
   /// Helper function to safely decode JSON responses

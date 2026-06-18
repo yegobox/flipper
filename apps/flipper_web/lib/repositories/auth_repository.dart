@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_web/core/api_login_key.dart';
+import 'package:flipper_web/core/session_persistence.dart';
+import 'package:flipper_web/core/user_profile_cache.dart';
+import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/core/utils/http_overrides.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
@@ -8,20 +12,22 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final supabase = ref.watch(supabaseProvider);
   final userRepository = ref.watch(userRepositoryProvider);
-  return AuthRepository(supabase, userRepository);
+  return AuthRepository(supabase, userRepository, ref);
 });
 
 class AuthRepository {
   final SupabaseClient _supabase;
   final UserRepository _userRepository;
+  final Ref _ref;
   late final http.Client _httpClient;
 
-  AuthRepository(this._supabase, this._userRepository) {
+  AuthRepository(this._supabase, this._userRepository, this._ref) {
     // Ensure HTTP overrides (e.g. badCertificateCallback) are installed
     // before creating the `http.Client` so its underlying HttpClient
     // picks up the overrides on non-web platforms.
@@ -90,15 +96,8 @@ class AuthRepository {
     );
 
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final refreshToken = responseData['refreshToken'] as String;
-
-      // Use the token from the API response to authenticate with Supabase
-      await _supabase.auth.setSession(refreshToken);
-
-      // After successful authentication, fetch and save the user profile
-      await _fetchAndSaveUserProfile();
-      return true;
+      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      return _completeOtpLogin(responseData);
     } else if (response.statusCode == 404) {
       throw Exception('OTP not found');
     } else {
@@ -120,16 +119,8 @@ class AuthRepository {
     );
 
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final refreshToken = responseData['refreshToken'] as String;
-
-      // Use the token from the API response to authenticate with Supabase
-      await _supabase.auth.setSession(refreshToken);
-
-      // After successful authentication, fetch and save the user profile
-      await _fetchAndSaveUserProfile();
-
-      return true;
+      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      return _completeOtpLogin(responseData);
     } else if (response.statusCode == 404) {
       throw Exception('TOTP not found');
     } else {
@@ -137,24 +128,90 @@ class AuthRepository {
     }
   }
 
-  /// Fetches the user profile from the API and saves it to Ditto
-  /// Called automatically after successful authentication
-  Future<void> _fetchAndSaveUserProfile() async {
+  Future<bool> _completeOtpLogin(Map<String, dynamic> responseData) async {
+    final refreshToken = responseData['refreshToken'] as String?;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw Exception('Login succeeded but no Supabase refresh token was returned');
+    }
+
+    final pinUserId = responseData['userId']?.toString().trim();
+    if (pinUserId != null && pinUserId.isNotEmpty) {
+      _ref.read(sessionApiUserIdProvider.notifier).state = pinUserId;
+      await SessionPersistence.save(apiUserId: pinUserId);
+    }
+
+    final rawLoginKey = responseData['phoneNumber']?.toString().trim();
+    final loginKey = rawLoginKey == null || rawLoginKey.isEmpty
+        ? null
+        : normalizeApiUserLoginKey(rawLoginKey);
+    if (loginKey != null &&
+        loginKey.isNotEmpty &&
+        !isFlipperDittoLoginKey(loginKey)) {
+      _ref.read(sessionLoginKeyProvider.notifier).state = loginKey;
+      await SessionPersistence.save(loginKey: loginKey);
+    }
+
+    await _supabase.auth.setSession(refreshToken);
+    await _fetchAndSaveUserProfile(
+      loginKey: loginKey,
+      pinUserId: pinUserId,
+    );
+    return true;
+  }
+
+  /// Fetches the user profile from the API, saves it to Ditto, and caches
+  /// it in memory so the business-selection screen can use it immediately.
+  Future<void> _fetchAndSaveUserProfile({
+    String? loginKey,
+    String? pinUserId,
+  }) async {
     try {
-      // Get the current session token
       final session = _supabase.auth.currentSession;
       if (session == null) {
         throw Exception('No active session found');
       }
 
-      // Use the session token to fetch and save the user profile
-      await _userRepository.fetchAndSaveUserProfile(session);
+      final resolvedLoginKey =
+          loginKey ?? _ref.read(sessionLoginKeyProvider);
+      final resolvedPinUserId =
+          pinUserId ?? _ref.read(sessionApiUserIdProvider);
+      final profile = await _userRepository.fetchAndSaveUserProfile(
+        session,
+        loginKey: resolvedLoginKey,
+        pinUserId: resolvedPinUserId,
+      );
 
-      debugPrint('User profile fetched and saved successfully');
+      await SessionPersistence.save(
+        apiUserId: resolvedPinUserId ?? profile.id,
+        loginKey: _ref.read(sessionLoginKeyProvider),
+      );
+
+      final profilePhone = profile.phoneNumber.trim();
+      if (profilePhone.isNotEmpty) {
+        final normalizedPhone = normalizeApiUserLoginKey(profilePhone);
+        _ref.read(sessionLoginKeyProvider.notifier).state = normalizedPhone;
+        await SessionPersistence.save(loginKey: normalizedPhone);
+      }
+
+      // Cache only complete profiles so business selection is not blocked.
+      if (profile.hasBusinesses) {
+        _ref.read(userProfileCacheProvider.notifier).state = profile;
+      } else {
+        _ref.read(userProfileCacheProvider.notifier).state = null;
+      }
+
+      _ref.invalidate(currentUserProfileProvider);
+
+      final dittoUserId = (resolvedPinUserId ?? profile.id).trim();
+      if (dittoUserId.isNotEmpty) {
+        // Non-blocking — accounting providers refresh when Ditto becomes ready.
+        unawaited(DittoBootstrap.ensureInitialized(_ref, userId: dittoUserId));
+      }
+
+      debugPrint('User profile fetched and cached successfully');
     } catch (e) {
       debugPrint('Error fetching user profile: $e');
-      // We don't re-throw the exception here to avoid failing the login process
-      // if the profile fetch fails. The user can still use the app.
+      rethrow;
     }
   }
 }

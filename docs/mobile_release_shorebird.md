@@ -124,15 +124,33 @@ In App Store Connect → Xcode Cloud → failed build → **Logs** → expand th
 | Dart compile errors (`secrets.dart`, `firebase_options.dart`) | Run Script (`xcode_backend.sh build`) | Set Xcode Cloud secrets: `SECRETS1`, `SECRETS2`, `FIREBASE1`, `FIREBASE2`, `GOOGLE_SERVICE_INFO_PLIST_CONTENT` |
 | `upload-symbols` / Crashlytics | `[firebase_crashlytics] Crashlytics Upload Symbols` | Keep `firebase_app_id_file.json` (written from `GoogleService-Info.plist` in CI scripts) |
 
-`apps/flipper/ios/ci_scripts/ci_pre_xcodebuild.sh` runs before `xcodebuild` to:
+`ci_post_clone.sh` writes secrets, initializes submodules, installs Flutter, and runs `melos bootstrap` (skipping other apps and `*example*` packages). It prints a **heartbeat** every 90s during slow commands so Xcode Cloud does not hit the 15-minute no-output timeout.
 
-- validate secrets / Firebase files exist
-- run `melos bootstrap`
-- run `flutter build ios --release --no-codesign` (Dart errors show here, not as generic PhaseScriptExecution)
-- run `pod install` and verify `Podfile.lock` matches `Pods/Manifest.lock`
-- write `ios/Flutter/.ci_flutter_root` for Xcode Run Script phases
+`ci_pre_xcodebuild.sh` runs `flutter pub get`, `flutter build ios --config-only`, then `pod install --repo-update --verbose` in the **foreground** (background `pod` caused silent failures). The `Podfile` uses `source 'https://cdn.cocoapods.org/'`. On failure it retries with `pod update --repo-update` and prints the last 60 log lines.
 
-In App Store Connect, open the failed build → **Logs** → expand **Pre-Xcodebuild** and **xcodebuild** (not only the final summary). Search for `error:` or `PhaseScriptExecution`. Download the `.xcresult` artifact if needed.
+If post-clone still times out, check which heartbeat label was last printed (submodules, Flutter download, melos, etc.).
+
+Do not remove `ci_pre_xcodebuild.sh` unless you also fix `FLUTTER_ROOT` and Pods sync another way. If Pre-Xcodebuild fails, read that log section first — it is clearer than `PhaseScriptExecution` during archive.
+
+In App Store Connect, open the failed build → **Logs** → expand **Post-Clone**, **Pre-Xcodebuild**, and **xcodebuild**. Search for `error:`.
+
+## Xcode Cloud: xcodebuild archive exit code 65
+
+Exit code **65** means the **archive build failed**. Post-clone and pre-xcodebuild already passed; the failure is inside `xcodebuild archive`.
+
+In the **xcodebuild** log section, search for:
+
+- `error:` / `** ARCHIVE FAILED **`
+- `Code Sign error` / `Provisioning profile` / `doesn't match the entitlements`
+- `PhaseScriptExecution`
+- `CFBundleShortVersionString` / `CFBundleVersion`
+
+Common fixes for Flipper:
+
+1. **Push entitlements** — Release archive must use `aps-environment: production` (`RunnerRelease.entitlements`), not `development`.
+2. **Xcode Cloud signing** — App Store Connect → your app → **Xcode Cloud** → ensure the workflow can manage signing for bundle id `rw.flipper` and team `PA9F44QG38` (Push Notifications, Sign in with Apple, Keychain Sharing enabled on the App ID).
+3. **Version strings** — `pubspec.yaml` `version:` becomes `FLUTTER_BUILD_NAME` / `FLUTTER_BUILD_NUMBER`. App Store expects a normal `x.y.z` marketing version (max 3 dot-separated integers).
+4. **Script phase** — if you still see `PhaseScriptExecution`, scroll up for `Using FLUTTER_ROOT=` or Dart compile errors.
 
 ## Predicting iOS success before pushing
 

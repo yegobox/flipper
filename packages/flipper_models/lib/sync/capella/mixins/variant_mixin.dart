@@ -9,6 +9,8 @@ import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
+import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -20,6 +22,27 @@ mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
   Repository get repository;
   Talker get talker;
+
+  bool get isMobileDevice => isAndroid || isIos;
+
+  Future<void> _syncStockToDitto(Stock stock) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await ditto.store.execute(
+      "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+      arguments: {'doc': stock.toJson()},
+    );
+  }
+
+  Future<void> _syncVariantToDitto(Variant variant) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await ditto.store.execute(
+      "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+      arguments: {'doc': variant.toFlipperJson()},
+    );
+  }
+
   @override
   Future<PagedVariants> variants({
     required String branchId,
@@ -171,16 +194,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         talker.info('Added exact barcode filter');
       }
 
-      // Name / product name search (substring). Barcode uses exact match above.
-      if (name != null && name.isNotEmpty) {
-        final q = name.trim();
-        query +=
-            " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
-            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
-            "LOWER(COALESCE(productName, '')) LIKE :searchLike)";
-        arguments['searchLike'] = '%$q%';
-        arguments['bcdExact'] = q.toLowerCase();
-        talker.info('Added variant text search filter (case-insensitive): $q');
+      var orderSuffix = ' ORDER BY lastTouched DESC';
+      if (page != null && itemsPerPage != null) {
+        final offset = page * itemsPerPage;
+        orderSuffix += ' LIMIT :limit OFFSET :offset';
+        arguments['limit'] = itemsPerPage;
+        arguments['offset'] = offset;
       }
 
       // Product filter
@@ -189,16 +208,28 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments['productId'] = productId;
       }
 
-      // Sorting
-      query += ' ORDER BY lastTouched DESC';
+      final bool isCatalogTextSearch =
+          bcd == null && name != null && name.trim().isNotEmpty;
+      final String? searchTerm =
+          isCatalogTextSearch ? name.trim().toLowerCase() : null;
 
-      // Pagination
-      if (page != null && itemsPerPage != null) {
-        final offset = page * itemsPerPage;
-        query += ' LIMIT :limit OFFSET :offset';
-        arguments['limit'] = itemsPerPage;
-        arguments['offset'] = offset;
+      // Name / product name / RRA item name search (substring). Barcode uses exact match.
+      if (searchTerm != null &&
+          !isLikelyCatalogBarcodeQuery(searchTerm)) {
+        query +=
+            " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
+            "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
+            "LOWER(COALESCE(productName, '')) LIKE :searchLike OR "
+            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
+            "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)";
+        arguments['searchLike'] = '%$searchTerm%';
+        arguments['bcdExact'] = searchTerm;
+        talker.info(
+          'Added variant text search filter (case-insensitive): $searchTerm',
+        );
       }
+
+      query += orderSuffix;
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(
@@ -236,12 +267,32 @@ mixin CapellaVariantMixin implements VariantInterface {
       // taxes, pagination) runs via execute below; Ditto 5 can reject complex
       // subscription predicates even after ORDER BY/LIMIT stripping.
 
-      Future<List<dynamic>> runExecute() async {
-        final r = await ditto.store.execute(query, arguments: arguments);
+      Future<List<dynamic>> runExecute(String sql, Map<String, dynamic> args) async {
+        final r = await ditto.store.execute(sql, arguments: args);
         return r.items.toList();
       }
 
-      items = await runExecute();
+      if (searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm)) {
+        final barcodeQuery =
+            '$query AND (LOWER(TRIM(COALESCE(bcd, \'\'))) = :bcdExact OR '
+            "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)$orderSuffix";
+        final barcodeArgs = Map<String, dynamic>.from(arguments)
+          ..['bcdExact'] = searchTerm;
+        talker.info('Catalog barcode search (exact): $searchTerm');
+        items = await runExecute(barcodeQuery, barcodeArgs);
+        if (items.isEmpty) {
+          final fallbackQuery =
+              '$query AND (LOWER(COALESCE(name, \'\'))) LIKE :searchLike OR '
+              "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
+              "LOWER(COALESCE(productName, '')) LIKE :searchLike)$orderSuffix";
+          final fallbackArgs = Map<String, dynamic>.from(arguments)
+            ..['searchLike'] = '%$searchTerm%';
+          talker.info('Catalog barcode fallback to name search: $searchTerm');
+          items = await runExecute(fallbackQuery, fallbackArgs);
+        }
+      } else {
+        items = await runExecute(query, arguments);
+      }
 
       // First page only: empty may mean sync not landed yet; later pages empty
       // usually means end of list, not worth waiting.
@@ -261,7 +312,7 @@ mixin CapellaVariantMixin implements VariantInterface {
         ];
         for (final d in delays) {
           await Future.delayed(d);
-          items = await runExecute();
+          items = await runExecute(query, arguments);
           if (items.isNotEmpty) break;
         }
       }
@@ -285,8 +336,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
-      // Prepare count query if pagination enabled
-      if (page != null && itemsPerPage != null) {
+      // Prepare count query if pagination enabled (skip during catalog text search —
+      // LIKE across thousands of variants is slow and blocks showing the first page).
+      if (page != null && itemsPerPage != null && !isCatalogTextSearch) {
         try {
           String countQuery =
               'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
@@ -332,8 +384,10 @@ mixin CapellaVariantMixin implements VariantInterface {
           if (name != null && name.isNotEmpty) {
             countQuery +=
                 " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
+                "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
+                "LOWER(COALESCE(productName, '')) LIKE :searchLike OR "
                 "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
-                "LOWER(COALESCE(productName, '')) LIKE :searchLike)";
+                "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)";
           }
 
           if (productId != null) {
@@ -356,6 +410,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         } catch (e) {
           talker.warning('Count query failed: $e');
         }
+      } else if (isCatalogTextSearch && page != null && itemsPerPage != null) {
+        final base = page * itemsPerPage + items.length;
+        totalCount = items.length < itemsPerPage ? base : base + 1;
       }
 
       final stockIds = items
@@ -864,164 +921,78 @@ mixin CapellaVariantMixin implements VariantInterface {
               ? variant.copyWith(id: const Uuid().v4(), branchId: branchId)
               : variant.copyWith(branchId: branchId);
 
-          final ditto = dittoService.dittoInstance;
-
           // Handle stock if it exists
           if (variantToSave.stock != null) {
-            String stockId;
-            Stock stockToSave;
-
             if (variantToSave.stock!.id.isEmpty) {
-              stockId = const Uuid().v4();
+              final newStockId = const Uuid().v4();
               // Create a new Stock instance with the new ID
-              stockToSave = variantToSave.stock!.copyWith(id: stockId);
-            } else {
-              stockId = variantToSave.stock!.id;
-              stockToSave = variantToSave.stock!;
-            }
-
-            // Upsert stock to repository
-            await repository.upsert<Stock>(stockToSave);
-
-            // Sync stock to Ditto
-            if (ditto != null) {
-              await ditto.store.execute(
-                "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-                arguments: {'doc': stockToSave.toJson()},
+              final updatedStock = variantToSave.stock!.copyWith(
+                id: newStockId,
               );
+              await repository.upsert<Stock>(updatedStock);
+              await _syncStockToDitto(updatedStock);
+
+              // Update the variant with the new stock and stockId
+              variantToSave = variantToSave.copyWith(
+                stock: updatedStock,
+                stockId: newStockId,
+              );
+            } else {
+              // Even if stock has an ID, upsert it to ensure it's synced to Ditto
+              await repository.upsert<Stock>(variantToSave.stock!);
+              await _syncStockToDitto(variantToSave.stock!);
             }
-
-            // Update the variant with the new stock and stockId
-            variantToSave = variantToSave.copyWith(
-              stock: stockToSave,
-              stockId: stockId,
-            );
           }
-
-          // Ensure EBM sync flag if applicable (from CoreSync logic but adapted)
-          // CoreSync logic: Ebm? ebm = await ProxyService.strategy.ebm(...)
-
-          // Upsert Variant to Repository
           await repository.upsert<Variant>(variantToSave);
-
-          // Sync Variant to Ditto
-          if (ditto != null) {
-            await ditto.store.execute(
-              "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-              arguments: {'doc': variantToSave.toFlipperJson()},
-            );
+          await _syncVariantToDitto(variantToSave);
+          Ebm? ebm = await ProxyService.strategy.ebm(
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          if (variantToSave.splyAmt != null) {
+            variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
           }
-
+          await repository.upsert<Variant>(variantToSave);
+          await _syncVariantToDitto(variantToSave);
           if (skipRRaCall) {
             return;
           }
 
-          Ebm? ebm = await ProxyService.strategy.ebm(
-            branchId: ProxyService.box.getBranchId()!,
-          );
+          if (variant.ebmSynced == true) {
+            return;
+          }
+          final persisted = (await repository.get<Variant>(
+            query: Query(where: [Where('id').isExactly(variantToSave.id)]),
+          )).firstOrNull;
+          if (persisted?.ebmSynced == true) {
+            variant.ebmSynced = true;
+            return;
+          }
 
           final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
           );
 
-          if (!isTaxEnabled || ebm == null) {
+          if (!isTaxEnabled) {
             return;
           }
 
-          String serverUrl = ebm.taxServerUrl;
-          // if (isMobileDevice) { ... } // Assuming serverUrl handling is standard
+          String serverUrl = ebm!.taxServerUrl;
 
-          if (variantToSave.tin == null || variantToSave.tin == 0) {
-            variantToSave.tin = ebm.tinNumber;
-          }
-          if (variantToSave.bhfId == null ||
-              variantToSave.bhfId!.trim().isEmpty) {
-            variantToSave.bhfId = ebm.bhfId;
+          if (isMobileDevice) {
+            serverUrl = ebm.remoteServerUrl ?? serverUrl;
           }
 
-          final stockQty = variantToSave.stock?.currentStock ?? 0;
-          if (stockQty > 0) {
-            variantToSave = variantToSave.copyWith(
-              qty: stockQty,
-              rsdQty: stockQty,
-            );
-          }
-
-          final alreadyInRra = variantToSave.ebmSynced == true;
-          final supplyUnit = variantToSave.supplyPrice ?? 0;
-          final retailUnit = variantToSave.retailPrice ?? 0;
-
-          if (!alreadyInRra) {
-            final saveResp = await ProxyService.tax.saveItem(
-              variation: variantToSave,
-              URI: serverUrl,
-            );
-            if (saveResp.resultCd != '000') {
-              throw Exception(
-                'RRA saveItems failed for ${variantToSave.name}: '
-                '${saveResp.resultMsg} (${saveResp.resultCd})',
-              );
-            }
-
-            var sar = await ProxyService.strategy.getSar(
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            sar ??= Sar(sarNo: 0, branchId: branchId);
-            sar.sarNo = sar.sarNo + 1;
-            await repository.upsert<Sar>(sar);
-
-            if (variantToSave.itemTyCd != "3") {
-              final stockIoResp = await ProxyService.tax.saveStockItems(
-                updateMaster: false,
-                items: [
-                  TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
-                ],
-                tinNumber: ebm.tinNumber.toString(),
-                bhFId: ebm.bhfId,
-                totalSupplyPrice: supplyUnit * stockQty,
-                totalvat: 0,
-                totalAmount: retailUnit * stockQty,
-                sarTyCd: "06",
-                sarNo: sar.sarNo.toString(),
-                invoiceNumber: sar.sarNo,
-                remark: "Stock In from adding new item",
-                ocrnDt: DateTime.now().toUtc(),
-                URI: serverUrl,
-              );
-              if (stockIoResp.resultCd != '000') {
-                throw Exception(
-                  'RRA saveStockItems failed for ${variantToSave.name}: '
-                  '${stockIoResp.resultMsg} (${stockIoResp.resultCd})',
-                );
-              }
-            }
-          } else {
-            talker.info(
-              'RRA: ${variantToSave.itemCd} already registered — '
-              'updating stock master only',
-            );
-          }
-
-          // Skip stock master reporting for services (itemTyCd: "3")
-          if (variantToSave.itemTyCd != "3") {
-            final masterResp = await ProxyService.tax.saveStockMaster(
-              variant: variantToSave,
-              URI: serverUrl,
-              stockMasterQty: stockQty,
-            );
-            if (masterResp.resultCd != '000') {
-              throw Exception(
-                'RRA saveStockMaster failed for ${variantToSave.name}: '
-                '${masterResp.resultMsg} (${masterResp.resultCd})',
-              );
-            }
-          }
-
-          if (!alreadyInRra) {
-            variantToSave.ebmSynced = true;
-            await repository.upsert<Variant>(variantToSave);
-          }
+          await registerVariantWithRraForAdd(
+            repository: repository,
+            branchId: branchId,
+            variantToSave: variantToSave,
+            variantInput: variant,
+            serverUrl: serverUrl,
+            ebm: ebm,
+            ditto: dittoService.dittoInstance,
+          );
+          await _syncVariantToDitto(variantToSave);
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;

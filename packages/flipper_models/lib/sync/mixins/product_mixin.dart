@@ -5,7 +5,9 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -173,7 +175,7 @@ mixin ProductMixin implements ProductInterface {
           talker.info(
             'Variant already exists with ID: ${existing.id}; ebmSynced=${existing.ebmSynced}',
           );
-          if (!skipRRaCall && existing.ebmSynced != true) {
+          if (!skipRRaCall) {
             var toSync = existing;
             if (toSync.stock != null && qty > 0) {
               final s = toSync.stock!;
@@ -644,6 +646,13 @@ mixin ProductMixin implements ProductInterface {
 
   @override
   Future<void> hydrateSars({required String branchId}) async {
+    final ditto = DittoService.instance.dittoInstance;
+    if (ditto != null) {
+      await ensureBranchSarCloudSubscription(
+        ditto: ditto,
+        branchId: branchId,
+      );
+    }
     await repository.get<Sar>(
       policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
       query: brick.Query(

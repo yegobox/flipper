@@ -72,7 +72,7 @@ final class ImportPurchaseDatesProvider
 }
 
 String _$importPurchaseDatesHash() =>
-    r'b38581246fcd47ca60ca59d7a6b6a0c2fcf2ac9f';
+    r'9e63becabe110a0dbe202eb7dd0ba2b2ad550979';
 
 /// Provider to fetch the last import/purchase date for a given branch and request type
 

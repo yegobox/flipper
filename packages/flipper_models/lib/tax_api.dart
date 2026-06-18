@@ -25,6 +25,7 @@ abstract class TaxApi implements NoticeInterface {
     required String URI,
     required String bhfId,
     String rcptTyCd = "S",
+    String regTyCd = "A",
     required List<Variant> variants,
     required Business business,
     required String pchsSttsCd,

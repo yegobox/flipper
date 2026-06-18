@@ -34,15 +34,18 @@ class ForceDataEntryService {
       '#6c5ce7',
       '#74b9ff',
       '#ff7675',
-      '#a29bfe'
+      '#a29bfe',
     ];
 
-    List<PColor> kColors =
-        await ProxyService.strategy.colors(branchId: branchId);
+    List<PColor> kColors = await ProxyService.strategy.colors(
+      branchId: branchId,
+    );
     if (kColors.isEmpty) {
       for (String colorName in colors) {
-        await ProxyService.strategy
-            .addColor(name: colorName, branchId: branchId);
+        await ProxyService.strategy.addColor(
+          name: colorName,
+          branchId: branchId,
+        );
       }
     }
 
@@ -53,7 +56,7 @@ class ForceDataEntryService {
     for (String name in [
       TransactionType.airtime,
       TransactionType.transport,
-      TransactionType.salary
+      TransactionType.salary,
     ]) {
       createCategory(name: name, branchId: branchId);
     }
@@ -61,13 +64,17 @@ class ForceDataEntryService {
     ProxyService.strategy.addUnits(units: mockUnits);
 
     /// bootstrap tax if not bootstraped
-    for (String item in ["A", "B", "C", "D"]) {
+    for (String item in ["A", "B", "C", "D", "F", "TT"]) {
       ProxyService.strategy.getByTaxType(taxtype: item);
     }
   }
 
   Future<void> addAccess(
-      String feature, String userId, String businessId, String branchId) async {
+    String feature,
+    String userId,
+    String businessId,
+    String branchId,
+  ) async {
     final accessConfig = {
       AppFeature.Tickets: (AccessLevel.WRITE, 'inactive'),
       AppFeature.Settings: (AccessLevel.ADMIN, 'active'),
@@ -91,8 +98,9 @@ class ForceDataEntryService {
   final talker = TalkerFlutter.init();
 
   createCategory({required String name, required String branchId}) async {
-    List<Category> category =
-        await ProxyService.strategy.categories(branchId: branchId);
+    List<Category> category = await ProxyService.strategy.categories(
+      branchId: branchId,
+    );
     if (category.map((e) => e.name).contains(name)) {
       return;
     }

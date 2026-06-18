@@ -12,6 +12,9 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (tile.page == 'DailyReports') {
     return ref.watch(sideMenuShowDailyReportFilesProvider);
   }
+  if (tile.page == 'StockRecount') {
+    return ref.watch(sideMenuShowStockRecountProvider);
+  }
   if (tile.feature == 'Orders') return true;
   if (tile.feature == 'ServicesGigs') return true;
   if (tile.feature == 'Settings') return true;

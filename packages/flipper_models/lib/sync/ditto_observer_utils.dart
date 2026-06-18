@@ -1,3 +1,15 @@
+/// Maps a Ditto store [execute] / observer result to typed row maps.
+///
+/// On web, `.map(...).toList()` infers [List<dynamic>]; use this helper so
+/// streams accept [List<Map<String, dynamic>>].
+List<Map<String, dynamic>> dittoQueryRows(dynamic queryResult) {
+  final items = queryResult.items as Iterable;
+  return <Map<String, dynamic>>[
+    for (final item in items)
+      Map<String, dynamic>.from(item.value as Map),
+  ];
+}
+
 /// Best-effort cancel for Ditto [Store.registerObserver] handles.
 ///
 /// Riverpod may dispose streams after [Ditto.close] (logout, user switch, or

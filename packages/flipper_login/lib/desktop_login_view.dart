@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flipper_login/loginCode.dart';
-import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
@@ -88,15 +87,15 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     ProxyService.event.subscribeLoginEvent(channel: _loginCode.split('-')[1]);
   }
 
-  Future<void> _switchToPinLogin() async {
+  void _switchToPinLogin() {
     if (_switchingToPinLogin) return;
 
     _switchingToPinLogin = true;
-    ProxyService.event.unsubscribeLoginEvent();
-    AuthMixin.resetDittoInitializationStatic();
-    await locator<AppService>().disposeQrLoginDitto();
     LoginInfo().redirecting = true;
-    await _routerService.replaceWith(PinLoginRoute());
+    // Stop QR polling synchronously; heavy Ditto.close runs in background.
+    ProxyService.event.unsubscribeLoginEvent();
+    unawaited(locator<AppService>().beginQrLoginTeardown());
+    unawaited(_routerService.replaceWith(PinLoginRoute()));
   }
 
   @override

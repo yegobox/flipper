@@ -59,9 +59,17 @@
 /// ```
 library flipper_ai_feature;
 
+// Theme
+export 'src/theme/ai_theme.dart';
+export 'src/theme/flo_theme.dart';
+
 // Models
 export 'src/models/ai_models.dart';
 export 'src/models/data_source/data_source_models.dart';
+export 'src/models/flo_models.dart';
+
+// Services
+export 'src/services/flo_chat_service.dart';
 
 // Providers
 export 'src/providers/ai_provider.dart';
@@ -72,6 +80,10 @@ export 'src/providers/data_source_provider.dart';
 export 'src/services/ai_service.dart';
 export 'src/services/data_source/data_source_services.dart';
 
+// On-device AI (iOS + desktop) — bootstrap + local chat
+export 'src/local/local_ai_bootstrap.dart';
+export 'src/services/local_flo_service.dart';
+
 // Widgets
 export 'src/screens/ai_screen.dart';
 export 'src/widgets/ai_feature_container.dart';
@@ -80,6 +92,3 @@ export 'src/widgets/ai_input_field.dart';
 export 'src/widgets/conversation_list.dart';
 export 'src/widgets/welcome_view.dart';
 export 'src/widgets/data_source/data_source_widgets.dart';
-
-// Theme
-export 'src/theme/ai_theme.dart';

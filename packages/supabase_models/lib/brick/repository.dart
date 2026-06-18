@@ -29,6 +29,7 @@ import 'repository/database_manager.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
+import 'package:supabase_models/brick/models/counter.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// Main repository class that serves as an entry point to the database operations
@@ -576,8 +577,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           debugPrint('We got item to save: ${instance.toString()}');
         }
         instance = await super.upsert(instance, policy: policy, query: query);
-        // Notify Ditto for all models (unless explicitly skipped)
-        if (!skipDittoSync) {
+        // Counters are Capella-only in Ditto; never push SQLite/Supabase rows.
+        if (!skipDittoSync && instance is! Counter) {
           if (instance is Stock) {
             debugPrint('New Current Stock: ${instance.currentStock}');
           }

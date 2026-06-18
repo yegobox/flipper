@@ -16,6 +16,9 @@ import 'package:synchronized/synchronized.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 /// Serialize pending-cart ensure for a single (branch, type, expense) slot.
 final Map<String, Lock> _pendingCartScopeLocks = {};
@@ -857,9 +860,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   @override
   FutureOr<void> addTransaction({required ITransaction transaction}) {
-    throw UnimplementedError(
-      'addTransaction needs to be implemented for Capella',
-    );
+    // Ported from the brick (CoreSync) TransactionMixin (no regression).
+    repository.upsert(transaction);
   }
 
   @override
@@ -877,9 +879,18 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
-    throw UnimplementedError(
-      'getByTaxType needs to be implemented for Capella',
-    );
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return null;
+
+    return (await repository.get<Configurations>(
+      query: Query(
+        where: [
+          Where('taxType').isExactly(taxtype),
+          Where('branchId').isExactly(branchId),
+        ],
+      ),
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    )).firstOrNull;
   }
 
   @override
@@ -1173,7 +1184,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
         final double currentQty = (existingItemData['qty'] as num).toDouble();
         final double newQty = updatableQty ?? (currentQty + 1);
-        final double newTotal = amountTotal * newQty;
         final double qtyDelta = newQty - currentQty;
         final prevRem = (existingItemData['remainingStock'] as num?)
             ?.toDouble();
@@ -1188,29 +1198,63 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             0;
         final newSplyAmt = unitSupply * newQty;
 
+        final lineDcRt =
+            (existingItemData['dcRt'] as num?)?.toDouble() ??
+            variation.dcRt ??
+            0.0;
+        final taxTyCd =
+            existingItemData['taxTyCd']?.toString() ?? variation.taxTyCd;
+        final taxPct =
+            (existingItemData['taxPercentage'] as num?)?.toDouble() ??
+            variation.taxPercentage ??
+            18.0;
+        final oldPricing = SaleLinePricing.compute(
+          unitPrice: amountTotal,
+          qty: currentQty,
+          dcRt: lineDcRt.toDouble(),
+          taxTyCd: taxTyCd,
+          taxPercentage: taxPct.toDouble(),
+        );
+        final newPricing = SaleLinePricing.compute(
+          unitPrice: amountTotal,
+          qty: newQty,
+          dcRt: lineDcRt.toDouble(),
+          taxTyCd: taxTyCd,
+          taxPercentage: taxPct.toDouble(),
+        );
+
         await ditto.store.execute(
-          "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, splyAmt = :splyAmt, supplyPriceAtSale = :supplyPriceAtSale, supplyPrice = :supplyPrice, updatedAt = :updatedAt WHERE _id = :id",
+          "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, splyAmt = :splyAmt, supplyPriceAtSale = :supplyPriceAtSale, supplyPrice = :supplyPrice, dcRt = :dcRt, dcAmt = :dcAmt, discount = :discount, taxblAmt = :taxblAmt, taxAmt = :taxAmt, updatedAt = :updatedAt WHERE _id = :id",
           arguments: {
             'qty': newQty,
-            'totAmt': newTotal,
+            'totAmt': newPricing.totAmt,
             'remainingStock': newRemainingStock,
             'splyAmt': newSplyAmt,
             'supplyPriceAtSale': unitSupply,
             'supplyPrice': unitSupply,
+            'dcRt': newPricing.dcRt,
+            'dcAmt': newPricing.dcAmt,
+            'discount': newPricing.discount,
+            'taxblAmt': newPricing.taxblAmt,
+            'taxAmt': newPricing.taxAmt,
             'updatedAt': DateTime.now().toIso8601String(),
             'id': _dittoDocumentId(existingItemData),
           },
         );
 
-        // Delta caused by this update
-        // We assume amountTotal is the current price per unit
-        delta = (newQty - currentQty) * amountTotal;
+        delta = newPricing.subtotalNet - oldPricing.subtotalNet;
       } else {
         // Insert new item
         final double qty = updatableQty ?? 1.0;
-        final double itemTotal = amountTotal * qty;
         final unitSupply = variation.supplyPrice ?? 0;
         final lineSupplyAmt = unitSupply * qty;
+        final pricing = SaleLinePricing.compute(
+          unitPrice: amountTotal,
+          qty: qty,
+          dcRt: variation.dcRt?.toDouble(),
+          taxTyCd: variation.taxTyCd,
+          taxPercentage: (variation.taxPercentage ?? 18.0).toDouble(),
+        );
 
         final newItem = TransactionItem(
           name: variation.name,
@@ -1219,8 +1263,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           qty: qty,
           remainingStock: currentStock - qty,
           price: amountTotal, // Unit price
-          totAmt: itemTotal,
-          discount: 0.0,
+          totAmt: pricing.totAmt,
+          discount: pricing.discount,
+          dcRt: pricing.dcRt,
+          dcAmt: pricing.dcAmt,
+          taxblAmt: pricing.taxblAmt,
+          taxAmt: pricing.taxAmt,
           createdAt: DateTime.now().toUtc(),
           updatedAt: DateTime.now().toUtc(),
           isRefunded: false,
@@ -1272,7 +1320,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         // Ensure we pass the created item to background sync to prevent duplicates
         item = newItem;
 
-        delta = itemTotal;
+        delta = pricing.subtotalNet;
       }
 
       if (updatePendingTransactionSubtotal && delta != 0) {
@@ -1773,9 +1821,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
                 if (branchId != null &&
                     tt != null &&
                     _isPosCartTransactionType(tt)) {
-                  final isExpense = _boolFromDitto(
-                    priorRow['isExpense'],
-                  );
+                  final isExpense = _boolFromDitto(priorRow['isExpense']);
                   await _ensureNextPendingCartIfNeeded(
                     branchId: branchId,
                     transactionType: tt,
@@ -2092,6 +2138,17 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       setClauses.add('dueDate = :dueDate');
       args['dueDate'] = transaction.dueDate!.toUtc().toIso8601String();
     }
+    if (transaction.isLoan == true && subTotal > 0) {
+      final paid = transaction.cashReceived ?? 0.0;
+      final remaining = subTotal - paid;
+      final loanRemaining = remaining < 0 ? 0.0 : remaining;
+      transaction.originalLoanAmount = subTotal;
+      transaction.remainingBalance = loanRemaining;
+      setClauses.add('originalLoanAmount = :originalLoanAmount');
+      setClauses.add('remainingBalance = :remainingBalance');
+      args['originalLoanAmount'] = subTotal;
+      args['remainingBalance'] = loanRemaining;
+    }
 
     await ditto.store.execute(
       'UPDATE transactions SET ${setClauses.join(', ')} '
@@ -2292,12 +2349,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   @override
   Future<Sar?> getSar({required String branchId}) async {
-    return (await repository.get<Sar>(
-      query: Query(
-        orderBy: [const OrderBy('createdAt', ascending: false)],
-        where: [Where('branchId').isExactly(branchId)],
-      ),
-    )).firstOrNull;
+    return resolveSarForBranch(
+      branchId: branchId,
+      ditto: DittoService.instance.dittoInstance,
+    );
   }
 
   @override
@@ -2417,14 +2472,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   /// current [agentId], [createdAt] window, adjustment filter, COMPLETE+PARKED
   /// (drops WAITING_MOMO for stable paging aligned with UI scope).
   ({String clause, Map<String, dynamic> arguments})
-      _transactionsReportPagingWhere({
+  _transactionsReportPagingWhere({
     required DateTime startDate,
     required DateTime endDate,
     required String branchId,
   }) {
     final agentId = ProxyService.box.getUserId();
     if (agentId == null || agentId.isEmpty) {
-      throw StateError('Agent id is required for report-scoped transaction paging');
+      throw StateError(
+        'Agent id is required for report-scoped transaction paging',
+      );
     }
     final localStartDate = DateTime(
       startDate.year,
@@ -2477,7 +2534,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized for countTransactionsReportPagingWindow');
+        talker.error(
+          'Ditto not initialized for countTransactionsReportPagingWindow',
+        );
         return 0;
       }
       final prepared = _transactionsReportPagingWhere(
@@ -2524,7 +2583,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized for pageTransactionsReportPagingWindow');
+        talker.error(
+          'Ditto not initialized for pageTransactionsReportPagingWindow',
+        );
         return [];
       }
       final prepared = _transactionsReportPagingWhere(
@@ -2555,6 +2616,52 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       return list;
     } catch (e, stackTrace) {
       talker.error('pageTransactionsReportPagingWindow: $e', stackTrace);
+      return [];
+    }
+  }
+
+  /// Completed POS sales stamped with [shiftId] for the open shift.
+  ///
+  /// Does not fall back to a time window — an old open shift would otherwise
+  /// pull lifetime sales for the agent.
+  Future<List<ITransaction>> listSalesForOpenShift({
+    required String shiftId,
+    required String agentId,
+    required String branchId,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) return [];
+
+      final query =
+          'SELECT * FROM transactions WHERE '
+          'shiftId = :shiftId AND agentId = :agentId AND branchId = :branchId '
+          'AND status = :statusComplete AND subTotal > 0 '
+          'AND transactionType != :adjustmentType '
+          'ORDER BY createdAt DESC';
+      final queryResult = await ditto.store.execute(
+        query,
+        arguments: {
+          'shiftId': shiftId,
+          'agentId': agentId,
+          'branchId': branchId,
+          'statusComplete': COMPLETE,
+          'adjustmentType': 'Adjustment',
+        },
+      );
+
+      final list = <ITransaction>[];
+      for (final item in queryResult.items) {
+        try {
+          final transactionData = Map<String, dynamic>.from(item.value);
+          list.add(_convertFromDittoDocument(transactionData));
+        } catch (e) {
+          talker.error('listSalesForOpenShift convert: $e');
+        }
+      }
+      return list;
+    } catch (e, stackTrace) {
+      talker.error('listSalesForOpenShift: $e', stackTrace);
       return [];
     }
   }

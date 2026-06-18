@@ -15,11 +15,16 @@ class RwApiResponse {
   final String? resultDt;
   final Data? data;
 
+  /// Local-only: [invcNo] sent to RRA in saveSales (may differ after 924 retries).
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  int? usedInvcNo;
+
   RwApiResponse({
     required this.resultCd,
     required this.resultMsg,
     this.resultDt,
     this.data,
+    this.usedInvcNo,
   });
 
   factory RwApiResponse.fromJson(Map<String, dynamic> json) =>

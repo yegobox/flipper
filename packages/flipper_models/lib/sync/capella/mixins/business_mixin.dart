@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -47,9 +48,14 @@ mixin CapellaBusinessMixin implements BusinessInterface {
     required String businessId,
     bool fetchOnline = false,
   }) async {
-    throw UnimplementedError(
-      'getBusinessById needs to be implemented for Capella',
+    final query = Query(where: [Where('id').isExactly(businessId)]);
+    final result = await repository.get<Business>(
+      query: query,
+      policy: fetchOnline
+          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+          : OfflineFirstGetPolicy.localOnly,
     );
+    return result.firstOrNull;
   }
 
   @override
@@ -63,7 +69,16 @@ mixin CapellaBusinessMixin implements BusinessInterface {
 
   @override
   Future<Business?> getBusiness({String? businessId}) async {
-    throw UnimplementedError('getBusiness needs to be implemented for Capella');
+    final query = Query(
+      where: businessId != null
+          ? [Where('id').isExactly(businessId)]
+          : [Where('isDefault').isExactly(true)],
+    );
+    final result = await repository.get<Business>(
+      query: query,
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+    return result.firstOrNull;
   }
 
   @override

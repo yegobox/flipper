@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/l10n/app_localizations.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:flipper_web/core/utils/http_overrides.dart';
 
@@ -15,14 +16,18 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Run any critical IO-only initialization (sets HttpOverrides and trusted certs)
-  // This is awaited so subsequent initialization and network clients pick up the settings.
+  // This is awaited so subsequent
+  // initialization and network clients pick up the settings.
   await initializeCriticalDependencies();
 
   // Initialize Supabase
   await initializeSupabase();
 
-  // Initialize Ditto
-  // await initializeDitto(); // Removed early initialization as it requires userId
+  // Ditto initializes after login via DittoBootstrap (needs pin user id).
+  debugPrint(
+    '[flipper_web] startup: Supabase ready; Ditto initializes after login',
+  );
+  AccountingBackendConfig.logStartupConfig();
 
   runApp(const ProviderScope(child: MyApp()));
 }

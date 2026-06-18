@@ -1,7 +1,6 @@
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:flipper_dashboard/widgets/import_input_row.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

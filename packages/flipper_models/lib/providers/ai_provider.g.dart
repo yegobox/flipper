@@ -17,9 +17,9 @@ final class AvailableModelsProvider
         $FunctionalProvider<
           AsyncValue<List<AIModel>>,
           List<AIModel>,
-          Stream<List<AIModel>>
+          FutureOr<List<AIModel>>
         >
-    with $FutureModifier<List<AIModel>>, $StreamProvider<List<AIModel>> {
+    with $FutureModifier<List<AIModel>>, $FutureProvider<List<AIModel>> {
   const AvailableModelsProvider._()
     : super(
         from: null,
@@ -36,17 +36,17 @@ final class AvailableModelsProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<AIModel>> $createElement(
+  $FutureProviderElement<List<AIModel>> $createElement(
     $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Stream<List<AIModel>> create(Ref ref) {
+  FutureOr<List<AIModel>> create(Ref ref) {
     return availableModels(ref);
   }
 }
 
-String _$availableModelsHash() => r'3210304d609c462a74b7276aa651e367fda2dbd0';
+String _$availableModelsHash() => r'2b70b51b1251cf90be53ed3408e3d0f499cc368f';
 
 /// Providers
 
@@ -93,7 +93,7 @@ final class GeminiResponseProvider
   }
 }
 
-String _$geminiResponseHash() => r'1d19ecaa1fe3f137234dd10effded08b211ab853';
+String _$geminiResponseHash() => r'84e0ffa3cc39534cc92c1e4b3ffead3af166feb7';
 
 /// Providers
 

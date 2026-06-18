@@ -51,7 +51,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
 
   Future<void> _loadNonCreditPaid() async {
     final paid = await fetchNonCreditPaid(widget.transactionId);
-    if (mounted && paid > 0) {
+    if (mounted) {
       setState(() => _cachedNonCreditPaid = paid);
     }
   }
@@ -115,13 +115,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             ref.read(transactionByIdProvider(transactionId)).value;
 
         if (effectiveTransaction != null) {
-          final alreadyPaid =
-              _cachedNonCreditPaid ?? effectiveTransaction.cashReceived ?? 0.0;
+          final alreadyPaid = _cachedNonCreditPaid ?? 0.0;
           updatePaymentRemainder(
             ref: ref,
             transaction: effectiveTransaction,
             total: totalPayable + alreadyPaid,
-            overrideAlreadyPaid: _cachedNonCreditPaid,
+            overrideAlreadyPaid: alreadyPaid,
             lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
             onAutoSetAmountChanged: (amount) {
               // No local state to update here, the mixin handles the provider

@@ -524,6 +524,8 @@ jobs:
     if: github.ref != 'refs/heads/main' # Skip this job on main branch
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: write
     env:
       FLUTTER_TEST_CI: true
 
@@ -569,7 +571,7 @@ jobs:
       - name: Accept Android licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;28.0.12674087"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;29.0.14206865"
       - name: Configure Git with PAT
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -688,7 +690,7 @@ jobs:
           echo "=========================================="
           
           # Verify NDK version
-          NDK_VERSION="28.0.12674087"
+          NDK_VERSION="29.0.14206865"
           if [ -d "$ANDROID_HOME/ndk/$NDK_VERSION" ]; then
             echo "✅ NDK $NDK_VERSION is installed (supports 16 KB alignment by default)"
             
@@ -834,26 +836,64 @@ jobs:
             exit 1
           fi
         working-directory: apps/${{ matrix.app }}/android
-      - name: Install Shorebird
+      - name: Setup Shorebird
         if: matrix.app == 'flipper'
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Verify Shorebird auth
+        if: matrix.app == 'flipper'
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          echo "$HOME/.shorebird/bin" >> "$GITHUB_PATH"
+          bash scripts/ci/verify_shorebird_token.sh
+          shorebird --version
+          shorebird doctor -v
       - name: Calculate Version
         run: |
           VERSION_CODE=$(( ${{ github.run_number }} + 1800000000 ))
           VERSION_NAME="1.180.${{ github.run_number }}"
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
-      - run: |
-          bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
+      - name: Shorebird release build
+        if: matrix.app == 'flipper'
+        working-directory: apps/flipper
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
+        run: |
+          set -euo pipefail
+          shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log
+          test -f build/app/outputs/bundle/release/app-release.aab
+      - name: Dump Shorebird release log on failure
+        if: failure() && matrix.app == 'flipper'
+        run: |
+          echo "=== shorebird release log (tail) ==="
+          tail -300 /tmp/shorebird-release.log 2>/dev/null || echo "(no /tmp/shorebird-release.log)"
+          echo "=== build outputs ==="
+          ls -laR apps/flipper/build/app/outputs 2>/dev/null || true
+      - run: bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-          USE_SHOREBIRD: ${{ matrix.app == 'flipper' && 'true' || 'false' }}
+          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
+          SHOREBIRD_PREBUILT: ${{ matrix.app == 'flipper' && 'true' || 'false' }}
+          USE_SHOREBIRD: 'false'
         working-directory: apps/${{ matrix.app }}/android
+      - name: Upload Shorebird logs on failure
+        if: failure() && matrix.app == 'flipper'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shorebird-logs-${{ matrix.app }}-${{ github.run_id }}
+          path: |
+            /tmp/shorebird-release.log
+            ~/.config/shorebird/logs/
+            ~/.shorebird/logs/
+          if-no-files-found: ignore
       
       # ===== POST-BUILD 16 KB VERIFICATION - START =====
       # - name: Verify AAB/APK 16 KB Compliance
@@ -916,21 +956,16 @@ jobs:
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v2
         with:
+          files: apps/${{ matrix.app }}/build/app/outputs/bundle/release/app-release.aab
           name: ${{ matrix.app }} Android AAB Release - ${{ github.ref_name }}
           tag_name: v${{ steps.get_version.outputs.version }}_${{ matrix.app }}
           draft: false
           body: |
-            Debug Release for QA
+            Android AAB from fastlane-deploy (${{ matrix.app }}) on ${{ github.ref_name }}.
             
-            16 KB Page Size Compliance: Pre-deployment checks completed
-            - AGP version verified
-            - NDK 28.0.12674087 (16 KB alignment supported)
-            - Build configuration checked
-            - Post-build artifact verification completed
-            
-            ⚠️ Additional testing recommended on 16 KB page size devices
+            16 KB page size: NDK 29.0.14206865, AGP verified in CI.
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   slackNotification:
     name: Slack Notification

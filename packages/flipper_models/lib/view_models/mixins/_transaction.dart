@@ -59,6 +59,9 @@ mixin TransactionMixinOld {
     /// When true, receipt PDF is generated and uploaded but not opened/printed;
     /// SMS is sent after upload when [DigitalReceiptService.queueSmsAfterReceiptUpload] was called.
     bool sendDigitalReceipt = false,
+
+    /// When set (e.g. POS checkout), skips [resolveCustomerForReceipt] DB lookup.
+    Customer? customer,
   }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -66,12 +69,13 @@ mixin TransactionMixinOld {
       if (businessId == null || branchId == null) {
         throw Exception('Business ID or Branch ID not found');
       }
-      final taxEnabled = await ProxyService.strategy.isTaxEnabled(
-        businessId: businessId,
-        branchId: branchId,
-      );
+      final taxEnabled = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).isTaxEnabled(businessId: businessId, branchId: branchId);
       RwApiResponse? response;
-      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+      final ebm = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).ebm(branchId: branchId);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
@@ -110,6 +114,7 @@ mixin TransactionMixinOld {
             sendDigitalReceipt: sendDigitalReceipt,
             signOnly: true,
             transactionItems: preloadedLineItemsForCollectPayment,
+            customer: customer,
           );
           talker.debug(
             '[sale_completion_timing] rra_sign_ms=${signSw.elapsedMilliseconds}',
@@ -176,9 +181,11 @@ mixin TransactionMixinOld {
             '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
           );
 
-          scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
-          unawaited(
-            _presentReceiptAfterSale(
+          // Print before heavy Ditto writes (createReceipt/updateCounters) so PDF
+          // generation is not stuck behind a congested store queue.
+          final printSw = Stopwatch()..start();
+          try {
+            await _presentReceiptAfterSale(
               formKey: formKey,
               context: context,
               transaction: transaction,
@@ -187,8 +194,15 @@ mixin TransactionMixinOld {
               sendDigitalReceipt: sendDigitalReceipt,
               transactionItems: preloadedLineItemsForCollectPayment,
               presentationReceipt: signOutcome.presentationReceipt,
-            ),
+            );
+          } catch (e, s) {
+            talker.error('Receipt print after sale failed: $e', s);
+          }
+          talker.debug(
+            '[sale_completion_timing] present_receipt_ms=${printSw.elapsedMilliseconds}',
           );
+
+          scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
           talker.debug(
             '[sale_completion_timing] finalize_payment_quick_sell_ms='
             '${completionSw.elapsedMilliseconds}',
@@ -205,6 +219,7 @@ mixin TransactionMixinOld {
           persistReceiptTransactionFields: !deferPersistTaxReceiptFields,
           sendDigitalReceipt: sendDigitalReceipt,
           transactionItems: preloadedLineItemsForCollectPayment,
+          customer: customer,
         );
         response = receiptOutcome.response;
         if (response.resultCd != "000") {
@@ -346,11 +361,14 @@ mixin TransactionMixinOld {
     }
   }
 
-  Future<({
-    RwApiResponse response,
-    DeferredSaleReceiptPersist? deferredPersist,
-    Receipt? presentationReceipt,
-  })> handleReceiptGeneration({
+  Future<
+    ({
+      RwApiResponse response,
+      DeferredSaleReceiptPersist? deferredPersist,
+      Receipt? presentationReceipt,
+    })
+  >
+  handleReceiptGeneration({
     String? purchaseCode,
     ITransaction? transaction,
     required GlobalKey<FormState> formKey,
@@ -363,6 +381,7 @@ mixin TransactionMixinOld {
     RwApiResponse? signedResponse,
     List<TransactionItem>? transactionItems,
     Receipt? presentationReceiptForPdf,
+    Customer? customer,
   }) async {
     try {
       if (sendDigitalReceipt && !presentationOnly) {
@@ -381,13 +400,10 @@ mixin TransactionMixinOld {
             signedResponse: signedResponse,
             transactionItems: transactionItems,
             presentationReceiptForPdf: presentationReceiptForPdf,
+            customer: customer,
           );
-      final (
-        :response,
-        :bytes,
-        :deferredPersist,
-        :presentationReceipt,
-      ) = responseFrom;
+      final (:response, :bytes, :deferredPersist, :presentationReceipt) =
+          responseFrom;
 
       if (!signOnly) {
         try {
@@ -419,16 +435,17 @@ mixin TransactionMixinOld {
     Receipt? presentationReceipt,
   }) async {
     try {
-      final responseFrom = await TaxController(object: transaction).handleReceipt(
-        purchaseCode: purchaseCode,
-        filterType: getFilterType(transactionType: transaction.receiptType),
-        persistReceiptTransactionFields: false,
-        skipPresentation: sendDigitalReceipt,
-        presentationOnly: true,
-        signedResponse: signedResponse,
-        transactionItems: transactionItems,
-        presentationReceiptForPdf: presentationReceipt,
-      );
+      final responseFrom = await TaxController(object: transaction)
+          .handleReceipt(
+            purchaseCode: purchaseCode,
+            filterType: getFilterType(transactionType: transaction.receiptType),
+            persistReceiptTransactionFields: false,
+            skipPresentation: sendDigitalReceipt,
+            presentationOnly: true,
+            signedResponse: signedResponse,
+            transactionItems: transactionItems,
+            presentationReceiptForPdf: presentationReceipt,
+          );
       final bytes = responseFrom.bytes;
       if (!context.mounted) return;
       try {
@@ -465,14 +482,13 @@ mixin TransactionMixinOld {
       throw Exception('Business ID or Branch ID not found');
     }
 
-    Business? business = await ProxyService.strategy.getBusiness(
-      businessId: businessId,
-    );
+    Business? business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: businessId);
 
-    final bool isEbmEnabled = await ProxyService.strategy.isTaxEnabled(
-      businessId: business!.id,
-      branchId: branchId,
-    );
+    final bool isEbmEnabled = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).isTaxEnabled(businessId: business!.id, branchId: branchId);
     if (isEbmEnabled) {
       try {
         await ProxyService.getStrategy(Strategy.capella).updateTransaction(
@@ -574,6 +590,13 @@ mixin TransactionMixinOld {
           PaymentLineForSaleCompletion(amount: amount, method: paymentType),
         ],
       );
+
+      // NOTE: do NOT mutate transaction.isLoan here. Setting it before
+      // collectPayment forces its loan branch, which changes cashReceived /
+      // lastPaymentDate handling and breaks the parked-as-loan completion
+      // derived later by markTransactionAsCompleted. The parked status alone
+      // signals the loan; the journal poster and customer linker derive
+      // loan-ness from completionStatus (see PosJournalPoster / LoanCustomerLinker).
 
       // Collect payment via Capella so items are read from Ditto
       await ProxyService.getStrategy(Strategy.capella).collectPayment(

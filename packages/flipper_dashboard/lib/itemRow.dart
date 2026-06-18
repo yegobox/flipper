@@ -127,7 +127,7 @@ class _RowItemState extends ConsumerState<RowItem>
     return text.substring(0, maxLength) + '...';
   }
 
-  int _resolveStockValue(WidgetRef ref) {
+  int _physicalStockValue(WidgetRef ref) {
     if (widget.liveStock != null) {
       final raw = widget.liveStock!.currentStock ?? widget.stock;
       return raw is int ? raw as int : raw.floor().toInt();
@@ -140,6 +140,21 @@ class _RowItemState extends ConsumerState<RowItem>
     final stockAsync = ref.watch(stockByVariantProvider(stockId));
     final stockRaw = stockAsync.value?.currentStock ?? widget.stock;
     return stockRaw is int ? stockRaw as int : stockRaw.floor().toInt();
+  }
+
+  /// On-hand stock minus qty already on the pending cart (POS selling only).
+  int _resolveStockValue(WidgetRef ref) {
+    final physical = _physicalStockValue(ref);
+    if (widget.isOrdering) return physical;
+
+    final variantId = widget.variant?.id;
+    if (variantId == null || variantId.isEmpty) return physical;
+
+    final inCart = ref.watch(posCartQtyForVariantProvider(variantId));
+    return posAvailableStockForDisplay(
+      physicalStock: physical,
+      inCartQty: inCart,
+    );
   }
 
   // Constants for consistent styling
@@ -1003,8 +1018,8 @@ class _RowItemState extends ConsumerState<RowItem>
     if (_isMposCatalogRow) {
       return Consumer(
         builder: (context, ref, _) {
-          final stockValue = _resolveStockValue(ref);
-          final enabled = stockValue > 0;
+          // Keep physical on-hand for enablement so "sell below stock" still works.
+          final enabled = _physicalStockValue(ref) > 0;
 
           return Material(
             color: enabled ? PosTokens.blue : const Color(0xFFE8E8ED),

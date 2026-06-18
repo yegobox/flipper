@@ -116,27 +116,6 @@ abstract final class TenantSupabaseQueries {
     return null;
   }
 
-  static Future<List<Tenant>> listForBusiness(
-    String? businessId, {
-    String? excludeUserId,
-  }) async {
-    if (businessId == null || businessId.isEmpty) return const [];
-    try {
-      final businessUuid =
-          await FlipperBaseModel.resolveBusinessUuidForTenants(businessId);
-      if (businessUuid == null || businessUuid.isEmpty) return const [];
-
-      var list = await FlipperBaseModel.fetchTenantsFromSupabase(businessUuid);
-      list = FlipperBaseModel.dedupeTenantsForDisplay(list);
-      if (excludeUserId != null && excludeUserId.isNotEmpty) {
-        list = list.where((t) => t.userId != excludeUserId).toList();
-      }
-      return list;
-    } catch (e, s) {
-      debugPrint('TenantSupabaseQueries.listForBusiness: $e\n$s');
-      return const [];
-    }
-  }
 
   static Future<List<Tenant>> listByUserId(String userId) async {
     try {

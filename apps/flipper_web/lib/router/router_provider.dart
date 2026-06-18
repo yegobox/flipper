@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_web/features/login/auth_providers.dart' as login_auth;
 import 'package:flipper_web/features/login/auth_wrapper.dart';
-import 'package:flipper_web/features/dashboard/dashboard_screen.dart';
+import 'package:flipper_web/modules/accounting/accounting_module.dart';
 import 'package:flipper_web/features/login/pin_screen.dart';
 import 'package:flipper_web/features/login/signup_view.dart';
 import 'package:flipper_web/features/business_selection/business_selection_wrapper.dart';
@@ -37,11 +37,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'businessSelection',
         builder: (context, state) => const BusinessSelectionWrapper(),
       ),
-      // Protected dashboard route - when user is authenticated navigate here
+      GoRoute(
+        path: '/accounting',
+        name: 'accounting',
+        builder: (context, state) => const AccountingModuleScreen(),
+      ),
       GoRoute(
         path: '/dashboard',
         name: 'dashboard',
-        builder: (context, state) => const DashboardScreen(),
+        redirect: (context, state) => '/accounting',
       ),
     ],
     redirect: (context, state) {
@@ -54,6 +58,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       final goingToLogin = state.uri.path == '/login';
       final goingToDashboard = state.uri.path == '/dashboard';
+      final goingToAccounting = state.uri.path == '/accounting';
       final goingToBusinessSelection = state.uri.path == '/business-selection';
       final goingToRoot = state.uri.path == '/';
 
@@ -72,7 +77,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         }
       } else {
         // If not authenticated and trying to access protected routes
-        if (goingToBusinessSelection || goingToDashboard) {
+        if (goingToBusinessSelection || goingToDashboard || goingToAccounting) {
           return '/login';
         }
       }

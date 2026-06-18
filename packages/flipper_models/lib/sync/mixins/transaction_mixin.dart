@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
+import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
 import 'package:flipper_models/sync/transaction_query_helpers.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
@@ -345,13 +347,17 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return null;
+
     return (await repository.get<Configurations>(
       query: Query(
         where: [
-          Where('type').isExactly('tax'),
           Where('taxType').isExactly(taxtype),
+          Where('branchId').isExactly(branchId),
         ],
       ),
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     )).firstOrNull;
   }
 
@@ -1390,12 +1396,10 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   Future<Sar?> getSar({required String branchId}) async {
-    return (await repository.get<Sar>(
-      query: Query(
-        orderBy: [const OrderBy('createdAt', ascending: false)],
-        where: [Where('branchId').isExactly(branchId)],
-      ),
-    )).firstOrNull;
+    return resolveSarForBranch(
+      branchId: branchId,
+      ditto: DittoService.instance.dittoInstance,
+    );
   }
 
   @override

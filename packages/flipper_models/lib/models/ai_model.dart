@@ -2,6 +2,12 @@ import 'package:dart_mappable/dart_mappable.dart';
 
 part 'ai_model.mapper.dart';
 
+/// PostgREST column list for Flipper clients ([apiKey] stays server-side only).
+const kAiModelCatalogSelect =
+    'id, name, model_id, provider, api_standard, api_url, '
+    'is_active, is_default, is_paid_only, max_tokens, temperature, '
+    'created_at, updated_at';
+
 @MappableClass()
 class AIModel with AIModelMappable {
   final String id;
@@ -82,4 +88,10 @@ class AIModel with AIModelMappable {
 
   /// Check if model uses Gemini standard (URL key)
   bool get isGeminiStandard => apiStandard == 'gemini' || apiStandard == null;
+
+  /// Check if this is an on-device model served by a [LocalInferenceEngine]
+  /// rather than a remote HTTP API. Local models use `provider == 'gemma'`
+  /// or an `api_url` with the `local://` scheme.
+  bool get isLocal =>
+      provider.toLowerCase() == 'gemma' || apiUrl.startsWith('local://');
 }

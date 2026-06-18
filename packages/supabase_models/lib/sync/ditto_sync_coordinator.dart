@@ -5,6 +5,7 @@ import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart' hide Category;
+import 'package:supabase_models/brick/models/counter.model.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 
 /// Coordinates two-way synchronisation between Ditto and OfflineFirst models.
@@ -106,6 +107,10 @@ class DittoSyncCoordinator {
   /// written to Ditto.
   Future<void> notifyLocalUpsert<T extends OfflineFirstWithSupabaseModel>(
       T model) async {
+    // Receipt counters live in Ditto only via Capella (sales path), not Brick.
+    if (model is Counter) {
+      return;
+    }
     final adapter = _adapters[T];
     final ditto = _ditto;
     if (adapter == null || ditto == null) {

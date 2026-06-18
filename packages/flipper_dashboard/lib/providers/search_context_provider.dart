@@ -31,6 +31,7 @@ final searchContextProvider = Provider<SearchContext>((ref) {
     case DashboardPage.productionOutput:
     case DashboardPage.dailyReportFiles:
     case DashboardPage.agentCommission:
+    case DashboardPage.purchases:
       return SearchContext.general;
   }
 });

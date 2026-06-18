@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
@@ -192,6 +193,22 @@ class OptimisticCart extends _$OptimisticCart {
     if (grace != null && DateTime.now().isBefore(grace)) {
       return;
     }
+    _reconcileStreamItems(transactionId: transactionId, items: items);
+  }
+
+  /// Reconcile from a direct Ditto read (Pay path, post-save). Ignores tap grace.
+  void reconcileFromPersistedItems({
+    required String transactionId,
+    required List<TransactionItem> items,
+  }) {
+    if (transactionId.isEmpty) return;
+    _reconcileStreamItems(transactionId: transactionId, items: items);
+  }
+
+  void _reconcileStreamItems({
+    required String transactionId,
+    required List<TransactionItem> items,
+  }) {
     final active = state.activeTransactionId;
     if (active != null && active != transactionId) {
       if (OptimisticCartBootstrap.isBootstrap(active)) {
@@ -435,10 +452,16 @@ TransactionItem _ghostTransactionItem({
   required Variant variation,
   required double qty,
 }) {
-  final amountTotal = variation.retailPrice ?? 0;
-  final itemTotal = amountTotal * qty;
+  final amountTotal = (variation.retailPrice ?? 0).toDouble();
   final unitSupply = variation.supplyPrice ?? 0;
   final lineSupplyAmt = unitSupply * qty;
+  final pricing = SaleLinePricing.compute(
+    unitPrice: amountTotal,
+    qty: qty.toDouble(),
+    dcRt: variation.dcRt?.toDouble(),
+    taxTyCd: variation.taxTyCd,
+    taxPercentage: (variation.taxPercentage ?? 18.0).toDouble(),
+  );
   final id = OptimisticCartIds.ghostLineId(
     transactionId: transactionId,
     variantId: variation.id,
@@ -452,8 +475,12 @@ TransactionItem _ghostTransactionItem({
     qty: qty,
     remainingStock: null,
     price: amountTotal,
-    totAmt: itemTotal,
-    discount: 0.0,
+    totAmt: pricing.totAmt,
+    discount: pricing.discount,
+    dcRt: pricing.dcRt,
+    dcAmt: pricing.dcAmt,
+    taxblAmt: pricing.taxblAmt,
+    taxAmt: pricing.taxAmt,
     createdAt: DateTime.now().toUtc(),
     updatedAt: DateTime.now().toUtc(),
     isRefunded: false,

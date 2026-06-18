@@ -26,6 +26,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flipper_services/GlobalLogError.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/notice.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
@@ -33,6 +34,34 @@ import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:math' as math;
+
+/// Align branch counters in Ditto when RRA rejects a duplicate [invcNo].
+Future<void> persistCapellaCountersInvcNo(int invcNo) async {
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) return;
+
+  final ditto = DittoService.instance.dittoInstance;
+  if (ditto == null) {
+    talker.warning('Ditto not initialized; cannot persist counter invcNo.');
+    return;
+  }
+
+  final counters = await ProxyService.getStrategy(
+    Strategy.capella,
+  ).getCounters(branchId: branchId, fetchRemote: false);
+  final now = DateTime.now().toUtc();
+  for (final counter in counters) {
+    if (counter.branchId == null) continue;
+    counter.invcNo = invcNo;
+    counter.lastTouched = now;
+    counter.createdAt = now;
+    final doc = counter.toDittoDocument();
+    await ditto.store.execute(
+      'INSERT INTO counters DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {'doc': doc},
+    );
+  }
+}
 
 // Expose a top-level calculateTaxTotals function so tests can call it
 // without needing to instantiate RWTax (which pulls in app-wide services).
@@ -43,34 +72,34 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
     'B': 0.0,
     'C': 0.0,
     'D': 0.0,
-    'ttTaxAmt': 0.0, // Sum of all TT tax amounts from items
-    'ttTaxblAmt': 0.0, // Sum of all TT taxable amounts from items
+    'F': 0.0,
+    'ttTaxAmt': 0.0,
+    'ttTaxblAmt': 0.0,
   };
 
   for (var item in items) {
     try {
-      // Validate and fetch data with default fallback
       String taxType = (item['taxTyCd'] as String?) ?? 'B';
+      taxType = taxType.toUpperCase();
 
-      // Ensure taxType is one of the valid types
       if (!taxTotals.containsKey(taxType)) {
         print('Warning: Invalid tax type $taxType found. Using default type B');
         taxType = 'B';
       }
 
-      final unitPrice = item['price'];
+      final unitPrice = (item['price'] as num?)?.toDouble() ?? 0.0;
       final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
-      final discountRate = item['dcRt'];
+      final discountRate = (item['dcRt'] as num?)?.toDouble() ?? 0.0;
+      final prftDcAmt = (item['prftDcAmt'] as num?)?.toDouble() ?? 0.0;
 
-      // Calculate unit discount and taxable amount
       double unitDiscount = (unitPrice * discountRate) / 100;
-      double unitTaxableAmount = unitPrice - unitDiscount;
+      double lineGross = (unitPrice - unitDiscount) * quantity;
+      if (taxType == 'F') {
+        lineGross -= prftDcAmt;
+      }
+      if (lineGross < 0) lineGross = 0;
 
-      // Multiply by quantity
-      double totalTaxableAmount = unitTaxableAmount * quantity;
-
-      // Add to the appropriate tax type total using direct addition
-      taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
+      taxTotals[taxType] = taxTotals[taxType]! + lineGross;
 
       // Sum up TT tax amounts and taxable amounts from items
       if (item.containsKey('ttTaxAmt')) {
@@ -85,7 +114,7 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
 
       // Optional: Add debug print to verify calculations
       print(
-        'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}',
+        'Processing item - Tax Type: $taxType, Amount: $lineGross, New Total: ${taxTotals[taxType]}',
       );
     } catch (e) {
       print('Error processing item: $item');
@@ -144,12 +173,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     _talker = Talker();
     _dio = Dio(
       BaseOptions(
-        // Set default connect timeout to 5 seconds
-        connectTimeout: const Duration(seconds: 5),
-        // Set default receive timeout to 3 seconds
-        receiveTimeout: const Duration(seconds: 30),
-        // Set default send timeout to 3 seconds
-        sendTimeout: const Duration(seconds: 3),
+        connectTimeout: const Duration(seconds: 120),
+        receiveTimeout: const Duration(seconds: 120),
+        sendTimeout: const Duration(seconds: 120),
       ),
     );
 
@@ -278,6 +304,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final url = Uri.parse(
         URI,
       ).replace(path: Uri.parse(URI).path + 'stock/saveStockItems').toString();
+
       /// Filter out service items as they cannot be saved in IO
       items = items.where((item) => item.itemTyCd != "3").toList();
       final itemsList = items
@@ -287,9 +314,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             (entry) => mapRraStockIoItemToJson(
               entry.value,
               bhfId: bhFId,
-              approvedQty: entry.value.qty == 0
-                  ? approvedQty
-                  : entry.value.qty,
+              approvedQty: entry.value.qty == 0 ? approvedQty : entry.value.qty,
               itemSeq: entry.key + 1,
             ),
           )
@@ -636,6 +661,29 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
   /// After [trnsSales/saveSales] succeeds, RRA still expects stock movement and
   /// master updates. Those calls are not needed to build the signed receipt.
+  /// Line totals for `stock/saveStockItems` envelope (stock lines only, matches flipper-turbo).
+  ({double taxable, double tax, double total}) _stockIoEnvelopeTotals(
+    List<TransactionItem> items,
+  ) {
+    var taxable = 0.0;
+    var tax = 0.0;
+    var total = 0.0;
+    for (final item in items) {
+      if (item.itemTyCd == '3') continue;
+      final qty = item.qty.toDouble();
+      final retailUnit = (item.prc ?? item.price).toDouble();
+      final lineTotal = double.parse((retailUnit * qty).toStringAsFixed(2));
+      taxable += lineTotal;
+      total += lineTotal;
+      tax += (item.taxAmt ?? 0).toDouble();
+    }
+    return (
+      taxable: double.parse(taxable.toStringAsFixed(2)),
+      tax: double.parse(tax.toStringAsFixed(2)),
+      total: double.parse(total.toStringAsFixed(2)),
+    );
+  }
+
   /// Invoke via [syncStockAfterSuccessfulSaveSales] after local stock deduction
   /// (see [runPostSaleStockDeductionAndRraSync]) so saveStockItems → saveStockMaster
   /// use post-sale quantities and the allow-below-stock snapshot is available.
@@ -727,6 +775,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           transactionSarTyCd: transaction.sarTyCd,
         );
 
+        final stockIoTotals = _stockIoEnvelopeTotals(movementItemsForStockIo);
+        final stockIoRemark = stockIoSarTyCd == StockInOutType.sale
+            ? 'Stock out for sale'
+            : (transaction.remark ?? '');
+
         final stockIoResp = await saveStockItems(
           items: movementItemsForStockIo,
           tinNumber: ebm.tinNumber.toString(),
@@ -739,10 +792,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           sarNo: highestInvcNo.toString(),
           sarTyCd: stockIoSarTyCd,
           custBhfId: transaction.customerBhfId,
-          totalSupplyPrice: transaction.subTotal!,
-          totalvat: transaction.taxAmount!.toDouble(),
-          totalAmount: transaction.subTotal!,
-          remark: transaction.remark ?? "",
+          totalSupplyPrice: stockIoTotals.taxable,
+          totalvat: stockIoTotals.tax,
+          totalAmount: stockIoTotals.total,
+          remark: stockIoRemark,
           ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
           URI: ebm.taxServerUrl,
         );
@@ -867,22 +920,30 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
     final repository = Repository();
     // Get business details
-    Business? business = await ProxyService.strategy.getBusiness(
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    Business? business = await capella.getBusiness(
       businessId: ProxyService.box.getBusinessId()!,
     );
-    String branchId = (await ProxyService.strategy.activeBranch(
+    String branchId = (await capella.activeBranch(
       branchId: ProxyService.box.getBranchId()!,
     )).id;
-    Ebm? ebm = await ProxyService.strategy.ebm(
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    Ebm? ebm = await capella.ebm(branchId: ProxyService.box.getBranchId()!);
     final List<TransactionItem> items;
     if (preloadedItems != null && preloadedItems.isNotEmpty) {
       items = preloadedItems;
     } else {
-      items = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).transactionItems(transactionId: transaction.id, branchId: branchId);
+      items = await ProxyService.getStrategy(Strategy.capella).transactionItems(
+        transactionId: transaction.id,
+        branchId: branchId,
+        doneWithTransaction: false,
+        active: true,
+      );
+    }
+
+    if (items.isEmpty) {
+      throw Exception(
+        'Cannot save sale to RRA: itemList is empty for transaction ${transaction.id}',
+      );
     }
 
     // Get the current date and time in the required format yyyyMMddHHmmss
@@ -919,30 +980,18 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get sales and receipt type codes
     Map<String, String> receiptCodes = getReceiptCodes(receiptType);
     var taxTotals = calculateTaxTotals(itemsList);
-    Future<void> _handleInvoiceDuplicate() async {
-      print("Invoice number already exists.");
-      final branchId = ProxyService.box.getBranchId()!;
-      final counters = await ProxyService.strategy.getCounters(
-        branchId: branchId,
-        fetchRemote: false,
-      );
-
-      for (Counter c in counters) {
-        c.invcNo = (c.invcNo ?? 0) + 1;
-        c.curRcptNo = (c.curRcptNo ?? 0) + 1;
-        await repository.upsert(c);
-      }
-    }
-
     List<odm.Counter> _counters =
         await ProxyService.getStrategy(Strategy.capella).getCounters(
           branchId: ProxyService.box.getBranchId()!,
           fetchRemote: false,
         );
-    final int highestInvcNo = _counters.fold<int>(
+    var currentHighestInvcNo = _counters.fold<int>(
       0,
       (prev, c) => math.max(prev, c.invcNo ?? 0),
     );
+    if (currentHighestInvcNo <= 0) {
+      currentHighestInvcNo = 1;
+    }
 
     // Retrieve customer information
 
@@ -952,7 +1001,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       custMblNo: custMblNo,
       customerName: customerName,
       customer: customer,
-      highestInvcNo: highestInvcNo,
+      highestInvcNo: currentHighestInvcNo,
       ebm: ebm,
       bhFId: bhfId,
       salesSttsCd: salesSttsCd,
@@ -975,7 +1024,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       ).replace(path: Uri.parse(URI).path + 'trnsSales/saveSales').toString();
 
       RwApiResponse? successData;
-      for (var saveAttempt = 0; saveAttempt < 2; saveAttempt++) {
+      for (var saveAttempt = 0; saveAttempt < 3; saveAttempt++) {
         final response = await sendPostRequest(url, requestData);
 
         if (response.statusCode != 200) {
@@ -988,7 +1037,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           final msg = data.resultMsg;
-          if (saveAttempt == 0 && _rwTaxIsQtyUnitCdCodeValueError(msg)) {
+          if (saveAttempt < 2 && _rwTaxIsQtyUnitCdCodeValueError(msg)) {
             talker.warning(
               'RRA rejected qtyUnitCd; defaulting transaction lines and variants to U and retrying saveSales.',
             );
@@ -1011,7 +1060,36 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               custMblNo: custMblNo,
               customerName: customerName,
               customer: customer,
-              highestInvcNo: highestInvcNo,
+              highestInvcNo: currentHighestInvcNo,
+              ebm: ebm,
+              bhFId: bhfId,
+              salesSttsCd: salesSttsCd,
+              transaction: transaction,
+              date: date,
+              originalInvoiceNumber: originalInvoiceNumber,
+              totalTaxable: totalTaxable,
+              taxTotals: taxTotals,
+              receiptCodes: receiptCodes,
+              itemsList: itemsList,
+              purchaseCode: purchaseCode,
+              timeToUse: timeToUser,
+              receiptType: receiptType,
+            );
+            continue;
+          }
+
+          if (saveAttempt < 2 && msg == "Invoice number already exists.") {
+            talker.warning(
+              'Invoice number $currentHighestInvcNo already exists; incrementing and retrying saveSales.',
+            );
+            currentHighestInvcNo += 1;
+            await persistCapellaCountersInvcNo(currentHighestInvcNo);
+            requestData = await buildRequestData(
+              business: business,
+              custMblNo: custMblNo,
+              customerName: customerName,
+              customer: customer,
+              highestInvcNo: currentHighestInvcNo,
               ebm: ebm,
               bhFId: bhfId,
               salesSttsCd: salesSttsCd,
@@ -1032,7 +1110,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           Exception exception = Exception(msg);
 
           if (msg == "Invoice number already exists.") {
-            await _handleInvoiceDuplicate();
             exception = Exception(
               "Error occurred, please try again. If the problem persists, contact support.",
             );
@@ -1051,6 +1128,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           throw exception;
         }
 
+        data.usedInvcNo = currentHighestInvcNo;
+        await persistCapellaCountersInvcNo(currentHighestInvcNo + 1);
         successData = data;
         break;
       }
@@ -1071,7 +1150,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             receiptType: receiptType,
             items: items,
             ebm: ebm,
-            highestInvcNo: highestInvcNo,
+            highestInvcNo: currentHighestInvcNo,
             sarTyCd: sarTyCd,
             transaction: transaction,
             repository: repository,
@@ -1142,13 +1221,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String bhfId,
     num? approvedQty,
     int? itemSeq,
-  }) =>
-      mapRraStockIoItemToJson(
-        item,
-        bhfId: bhfId,
-        approvedQty: approvedQty,
-        itemSeq: itemSeq,
-      );
+  }) => mapRraStockIoItemToJson(
+    item,
+    bhfId: bhfId,
+    approvedQty: approvedQty,
+    itemSeq: itemSeq,
+  );
 
   Future<Map<String, dynamic>> mapItemToJson(
     TransactionItem item, {
@@ -1164,8 +1242,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final baseTotal = unitPrice * quantity;
 
     // Calculate discount amount correctly for the total
-    final discountRate = item.dcRt;
-    final totalDiscountAmount = (baseTotal * discountRate!) / 100;
+    final discountRate = item.dcRt ?? 0.0;
+    final totalDiscountAmount = (baseTotal * discountRate) / 100;
 
     // Calculate total after discount
     final totalAfterDiscount = baseTotal - totalDiscountAmount;
@@ -1298,6 +1376,34 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       itemJson['ttCatCd'] = "TT";
     }
 
+    if ((item.taxTyCd ?? '').toUpperCase() == 'F') {
+      final rrp = (item as dynamic).rrp as num?;
+      final prftDcAmt = (item as dynamic).prftDcAmt as num? ?? 0;
+      final unitPrice = item.price.toDouble();
+      final quantity = (approvedQty ?? item.qty).toDouble();
+      final splyAmt = unitPrice * quantity;
+      final taxableBase = splyAmt - prftDcAmt.toDouble();
+      final fuelTaxPct = taxPercentage;
+      final fuelTaxAmt = taxableBase > 0
+          ? double.parse(
+              (taxableBase * fuelTaxPct / (100 + fuelTaxPct)).toStringAsFixed(
+                2,
+              ),
+            )
+          : 0.0;
+      final fuelTaxbl = taxableBase - fuelTaxAmt;
+      itemJson['taxTyCd'] = 'F';
+      itemJson['rrp'] = (rrp ?? unitPrice).toDouble().roundToTwoDecimalPlaces();
+      itemJson['prc'] = unitPrice.roundToTwoDecimalPlaces();
+      itemJson['prftDcAmt'] = prftDcAmt.toDouble().roundToTwoDecimalPlaces();
+      itemJson['splyAmt'] = splyAmt.roundToTwoDecimalPlaces();
+      itemJson['taxblAmt'] = fuelTaxbl.roundToTwoDecimalPlaces();
+      itemJson['taxAmt'] = fuelTaxAmt.roundToTwoDecimalPlaces();
+      itemJson['totAmt'] = splyAmt.roundToTwoDecimalPlaces();
+      itemJson['dcRt'] = 0;
+      itemJson['dcAmt'] = 0;
+    }
+
     // always make itemSeq be first in object
     Map<String, dynamic> sortedItemJson = Map.from(itemJson);
     final itemSeqValue = sortedItemJson.remove('itemSeq');
@@ -1310,68 +1416,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         : 'U';
 
     return sortedItemJson;
-  }
-
-  Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
-    // Initialize tax totals with zero values
-    Map<String, double> taxTotals = {
-      'A': 0.0,
-      'B': 0.0,
-      'C': 0.0,
-      'D': 0.0,
-      'ttTaxAmt': 0.0, // Sum of all TT tax amounts from items
-      'ttTaxblAmt': 0.0, // Sum of all TT taxable amounts from items
-    };
-
-    for (var item in items) {
-      try {
-        // Validate and fetch data with default fallback
-        String taxType = (item['taxTyCd'] as String?) ?? 'B';
-
-        // Ensure taxType is one of the valid types
-        if (!taxTotals.containsKey(taxType)) {
-          print(
-            'Warning: Invalid tax type $taxType found. Using default type B',
-          );
-          taxType = 'B';
-        }
-
-        final unitPrice = item['price'];
-        final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
-        final discountRate = item['dcRt'];
-
-        // Calculate unit discount and taxable amount
-        double unitDiscount = (unitPrice * discountRate) / 100;
-        double unitTaxableAmount = unitPrice - unitDiscount;
-
-        // Multiply by quantity
-        double totalTaxableAmount = unitTaxableAmount * quantity;
-
-        // Add to the appropriate tax type total using direct addition
-        taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
-
-        // Sum up TT tax amounts and taxable amounts from items
-        if (item.containsKey('ttTaxAmt')) {
-          double ttTaxAmt = (item['ttTaxAmt'] as num?)?.toDouble() ?? 0.0;
-          taxTotals['ttTaxAmt'] = taxTotals['ttTaxAmt']! + ttTaxAmt;
-        }
-
-        if (item.containsKey('ttTaxblAmt')) {
-          double ttTaxblAmt = (item['ttTaxblAmt'] as num?)?.toDouble() ?? 0.0;
-          taxTotals['ttTaxblAmt'] = taxTotals['ttTaxblAmt']! + ttTaxblAmt;
-        }
-
-        // Optional: Add debug print to verify calculations
-        print(
-          'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}',
-        );
-      } catch (e) {
-        print('Error processing item: $item');
-        print('Error details: $e');
-      }
-    }
-
-    return taxTotals;
   }
 
   // Helper function to determine receipt type codes
@@ -1417,21 +1461,40 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     String? custMblNo,
     required String customerName,
   }) async {
-    odm.Configurations? taxConfigTaxB = await ProxyService.strategy
-        .getByTaxType(taxtype: "B");
-    odm.Configurations? taxConfigTaxA = await ProxyService.strategy
-        .getByTaxType(taxtype: "A");
-    odm.Configurations? taxConfigTaxC = await ProxyService.strategy
-        .getByTaxType(taxtype: "C");
-    odm.Configurations? taxConfigTaxD = await ProxyService.strategy
-        .getByTaxType(taxtype: "D");
-    odm.Configurations? taxConfigTaxTT = await ProxyService.strategy
-        .getByTaxType(taxtype: "TT");
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    odm.Configurations? taxConfigTaxB = await capella.getByTaxType(
+      taxtype: "B",
+    );
+    odm.Configurations? taxConfigTaxA = await capella.getByTaxType(
+      taxtype: "A",
+    );
+    odm.Configurations? taxConfigTaxC = await capella.getByTaxType(
+      taxtype: "C",
+    );
+    odm.Configurations? taxConfigTaxD = await capella.getByTaxType(
+      taxtype: "D",
+    );
+    odm.Configurations? taxConfigTaxTT = await capella.getByTaxType(
+      taxtype: "TT",
+    );
+    odm.Configurations? taxConfigTaxF = await capella.getByTaxType(
+      taxtype: "F",
+    );
 
-    /// TODO: for totalTax we are not accounting other taxes only B
-    /// so need to account them in future
-    final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
+    final fuelTaxRate = taxConfigTaxF?.taxPercentage ?? 18.0;
+    final taxAmtF = double.parse(
+      ((taxTotals['F'] ?? 0.0) * fuelTaxRate / (100 + fuelTaxRate))
+          .toStringAsFixed(2),
+    );
+    final taxAmtB = double.parse(
+      ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2),
+    );
+    final totalTax = taxAmtB + taxAmtF;
     talker.warning("HARD COPY TOTALTAX: ${totalTax.toStringAsFixed(2)}");
+
+    final hasFuelLine = itemsList.any(
+      (line) => (line['taxTyCd'] as String?)?.toUpperCase() == 'F',
+    );
 
     final topMessage = [
       business?.name ?? 'Our Business',
@@ -1475,15 +1538,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "taxblAmtC": (taxTotals['C'] ?? 0.0).roundToTwoDecimalPlaces(),
       "taxblAmtD": (taxTotals['D'] ?? 0.0).roundToTwoDecimalPlaces(),
       "taxblAmtTt": (taxTotals['ttTaxblAmt'] ?? 0.0).roundToTwoDecimalPlaces(),
+      "taxblAmtF": (taxTotals['F'] ?? 0.0).roundToTwoDecimalPlaces(),
 
       "taxAmtA":
           ((taxTotals['A'] ?? 0.0) *
                   (taxConfigTaxA!.taxPercentage ?? 0) /
                   (100 + (taxConfigTaxA.taxPercentage ?? 0)))
               .toStringAsFixed(2),
-      "taxAmtB": double.parse(
-        ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2),
-      ),
+      "taxAmtB": taxAmtB,
       "taxAmtC": double.parse(
         ((taxTotals['C'] ?? 0.0) *
                 (taxConfigTaxC!.taxPercentage ?? 0) /
@@ -1497,11 +1559,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             .toStringAsFixed(2),
       ),
       "ttTaxAmt": (taxTotals['ttTaxAmt'] ?? 0.0),
+      "taxAmtF": taxAmtF,
 
       "taxRtA": taxConfigTaxA.taxPercentage,
       "taxRtB": taxConfigTaxB!.taxPercentage,
       "taxRtC": taxConfigTaxC.taxPercentage,
       "taxRtD": taxConfigTaxD.taxPercentage,
+      "taxRtF": fuelTaxRate,
       "ttTaxRt": taxConfigTaxTT!.taxPercentage,
 
       "totTaxblAmt": totalTaxable.roundToTwoDecimalPlaces(),
@@ -1529,6 +1593,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       },
       "itemList": itemsList,
     };
+    if (hasFuelLine) {
+      final salePurpose = (transaction as dynamic).salePurposeCd as String?;
+      if (salePurpose != null && salePurpose.isNotEmpty) {
+        json['salePurposeCd'] = salePurpose;
+      }
+    }
     if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {
       json['rfdRsnCd'] = ProxyService.box.getRefundReason() ?? "05";
 
@@ -1653,6 +1723,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required Purchase item,
     required String URI,
     String rcptTyCd = "S",
+    String regTyCd = "A",
     required String bhfId,
     required List<Variant> variants,
     required Business business,
@@ -1677,7 +1748,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     data['totItemCnt'] = variants.length;
     data['pchsTyCd'] = 'N'; // transaction type N=normal
     data['cfmDt'] = convertDateToString(DateTime.now());
-    data['regTyCd'] = 'A';
+    data['regTyCd'] = regTyCd;
     data['modrId'] = randomNumber();
     // P is refund after sale
     data['rcptTyCd'] = rcptTyCd;

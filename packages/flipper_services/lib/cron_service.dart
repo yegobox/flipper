@@ -274,19 +274,10 @@ class CronService {
                       transaction.invoiceNumber = highestInvcNo;
                       await repository.upsert<ITransaction>(transaction);
 
-                      Customer? customer;
-                      try {
-                        customer = await ProxyService.strategy.customerById(
-                          transaction.customerId!,
-                        );
-                        talker.info(
-                          'Resolved customer from id: ${customer?.id}',
-                        );
-                      } catch (e) {
-                        talker.warning(
-                          'Failed to resolve customer for id ${transaction.customerId}: $e',
-                        );
-                      }
+                      final customer = await resolveCustomerForReceipt(
+                        transaction: transaction,
+                        purchaseCode: purchaseCode,
+                      );
                       String custMblNo = transaction.customerPhone!;
                       String customerName = transaction.customerName!;
                       // Call printReceipt with delegation parameters
@@ -423,6 +414,7 @@ class CronService {
       }
 
       await ProxyService.strategy.hydrateCodes(branchId: branchId);
+      // Registers Ditto cloud pull for `sars` + hydrates SQLite mirror (Brick).
       await ProxyService.strategy.hydrateSars(branchId: branchId);
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
@@ -432,13 +424,19 @@ class CronService {
         /// end of work around
         // Hydrate essential data
         try {
-          // Skip fetchNotices if on mobile device and URI is localhost
-          if (isMobileDevice && (uri?.contains('localhost') ?? false)) {
+          // Skip fetchNotices when the server URL is unset, or on mobile with a
+          // localhost URI. Force-unwrapping `uri` here crashed hydration when
+          // the server URL was not yet configured.
+          if (uri == null || uri.isEmpty) {
+            talker.info(
+              "Skipping fetchNotices: server URL is not configured",
+            );
+          } else if (isMobileDevice && uri.contains('localhost')) {
             talker.info(
               "Skipping fetchNotices on mobile device with localhost URI",
             );
           } else {
-            await ProxyService.tax.fetchNotices(URI: uri!);
+            await ProxyService.tax.fetchNotices(URI: uri);
           }
         } catch (e) {
           talker.error("Error hydrating initial data: $e");

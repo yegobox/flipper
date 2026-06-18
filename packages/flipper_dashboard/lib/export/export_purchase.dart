@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -14,8 +15,9 @@ import 'package:flutter/services.dart' show rootBundle;
 
 class ExportPurchase {
   Future<void> export(List<PurchaseReportItem> reportItems) async {
-    final business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
 
     final groupedByPurchase = groupBy(
         reportItems, (item) => item.purchase?.id); // Group by String? id

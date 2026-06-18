@@ -1,12 +1,19 @@
+import 'package:flipper_web/core/business_selection_persistence.dart';
+import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
+import 'package:flipper_web/core/session_persistence.dart';
+import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService();
+  return AuthService(ref);
 });
 
 class AuthService {
+  AuthService(this._ref);
+
+  final Ref _ref;
   final SupabaseClient _client = Supabase.instance.client;
 
   /// Returns the current authenticated user
@@ -22,13 +29,17 @@ class AuthService {
     }
   }
 
-  /// Returns the current active session
+  /// Returns the current active session.
+  /// Uses the in-memory session first; only calls the network refresh
+  /// if no local session is available.
   Future<Session?> getCurrentSession() async {
     try {
+      final local = _client.auth.currentSession;
+      if (local != null) return local;
       final response = await _client.auth.refreshSession();
       return response.session;
     } catch (e) {
-      debugPrint('Error refreshing session: $e');
+      debugPrint('Error getting session: $e');
       return null;
     }
   }
@@ -56,6 +67,12 @@ class AuthService {
   /// Signs out the current user
   Future<void> signOut() async {
     try {
+      await DittoBootstrap.disposeOnSignOut();
+      _ref.read(userProfileCacheProvider.notifier).state = null;
+      _ref.read(sessionLoginKeyProvider.notifier).state = null;
+      _ref.read(sessionApiUserIdProvider.notifier).state = null;
+      await SessionPersistence.clear();
+      await BusinessSelectionPersistence.clear();
       await _client.auth.signOut();
     } catch (e) {
       debugPrint('Error signing out: $e');

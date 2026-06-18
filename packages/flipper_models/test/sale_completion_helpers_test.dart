@@ -54,6 +54,30 @@ void main() {
       expect(d.shouldBeLoan, false);
       expect(d.status, saleCompletionStatusComplete);
     });
+
+    test('stale in-memory cashReceived yields to lower payment rows', () {
+      final d = deriveSaleCompletionState(
+        transactionCashReceived: 100,
+        finalSubTotal: 100,
+        paymentMethods: const [
+          PaymentLineForSaleCompletion(amount: 40, method: 'CASH'),
+        ],
+      );
+      expect(d.shouldBeLoan, true);
+      expect(d.status, saleCompletionStatusParked);
+      expect(d.remainingBalance, closeTo(60.0, 0.001));
+    });
+
+    test('unknown tender does not assume full payment', () {
+      final d = deriveSaleCompletionState(
+        transactionCashReceived: 0,
+        finalSubTotal: 100,
+        paymentMethods: const [],
+      );
+      expect(d.shouldBeLoan, true);
+      expect(d.status, saleCompletionStatusParked);
+      expect(d.remainingBalance, closeTo(100.0, 0.001));
+    });
   });
 
   group('normalizePaymentLinesToSaleTotal', () {
@@ -84,6 +108,54 @@ void main() {
       expect(credit.amount, 50);
       final cash = normalized.firstWhere((p) => p.method == 'CASH');
       expect(cash.amount, closeTo(40.0, 0.02));
+    });
+  });
+
+  group('saleLineQtyByVariantId', () {
+    SaleCartQtyRow row(String variantId, num qty, {bool? active}) => (
+      variantId: variantId,
+      qty: qty,
+      active: active,
+    );
+
+    test('skips inactive rows', () {
+      final map = saleLineQtyByVariantId([
+        row('a', 2, active: false),
+        row('b', 1),
+      ]);
+      expect(map, {'b': 1});
+    });
+
+    test('sums qty per variant', () {
+      final map = saleLineQtyByVariantId([
+        row('a', 2),
+        row('a', 1),
+        row('b', 3),
+      ]);
+      expect(map, {'a': 3, 'b': 3});
+    });
+  });
+
+  group('saleLineQtyMapsMatch', () {
+    test('matches identical maps', () {
+      expect(
+        saleLineQtyMapsMatch({'a': 2, 'b': 1}, {'a': 2, 'b': 1}),
+        isTrue,
+      );
+    });
+
+    test('rejects missing variant', () {
+      expect(
+        saleLineQtyMapsMatch({'a': 1, 'b': 1}, {'a': 1}),
+        isFalse,
+      );
+    });
+
+    test('rejects qty drift', () {
+      expect(
+        saleLineQtyMapsMatch({'a': 3}, {'a': 2}),
+        isFalse,
+      );
     });
   });
 }

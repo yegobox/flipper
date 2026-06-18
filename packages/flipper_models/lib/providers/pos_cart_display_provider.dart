@@ -20,6 +20,14 @@ final posCartDisplayEpochProvider = StateProvider<int>((ref) => 0);
 /// does not replace the sale with a freshly auto-created empty pending cart.
 final pinnedPosCartTransactionIdProvider = StateProvider<String?>((ref) => null);
 
+/// Transaction id of the sale that just completed. While set, the cart shows
+/// empty for that id across every consumer (list, totals, badges) in the same
+/// frame — instead of lingering until the Ditto stream/pending providers
+/// reconcile. Cleared once a different pending transaction becomes active (the
+/// next sale), so a completed id is never permanently suppressed.
+final suppressedCartTransactionIdProvider =
+    StateProvider<String?>((ref) => null);
+
 void bumpPosCartDisplayEpoch(Ref ref) {
   ref.read(posCartDisplayEpochProvider.notifier).update((n) => n + 1);
 }
@@ -82,6 +90,16 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
     final pinned = ref.read(pinnedPosCartTransactionIdProvider);
     if (pinned != null && pinned.isNotEmpty && txn.id != pinned) {
       return;
+    }
+    // A different pending sale is now active — stop suppressing the previously
+    // completed one (it will never come back as the cart, so this is the only
+    // place the flag needs clearing).
+    final suppressed = ref.read(suppressedCartTransactionIdProvider);
+    if (suppressed != null && suppressed.isNotEmpty && suppressed != txn.id) {
+      Future.microtask(
+        () =>
+            ref.read(suppressedCartTransactionIdProvider.notifier).state = null,
+      );
     }
     scheduleWriteCachedPendingCartTransaction(
       ref,
@@ -149,6 +167,17 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   final txnIdForMerge = (pendingId != null && pendingId.isNotEmpty)
       ? pendingId
       : mergeTxnId;
+
+  // A sale just completed: hide its lines immediately, even while the stream /
+  // pending providers still point at it. The next sale uses a different id.
+  final suppressedTxnId = ref.watch(suppressedCartTransactionIdProvider);
+  if (suppressedTxnId != null &&
+      suppressedTxnId.isNotEmpty &&
+      (suppressedTxnId == txnIdForMerge ||
+          suppressedTxnId == mergeTxnId ||
+          suppressedTxnId == pendingId)) {
+    return const [];
+  }
 
   if (txnIdForMerge.isEmpty && !hasPending) return const [];
 
