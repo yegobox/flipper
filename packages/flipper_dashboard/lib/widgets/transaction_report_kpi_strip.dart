@@ -131,8 +131,12 @@ class TransactionReportKpiStrip extends ConsumerWidget {
       ),
       loading: () =>
           _summaryCard('Net Profit', gross - tax, true, Colors.purple),
+      // Expenses failed to load: never show `gross - tax` as a final figure —
+      // that silently drops the expense deduction and overstates Net Profit.
+      // Keep the card in its loading state; the live stream re-emits and
+      // self-heals when the backend recovers.
       error: (_, __) =>
-          _summaryCard('Net Profit', gross - tax, kpiLoading, Colors.purple),
+          _summaryCard('Net Profit', gross - tax, true, Colors.purple),
     );
   }
 
