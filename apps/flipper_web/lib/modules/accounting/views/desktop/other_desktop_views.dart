@@ -173,22 +173,36 @@ class AccountingGeneralLedgerView extends ConsumerWidget {
 /// Stable id per statement line so re-imports and match updates upsert the
 /// same row on both backends (valid UUID for Postgres, plain doc id for Ditto).
 String _bankLineId(String businessId, BankLine line) => const Uuid().v5(
-      Namespace.url.value,
-      'flipper:bank-line:$businessId:${line.date}:${line.amt}:${line.desc}',
-    );
+  Namespace.url.value,
+  'flipper:bank-line:$businessId:${line.date}:${line.amt}:${line.desc}',
+);
 
 String _bankLineDateLabel(String? isoDate) {
   final dt = isoDate == null ? null : DateTime.tryParse(isoDate);
   if (dt == null) return isoDate ?? '';
   const months = [
-    '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    '',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   return '${months[dt.month]} ${dt.day}';
 }
 
 /// Debug-only: wipe imported statement lines + in-memory meta so you can re-import.
-Future<void> _clearBankStatementImport(BuildContext context, WidgetRef ref) async {
+Future<void> _clearBankStatementImport(
+  BuildContext context,
+  WidgetRef ref,
+) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -213,9 +227,9 @@ Future<void> _clearBankStatementImport(BuildContext context, WidgetRef ref) asyn
 
   final businessId = ref.read(accountingBusinessIdProvider);
   if (businessId.isNotEmpty) {
-    await ref.read(accountingLedgerRepositoryProvider).clearBankStatementLines(
-          businessId: businessId,
-        );
+    await ref
+        .read(accountingLedgerRepositoryProvider)
+        .clearBankStatementLines(businessId: businessId);
   }
 
   ref.read(bankRecLocalLinesProvider.notifier).state = const [];
@@ -251,8 +265,7 @@ Future<void> _importBankStatement(BuildContext context, WidgetRef ref) async {
   );
 
   try {
-    final statement =
-        await ref.read(bankStatementServiceProvider).parse(bytes);
+    final statement = await ref.read(bankStatementServiceProvider).parse(bytes);
     final businessId = ref.read(accountingBusinessIdProvider);
     final repo = ref.read(accountingLedgerRepositoryProvider);
 
@@ -314,9 +327,7 @@ Future<List<JournalEntry>> _journalEntriesForBankRec(WidgetRef ref) async {
       .first;
   // If the statement period was wrong or sparse, search the full ledger too.
   if (scoped.length >= 25) return scoped;
-  final all = await repo
-      .watchJournalEntries(businessId: businessId)
-      .first;
+  final all = await repo.watchJournalEntries(businessId: businessId).first;
   if (all.length <= scoped.length) return scoped;
   final seen = <String>{};
   return [
@@ -403,7 +414,9 @@ Future<void> _matchBankLine(
 
   final businessId = ref.read(accountingBusinessIdProvider);
   if (businessId.isNotEmpty) {
-    await ref.read(accountingLedgerRepositoryProvider).upsertBankLine(
+    await ref
+        .read(accountingLedgerRepositoryProvider)
+        .upsertBankLine(
           businessId: businessId,
           line: matched,
           id: _bankLineId(businessId, line),
@@ -495,10 +508,20 @@ class AccountingBankRecView extends ConsumerWidget {
         .fold<int>(0, (s, a) => s + a.bal);
     // Prefer the imported statement's closing balance; fall back to the GL.
     final statementBalance = meta?.closingBalance?.round() ?? bankBal;
-    final bankName = meta?.bankName ?? 'Bank of Kigali';
+    // Fall back to the chart-of-accounts name for the bank account (1020),
+    // then a neutral label — never a hardcoded bank brand.
+    final bankAccounts = accounts.where((a) => a.code == '1020');
+    final bankAccountName = bankAccounts.isNotEmpty
+        ? bankAccounts.first.name
+        : '';
+    final bankName =
+        meta?.bankName ??
+        (bankAccountName.isNotEmpty ? bankAccountName : 'Bank');
     final matched = lines.where((l) => l.matched).length;
     final unmatched = lines.length - matched;
-    final diff = lines.where((l) => !l.matched).fold<int>(0, (s, l) => s + l.amt);
+    final diff = lines
+        .where((l) => !l.matched)
+        .fold<int>(0, (s, l) => s + l.amt);
     final canFinish = unmatched == 0 && lines.isNotEmpty && !finished;
 
     return SingleChildScrollView(
@@ -690,8 +713,7 @@ class AccountingTaxVatView extends ConsumerWidget {
           AccountingPageHeader(
             eyebrow: 'Compliance',
             title: 'Tax & VAT',
-            subtitle:
-                'VAT at $ratePct% (Rwanda standard) · period $period',
+            subtitle: 'VAT at $ratePct% (Rwanda standard) · period $period',
             actions: [
               AccountingButton(
                 label: 'File with RRA',
@@ -701,12 +723,12 @@ class AccountingTaxVatView extends ConsumerWidget {
                 onPressed: vat == null
                     ? null
                     : () => showAccountingToast(
-                          context,
-                          'VAT return submitted',
-                          subtitle: 'RRA ack · ref RRA-2026-05-0042',
-                          accIcon: AccIcon.shieldCheck,
-                          tone: AccountingToastTone.success,
-                        ),
+                        context,
+                        'VAT return submitted',
+                        subtitle: 'RRA ack · ref RRA-2026-05-0042',
+                        accIcon: AccIcon.shieldCheck,
+                        tone: AccountingToastTone.success,
+                      ),
               ),
             ],
           ),
@@ -757,19 +779,10 @@ class AccountingTaxVatView extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(24, 6, 24, 18),
                   child: Column(
                     children: [
-                      _VatStmtRow(
-                        'Total sales (VAT-inclusive)',
-                        totalSales,
-                      ),
+                      _VatStmtRow('Total sales (VAT-inclusive)', totalSales),
                       _VatStmtRow('Output VAT collected', outputVat),
-                      _VatStmtRow(
-                        'Input VAT on purchases',
-                        -inputVat,
-                      ),
-                      _VatStmtTotal(
-                        'Net VAT due to RRA',
-                        netPayable,
-                      ),
+                      _VatStmtRow('Input VAT on purchases', -inputVat),
+                      _VatStmtTotal('Net VAT due to RRA', netPayable),
                     ],
                   ),
                 ),
@@ -912,7 +925,8 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
                 onPressed: () => showAccountingToast(
                   context,
                   'Generating PDF',
-                  subtitle: 'Statement pack · ${ref.watch(accountingCurrencyProvider)}',
+                  subtitle:
+                      'Statement pack · ${ref.watch(accountingCurrencyProvider)}',
                   icon: Icons.download_outlined,
                   tone: AccountingToastTone.success,
                 ),
@@ -947,7 +961,11 @@ class AccountingFinancialStatementsView extends ConsumerWidget {
                   _StmtRow('Cost of goods sold', -pl.cogs),
                   _StmtRow('Gross profit', pl.grossProfit),
                   _StmtRow('Operating expenses', -pl.totalOpex),
-                  _StmtRow(profitOrLossLabel(pl.netIncome), pl.netIncome, total: true),
+                  _StmtRow(
+                    profitOrLossLabel(pl.netIncome),
+                    pl.netIncome,
+                    total: true,
+                  ),
                 ],
               ),
               StatementsTab.balance => _StmtBody(
@@ -990,7 +1008,11 @@ class _StmtRow {
 }
 
 class _StmtBody extends StatelessWidget {
-  const _StmtBody({required this.rows, this.balanced = false, this.entityName = ''});
+  const _StmtBody({
+    required this.rows,
+    this.balanced = false,
+    this.entityName = '',
+  });
 
   final List<_StmtRow> rows;
   final bool balanced;
@@ -1003,20 +1025,21 @@ class _StmtBody extends StatelessWidget {
         if (entityName.isNotEmpty)
           Text(
             entityName.toUpperCase(),
-          style: AccountingTokens.sans(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.1 * 12,
+            style: AccountingTokens.sans(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.1 * 12,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-        ),
         const SizedBox(height: 20),
         for (final r in rows)
           Builder(
             builder: (context) {
               final loss = r.total && r.value < 0;
-              final emphasis =
-                  loss ? AccountingTokens.lossInk : AccountingTokens.ink1;
+              final emphasis = loss
+                  ? AccountingTokens.lossInk
+                  : AccountingTokens.ink1;
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
@@ -1109,7 +1132,9 @@ class AccountingTrialBalanceView extends ConsumerWidget {
                     padding: const EdgeInsets.all(24),
                     child: Text(
                       'No accounts loaded yet.',
-                      style: AccountingTokens.sans(color: AccountingTokens.ink3),
+                      style: AccountingTokens.sans(
+                        color: AccountingTokens.ink3,
+                      ),
                     ),
                   ),
                 for (final r in tb.rows)
@@ -1231,8 +1256,7 @@ class AccountingChartOfAccountsView extends ConsumerWidget {
           AccountingPageHeader(
             eyebrow: 'Setup',
             title: 'Chart of accounts',
-            subtitle:
-                '${accounts.length} accounts · numbered ledger structure',
+            subtitle: '${accounts.length} accounts · numbered ledger structure',
             actions: [
               PopupMenuButton<AccountType?>(
                 tooltip: 'Filter by type',
@@ -1245,10 +1269,7 @@ class AccountingChartOfAccountsView extends ConsumerWidget {
                     child: Text('All types'),
                   ),
                   for (final (type, label) in _typeOrder)
-                    PopupMenuItem(
-                      value: type,
-                      child: Text(label),
-                    ),
+                    PopupMenuItem(value: type, child: Text(label)),
                 ],
                 child: AccountingButton(
                   label: typeFilter == null

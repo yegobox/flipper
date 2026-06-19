@@ -82,7 +82,11 @@ class AccountingBillingPanelHost extends ConsumerWidget {
       close();
       if (!context.mounted) return;
       if (mode == 'draft') {
-        showAccountingToast(context, 'Draft saved', subtitle: '${doc.id} · ${doc.who}');
+        showAccountingToast(
+          context,
+          'Draft saved',
+          subtitle: '${doc.id} · ${doc.who}',
+        );
       } else if (isInvoice) {
         showAccountingToast(
           context,
@@ -156,12 +160,10 @@ class AccountingBillingPanelHost extends ConsumerWidget {
               kind: ui.kind,
               doc: ui.preview!,
               onClose: close,
-              onEdit: () => open(
-                BillingUiState(kind: ui.kind, editing: ui.preview),
-              ),
-              onPay: () => open(
-                BillingUiState(kind: ui.kind, paying: ui.preview),
-              ),
+              onEdit: () =>
+                  open(BillingUiState(kind: ui.kind, editing: ui.preview)),
+              onPay: () =>
+                  open(BillingUiState(kind: ui.kind, paying: ui.preview)),
             ),
           ),
       ],
@@ -237,7 +239,9 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
     }).toList();
 
     final outstanding = _docs
-        .where((d) => d.status == DocStatus.sent || d.status == DocStatus.overdue)
+        .where(
+          (d) => d.status == DocStatus.sent || d.status == DocStatus.overdue,
+        )
         .fold<int>(0, (s, d) => s + docTotals(d.lines).total);
     final overdue = _docs
         .where((d) => d.status == DocStatus.overdue)
@@ -245,178 +249,217 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
     final draftCount = _docs.where((d) => d.status == DocStatus.draft).length;
 
     return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AccountingPageHeader(
-                eyebrow: _isInvoice ? 'Sales' : 'Purchases',
-                title: _isInvoice ? 'Invoices' : 'Bills',
-                subtitle: _isInvoice
-                    ? 'Bill your customers and get paid · $currency'
-                    : 'Track what you owe your suppliers · $currency',
-                actions: [
-                  PopupMenuButton<String>(
-                    offset: const Offset(0, 40),
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'xlsx', child: Text('Excel workbook (.xlsx)')),
-                      PopupMenuItem(value: 'pdf', child: Text('PDF summary')),
-                    ],
-                    onSelected: (v) => showAccountingToast(
-                      context,
-                      v == 'xlsx' ? 'Exporting to Excel' : 'Generating PDF',
-                      subtitle: '${_docs.length} ${_isInvoice ? 'invoices' : 'bills'}',
-                      icon: Icons.download_outlined,
-                    ),
-                    child: const AccountingButton(
-                      label: 'Export',
-                      icon: Icons.download_outlined,
-                    ),
+      padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AccountingPageHeader(
+            eyebrow: _isInvoice ? 'Sales' : 'Purchases',
+            title: _isInvoice ? 'Invoices' : 'Bills',
+            subtitle: _isInvoice
+                ? 'Bill your customers and get paid · $currency'
+                : 'Track what you owe your suppliers · $currency',
+            actions: [
+              PopupMenuButton<String>(
+                offset: const Offset(0, 40),
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'xlsx',
+                    child: Text('Excel workbook (.xlsx)'),
                   ),
-                  AccountingButton(
-                    label: _isInvoice ? 'New invoice' : 'New bill',
-                    icon: Icons.add,
-                    primary: true,
-                    onPressed: () => _openBilling(
-                      BillingUiState(kind: widget.kind, editingNew: true),
-                    ),
-                  ),
+                  PopupMenuItem(value: 'pdf', child: Text('PDF summary')),
                 ],
+                onSelected: (v) => showAccountingToast(
+                  context,
+                  v == 'xlsx' ? 'Exporting to Excel' : 'Generating PDF',
+                  subtitle:
+                      '${_docs.length} ${_isInvoice ? 'invoices' : 'bills'}',
+                  icon: Icons.download_outlined,
+                ),
+                child: const AccountingButton(
+                  label: 'Export',
+                  icon: Icons.download_outlined,
+                ),
               ),
-              AccountingKpiGrid(
-                maxColumns: 3,
-                children: [
-                  AccountingKpiCard(
-                    label: _isInvoice ? 'Outstanding' : 'Owed to suppliers',
-                    value: outstanding,
-                    icon: AccIcon.receipt,
-                    tone: KpiTone.blue,
-                  ),
-                  AccountingKpiCard(
-                    label: 'Overdue',
-                    value: overdue,
-                    icon: AccIcon.clock,
-                    tone: KpiTone.red,
-                  ),
-                  AccountingKpiCard(
-                    label: 'Drafts',
-                    value: draftCount,
-                    icon: AccIcon.receipt,
-                    tone: KpiTone.amber,
-                    currencyPrefix: false,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 6,
-                children: [
-                  for (final f in DocTabFilter.values)
-                    ChoiceChip(
-                      label: Text(_tabLabel(f)),
-                      selected: tab == f,
-                      onSelected: (_) =>
-                          ref.read(docTabFilterProvider.notifier).state = f,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              AccountingCard(
-                child: list.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Center(
-                          child: Text(
-                            'No ${_isInvoice ? 'invoices' : 'bills'} in "${_tabLabel(tab)}".',
-                            style: AccountingTokens.sans(color: AccountingTokens.ink3),
-                          ),
-                        ),
-                      )
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          headingRowHeight: 44,
-                          dataRowMinHeight: 48,
-                          columns: [
-                            DataColumn(
-                              label: Text(_isInvoice ? 'Invoice' : 'Bill'),
-                            ),
-                            DataColumn(label: Text(_isInvoice ? 'Customer' : 'Supplier')),
-                            const DataColumn(label: Text('Date')),
-                            const DataColumn(label: Text('Due')),
-                            const DataColumn(label: Text('Status')),
-                            const DataColumn(
-                              label: Align(
-                                alignment: Alignment.centerRight,
-                                child: Text('Amount'),
-                              ),
-                            ),
-                            const DataColumn(label: Text('')),
-                          ],
-                          rows: [
-                            for (final d in list)
-                              DataRow(
-                                onSelectChanged: (_) => _openBilling(
-                                  BillingUiState(kind: widget.kind, preview: d),
-                                ),
-                                cells: [
-                                  DataCell(Text(d.id, style: AccountingTokens.mono())),
-                                  DataCell(Text(d.who)),
-                                  DataCell(Text(d.date, style: AccountingTokens.sans(color: AccountingTokens.ink3))),
-                                  DataCell(Text(d.due, style: AccountingTokens.sans(color: AccountingTokens.ink3))),
-                                  DataCell(DocStatusPill(status: d.status)),
-                                  DataCell(
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: Text(
-                                        money(docTotals(d.lines).total),
-                                        style: AccountingTokens.mono(fontWeight: FontWeight.w700),
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    PopupMenuButton<String>(
-                                      onSelected: (action) => _onRowAction(action, d),
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                          value: 'preview',
-                                          child: Text('Open & preview'),
-                                        ),
-                                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                        if (d.status != DocStatus.paid)
-                                          PopupMenuItem(
-                                            value: 'pay',
-                                            child: Text(
-                                              _isInvoice ? 'Record payment' : 'Pay this bill',
-                                            ),
-                                          ),
-                                        if (_isInvoice && d.status != DocStatus.paid)
-                                          const PopupMenuItem(
-                                            value: 'remind',
-                                            child: Text('Send reminder'),
-                                          ),
-                                        const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ),
+              AccountingButton(
+                label: _isInvoice ? 'New invoice' : 'New bill',
+                icon: Icons.add,
+                primary: true,
+                onPressed: () => _openBilling(
+                  BillingUiState(kind: widget.kind, editingNew: true),
+                ),
               ),
             ],
           ),
+          AccountingKpiGrid(
+            maxColumns: 3,
+            children: [
+              AccountingKpiCard(
+                label: _isInvoice ? 'Outstanding' : 'Owed to suppliers',
+                value: outstanding,
+                icon: AccIcon.receipt,
+                tone: KpiTone.blue,
+              ),
+              AccountingKpiCard(
+                label: 'Overdue',
+                value: overdue,
+                icon: AccIcon.clock,
+                tone: KpiTone.red,
+              ),
+              AccountingKpiCard(
+                label: 'Drafts',
+                value: draftCount,
+                icon: AccIcon.receipt,
+                tone: KpiTone.amber,
+                currencyPrefix: false,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 6,
+            children: [
+              for (final f in DocTabFilter.values)
+                ChoiceChip(
+                  label: Text(_tabLabel(f)),
+                  selected: tab == f,
+                  onSelected: (_) =>
+                      ref.read(docTabFilterProvider.notifier).state = f,
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          AccountingCard(
+            child: list.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Center(
+                      child: Text(
+                        _docs.isEmpty
+                            ? 'No ${_isInvoice ? 'invoices' : 'bills'} yet. '
+                                  '${_isInvoice ? 'Create an invoice' : 'Record a bill'} to get started.'
+                            : 'No ${_isInvoice ? 'invoices' : 'bills'} in "${_tabLabel(tab)}".',
+                        style: AccountingTokens.sans(
+                          color: AccountingTokens.ink3,
+                        ),
+                      ),
+                    ),
+                  )
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowHeight: 44,
+                      dataRowMinHeight: 48,
+                      columns: [
+                        DataColumn(
+                          label: Text(_isInvoice ? 'Invoice' : 'Bill'),
+                        ),
+                        DataColumn(
+                          label: Text(_isInvoice ? 'Customer' : 'Supplier'),
+                        ),
+                        const DataColumn(label: Text('Date')),
+                        const DataColumn(label: Text('Due')),
+                        const DataColumn(label: Text('Status')),
+                        const DataColumn(
+                          label: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text('Amount'),
+                          ),
+                        ),
+                        const DataColumn(label: Text('')),
+                      ],
+                      rows: [
+                        for (final d in list)
+                          DataRow(
+                            onSelectChanged: (_) => _openBilling(
+                              BillingUiState(kind: widget.kind, preview: d),
+                            ),
+                            cells: [
+                              DataCell(
+                                Text(d.id, style: AccountingTokens.mono()),
+                              ),
+                              DataCell(Text(d.who)),
+                              DataCell(
+                                Text(
+                                  d.date,
+                                  style: AccountingTokens.sans(
+                                    color: AccountingTokens.ink3,
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  d.due,
+                                  style: AccountingTokens.sans(
+                                    color: AccountingTokens.ink3,
+                                  ),
+                                ),
+                              ),
+                              DataCell(DocStatusPill(status: d.status)),
+                              DataCell(
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    money(docTotals(d.lines).total),
+                                    style: AccountingTokens.mono(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                PopupMenuButton<String>(
+                                  onSelected: (action) =>
+                                      _onRowAction(action, d),
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'preview',
+                                      child: Text('Open & preview'),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: Text('Edit'),
+                                    ),
+                                    if (d.status != DocStatus.paid)
+                                      PopupMenuItem(
+                                        value: 'pay',
+                                        child: Text(
+                                          _isInvoice
+                                              ? 'Record payment'
+                                              : 'Pay this bill',
+                                        ),
+                                      ),
+                                    if (_isInvoice &&
+                                        d.status != DocStatus.paid)
+                                      const PopupMenuItem(
+                                        value: 'remind',
+                                        child: Text('Send reminder'),
+                                      ),
+                                    const PopupMenuItem(
+                                      value: 'delete',
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
   String _tabLabel(DocTabFilter f) => switch (f) {
-        DocTabFilter.all => 'All',
-        DocTabFilter.draft => 'Draft',
-        DocTabFilter.sent => 'Sent',
-        DocTabFilter.overdue => 'Overdue',
-        DocTabFilter.paid => 'Paid',
-      };
+    DocTabFilter.all => 'All',
+    DocTabFilter.draft => 'Draft',
+    DocTabFilter.sent => 'Sent',
+    DocTabFilter.overdue => 'Overdue',
+    DocTabFilter.paid => 'Paid',
+  };
 
   void _onRowAction(String action, AccountingDocument d) {
     switch (action) {
@@ -447,7 +490,11 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
       docNumber: doc.id,
     );
     if (!mounted) return;
-    showAccountingToast(context, 'Deleted', subtitle: doc.id, icon: Icons.delete_outline);
+    showAccountingToast(
+      context,
+      'Deleted',
+      subtitle: doc.id,
+      icon: Icons.delete_outline,
+    );
   }
-
 }

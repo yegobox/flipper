@@ -13,7 +13,8 @@ mixin AccountingMixin on DittoCore {
     String? id,
     int openingBalance = 0,
   }) async {
-    if (dittoInstance == null) return handleNotInitialized('upsertChartOfAccount');
+    if (dittoInstance == null)
+      return handleNotInitialized('upsertChartOfAccount');
     final docId = id ?? '${businessId}_${account.code}';
     final data = LedgerRowMapper.accountToRow(
       account,
@@ -29,7 +30,8 @@ mixin AccountingMixin on DittoCore {
     Map<String, dynamic> header,
     String docId,
   ) async {
-    if (dittoInstance == null) return handleNotInitialized('upsertJournalEntryHeader');
+    if (dittoInstance == null)
+      return handleNotInitialized('upsertJournalEntryHeader');
     await executeUpsert('journal_entries', docId, {
       ...header,
       'businessId': businessId,
@@ -63,7 +65,8 @@ mixin AccountingMixin on DittoCore {
     Map<String, dynamic> data,
     String docId,
   ) async {
-    if (dittoInstance == null) return handleNotInitialized('upsertAccountingDocument');
+    if (dittoInstance == null)
+      return handleNotInitialized('upsertAccountingDocument');
     await executeUpsert('accounting_documents', docId, {
       ...data,
       'businessId': businessId,
@@ -73,8 +76,32 @@ mixin AccountingMixin on DittoCore {
   }
 
   Future<void> deleteAccountingDocument(String docId) async {
-    if (dittoInstance == null) return handleNotInitialized('deleteAccountingDocument');
+    if (dittoInstance == null)
+      return handleNotInitialized('deleteAccountingDocument');
     await executeRemove('accounting_documents', docId);
+  }
+
+  Future<void> upsertRecurringSchedule(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  ) async {
+    if (dittoInstance == null) {
+      return handleNotInitialized('upsertRecurringSchedule');
+    }
+    await executeUpsert('accounting_recurring_schedules', docId, {
+      ...data,
+      'businessId': businessId,
+      '_id': docId,
+      'id': docId,
+    });
+  }
+
+  Future<void> deleteRecurringSchedule(String docId) async {
+    if (dittoInstance == null) {
+      return handleNotInitialized('deleteRecurringSchedule');
+    }
+    await executeRemove('accounting_recurring_schedules', docId);
   }
 
   Future<void> upsertAccountingContact(
@@ -82,7 +109,8 @@ mixin AccountingMixin on DittoCore {
     Map<String, dynamic> data,
     String docId,
   ) async {
-    if (dittoInstance == null) return handleNotInitialized('upsertAccountingContact');
+    if (dittoInstance == null)
+      return handleNotInitialized('upsertAccountingContact');
     await executeUpsert('accounting_contacts', docId, {
       ...data,
       'businessId': businessId,
@@ -92,7 +120,8 @@ mixin AccountingMixin on DittoCore {
   }
 
   Future<void> deleteAccountingContact(String docId) async {
-    if (dittoInstance == null) return handleNotInitialized('deleteAccountingContact');
+    if (dittoInstance == null)
+      return handleNotInitialized('deleteAccountingContact');
     await executeRemove('accounting_contacts', docId);
   }
 
@@ -141,8 +170,10 @@ mixin AccountingMixin on DittoCore {
     String? matchedJournalEntryId,
     String? matchedEntryNumber,
   }) async {
-    if (dittoInstance == null) return handleNotInitialized('upsertBankStatementLine');
-    final docId = id ?? '${businessId}_${line.date}_${line.amt}_${line.desc.hashCode}';
+    if (dittoInstance == null)
+      return handleNotInitialized('upsertBankStatementLine');
+    final docId =
+        id ?? '${businessId}_${line.date}_${line.amt}_${line.desc.hashCode}';
     final data = LedgerRowMapper.bankLineToRow(
       businessId: businessId,
       line: line,

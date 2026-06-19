@@ -10,10 +10,13 @@ import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 import 'package:flipper_web/modules/accounting/data/party_models.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_documents_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/accounting_recurring_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_documents_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_recurring_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/ditto_party_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/party_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_documents_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_recurring_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_party_repository.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -26,29 +29,40 @@ import 'package:intl/intl.dart';
 
 final accountingDocumentsRepositoryProvider =
     Provider<AccountingDocumentsRepository>((ref) {
-  final strategy = ref.watch(accountingBackendStrategyProvider);
-  if (strategy == AccountingBackendStrategy.ditto) {
-    return DittoAccountingDocumentsRepository(ref.watch(dittoServiceProvider));
-  }
-  return SupabaseAccountingDocumentsRepository(ref.watch(supabaseProvider));
-});
+      final strategy = ref.watch(accountingBackendStrategyProvider);
+      if (strategy == AccountingBackendStrategy.ditto) {
+        return DittoAccountingDocumentsRepository(
+          ref.watch(dittoServiceProvider),
+        );
+      }
+      return SupabaseAccountingDocumentsRepository(ref.watch(supabaseProvider));
+    });
+
+final accountingRecurringRepositoryProvider =
+    Provider<AccountingRecurringRepository>((ref) {
+      final strategy = ref.watch(accountingBackendStrategyProvider);
+      if (strategy == AccountingBackendStrategy.ditto) {
+        return DittoAccountingRecurringRepository(
+          ref.watch(dittoServiceProvider),
+        );
+      }
+      return SupabaseAccountingRecurringRepository(ref.watch(supabaseProvider));
+    });
 
 final invoicesStreamProvider = StreamProvider<List<AccountingDocument>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return const Stream.empty();
-  return ref.watch(accountingDocumentsRepositoryProvider).watchDocuments(
-        businessId: businessId,
-        kind: DocKind.invoice,
-      );
+  return ref
+      .watch(accountingDocumentsRepositoryProvider)
+      .watchDocuments(businessId: businessId, kind: DocKind.invoice);
 });
 
 final billsStreamProvider = StreamProvider<List<AccountingDocument>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return const Stream.empty();
-  return ref.watch(accountingDocumentsRepositoryProvider).watchDocuments(
-        businessId: businessId,
-        kind: DocKind.bill,
-      );
+  return ref
+      .watch(accountingDocumentsRepositoryProvider)
+      .watchDocuments(businessId: businessId, kind: DocKind.bill);
 });
 
 /// Extension records only (terms / contact person / since-label) from
@@ -57,19 +71,17 @@ final billsStreamProvider = StreamProvider<List<AccountingDocument>>((ref) {
 final customersStreamProvider = StreamProvider<List<AccountingContact>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return const Stream.empty();
-  return ref.watch(accountingDocumentsRepositoryProvider).watchContacts(
-        businessId: businessId,
-        isCustomer: true,
-      );
+  return ref
+      .watch(accountingDocumentsRepositoryProvider)
+      .watchContacts(businessId: businessId, isCustomer: true);
 });
 
 final suppliersStreamProvider = StreamProvider<List<AccountingContact>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return const Stream.empty();
-  return ref.watch(accountingDocumentsRepositoryProvider).watchContacts(
-        businessId: businessId,
-        isCustomer: false,
-      );
+  return ref
+      .watch(accountingDocumentsRepositoryProvider)
+      .watchContacts(businessId: businessId, isCustomer: false);
 });
 
 // ─── Canonical party store (shared with POS) ─────────────────────────────────
@@ -116,7 +128,9 @@ final supplierPartiesStreamProvider = StreamProvider<List<Party>>((ref) {
 
 // ─── UI state ────────────────────────────────────────────────────────────────
 
-final pendingDocEditorProvider = StateProvider<PendingDocEditor?>((ref) => null);
+final pendingDocEditorProvider = StateProvider<PendingDocEditor?>(
+  (ref) => null,
+);
 
 /// Detail / new-contact panels render in [AccountingContactsDrawerHost] at shell edge.
 final contactsUiProvider = StateProvider<ContactsUiState?>((ref) => null);
@@ -124,8 +138,23 @@ final contactsUiProvider = StateProvider<ContactsUiState?>((ref) => null);
 /// Invoice/bill panels render in [AccountingBillingPanelHost] at shell edge.
 final billingUiProvider = StateProvider<BillingUiState?>((ref) => null);
 
-final recurringSchedulesProvider =
-    StateProvider<List<RecurringSchedule>>((ref) => defaultRecurringSchedules);
+/// Persisted recurring schedules from the `accounting_recurring_schedules`
+/// collection — survives restarts and syncs across devices.
+final recurringSchedulesStreamProvider =
+    StreamProvider<List<RecurringSchedule>>((ref) {
+      final businessId = ref.watch(accountingBusinessIdProvider);
+      if (businessId.isEmpty) return const Stream.empty();
+      return ref
+          .watch(accountingRecurringRepositoryProvider)
+          .watchSchedules(businessId: businessId);
+    });
+
+final recurringSchedulesProvider = Provider<List<RecurringSchedule>>((ref) {
+  return ref.watch(recurringSchedulesStreamProvider).value ?? const [];
+});
+
+/// Recurring-schedule editor panel renders in [AccountingRecurringPanelHost].
+final recurringUiProvider = StateProvider<RecurringUiState?>((ref) => null);
 
 /// Session-local audit entries (immediate UI feedback). The durable record
 /// lives in [persistedAuditLogProvider]; appendAuditLog writes both.
@@ -172,8 +201,9 @@ final teamExtraProvider = StateProvider<List<TeamMember>>((ref) => []);
 
 final periodCloseLockedProvider = StateProvider<bool>((ref) => false);
 
-final periodCloseTaskOverridesProvider =
-    StateProvider<Map<String, bool>>((ref) => {});
+final periodCloseTaskOverridesProvider = StateProvider<Map<String, bool>>(
+  (ref) => {},
+);
 
 final docTabFilterProvider = StateProvider<DocTabFilter>(
   (ref) => DocTabFilter.all,
@@ -326,9 +356,7 @@ final accountingInvoicesProvider = Provider<List<AccountingDocument>>((ref) {
 });
 
 final accountingBillsProvider = Provider<List<AccountingDocument>>((ref) {
-  final persisted = ref.watch(billsStreamProvider).value ?? [];
-  if (persisted.isEmpty) return _withOverdue(defaultHandoffBills);
-  return _withOverdue(persisted);
+  return _withOverdue(ref.watch(billsStreamProvider).value ?? []);
 });
 
 // ─── Team (current user + invited) ───────────────────────────────────────────
@@ -371,7 +399,9 @@ final periodCloseTasksProvider = Provider<List<CloseTask>>((ref) {
   final unmatched = bankLines.where((l) => !l.matched).length;
   final ar = ref.watch(accountingArAgingProvider);
   final invoices = ref.watch(accountingInvoicesProvider);
-  final overdueInv = invoices.where((d) => d.status == DocStatus.overdue).length;
+  final overdueInv = invoices
+      .where((d) => d.status == DocStatus.overdue)
+      .length;
   final ap = ref.watch(accountingApAgingProvider);
   final bills = ref.watch(accountingBillsProvider);
   final vat = ref.watch(accountingVatProvider);
@@ -407,8 +437,8 @@ final periodCloseTasksProvider = Provider<List<CloseTask>>((ref) {
       detail: ar.isEmpty
           ? 'No open receivables'
           : overdueInv > 0
-              ? 'Aging confirmed · $overdueInv overdue invoices'
-              : 'Aging confirmed · ${ar.length} balances',
+          ? 'Aging confirmed · $overdueInv overdue invoices'
+          : 'Aging confirmed · ${ar.length} balances',
       done: done('ct3', ar.isNotEmpty || invoices.isNotEmpty),
       goView: 'ar',
       iconName: 'ArrowUpRight',

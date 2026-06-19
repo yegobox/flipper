@@ -34,8 +34,7 @@ Future<void> ensureAccountingCloudSubscriptions({
     ),
     (
       key: 'bank_statement_lines|$businessId',
-      sql:
-          'SELECT * FROM bank_statement_lines WHERE businessId = :businessId',
+      sql: 'SELECT * FROM bank_statement_lines WHERE businessId = :businessId',
       args: {'businessId': businessId},
     ),
     (
@@ -45,8 +44,14 @@ Future<void> ensureAccountingCloudSubscriptions({
     ),
     (
       key: 'accounting_audit_logs|$businessId',
+      sql: 'SELECT * FROM accounting_audit_logs WHERE businessId = :businessId',
+      args: {'businessId': businessId},
+    ),
+    (
+      key: 'accounting_recurring_schedules|$businessId',
       sql:
-          'SELECT * FROM accounting_audit_logs WHERE businessId = :businessId',
+          'SELECT * FROM accounting_recurring_schedules '
+          'WHERE businessId = :businessId',
       args: {'businessId': businessId},
     ),
   ];
@@ -91,9 +96,7 @@ Future<void> ensureAccountingCloudSubscriptions({
         prepared.dql,
         arguments: prepared.arguments,
       );
-      debugPrint(
-        '[Accounting] cloud subscription registered ${entry.key}',
-      );
+      debugPrint('[Accounting] cloud subscription registered ${entry.key}');
     } catch (e, st) {
       _accountingSubscriptionKeys.remove(entry.key);
       debugPrint(
