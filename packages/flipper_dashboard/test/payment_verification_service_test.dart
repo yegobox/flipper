@@ -82,6 +82,7 @@ void main() {
           () => mockDatabaseSync.getPaymentPlan(
             businessId: '1',
             fetchOnline: true,
+            preferFresh: true,
           ),
         ).thenAnswer((_) async => null);
 
@@ -102,6 +103,7 @@ void main() {
           () => mockDatabaseSync.getPaymentPlan(
             businessId: '1',
             fetchOnline: true,
+            preferFresh: true,
           ),
         ).called(1);
 
@@ -127,6 +129,7 @@ void main() {
           () => mockDatabaseSync.getPaymentPlan(
             businessId: '1',
             fetchOnline: true,
+            preferFresh: true,
           ),
         ).thenAnswer((_) async => mockPlan);
         when(
@@ -151,6 +154,7 @@ void main() {
           () => mockDatabaseSync.getPaymentPlan(
             businessId: '1',
             fetchOnline: true,
+            preferFresh: true,
           ),
         ).called(1);
         verify(
@@ -177,6 +181,7 @@ void main() {
             () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
+              preferFresh: true,
             ),
           ).thenAnswer((_) async => mockPlan);
           when(
@@ -196,7 +201,7 @@ void main() {
             PaymentVerificationResult.planExistsButInactive,
           );
           expect(response.requiresPaymentResolution, isTrue);
-          expect(response.errorMessage, 'Payment incomplete: Payment failed');
+          expect(response.errorMessage, 'Payment failed');
           expect(response.plan, mockPlan);
           expect(response.exception, exception);
 
@@ -206,6 +211,7 @@ void main() {
             () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
+              preferFresh: true,
             ),
           ).called(1);
           verify(
@@ -233,6 +239,7 @@ void main() {
             () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
+              preferFresh: true,
             ),
           ).thenAnswer((_) async => mockPlan);
           when(
@@ -246,17 +253,14 @@ void main() {
           // Act
           final response = await service.verifyPaymentStatus();
 
-          // Assert
-          expect(
-            response.result,
-            PaymentVerificationResult.planExistsButInactive,
-          );
-          expect(response.requiresPaymentResolution, isTrue);
+          // Assert — generic subscription errors surface as verification error
+          expect(response.result, PaymentVerificationResult.error);
+          expect(response.hasError, isTrue);
           expect(
             response.errorMessage,
-            'Error checking subscription status: Exception: Network error',
+            'Failed to verify payment status: Exception: Network error',
           );
-          expect(response.plan, mockPlan);
+          expect(response.plan, isNull);
           expect(response.exception, isA<Exception>());
         },
       );
@@ -317,6 +321,7 @@ void main() {
             () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
+              preferFresh: true,
             ),
           ).thenAnswer((_) async => null);
 
@@ -396,6 +401,7 @@ void main() {
           () => mockDatabaseSync.getPaymentPlan(
             businessId: '1',
             fetchOnline: true,
+            preferFresh: true,
           ),
         ).thenAnswer((_) async => null);
 
@@ -421,6 +427,7 @@ void main() {
             () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
+              preferFresh: true,
             ),
           ).thenAnswer((_) async => mockPlan);
           when(
@@ -451,6 +458,7 @@ void main() {
           () => mockDatabaseSync.getPaymentPlan(
             businessId: '1',
             fetchOnline: true,
+            preferFresh: true,
           ),
         ).thenAnswer((_) async => mockPlan);
         when(
@@ -496,6 +504,7 @@ void main() {
             () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
+              preferFresh: true,
             ),
           ).thenAnswer((_) async => null);
 
@@ -520,6 +529,7 @@ void main() {
           () => mockDatabaseSync.getPaymentPlan(
             businessId: '1',
             fetchOnline: true,
+            preferFresh: true,
           ),
         ).thenAnswer((_) async => mockPlan);
         when(

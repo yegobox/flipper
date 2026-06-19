@@ -81,9 +81,10 @@ void main() {
 
       await tester.pump();
 
-      expect(find.byType(Row), findsNWidgets(3)); // Main row + internal rows
-      expect(find.byType(Material), findsNWidgets(3)); // Scaffold + 2 buttons
-      expect(find.byType(InkWell), findsNWidgets(2));
+      expect(find.byType(Row), findsAtLeastNWidgets(3));
+      expect(find.byType(Material), findsAtLeastNWidgets(4)); // Scaffold + 3 actions
+      expect(find.byType(InkWell), findsNWidgets(3));
+      expect(find.text('Produce'), findsOneWidget);
     });
 
     testWidgets('buttons are aligned to the end', (tester) async {

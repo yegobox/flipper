@@ -11,6 +11,8 @@ import 'package:supabase_models/brick/repository/storage.dart';
 
 import '../../test_helpers/mocks.dart';
 
+import '../../TestApp.dart';
+
 class FakePersonalGoalsDataSource implements PersonalGoalsDataSource {
   FakePersonalGoalsDataSource(this._goals);
 
@@ -85,15 +87,17 @@ void main() {
             FakePersonalGoalsDataSource(goals),
           ),
         ],
-        child: const MaterialApp(home: PersonalGoalsScreen()),
+        child: const TestApp(child: PersonalGoalsScreen()),
       ),
     );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.drag(find.byType(ListView), const Offset(0, -600));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Emergency Fund'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.text('Tax Reserve'),
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Tax Reserve'), findsOneWidget);
     expect(find.text('All goals'), findsOneWidget);
   });

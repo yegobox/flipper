@@ -7,21 +7,20 @@ class DocumentRowMapper {
       (row[snake] ?? row[camel] ?? '').toString();
 
   static DocStatus _status(String raw) => switch (raw) {
-        'sent' => DocStatus.sent,
-        'paid' => DocStatus.paid,
-        'overdue' => DocStatus.overdue,
-        _ => DocStatus.draft,
-      };
+    'sent' => DocStatus.sent,
+    'paid' => DocStatus.paid,
+    'overdue' => DocStatus.overdue,
+    _ => DocStatus.draft,
+  };
 
   static String statusToDb(DocStatus s) => switch (s) {
-        DocStatus.sent => 'sent',
-        DocStatus.paid => 'paid',
-        DocStatus.overdue => 'overdue',
-        DocStatus.draft => 'draft',
-      };
+    DocStatus.sent => 'sent',
+    DocStatus.paid => 'paid',
+    DocStatus.overdue => 'overdue',
+    DocStatus.draft => 'draft',
+  };
 
-  static String kindToDb(DocKind k) =>
-      k == DocKind.bill ? 'bill' : 'invoice';
+  static String kindToDb(DocKind k) => k == DocKind.bill ? 'bill' : 'invoice';
 
   static List<DocLine> _linesFromJson(dynamic raw) {
     if (raw is! List) return const [];
@@ -37,9 +36,8 @@ class DocumentRowMapper {
   }
 
   static List<Map<String, dynamic>> linesToJson(List<DocLine> lines) => [
-        for (final l in lines)
-          {'desc': l.desc, 'qty': l.qty, 'price': l.price},
-      ];
+    for (final l in lines) {'desc': l.desc, 'qty': l.qty, 'price': l.price},
+  ];
 
   static AccountingDocument documentFromRow(Map<String, dynamic> row) {
     return AccountingDocument(
@@ -95,6 +93,54 @@ class DocumentRowMapper {
       balance: 0,
       partyId: partyId == null || partyId.isEmpty ? null : partyId,
     );
+  }
+
+  static RecurringSchedule recurringScheduleFromRow(Map<String, dynamic> row) {
+    return RecurringSchedule(
+      uuid: (row['id'] ?? row['_id'])?.toString(),
+      id: _str(row, 'local_id', 'localId').isNotEmpty
+          ? _str(row, 'local_id', 'localId')
+          : (row['id'] ?? row['_id'] ?? '').toString(),
+      name: _str(row, 'name', 'name'),
+      freq: _str(row, 'freq', 'freq'),
+      day: _str(row, 'day_label', 'dayLabel'),
+      next: _str(row, 'next_run', 'nextRun'),
+      amount: int.tryParse('${row['amount']}') ?? 0,
+      debitCode: _str(row, 'debit_code', 'debitCode'),
+      creditCode: _str(row, 'credit_code', 'creditCode'),
+      iconName: _str(row, 'icon_name', 'iconName').isNotEmpty
+          ? _str(row, 'icon_name', 'iconName')
+          : 'Refresh',
+      active: row['active'] == true || row['active'] == 'true',
+    );
+  }
+
+  static Map<String, dynamic> recurringScheduleToRow({
+    required String businessId,
+    required RecurringSchedule schedule,
+    String? id,
+  }) {
+    return {
+      if (id != null) 'id': id,
+      'business_id': businessId,
+      'businessId': businessId,
+      'local_id': schedule.id,
+      'localId': schedule.id,
+      'name': schedule.name,
+      'freq': schedule.freq,
+      'day_label': schedule.day,
+      'dayLabel': schedule.day,
+      'next_run': schedule.next,
+      'nextRun': schedule.next,
+      'amount': schedule.amount,
+      'debit_code': schedule.debitCode,
+      'debitCode': schedule.debitCode,
+      'credit_code': schedule.creditCode,
+      'creditCode': schedule.creditCode,
+      'icon_name': schedule.iconName,
+      'iconName': schedule.iconName,
+      'active': schedule.active,
+    };
   }
 
   static Map<String, dynamic> contactToRow({

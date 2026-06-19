@@ -65,8 +65,14 @@ scripts:
       scope: "flipper_ai_feature"
     description: Run tests for flipper_ai_feature package
   
+  # NOTE: --coverage is intentionally omitted here. Collecting coverage over the
+  # full flipper_dashboard suite crashes the flutter_tester subprocess with a
+  # segmentation fault during coverage finalization (reproducible locally and in
+  # CI, at random test files, with or without --concurrency=1). Running without
+  # coverage passes all 302 tests reliably. Re-add --coverage once the toolchain
+  # coverage crash is resolved.
   test:dashboard:
-    exec: flutter test --coverage  --dart-define=FLUTTER_TEST_ENV=true 
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --concurrency=1
     packageFilters:
       scope: "flipper_dashboard"
     description: Run tests for flipper_dashboard

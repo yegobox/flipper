@@ -16,10 +16,10 @@ class DocLine {
   final num price;
 
   DocLine copyWith({String? desc, num? qty, num? price}) => DocLine(
-        desc: desc ?? this.desc,
-        qty: qty ?? this.qty,
-        price: price ?? this.price,
-      );
+    desc: desc ?? this.desc,
+    qty: qty ?? this.qty,
+    price: price ?? this.price,
+  );
 }
 
 class AccountingDocument {
@@ -52,16 +52,15 @@ class AccountingDocument {
     DocStatus? status,
     List<DocLine>? lines,
     String? uuid,
-  }) =>
-      AccountingDocument(
-        id: id ?? this.id,
-        who: who ?? this.who,
-        date: date ?? this.date,
-        due: due ?? this.due,
-        status: status ?? this.status,
-        lines: lines ?? this.lines,
-        uuid: uuid ?? this.uuid,
-      );
+  }) => AccountingDocument(
+    id: id ?? this.id,
+    who: who ?? this.who,
+    date: date ?? this.date,
+    due: due ?? this.due,
+    status: status ?? this.status,
+    lines: lines ?? this.lines,
+    uuid: uuid ?? this.uuid,
+  );
 }
 
 /// Opens the invoice/bill editor from another view (e.g. contact drawer).
@@ -95,11 +94,8 @@ class BillingUiState {
     this.paying,
     this.preview,
   }) : assert(
-          editing != null ||
-              editingNew ||
-              paying != null ||
-              preview != null,
-        );
+         editing != null || editingNew || paying != null || preview != null,
+       );
 
   final DocKind kind;
   final AccountingDocument? editing;
@@ -110,7 +106,11 @@ class BillingUiState {
 }
 
 class DocTotals {
-  const DocTotals({required this.subtotal, required this.vat, required this.total});
+  const DocTotals({
+    required this.subtotal,
+    required this.vat,
+    required this.total,
+  });
 
   final int subtotal;
   final int vat;
@@ -164,21 +164,20 @@ class AccountingContact {
     bool? fromAging,
     String? uuid,
     String? partyId,
-  }) =>
-      AccountingContact(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        contact: contact ?? this.contact,
-        phone: phone ?? this.phone,
-        email: email ?? this.email,
-        tin: tin ?? this.tin,
-        since: since ?? this.since,
-        terms: terms ?? this.terms,
-        balance: balance ?? this.balance,
-        fromAging: fromAging ?? this.fromAging,
-        uuid: uuid ?? this.uuid,
-        partyId: partyId ?? this.partyId,
-      );
+  }) => AccountingContact(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    contact: contact ?? this.contact,
+    phone: phone ?? this.phone,
+    email: email ?? this.email,
+    tin: tin ?? this.tin,
+    since: since ?? this.since,
+    terms: terms ?? this.terms,
+    balance: balance ?? this.balance,
+    fromAging: fromAging ?? this.fromAging,
+    uuid: uuid ?? this.uuid,
+    partyId: partyId ?? this.partyId,
+  );
 }
 
 class RecurringSchedule {
@@ -189,146 +188,74 @@ class RecurringSchedule {
     required this.day,
     required this.next,
     required this.amount,
-    required this.accounts,
+    required this.debitCode,
+    required this.creditCode,
     required this.iconName,
     required this.active,
+    this.uuid,
   });
 
+  /// Human-readable schedule number (e.g. R-01).
   final String id;
   final String name;
   final String freq;
   final String day;
   final String next;
   final int amount;
-  final String accounts;
+
+  /// Chart-of-accounts code debited when the schedule posts (the expense/asset).
+  final String debitCode;
+
+  /// Chart-of-accounts code credited when the schedule posts (the funding side).
+  final String creditCode;
 
   /// Handoff icon key (e.g. `Home`, `Users`, `Wallet`).
   final String iconName;
   final bool active;
 
-  RecurringSchedule copyWith({bool? active}) => RecurringSchedule(
-        id: id,
-        name: name,
-        freq: freq,
-        day: day,
-        next: next,
-        amount: amount,
-        accounts: accounts,
-        iconName: iconName,
-        active: active ?? this.active,
-      );
+  /// Backend document UUID when loaded from Ditto / Supabase.
+  final String? uuid;
+
+  RecurringSchedule copyWith({
+    String? id,
+    String? name,
+    String? freq,
+    String? day,
+    String? next,
+    int? amount,
+    String? debitCode,
+    String? creditCode,
+    String? iconName,
+    bool? active,
+    String? uuid,
+  }) => RecurringSchedule(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    freq: freq ?? this.freq,
+    day: day ?? this.day,
+    next: next ?? this.next,
+    amount: amount ?? this.amount,
+    debitCode: debitCode ?? this.debitCode,
+    creditCode: creditCode ?? this.creditCode,
+    iconName: iconName ?? this.iconName,
+    active: active ?? this.active,
+    uuid: uuid ?? this.uuid,
+  );
 }
 
-/// Handoff `RECURRING` seed — schedules are local UI state until persisted.
-const defaultRecurringSchedules = <RecurringSchedule>[
-  RecurringSchedule(
-    id: 'R-01',
-    name: 'Monthly rent — Kigali branch',
-    freq: 'Monthly',
-    day: '1st',
-    next: '01 Jun 2026',
-    amount: 350000,
-    accounts: 'Rent → Bank',
-    iconName: 'Home',
-    active: true,
-  ),
-  RecurringSchedule(
-    id: 'R-02',
-    name: 'Staff salaries',
-    freq: 'Monthly',
-    day: '26th',
-    next: '26 Jun 2026',
-    amount: 520000,
-    accounts: 'Salaries → Wages payable / Bank',
-    iconName: 'Users',
-    active: true,
-  ),
-  RecurringSchedule(
-    id: 'R-03',
-    name: 'Internet & airtime',
-    freq: 'Monthly',
-    day: '5th',
-    next: '05 Jun 2026',
-    amount: 60000,
-    accounts: 'Utilities → MoMo',
-    iconName: 'Wallet',
-    active: true,
-  ),
-  RecurringSchedule(
-    id: 'R-04',
-    name: 'Equipment depreciation',
-    freq: 'Monthly',
-    day: 'Last',
-    next: '30 Jun 2026',
-    amount: 75000,
-    accounts: 'Depreciation → Accum. depreciation',
-    iconName: 'Stack',
-    active: true,
-  ),
-  RecurringSchedule(
-    id: 'R-05',
-    name: 'Quarterly insurance',
-    freq: 'Quarterly',
-    day: '1st',
-    next: '01 Jul 2026',
-    amount: 180000,
-    accounts: 'Insurance → Bank',
-    iconName: 'ShieldCheck',
-    active: false,
-  ),
-];
+/// Recurring-schedule editor panel (shell-level overlay), mirroring
+/// [BillingUiState].
+class RecurringUiState {
+  const RecurringUiState({this.editing, this.editingNew = false})
+    : assert(editing != null || editingNew);
+
+  final RecurringSchedule? editing;
+  final bool editingNew;
+}
 
 // NOTE: contact handoff seeds were removed — Books contacts now read the
 // canonical customers/suppliers stores shared with the POS app, so demo
 // contacts would actively mislead.
-
-/// Handoff `BILLS` seed — baseline when no bills are persisted yet.
-const defaultHandoffBills = <AccountingDocument>[
-  AccountingDocument(
-    id: 'BILL-512',
-    who: 'Habimana Wholesalers',
-    date: '28 May 2026',
-    due: '27 Jun 2026',
-    status: DocStatus.sent,
-    lines: [
-      DocLine(desc: 'Inventory restock · dry goods', qty: 1, price: 1016949),
-    ],
-  ),
-  AccountingDocument(
-    id: 'BILL-498',
-    who: 'Rwanda Beverage Co.',
-    date: '20 May 2026',
-    due: '04 Jul 2026',
-    status: DocStatus.sent,
-    lines: [DocLine(desc: 'Beverage supply · May', qty: 1, price: 288136)],
-  ),
-  AccountingDocument(
-    id: 'BILL-491',
-    who: 'Kigali Packaging Ltd',
-    date: '14 May 2026',
-    due: '13 Jun 2026',
-    status: DocStatus.overdue,
-    lines: [DocLine(desc: 'Branded packaging run', qty: 1, price: 152542)],
-  ),
-  AccountingDocument(
-    id: 'BILL-487',
-    who: 'Akagera Logistics',
-    date: '10 May 2026',
-    due: '25 May 2026',
-    status: DocStatus.sent,
-    lines: [DocLine(desc: 'Inter-city freight · May', qty: 1, price: 220339)],
-  ),
-  AccountingDocument(
-    id: 'BILL-480',
-    who: 'Habimana Wholesalers',
-    date: '02 May 2026',
-    due: '01 Jun 2026',
-    status: DocStatus.paid,
-    lines: [
-      DocLine(desc: 'Inventory restock · April', qty: 1, price: 940000),
-    ],
-  ),
-];
 
 class AuditEntry {
   const AuditEntry({
@@ -422,13 +349,13 @@ class CloseTask {
   final String iconName;
 
   CloseTask copyWith({bool? done}) => CloseTask(
-        id: id,
-        label: label,
-        detail: detail,
-        done: done ?? this.done,
-        goView: goView,
-        iconName: iconName,
-      );
+    id: id,
+    label: label,
+    detail: detail,
+    done: done ?? this.done,
+    goView: goView,
+    iconName: iconName,
+  );
 }
 
 const accountingRoles = <RoleDefinition>[

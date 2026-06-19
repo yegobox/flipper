@@ -55,8 +55,11 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
     _id = doc?.id ?? widget.newId;
     _who = doc?.who ?? widget.initialWho ?? '';
     _date = doc?.date ?? DateFormat('d MMM y').format(now);
-    _due = doc?.due ?? DateFormat('d MMM y').format(now.add(const Duration(days: 30)));
-    _lines = doc?.lines.map((l) => l.copyWith()).toList() ??
+    _due =
+        doc?.due ??
+        DateFormat('d MMM y').format(now.add(const Duration(days: 30)));
+    _lines =
+        doc?.lines.map((l) => l.copyWith()).toList() ??
         [const DocLine(desc: '', qty: 1, price: 0)];
   }
 
@@ -67,7 +70,9 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
 
   DocTotals get _totals => docTotals(_lines);
 
-  List<({String side, String ac, int amt})> _postPreview(ChartAccountResolver roles) {
+  List<({String side, String ac, int amt})> _postPreview(
+    ChartAccountResolver roles,
+  ) {
     if (_isInvoice) {
       final ar = roles.receivable ?? '1100';
       final rev = roles.salesRevenue ?? '4010';
@@ -145,11 +150,15 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                             initialValue: _who.isEmpty ? null : _who,
                             decoration: _inputDecoration(
                               icon: Icons.business_outlined,
-                              hint: 'Select ${_isInvoice ? 'customer' : 'supplier'}…',
+                              hint:
+                                  'Select ${_isInvoice ? 'customer' : 'supplier'}…',
                             ),
                             items: [
                               for (final p in parties)
-                                DropdownMenuItem(value: p.name, child: Text(p.name)),
+                                DropdownMenuItem(
+                                  value: p.name,
+                                  child: Text(p.name),
+                                ),
                             ],
                             onChanged: (v) => setState(() => _who = v ?? ''),
                           ),
@@ -161,7 +170,9 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                           label: _isInvoice ? 'Issue date' : 'Bill date',
                           child: TextFormField(
                             initialValue: _date,
-                            decoration: _inputDecoration(icon: Icons.calendar_today_outlined),
+                            decoration: _inputDecoration(
+                              icon: Icons.calendar_today_outlined,
+                            ),
                             onChanged: (v) => _date = v,
                           ),
                         ),
@@ -172,7 +183,9 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                           label: 'Due date',
                           child: TextFormField(
                             initialValue: _due,
-                            decoration: _inputDecoration(icon: Icons.schedule_outlined),
+                            decoration: _inputDecoration(
+                              icon: Icons.schedule_outlined,
+                            ),
                             onChanged: (v) => _due = v,
                           ),
                         ),
@@ -210,7 +223,8 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                   ],
                   TextButton.icon(
                     onPressed: () => setState(
-                      () => _lines.add(const DocLine(desc: '', qty: 1, price: 0)),
+                      () =>
+                          _lines.add(const DocLine(desc: '', qty: 1, price: 0)),
                     ),
                     icon: const Icon(Icons.add, size: 16),
                     label: const Text('Add line'),
@@ -221,7 +235,8 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                     children: [
                       Expanded(
                         child: _PostPreviewBox(
-                          title: 'This ${_isInvoice ? 'invoice' : 'bill'} will post',
+                          title:
+                              'This ${_isInvoice ? 'invoice' : 'bill'} will post',
                           lines: postLines,
                           accountMap: accountMap,
                           currency: currency,
@@ -262,7 +277,10 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                   itemBuilder: (context) => const [
                     PopupMenuItem(value: 'email', child: Text('Email')),
                     PopupMenuItem(value: 'whatsapp', child: Text('WhatsApp')),
-                    PopupMenuItem(value: 'pdf', child: Text('Download PDF only')),
+                    PopupMenuItem(
+                      value: 'pdf',
+                      child: Text('Download PDF only'),
+                    ),
                   ],
                   onSelected: (_) =>
                       widget.onSaved(_build(DocStatus.sent), 'send'),
@@ -277,6 +295,240 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                       ? () => widget.onSaved(_build(DocStatus.sent), 'send')
                       : null,
                 ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Create/edit panel for a [RecurringSchedule] — name, cadence, amount, and the
+/// two chart-of-accounts codes the schedule debits/credits when it posts.
+class RecurringEditorPanel extends ConsumerStatefulWidget {
+  const RecurringEditorPanel({
+    super.key,
+    required this.schedule,
+    required this.newId,
+    required this.onClose,
+    required this.onSaved,
+  });
+
+  final RecurringSchedule? schedule;
+  final String newId;
+  final VoidCallback onClose;
+  final void Function(RecurringSchedule schedule) onSaved;
+
+  @override
+  ConsumerState<RecurringEditorPanel> createState() =>
+      _RecurringEditorPanelState();
+}
+
+class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
+  static const _freqs = ['Monthly', 'Weekly', 'Quarterly', 'Yearly'];
+
+  late final String _id;
+  late String _name;
+  late String _freq;
+  late String _day;
+  late int _amount;
+  late String _debitCode;
+  late String _creditCode;
+  late bool _active;
+
+  @override
+  void initState() {
+    super.initState();
+    final s = widget.schedule;
+    _id = s?.id ?? widget.newId;
+    _name = s?.name ?? '';
+    _freq = s != null && _freqs.contains(s.freq) ? s.freq : 'Monthly';
+    _day = s?.day ?? '1st';
+    _amount = s?.amount ?? 0;
+    _debitCode = s?.debitCode ?? '';
+    _creditCode = s?.creditCode ?? '';
+    _active = s?.active ?? true;
+  }
+
+  bool get _valid =>
+      _name.trim().isNotEmpty &&
+      _amount > 0 &&
+      _debitCode.isNotEmpty &&
+      _creditCode.isNotEmpty &&
+      _debitCode != _creditCode;
+
+  RecurringSchedule _build() => RecurringSchedule(
+    id: _id,
+    name: _name.trim(),
+    freq: _freq,
+    day: _day.trim().isEmpty ? '1st' : _day.trim(),
+    next: widget.schedule?.next ?? DateFormat('d MMM y').format(DateTime.now()),
+    amount: _amount,
+    debitCode: _debitCode,
+    creditCode: _creditCode,
+    iconName: widget.schedule?.iconName ?? 'Refresh',
+    active: _active,
+    uuid: widget.schedule?.uuid,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final accounts = ref.watch(accountingAccountsProvider);
+    final currency = ref.watch(accountingCurrencyProvider);
+
+    List<DropdownMenuItem<String>> accountItems() => [
+      for (final a in accounts)
+        DropdownMenuItem(
+          value: a.code,
+          child: Text('${a.code} · ${a.name}', overflow: TextOverflow.ellipsis),
+        ),
+    ];
+
+    String? validValue(String code) =>
+        accounts.any((a) => a.code == code) ? code : null;
+
+    return _PanelScrim(
+      onClose: widget.onClose,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PanelHeader(
+            title:
+                '${widget.schedule == null ? 'New' : 'Edit'} schedule · $_id',
+            subtitle:
+                'Repeating entries post themselves with a balanced journal.',
+            onClose: widget.onClose,
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _FieldLabel(
+                    label: 'Schedule name',
+                    child: TextFormField(
+                      initialValue: _name,
+                      decoration: _inputDecoration(
+                        icon: Icons.label_outline,
+                        hint: 'e.g. Monthly rent',
+                      ),
+                      onChanged: (v) => _name = v,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _FieldLabel(
+                          label: 'Frequency',
+                          child: DropdownButtonFormField<String>(
+                            initialValue: _freq,
+                            decoration: _inputDecoration(icon: Icons.repeat),
+                            items: [
+                              for (final f in _freqs)
+                                DropdownMenuItem(value: f, child: Text(f)),
+                            ],
+                            onChanged: (v) =>
+                                setState(() => _freq = v ?? 'Monthly'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _FieldLabel(
+                          label: 'Day',
+                          child: TextFormField(
+                            initialValue: _day,
+                            decoration: _inputDecoration(
+                              icon: Icons.calendar_today_outlined,
+                              hint: 'e.g. 1st',
+                            ),
+                            onChanged: (v) => _day = v,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _FieldLabel(
+                    label: 'Amount',
+                    child: TextFormField(
+                      initialValue: _amount > 0 ? '$_amount' : '',
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: _inputDecoration(prefix: '$currency '),
+                      onChanged: (v) =>
+                          setState(() => _amount = int.tryParse(v) ?? 0),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _FieldLabel(
+                    label: 'Debit account (expense / asset)',
+                    child: DropdownButtonFormField<String>(
+                      initialValue: validValue(_debitCode),
+                      isExpanded: true,
+                      decoration: _inputDecoration(
+                        icon: Icons.arrow_downward,
+                        hint: 'Select account…',
+                      ),
+                      items: accountItems(),
+                      onChanged: (v) => setState(() => _debitCode = v ?? ''),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _FieldLabel(
+                    label: 'Credit account (funding source)',
+                    child: DropdownButtonFormField<String>(
+                      initialValue: validValue(_creditCode),
+                      isExpanded: true,
+                      decoration: _inputDecoration(
+                        icon: Icons.arrow_upward,
+                        hint: 'Select account…',
+                      ),
+                      items: accountItems(),
+                      onChanged: (v) => setState(() => _creditCode = v ?? ''),
+                    ),
+                  ),
+                  if (_debitCode.isNotEmpty && _debitCode == _creditCode) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Debit and credit accounts must differ.',
+                      style: AccountingTokens.sans(
+                        fontSize: 12,
+                        color: AccountingTokens.lossInk,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Switch(
+                        value: _active,
+                        onChanged: (v) => setState(() => _active = v),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _active ? 'Active' : 'Paused',
+                        style: AccountingTokens.sans(fontSize: 13.5),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _PanelFooter(
+            children: [
+              AccountingButton(label: 'Cancel', onPressed: widget.onClose),
+              AccountingButton(
+                label: 'Save schedule',
+                icon: Icons.check,
+                primary: true,
+                enabled: _valid,
+                onPressed: _valid ? () => widget.onSaved(_build()) : null,
+              ),
             ],
           ),
         ],
@@ -354,7 +606,11 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                           color: AccountingTokens.gain,
                           borderRadius: BorderRadius.circular(24),
                         ),
-                        child: const Icon(Icons.check, color: Colors.white, size: 36),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 36,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -398,7 +654,8 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
         children: [
           _PanelHeader(
             title: _isInvoice ? 'Record payment' : 'Pay bill',
-            subtitle: '${widget.doc.id} · ${widget.doc.who} · ${money(total)} due',
+            subtitle:
+                '${widget.doc.id} · ${widget.doc.who} · ${money(total)} due',
             onClose: widget.onClose,
             compact: true,
           ),
@@ -408,50 +665,52 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                _FieldLabel(
-                  label: _isInvoice ? 'Deposit to' : 'Pay from',
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final code in _payMethodCodes)
-                        ChoiceChip(
-                          label: Text(
-                            accountMap[code]?.name ?? code,
-                            style: AccountingTokens.sans(fontSize: 12),
+                  _FieldLabel(
+                    label: _isInvoice ? 'Deposit to' : 'Pay from',
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final code in _payMethodCodes)
+                          ChoiceChip(
+                            label: Text(
+                              accountMap[code]?.name ?? code,
+                              style: AccountingTokens.sans(fontSize: 12),
+                            ),
+                            selected: _method == code,
+                            onSelected: (_) => setState(() => _method = code),
                           ),
-                          selected: _method == code,
-                          onSelected: (_) => setState(() => _method = code),
-                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _FieldLabel(
+                    label: 'Amount received',
+                    child: TextFormField(
+                      initialValue: money(_amount),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: _inputDecoration(prefix: currency),
+                      onChanged: (v) {
+                        final n =
+                            int.tryParse(v.replaceAll(RegExp(r'[^\d]'), '')) ??
+                            0;
+                        setState(() => _amount = n);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _PostPreviewBox(
+                    title: 'Posts as',
+                    lines: [
+                      for (final p in postLines)
+                        (side: p.side, ac: p.ac, amt: _amount),
                     ],
+                    accountMap: accountMap,
+                    currency: currency,
+                    total: _amount,
+                    showBalanced: false,
                   ),
-                ),
-                const SizedBox(height: 16),
-                _FieldLabel(
-                  label: 'Amount received',
-                  child: TextFormField(
-                    initialValue: money(_amount),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: _inputDecoration(prefix: currency),
-                    onChanged: (v) {
-                      final n = int.tryParse(v.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
-                      setState(() => _amount = n);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _PostPreviewBox(
-                  title: 'Posts as',
-                  lines: [
-                    for (final p in postLines)
-                      (side: p.side, ac: p.ac, amt: _amount),
-                  ],
-                  accountMap: accountMap,
-                  currency: currency,
-                  total: _amount,
-                  showBalanced: false,
-                ),
                 ],
               ),
             ),
@@ -466,7 +725,9 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                 enabled: _amount > 0,
                 onPressed: _amount > 0
                     ? () async {
-                        final businessId = ref.read(accountingBusinessIdProvider);
+                        final businessId = ref.read(
+                          accountingBusinessIdProvider,
+                        );
                         final poster = DocumentJournalPoster(
                           ref.read(accountingLedgerRepositoryProvider),
                           accounts,
@@ -558,159 +819,169 @@ class DocPreviewPanel extends ConsumerWidget {
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
               child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AccountingTokens.surface2,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AccountingTokens.line),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              business?.name ?? 'Business',
-                              style: AccountingTokens.sans(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            Text(
-                              'Kigali · Rwanda',
-                              style: AccountingTokens.sans(
-                                fontSize: 12,
-                                color: AccountingTokens.ink3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        isInv ? 'INVOICE' : 'BILL',
-                        style: AccountingTokens.sans(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: AccountingTokens.ink3,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isInv ? 'Bill to' : 'From',
-                              style: AccountingTokens.sans(
-                                fontSize: 11,
-                                color: AccountingTokens.ink3,
-                              ),
-                            ),
-                            Text(
-                              doc.who,
-                              style: AccountingTokens.sans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            if (party != null && party.email.isNotEmpty)
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AccountingTokens.surface2,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AccountingTokens.line),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                '${party.contact}\n${party.email}',
+                                business?.name ?? 'Business',
+                                style: AccountingTokens.sans(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text(
+                                'Kigali · Rwanda',
                                 style: AccountingTokens.sans(
                                   fontSize: 12,
                                   color: AccountingTokens.ink3,
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          isInv ? 'INVOICE' : 'BILL',
+                          style: AccountingTokens.sans(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AccountingTokens.ink3,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isInv ? 'Bill to' : 'From',
+                                style: AccountingTokens.sans(
+                                  fontSize: 11,
+                                  color: AccountingTokens.ink3,
+                                ),
+                              ),
+                              Text(
+                                doc.who,
+                                style: AccountingTokens.sans(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              if (party != null && party.email.isNotEmpty)
+                                Text(
+                                  '${party.contact}\n${party.email}',
+                                  style: AccountingTokens.sans(
+                                    fontSize: 12,
+                                    color: AccountingTokens.ink3,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            _PaperRow(
+                              label: isInv ? 'Issued' : 'Bill date',
+                              value: doc.date,
+                            ),
+                            _PaperRow(label: 'Due', value: doc.due),
+                            if (party != null)
+                              _PaperRow(label: 'Terms', value: party.terms),
                           ],
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _PaperRow(
-                            label: isInv ? 'Issued' : 'Bill date',
-                            value: doc.date,
-                          ),
-                          _PaperRow(label: 'Due', value: doc.due),
-                          if (party != null)
-                            _PaperRow(label: 'Terms', value: party.terms),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Table(
-                    columnWidths: const {
-                      0: FlexColumnWidth(3),
-                      1: FlexColumnWidth(1),
-                      2: FlexColumnWidth(1),
-                      3: FlexColumnWidth(1),
-                    },
-                    children: [
-                      TableRow(
-                        children: [
-                          _Th('Description'),
-                          _Th('Qty', right: true),
-                          _Th('Unit price', right: true),
-                          _Th('Amount', right: true),
-                        ],
-                      ),
-                      for (final l in doc.lines)
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Table(
+                      columnWidths: const {
+                        0: FlexColumnWidth(3),
+                        1: FlexColumnWidth(1),
+                        2: FlexColumnWidth(1),
+                        3: FlexColumnWidth(1),
+                      },
+                      children: [
                         TableRow(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(l.desc),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                '${l.qty}',
-                                textAlign: TextAlign.right,
-                                style: AccountingTokens.mono(),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                money((l.qty * l.price).round()),
-                                textAlign: TextAlign.right,
-                                style: AccountingTokens.mono(),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                money((l.qty * l.price).round()),
-                                textAlign: TextAlign.right,
-                                style: AccountingTokens.mono(fontWeight: FontWeight.w700),
-                              ),
-                            ),
+                            _Th('Description'),
+                            _Th('Qty', right: true),
+                            _Th('Unit price', right: true),
+                            _Th('Amount', right: true),
                           ],
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: SizedBox(
-                      width: 220,
-                      child: _TotalsBox(totals: totals, currency: currency),
+                        for (final l in doc.lines)
+                          TableRow(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Text(l.desc),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Text(
+                                  '${l.qty}',
+                                  textAlign: TextAlign.right,
+                                  style: AccountingTokens.mono(),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Text(
+                                  money((l.qty * l.price).round()),
+                                  textAlign: TextAlign.right,
+                                  style: AccountingTokens.mono(),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Text(
+                                  money((l.qty * l.price).round()),
+                                  textAlign: TextAlign.right,
+                                  style: AccountingTokens.mono(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: 220,
+                        child: _TotalsBox(totals: totals, currency: currency),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
             ),
           ),
           _PanelFooter(
@@ -775,11 +1046,7 @@ class _EdgePanel extends StatelessWidget {
 }
 
 class _PanelScrim extends StatelessWidget {
-  const _PanelScrim({
-    required this.onClose,
-    required this.child,
-    this.width,
-  });
+  const _PanelScrim({required this.onClose, required this.child, this.width});
 
   final VoidCallback onClose;
   final Widget child;
@@ -817,17 +1084,26 @@ class _PanelHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: AccountingTokens.sans(fontSize: 18, fontWeight: FontWeight.w800),
+                  style: AccountingTokens.sans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3),
+                  style: AccountingTokens.sans(
+                    fontSize: 13,
+                    color: AccountingTokens.ink3,
+                  ),
                 ),
               ],
             ),
           ),
-          IconButton(onPressed: onClose, icon: const Icon(Icons.close, size: 18)),
+          IconButton(
+            onPressed: onClose,
+            icon: const Icon(Icons.close, size: 18),
+          ),
         ],
       ),
     );
@@ -885,11 +1161,17 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-InputDecoration _inputDecoration({IconData? icon, String? hint, String? prefix}) {
+InputDecoration _inputDecoration({
+  IconData? icon,
+  String? hint,
+  String? prefix,
+}) {
   return InputDecoration(
     hintText: hint,
     prefixText: prefix,
-    prefixIcon: icon != null ? Icon(icon, size: 18, color: AccountingTokens.ink3) : null,
+    prefixIcon: icon != null
+        ? Icon(icon, size: 18, color: AccountingTokens.ink3)
+        : null,
     filled: true,
     fillColor: AccountingTokens.surface2,
     border: OutlineInputBorder(
@@ -977,9 +1259,8 @@ class _LineRow extends StatelessWidget {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             decoration: _inputDecoration(hint: 'Qty'),
-            onChanged: (v) => onChanged(
-              line.copyWith(qty: num.tryParse(v) ?? line.qty),
-            ),
+            onChanged: (v) =>
+                onChanged(line.copyWith(qty: num.tryParse(v) ?? line.qty)),
           ),
         ),
         const SizedBox(width: 8),
@@ -1047,7 +1328,10 @@ class _PostPreviewBox extends StatelessWidget {
             children: [
               const Icon(Icons.layers_outlined, size: 15),
               const SizedBox(width: 6),
-              Text(title, style: AccountingTokens.sans(fontWeight: FontWeight.w700)),
+              Text(
+                title,
+                style: AccountingTokens.sans(fontWeight: FontWeight.w700),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -1057,7 +1341,10 @@ class _PostPreviewBox extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: p.side == 'dr'
                           ? AccountingTokens.accentTint
@@ -1091,7 +1378,10 @@ class _PostPreviewBox extends StatelessWidget {
           if (showBalanced)
             Text(
               'Balanced · $currency ${money(total)} = ${money(total)}',
-              style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.gainInk),
+              style: AccountingTokens.sans(
+                fontSize: 12,
+                color: AccountingTokens.gainInk,
+              ),
             ),
         ],
       ),
@@ -1123,7 +1413,11 @@ class _TotalsBox extends StatelessWidget {
 }
 
 class _TotalRow extends StatelessWidget {
-  const _TotalRow({required this.label, required this.value, this.bold = false});
+  const _TotalRow({
+    required this.label,
+    required this.value,
+    this.bold = false,
+  });
 
   final String label;
   final String value;
@@ -1136,7 +1430,13 @@ class _TotalRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AccountingTokens.sans(fontSize: 13, color: AccountingTokens.ink3)),
+          Text(
+            label,
+            style: AccountingTokens.sans(
+              fontSize: 13,
+              color: AccountingTokens.ink3,
+            ),
+          ),
           Text(
             value,
             style: AccountingTokens.mono(
@@ -1163,8 +1463,20 @@ class _PaperRow extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('$label  ', style: AccountingTokens.sans(fontSize: 12, color: AccountingTokens.ink3)),
-          Text(value, style: AccountingTokens.sans(fontSize: 12, fontWeight: FontWeight.w700)),
+          Text(
+            '$label  ',
+            style: AccountingTokens.sans(
+              fontSize: 12,
+              color: AccountingTokens.ink3,
+            ),
+          ),
+          Text(
+            value,
+            style: AccountingTokens.sans(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

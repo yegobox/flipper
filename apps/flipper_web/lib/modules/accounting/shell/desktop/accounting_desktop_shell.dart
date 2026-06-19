@@ -65,6 +65,7 @@ class AccountingDesktopShell extends ConsumerWidget {
                               ),
                               const AccountingContactsDrawerHost(),
                               const AccountingBillingPanelHost(),
+                              const AccountingRecurringPanelHost(),
                             ],
                           );
                         },
@@ -108,9 +109,7 @@ class _DesktopViewRouter extends StatelessWidget {
       ),
       AccountingView.journal => AccountingJournalView(onNewEntry: onNewEntry),
       AccountingView.ledger => const AccountingGeneralLedgerView(),
-      AccountingView.recurring => AccountingRecurringView(
-        onNewEntry: onNewEntry,
-      ),
+      AccountingView.recurring => const AccountingRecurringView(),
       AccountingView.bankRec => const AccountingBankRecView(),
       AccountingView.statements => const AccountingFinancialStatementsView(),
       AccountingView.trial => const AccountingTrialBalanceView(),
