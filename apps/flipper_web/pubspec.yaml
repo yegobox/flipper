@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.643+1559
+version: 1.0.644+1560
 
 
 environment:
@@ -50,6 +50,11 @@ dependency_overrides:
   # dart:html, which dart2wasm cannot compile. See open-sources package.
   flutter_keyboard_visibility_web:
     path: ../../open-sources/flutter_keyboard_visibility_web
+  # Wasm-safe replacement: upstream ua_client_hints 1.7.0 (pulled transitively)
+  # imports dart:html, breaking `flutter build web --wasm`. This fork ports the
+  # web impl to package:web. See open-sources/ua_client_hints.
+  ua_client_hints:
+    path: ../../open-sources/ua_client_hints
 
 dev_dependencies:
   integration_test:

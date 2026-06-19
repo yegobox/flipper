@@ -1,0 +1,39 @@
+name: ua_client_hints
+description: Provide User-Agent Client Hints to Flutter (WASM-compatible fork; web impl ported from dart:html to package:web).
+version: 1.7.0+wasm.1
+homepage: https://github.com/wasabeef/flutter_ua_client_hints
+repository: https://github.com/wasabeef/flutter_ua_client_hints
+documentation: https://github.com/wasabeef/flutter_ua_client_hints
+issue_tracker: https://github.com/wasabeef/flutter_ua_client_hints/issues
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.19.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  # WASM-safe web bindings, replacing the original dart:html usage.
+  web: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: jp.wasabeef.ua.client_hints
+        pluginClass: UAClientHintsPlugin
+      ios:
+        pluginClass: UAClientHintsPlugin
+      macos:
+        pluginClass: UAClientHintsPlugin
+      web:
+        pluginClass: UaClientHintsWeb
+        fileName: ua_client_hints_web.dart
