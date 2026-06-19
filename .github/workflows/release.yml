@@ -165,10 +165,16 @@ jobs:
         run: dart run melos bootstrap
 
       - name: Build Flipper Web app
+        # NOTE: built with dart2js (NOT --wasm) for now. The --wasm build
+        # compiles (after the open-sources/ua_client_hints dart:html fix) but
+        # crashes at runtime in Ditto.init(): ditto_live 5.0.1 (latest) does not
+        # initialize under dart2wasm (its imported WASM module resolves to
+        # undefined). Tracking upstream with Ditto. Re-add --wasm and switch the
+        # assertion back to main.dart.wasm once ditto_live supports dart2wasm.
         run: |
           cd apps/flipper_web
-          flutter build web --release --wasm
-          test -f build/web/main.dart.wasm
+          flutter build web --release
+          test -f build/web/main.dart.js
 
       - name: Deploy Flipper Web app to Firebase Hosting
         id: deploy_flipper_web
