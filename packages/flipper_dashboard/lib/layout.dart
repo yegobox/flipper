@@ -112,11 +112,7 @@ class DashboardLayout extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          Expanded(
-                            child: UnifiedTopBar(
-                              searchController: searchController,
-                            ),
-                          ),
+                          const Expanded(child: UnifiedTopBar()),
                         ],
                       ),
                     ),

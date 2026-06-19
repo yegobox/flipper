@@ -17,7 +17,7 @@ abstract final class PosLayoutBreakpoints {
   /// Fixed cart column width on wide desktop split (handoff).
   static const double cartPanelWidth = PosTokens.cartPanelWidth;
 
-  /// Horizontal inset for search strip above checkout (see [UnifiedTopBar]).
+  /// Horizontal inset for product search strip in [ProductView].
   static const double contentSearchLeadingInset = 8;
 
   /// Below this total dashboard width, POS uses an end drawer for the cart
