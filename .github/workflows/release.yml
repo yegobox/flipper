@@ -300,7 +300,7 @@ jobs:
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
-    # if: false  # skip for now as it is flaky
+    if: github.ref != 'refs/heads/main' # Skip on merge to main; prod build runs instead
     runs-on: windows-latest
     # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     # 
@@ -969,7 +969,12 @@ jobs:
 
   slackNotification:
     name: Slack Notification
-    needs: [build-and-release-windows-debug, build-and-release-windows-prod,build_web_deploy_firebase]
+    needs: [build-and-release-windows-debug, build-and-release-windows-prod, build_web_deploy_firebase]
+    if: >-
+      always() &&
+      needs.build_web_deploy_firebase.result == 'success' &&
+      (needs.build-and-release-windows-prod.result == 'success' ||
+       needs.build-and-release-windows-debug.result == 'success')
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
