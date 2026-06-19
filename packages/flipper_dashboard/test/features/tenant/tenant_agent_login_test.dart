@@ -17,11 +17,12 @@ void main() {
   });
 
   test('agent branch name controller can mirror full name', () {
-    final name = TextEditingController(text: 'Agent King');
+    final name = TextEditingController();
     final branch = TextEditingController();
     name.addListener(() {
       branch.text = name.text.trim();
     });
+    name.text = 'Agent King';
     expect(branch.text, 'Agent King');
     name.dispose();
     branch.dispose();
