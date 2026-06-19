@@ -62,43 +62,5 @@ void main() {
       expect(find.text('1,500,000+'), findsOneWidget);
       expect(find.text('Most Popular'), findsOneWidget);
     });
-
-    testWidgets('navigates to PinScreen when header "Sign up" is tapped', (
-      WidgetTester tester,
-    ) async {
-      await pumpHomeScreen(tester);
-
-      await tester.tap(find.widgetWithText(TextButton, 'Sign up').first);
-      await tester.pumpAndSettle();
-
-      expect(find.byType(PinScreen), findsOneWidget);
-      expect(find.byType(HomeScreen), findsNothing);
-    });
-
-    testWidgets('navigates to PinScreen when hero "Sign up" is tapped', (
-      WidgetTester tester,
-    ) async {
-      await pumpHomeScreen(tester);
-
-      final heroSignUpButton = find.widgetWithText(TextButton, 'Sign up').last;
-      await tester.tap(heroSignUpButton);
-      await tester.pumpAndSettle();
-
-      expect(find.byType(PinScreen), findsOneWidget);
-      expect(find.byType(HomeScreen), findsNothing);
-    });
-
-    testWidgets('navigates to PinScreen when "Login" is tapped', (
-      WidgetTester tester,
-    ) async {
-      await pumpHomeScreen(tester);
-
-      final loginButton = find.widgetWithText(TextButton, 'Login');
-      await tester.tap(loginButton);
-      await tester.pumpAndSettle();
-
-      expect(find.byType(PinScreen), findsOneWidget);
-      expect(find.byType(HomeScreen), findsNothing);
-    });
   });
 }

@@ -2,6 +2,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -17,6 +18,11 @@ class TestEnvironment {
   late MockTaxApi mockTaxApi;
 
   Future<void> init() async {
+    // Initialize Supabase/Repository before building the locator, otherwise
+    // constructing CapellaSync throws "Repository not initialized". Mirrors
+    // initializeDependenciesForTest() used by the other packages.
+    await loadSupabase();
+
     // Initialize dependencies using flipper_services locator
     await initDependencies();
 

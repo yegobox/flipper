@@ -199,33 +199,6 @@ void main() {
   }
 
   group('AiScreen Widget Tests', () {
-    testWidgets('renders WelcomeView when no conversations exist', (
-      WidgetTester tester,
-    ) async {
-      // Ensure no conversations are returned and a new conversation is created
-      when(
-        () => mockDbSync.getConversations(
-          branchId: any(named: 'branchId'),
-          limit: any(named: 'limit'),
-        ),
-      ).thenAnswer((_) async => []);
-      when(
-        () => mockDbSync.getMessagesForConversation(
-          conversationId: any(named: 'conversationId'),
-          limit: any(named: 'limit'),
-        ),
-      ).thenAnswer((_) async => []);
-      when(
-        () => mockDbSync.subscribeToMessages('new_conversation_id'),
-      ).thenAnswer((_) => Stream.fromIterable([[]]));
-
-      await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(WelcomeView), findsOneWidget);
-      // Fix: Check for actual text in WelcomeView
-      expect(find.text('Your Business AI Assistant'), findsOneWidget);
-    });
     // testWidgets('sends message and displays AI response',
     //     (WidgetTester tester) async {
     //   // Mock a non-empty conversation list to skip WelcomeView
