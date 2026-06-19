@@ -33,7 +33,7 @@ env:
 jobs:
   unit-testing:
     name: Unit Testing
-    if: false
+    # if: false
     runs-on: ubuntu-latest
     env:
       FLUTTER_TEST_CI: true
@@ -108,7 +108,7 @@ jobs:
   build_web_deploy_firebase:
     runs-on: ubuntu-latest
     needs: [unit-testing]
-    if: false
+    # if: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
