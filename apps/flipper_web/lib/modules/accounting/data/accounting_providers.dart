@@ -147,29 +147,45 @@ final accountingLedgerRepositoryProvider =
   return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
 });
 
-/// Registers Ditto cloud pull subscriptions for GL + POS (like catalog sync).
-final accountingDittoSyncProvider = Provider<void>((ref) {
-  if (!ref.watch(dittoReadyProvider)) return;
-  final ditto = ref.watch(dittoServiceProvider);
+/// Registers Ditto subscriptions, waits for replication, seeds COA if empty,
+/// then refreshes data streams (Books must await this before reading GL/POS).
+final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
   if (ref.watch(accountingBackendStrategyProvider) !=
       AccountingBackendStrategy.ditto) {
     return;
   }
+  if (!ref.watch(dittoReadyProvider)) return;
 
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return;
 
   final branchId = ref.watch(accountingBranchIdProvider);
-  final instance = ditto.dittoInstance;
+  final instance = ref.read(dittoServiceProvider).dittoInstance;
   if (instance == null) return;
 
-  unawaited(
-    ensureAccountingCloudSubscriptions(
-      ditto: instance,
-      businessId: businessId,
-      branchId: branchId.isEmpty ? null : branchId,
-    ),
+  await ensureAccountingCloudSubscriptions(
+    ditto: instance,
+    businessId: businessId,
+    branchId: branchId.isEmpty ? null : branchId,
   );
+
+  await waitForAccountingReplication(
+    ditto: instance,
+    businessId: businessId,
+    branchId: branchId.isEmpty ? null : branchId,
+  );
+
+  await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
+        businessId: businessId,
+      );
+
+  invalidateAccountingDataStreams(ref);
+  debugPrint('[Accounting] post-sync bootstrap complete');
+});
+
+/// @deprecated Use [accountingPostSyncBootstrapProvider].
+final accountingDittoSyncProvider = Provider<void>((ref) {
+  ref.watch(accountingPostSyncBootstrapProvider);
 });
 
 // ─── Raw data streams ────────────────────────────────────────────────────────
@@ -215,9 +231,9 @@ final chartOfAccountsStreamProvider = StreamProvider<List<Account>>((ref) {
   }
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return const Stream.empty();
-  final ledger = ref.watch(accountingLedgerRepositoryProvider);
-  ledger.ensureSeeded(businessId: businessId);
-  return ledger.watchChartOfAccounts(businessId: businessId);
+  return ref
+      .watch(accountingLedgerRepositoryProvider)
+      .watchChartOfAccounts(businessId: businessId);
 });
 
 final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
@@ -454,4 +470,16 @@ int _rawInt(dynamic v) {
   if (v == null) return 0;
   if (v is num) return v.round();
   return int.tryParse(v.toString()) ?? 0;
+}
+
+/// Refreshes Ditto-backed accounting streams after replication / COA seed.
+void invalidateAccountingDataStreams(Ref ref) {
+  ref.invalidate(rawTransactionStreamProvider);
+  ref.invalidate(rawTransactionItemsProvider);
+  ref.invalidate(rawAllTransactionsStreamProvider);
+  ref.invalidate(chartOfAccountsStreamProvider);
+  ref.invalidate(journalEntriesStreamProvider);
+  ref.invalidate(bankLinesStreamProvider);
+  ref.invalidate(accountingSettingsProvider);
+  ref.invalidate(accountingInventoryValueProvider);
 }

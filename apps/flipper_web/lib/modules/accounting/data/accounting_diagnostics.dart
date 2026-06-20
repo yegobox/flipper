@@ -1,4 +1,5 @@
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -38,15 +39,28 @@ final accountingStartupDiagnosticsProvider = FutureProvider<void>((ref) async {
     return;
   }
 
-  final ledger = ref.read(accountingLedgerRepositoryProvider);
-  try {
-    await ledger.ensureSeeded(businessId: businessId);
-    debugPrint(
-      '[Accounting] ensureSeeded OK (businessId=$businessId via $backend)',
-    );
-  } catch (e, st) {
-    debugPrint('[Accounting] ensureSeeded FAILED: $e\n$st');
-    rethrow;
+  if (ref.read(accountingBackendStrategyProvider) ==
+      AccountingBackendStrategy.ditto) {
+    try {
+      await ref.read(accountingPostSyncBootstrapProvider.future);
+      debugPrint(
+        '[Accounting] post-sync bootstrap OK (businessId=$businessId)',
+      );
+    } catch (e, st) {
+      debugPrint('[Accounting] post-sync bootstrap FAILED: $e\n$st');
+      rethrow;
+    }
+  } else {
+    final ledger = ref.read(accountingLedgerRepositoryProvider);
+    try {
+      await ledger.ensureSeeded(businessId: businessId);
+      debugPrint(
+        '[Accounting] ensureSeeded OK (businessId=$businessId via $backend)',
+      );
+    } catch (e, st) {
+      debugPrint('[Accounting] ensureSeeded FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
   try {

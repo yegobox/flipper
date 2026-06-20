@@ -16,6 +16,18 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       debugPrint('[Accounting] Ditto COA seed skipped — not ready');
       return;
     }
+    final existing = await _ditto.queryCollection(
+      'chart_of_accounts',
+      'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId LIMIT 1',
+      {'businessId': businessId},
+    );
+    if (existing.isNotEmpty) {
+      debugPrint(
+        '[Accounting] Ditto COA seed skipped — chart already present '
+        'businessId=$businessId',
+      );
+      return;
+    }
     debugPrint(
       '[Accounting] Ditto COA seed upserting ${defaultChartOfAccountsSeed.length} '
       'accounts businessId=$businessId',

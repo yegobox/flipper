@@ -137,14 +137,8 @@ abstract final class DittoBootstrap {
     );
     ref.invalidate(accountingRepositoryProvider);
     ref.invalidate(accountingLedgerRepositoryProvider);
-    ref.invalidate(rawTransactionStreamProvider);
-    ref.invalidate(rawTransactionItemsProvider);
-    ref.invalidate(rawAllTransactionsStreamProvider);
-    ref.invalidate(chartOfAccountsStreamProvider);
-    ref.invalidate(journalEntriesStreamProvider);
-    ref.invalidate(bankLinesStreamProvider);
-    ref.invalidate(accountingSettingsProvider);
-    ref.invalidate(accountingInventoryValueProvider);
+    invalidateAccountingDataStreams(ref);
+    ref.invalidate(accountingPostSyncBootstrapProvider);
     ref.invalidate(accountingStartupDiagnosticsProvider);
   }
 
