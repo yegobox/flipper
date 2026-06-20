@@ -62,6 +62,16 @@ class DittoSingleton {
     };
   }
 
+  /// Whether cloud auth completed for [ditto] (Books needs this before replication).
+  static bool isAuthenticated(Ditto? ditto) {
+    if (ditto == null) return false;
+    try {
+      return ditto.auth.status.isAuthenticated;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Initialize Ditto with proper singleton handling and file locking.
   ///
   /// When [deferSyncStart] is true (PIN login fast path), opens the local store
@@ -189,6 +199,10 @@ class DittoSingleton {
 
       // Required for server connections before sync.start.
       await _ditto!.auth.setExpirationHandler((ditto, timeUntilExpiration) {
+        print(
+          '🔐 [AUTH] expiration handler '
+          '(expires in ${timeUntilExpiration.inSeconds}s)',
+        );
         unawaited(_performAuthentication(ditto, appId));
       });
 
@@ -329,31 +343,68 @@ class DittoSingleton {
         return;
       }
 
-      final authed = await _performAuthentication(ditto, appId);
+      // Ditto v5 server mode: sync.start drives auth via the expiration handler.
+      try {
+        if (!ditto.sync.isActive) {
+          print('🔧 [INIT] Starting Ditto sync (JWT via expiration handler)...');
+          ditto.sync.start();
+        }
+      } catch (e) {
+        print('⚠️ [INIT] sync.start before auth: $e');
+      }
+
+      final authed = await _waitForAuthenticated(
+        ditto,
+        appId: appId,
+        initGeneration: initGeneration,
+      );
 
       if (!_isInitGenerationCurrent(initGeneration) || _ditto != ditto) {
         return;
       }
 
       if (!authed) {
-        print('❌ [INIT] Skipping sync — Ditto authentication failed');
+        print('❌ [INIT] Ditto authentication failed or timed out');
         return;
       }
 
-      try {
-        if (!ditto.sync.isActive) {
-          ditto.sync.start();
-        }
-        print(
-          '✅ [INIT] Sync started after auth. is sync active: '
-          '${ditto.sync.isActive}, auth: ${ditto.auth.status}',
-        );
-      } catch (e) {
-        print('⚠️ [INIT] Error starting sync after auth: $e');
-      }
+      print(
+        '✅ [INIT] Authenticated and syncing. '
+        'sync=${ditto.sync.isActive}, auth=${ditto.auth.status}',
+      );
     } finally {
       _qrLoginSyncInFlight = null;
     }
+  }
+
+  Future<bool> _waitForAuthenticated(
+    Ditto ditto, {
+    required String appId,
+    required int initGeneration,
+    Duration timeout = const Duration(seconds: 60),
+  }) async {
+    if (isAuthenticated(ditto)) {
+      print('✅ [AUTH] Already authenticated (${ditto.auth.status.userID})');
+      return true;
+    }
+
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (!_isInitGenerationCurrent(initGeneration) || _ditto != ditto) {
+        return false;
+      }
+      if (isAuthenticated(ditto)) {
+        print('✅ [AUTH] Authenticated (${ditto.auth.status.userID})');
+        return true;
+      }
+      if (_dittoAuthInFlight == null) {
+        unawaited(_performAuthentication(ditto, appId));
+      }
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+
+    print('❌ [AUTH] Timed out after ${timeout.inSeconds}s');
+    return isAuthenticated(ditto);
   }
 
   static Future<void> _awaitInFlightWork({
@@ -530,11 +581,22 @@ class DittoSingleton {
 
       print('🚀 Logging in to Ditto with token');
       final result = await ditto.auth.login(token: token, provider: provider);
+      if (isAuthenticated(ditto)) {
+        final authedAs = ditto.auth.status.userID ?? userID;
+        print('✅ Ditto authentication successful for user: $authedAs');
+        if (result.exception != null) {
+          print(
+            '⚠️ [AUTH] login reported ${result.exception} but peer is '
+            'authenticated — treating as success (WASM quirk)',
+          );
+        }
+        return true;
+      }
       if (result.exception != null) {
         throw result.exception!;
       }
-      print('✅ Ditto authentication successful for user: $userID');
-      return true;
+      print('❌ Ditto authentication failed: not authenticated after login');
+      return false;
     } catch (e, stackTrace) {
       print('❌ Ditto authentication failed: $e');
       print('Stack trace: $stackTrace');

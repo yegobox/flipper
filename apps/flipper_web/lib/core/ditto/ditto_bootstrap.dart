@@ -19,7 +19,8 @@ abstract final class DittoBootstrap {
 
   /// Ensures Ditto is initialized when a session exists (Books, reload, cache).
   static Future<bool> kickoffIfNeeded(Ref ref) async {
-    if (DittoService.instance.isReady()) {
+    if (DittoService.instance.isReady() &&
+        DittoSingleton.isAuthenticated(DittoService.instance.dittoInstance)) {
       _markReady(ref);
       return true;
     }
@@ -46,7 +47,9 @@ abstract final class DittoBootstrap {
       return false;
     }
 
-    if (DittoSingleton.instance.isReady && DittoService.instance.isReady()) {
+    if (DittoSingleton.instance.isReady &&
+        DittoService.instance.isReady() &&
+        DittoSingleton.isAuthenticated(DittoSingleton.instance.ditto)) {
       debugPrint('[DittoBootstrap] already ready userId=$trimmed');
       _markReady(ref);
       return true;
@@ -94,8 +97,13 @@ abstract final class DittoBootstrap {
         appId: appId,
         userId: userId,
       );
-      final ready = ditto != null && DittoService.instance.isReady();
-      debugPrint('[DittoBootstrap] initialize finished ready=$ready');
+      final ready = ditto != null &&
+          DittoService.instance.isReady() &&
+          DittoSingleton.isAuthenticated(ditto);
+      debugPrint(
+        '[DittoBootstrap] initialize finished ready=$ready '
+        'auth=${ditto?.auth.status}',
+      );
 
       if (ref.mounted) {
         if (ready) {
