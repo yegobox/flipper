@@ -1,3 +1,4 @@
+import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
@@ -19,6 +20,7 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
   final cached = ref.read(userProfileCacheProvider);
   if (cached != null && cached.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, cached);
+    await DittoBootstrap.kickoffIfNeeded(ref);
     return;
   }
 
@@ -26,6 +28,7 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
   if (profile != null && profile.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, profile);
   }
+  await DittoBootstrap.kickoffIfNeeded(ref);
 });
 
 /// Applies persisted or default business/branch from [profile] when selection

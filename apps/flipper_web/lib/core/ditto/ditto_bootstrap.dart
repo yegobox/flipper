@@ -1,5 +1,8 @@
 import 'package:flipper_web/core/secrets.dart';
+import 'package:flipper_web/core/session_persistence.dart';
+import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_diagnostics.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +11,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Initializes [DittoSingleton] after login and refreshes accounting providers
 /// so they pick Ditto when available.
 abstract final class DittoBootstrap {
+  /// Ensures Ditto is initialized when a session exists (Books, reload, cache).
+  static Future<bool> kickoffIfNeeded(Ref ref) async {
+    if (DittoService.instance.isReady()) {
+      _markReady(ref);
+      return true;
+    }
+
+    var userId = ref.read(sessionApiUserIdProvider)?.trim();
+    userId ??= (await SessionPersistence.readApiUserId())?.trim();
+    userId ??= ref.read(userProfileCacheProvider)?.id.trim();
+
+    if (userId == null || userId.isEmpty) {
+      debugPrint('[DittoBootstrap] kickoff skipped — no userId');
+      return false;
+    }
+
+    return ensureInitialized(ref, userId: userId);
+  }
+
   static Future<bool> ensureInitialized(
     Ref ref, {
     required String userId,
@@ -20,6 +42,7 @@ abstract final class DittoBootstrap {
 
     if (DittoSingleton.instance.isReady && DittoService.instance.isReady()) {
       debugPrint('[DittoBootstrap] already ready userId=$trimmed');
+      _markReady(ref);
       return true;
     }
 
@@ -34,14 +57,30 @@ abstract final class DittoBootstrap {
       final ready = ditto != null && DittoService.instance.isReady();
       debugPrint('[DittoBootstrap] initialize finished ready=$ready');
 
-      if (ready && ref.mounted) {
-        _invalidateAccountingData(ref);
+      if (ref.mounted) {
+        if (ready) {
+          _markReady(ref);
+        } else {
+          _markNotReady(ref);
+        }
       }
       return ready;
     } catch (e, st) {
       debugPrint('[DittoBootstrap] initialize FAILED: $e\n$st');
+      if (ref.mounted) {
+        _markNotReady(ref);
+      }
       return false;
     }
+  }
+
+  static void _markReady(Ref ref) {
+    ref.read(dittoReadyProvider.notifier).state = true;
+    _invalidateAccountingData(ref);
+  }
+
+  static void _markNotReady(Ref ref) {
+    ref.read(dittoReadyProvider.notifier).state = false;
   }
 
   static void _invalidateAccountingData(Ref ref) {
@@ -52,13 +91,18 @@ abstract final class DittoBootstrap {
     ref.invalidate(accountingLedgerRepositoryProvider);
     ref.invalidate(rawTransactionStreamProvider);
     ref.invalidate(rawTransactionItemsProvider);
+    ref.invalidate(rawAllTransactionsStreamProvider);
     ref.invalidate(chartOfAccountsStreamProvider);
     ref.invalidate(journalEntriesStreamProvider);
     ref.invalidate(bankLinesStreamProvider);
+    ref.invalidate(accountingSettingsProvider);
+    ref.invalidate(accountingInventoryValueProvider);
+    ref.invalidate(accountingStartupDiagnosticsProvider);
   }
 
-  static Future<void> disposeOnSignOut() async {
+  static Future<void> disposeOnSignOut(Ref ref) async {
     debugPrint('[DittoBootstrap] sign-out — disposing Ditto');
+    _markNotReady(ref);
     try {
       await DittoSingleton.instance.dispose();
     } catch (e) {

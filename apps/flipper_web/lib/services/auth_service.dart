@@ -67,7 +67,7 @@ class AuthService {
   /// Signs out the current user
   Future<void> signOut() async {
     try {
-      await DittoBootstrap.disposeOnSignOut();
+      await DittoBootstrap.disposeOnSignOut(_ref);
       _ref.read(userProfileCacheProvider.notifier).state = null;
       _ref.read(sessionLoginKeyProvider.notifier).state = null;
       _ref.read(sessionApiUserIdProvider.notifier).state = null;

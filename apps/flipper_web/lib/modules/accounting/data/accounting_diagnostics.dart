@@ -17,7 +17,7 @@ final accountingBackendLabelProvider = Provider<String>((ref) {
 /// Runs once when Books opens: logs backend, ids, seed result, COA/journal counts.
 final accountingStartupDiagnosticsProvider = FutureProvider<void>((ref) async {
   final backend = ref.read(accountingBackendLabelProvider);
-  final dittoReady = ref.read(dittoServiceProvider).isReady();
+  final dittoReady = ref.watch(dittoReadyProvider);
   // Watch so diagnostics re-run after business restore completes.
   final businessId = ref.watch(accountingBusinessIdProvider);
   final branchId = ref.watch(accountingBranchIdProvider);

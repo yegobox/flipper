@@ -89,17 +89,19 @@ final accountingBackendStrategyProvider = Provider<AccountingBackendStrategy>(
 );
 
 final accountingUseDittoForTransactionsProvider = Provider<bool>((ref) {
+  ref.watch(dittoReadyProvider);
   return AccountingBackendConfig.useDitto(
     strategy: ref.watch(accountingBackendStrategyProvider),
-    dittoReady: ref.watch(dittoServiceProvider).isReady(),
+    dittoReady: ref.watch(dittoReadyProvider),
     layer: AccountingDataLayer.transactions,
   );
 });
 
 final accountingUseDittoForLedgerProvider = Provider<bool>((ref) {
+  ref.watch(dittoReadyProvider);
   return AccountingBackendConfig.useDitto(
     strategy: ref.watch(accountingBackendStrategyProvider),
-    dittoReady: ref.watch(dittoServiceProvider).isReady(),
+    dittoReady: ref.watch(dittoReadyProvider),
     layer: AccountingDataLayer.ledger,
   );
 });
@@ -147,8 +149,8 @@ final accountingLedgerRepositoryProvider =
 
 /// Registers Ditto cloud pull subscriptions for GL + POS (like catalog sync).
 final accountingDittoSyncProvider = Provider<void>((ref) {
+  if (!ref.watch(dittoReadyProvider)) return;
   final ditto = ref.watch(dittoServiceProvider);
-  if (!ditto.isReady()) return;
   if (ref.watch(accountingBackendStrategyProvider) !=
       AccountingBackendStrategy.ditto) {
     return;
@@ -174,6 +176,11 @@ final accountingDittoSyncProvider = Provider<void>((ref) {
 
 final rawTransactionStreamProvider =
     StreamProvider<List<Map<String, dynamic>>>((ref) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return const Stream.empty();
+  }
   final repo = ref.watch(accountingRepositoryProvider);
   final branchId = ref.watch(accountingBranchIdProvider);
   final (start, end) = ref.watch(accountingDateRangeProvider);
@@ -201,6 +208,11 @@ final rawTransactionItemsProvider =
 // ─── Ledger streams ──────────────────────────────────────────────────────────
 
 final chartOfAccountsStreamProvider = StreamProvider<List<Account>>((ref) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return const Stream.empty();
+  }
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return const Stream.empty();
   final ledger = ref.watch(accountingLedgerRepositoryProvider);
@@ -209,6 +221,11 @@ final chartOfAccountsStreamProvider = StreamProvider<List<Account>>((ref) {
 });
 
 final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return const Stream.empty();
+  }
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return const Stream.empty();
   final (start, end) = ref.watch(accountingDateRangeProvider);
@@ -292,6 +309,11 @@ final accountingCashBankTotalProvider = Provider<int>((ref) {
 });
 
 final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return 0;
+  }
   final branchId = ref.watch(accountingBranchIdProvider);
   if (branchId.isEmpty) return 0;
   return ref.watch(accountingLedgerRepositoryProvider).fetchInventoryValue(
@@ -304,6 +326,11 @@ final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
 /// transactions for the branch, ignoring the selected accounting period.
 final rawAllTransactionsStreamProvider =
     StreamProvider<List<Map<String, dynamic>>>((ref) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return const Stream.empty();
+  }
   final repo = ref.watch(accountingRepositoryProvider);
   final branchId = ref.watch(accountingBranchIdProvider);
   return repo.watchTransactions(branchId: branchId);
@@ -364,6 +391,11 @@ final accountingBankLinesProvider = Provider<List<BankLine>>((ref) {
 
 final accountingSettingsProvider =
     FutureProvider<Map<String, dynamic>?>((ref) async {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return null;
+  }
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return null;
   return ref.watch(accountingLedgerRepositoryProvider).fetchSettings(
