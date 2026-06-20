@@ -1,4 +1,6 @@
 import 'package:flipper_web/core/secrets.dart';
+import 'dart:async';
+
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
@@ -13,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 abstract final class DittoBootstrap {
   static Future<bool>? _initInFlight;
   static String? _initInFlightUserId;
+  static Completer<bool>? _initCompleter;
 
   /// Ensures Ditto is initialized when a session exists (Books, reload, cache).
   static Future<bool> kickoffIfNeeded(Ref ref) async {
@@ -57,14 +60,28 @@ abstract final class DittoBootstrap {
     final appId = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
     debugPrint('[DittoBootstrap] initializing appId=$appId userId=$trimmed');
 
+    final completer = Completer<bool>();
     _initInFlightUserId = trimmed;
-    _initInFlight = _runInitialize(ref, appId: appId, userId: trimmed);
-    try {
-      return await _initInFlight!;
-    } finally {
-      _initInFlight = null;
-      _initInFlightUserId = null;
-    }
+    _initCompleter = completer;
+    _initInFlight = completer.future;
+
+    unawaited(
+      _runInitialize(ref, appId: appId, userId: trimmed).then((ready) {
+        if (!completer.isCompleted) completer.complete(ready);
+      }).catchError((Object e, StackTrace st) {
+        debugPrint('[DittoBootstrap] initialize FAILED: $e\n$st');
+        if (ref.mounted) _markNotReady(ref);
+        if (!completer.isCompleted) completer.complete(false);
+      }).whenComplete(() {
+        if (identical(_initCompleter, completer)) {
+          _initCompleter = null;
+          _initInFlight = null;
+          _initInFlightUserId = null;
+        }
+      }),
+    );
+
+    return completer.future;
   }
 
   static Future<bool> _runInitialize(

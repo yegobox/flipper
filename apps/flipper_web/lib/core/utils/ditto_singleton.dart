@@ -6,6 +6,7 @@ import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/platform.dart';
 import 'package:flipper_web/core/utils/platform_utils.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
 import 'lock_mechanism.dart';
@@ -141,24 +142,30 @@ class DittoSingleton {
         return null;
       }
 
-      // Create and acquire lock file
-      print('🔒 [INIT] Attempting to acquire lock...');
-      final lockFilePath = '$persistenceDirectory/.ditto_lock';
-      _lockMechanism = getLockMechanism();
+      // File locks are for desktop/mobile multi-process safety only. WASM/web
+      // builds may still resolve the dart:io lock stub at compile time; skip here.
+      if (kIsWeb) {
+        _lockAcquired = true;
+        print('✅ [INIT] Web — skipping file lock');
+      } else {
+        print('🔒 [INIT] Attempting to acquire lock...');
+        final lockFilePath = '$persistenceDirectory/.ditto_lock';
+        _lockMechanism = getLockMechanism();
 
-      final lockAcquired = await _lockMechanism!.acquire(lockFilePath);
-      print('🔒 [INIT] Lock acquisition result: $lockAcquired');
-      if (!lockAcquired) {
-        print(
-          '❌ [INIT FAIL] Failed to acquire Ditto lock - another instance may be running',
-        );
-        _isInitializing = false;
-        _initCompleter?.complete(null);
-        _initCompleter = null;
-        return null;
+        final lockAcquired = await _lockMechanism!.acquire(lockFilePath);
+        print('🔒 [INIT] Lock acquisition result: $lockAcquired');
+        if (!lockAcquired) {
+          print(
+            '❌ [INIT FAIL] Failed to acquire Ditto lock - another instance may be running',
+          );
+          _isInitializing = false;
+          _initCompleter?.complete(null);
+          _initCompleter = null;
+          return null;
+        }
+        _lockAcquired = true;
+        print('✅ [INIT] Lock acquired successfully');
       }
-      _lockAcquired = true;
-      print('✅ [INIT] Lock acquired successfully');
 
       // Initialize Ditto
       print('🔧 [INIT] Calling Ditto.init()...');
