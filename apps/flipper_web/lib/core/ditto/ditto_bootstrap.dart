@@ -11,6 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Initializes [DittoSingleton] after login and refreshes accounting providers
 /// so they pick Ditto when available.
 abstract final class DittoBootstrap {
+  static Future<bool>? _initInFlight;
+  static String? _initInFlightUserId;
+
   /// Ensures Ditto is initialized when a session exists (Books, reload, cache).
   static Future<bool> kickoffIfNeeded(Ref ref) async {
     if (DittoService.instance.isReady()) {
@@ -46,13 +49,33 @@ abstract final class DittoBootstrap {
       return true;
     }
 
+    if (_initInFlight != null && _initInFlightUserId == trimmed) {
+      debugPrint('[DittoBootstrap] joining in-flight init userId=$trimmed');
+      return _initInFlight!;
+    }
+
     final appId = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
     debugPrint('[DittoBootstrap] initializing appId=$appId userId=$trimmed');
 
+    _initInFlightUserId = trimmed;
+    _initInFlight = _runInitialize(ref, appId: appId, userId: trimmed);
+    try {
+      return await _initInFlight!;
+    } finally {
+      _initInFlight = null;
+      _initInFlightUserId = null;
+    }
+  }
+
+  static Future<bool> _runInitialize(
+    Ref ref, {
+    required String appId,
+    required String userId,
+  }) async {
     try {
       final ditto = await DittoSingleton.instance.initialize(
         appId: appId,
-        userId: trimmed,
+        userId: userId,
       );
       final ready = ditto != null && DittoService.instance.isReady();
       debugPrint('[DittoBootstrap] initialize finished ready=$ready');
