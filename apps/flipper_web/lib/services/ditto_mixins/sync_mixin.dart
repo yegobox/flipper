@@ -60,7 +60,7 @@ mixin SyncMixin on DittoCore {
     // Only set if we don't already have the same instance
     if (_lastSetupDitto == ditto) {
       debugPrint('Same Ditto instance already set up, skipping');
-      if (!isLoginDitto) {
+      if (!isLoginDitto && !kIsWeb) {
         startSync();
       }
       return;
@@ -93,7 +93,7 @@ mixin SyncMixin on DittoCore {
       );
     }
 
-    if (!isLoginDitto) {
+    if (!isLoginDitto && !kIsWeb) {
       startSync();
     }
     _setupObservation();
