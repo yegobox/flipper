@@ -247,7 +247,7 @@ abstract class AppLocalizations {
   /// Currency per month suffix
   ///
   /// In en, this message translates to:
-  /// **'RWF/month'**
+  /// **'RWF / month'**
   String get currencyPerMonth;
 
   /// Mobile plan feature
@@ -391,7 +391,7 @@ abstract class AppLocalizations {
   /// Get started button text
   ///
   /// In en, this message translates to:
-  /// **'Get Started'**
+  /// **'Get started'**
   String get getStarted;
 }
 

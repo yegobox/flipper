@@ -165,6 +165,12 @@ jobs:
         run: dart run melos bootstrap
 
       - name: Build Flipper Web app
+        # WASM build. The dart:html blocker was fixed by the
+        # open-sources/ua_client_hints fork. The earlier runtime crash
+        # (Ditto.init "reading 'init' of undefined") was NOT a dart2wasm issue
+        # but a Firebase Cross-Origin-Opener-Policy header severing the auth
+        # popup; that header has been removed from firebase.json. `flutter run
+        # --release --wasm` runs cleanly locally.
         run: |
           cd apps/flipper_web
           flutter build web --release --wasm
@@ -185,7 +191,7 @@ jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    # if: false  # skip for now as it is flaky
+    if: false  # skip for now as it is flaky
     needs: [build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
       - name: Export pub environment variable on Windows

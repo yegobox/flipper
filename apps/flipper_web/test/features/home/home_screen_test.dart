@@ -2,65 +2,65 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
-import 'package:flipper_web/features/login/pin_screen.dart';
+import 'package:flipper_web/features/home/widgets/books_home_widgets.dart';
 
 void main() {
   group('HomeScreen', () {
-    // Helper to pump the widget with MaterialApp and a larger screen size
+    tearDown(() {
+      booksHomeShowDeviceMocks = true;
+    });
+
     Future<void> pumpHomeScreen(WidgetTester tester) async {
-      // Set a large enough screen size to avoid overflow and scrolling
-      tester.view.physicalSize = const Size(1920, 2000);
+      tester.view.physicalSize = const Size(1920, 4000);
       tester.view.devicePixelRatio = 1.0;
+      booksHomeShowDeviceMocks = false;
 
       await tester.pumpWidget(
-        const ProviderScope(child: MaterialApp(home: HomeScreen())),
+        ProviderScope(
+          child: MaterialApp(
+            home: MediaQuery(
+              data: const MediaQueryData(disableAnimations: true),
+              child: const HomeScreen(),
+            ),
+          ),
+        ),
       );
-      await tester.pumpAndSettle(); // Wait for animations
+      await tester.pump();
     }
 
-    testWidgets('renders all major components correctly', (
+    testWidgets('renders Flipper Books marketing sections', (
       WidgetTester tester,
     ) async {
       await pumpHomeScreen(tester);
 
-      // Verify Header
-      expect(find.text('Flipper'), findsOneWidget);
-      expect(find.text('Pricing'), findsOneWidget);
-      expect(find.text('Blog'), findsOneWidget);
-      expect(find.text('About'), findsOneWidget);
-      expect(find.text('Download'), findsOneWidget);
-      expect(find.text('Help'), findsOneWidget);
-      expect(find.text('21k'), findsOneWidget);
+      expect(find.text('Flipper'), findsWidgets);
+      expect(find.text('BOOKS'), findsWidgets);
+      expect(find.text('Start free'), findsWidgets);
+      expect(find.text('does itself.'), findsOneWidget);
+      expect(find.textContaining('Accounting that'), findsOneWidget);
+      expect(find.text('See how it works'), findsOneWidget);
+      expect(find.text('RRA / EBM-ready'), findsOneWidget);
 
-      // Verify Hero Section Title (RichText)
-      final richTextFinder = find.byWidgetPredicate(
-        (widget) =>
-            widget is RichText &&
-            widget.text.toPlainText() == 'Safe home\nfor your business',
-      );
-      expect(richTextFinder, findsOneWidget);
+      expect(find.textContaining('Built for Rwandan businesses'), findsOneWidget);
+      expect(find.textContaining('Real-time'), findsWidgets);
+      expect(find.textContaining('12,400+'), findsWidgets);
 
-      expect(
-        find.text('Private by default. Works everywhere. Ready for business.'),
-        findsOneWidget,
-      );
+      expect(find.text('Three apps. One ledger. Zero double-entry.'), findsOneWidget);
+      expect(find.text('MEET FLOW AI'), findsOneWidget);
+      expect(find.text('INSIDE BOOKS'), findsOneWidget);
 
-      // Verify Buttons
-      expect(find.widgetWithText(TextButton, 'Sign up'), findsNWidgets(2));
-      expect(find.widgetWithText(TextButton, 'Login'), findsOneWidget);
-
-      // Verify Photo Cards
-      expect(find.byIcon(Icons.business_outlined), findsNWidgets(4));
-
-      // Verify Pricing Section
       expect(find.text('Simple, transparent pricing'), findsOneWidget);
       expect(find.text('Mobile'), findsOneWidget);
       expect(find.text('Mobile + Desktop'), findsOneWidget);
       expect(find.text('Enterprise'), findsOneWidget);
       expect(find.text('5,000'), findsOneWidget);
       expect(find.text('120,000'), findsOneWidget);
-      expect(find.text('1,500,000+'), findsOneWidget);
+      expect(find.text('1.5M+'), findsOneWidget);
       expect(find.text('Most Popular'), findsOneWidget);
+
+      expect(find.text('12,400+'), findsWidgets);
+      expect(find.text('RWF 1.2B'), findsOneWidget);
+      expect(find.text('99.9%'), findsOneWidget);
     });
   });
 }

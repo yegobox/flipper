@@ -33,6 +33,27 @@
 
   <title>Flipper Back Office</title>
   <link rel="manifest" href="manifest.json">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    html, body {
+      background: #06080d;
+      color-scheme: dark;
+      margin: 0;
+    }
+    flutter-view, flt-glass-pane {
+      background: #06080d !important;
+    }
+  </style>
+
+  <!-- Corbado Passkeys Web SDK (v2.4.0), required by the `passkeys` package.
+       Vendored locally in web/bundle.js (served same-origin) and loaded before
+       the Flutter app so PasskeyAuthenticator is defined when passkeys init
+       runs at runApp(). Keep this version in sync with the passkeys package. -->
+  <script src="bundle.js"></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
