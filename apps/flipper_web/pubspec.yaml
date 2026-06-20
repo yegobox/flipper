@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.652+1568
+version: 1.0.653+1569
 
 
 environment:
@@ -34,6 +34,7 @@ dependencies:
   wolt_modal_sheet: 0.11.0
   google_fonts: ^6.2.1
   flutter_svg: ^2.2.4
+  visibility_detector: ^0.4.0+2
   path: ^1.9.1
   intl: ^0.20.2
   file_picker: 10.3.7
@@ -73,3 +74,28 @@ flutter:
   assets:
     - assets/
     - assets/icons/
+    - assets/svg/
+    - assets/svg/books/
+    - assets/fonts/
+
+  fonts:
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist-400.ttf
+          weight: 400
+        - asset: assets/fonts/Geist-500.ttf
+          weight: 500
+        - asset: assets/fonts/Geist-600.ttf
+          weight: 600
+        - asset: assets/fonts/Geist-700.ttf
+          weight: 700
+        - asset: assets/fonts/Geist-800.ttf
+          weight: 800
+    - family: Geist Mono
+      fonts:
+        - asset: assets/fonts/GeistMono-500.ttf
+          weight: 500
+        - asset: assets/fonts/GeistMono-600.ttf
+          weight: 600
+        - asset: assets/fonts/GeistMono-700.ttf
+          weight: 700

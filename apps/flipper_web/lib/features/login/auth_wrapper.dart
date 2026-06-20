@@ -1,6 +1,7 @@
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
+import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,8 +59,15 @@ class AuthWrapper extends ConsumerWidget {
             return const HomeScreen();
         }
       },
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => Theme(
+        data: BooksHomeTheme.data,
+        child: const Scaffold(
+          backgroundColor: AppColors.bg,
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.violet),
+          ),
+        ),
+      ),
       error: (error, stackTrace) =>
           Scaffold(body: Center(child: Text('Error: $error'))),
     );

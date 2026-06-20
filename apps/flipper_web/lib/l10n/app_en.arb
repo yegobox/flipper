@@ -96,7 +96,7 @@
   "@priceEnterprise": {
     "description": "Enterprise plan price"
   },
-  "currencyPerMonth": "RWF/month",
+  "currencyPerMonth": "RWF / month",
   "@currencyPerMonth": {
     "description": "Currency per month suffix"
   },
@@ -192,7 +192,7 @@
   "@mostPopular": {
     "description": "Most popular badge text"
   },
-  "getStarted": "Get Started",
+  "getStarted": "Get started",
   "@getStarted": {
     "description": "Get started button text"
   }
