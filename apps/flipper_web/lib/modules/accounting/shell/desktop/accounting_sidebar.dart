@@ -163,7 +163,7 @@ class _AccountingAccountFooterState extends ConsumerState<AccountingAccountFoote
     try {
       switch (action) {
         case AccountingAccountMenuAction.refresh:
-          await ref.read(accountingCloudRefreshProvider.future);
+          await refreshAccountingFromCloud(ref);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Books data refreshed from cloud')),

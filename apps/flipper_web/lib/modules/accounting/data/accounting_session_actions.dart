@@ -1,5 +1,4 @@
 import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
-import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -12,29 +11,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Re-pulls GL/POS from Ditto cloud without signing out (web stale-tab recovery).
-final accountingCloudRefreshProvider = FutureProvider.autoDispose<void>((ref) async {
+///
+/// Plain async function — not an autoDispose provider — so the 20s replication
+/// wait does not dispose [Ref] mid-flight.
+Future<void> refreshAccountingFromCloud(WidgetRef ref) async {
   debugPrint('[Accounting] manual refresh from cloud');
   resetAccountingCloudSubscriptionKeys();
-  invalidateAccountingDataStreams(ref);
+  ref.invalidate(rawTransactionStreamProvider);
+  ref.invalidate(rawTransactionItemsProvider);
+  ref.invalidate(rawAllTransactionsStreamProvider);
+  ref.invalidate(chartOfAccountsStreamProvider);
+  ref.invalidate(journalEntriesStreamProvider);
+  ref.invalidate(bankLinesStreamProvider);
+  ref.invalidate(accountingSettingsProvider);
+  ref.invalidate(accountingInventoryValueProvider);
   ref.invalidate(accountingRepositoryProvider);
   ref.invalidate(accountingLedgerRepositoryProvider);
   ref.invalidate(accountingPostSyncBootstrapProvider);
 
-  if (!ref.read(dittoReadyProvider)) {
-    await DittoBootstrap.kickoffIfNeeded(ref);
-  }
-
   final profile = ref.read(userProfileCacheProvider);
   if (profile != null && DittoService.instance.isCloudReady()) {
-    try {
-      await ref.read(userRepositoryProvider).syncProfileToDittoCloud(profile);
-    } catch (e) {
-      debugPrint('[Accounting] profile re-sync during refresh: $e');
-    }
+    await ref.read(userRepositoryProvider).syncProfileToDittoCloud(profile);
   }
 
   await ref.read(accountingPostSyncBootstrapProvider.future);
-});
+}
 
 Future<bool> confirmBooksSignOut(BuildContext context) {
   return showDialog<bool>(

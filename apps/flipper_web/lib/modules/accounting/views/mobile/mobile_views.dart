@@ -491,7 +491,7 @@ class _AccountingMoreTabState extends ConsumerState<AccountingMoreTab> {
     if (_refreshing) return;
     setState(() => _refreshing = true);
     try {
-      await ref.read(accountingCloudRefreshProvider.future);
+      await refreshAccountingFromCloud(ref);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Books data refreshed from cloud')),

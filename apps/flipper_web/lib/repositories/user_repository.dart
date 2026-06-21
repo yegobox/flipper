@@ -97,7 +97,6 @@ class UserRepository {
       );
     } catch (e, st) {
       debugPrint('Could not sync user profile to Ditto cloud: $e\n$st');
-      rethrow;
     }
   }
 

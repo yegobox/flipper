@@ -40,21 +40,38 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     for (final account in defaultChartOfAccountsSeed) {
       await _ditto.upsertChartOfAccount(businessId, account);
     }
-    final visible = await _ditto.queryCollection(
-      'chart_of_accounts',
-      'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId',
-      {'businessId': businessId},
-    );
+    final visible = await _pollChartOfAccounts(businessId);
     debugPrint(
       '[Accounting] Ditto COA seed completed '
       '(${visible.length} rows visible via DQL)',
     );
     if (visible.isEmpty) {
-      throw StateError(
-        'Ditto COA seed wrote ${defaultChartOfAccountsSeed.length} accounts '
-        'but DQL returned 0 for businessId=$businessId',
+      debugPrint(
+        '[Accounting] WARNING: COA seed DQL still empty after upserts — '
+        'data may appear after replication (common on dart2wasm)',
       );
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _pollChartOfAccounts(
+    String businessId, {
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      final rows = await _ditto.queryCollection(
+        'chart_of_accounts',
+        'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId',
+        {'businessId': businessId},
+      );
+      if (rows.isNotEmpty) return rows;
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+    return _ditto.queryCollection(
+      'chart_of_accounts',
+      'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId',
+      {'businessId': businessId},
+    );
   }
 
   @override

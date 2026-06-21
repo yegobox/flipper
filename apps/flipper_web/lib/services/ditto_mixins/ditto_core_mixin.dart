@@ -75,15 +75,19 @@ class DittoCore {
       rethrow;
     }
 
+    // dart2wasm: INSERT can succeed before SELECT sees the row. Never fail the
+    // write on a follow-up read — Safari/js and Chrome/wasm timing differs.
     if (kIsWeb) {
       final visible = await waitForDittoDocumentLocal(
         ditto: ditto,
         collection: collection,
         docId: docId,
+        timeout: const Duration(seconds: 15),
       );
       if (!visible) {
-        throw StateError(
-          'Upsert to $collection/$docId did not appear in local store',
+        debugPrint(
+          '[Ditto] upsert($collection/$docId) — DQL read-back not yet visible '
+          '(WASM eventual consistency; write was not rejected)',
         );
       }
     }

@@ -206,6 +206,9 @@ Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
 
     invalidateAccountingDataStreams(ref);
     debugPrint('[Accounting] post-sync bootstrap complete');
+  } catch (e, st) {
+    if (!completer.isCompleted) completer.completeError(e, st);
+    rethrow;
   } finally {
     if (!completer.isCompleted) completer.complete();
     if (identical(_accountingBootstrapInFlight, completer)) {

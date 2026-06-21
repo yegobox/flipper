@@ -32,20 +32,20 @@ Future<bool> waitForDittoDocumentLocal({
   required Ditto ditto,
   required String collection,
   required String docId,
-  Duration timeout = const Duration(seconds: 5),
+  Duration timeout = const Duration(seconds: 15),
 }) async {
   final deadline = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(deadline)) {
     try {
       final result = await ditto.store.execute(
-        'SELECT _id FROM $collection WHERE _id = :id LIMIT 1',
+        'SELECT _id FROM $collection WHERE _id = :id OR id = :id LIMIT 1',
         arguments: {'id': docId},
       );
       if (result.items.isNotEmpty) return true;
     } catch (e) {
       debugPrint('[Ditto] waitForDittoDocumentLocal($collection/$docId): $e');
     }
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
   }
   return false;
 }
