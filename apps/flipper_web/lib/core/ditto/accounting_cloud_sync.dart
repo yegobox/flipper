@@ -116,21 +116,26 @@ Future<void> ensureAccountingCloudSubscriptions({
 
 /// Waits for cloud replication to deliver GL/POS rows (or times out).
 ///
+/// Returns `true` when at least one subscribed row is visible via DQL.
+///
 /// Books registers subscriptions then must not seed/read until the first
 /// replication cycle completes — otherwise local seed races empty cloud state.
-Future<void> waitForAccountingReplication({
+Future<bool> waitForAccountingReplication({
   required Ditto ditto,
   required String businessId,
   String? branchId,
-  Duration timeout = const Duration(seconds: 20),
+  Duration? timeout,
 }) async {
-  if (businessId.isEmpty) return;
+  if (businessId.isEmpty) return false;
+
+  final effectiveTimeout = timeout ??
+      (kIsWeb ? const Duration(seconds: 90) : const Duration(seconds: 20));
 
   const pollInterval = Duration(milliseconds: 500);
-  final deadline = DateTime.now().add(timeout);
+  final deadline = DateTime.now().add(effectiveTimeout);
   debugPrint(
     '[Accounting] waiting for replication businessId=$businessId '
-    'branchId=${branchId ?? "(none)"} timeout=${timeout.inSeconds}s',
+    'branchId=${branchId ?? "(none)"} timeout=${effectiveTimeout.inSeconds}s',
   );
 
   while (DateTime.now().isBefore(deadline)) {
@@ -141,7 +146,7 @@ Future<void> waitForAccountingReplication({
       );
       if (coa.items.isNotEmpty) {
         debugPrint('[Accounting] replication: chart_of_accounts present');
-        return;
+        return true;
       }
 
       final journal = await ditto.store.execute(
@@ -150,7 +155,7 @@ Future<void> waitForAccountingReplication({
       );
       if (journal.items.isNotEmpty) {
         debugPrint('[Accounting] replication: journal_entries present');
-        return;
+        return true;
       }
 
       if (branchId != null && branchId.isNotEmpty) {
@@ -160,7 +165,7 @@ Future<void> waitForAccountingReplication({
         );
         if (txns.items.isNotEmpty) {
           debugPrint('[Accounting] replication: transactions present');
-          return;
+          return true;
         }
       }
     } catch (e) {
@@ -169,7 +174,8 @@ Future<void> waitForAccountingReplication({
     await Future.delayed(pollInterval);
   }
 
-  debugPrint('[Accounting] replication wait timed out — proceeding with local seed');
+  debugPrint('[Accounting] replication wait timed out');
+  return false;
 }
 
 /// Poll until at least one journal entry exists (post-restart / post-sync).

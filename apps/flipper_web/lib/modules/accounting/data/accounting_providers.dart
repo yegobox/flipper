@@ -164,6 +164,21 @@ void _ensureAccountingBootstrapScope(String businessId, String branchId) {
   );
 }
 
+/// Re-invalidates Books streams after slow web replication (dart2wasm DQL lag).
+void _scheduleAccountingReplicationRefresh(Ref ref) {
+  for (final delay in const [15, 45, 90]) {
+    unawaited(
+      Future<void>.delayed(Duration(seconds: delay), () {
+        if (!ref.mounted) return;
+        debugPrint(
+          '[Accounting] delayed stream refresh after replication wait (+${delay}s)',
+        );
+        invalidateAccountingDataStreams(ref);
+      }),
+    );
+  }
+}
+
 /// Blocks until [dittoReadyProvider] is true (or times out).
 Future<bool> waitForAccountingDittoReady(
   Ref ref, {
@@ -210,15 +225,25 @@ Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
       branchId: branchId.isEmpty ? null : branchId,
     );
 
-    await waitForAccountingReplication(
+    final replicated = await waitForAccountingReplication(
       ditto: instance,
       businessId: businessId,
       branchId: branchId.isEmpty ? null : branchId,
     );
 
-    await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
-          businessId: businessId,
-        );
+    final cloudSyncUp =
+        instance.sync.isActive && instance.auth.status.isAuthenticated;
+    if (!replicated && kIsWeb && cloudSyncUp) {
+      debugPrint(
+        '[Accounting] web replication slow — skipping COA seed while cloud sync '
+        'is active (avoids empty defaults on dart2wasm / slow DQL)',
+      );
+      _scheduleAccountingReplicationRefresh(ref);
+    } else {
+      await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
+            businessId: businessId,
+          );
+    }
 
     invalidateAccountingDataStreams(ref);
     debugPrint('[Accounting] post-sync bootstrap complete');

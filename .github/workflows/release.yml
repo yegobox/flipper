@@ -173,6 +173,9 @@ jobs:
           cd apps/flipper_web
           flutter build web --release
           test -f build/web/main.dart.js
+          # Drop dart2wasm app artifacts so Firebase cannot serve stale main.dart.mjs
+          # to Chrome (service worker cache + leftover files from prior WASM deploys).
+          rm -f build/web/main.dart.mjs build/web/main.dart.wasm
 
       - name: Deploy Flipper Web app to Firebase Hosting
         id: deploy_flipper_web
