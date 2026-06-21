@@ -165,16 +165,14 @@ jobs:
         run: dart run melos bootstrap
 
       - name: Build Flipper Web app
-        # WASM build. The dart:html blocker was fixed by the
-        # open-sources/ua_client_hints fork. The earlier runtime crash
-        # (Ditto.init "reading 'init' of undefined") was NOT a dart2wasm issue
-        # but a Firebase Cross-Origin-Opener-Policy header severing the auth
-        # popup; that header has been removed from firebase.json. `flutter run
-        # --release --wasm` runs cleanly locally.
+        # dart2js only (no --wasm). Dual-target WASM builds serve main.dart.mjs
+        # to Chrome; dart2wasm + Ditto DQL read-after-write on cold start breaks
+        # replication bootstrap (20s timeout → empty COA seed). Safari fell back
+        # to main.dart.js and worked. Re-enable --wasm when bootstrap is WASM-safe.
         run: |
           cd apps/flipper_web
-          flutter build web --release --wasm
-          test -f build/web/main.dart.wasm
+          flutter build web --release
+          test -f build/web/main.dart.js
 
       - name: Deploy Flipper Web app to Firebase Hosting
         id: deploy_flipper_web
