@@ -9,6 +9,9 @@ import 'package:flipper_accounting/accounting_models.dart';
 abstract class AccountingDittoStore {
   bool isReady();
 
+  /// Authenticated + syncing — writes replicate to Ditto Cloud.
+  bool isCloudReady();
+
   Future<List<Map<String, dynamic>>> queryCollection(
     String collection,
     String query,

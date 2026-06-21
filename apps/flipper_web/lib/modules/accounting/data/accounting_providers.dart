@@ -147,40 +147,117 @@ final accountingLedgerRepositoryProvider =
   return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
 });
 
-/// Registers Ditto subscriptions, waits for replication, seeds COA if empty,
-/// then refreshes data streams (Books must await this before reading GL/POS).
-final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
-  if (ref.watch(accountingBackendStrategyProvider) !=
+Completer<void>? _accountingBootstrapInFlight;
+
+/// Blocks until [dittoReadyProvider] is true (or times out).
+Future<bool> waitForAccountingDittoReady(
+  Ref ref, {
+  Duration timeout = const Duration(seconds: 90),
+}) async {
+  if (ref.read(dittoReadyProvider)) return true;
+  final deadline = DateTime.now().add(timeout);
+  while (!ref.read(dittoReadyProvider)) {
+    if (!ref.mounted || DateTime.now().isAfter(deadline)) {
+      return false;
+    }
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+  return true;
+}
+
+/// Ditto replication + COA seed. Uses [ref.read] only — safe to call from
+/// providers without triggering same-frame rebuild loops.
+Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
+  if (ref.read(accountingBackendStrategyProvider) !=
       AccountingBackendStrategy.ditto) {
     return;
   }
-  if (!ref.watch(dittoReadyProvider)) return;
 
+  if (_accountingBootstrapInFlight != null) {
+    return _accountingBootstrapInFlight!.future;
+  }
+
+  final completer = Completer<void>();
+  _accountingBootstrapInFlight = completer;
+
+  try {
+    final businessId = ref.read(accountingBusinessIdProvider);
+    if (businessId.isEmpty) return;
+
+    final branchId = ref.read(accountingBranchIdProvider);
+    final instance = ref.read(dittoServiceProvider).dittoInstance;
+    if (instance == null) return;
+
+    await ensureAccountingCloudSubscriptions(
+      ditto: instance,
+      businessId: businessId,
+      branchId: branchId.isEmpty ? null : branchId,
+    );
+
+    await waitForAccountingReplication(
+      ditto: instance,
+      businessId: businessId,
+      branchId: branchId.isEmpty ? null : branchId,
+    );
+
+    await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
+          businessId: businessId,
+        );
+
+    invalidateAccountingDataStreams(ref);
+    debugPrint('[Accounting] post-sync bootstrap complete');
+  } finally {
+    if (!completer.isCompleted) completer.complete();
+    if (identical(_accountingBootstrapInFlight, completer)) {
+      _accountingBootstrapInFlight = null;
+    }
+  }
+}
+
+/// Registers Ditto subscriptions, waits for replication, seeds COA if empty,
+/// logs diagnostics, then refreshes data streams.
+final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
+  // Re-run when Ditto auth or business selection changes.
+  ref.watch(dittoReadyProvider);
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return;
 
-  final branchId = ref.watch(accountingBranchIdProvider);
-  final instance = ref.read(dittoServiceProvider).dittoInstance;
-  if (instance == null) return;
-
-  await ensureAccountingCloudSubscriptions(
-    ditto: instance,
-    businessId: businessId,
-    branchId: branchId.isEmpty ? null : branchId,
-  );
-
-  await waitForAccountingReplication(
-    ditto: instance,
-    businessId: businessId,
-    branchId: branchId.isEmpty ? null : branchId,
-  );
-
-  await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
-        businessId: businessId,
+  final strategy = ref.read(accountingBackendStrategyProvider);
+  if (strategy == AccountingBackendStrategy.ditto) {
+    if (!ref.read(dittoReadyProvider)) {
+      if (!await waitForAccountingDittoReady(ref)) {
+        debugPrint('[Accounting] post-sync bootstrap aborted — Ditto not ready');
+        return;
+      }
+    }
+    try {
+      await runAccountingPostSyncBootstrap(ref);
+      debugPrint(
+        '[Accounting] post-sync bootstrap OK (businessId=$businessId)',
       );
+    } catch (e, st) {
+      debugPrint('[Accounting] post-sync bootstrap FAILED: $e\n$st');
+      rethrow;
+    }
+  } else {
+    try {
+      await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
+            businessId: businessId,
+          );
+      debugPrint(
+        '[Accounting] ensureSeeded OK (businessId=$businessId via supabase)',
+      );
+    } catch (e, st) {
+      debugPrint('[Accounting] ensureSeeded FAILED: $e\n$st');
+      rethrow;
+    }
+  }
 
-  invalidateAccountingDataStreams(ref);
-  debugPrint('[Accounting] post-sync bootstrap complete');
+  // Yield so stream invalidations from bootstrap can settle before we read them.
+  await Future<void>.delayed(Duration.zero);
+  if (!ref.mounted) return;
+
+  await logAccountingStartupDiagnostics(ref);
 });
 
 /// @deprecated Use [accountingPostSyncBootstrapProvider].
@@ -483,3 +560,85 @@ void invalidateAccountingDataStreams(Ref ref) {
   ref.invalidate(accountingSettingsProvider);
   ref.invalidate(accountingInventoryValueProvider);
 }
+
+/// Logs GL/POS counts after bootstrap — plain function, not a FutureProvider.
+Future<void> logAccountingStartupDiagnostics(Ref ref) async {
+  final backend = ref.read(accountingBackendLabelProvider);
+  final dittoReady = ref.read(dittoReadyProvider);
+  final businessId = ref.read(accountingBusinessIdProvider);
+  final branchId = ref.read(accountingBranchIdProvider);
+  final period = ref.read(accountingPeriodLabelProvider);
+
+  final branch = ref.read(selectedBranchProvider);
+  final txDitto = ref.read(accountingUseDittoForTransactionsProvider);
+  final branchKeyKind = txDitto ? 'dittoUuid' : 'supabaseServerId';
+  debugPrint(
+    '[Accounting] ── startup ── $backend dittoReady=$dittoReady '
+    'businessId=${businessId.isEmpty ? "(none)" : businessId} '
+    'branchId=${branchId.isEmpty ? "(none)" : branchId} ($branchKeyKind'
+    '${branch != null ? ', branch=${branch.name}' : ''}) period=$period',
+  );
+
+  if (businessId.isEmpty) {
+    debugPrint('[Accounting] waiting for business selection — no seed yet');
+    return;
+  }
+
+  try {
+    if (ref.read(accountingBackendStrategyProvider) ==
+            AccountingBackendStrategy.ditto &&
+        ref.read(dittoReadyProvider)) {
+      final directRows = await ref.read(dittoServiceProvider).queryCollection(
+            'chart_of_accounts',
+            'SELECT * FROM chart_of_accounts WHERE businessId = :businessId',
+            {'businessId': businessId},
+          );
+      debugPrint(
+        '[Accounting] chart_of_accounts (DQL): ${directRows.length} rows',
+      );
+    }
+    final coa = await ref.read(chartOfAccountsStreamProvider.future);
+    debugPrint('[Accounting] chart_of_accounts: ${coa.length} accounts');
+    if (coa.isNotEmpty) {
+      debugPrint(
+        '[Accounting]   sample codes: ${coa.take(5).map((a) => a.code).join(", ")}',
+      );
+    }
+  } catch (e) {
+    debugPrint('[Accounting] COA stream error: $e');
+  }
+
+  try {
+    final journal = await ref.read(journalEntriesStreamProvider.future);
+    final pending =
+        journal.where((e) => e.status == JournalStatus.pending).length;
+    final posted =
+        journal.where((e) => e.status == JournalStatus.posted).length;
+    debugPrint(
+      '[Accounting] journal_entries: ${journal.length} total '
+      '($posted posted, $pending pending)',
+    );
+  } catch (e) {
+    debugPrint('[Accounting] journal stream error: $e');
+  }
+
+  try {
+    final txns = await ref.read(rawTransactionStreamProvider.future);
+    debugPrint(
+      '[Accounting] transactions (period): ${txns.length} COMPLETE rows',
+    );
+  } catch (e) {
+    debugPrint('[Accounting] transaction stream error: $e');
+  }
+
+  debugPrint('[Accounting] ── startup complete ──');
+}
+
+/// Debug label for startup logs ([logAccountingStartupDiagnostics]).
+final accountingBackendLabelProvider = Provider<String>((ref) {
+  final strategy = ref.read(accountingBackendStrategyProvider);
+  final txDitto = ref.read(accountingUseDittoForTransactionsProvider);
+  final glDitto = ref.read(accountingUseDittoForLedgerProvider);
+  return 'strategy=${strategy.name} tx=${txDitto ? "ditto" : "supabase"} '
+      'ledger=${glDitto ? "ditto" : "supabase"}';
+});

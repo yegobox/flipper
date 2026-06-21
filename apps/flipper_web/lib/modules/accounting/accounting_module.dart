@@ -1,6 +1,5 @@
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_diagnostics.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/shell/desktop/accounting_desktop_shell.dart';
 import 'package:flipper_web/modules/accounting/shell/mobile/accounting_mobile_shell.dart';
@@ -16,7 +15,6 @@ class AccountingModuleScreen extends ConsumerWidget {
     final restore = ref.watch(selectedBusinessRestoreProvider);
     ref.watch(accountingPostSyncBootstrapProvider);
     ref.watch(accountingAutoPosterProvider);
-    ref.watch(accountingStartupDiagnosticsProvider);
 
     return restore.when(
       loading: () => const Scaffold(

@@ -5,7 +5,6 @@ import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/models/user_profile.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_diagnostics.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -107,7 +106,7 @@ Future<void> restoreSelectedBusinessFromProfile(
     ref.invalidate(bankLinesStreamProvider);
     ref.invalidate(rawTransactionStreamProvider);
     ref.invalidate(rawTransactionItemsProvider);
-    ref.invalidate(accountingStartupDiagnosticsProvider);
+    ref.invalidate(accountingPostSyncBootstrapProvider);
   }
 }
 

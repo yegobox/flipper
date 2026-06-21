@@ -1,4 +1,6 @@
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_web/core/ditto/ditto_cloud_write.dart';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flutter/foundation.dart' hide Category;
 
 /// Base class that provides core Ditto functionality
@@ -22,9 +24,18 @@ class DittoCore {
   /// Get the Ditto store for direct access to Ditto operations
   Store? get store => _ditto?.store;
 
-  /// Checks if Ditto is properly initialized and ready to use
-  bool isReady() {
-    return _ditto != null;
+  /// Ditto client is open (local reads/writes possible).
+  bool isReady() => _ditto != null;
+
+  /// Authenticated and syncing — required for writes that must reach Ditto Cloud.
+  bool isCloudReady() {
+    final ditto = _ditto;
+    if (ditto == null) return false;
+    try {
+      return DittoSingleton.isAuthenticated(ditto) && ditto.sync.isActive;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Helper method to handle not initialized case
@@ -38,21 +49,43 @@ class DittoCore {
     return defaultValue;
   }
 
-  /// Helper method to execute upsert operation
+  /// Upsert a document and replicate to Ditto Cloud when connected.
   Future<void> executeUpsert(
     String collection,
     String docId,
     Map<String, dynamic> data,
   ) async {
+    final ditto = dittoInstance;
+    if (ditto == null) {
+      handleNotInitialized('executeUpsert');
+      throw StateError('Ditto not initialized');
+    }
+
+    await ensureDittoCloudWriteReady(ditto);
+
     try {
-      await dittoInstance!.store.execute(
-        "INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE",
+      await ditto.store.execute(
+        'INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',
         arguments: {
-          "data": {"_id": docId, ...data},
+          'data': {'_id': docId, ...data},
         },
       );
-    } catch (e) {
-      debugPrint('Error executing upsert: $e');
+    } catch (e, st) {
+      debugPrint('Error executing upsert ($collection/$docId): $e\n$st');
+      rethrow;
+    }
+
+    if (kIsWeb) {
+      final visible = await waitForDittoDocumentLocal(
+        ditto: ditto,
+        collection: collection,
+        docId: docId,
+      );
+      if (!visible) {
+        throw StateError(
+          'Upsert to $collection/$docId did not appear in local store',
+        );
+      }
     }
   }
 
@@ -75,10 +108,23 @@ class DittoCore {
     String docId,
     Map<String, dynamic> data,
   ) async {
+    final ditto = dittoInstance;
+    if (ditto == null) {
+      handleNotInitialized('executeUpdate');
+      throw StateError('Ditto not initialized');
+    }
+
+    await ensureDittoCloudWriteReady(ditto);
+
     final fields = data.keys.map((key) => '$key = :$key').join(', ');
-    await dittoInstance!.store.execute(
-      "UPDATE $collection SET $fields WHERE _id = :id",
-      arguments: {"id": docId, ...data},
-    );
+    try {
+      await ditto.store.execute(
+        'UPDATE $collection SET $fields WHERE _id = :id',
+        arguments: {'id': docId, ...data},
+      );
+    } catch (e, st) {
+      debugPrint('Error executing update ($collection/$docId): $e\n$st');
+      rethrow;
+    }
   }
 }

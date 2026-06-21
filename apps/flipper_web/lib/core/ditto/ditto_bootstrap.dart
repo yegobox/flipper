@@ -4,8 +4,8 @@ import 'dart:async';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_diagnostics.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/repositories/user_repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +20,7 @@ abstract final class DittoBootstrap {
   /// Ensures Ditto is initialized when a session exists (Books, reload, cache).
   static Future<bool> kickoffIfNeeded(Ref ref) async {
     if (DittoService.instance.isReady() &&
-        DittoSingleton.isAuthenticated(DittoService.instance.dittoInstance)) {
+        DittoService.instance.isCloudReady()) {
       _markReady(ref);
       return true;
     }
@@ -49,7 +49,7 @@ abstract final class DittoBootstrap {
 
     if (DittoSingleton.instance.isReady &&
         DittoService.instance.isReady() &&
-        DittoSingleton.isAuthenticated(DittoSingleton.instance.ditto)) {
+        DittoService.instance.isCloudReady()) {
       debugPrint('[DittoBootstrap] already ready userId=$trimmed');
       _markReady(ref);
       return true;
@@ -99,10 +99,11 @@ abstract final class DittoBootstrap {
       );
       final ready = ditto != null &&
           DittoService.instance.isReady() &&
-          DittoSingleton.isAuthenticated(ditto);
+          DittoSingleton.isAuthenticated(ditto) &&
+          ditto.sync.isActive;
       debugPrint(
         '[DittoBootstrap] initialize finished ready=$ready '
-        'auth=${ditto?.auth.status}',
+        'auth=${ditto?.auth.status} sync=${ditto?.sync.isActive}',
       );
 
       if (ref.mounted) {
@@ -125,6 +126,23 @@ abstract final class DittoBootstrap {
   static void _markReady(Ref ref) {
     ref.read(dittoReadyProvider.notifier).state = true;
     _invalidateAccountingData(ref);
+    unawaited(_hydrateCachedProfileToDittoCloud(ref));
+  }
+
+  /// Replays profile/tenant/business/branch writes missed before Ditto init.
+  static Future<void> _hydrateCachedProfileToDittoCloud(Ref ref) async {
+    final profile = ref.read(userProfileCacheProvider);
+    if (profile == null) return;
+    if (!DittoService.instance.isCloudReady()) {
+      debugPrint('[DittoBootstrap] profile cloud hydration skipped — not cloud-ready');
+      return;
+    }
+    try {
+      await ref.read(userRepositoryProvider).syncProfileToDittoCloud(profile);
+      debugPrint('[DittoBootstrap] profile hydrated to Ditto cloud');
+    } catch (e, st) {
+      debugPrint('[DittoBootstrap] profile cloud hydration failed: $e\n$st');
+    }
   }
 
   static void _markNotReady(Ref ref) {
@@ -139,7 +157,6 @@ abstract final class DittoBootstrap {
     ref.invalidate(accountingLedgerRepositoryProvider);
     invalidateAccountingDataStreams(ref);
     ref.invalidate(accountingPostSyncBootstrapProvider);
-    ref.invalidate(accountingStartupDiagnosticsProvider);
   }
 
   static Future<void> disposeOnSignOut(Ref ref) async {

@@ -14,6 +14,9 @@ class FakeAccountingDittoStore implements AccountingDittoStore {
   bool isReady() => ready;
 
   @override
+  bool isCloudReady() => ready;
+
+  @override
   Future<void> upsertAccountingAuditLog(
     String businessId,
     Map<String, dynamic> data,

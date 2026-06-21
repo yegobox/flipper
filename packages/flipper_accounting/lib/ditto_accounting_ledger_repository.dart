@@ -16,6 +16,11 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       debugPrint('[Accounting] Ditto COA seed skipped — not ready');
       return;
     }
+    if (!_ditto.isCloudReady()) {
+      throw StateError(
+        '[Accounting] Ditto COA seed blocked — cloud sync not ready',
+      );
+    }
     final existing = await _ditto.queryCollection(
       'chart_of_accounts',
       'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId LIMIT 1',
@@ -35,7 +40,21 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     for (final account in defaultChartOfAccountsSeed) {
       await _ditto.upsertChartOfAccount(businessId, account);
     }
-    debugPrint('[Accounting] Ditto COA seed completed');
+    final visible = await _ditto.queryCollection(
+      'chart_of_accounts',
+      'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId',
+      {'businessId': businessId},
+    );
+    debugPrint(
+      '[Accounting] Ditto COA seed completed '
+      '(${visible.length} rows visible via DQL)',
+    );
+    if (visible.isEmpty) {
+      throw StateError(
+        'Ditto COA seed wrote ${defaultChartOfAccountsSeed.length} accounts '
+        'but DQL returned 0 for businessId=$businessId',
+      );
+    }
   }
 
   @override

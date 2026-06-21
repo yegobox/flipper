@@ -57,6 +57,20 @@ class UserRepository {
   }
 
   Future<void> _saveProfileToDitto(UserProfile userProfile) async {
+    await syncProfileToDittoCloud(userProfile);
+  }
+
+  /// Push profile + nested tenant/business/branch docs to Ditto Cloud.
+  ///
+  /// Safe to call after [DittoBootstrap] completes — replays API-fetched data
+  /// that was missed when Ditto was not yet initialized.
+  Future<void> syncProfileToDittoCloud(UserProfile userProfile) async {
+    if (!_dittoService.isCloudReady()) {
+      debugPrint(
+        'Profile cached locally; will sync to Ditto cloud after auth/sync',
+      );
+      return;
+    }
     try {
       final userOnlyProfile = UserProfile(
         id: userProfile.id,
@@ -78,11 +92,12 @@ class UserRepository {
       }
 
       debugPrint(
-        'Saved user profile and related data to Ditto in normalized form',
+        'Saved user profile and related data to Ditto cloud '
+        '(sync=${_dittoService.isCloudReady()})',
       );
-    } catch (e) {
-      debugPrint('Warning: Could not save user profile to Ditto: $e');
-      debugPrint('Continuing without offline synchronization');
+    } catch (e, st) {
+      debugPrint('Could not sync user profile to Ditto cloud: $e\n$st');
+      rethrow;
     }
   }
 
