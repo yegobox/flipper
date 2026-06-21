@@ -6,6 +6,12 @@ import 'package:flutter/foundation.dart';
 
 final Set<String> _accountingSubscriptionKeys = {};
 
+/// Clears dedupe cache so the next bootstrap re-registers cloud subscriptions.
+void resetAccountingCloudSubscriptionKeys() {
+  _accountingSubscriptionKeys.clear();
+  debugPrint('[Accounting] cloud subscription keys cleared');
+}
+
 /// Cloud pull subscriptions for GL + POS collections (mirrors
 /// [ensureBranchCatalogCloudSubscriptions] for catalog data).
 Future<void> ensureAccountingCloudSubscriptions({

@@ -2,6 +2,7 @@ import 'package:flipper_web/features/business_selection/business_branch_selector
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_session_actions.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
@@ -476,11 +477,39 @@ class _SRow extends StatelessWidget {
   }
 }
 
-class AccountingMoreTab extends ConsumerWidget {
+class AccountingMoreTab extends ConsumerStatefulWidget {
   const AccountingMoreTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AccountingMoreTab> createState() => _AccountingMoreTabState();
+}
+
+class _AccountingMoreTabState extends ConsumerState<AccountingMoreTab> {
+  bool _refreshing = false;
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    try {
+      await ref.read(accountingCloudRefreshProvider.future);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Books data refreshed from cloud')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Refresh failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -502,6 +531,30 @@ class AccountingMoreTab extends ConsumerWidget {
                 );
               },
             ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: _refreshing ? null : _refresh,
+          icon: _refreshing
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.cloud_sync_outlined),
+          label: const Text('Refresh from cloud'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () => signOutFromBooks(context, ref),
+          icon: const Icon(Icons.logout),
+          label: const Text('Sign out'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+        ),
         const SizedBox(height: 16),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: AccountingTokens.ink1, minimumSize: const Size.fromHeight(48)),
