@@ -2,6 +2,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/features/business_selection/login_choices_ui.dart';
+import 'package:flipper_web/features/business_selection/session_business_selection.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -295,6 +296,7 @@ class _BusinessBranchSelectorState
     });
 
     ref.read(selectedBusinessProvider.notifier).set(business);
+    ref.read(selectedBranchProvider.notifier).set(null);
 
     try {
       final tenant = widget.userProfile.tenants.first;
@@ -333,6 +335,7 @@ class _BusinessBranchSelectorState
     });
 
     ref.read(selectedBranchProvider.notifier).set(branch);
+    lockSessionBranchChoice(ref);
 
     final business = ref.read(selectedBusinessProvider);
     if (business != null) {
@@ -341,6 +344,9 @@ class _BusinessBranchSelectorState
         userId: apiUserId ?? widget.userProfile.id,
         businessId: business.id,
         branchId: branch.id,
+      );
+      debugPrint(
+        '[Business] login choice saved branch=${branch.name} id=${branch.id}',
       );
     }
 

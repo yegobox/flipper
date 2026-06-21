@@ -2,6 +2,7 @@ import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
+import 'package:flipper_web/features/business_selection/session_business_selection.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -68,6 +69,7 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await DittoBootstrap.disposeOnSignOut(_ref);
+      clearSessionBusinessSelection(_ref);
       _ref.read(userProfileCacheProvider.notifier).state = null;
       _ref.read(sessionLoginKeyProvider.notifier).state = null;
       _ref.read(sessionApiUserIdProvider.notifier).state = null;

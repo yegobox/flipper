@@ -5,6 +5,7 @@ import 'package:flipper_web/core/api_login_key.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
+import 'package:flipper_web/features/business_selection/session_business_selection.dart';
 import 'package:flipper_web/core/utils/http_overrides.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
@@ -170,6 +171,8 @@ class AuthRepository {
       if (session == null) {
         throw Exception('No active session found');
       }
+
+      clearSessionBusinessSelection(_ref);
 
       final resolvedLoginKey =
           loginKey ?? _ref.read(sessionLoginKeyProvider);

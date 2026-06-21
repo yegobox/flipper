@@ -4,6 +4,7 @@ import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
@@ -148,6 +149,20 @@ final accountingLedgerRepositoryProvider =
 });
 
 Completer<void>? _accountingBootstrapInFlight;
+String _accountingBootstrapScopeKey = '';
+
+String _accountingBootstrapScope(String businessId, String branchId) =>
+    '$businessId|$branchId';
+
+void _ensureAccountingBootstrapScope(String businessId, String branchId) {
+  final scope = _accountingBootstrapScope(businessId, branchId);
+  if (scope == _accountingBootstrapScopeKey) return;
+  _accountingBootstrapScopeKey = scope;
+  resetAccountingCloudSubscriptionKeys();
+  debugPrint(
+    '[Accounting] bootstrap scope changed → businessId=$businessId branchId=$branchId',
+  );
+}
 
 /// Blocks until [dittoReadyProvider] is true (or times out).
 Future<bool> waitForAccountingDittoReady(
@@ -185,6 +200,7 @@ Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
     if (businessId.isEmpty) return;
 
     final branchId = ref.read(accountingBranchIdProvider);
+    _ensureAccountingBootstrapScope(businessId, branchId);
     final instance = ref.read(dittoServiceProvider).dittoInstance;
     if (instance == null) return;
 
@@ -220,10 +236,19 @@ Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
 /// Registers Ditto subscriptions, waits for replication, seeds COA if empty,
 /// logs diagnostics, then refreshes data streams.
 final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
-  // Re-run when Ditto auth or business selection changes.
+  // Wait for restore/login choices before reading branch for cloud subscriptions.
+  await ref.watch(selectedBusinessRestoreProvider.future);
+
   ref.watch(dittoReadyProvider);
   final businessId = ref.watch(accountingBusinessIdProvider);
+  final branchId = ref.watch(accountingBranchIdProvider);
   if (businessId.isEmpty) return;
+
+  debugPrint(
+    '[Accounting] post-sync bootstrap scheduled '
+    'businessId=$businessId branchId=${branchId.isEmpty ? "(none)" : branchId} '
+    'branch=${ref.read(selectedBranchProvider)?.name ?? "(none)"}',
+  );
 
   final strategy = ref.read(accountingBackendStrategyProvider);
   if (strategy == AccountingBackendStrategy.ditto) {

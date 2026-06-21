@@ -4,6 +4,7 @@ import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
+import 'package:flipper_web/features/business_selection/session_business_selection.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flutter/foundation.dart';
@@ -38,9 +39,23 @@ Future<void> restoreSelectedBusinessFromProfile(
 ) async {
   if (!profile.hasBusinesses) return;
 
+  if (ref.read(sessionBranchChoiceLockedProvider)) {
+    debugPrint(
+      '[Business] restore skipped — branch locked by login choices '
+      '(branch=${ref.read(selectedBranchProvider)?.name})',
+    );
+    return;
+  }
+
   final currentBusiness = ref.read(selectedBusinessProvider);
   final currentBranch = ref.read(selectedBranchProvider);
-  if (currentBusiness != null && currentBranch != null) return;
+  if (currentBusiness != null && currentBranch != null) {
+    debugPrint(
+      '[Business] restore skipped — already selected '
+      'business=${currentBusiness.name} branch=${currentBranch.name}',
+    );
+    return;
+  }
 
   final tenant = _primaryTenant(profile);
   final businesses = tenant.businesses;
@@ -75,8 +90,19 @@ Future<void> restoreSelectedBusinessFromProfile(
     branch = _defaultBranch(branches);
   }
 
+  // Re-read after async persistence lookup — login choices may have run meanwhile.
+  final liveBusiness = ref.read(selectedBusinessProvider);
+  final liveBranch = ref.read(selectedBranchProvider);
+  if (liveBusiness != null && liveBranch != null) {
+    debugPrint(
+      '[Business] restore aborted — selection set during restore '
+      '(branch=${liveBranch.name} id=${liveBranch.id})',
+    );
+    return;
+  }
+
   var restored = false;
-  if (currentBusiness == null) {
+  if (liveBusiness == null) {
     ref.read(selectedBusinessProvider.notifier).set(resolvedBusiness);
     restored = true;
     debugPrint(
@@ -84,7 +110,7 @@ Future<void> restoreSelectedBusinessFromProfile(
     );
   }
 
-  if (currentBranch == null && branch != null) {
+  if (liveBranch == null && branch != null) {
     ref.read(selectedBranchProvider.notifier).set(branch);
     restored = true;
     debugPrint(

@@ -1,49 +1,62 @@
 import 'dart:async';
 
+import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Provider to check if the user has selected a default business and branch in Ditto
+/// Whether Books can open: explicit in-memory selection or valid persisted choice.
 final hasSelectedBusinessAndBranchProvider = FutureProvider<bool>((ref) async {
+  final inMemoryBusiness = ref.watch(selectedBusinessProvider);
+  final inMemoryBranch = ref.watch(selectedBranchProvider);
+  if (inMemoryBusiness != null && inMemoryBranch != null) {
+    return true;
+  }
+
   try {
-    final userRepository = ref.watch(userRepositoryProvider);
-    final authService = ref.watch(authServiceProvider);
-
-    // Get current authenticated user
-    final currentUser = await authService.getCurrentUser();
-    if (currentUser == null) {
+    final profile = await ref.watch(currentUserProfileProvider.future);
+    if (profile == null || !profile.hasBusinesses) {
       return false;
     }
 
-    // Get businesses for this user
-    final businesses = await userRepository.getBusinessesForUser(
-      currentUser.id,
-    );
-    final defaultBusiness = businesses.where((b) => b.isDefault).toList();
+    final apiUserId = await SessionPersistence.readApiUserId();
+    final persisted = await BusinessSelectionPersistence.readForUserIds([
+      profile.id,
+      if (apiUserId != null) apiUserId,
+    ]);
+    if (persisted == null) return false;
 
-    if (defaultBusiness.isEmpty) {
-      return false;
-    }
+    final tenant = _primaryTenant(profile);
+    final business = tenant.businesses
+        .where((b) => b.id == persisted.businessId)
+        .firstOrNull;
+    if (business == null) return false;
 
-    // Get branches for the default business
-    final branches = await userRepository.getBranchesForBusiness(
-      defaultBusiness.first.id,
-    );
-    final defaultBranch = branches.where((b) => b.isDefault).toList();
-
-    return defaultBranch.isNotEmpty;
+    final branch = tenant.branches
+        .where(
+          (b) =>
+              b.businessId == business.id && b.id == persisted.branchId,
+        )
+        .firstOrNull;
+    return branch != null;
   } catch (e) {
-    // If there's an error, assume no selection has been made
     debugPrint('Error checking business/branch selection: $e');
     return false;
   }
 });
+
+Tenant _primaryTenant(UserProfile profile) {
+  for (final t in profile.tenants) {
+    if (t.businesses.isNotEmpty) return t;
+  }
+  return profile.tenants.first;
+}
 
 /// Provider for the current user profile.
 /// Checks the in-memory cache first (populated right after login), then
