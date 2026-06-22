@@ -76,7 +76,29 @@ class GlobalErrorHandler {
       stackTrace: stackTrace,
       type: type ?? 'manual',
       tags: tags,
-      extra: extra,
+      extra: {
+        if (context != null) ...context,
+        if (extra != null) ...extra,
+      },
+    );
+  }
+
+  /// Fire-and-forget helper for catch blocks (safe before/after [initialize]).
+  static void report(
+    Object error,
+    StackTrace? stackTrace, {
+    String? type,
+    Map<String, String>? tags,
+    Map<String, dynamic>? extra,
+  }) {
+    unawaited(
+      logError(
+        error,
+        stackTrace: stackTrace,
+        type: type ?? 'caught',
+        tags: tags,
+        extra: extra,
+      ),
     );
   }
 

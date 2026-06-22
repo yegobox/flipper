@@ -30,6 +30,7 @@ import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
 import 'package:supabase_models/brick/models/counter.model.dart';
+import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// Main repository class that serves as an entry point to the database operations
@@ -204,7 +205,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static Future<void> _configureAndInitializeDatabase({
     required String supabaseUrl,
     required String supabaseAnonKey,
-    bool configureDatabase = true,
   }) async {
     print('🚀 [Repository] Getting SharedPreferenceStorage...');
     final storage = await getSharedPreferenceStorage();
@@ -244,6 +244,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       dbPath = databaseManager.getDatabasePath(directory);
       queuePath = join(directory, queueFileName);
       print('✅ [Repository] Paths constructed: $dbPath, $queuePath');
+      PlatformHelpers.registerMainDatabasePath(dbPath);
 
       print(
           '🚀 [Repository] Ensuring directory exists and initializing queue database...');
@@ -258,7 +259,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
     // Create the client and queue for OfflineFirst
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
-      databaseFactory: PlatformHelpers.getDatabaseFactory(),
+      databaseFactory: PlatformHelpers.getQueueDatabaseFactory(),
       databasePath: queuePath, // This is the path for the queue database
       onReattempt: (http.Request request, dynamic object) async {
         _logger.info('Reattempting offline request: ${request.url}');
@@ -297,13 +298,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       modelDictionary: supabaseModelDictionary,
     );
 
-    // Create the SQLite provider with robust settings
+    // Turso requires a file path; web uses in-memory sqflite.
     final sqliteProvider = SqliteProvider(
-      // Use in-memory for tests/web, file path for native
-      DatabasePath.isTestEnvironment() || kIsWeb
-          ? PlatformHelpers.getInMemoryDatabasePath()
-          : dbPath, // This is the path for the main SQLite database
-      databaseFactory: PlatformHelpers.getDatabaseFactory(),
+      kIsWeb ? PlatformHelpers.getInMemoryDatabasePath() : dbPath,
+      databaseFactory: PlatformHelpers.getMainDatabaseFactory(dbPath),
       modelDictionary: sqliteModelDictionary,
     );
 
@@ -317,26 +315,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       dbPath: dbPath,
     );
 
-    // Configure the main database after initialization (non-web only)
-    // Use try-finally to ensure _markReady() is always called
-    try {
-      if (configureDatabase && !kIsWeb && !DatabasePath.isTestEnvironment()) {
-        _logger.info('Configuring database settings...');
-        // Configure the database with WAL mode and other settings
-        // Note: PRAGMA commands work even if the database file doesn't exist yet
-        await _singleton!._databaseManager.configureDatabaseSettings(
-            dbPath, PlatformHelpers.getDatabaseFactory());
-        await _singleton!._databaseManager.closeAllConnections();
-        print(
-            '✅ [Repository] Database configuration and connection closure completed successfully');
-      }
-    } catch (e) {
-      print('⚠️ [Repository] Error during database configuration: $e');
-    } finally {
-      print('🚀 [Repository] Marking Repository as ready...');
-      _markReady();
-      print('✅ [Repository] Repository marked as ready');
-    }
+    _markReady();
+    print('✅ [Repository] Repository marked as ready');
   }
 
   /// Atomically ensure directory exists
@@ -405,6 +385,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // 3. Reset the singleton and mark as disposed
       _singleton = null;
       _isDisposed = true;
+      PlatformHelpers.clearMainDatabaseFactoryCache();
     }
   }
 
@@ -414,7 +395,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static Future<void> initializeSupabaseAndConfigure({
     required String supabaseUrl,
     required String supabaseAnonKey,
-    bool configureDatabase = true,
   }) async {
     // Prevent concurrent initialization attempts
     if (_isInitializing) {
@@ -442,7 +422,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       await _configureAndInitializeDatabase(
         supabaseUrl: supabaseUrl,
         supabaseAnonKey: supabaseAnonKey,
-        configureDatabase: configureDatabase,
       );
       print('✅ [Repository] _configureAndInitializeDatabase completed');
       _logger.info('Repository initialization complete.');
@@ -496,26 +475,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
   }
 
-  /// Configure the database for better crash resilience
+  /// No-op: main Brick DB uses Turso (no sqflite PRAGMA pass).
   Future<void> configureDatabase() async {
-    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
+    if (kIsWeb) {
       return;
     }
-    if (_isDisposed) {
-      _logger.warning(
-          'Attempted to call configureDatabase on a disposed Repository.');
-      return;
-    }
-    try {
-      final dbPath =
-          join(await DatabasePath.getDatabaseDirectory(), dbFileName);
-      await _databaseManager.configureDatabaseSettings(
-          dbPath, PlatformHelpers.getDatabaseFactory());
-      _logger.info('Database configured for better crash resilience');
-    } catch (e) {
-      _logger.warning('Error during database configuration: $e');
-      // Continue without throwing as this is not critical
-    }
+    _logger.fine('configureDatabase skipped — main DB uses Turso');
   }
 
   /// Fixed tax calculation
@@ -601,6 +566,33 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
   }
 
+  /// Append-only log insert via the standard offline-first path:
+  /// local Turso → offline HTTP queue → Supabase PostgREST.
+  Future<Log> insertLog(Log log) async {
+    if (_isDisposed) {
+      throw StateError('Repository is disposed');
+    }
+
+    final entry = Log(
+      message: log.message,
+      type: log.type,
+      businessId: log.businessId,
+      createdAt: log.createdAt ?? DateTime.now().toUtc(),
+      tags: log.tags,
+      extra: log.extra,
+    );
+
+    return super.upsert<Log>(
+      entry,
+      policy: OfflineFirstUpsertPolicy.optimisticLocal,
+      query: const Query(
+        forProviders: [
+          SupabaseProviderQuery(upsertMethod: UpsertMethod.insert),
+        ],
+      ),
+    );
+  }
+
   /// Upserts a model from Ditto without triggering a Ditto notification loop.
   Future<TModel> upsertFromDitto<TModel extends OfflineFirstWithSupabaseModel>(
     TModel instance, {
@@ -638,7 +630,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
 
     _logger.info('Ensuring queue database is initialized: $queuePath');
-    final dbFactory = PlatformHelpers.getDatabaseFactory();
+    final dbFactory = PlatformHelpers.getQueueDatabaseFactory();
     Database? db;
 
     try {
@@ -699,7 +691,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Ensure the file exists
       await _ensureFileExists(queuePath);
 
-      final dbFactory = PlatformHelpers.getDatabaseFactory();
+      final dbFactory = PlatformHelpers.getQueueDatabaseFactory();
       db = await dbFactory.openDatabase(queuePath);
 
       // Create the requests table directly
@@ -795,7 +787,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           .where((s) => s.isNotEmpty)
           .toList();
 
-      final dbFactory = PlatformHelpers.getDatabaseFactory();
+      final dbFactory = PlatformHelpers.getQueueDatabaseFactory();
       db = await dbFactory.openDatabase(queuePath);
 
       // Execute each statement
