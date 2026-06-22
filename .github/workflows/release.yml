@@ -169,6 +169,7 @@ jobs:
         # to Chrome; dart2wasm + Ditto DQL read-after-write on cold start breaks
         # replication bootstrap (20s timeout → empty COA seed). Safari fell back
         # to main.dart.js and worked. Re-enable --wasm when bootstrap is WASM-safe.
+        # 
         run: |
           cd apps/flipper_web
           flutter build web --release
