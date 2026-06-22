@@ -17,6 +17,11 @@ dependencies:
 
 
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.0.0

@@ -1196,7 +1196,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     final repository = Repository();
     final taxConfigs = await repository.get<Configurations>(
-      policy: OfflineFirstGetPolicy.localOnly,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       query: Query(
         where: [
           Where('taxType').isExactly(taxType),

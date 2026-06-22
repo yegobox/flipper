@@ -39,10 +39,10 @@ Future<void> handlePersonalGoalFcmBackgroundMessage(RemoteMessage message) async
     // Plugin may already be initialized in process.
     try {
       await flutterLocalNotificationsPlugin.show(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'Personal goal',
-        body,
-        const NotificationDetails(
+        id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title: 'Personal goal',
+        body: body,
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             kPackageId,
             'App notifications',

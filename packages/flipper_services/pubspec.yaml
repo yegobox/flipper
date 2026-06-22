@@ -34,7 +34,7 @@ dependencies:
   stacked_services: ^1.6.0
   universal_platform: ^1.0.0+1
   googleapis_auth: ^1.4.1
-  timezone: ^0.10.0
+  timezone: ^0.11.0
   connectivity_plus: ^7.0.0
   get_it: ^8.0.3
   injectable: ^2.5.0
@@ -45,7 +45,7 @@ dependencies:
   google_fonts: ^6.1.0
   shared_preferences: ^2.5.2
   # newrelic_mobile: ^1.1.12
-  flutter_local_notifications: ^19.5.0
+  flutter_local_notifications: ^22.0.1
  
   window_manager: ^0.5.1
   launcher_entry: ^0.1.1
@@ -59,6 +59,11 @@ dependencies:
   # flipper_rw: any
   device_info_plus: ^12.3.0
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.0.0
@@ -68,9 +73,7 @@ dependency_overrides:
   device_info_plus: ^12.3.0
   archive: ^4.0.9
   excel:
-    git:
-      url: https://github.com/justkawal/excel.git
-      ref: 751dfc597c893a0b34eccfe6921f126e03a5c683
+    path: ../../open-sources/excel
   cbor: ^6.3.7
   jni: ^0.14.2
 

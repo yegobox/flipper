@@ -33,7 +33,7 @@ class DarwinNotifications extends BaseNotifications {
     );
 
     await notificationsPlugin.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveBackgroundNotificationResponse:
           notificationBackgroundCallback,
       onDidReceiveNotificationResponse: notificationCallback,
@@ -110,11 +110,11 @@ class DarwinNotifications extends BaseNotifications {
     final notificationDetails = createPlatformNotificationDetails();
 
     await notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      notificationDetails,
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(scheduledDate, tz.local),
+      notificationDetails: notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       payload: payload,
     );
@@ -131,10 +131,10 @@ class DarwinNotifications extends BaseNotifications {
     final notificationDetails = createPlatformNotificationDetails();
 
     await notificationsPlugin.show(
-      id,
-      title,
-      body,
-      notificationDetails,
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: notificationDetails,
       payload: payload,
     );
   }

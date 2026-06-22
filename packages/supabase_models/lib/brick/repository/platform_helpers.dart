@@ -114,6 +114,13 @@ class PlatformHelpers {
     final DatabaseFactory factory;
     if (AppSecrets.tursoCloudSyncEnabled) {
       final localFile = File(localPath);
+      if (TursoReplicaPaths.hasOrphanedSyncMetadata(localPath)) {
+        _logger.warning(
+          'Removing orphaned Turso sync metadata for $localPath '
+          '(main database file missing). Will bootstrap from cloud if empty.',
+        );
+        TursoReplicaPaths.removeOrphanedSyncMetadata(localPath);
+      }
       final bootstrapIfEmpty =
           !localFile.existsSync() || localFile.lengthSync() == 0;
       _logger.info(

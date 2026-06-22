@@ -466,7 +466,7 @@ SPEC CHECKSUMS:
   FirebaseSessions: 804bd321f2d2f2ddafe74ef7856062aa19f179c2
   flutter_contacts: 79bd91c6f0edbe70e001ec3f0ded2ef1a1e9711e
   flutter_gemma: b7c86902cf69f6c9a1eea947f1f23a9fe8ce82ba
-  flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
+  flutter_local_notifications: 14e285ca39907db50704f7f46c9ab7a526bd7ead
   flutter_localization: 98afcba7642d9909fd5bfc62b62d4cc2cd15727b
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
@@ -487,7 +487,7 @@ SPEC CHECKSUMS:
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
   PostHog: 6c74cc84f3872f4335108ff363aecdeb7c278052
   posthog_flutter: 91cc329875300250370eb806ac7286329a75e9cd
-  printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
+  printing: 21cad72d1185754ed5cadc9e6639c1668d933c38
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   record_macos: 4680f37daeebf52162e715efb7ff682f0a5ce4fd

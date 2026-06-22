@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.670+1586
+version: 1.0.672+1588
 
 
 environment:
@@ -45,6 +45,11 @@ dependencies:
   supabase_models: any
   shared_preferences: ^2.5.3
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   archive: ^4.0.9
   sqlite3: ^3.3.1
   # Wasm-safe replacement: upstream flutter_keyboard_visibility_web 2.0.0 imports

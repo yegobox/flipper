@@ -37,7 +37,7 @@ class WindowsNotifications extends BaseNotifications {
     );
 
     await notificationsPlugin.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveBackgroundNotificationResponse:
           notificationBackgroundCallback,
       onDidReceiveNotificationResponse: notificationCallback,
@@ -132,10 +132,10 @@ class WindowsNotifications extends BaseNotifications {
     final notificationDetails = createPlatformNotificationDetails();
 
     await notificationsPlugin.show(
-      id,
-      title,
-      body,
-      notificationDetails,
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: notificationDetails,
       payload: payload,
     );
   }

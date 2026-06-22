@@ -30,6 +30,11 @@ dependencies:
   
   
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.0.0
@@ -38,8 +43,6 @@ dependency_overrides:
   device_info_plus: ^12.3.0
   archive: ^4.0.9
   excel:
-    git:
-      url: https://github.com/justkawal/excel.git
-      ref: 751dfc597c893a0b34eccfe6921f126e03a5c683
+    path: ../../open-sources/excel
   cbor: ^6.3.7
   jni: ^0.14.2

@@ -36,6 +36,11 @@ dependencies:
   flipper_ui: any
 
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   flipper_models:
     path: ../../packages/flipper_models
   http: ^1.2.2
