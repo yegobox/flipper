@@ -57,6 +57,12 @@ scripts:
     packageFilters:
       scope: "flipper_ai"
     description: Generate app icons for flipper_ai
+
+  generate:icons:web:
+    exec: dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+    packageFilters:
+      scope: "flipper_web"
+    description: Generate app icons for flipper_web (Books)
   
   test:ai:
     exec: flutter test --coverage  --dart-define=FLUTTER_TEST_ENV=true

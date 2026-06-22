@@ -13,9 +13,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Restores [selectedBusinessProvider] / [selectedBranchProvider] after reload
 /// or navigation before Books reads [accountingBusinessIdProvider].
 final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
-  // Keep selection alive while restore runs.
-  ref.watch(selectedBusinessProvider);
-  ref.watch(selectedBranchProvider);
+  // Read (not watch) — watching would re-run this provider when restore sets
+  // selectedBusinessProvider / selectedBranchProvider (circular dependency).
+  ref.read(selectedBusinessProvider);
+  ref.read(selectedBranchProvider);
 
   final cached = ref.read(userProfileCacheProvider);
   if (cached != null && cached.hasBusinesses) {
@@ -24,7 +25,7 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
     return;
   }
 
-  final profile = await ref.watch(currentUserProfileProvider.future);
+  final profile = await ref.read(currentUserProfileProvider.future);
   if (profile != null && profile.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, profile);
   }
@@ -127,12 +128,7 @@ Future<void> restoreSelectedBusinessFromProfile(
     );
     ref.read(bankRecLocalLinesProvider.notifier).state = null;
     ref.read(bankRecFinishedProvider.notifier).state = false;
-    ref.invalidate(chartOfAccountsStreamProvider);
-    ref.invalidate(journalEntriesStreamProvider);
-    ref.invalidate(bankLinesStreamProvider);
-    ref.invalidate(rawTransactionStreamProvider);
-    ref.invalidate(rawTransactionItemsProvider);
-    ref.invalidate(accountingPostSyncBootstrapProvider);
+    // Streams rebuild via accountingBusinessIdProvider when selection is set.
   }
 }
 

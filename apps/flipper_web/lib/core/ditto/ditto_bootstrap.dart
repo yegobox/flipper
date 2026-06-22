@@ -156,7 +156,11 @@ abstract final class DittoBootstrap {
     ref.invalidate(accountingRepositoryProvider);
     ref.invalidate(accountingLedgerRepositoryProvider);
     invalidateAccountingDataStreams(ref);
-    ref.invalidate(accountingPostSyncBootstrapProvider);
+    // Defer so callers awaiting selectedBusinessRestoreProvider can complete.
+    Future.microtask(() {
+      if (!ref.mounted) return;
+      ref.invalidate(accountingPostSyncBootstrapProvider);
+    });
   }
 
   static Future<void> disposeOnSignOut(Ref ref) async {

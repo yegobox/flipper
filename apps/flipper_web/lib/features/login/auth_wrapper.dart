@@ -1,3 +1,4 @@
+import 'package:flipper_web/core/routing/app_entry_route.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
@@ -49,7 +50,18 @@ class AuthWrapper extends ConsumerWidget {
               ),
             );
           case AuthState.unauthenticated:
-            // If unauthenticated, ensure we land on the home screen
+            if (opensOnLoginScreen) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (GoRouterState.of(context).uri.path != '/login') {
+                  context.go('/login');
+                }
+              });
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            // Web: marketing home at `/`.
             WidgetsBinding.instance.addPostFrameCallback((_) {
               final current = Uri.base.path;
               if (current != '/') {

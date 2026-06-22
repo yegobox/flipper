@@ -231,6 +231,24 @@ Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
       branchId: branchId.isEmpty ? null : branchId,
     );
 
+    // COA can replicate before journal_entries on native — wait for GL rows.
+    if (replicated) {
+      final journalReady = await waitForJournalEntriesInDitto(
+        ditto: instance,
+        businessId: businessId,
+        timeout: kIsWeb
+            ? const Duration(seconds: 15)
+            : const Duration(seconds: 45),
+      );
+      if (!journalReady) {
+        debugPrint(
+          '[Accounting] journal_entries not visible yet after replication — '
+          'scheduling delayed stream refresh',
+        );
+        _scheduleAccountingReplicationRefresh(ref);
+      }
+    }
+
     final cloudSyncUp =
         instance.sync.isActive && instance.auth.status.isAuthenticated;
     if (!replicated && kIsWeb && cloudSyncUp) {
@@ -261,8 +279,9 @@ Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
 /// Registers Ditto subscriptions, waits for replication, seeds COA if empty,
 /// logs diagnostics, then refreshes data streams.
 final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
-  // Wait for restore/login choices before reading branch for cloud subscriptions.
-  await ref.watch(selectedBusinessRestoreProvider.future);
+  // One-shot wait for restore — read (not watch) avoids circular dependency
+  // when Ditto bootstrap invalidates this provider during restore.
+  await ref.read(selectedBusinessRestoreProvider.future);
 
   ref.watch(dittoReadyProvider);
   final businessId = ref.watch(accountingBusinessIdProvider);
@@ -593,7 +612,8 @@ final pendingCountProvider = Provider<int>((ref) {
 
 final accountingLoadingProvider = Provider<bool>((ref) {
   return ref.watch(rawTransactionStreamProvider).isLoading ||
-      ref.watch(chartOfAccountsStreamProvider).isLoading;
+      ref.watch(chartOfAccountsStreamProvider).isLoading ||
+      ref.watch(journalEntriesStreamProvider).isLoading;
 });
 
 int _rawInt(dynamic v) {
@@ -637,51 +657,57 @@ Future<void> logAccountingStartupDiagnostics(Ref ref) async {
     return;
   }
 
+  // One-shot DQL only — do not subscribe to StreamProviders here; bootstrap
+  // invalidations during startup can dispose Ditto FFI observers on macOS.
   try {
     if (ref.read(accountingBackendStrategyProvider) ==
             AccountingBackendStrategy.ditto &&
         ref.read(dittoReadyProvider)) {
-      final directRows = await ref.read(dittoServiceProvider).queryCollection(
-            'chart_of_accounts',
-            'SELECT * FROM chart_of_accounts WHERE businessId = :businessId',
-            {'businessId': businessId},
-          );
-      debugPrint(
-        '[Accounting] chart_of_accounts (DQL): ${directRows.length} rows',
+      final ditto = ref.read(dittoServiceProvider);
+      final coaRows = await ditto.queryCollection(
+        'chart_of_accounts',
+        'SELECT * FROM chart_of_accounts WHERE businessId = :businessId',
+        {'businessId': businessId},
       );
-    }
-    final coa = await ref.read(chartOfAccountsStreamProvider.future);
-    debugPrint('[Accounting] chart_of_accounts: ${coa.length} accounts');
-    if (coa.isNotEmpty) {
       debugPrint(
-        '[Accounting]   sample codes: ${coa.take(5).map((a) => a.code).join(", ")}',
+        '[Accounting] chart_of_accounts (DQL): ${coaRows.length} rows',
       );
+      if (coaRows.isNotEmpty) {
+        final codes = coaRows
+            .take(5)
+            .map((r) => r['code'] ?? r['accountCode'] ?? '?')
+            .join(', ');
+        debugPrint('[Accounting]   sample codes: $codes');
+      }
+
+      final journalRows = await ditto.queryCollection(
+        'journal_entries',
+        'SELECT status FROM journal_entries WHERE businessId = :businessId',
+        {'businessId': businessId},
+      );
+      final pending =
+          journalRows.where((r) => r['status'] == 'pending').length;
+      final posted =
+          journalRows.where((r) => r['status'] == 'posted').length;
+      debugPrint(
+        '[Accounting] journal_entries: ${journalRows.length} total '
+        '($posted posted, $pending pending)',
+      );
+
+      final branchId = ref.read(accountingBranchIdProvider);
+      if (branchId.isNotEmpty) {
+        final txRows = await ditto.queryCollection(
+          'transactions',
+          'SELECT _id FROM transactions WHERE branchId = :branchId',
+          {'branchId': branchId},
+        );
+        debugPrint(
+          '[Accounting] transactions (branch): ${txRows.length} rows',
+        );
+      }
     }
   } catch (e) {
-    debugPrint('[Accounting] COA stream error: $e');
-  }
-
-  try {
-    final journal = await ref.read(journalEntriesStreamProvider.future);
-    final pending =
-        journal.where((e) => e.status == JournalStatus.pending).length;
-    final posted =
-        journal.where((e) => e.status == JournalStatus.posted).length;
-    debugPrint(
-      '[Accounting] journal_entries: ${journal.length} total '
-      '($posted posted, $pending pending)',
-    );
-  } catch (e) {
-    debugPrint('[Accounting] journal stream error: $e');
-  }
-
-  try {
-    final txns = await ref.read(rawTransactionStreamProvider.future);
-    debugPrint(
-      '[Accounting] transactions (period): ${txns.length} COMPLETE rows',
-    );
-  } catch (e) {
-    debugPrint('[Accounting] transaction stream error: $e');
+    debugPrint('[Accounting] startup DQL diagnostics error: $e');
   }
 
   debugPrint('[Accounting] ── startup complete ──');

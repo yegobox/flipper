@@ -4,6 +4,7 @@ import 'package:flipper_accounting/default_chart_of_accounts_seed.dart';
 import 'package:flipper_accounting/ledger_row_mapper.dart';
 import 'package:flipper_accounting/accounting_ledger_repository.dart';
 import 'package:flipper_accounting/accounting_ditto_store.dart';
+import 'package:intl/intl.dart';
 
 class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   DittoAccountingLedgerRepository(this._ditto);
@@ -98,37 +99,77 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) {
+    // Date filter in Dart — Ditto rows may use entryDate ISO or entry_date strings.
+    const query =
+        'SELECT * FROM journal_entries WHERE businessId = :businessId';
     final args = <String, dynamic>{'businessId': businessId};
-    var query = 'SELECT * FROM journal_entries WHERE businessId = :businessId';
-    if (startDate != null) {
-      query += ' AND entryDate >= :start';
-      args['start'] = startDate.toIso8601String();
-    }
-    if (endDate != null) {
-      query += ' AND entryDate <= :end';
-      args['end'] = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
-          .toIso8601String();
-    }
-    query += ' ORDER BY entryDate DESC';
 
     return _ditto.watchCollection('journal_entries', query, args).asyncMap((entries) async {
-      if (entries.isEmpty) return <JournalEntry>[];
+      final inRange = entries.where((row) {
+        return _entryInDateRange(row, startDate: startDate, endDate: endDate);
+      }).toList();
+      if (inRange.isEmpty) return <JournalEntry>[];
 
       final result = <JournalEntry>[];
-      for (final row in entries) {
+      for (final row in inRange) {
         final entryId = (row['id'] ?? row['_id']).toString();
-        final lines = await _ditto.queryCollection(
+        var lines = await _ditto.queryCollection(
           'journal_lines',
           'SELECT * FROM journal_lines WHERE journalEntryId = :entryId',
           {'entryId': entryId},
         );
+        if (lines.isEmpty) {
+          lines = await _ditto.queryCollection(
+            'journal_lines',
+            'SELECT * FROM journal_lines WHERE journal_entry_id = :entryId',
+            {'entryId': entryId},
+          );
+        }
         result.add(LedgerRowMapper.entryFromRow(
           row,
           lines.map(LedgerRowMapper.lineFromRow).toList(),
         ));
       }
+      result.sort((a, b) => b.date.compareTo(a.date));
       return result;
     });
+  }
+
+  static bool _entryInDateRange(
+    Map<String, dynamic> row, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    if (startDate == null && endDate == null) return true;
+    final parsed = _parseEntryRowDate(row['entry_date'] ?? row['entryDate']);
+    if (parsed == null) return true;
+    final day = DateTime(parsed.year, parsed.month, parsed.day);
+    if (startDate != null) {
+      final start = DateTime(startDate.year, startDate.month, startDate.day);
+      if (day.isBefore(start)) return false;
+    }
+    if (endDate != null) {
+      final end = DateTime(endDate.year, endDate.month, endDate.day);
+      if (day.isAfter(end)) return false;
+    }
+    return true;
+  }
+
+  static DateTime? _parseEntryRowDate(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is DateTime) return raw;
+    final text = raw.toString().trim();
+    if (text.isEmpty) return null;
+    final iso = DateTime.tryParse(text);
+    if (iso != null) return iso;
+    for (final pattern in ['d MMM y', 'MMM d y', 'MMM d', 'd MMM']) {
+      try {
+        return DateFormat(pattern).parse(text);
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
   }
 
   @override

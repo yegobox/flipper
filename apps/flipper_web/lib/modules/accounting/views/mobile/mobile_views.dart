@@ -263,11 +263,31 @@ class AccountingApprovalsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final journalAsync = ref.watch(journalEntriesStreamProvider);
     final actions = ref.watch(approvalActionsProvider);
-    final pending = ref.watch(accountingJournalProvider).where((e) => e.status == JournalStatus.pending).toList();
+    final journal = journalAsync.value ?? [];
+    final pending =
+        journal.where((e) => e.status == JournalStatus.pending).toList();
     final accountMap = {
       for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
     };
+
+    if (journalAsync.isLoading && journal.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (journalAsync.hasError && journal.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Could not load journal entries: ${journalAsync.error}',
+            style: AccountingTokens.sans(color: AccountingTokens.ink3),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -313,8 +333,14 @@ class AccountingApprovalsTab extends ConsumerWidget {
             padding: const EdgeInsets.all(30),
             child: Center(
               child: Text(
-                "Nothing waiting — you're all caught up.",
+                journalAsync.isLoading
+                    ? 'Loading journal entries…'
+                    : journal.isEmpty
+                        ? 'Journal entries are still syncing from the cloud. '
+                            'Pull down to refresh in a moment.'
+                        : "Nothing waiting — you're all caught up.",
                 style: AccountingTokens.sans(color: AccountingTokens.ink3),
+                textAlign: TextAlign.center,
               ),
             ),
           ),

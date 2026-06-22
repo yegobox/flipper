@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.674+1590
+version: 1.0.676+1592
 
 
 environment:
@@ -44,6 +44,7 @@ dependencies:
   sqflite_common: ^2.5.4+6
   supabase_models: any
   shared_preferences: ^2.5.3
+  flutter_native_splash: ^2.4.7
 dependency_overrides:
   xml: ^7.0.1
   smithy:
@@ -71,6 +72,7 @@ dev_dependencies:
   mocktail: ^1.0.4
   riverpod_generator: ^3.0.3
   build_runner: ^2.10.4
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   generate: true
@@ -104,3 +106,22 @@ flutter:
           weight: 600
         - asset: assets/fonts/GeistMono-700.ttf
           weight: 700
+
+# Regenerate platform launcher icons after changing assets/flipper_books_logo.png:
+# dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/flipper_books_logo.png
+  color_dark: "#FFFFFF"
+  image_dark: assets/flipper_books_logo.png
+  android_12:
+    color: "#FFFFFF"
+    image: assets/flipper_books_logo.png
+  android: true
+  ios: true
+  web: true
+  ios_content_mode: center
+  android_gravity: center
+  web_image_mode: contain
+  # dart run flutter_native_splash:create

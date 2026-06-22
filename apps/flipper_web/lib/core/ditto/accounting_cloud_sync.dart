@@ -128,8 +128,7 @@ Future<bool> waitForAccountingReplication({
 }) async {
   if (businessId.isEmpty) return false;
 
-  final effectiveTimeout = timeout ??
-      (kIsWeb ? const Duration(seconds: 90) : const Duration(seconds: 20));
+  final effectiveTimeout = timeout ?? const Duration(seconds: 90);
 
   const pollInterval = Duration(milliseconds: 500);
   final deadline = DateTime.now().add(effectiveTimeout);

@@ -1,0 +1,21 @@
+# dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+flutter_launcher_icons:
+  image_path: assets/flipper_books_logo.png
+
+  android: true
+  min_sdk_android: 21
+
+  ios: true
+  image_path_ios: assets/flipper_books_logo.png
+  remove_alpha_channel_ios: true
+  remove_alpha_ios: true
+
+  web:
+    generate: true
+    image_path: assets/flipper_books_logo.png
+    background_color: "#ffffff"
+    theme_color: "#2563EB"
+
+  macos:
+    generate: true
+    image_path: assets/flipper_books_logo.png
