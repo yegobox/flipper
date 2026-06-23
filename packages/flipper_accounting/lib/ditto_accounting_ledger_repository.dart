@@ -76,6 +76,22 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
+  Future<void> createChartOfAccount({
+    required String businessId,
+    required Account account,
+  }) async {
+    final existing = await _ditto.queryCollection(
+      'chart_of_accounts',
+      'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId AND code = :code',
+      {'businessId': businessId, 'code': account.code},
+    );
+    if (existing.isNotEmpty) {
+      throw StateError('Account code ${account.code} already exists');
+    }
+    await _ditto.upsertChartOfAccount(businessId, account);
+  }
+
+  @override
   Stream<List<Account>> watchChartOfAccounts({required String businessId}) {
     return _ditto
         .watchCollection(

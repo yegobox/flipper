@@ -40,6 +40,14 @@ class ChartAccountResolver {
             a.sub.toLowerCase().contains('operating'),
       );
 
+  /// Expense accounts sorted by code (for category pickers).
+  List<Account> get expenseCategories {
+    final rows =
+        accounts.where((a) => a.type == AccountType.expense).toList()
+          ..sort((a, b) => a.code.compareTo(b.code));
+    return rows;
+  }
+
   /// Credit account for a purchase recorded with [pmtTyCd] (RRA payment codes).
   String? purchaseCreditAccount(String pmtTyCd) {
     switch (pmtTyCd) {

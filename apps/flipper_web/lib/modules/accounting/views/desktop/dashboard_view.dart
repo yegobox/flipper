@@ -13,9 +13,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AccountingDashboardView extends ConsumerWidget {
-  const AccountingDashboardView({super.key, required this.onNewEntry});
+  const AccountingDashboardView({
+    super.key,
+    required this.onNewEntry,
+    required this.onRecordExpense,
+  });
 
   final VoidCallback onNewEntry;
+  final VoidCallback onRecordExpense;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,6 +105,11 @@ class AccountingDashboardView extends ConsumerWidget {
                   label: 'Export',
                   icon: Icons.download_outlined,
                 ),
+              ),
+              AccountingButton(
+                label: 'Record expense',
+                icon: Icons.account_balance_wallet_outlined,
+                onPressed: onRecordExpense,
               ),
               AccountingButton(
                 label: 'New journal entry',

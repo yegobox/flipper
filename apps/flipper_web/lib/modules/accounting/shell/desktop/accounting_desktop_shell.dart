@@ -10,6 +10,8 @@ import 'package:flipper_web/modules/accounting/views/desktop/contacts_views.dart
 import 'package:flipper_web/modules/accounting/views/desktop/dashboard_view.dart';
 import 'package:flipper_web/modules/accounting/views/desktop/journal_view.dart';
 import 'package:flipper_web/modules/accounting/views/desktop/other_desktop_views.dart';
+import 'package:flipper_web/modules/accounting/widgets/create_account_modal.dart';
+import 'package:flipper_web/modules/accounting/widgets/expense_entry_panel.dart';
 import 'package:flipper_web/modules/accounting/widgets/journal_composer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +26,10 @@ class AccountingDesktopShell extends ConsumerWidget {
 
     void openComposer() {
       ref.read(composerOpenProvider.notifier).state = true;
+    }
+
+    void openExpensePanel() {
+      ref.read(expenseUiProvider.notifier).state = true;
     }
 
     void closeComposer() {
@@ -60,12 +66,15 @@ class AccountingDesktopShell extends ConsumerWidget {
                                   child: _DesktopViewRouter(
                                     view: view,
                                     onNewEntry: openComposer,
+                                    onRecordExpense: openExpensePanel,
                                   ),
                                 ),
                               ),
                               const AccountingContactsDrawerHost(),
                               const AccountingBillingPanelHost(),
                               const AccountingRecurringPanelHost(),
+                              const AccountingExpensePanelHost(),
+                              const CreateAccountModalHost(),
                             ],
                           );
                         },
@@ -84,16 +93,22 @@ class AccountingDesktopShell extends ConsumerWidget {
 }
 
 class _DesktopViewRouter extends StatelessWidget {
-  const _DesktopViewRouter({required this.view, required this.onNewEntry});
+  const _DesktopViewRouter({
+    required this.view,
+    required this.onNewEntry,
+    required this.onRecordExpense,
+  });
 
   final AccountingView view;
   final VoidCallback onNewEntry;
+  final VoidCallback onRecordExpense;
 
   @override
   Widget build(BuildContext context) {
     return switch (view) {
       AccountingView.dashboard => AccountingDashboardView(
         onNewEntry: onNewEntry,
+        onRecordExpense: onRecordExpense,
       ),
       AccountingView.invoices => const AccountingInvoicesView(),
       AccountingView.customers => const AccountingCustomersView(),
@@ -107,7 +122,10 @@ class _DesktopViewRouter extends StatelessWidget {
         kind: 'ap',
         onNewEntry: onNewEntry,
       ),
-      AccountingView.journal => AccountingJournalView(onNewEntry: onNewEntry),
+      AccountingView.journal => AccountingJournalView(
+        onNewEntry: onNewEntry,
+        onRecordExpense: onRecordExpense,
+      ),
       AccountingView.ledger => const AccountingGeneralLedgerView(),
       AccountingView.recurring => const AccountingRecurringView(),
       AccountingView.bankRec => const AccountingBankRecView(),

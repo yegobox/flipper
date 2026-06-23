@@ -968,5 +968,9 @@ class App {}
 // proxy_set_header x-rra-base-url https://your-prod-rra.example/rra/;
 // in /etc/nginx/sites-available/prod.api.yegobox.com, then nginx -t && systemctl reload nginx. UAT can keep its own header in uat.api.yegobox.com when that URL is ready.
 
+// # Quit the app, then:
+// touch macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png
+// flutter clean && flutter run -d macos
+// dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
 // Delete this if no longer needed:
 //  /Users/richard/Library/Containers/rw.flipper/Data/Library/Application Support/rw.flipper/flutter_gemma/Gemma3-1B-IT_multi-prefill-seq_q8_ekv1280.litertlm

@@ -50,6 +50,27 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
+  Future<void> createChartOfAccount({
+    required String businessId,
+    required Account account,
+  }) async {
+    final existing = await _client
+        .from(_coaTable)
+        .select('id')
+        .eq('business_id', businessId)
+        .eq('code', account.code)
+        .maybeSingle();
+    if (existing != null) {
+      throw StateError('Account code ${account.code} already exists');
+    }
+
+    final row = _forPostgrest(
+      LedgerRowMapper.accountToRow(account, businessId: businessId),
+    );
+    await _client.from(_coaTable).insert(row);
+  }
+
+  @override
   Stream<List<Account>> watchChartOfAccounts({required String businessId}) {
     return _client
         .from(_coaTable)

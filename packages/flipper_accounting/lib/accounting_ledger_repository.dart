@@ -7,6 +7,12 @@ abstract class AccountingLedgerRepository {
 
   Stream<List<Account>> watchChartOfAccounts({required String businessId});
 
+  /// Adds a new chart-of-accounts row. Throws if [account.code] already exists.
+  Future<void> createChartOfAccount({
+    required String businessId,
+    required Account account,
+  });
+
   Stream<List<JournalEntry>> watchJournalEntries({
     required String businessId,
     DateTime? startDate,
