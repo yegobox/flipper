@@ -37,7 +37,8 @@ void main() {
       expect(find.text('BOOKS'), findsWidgets);
       expect(find.text('Start free'), findsWidgets);
       expect(find.text('does itself.'), findsOneWidget);
-      expect(find.textContaining('Accounting that'), findsOneWidget);
+      expect(find.text('Accounting'), findsOneWidget);
+      expect(find.text('that '), findsOneWidget);
       expect(find.text('See how it works'), findsOneWidget);
       expect(find.text('RRA / EBM-ready'), findsOneWidget);
 
