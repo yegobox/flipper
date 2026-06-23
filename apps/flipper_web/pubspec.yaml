@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.688+1604
+version: 1.0.689+1605
 
 
 environment:
@@ -107,16 +107,20 @@ flutter:
         - asset: assets/fonts/GeistMono-700.ttf
           weight: 700
 
-# Regenerate platform launcher icons after changing assets/flipper_books_logo.png:
-# dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+# Icons (favicon, web/icons/, Android mipmap, iOS AppIcon):
+#   dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+#
+# Splash (web/splash/img/, launch screens — also rewrites index.html splash CSS):
+#   dart run flutter_native_splash:create
+#   Then re-check web/index.html: centered 128px logo styles are hand-maintained.
 
 flutter_native_splash:
-  color: "#FFFFFF"
+  color: "#06080D"
   image: assets/flipper_books_logo.png
-  color_dark: "#FFFFFF"
+  color_dark: "#06080D"
   image_dark: assets/flipper_books_logo.png
   android_12:
-    color: "#FFFFFF"
+    color: "#06080D"
     image: assets/flipper_books_logo.png
   android: true
   ios: true
@@ -124,4 +128,3 @@ flutter_native_splash:
   ios_content_mode: center
   android_gravity: center
   web_image_mode: contain
-  # dart run flutter_native_splash:create

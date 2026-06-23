@@ -54,10 +54,16 @@ void _logError(
   debugPrint(buffer.toString());
 }
 
-/// runApp inside a zone so uncaught async errors reach the console.
-void runAppWithErrorLogging(Widget app) {
-  runZonedGuarded(
-    () => runApp(app),
+/// Runs [bootstrap] in a guarded zone.
+///
+/// [WidgetsFlutterBinding.ensureInitialized] and [runApp] must both run inside
+/// [bootstrap] so Flutter's binding uses the same zone for initialization and
+/// the widget tree.
+Future<void> runZonedWithErrorLogging(
+  Future<void> Function() bootstrap,
+) async {
+  await runZonedGuarded(
+    bootstrap,
     (error, stackTrace) => _logError(error, stackTrace, type: 'zone_error'),
   );
 }
