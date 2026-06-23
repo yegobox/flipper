@@ -518,6 +518,14 @@ class _TableCell extends StatelessWidget {
     }
 
     final text = cell?.toString() ?? '';
+    final htmlCell = _parseHtmlTableCell(text);
+    if (htmlCell != null) {
+      return _styledText(
+        htmlCell.text,
+        cls: htmlCell.cls,
+        alignRight: isNum,
+      );
+    }
     if (isLeadCol && text.isNotEmpty) {
       return _leadContent(text, _swatchColors[rowIndex % _swatchColors.length]);
     }
@@ -589,6 +597,21 @@ class _TableCell extends StatelessWidget {
     if (text.startsWith('+') || text.contains('+')) return 'pos';
     return null;
   }
+}
+
+/// Parsed HTML mistakenly placed in a table cell string by the LLM.
+({String text, String? cls})? _parseHtmlTableCell(String raw) {
+  if (!raw.contains('<')) return null;
+  final lower = raw.toLowerCase();
+  String? cls;
+  if (lower.contains('class') && lower.contains('neg')) {
+    cls = 'neg';
+  } else if (lower.contains('class') && lower.contains('pos')) {
+    cls = 'pos';
+  }
+  final text = raw.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+  if (text.isEmpty) return null;
+  return (text: text, cls: cls);
 }
 
 class _CalloutBlock extends StatelessWidget {
