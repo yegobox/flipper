@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/session_persistence.dart';
@@ -37,7 +39,13 @@ class AuthService {
     try {
       final local = _client.auth.currentSession;
       if (local != null) return local;
-      final response = await _client.auth.refreshSession();
+      final response = await _client.auth.refreshSession().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          debugPrint('Supabase refreshSession timed out');
+          throw TimeoutException('refreshSession');
+        },
+      );
       return response.session;
     } catch (e) {
       debugPrint('Error getting session: $e');

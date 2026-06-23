@@ -18,6 +18,13 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
   ref.read(selectedBusinessProvider);
   ref.read(selectedBranchProvider);
 
+  // Native Flipper shell seeds selection from ProxyService.box before Books opens.
+  if (ref.read(selectedBusinessProvider) != null &&
+      ref.read(selectedBranchProvider) != null) {
+    await DittoBootstrap.kickoffIfNeeded(ref);
+    return;
+  }
+
   final cached = ref.read(userProfileCacheProvider);
   if (cached != null && cached.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, cached);

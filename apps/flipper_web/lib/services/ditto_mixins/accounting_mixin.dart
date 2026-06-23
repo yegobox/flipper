@@ -203,7 +203,7 @@ mixin AccountingMixin on DittoCore {
     Map<String, dynamic> args,
   ) {
     final ditto = dittoInstance;
-    if (ditto == null) return const Stream.empty();
+    if (ditto == null) return Stream.value(const <Map<String, dynamic>>[]);
 
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     dynamic observer;

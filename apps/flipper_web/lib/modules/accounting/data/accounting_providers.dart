@@ -339,12 +339,14 @@ final accountingDittoSyncProvider = Provider<void>((ref) {
 
 // ─── Raw data streams ────────────────────────────────────────────────────────
 
+Stream<List<T>> _accountingEmptyStream<T>() => Stream.value(<T>[]);
+
 final rawTransactionStreamProvider =
     StreamProvider<List<Map<String, dynamic>>>((ref) {
   if (ref.watch(accountingBackendStrategyProvider) ==
           AccountingBackendStrategy.ditto &&
       !ref.watch(dittoReadyProvider)) {
-    return const Stream.empty();
+    return _accountingEmptyStream<Map<String, dynamic>>();
   }
   final repo = ref.watch(accountingRepositoryProvider);
   final branchId = ref.watch(accountingBranchIdProvider);
@@ -376,10 +378,10 @@ final chartOfAccountsStreamProvider = StreamProvider<List<Account>>((ref) {
   if (ref.watch(accountingBackendStrategyProvider) ==
           AccountingBackendStrategy.ditto &&
       !ref.watch(dittoReadyProvider)) {
-    return const Stream.empty();
+    return _accountingEmptyStream<Account>();
   }
   final businessId = ref.watch(accountingBusinessIdProvider);
-  if (businessId.isEmpty) return const Stream.empty();
+  if (businessId.isEmpty) return _accountingEmptyStream<Account>();
   return ref
       .watch(accountingLedgerRepositoryProvider)
       .watchChartOfAccounts(businessId: businessId);
@@ -389,10 +391,10 @@ final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
   if (ref.watch(accountingBackendStrategyProvider) ==
           AccountingBackendStrategy.ditto &&
       !ref.watch(dittoReadyProvider)) {
-    return const Stream.empty();
+    return _accountingEmptyStream<JournalEntry>();
   }
   final businessId = ref.watch(accountingBusinessIdProvider);
-  if (businessId.isEmpty) return const Stream.empty();
+  if (businessId.isEmpty) return _accountingEmptyStream<JournalEntry>();
   final (start, end) = ref.watch(accountingDateRangeProvider);
   return ref.watch(accountingLedgerRepositoryProvider).watchJournalEntries(
         businessId: businessId,
@@ -403,7 +405,7 @@ final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
 
 final bankLinesStreamProvider = StreamProvider<List<BankLine>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
-  if (businessId.isEmpty) return const Stream.empty();
+  if (businessId.isEmpty) return _accountingEmptyStream<BankLine>();
   return ref.watch(accountingLedgerRepositoryProvider).watchBankLines(
         businessId: businessId,
       );
