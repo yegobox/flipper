@@ -686,24 +686,21 @@ class _PinLoginState extends State<PinLogin>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SignInBrandHeader(),
-          if (compact)
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, scrollConstraints) {
-                  return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: scrollConstraints.maxHeight,
-                      ),
-                      child: formContent,
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, scrollConstraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: scrollConstraints.maxHeight,
                     ),
-                  );
-                },
-              ),
-            )
-          else
-            Expanded(child: formContent),
+                    child: formContent,
+                  ),
+                );
+              },
+            ),
+          ),
           if (!compact) const SignInBottomBar(),
         ],
       ),
