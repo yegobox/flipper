@@ -97,7 +97,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }
 
   static String get _generatedDefaultDbFileName {
-    return '${_dbFileBaseName}_v$_effectiveVersion.sqlite';
+    return '$_dbFileBaseName.sqlite';
   }
 
   static String get _generatedDefaultQueueFileName {
