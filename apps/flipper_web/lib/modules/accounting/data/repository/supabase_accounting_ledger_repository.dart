@@ -235,15 +235,21 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
-  Future<void> postJournalEntry({
+  Future<bool> postJournalEntry({
     required String businessId,
     required String entryId,
+    bool onlyIfPending = false,
   }) async {
-    await _client
+    var query = _client
         .from(_entriesTable)
         .update({'status': 'posted'})
         .eq('id', entryId)
         .eq('business_id', businessId);
+    if (onlyIfPending) {
+      query = query.eq('status', 'pending');
+    }
+    final rows = await query.select('id');
+    return rows.isNotEmpty;
   }
 
   @override

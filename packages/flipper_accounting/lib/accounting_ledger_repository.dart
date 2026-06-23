@@ -49,9 +49,15 @@ abstract class AccountingLedgerRepository {
     required JournalEntry entry,
   });
 
-  Future<void> postJournalEntry({
+  /// Transitions a journal entry to `posted`.
+  ///
+  /// When [onlyIfPending] is true, only updates rows still in `pending` status
+  /// (first-write-wins for concurrent approval). Returns whether this call
+  /// applied the transition.
+  Future<bool> postJournalEntry({
     required String businessId,
     required String entryId,
+    bool onlyIfPending = false,
   });
 
   Stream<List<BankLine>> watchBankLines({

@@ -2,6 +2,7 @@ import 'package:flipper_web/features/business_selection/business_branch_selector
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/data/services/journal_approval_service.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_session_actions.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -269,6 +270,117 @@ class AccountingApprovalsTab extends ConsumerStatefulWidget {
 class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab> {
   String? _approvingEntryId;
 
+  Future<void> _approveEntry(JournalEntry entry) async {
+    if (_approvingEntryId != null) return;
+    final businessId = ref.read(accountingBusinessIdProvider);
+    final uuid = entry.uuid;
+    if (businessId.isEmpty || uuid == null) return;
+    if (entry.status != JournalStatus.pending) return;
+
+    setState(() => _approvingEntryId = entry.id);
+    try {
+      final result = await ref
+          .read(journalApprovalServiceProvider)
+          .approve(entryId: uuid, businessId: businessId);
+      if (!mounted) return;
+      if (result.posted) {
+        _markApproved(entry, offline: false);
+      } else if (result.alreadyPosted) {
+        _showAlreadyApproved(entry);
+      } else {
+        showAccountingToast(
+          context,
+          'Cannot approve',
+          subtitle: '${entry.id} is ${result.status} (no longer pending)',
+          icon: Icons.info_outline,
+          tone: AccountingToastTone.warn,
+        );
+      }
+    } on JournalApprovalException catch (err) {
+      if (!mounted) return;
+      if (!err.isOffline) {
+        showAccountingToast(
+          context,
+          'Approval failed',
+          subtitle: err.message,
+          icon: Icons.error_outline,
+          tone: AccountingToastTone.warn,
+        );
+        return;
+      }
+      await _approveEntryOffline(entry, businessId: businessId, entryId: uuid);
+    } catch (err) {
+      if (!mounted) return;
+      showAccountingToast(
+        context,
+        'Approval failed',
+        subtitle: err.toString(),
+        icon: Icons.error_outline,
+        tone: AccountingToastTone.warn,
+      );
+    } finally {
+      if (mounted) setState(() => _approvingEntryId = null);
+    }
+  }
+
+  Future<void> _approveEntryOffline(
+    JournalEntry entry, {
+    required String businessId,
+    required String entryId,
+  }) async {
+    try {
+      final posted = await ref
+          .read(accountingLedgerRepositoryProvider)
+          .postJournalEntry(
+            businessId: businessId,
+            entryId: entryId,
+            onlyIfPending: true,
+          );
+      if (!mounted) return;
+      if (posted) {
+        _markApproved(entry, offline: true);
+      } else {
+        _showAlreadyApproved(entry);
+      }
+    } catch (err) {
+      if (!mounted) return;
+      showAccountingToast(
+        context,
+        'Offline approval failed',
+        subtitle: err.toString(),
+        icon: Icons.error_outline,
+        tone: AccountingToastTone.warn,
+      );
+    }
+  }
+
+  void _markApproved(JournalEntry entry, {required bool offline}) {
+    ref.read(approvalActionsProvider.notifier).update(
+          (m) => {...m, entry.id: ApprovalAction.approve},
+        );
+    showAccountingToast(
+      context,
+      offline ? 'Approved offline' : 'Approved & posted',
+      subtitle: offline
+          ? '${entry.id} posted on this device. Reconnect to confirm — '
+              'another device may have approved while you were offline.'
+          : '${entry.id} is now on the ledger',
+      icon: offline ? Icons.cloud_off : Icons.check,
+      tone: offline ? AccountingToastTone.warn : AccountingToastTone.success,
+    );
+  }
+
+  void _showAlreadyApproved(JournalEntry entry) {
+    showAccountingToast(
+      context,
+      'Already approved',
+      subtitle:
+          '${entry.id} was posted on another device while you were reviewing',
+      icon: Icons.info_outline,
+      tone: AccountingToastTone.info,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final journalAsync = ref.watch(journalEntriesStreamProvider);
@@ -320,26 +432,7 @@ class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab>
             action: actions[e.id],
             accountMap: accountMap,
             isApproving: _approvingEntryId == e.id,
-            onApprove: () async {
-              if (_approvingEntryId != null) return;
-              final businessId = ref.read(accountingBusinessIdProvider);
-              final uuid = e.uuid;
-              if (businessId.isEmpty || uuid == null) return;
-
-              setState(() => _approvingEntryId = e.id);
-              try {
-                await ref.read(accountingLedgerRepositoryProvider).postJournalEntry(
-                      businessId: businessId,
-                      entryId: uuid,
-                    );
-                if (!mounted) return;
-                ref.read(approvalActionsProvider.notifier).update(
-                      (m) => {...m, e.id: ApprovalAction.approve},
-                    );
-              } finally {
-                if (mounted) setState(() => _approvingEntryId = null);
-              }
-            },
+            onApprove: () => _approveEntry(e),
             onReject: () => ref.read(approvalActionsProvider.notifier).update(
                   (m) => {...m, e.id: ApprovalAction.reject},
                 ),

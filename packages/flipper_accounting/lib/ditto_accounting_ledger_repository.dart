@@ -270,11 +270,22 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
   }
 
   @override
-  Future<void> postJournalEntry({
+  Future<bool> postJournalEntry({
     required String businessId,
     required String entryId,
+    bool onlyIfPending = false,
   }) async {
+    if (onlyIfPending) {
+      return _ditto.executeUpdateWhere(
+        'journal_entries',
+        entryId,
+        {'status': 'posted'},
+        extraWhere: 'status = :expectedStatus',
+        extraArgs: {'expectedStatus': 'pending'},
+      );
+    }
     await _ditto.executeUpdate('journal_entries', entryId, {'status': 'posted'});
+    return true;
   }
 
   @override

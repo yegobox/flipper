@@ -102,10 +102,29 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
   }) async {}
 
   @override
-  Future<void> postJournalEntry({
+  Future<bool> postJournalEntry({
     required String businessId,
     required String entryId,
-  }) async {}
+    bool onlyIfPending = false,
+  }) async {
+    final idx = _entries.indexWhere((e) => e.uuid == entryId);
+    if (idx < 0) return false;
+    final current = _entries[idx];
+    if (onlyIfPending && current.status != JournalStatus.pending) {
+      return false;
+    }
+    _entries[idx] = JournalEntry(
+      id: current.id,
+      date: current.date,
+      memo: current.memo,
+      ref: current.ref,
+      status: JournalStatus.posted,
+      src: current.src,
+      lines: current.lines,
+      uuid: current.uuid,
+    );
+    return true;
+  }
 
   @override
   Stream<List<BankLine>> watchBankLines({

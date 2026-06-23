@@ -131,4 +131,35 @@ class DittoCore {
       rethrow;
     }
   }
+
+  /// Conditional update — returns whether any document matched.
+  Future<bool> executeUpdateWhere(
+    String collection,
+    String docId,
+    Map<String, dynamic> data, {
+    required String extraWhere,
+    Map<String, dynamic> extraArgs = const {},
+  }) async {
+    final ditto = dittoInstance;
+    if (ditto == null) {
+      handleNotInitialized('executeUpdateWhere');
+      throw StateError('Ditto not initialized');
+    }
+
+    await ensureDittoCloudWriteReady(ditto);
+
+    final fields = data.keys.map((key) => '$key = :$key').join(', ');
+    try {
+      final result = await ditto.store.execute(
+        'UPDATE $collection SET $fields WHERE _id = :id AND ($extraWhere)',
+        arguments: {'id': docId, ...data, ...extraArgs},
+      );
+      return result.mutatedDocumentIDs().isNotEmpty;
+    } catch (e, st) {
+      debugPrint(
+        'Error executing conditional update ($collection/$docId): $e\n$st',
+      );
+      rethrow;
+    }
+  }
 }

@@ -67,6 +67,16 @@ abstract class AccountingDittoStore {
     Map<String, dynamic> data,
   );
 
+  /// Like [executeUpdate] but only when [extraWhere] matches (without `WHERE`).
+  /// Returns true when at least one document was updated.
+  Future<bool> executeUpdateWhere(
+    String collection,
+    String docId,
+    Map<String, dynamic> data, {
+    required String extraWhere,
+    Map<String, dynamic> extraArgs = const {},
+  });
+
   Future<void> upsertAccountingDocument(
     String businessId,
     Map<String, dynamic> data,

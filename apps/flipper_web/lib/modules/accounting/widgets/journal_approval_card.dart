@@ -19,7 +19,7 @@ class JournalApprovalCard extends StatelessWidget {
   final JournalEntry entry;
   final ApprovalAction? action;
   final Map<String, Account> accountMap;
-  final VoidCallback onApprove;
+  final Future<void> Function() onApprove;
   final VoidCallback onReject;
   final bool isApproving;
 
@@ -189,7 +189,7 @@ class JournalApprovalCard extends StatelessWidget {
                       child: _ActionButton(
                         label: 'Approve',
                         icon: Icons.check,
-                        onPressed: busy ? null : onApprove,
+                        onPressed: busy ? null : () => onApprove(),
                         filled: true,
                         isLoading: busy,
                       ),

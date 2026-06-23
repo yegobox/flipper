@@ -25,6 +25,7 @@ import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_ledger_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_repository.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
+import 'package:flipper_web/modules/accounting/data/services/journal_approval_service.dart';
 import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_web/modules/accounting/data/transaction_journal_poster.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
@@ -74,6 +75,10 @@ final bankStatementMetaProvider = StateProvider<ParsedStatement?>((ref) => null)
 
 final bankStatementServiceProvider = Provider<BankStatementService>(
   (ref) => BankStatementService(),
+);
+
+final journalApprovalServiceProvider = Provider<JournalApprovalService>(
+  (ref) => JournalApprovalService(),
 );
 
 final coaTypeFilterProvider = StateProvider<AccountType?>((ref) => null);

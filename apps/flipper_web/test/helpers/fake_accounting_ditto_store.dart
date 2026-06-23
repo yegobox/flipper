@@ -85,6 +85,16 @@ class FakeAccountingDittoStore implements AccountingDittoStore {
   ) async {}
 
   @override
+  Future<bool> executeUpdateWhere(
+    String collection,
+    String docId,
+    Map<String, dynamic> data, {
+    required String extraWhere,
+    Map<String, dynamic> extraArgs = const {},
+  }) async =>
+      true;
+
+  @override
   Future<void> upsertAccountingDocument(
     String businessId,
     Map<String, dynamic> data,
