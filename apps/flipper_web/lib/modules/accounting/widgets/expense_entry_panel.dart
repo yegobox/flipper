@@ -38,6 +38,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
   ExpensePaymentMethod _paymentMethod = ExpensePaymentMethod.cash;
   bool _submitted = false;
   bool _defaultCategorySet = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -80,9 +81,11 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
   }
 
   Future<void> _submit() async {
-    if (!_canSubmit) return;
+    if (!_canSubmit || _isSubmitting) return;
     final businessId = ref.read(accountingBusinessIdProvider);
     if (businessId.isEmpty) return;
+
+    setState(() => _isSubmitting = true);
 
     final accounts = ref.read(accountingAccountsProvider);
     final roles = ChartAccountResolver(accounts);
@@ -106,13 +109,24 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
       ),
     );
 
-    await ref.read(accountingLedgerRepositoryProvider).createJournalEntry(
-          businessId: businessId,
-          entry: entry,
-          journalCode: 'misc',
-        );
+    try {
+      await ref.read(accountingLedgerRepositoryProvider).createJournalEntry(
+            businessId: businessId,
+            entry: entry,
+            journalCode: 'misc',
+          );
 
-    if (mounted) setState(() => _submitted = true);
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+          _submitted = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
@@ -407,7 +421,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
           child: Row(
             children: [
               Expanded(
-                child: AccountingButton(label: 'Cancel', onPressed: widget.onClose),
+                child: AccountingButton(label: 'Cancel', onPressed: _isSubmitting ? null : widget.onClose),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -416,7 +430,8 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                   icon: Icons.check,
                   primary: true,
                   enabled: _canSubmit,
-                  onPressed: _canSubmit ? _submit : null,
+                  isLoading: _isSubmitting,
+                  onPressed: _canSubmit && !_isSubmitting ? _submit : null,
                 ),
               ),
             ],

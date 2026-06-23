@@ -84,6 +84,7 @@ class AccountingButton extends StatelessWidget {
     this.primary = false,
     this.small = false,
     this.enabled = true,
+    this.isLoading = false,
   });
 
   final String label;
@@ -93,6 +94,7 @@ class AccountingButton extends StatelessWidget {
   final bool primary;
   final bool small;
   final bool enabled;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +107,18 @@ class AccountingButton extends StatelessWidget {
     );
 
     Widget buildContent({required bool iconOnly}) {
+      if (isLoading) {
+        final spinnerColor = primary ? Colors.white : AccountingTokens.accent;
+        return SizedBox(
+          width: small ? 15 : 18,
+          height: small ? 15 : 18,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: spinnerColor,
+          ),
+        );
+      }
+
       final iconSize = small ? 15.0 : 17.0;
       final iconColor = primary ? Colors.white : AccountingTokens.ink1;
       final iconWidget = accIcon != null
@@ -167,15 +181,17 @@ class AccountingButton extends StatelessWidget {
                   child: content,
                 );
 
+          final canPress = enabled && !isLoading && onPressed != null;
+
           if (primary) {
             return FilledButton(
-              onPressed: enabled ? onPressed : null,
+              onPressed: canPress ? onPressed : null,
               style: buttonStyle,
               child: child,
             );
           }
           return OutlinedButton(
-            onPressed: enabled ? onPressed : null,
+            onPressed: canPress ? onPressed : null,
             style: buttonStyle,
             child: child,
           );

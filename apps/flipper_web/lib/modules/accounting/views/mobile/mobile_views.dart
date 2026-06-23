@@ -258,11 +258,19 @@ class _MiniKpi extends StatelessWidget {
   }
 }
 
-class AccountingApprovalsTab extends ConsumerWidget {
+class AccountingApprovalsTab extends ConsumerStatefulWidget {
   const AccountingApprovalsTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AccountingApprovalsTab> createState() =>
+      _AccountingApprovalsTabState();
+}
+
+class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab> {
+  String? _approvingEntryId;
+
+  @override
+  Widget build(BuildContext context) {
     final journalAsync = ref.watch(journalEntriesStreamProvider);
     final actions = ref.watch(approvalActionsProvider);
     final journal = journalAsync.value ?? [];
@@ -311,18 +319,26 @@ class AccountingApprovalsTab extends ConsumerWidget {
             entry: e,
             action: actions[e.id],
             accountMap: accountMap,
+            isApproving: _approvingEntryId == e.id,
             onApprove: () async {
+              if (_approvingEntryId != null) return;
               final businessId = ref.read(accountingBusinessIdProvider);
               final uuid = e.uuid;
-              if (businessId.isNotEmpty && uuid != null) {
+              if (businessId.isEmpty || uuid == null) return;
+
+              setState(() => _approvingEntryId = e.id);
+              try {
                 await ref.read(accountingLedgerRepositoryProvider).postJournalEntry(
                       businessId: businessId,
                       entryId: uuid,
                     );
+                if (!mounted) return;
+                ref.read(approvalActionsProvider.notifier).update(
+                      (m) => {...m, e.id: ApprovalAction.approve},
+                    );
+              } finally {
+                if (mounted) setState(() => _approvingEntryId = null);
               }
-              ref.read(approvalActionsProvider.notifier).update(
-                    (m) => {...m, e.id: ApprovalAction.approve},
-                  );
             },
             onReject: () => ref.read(approvalActionsProvider.notifier).update(
                   (m) => {...m, e.id: ApprovalAction.reject},

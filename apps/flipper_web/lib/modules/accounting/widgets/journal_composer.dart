@@ -34,6 +34,8 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
   List<ComposerLine> _lines = [ComposerLine(), ComposerLine()];
   int? _pickerIndex;
   bool _submitted = false;
+  bool _isSaving = false;
+  bool _submittingForApproval = false;
 
   @override
   void initState() {
@@ -132,9 +134,15 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
   }
 
   Future<void> _saveEntry({required bool submitForApproval}) async {
+    if (_isSaving) return;
     if (submitForApproval && !_canPost) return;
     final businessId = ref.read(accountingBusinessIdProvider);
     if (businessId.isEmpty) return;
+
+    setState(() {
+      _isSaving = true;
+      _submittingForApproval = submitForApproval;
+    });
 
     final entry = JournalEntry(
       id: _refCtrl.text,
@@ -150,26 +158,42 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
       ],
     );
 
-    await ref
-        .read(accountingLedgerRepositoryProvider)
-        .createJournalEntry(
-          businessId: businessId,
-          entry: entry,
-          journalCode: 'misc',
-        );
+    try {
+      await ref
+          .read(accountingLedgerRepositoryProvider)
+          .createJournalEntry(
+            businessId: businessId,
+            entry: entry,
+            journalCode: 'misc',
+          );
 
-    if (submitForApproval) {
-      setState(() => _submitted = true);
-    } else {
-      if (mounted) {
+      if (!mounted) return;
+
+      if (submitForApproval) {
+        setState(() {
+          _isSaving = false;
+          _submitted = true;
+        });
+      } else {
         showAccountingToast(
           context,
           'Draft saved',
           subtitle: '${_refCtrl.text} kept in Drafts',
           icon: Icons.receipt_long_outlined,
         );
+        widget.onClose();
       }
-      widget.onClose();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        showAccountingToast(
+          context,
+          'Could not save entry',
+          subtitle: '$e',
+          icon: Icons.error_outline,
+          tone: AccountingToastTone.warn,
+        );
+      }
     }
   }
 
@@ -454,6 +478,8 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
           totDr: _totDr,
           totCr: _totCr,
           canPost: _canPost,
+          isSaving: _isSaving,
+          submittingForApproval: _submittingForApproval,
           onSaveDraft: () => _saveEntry(submitForApproval: false),
           onPost: () => _saveEntry(submitForApproval: true),
         ),
@@ -955,6 +981,8 @@ class _ComposerFooter extends StatelessWidget {
     required this.totDr,
     required this.totCr,
     required this.canPost,
+    required this.isSaving,
+    required this.submittingForApproval,
     required this.onSaveDraft,
     required this.onPost,
   });
@@ -964,6 +992,8 @@ class _ComposerFooter extends StatelessWidget {
   final int totDr;
   final int totCr;
   final bool canPost;
+  final bool isSaving;
+  final bool submittingForApproval;
   final VoidCallback onSaveDraft;
   final VoidCallback onPost;
 
@@ -1055,7 +1085,7 @@ class _ComposerFooter extends StatelessWidget {
                 child: SizedBox(
                   height: 50,
                   child: OutlinedButton(
-                    onPressed: onSaveDraft,
+                    onPressed: isSaving ? null : onSaveDraft,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AccountingTokens.ink1,
                       side: const BorderSide(
@@ -1066,13 +1096,19 @@ class _ComposerFooter extends StatelessWidget {
                         borderRadius: BorderRadius.circular(11),
                       ),
                     ),
-                    child: Text(
-                      'Save draft',
-                      style: AccountingTokens.sans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: isSaving && !submittingForApproval
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            'Save draft',
+                            style: AccountingTokens.sans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -1081,7 +1117,7 @@ class _ComposerFooter extends StatelessWidget {
                 child: SizedBox(
                   height: 50,
                   child: FilledButton(
-                    onPressed: canPost ? onPost : null,
+                    onPressed: canPost && !isSaving ? onPost : null,
                     style: FilledButton.styleFrom(
                       backgroundColor: AccountingTokens.accent,
                       disabledBackgroundColor: AccountingTokens.accent
@@ -1090,21 +1126,30 @@ class _ComposerFooter extends StatelessWidget {
                         borderRadius: BorderRadius.circular(11),
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.check, size: 18, color: Colors.white),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Submit for approval',
-                          style: AccountingTokens.sans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                    child: isSaving && submittingForApproval
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.check, size: 18, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Submit for approval',
+                                style: AccountingTokens.sans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),
