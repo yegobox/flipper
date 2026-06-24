@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# Auto-sync git submodules after a merge or `git pull`.
+#
+# Keeps submodule working trees aligned with the commits the merged/pulled
+# revision pins, so you never build against a stale vendored submodule.
+echo "[post-merge] syncing submodules to the pinned commits..."
+git submodule update --init --recursive

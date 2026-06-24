@@ -76,10 +76,13 @@ This repository is a monorepo managed with [Melos](https://melos.invertase.dev/)
     melos bootstrap
     ```
 
-4.  **Enable repo git hooks**:
+4.  **Enable repo git hooks** (one-time):
     ```bash
     git config core.hooksPath hooks
     ```
+    This also installs `post-checkout`/`post-merge` hooks that **automatically
+    sync submodules** to the commit each branch pins on every `git switch` and
+    `git pull` — so you never build against a stale submodule.
 
 ### Manual Configuration
 
@@ -97,6 +100,57 @@ For templates and detailed setup instructions, please contact us at `info@yegobo
 Additional implementation guides:
 
 - [Flipper Sync Framework](docs/ditto_sync.md)
+
+### 🪟 Running on Windows (local)
+
+CI builds the Windows app on GitHub's `windows-latest` runners, which come
+pre-provisioned and run elevated. A local machine needs a few extra steps that
+CI gets for free:
+
+1.  **Submodules** are kept in sync automatically by the git hooks (setup step 4)
+    on every branch switch and pull. If one ever gets stuck at the wrong commit
+    (e.g. it has local changes the hook won't overwrite), force-reset them:
+    ```bash
+    git submodule update --init --force --recursive
+    ```
+
+2.  **Install the Rust toolchain**. `turso_dart` builds a Rust native library via
+    a `hook/build.dart` and requires `rustup`/`cargo` on `PATH` (GitHub runners
+    ship with Rust pre-installed). After installing, open a fresh terminal:
+    ```powershell
+    winget install Rustlang.Rustup
+    rustup default stable
+    ```
+
+3.  **Run via the helper script**, which bundles every local workaround (Rust on
+    PATH, per-source PDBs, and turso DLL recovery) so you don't have to remember
+    them:
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File scripts\run-windows.ps1
+    ```
+    (works on stock Windows PowerShell 5.1; `pwsh` works too if you have it).
+    It runs `flutter run -d windows`; extra args are forwarded.
+
+#### Why the workarounds are needed (and the real fix)
+
+On-access antivirus (e.g. **Bitdefender**, IPA's managed endpoint AV) interferes
+with the build directory in two ways:
+
+- It locks freshly written `.pdb`/`.ilk`/`.tlog` files mid-link → scattered
+  `C1041` / `LNK1104` / `MSB6003 "used by another process"` errors. The script
+  sets `UseMultiToolTask=true` (one PDB per source) to sidestep this.
+- It grabs `turso_dart_native.dll` as cargo links it from `release\deps\` to the
+  `release\` root, so Flutter's `install_code_assets` can't find it. The script
+  restores the DLL and retries.
+
+**The durable fix is an antivirus exclusion** for the repo's `build\` and
+`.dart_tool\` folders, after which the script's workarounds become unnecessary.
+On a managed device you usually can't set this yourself — request it from IT.
+At IPA: email `support@poverty-action.org` asking for an on-access scanning
+exclusion for your local clone path (e.g. `C:\...\flipper\`).
+
+Note: don't run two Windows builds against the same checkout at once — concurrent
+builds write the same PDBs and fail with `C1041`.
 
 ## 🤝 Contributing
 
