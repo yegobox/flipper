@@ -17,8 +17,10 @@ mixin NetworkHelper {
         baseUrl,
         data: json.encode(data),
         options: Options(
+          // connectTimeout is a connection-level setting and only exists on
+          // BaseOptions (Dio instance), not per-request Options. Set it on
+          // dioInstance's BaseOptions if a connect timeout is needed.
           headers: headers,
-          connectTimeout: const Duration(seconds: 120),
           sendTimeout: const Duration(seconds: 120),
           receiveTimeout: const Duration(seconds: 120),
         ),

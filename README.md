@@ -76,10 +76,13 @@ This repository is a monorepo managed with [Melos](https://melos.invertase.dev/)
     melos bootstrap
     ```
 
-4.  **Enable repo git hooks**:
+4.  **Enable repo git hooks** (one-time):
     ```bash
     git config core.hooksPath hooks
     ```
+    This also installs `post-checkout`/`post-merge` hooks that **automatically
+    sync submodules** to the commit each branch pins on every `git switch` and
+    `git pull` — so you never build against a stale submodule.
 
 ### Manual Configuration
 
@@ -104,8 +107,9 @@ CI builds the Windows app on GitHub's `windows-latest` runners, which come
 pre-provisioned and run elevated. A local machine needs a few extra steps that
 CI gets for free:
 
-1.  **Sync submodules to their pinned commits**. Stale submodule checkouts cause
-    misleading dependency-resolution failures during `melos bootstrap`:
+1.  **Submodules** are kept in sync automatically by the git hooks (setup step 4)
+    on every branch switch and pull. If one ever gets stuck at the wrong commit
+    (e.g. it has local changes the hook won't overwrite), force-reset them:
     ```bash
     git submodule update --init --force --recursive
     ```
