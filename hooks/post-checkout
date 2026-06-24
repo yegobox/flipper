@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# Auto-sync git submodules to the commit each branch pins.
+#
+# Without this, `git switch`/`git checkout` updates the submodule pointers in
+# the index but leaves submodule working trees parked at their previous commit.
+# That stale state causes confusing build failures (e.g. "Member not found"
+# from an older vendored brick, or dependency-resolution errors in melos).
+#
+# post-checkout args: $1 = prev HEAD, $2 = new HEAD, $3 = flag (1 = branch
+# checkout, 0 = file checkout). Only run on a branch checkout.
+[ "$3" = "1" ] || exit 0
+
+echo "[post-checkout] syncing submodules to the pinned commits..."
+git submodule update --init --recursive

@@ -76,10 +76,13 @@ This repository is a monorepo managed with [Melos](https://melos.invertase.dev/)
     melos bootstrap
     ```
 
-4.  **Enable repo git hooks**:
+4.  **Enable repo git hooks** (one-time):
     ```bash
     git config core.hooksPath hooks
     ```
+    This also installs `post-checkout`/`post-merge` hooks that **automatically
+    sync submodules** to the commit each branch pins on every `git switch` and
+    `git pull` — so you never build against a stale submodule.
 
 ### Manual Configuration
 
@@ -97,6 +100,41 @@ For templates and detailed setup instructions, please contact us at `info@yegobo
 Additional implementation guides:
 
 - [Flipper Sync Framework](docs/ditto_sync.md)
+
+### 🪟 Running on Windows (local)
+
+CI builds the Windows app on GitHub's `windows-latest` runners, which come
+pre-provisioned and run elevated. A local machine needs a few extra steps that
+CI gets for free:
+
+1.  **Submodules** are kept in sync automatically by the git hooks (setup step 4)
+    on every branch switch and pull. If one ever gets stuck at the wrong commit
+    (e.g. it has local changes the hook won't overwrite), force-reset them:
+    ```bash
+    git submodule update --init --force --recursive
+    ```
+
+2.  **Install the Rust toolchain**. `turso_dart` builds a Rust native library via
+    a `hook/build.dart` and requires `rustup`/`cargo` on `PATH` (GitHub runners
+    ship with Rust pre-installed). After installing, open a fresh terminal:
+    ```powershell
+    winget install Rustlang.Rustup
+    rustup default stable
+    ```
+
+3.  **Avoid antivirus PDB-lock build failures**. On-access scanners (e.g.
+    Bitdefender) lock freshly written `.pdb`/`.ilk`/`.tlog` files mid-link,
+    producing scattered `C1041` / `LNK1104` / `MSB6003 "used by another process"`
+    errors. Build each source to its own PDB to sidestep the contention:
+    ```powershell
+    $env:UseMultiToolTask = "true"
+    flutter run -d windows
+    ```
+    If errors persist, ask IT to add an on-access scanning exclusion for the
+    repo's `build\` folder. (At IPA, request this via `support@poverty-action.org`.)
+
+Note: don't run two Windows builds against the same checkout at once — concurrent
+builds write the same PDBs and fail with `C1041`.
 
 ## 🤝 Contributing
 
