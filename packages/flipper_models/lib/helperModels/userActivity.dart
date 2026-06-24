@@ -15,25 +15,28 @@ class Activity extends IJsonSerializable {
   DateTime? lastTouched;
   int userId;
 
-  late String action;
+  late String? action;
 
-  Activity(
-      {required this.id,
-      required this.timestamp,
-      required this.userId,
-      required this.action,
-      this.lastTouched});
+  Activity({
+    required this.id,
+    required this.timestamp,
+    required this.userId,
+    required this.action,
+    this.lastTouched,
+  });
 
   factory Activity.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
 
-    json['lastTouched'] = (json['lastTouched'] == null ||
-            json['lastTouched'].toString().isEmpty)
+    json['lastTouched'] =
+        (json['lastTouched'] == null || json['lastTouched'].toString().isEmpty)
         ? DateTime.now().toIso8601String()
         : (json['lastTouched'] is String
-            ? json['lastTouched']
-            : DateTime.parse(json['lastTouched'].toString()).toIso8601String());
+              ? json['lastTouched']
+              : DateTime.parse(
+                  json['lastTouched'].toString(),
+                ).toIso8601String());
 
     // this line ony added in both business and Log as they are not part of sync schemd
     json['action'] = AppActions.created;

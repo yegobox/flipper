@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase_models/brick/models/sars.model.dart';
-import 'package:supabase_models/brick/models/transactionItemUtil.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:uuid/uuid.dart';
@@ -15,47 +15,85 @@ import 'package:uuid/uuid.dart';
 mixin VariantMixin implements VariantInterface {
   Repository get repository;
 
+  bool get isMobileDevice => isAndroid || isIos;
+
   @override
-  Future<Variant?> getVariant(
-      {String? id,
-      String? modrId,
-      String? name,
-      String? itemCd,
-      String? bcd,
-      String? productId,
-      String? taskCd,
-      String? itemClsCd,
-      String? itemNm,
-      String? stockId}) async {
+  Future<Variant?> getVariant({
+    String? id,
+    String? modrId,
+    String? name,
+    String? itemCd,
+    String? bcd,
+    String? productId,
+    String? taskCd,
+    String? itemClsCd,
+    String? itemNm,
+    String? stockId,
+  }) async {
     String branchId = ProxyService.box.getBranchId()!;
-    final query = Query(where: [
-      if (productId != null)
-        Where('productId', value: productId, compare: Compare.exact),
-      if (id != null) Where('id').isExactly(id),
-      if (modrId != null) ...[
-        Where('modrId', value: modrId, compare: Compare.exact),
-        Where('branchId').isExactly(branchId),
-      ] else if (name != null) ...[
-        Where('name', value: name, compare: Compare.exact),
-        Where('branchId').isExactly(branchId),
-      ] else if (bcd != null) ...[
-        Where('bcd', value: bcd, compare: Compare.exact),
-        Where('branchId').isExactly(branchId),
-      ] else if (itemCd != null && itemClsCd != null && itemNm != null) ...[
-        Where('itemCd').isExactly(itemCd),
-        Where('itemClsCd').isExactly(itemClsCd),
-        Where('itemNm').isExactly(itemNm),
-        Where('branchId').isExactly(branchId),
-      ] else if (taskCd != null) ...[
-        Where('taskCd').isExactly(taskCd),
-        Where('branchId').isExactly(branchId),
-      ] else if (stockId != null) ...[
-        Where('stockId').isExactly(stockId),
-      ]
-    ]);
+    final query = Query(
+      where: [
+        if (productId != null)
+          Where('productId', value: productId, compare: Compare.exact),
+        if (id != null) Where('id').isExactly(id),
+        if (modrId != null) ...[
+          Where('modrId', value: modrId, compare: Compare.exact),
+          Where('branchId').isExactly(branchId),
+        ] else if (name != null) ...[
+          Where('name', value: name, compare: Compare.exact),
+          Where('branchId').isExactly(branchId),
+        ] else if (bcd != null) ...[
+          Where('bcd', value: bcd, compare: Compare.exact),
+          Where('branchId').isExactly(branchId),
+        ] else if (itemCd != null && itemClsCd != null && itemNm != null) ...[
+          Where('itemCd').isExactly(itemCd),
+          Where('itemClsCd').isExactly(itemClsCd),
+          Where('itemNm').isExactly(itemNm),
+          Where('branchId').isExactly(branchId),
+        ] else if (taskCd != null) ...[
+          Where('taskCd').isExactly(taskCd),
+          Where('branchId').isExactly(branchId),
+        ] else if (stockId != null) ...[
+          Where('stockId').isExactly(stockId),
+        ],
+      ],
+    );
     return (await repository.get<Variant>(
-            query: query, policy: OfflineFirstGetPolicy.localOnly))
-        .firstOrNull;
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    )).firstOrNull;
+  }
+
+  @override
+  Future<Map<String, Variant>> batchGetVariantsByIds(List<String> ids) async {
+    final unique = ids
+        .where((id) => id.trim().isNotEmpty)
+        .map((id) => id.trim())
+        .toSet()
+        .toList();
+    if (unique.isEmpty) return {};
+
+    final branchId = ProxyService.box.getBranchId()!;
+    try {
+      final variants = await repository.get<Variant>(
+        query: Query(
+          where: [
+            Where('branchId').isExactly(branchId),
+            Where('id').isIn(unique),
+          ],
+        ),
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+      final out = <String, Variant>{};
+      for (final v in variants) {
+        if (v.id.isEmpty) continue;
+        out[v.id] = v;
+      }
+      return out;
+    } catch (e, st) {
+      talker.error('batchGetVariantsByIds: $e\n$st');
+      return {};
+    }
   }
 
   @override
@@ -77,11 +115,13 @@ mixin VariantMixin implements VariantInterface {
     bool? stockSynchronized,
     List<String>? taxTyCds,
     bool scanMode = false,
+    String? itemTyCd,
   }) async {
     try {
       final List<WhereCondition> conditions = [
         Where('branchId').isExactly(branchId),
-        Where('assigned').isExactly(false),
+        if (productId == null && variantId == null)
+          Where('assigned').isExactly(false),
       ];
 
       // Apply taxTyCds filter FIRST and ensure it's always respected
@@ -103,9 +143,16 @@ mixin VariantMixin implements VariantInterface {
       } else if (variantId != null) {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
-        // Search both name (partial match) and barcode (exact match)
-        conditions.add(Or('name').contains(name));
-        conditions.add(Or('bcd').isExactly(name));
+        // One of: variant name, product title, or barcode (substring).
+        // Use [Where] then [Or] so SQL is (... OR ... OR ...), not three ANDed LIKEs.
+        final key = name.toLowerCase();
+        conditions.add(
+          WherePhrase([
+            Where('name').contains(key),
+            Or('productName').contains(key),
+            Or('bcd').isExactly(key),
+          ], isRequired: true),
+        );
       } else if (stockSynchronized != null) {
         conditions.add(Where('stockSynchronized').isExactly(stockSynchronized));
       } else if (purchaseId != null) {
@@ -138,6 +185,10 @@ mixin VariantMixin implements VariantInterface {
         }
       }
 
+      if (itemTyCd != null) {
+        conditions.add(Where('itemTyCd').isExactly(itemTyCd));
+      }
+
       // When fetching remotely, exclude variants with stockSynchronized = false
       if (fetchRemote) {
         conditions.add(Where('stockSynchronized').isNot(false));
@@ -148,22 +199,18 @@ mixin VariantMixin implements VariantInterface {
         orderBy: [const OrderBy('lastTouched', ascending: false)],
       );
 
-      /// when fetching remotely, fetch all variants and sort them by lastTouched
+      /// when fetching remotely, use the same query but with Hydrate policy
       List<Variant> fetchedVariants = await repository.get<Variant>(
-        query: fetchRemote
-            ? Query(
-                where: [Where('branchId').isExactly(branchId)],
-                orderBy: [const OrderBy('lastTouched', ascending: false)],
-              )
-            : query,
+        query: query,
         policy: fetchRemote
             ? OfflineFirstGetPolicy.alwaysHydrate
             : OfflineFirstGetPolicy.localOnly,
       );
 
       // Defensively filter by branchId in case the query is not restrictive enough.
-      fetchedVariants =
-          fetchedVariants.where((v) => v.branchId == branchId).toList();
+      fetchedVariants = fetchedVariants
+          .where((v) => v.branchId == branchId)
+          .toList();
 
       // Post-query filtering with taxTyCds validation
       if (!forImportScreen && !forPurchaseScreen) {
@@ -174,7 +221,8 @@ mixin VariantMixin implements VariantInterface {
           final isWaitingPurchase = v.pchsSttsCd == "01";
 
           // First check status conditions - exclude these statuses
-          final statusCheck = !isWaitingImport &&
+          final statusCheck =
+              !isWaitingImport &&
               !isCancelledImport &&
               !isCancelledPurchase &&
               !isWaitingPurchase;
@@ -218,16 +266,19 @@ mixin VariantMixin implements VariantInterface {
         final sliced = (offset >= fetchedVariants.length)
             ? <Variant>[]
             : fetchedVariants
-                .skip(offset)
-                .take(itemsPerPage)
-                .where((v) => v.branchId == branchId)
-                .toList();
+                  .skip(offset)
+                  .take(itemsPerPage)
+                  .where((v) => v.branchId == branchId)
+                  .toList();
         return PagedVariants(
-            variants: sliced, totalCount: fetchedVariants.length);
+          variants: sliced,
+          totalCount: fetchedVariants.length,
+        );
       }
 
-      final results =
-          fetchedVariants.where((v) => v.branchId == branchId).toList();
+      final results = fetchedVariants
+          .where((v) => v.branchId == branchId)
+          .toList();
       return PagedVariants(variants: results, totalCount: results.length);
     } catch (e, s) {
       talker.error(s);
@@ -246,10 +297,7 @@ mixin VariantMixin implements VariantInterface {
         try {
           // Create a new variant with a UUID if one doesn't exist
           var variantToSave = variant.id.isEmpty
-              ? variant.copyWith(
-                  id: const Uuid().v4(),
-                  branchId: branchId,
-                )
+              ? variant.copyWith(id: const Uuid().v4(), branchId: branchId)
               : variant.copyWith(branchId: branchId);
 
           // Handle stock if it exists
@@ -257,8 +305,9 @@ mixin VariantMixin implements VariantInterface {
             if (variantToSave.stock!.id.isEmpty) {
               final newStockId = const Uuid().v4();
               // Create a new Stock instance with the new ID
-              final updatedStock =
-                  variantToSave.stock!.copyWith(id: newStockId);
+              final updatedStock = variantToSave.stock!.copyWith(
+                id: newStockId,
+              );
               await repository.upsert<Stock>(updatedStock);
 
               // Update the variant with the new stock and stockId
@@ -271,11 +320,26 @@ mixin VariantMixin implements VariantInterface {
               await repository.upsert<Stock>(variantToSave.stock!);
             }
           }
-          Ebm? ebm = await ProxyService.strategy
-              .ebm(branchId: ProxyService.box.getBranchId()!);
-          variant.splyAmt = variant.splyAmt!.toPrecision(0);
-          await repository.upsert<Variant>(variant);
+          await repository.upsert<Variant>(variantToSave);
+          Ebm? ebm = await ProxyService.strategy.ebm(
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          if (variantToSave.splyAmt != null) {
+            variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
+          }
+          await repository.upsert<Variant>(variantToSave);
           if (skipRRaCall) {
+            return;
+          }
+
+          if (variant.ebmSynced == true) {
+            return;
+          }
+          final persisted = (await repository.get<Variant>(
+            query: Query(where: [Where('id').isExactly(variantToSave.id)]),
+          )).firstOrNull;
+          if (persisted?.ebmSynced == true) {
+            variant.ebmSynced = true;
             return;
           }
 
@@ -288,46 +352,21 @@ mixin VariantMixin implements VariantInterface {
             return;
           }
 
-          // save items
-          await ProxyService.tax
-              .saveItem(variation: variant, URI: ebm!.taxServerUrl);
+          String serverUrl = ebm!.taxServerUrl;
 
-          // save io
-          final sar = await ProxyService.strategy
-              .getSar(branchId: ProxyService.box.getBranchId()!);
-
-          sar!.sarNo = sar.sarNo + 1;
-          await repository.upsert<Sar>(sar);
-
-          // Skip stock reporting for services (itemTyCd: "3")
-          if (variantToSave.itemTyCd != "3") {
-            await ProxyService.tax.saveStockItems(
-              updateMaster: false,
-              items: [
-                TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1)
-              ],
-              tinNumber: ebm.tinNumber.toString(),
-              bhFId: ebm.bhfId,
-              totalSupplyPrice: variantToSave.supplyPrice ?? 0,
-              totalvat: 0,
-              totalAmount: variantToSave.retailPrice ?? 0,
-              sarTyCd: "06",
-              sarNo: sar.sarNo.toString(),
-              invoiceNumber: sar.sarNo,
-              remark: "Stock In from adding new item",
-              ocrnDt: DateTime.now().toUtc(),
-              URI: ebm.taxServerUrl,
-            );
+          if (isMobileDevice) {
+            serverUrl = ebm.remoteServerUrl ?? serverUrl;
           }
 
-          // Skip stock master reporting for services (itemTyCd: "3")
-          if (variantToSave.itemTyCd != "3") {
-            await ProxyService.tax.saveStockMaster(
-              variant: variant,
-              URI: ebm.taxServerUrl,
-              stockMasterQty: variantToSave.stock?.currentStock!,
-            );
-          }
+          await registerVariantWithRraForAdd(
+            repository: repository,
+            branchId: branchId,
+            variantToSave: variantToSave,
+            variantInput: variant,
+            serverUrl: serverUrl,
+            ebm: ebm,
+            ditto: DittoService.instance.dittoInstance,
+          );
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;
@@ -352,19 +391,22 @@ mixin VariantMixin implements VariantInterface {
     try {
       for (Map map in units) {
         final existingUnit = (await repository.get<IUnit>(
-                query: Query(where: [
-          Where('name').isExactly(map['name']),
-          Where('branchId').isExactly(branchId),
-        ])))
-            .firstOrNull;
+          query: Query(
+            where: [
+              Where('name').isExactly(map['name']),
+              Where('branchId').isExactly(branchId),
+            ],
+          ),
+        )).firstOrNull;
 
         if (existingUnit == null) {
           final unit = IUnit(
-              active: map['active'],
-              branchId: branchId,
-              name: map['name'],
-              lastTouched: DateTime.now().toUtc(),
-              value: map['value']);
+            active: map['active'],
+            branchId: branchId,
+            name: map['name'],
+            lastTouched: DateTime.now().toUtc(),
+            value: map['value'],
+          );
 
           // Add the unit to db
           await repository.upsert<IUnit>(unit);
@@ -378,40 +420,42 @@ mixin VariantMixin implements VariantInterface {
   }
 
   @override
-  FutureOr<void> updateVariant(
-      {required List<Variant> updatables,
-      String? color,
-      String? taxTyCd,
-      String? variantId,
-      double? newRetailPrice,
-      double? retailPrice,
-      Map<String, String>? rates,
-      double? supplyPrice,
-      Map<String, String>? dates,
-      String? selectedProductType,
-      String? productId,
-      String? categoryId,
-      String? productName,
-      String? unit,
-      String? pkgUnitCd,
-      double? dcRt,
-      DateTime? expirationDate,
-      double? prc,
-      bool updateIo = true,
-      double? dftPrc,
-      num? approvedQty,
-      num? invoiceNumber,
-      Purchase? purchase,
-      String? propertyTyCd,
-      String? roomTypeCd,
-      String? ttCatCd,
-      bool? ebmSynced}) async {
+  FutureOr<void> updateVariant({
+    required List<Variant> updatables,
+    String? color,
+    String? taxTyCd,
+    String? variantId,
+    double? newRetailPrice,
+    double? retailPrice,
+    Map<String, String>? rates,
+    double? supplyPrice,
+    Map<String, String>? dates,
+    String? selectedProductType,
+    String? productId,
+    String? categoryId,
+    String? productName,
+    String? unit,
+    String? pkgUnitCd,
+    double? dcRt,
+    DateTime? expirationDate,
+    double? prc,
+    bool updateIo = true,
+    double? dftPrc,
+    num? approvedQty,
+    num? invoiceNumber,
+    Purchase? purchase,
+    String? propertyTyCd,
+    String? roomTypeCd,
+    String? ttCatCd,
+    bool? ebmSynced,
+  }) async {
     if (variantId != null) {
       Variant? variant = await getVariant(id: variantId);
       if (variant != null) {
         variant.productName = productName ?? variant.productName;
         variant.productId = productId ?? variant.productId;
         variant.taxTyCd = taxTyCd ?? variant.taxTyCd;
+        variant.taxName = variant.taxTyCd; // Ensure taxName matches taxTyCd
         variant.unit = unit ?? variant.unit;
         variant.prc = variant.retailPrice;
         variant.dftPrc = variant.retailPrice;
@@ -425,8 +469,9 @@ mixin VariantMixin implements VariantInterface {
       return;
     }
     try {
-      Category? category =
-          await ProxyService.strategy.category(id: categoryId ?? "");
+      Category? category = await ProxyService.strategy.category(
+        id: categoryId ?? "",
+      );
       // loop through all variants and update all with retailPrice and supplyPrice
 
       for (var i = 0; i < updatables.length; i++) {
@@ -434,6 +479,9 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].productName = name;
         if (updatables[i].stock == null && updatables[i].itemTyCd != "3") {
           await addStockToVariant(variant: updatables[i]);
+        } else if (updatables[i].stock != null &&
+            updatables[i].itemTyCd != "3") {
+          await repository.upsert<Stock>(updatables[i].stock!);
         }
 
         if (updatables[i].itemCd == null ||
@@ -444,7 +492,6 @@ mixin VariantMixin implements VariantInterface {
             updatables[i].pchsSttsCd == "1" ||
             updatables[i].imptItemSttsCd == "4" ||
             updatables[i].imptItemSttsCd == "2" ||
-            // variant.itemCd == "3" ||
             updatables[i].assigned == true) {
           updatables[i].ebmSynced = true;
         }
@@ -455,10 +502,12 @@ mixin VariantMixin implements VariantInterface {
             category?.name ?? updatables[i].categoryName;
         updatables[i].itemStdNm = name;
         updatables[i].spplrItemNm = name;
-        updatables[i].prc =
-            newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
-        updatables[i].dftPrc =
-            newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+        updatables[i].prc = newRetailPrice == null
+            ? updatables[i].retailPrice
+            : newRetailPrice;
+        updatables[i].dftPrc = newRetailPrice == null
+            ? updatables[i].retailPrice
+            : newRetailPrice;
         if (color != null) {
           updatables[i].color = color;
         }
@@ -469,10 +518,17 @@ mixin VariantMixin implements VariantInterface {
           updatables[i].dcRt = dcRt;
         }
         updatables[i].ebmSynced = ebmSynced ?? false;
-        updatables[i].retailPrice =
-            newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+        updatables[i].retailPrice = newRetailPrice == null
+            ? updatables[i].retailPrice
+            : newRetailPrice;
         if (selectedProductType != null) {
           updatables[i].itemTyCd = selectedProductType;
+        }
+
+        // Update taxTyCd and ensure taxName matches if provided
+        if (taxTyCd != null) {
+          updatables[i].taxTyCd = taxTyCd;
+          updatables[i].taxName = taxTyCd; // Ensure taxName matches taxTyCd
         }
 
         updatables[i].expirationDate = dates?[updatables[i].id] == null
@@ -487,8 +543,8 @@ mixin VariantMixin implements VariantInterface {
         }
 
         updatables[i].lastTouched = DateTime.now().toUtc();
-        updatables[i].qty =
-            (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
+        updatables[i].qty = (approvedQty ?? updatables[i].stock?.currentStock)
+            ?.toDouble();
         await repository.upsert<Variant>(updatables[i]);
       }
     } catch (e, stackTrace) {
@@ -498,8 +554,10 @@ mixin VariantMixin implements VariantInterface {
   }
 
   @override
-  FutureOr<Variant> addStockToVariant(
-      {required Variant variant, Stock? stock}) async {
+  FutureOr<Variant> addStockToVariant({
+    required Variant variant,
+    Stock? stock,
+  }) async {
     if (stock == null) {
       // Create a new Stock object if none provided
       final newStock = Stock(
@@ -528,14 +586,17 @@ mixin VariantMixin implements VariantInterface {
 
       // Calculate the date threshold for expiring soon items
       final now = DateTime.now().toUtc();
-      final expiryThreshold =
-          daysToExpiry != null ? now.add(Duration(days: daysToExpiry)) : now;
+      final expiryThreshold = daysToExpiry != null
+          ? now.add(Duration(days: daysToExpiry))
+          : now;
 
       // Create a query to find variants with expiration dates before or on the threshold
-      final query = Query(where: [
-        Where('branchId').isExactly(branchId),
-        Where('expirationDate').isNot(null),
-      ]);
+      final query = Query(
+        where: [
+          Where('branchId').isExactly(branchId),
+          Where('expirationDate').isNot(null),
+        ],
+      );
 
       // Get variants from the repository
       final variants = await repository.get<Variant>(
@@ -545,10 +606,12 @@ mixin VariantMixin implements VariantInterface {
 
       // Filter variants by expiration date
       final filteredVariants = variants
-          .where((variant) =>
-              variant.expirationDate != null &&
-              (variant.expirationDate!.isBefore(expiryThreshold) ||
-                  variant.expirationDate!.isAtSameMomentAs(expiryThreshold)))
+          .where(
+            (variant) =>
+                variant.expirationDate != null &&
+                (variant.expirationDate!.isBefore(expiryThreshold) ||
+                    variant.expirationDate!.isAtSameMomentAs(expiryThreshold)),
+          )
           .toList();
 
       // Apply limit if specified
@@ -569,8 +632,9 @@ mixin VariantMixin implements VariantInterface {
               variant.stock = stockResult.first;
             }
           } catch (e) {
-            talker
-                .warning('Could not load stock for variant ${variant.id}: $e');
+            talker.warning(
+              'Could not load stock for variant ${variant.id}: $e',
+            );
           }
         }
       }
@@ -584,9 +648,7 @@ mixin VariantMixin implements VariantInterface {
   }
 
   @override
-  Future<List<Variant>> variantsByStockId({
-    required String stockId,
-  }) async {
+  Future<List<Variant>> variantsByStockId({required String stockId}) async {
     return await repository.get<Variant>(
       query: Query(where: [Where('stockId').isExactly(stockId)]),
     );

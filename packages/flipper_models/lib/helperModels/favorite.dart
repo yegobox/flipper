@@ -16,7 +16,7 @@ class Favorite extends IJsonSerializable {
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
 
-  String action;
+  String? action;
   // only for accor when fetching from remove
 
   DateTime? deletedAt;

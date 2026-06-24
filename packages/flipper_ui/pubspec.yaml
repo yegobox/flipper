@@ -17,22 +17,32 @@ dependencies:
   # adding this because I need constants from it,
   # maybe it is time to move all constants to its own package
   flipper_services: any
+  flipper_localize: ^1.0.0-dev
   easy_localization: ^3.0.7
+  flipper_design_system: any
   flipper_infra: any
   flowy_svg: any
   animations: ^2.0.11
   loading_indicator: ^3.1.0
   styled_widget: ^0.4.1
+  wolt_modal_sheet: ^0.11.0
+  dropdown_search: ^6.0.2
   
   
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.3
+  sqlite3: ^3.3.1
   device_info_plus: ^12.3.0
-  archive: ^3.6.1
-  excel: ^4.0.6
+  archive: ^4.0.9
+  excel:
+    path: ../../open-sources/excel
   cbor: ^6.3.7
   jni: ^0.14.2

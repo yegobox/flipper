@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' as foundation;
@@ -25,12 +24,18 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/notifications/notification_handler.dart';
+import 'package:flipper_services/personal_goal_fcm_background.dart';
 
 import 'new_relic.dart' if (dart.library.html) 'new_relic_web.dart';
 
-Future<void> backgroundHandler(RemoteMessage message) async {}
+@pragma('vm:entry-point')
+Future<void> backgroundHandler(RemoteMessage message) async {
+  await handlePersonalGoalFcmBackgroundMessage(message);
+}
 
 const kWebRecaptchaSiteKey = '';
 
@@ -64,14 +69,18 @@ Future<void> _initializeCriticalDependencies() async {
     }
   }
 
-  // Platform-specific database initialization
+  // Platform-specific database initialization.
+  // Global sqflite factory is for the offline HTTP queue and legacy call sites only.
+  // Main Brick models use Turso via PlatformHelpers.getMainDatabaseFactory().
   if (!foundation.kIsWeb && Platform.isWindows) {
+    sqfliteFfiInit();
     databaseFactoryOrNull = databaseFactoryFfi;
   } else if (foundation.kIsWeb) {
     databaseFactoryOrNull = databaseFactoryFfiWeb;
   }
-  // Font configuration
-  GoogleFonts.config.allowRuntimeFetching = true;
+
+  // Font configuration — Outfit / JetBrains Mono are bundled under `google_fonts/` (pubspec).
+  GoogleFonts.config.allowRuntimeFetching = false;
 }
 
 Future<void> _initializeSecondaryDependencies() async {
@@ -139,6 +148,9 @@ Future<void> _configurePlatformServices() async {
     await NotificationManager.create(
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
     );
+
+    // Initialize the notification handler to listen for notification taps
+    NotificationHandler().initialize();
   }
 }
 
@@ -159,10 +171,15 @@ Future<void> initializeDependencies() async {
     await _initializeNonCriticalDependencies();
     await _configureErrorHandling();
     await _configurePlatformServices();
-    await AmplifyConfigHelper.configureAmplify();
+    // Amplify configuration moved to main.dart to ensure it happens after Supabase initialization
   } catch (e, stackTrace) {
     debugPrint('Error during dependency initialization: $e');
     debugPrint(stackTrace.toString());
+    GlobalErrorHandler.report(
+      e,
+      stackTrace,
+      type: 'dependency_init_error',
+    );
     try {
       if (Firebase.apps.isNotEmpty) {
         FirebaseCrashlytics.instance.recordError(e, stackTrace);

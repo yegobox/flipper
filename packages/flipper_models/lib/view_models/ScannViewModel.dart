@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/utils/stock_io_util.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -13,9 +14,26 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flutter/material.dart';
 
 class ScannViewModel extends ProductViewModel with RRADEFAULTS {
+  @override
+  void setProductName({String? name}) {
+    if (name == null) return;
+    final trimmed = name.trim();
+    for (final v in scannedVariants) {
+      final n = v.name.trim();
+      if (n.isEmpty || n == TEMP_PRODUCT) {
+        v.name = trimmed;
+        v.productName = trimmed;
+        v.regrNm = trimmed;
+      }
+    }
+    super.setProductName(name: name);
+  }
+
   final Map<String, bool> _selectedVariants = {};
   final Map<String, TextEditingController> _discountControllers = {};
   final Map<String, TextEditingController> _dateControllers = {};
+  final Map<String, TextEditingController> _lowStockControllers = {};
+  final Map<String, TextEditingController> _priceControllers = {};
 
   // Toggles selection for a specific variant.
   void toggleSelect(String variantId) {
@@ -50,89 +68,92 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       final index = scannedVariants.indexWhere((v) => v.id == variant.id);
       if (index != -1) {
         final existingVariant = scannedVariants[index]; //Get existing variant
+        final boxBhfId = await ProxyService.box.bhfId();
+        final ebmRow = await ProxyService.strategy.ebm(branchId: branchId);
+        final coercedBhfId = _coerceBhfId(
+          boxBhfId,
+          ebmRow?.bhfId,
+          existingVariant.bhfId,
+        );
         scannedVariants[index] = Variant(
-            id: existingVariant.id,
-            stockId: existingVariant.stockId,
-            stock: existingVariant.stock != null
-                ? Stock(
-                    branchId: branchId,
-                    id: existingVariant.stock!.id,
-                    currentStock: existingVariant.stock!.currentStock,
-                    rsdQty: existingVariant.stock!.rsdQty,
-                    value: existingVariant.stock!.value,
-                    lastTouched: DateTime.now().toUtc(),
-                  )
-                : null,
-            taxPercentage: existingVariant.taxPercentage,
-            name: existingVariant.name,
-            color: existingVariant.color,
-            sku: existingVariant.sku,
-            productId: existingVariant.productId,
-            unit: existingVariant.unit,
-            productName: existingVariant.productName,
-            branchId: existingVariant.branchId,
-            taxName: existingVariant.taxName,
-            itemSeq: existingVariant.itemSeq,
-            isrccCd: existingVariant.isrccCd,
-            isrccNm: existingVariant.isrccNm,
-            isrcRt: existingVariant.isrcRt,
-            isrcAmt: existingVariant.isrcAmt,
-            taxTyCd: newTaxType, // Set the new tax type here
-            bcd: existingVariant.bcd,
-            itemClsCd: existingVariant.itemClsCd,
-            itemTyCd: existingVariant.itemTyCd,
-            itemStdNm: existingVariant.itemStdNm,
-            orgnNatCd: existingVariant.orgnNatCd,
-            pkg: existingVariant.pkg,
-            itemCd: existingVariant.itemCd,
-            pkgUnitCd: existingVariant.pkgUnitCd,
-            qtyUnitCd: existingVariant.qtyUnitCd,
-            itemNm: existingVariant.itemNm,
-            prc: existingVariant.prc,
-            splyAmt: existingVariant.splyAmt,
-            tin: existingVariant.tin,
-            bhfId: existingVariant.bhfId,
-            dftPrc: existingVariant.dftPrc,
-            addInfo: existingVariant.addInfo,
-            isrcAplcbYn: existingVariant.isrcAplcbYn,
-            useYn: existingVariant.useYn,
-            regrId: existingVariant.regrId,
-            regrNm: existingVariant.regrNm,
-            modrId: existingVariant.modrId,
-            modrNm: existingVariant.modrNm,
-            lastTouched: existingVariant.lastTouched,
-            supplyPrice: existingVariant.supplyPrice,
-            retailPrice: existingVariant.retailPrice,
-            spplrItemClsCd: existingVariant.spplrItemClsCd,
-            spplrItemCd: existingVariant.spplrItemCd,
-            spplrItemNm: existingVariant.spplrItemNm,
-            ebmSynced: existingVariant.ebmSynced,
-            dcRt: existingVariant.dcRt,
-            expirationDate: existingVariant.expirationDate,
-            qty: existingVariant.qty,
-            totWt: existingVariant.totWt,
-            netWt: existingVariant.netWt,
-            spplrNm: existingVariant.spplrNm,
-            agntNm: existingVariant.agntNm,
-            invcFcurAmt: existingVariant.invcFcurAmt,
-            invcFcurCd: existingVariant.invcFcurCd,
-            invcFcurExcrt: existingVariant.invcFcurExcrt,
-            exptNatCd: existingVariant.exptNatCd,
-            dclNo: existingVariant.dclNo,
-            taskCd: existingVariant.taskCd,
-            dclDe: existingVariant.dclDe,
-            hsCd: existingVariant.hsCd,
-            imptItemSttsCd: existingVariant.imptItemSttsCd,
-            barCode: existingVariant.barCode,
-            bcdU: existingVariant.bcdU,
-            quantity: existingVariant.quantity,
-            category: existingVariant.category,
-            dcAmt: existingVariant.dcAmt,
-            taxblAmt: existingVariant.taxblAmt,
-            taxAmt: existingVariant.taxAmt,
-            totAmt: existingVariant.totAmt,
-            pchsSttsCd: existingVariant.pchsSttsCd,
-            isShared: existingVariant.isShared);
+          id: existingVariant.id,
+          stockId: existingVariant.stock?.id ?? existingVariant.stockId,
+          stock: existingVariant.stock != null
+              ? existingVariant.stock!.copyWith(
+                  lastTouched: DateTime.now().toUtc(),
+                )
+              : null,
+          taxPercentage: existingVariant.taxPercentage,
+          name: existingVariant.name,
+          color: existingVariant.color,
+          sku: existingVariant.sku,
+          productId: existingVariant.productId,
+          unit: existingVariant.unit,
+          productName: existingVariant.productName,
+          branchId: existingVariant.branchId,
+          taxName: existingVariant.taxName,
+          itemSeq: existingVariant.itemSeq,
+          isrccCd: existingVariant.isrccCd,
+          isrccNm: existingVariant.isrccNm,
+          isrcRt: existingVariant.isrcRt,
+          isrcAmt: existingVariant.isrcAmt,
+          taxTyCd: newTaxType, // Set the new tax type here
+          bcd: existingVariant.bcd,
+          itemClsCd: existingVariant.itemClsCd,
+          itemTyCd: existingVariant.itemTyCd,
+          itemStdNm: existingVariant.itemStdNm,
+          orgnNatCd: existingVariant.orgnNatCd,
+          pkg: existingVariant.pkg,
+          itemCd: existingVariant.itemCd,
+          pkgUnitCd: existingVariant.pkgUnitCd,
+          qtyUnitCd: existingVariant.qtyUnitCd,
+          itemNm: _coerceItemNm(existingVariant),
+          prc: existingVariant.prc,
+          splyAmt: existingVariant.splyAmt,
+          tin: existingVariant.tin,
+          bhfId: coercedBhfId,
+          dftPrc: existingVariant.dftPrc,
+          addInfo: existingVariant.addInfo,
+          isrcAplcbYn: existingVariant.isrcAplcbYn,
+          useYn: existingVariant.useYn,
+          regrId: existingVariant.regrId,
+          regrNm: existingVariant.regrNm,
+          modrId: existingVariant.modrId,
+          modrNm: existingVariant.modrNm,
+          lastTouched: existingVariant.lastTouched,
+          supplyPrice: existingVariant.supplyPrice,
+          retailPrice: existingVariant.retailPrice,
+          spplrItemClsCd: existingVariant.spplrItemClsCd,
+          spplrItemCd: existingVariant.spplrItemCd,
+          spplrItemNm: existingVariant.spplrItemNm,
+          ebmSynced: existingVariant.ebmSynced,
+          dcRt: existingVariant.dcRt,
+          expirationDate: existingVariant.expirationDate,
+          qty: existingVariant.qty,
+          totWt: existingVariant.totWt,
+          netWt: existingVariant.netWt,
+          spplrNm: existingVariant.spplrNm,
+          agntNm: existingVariant.agntNm,
+          invcFcurAmt: existingVariant.invcFcurAmt,
+          invcFcurCd: existingVariant.invcFcurCd,
+          invcFcurExcrt: existingVariant.invcFcurExcrt,
+          exptNatCd: existingVariant.exptNatCd,
+          dclNo: existingVariant.dclNo,
+          taskCd: existingVariant.taskCd,
+          dclDe: existingVariant.dclDe,
+          hsCd: existingVariant.hsCd,
+          imptItemSttsCd: existingVariant.imptItemSttsCd,
+          barCode: existingVariant.barCode,
+          bcdU: existingVariant.bcdU,
+          quantity: existingVariant.quantity,
+          category: existingVariant.category,
+          dcAmt: existingVariant.dcAmt,
+          taxblAmt: existingVariant.taxblAmt,
+          taxAmt: existingVariant.taxAmt,
+          totAmt: existingVariant.totAmt,
+          pchsSttsCd: existingVariant.pchsSttsCd,
+          isShared: existingVariant.isShared,
+        );
       }
 
       // 4. Notify listeners to rebuild the UI
@@ -142,13 +163,61 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     }
   }
 
+  /// Retail price controller for card-layout inline editing.
+  TextEditingController getPriceController(String variantId) {
+    if (!_priceControllers.containsKey(variantId)) {
+      final variant = scannedVariants.firstWhere(
+        (v) => v.id == variantId,
+        orElse: () => Variant(
+          id: variantId,
+          name: '',
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      );
+      final price = variant.retailPrice;
+      final text = price == null ? '' : price.toStringAsFixed(2);
+      _priceControllers[variantId] = TextEditingController(text: text);
+    }
+    return _priceControllers[variantId]!;
+  }
+
+  /// Low stock / reorder threshold for table inline editing.
+  TextEditingController getLowStockController(String variantId) {
+    if (!_lowStockControllers.containsKey(variantId)) {
+      final variant = scannedVariants.firstWhere(
+        (v) => v.id == variantId,
+        orElse: () => Variant(
+          id: variantId,
+          name: '',
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      );
+      final low = variant.stock?.lowStock;
+      final text = low == null
+          ? '0'
+          : (low == low.roundToDouble()
+              ? low.toInt().toString()
+              : low.toString());
+      _lowStockControllers[variantId] = TextEditingController(text: text);
+    }
+    return _lowStockControllers[variantId]!;
+  }
+
   // Returns a TextEditingController for managing the discount of a variant.
-  TextEditingController getDiscountController(String variantId,
-      {int? defaultDiscount}) {
+  TextEditingController getDiscountController(
+    String variantId, {
+    int? defaultDiscount,
+  }) {
     if (!_discountControllers.containsKey(variantId)) {
       // First check if this variant exists in scannedVariants and has a dcRt value
-      final variant = scannedVariants.firstWhere((v) => v.id == variantId,
-          orElse: () => Variant(id: variantId, name: ''));
+      final variant = scannedVariants.firstWhere(
+        (v) => v.id == variantId,
+        orElse: () => Variant(
+          id: variantId,
+          name: '',
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      );
 
       // Use variant's dcRt if available, otherwise use defaultDiscount or 0
       final discountValue = variant.dcRt != null
@@ -173,8 +242,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   }
 
   // Returns a TextEditingController for managing the expiration date of a variant.
-  TextEditingController getDateController(String variantId,
-      {DateTime? defaultDate}) {
+  TextEditingController getDateController(
+    String variantId, {
+    DateTime? defaultDate,
+  }) {
     if (!_dateControllers.containsKey(variantId)) {
       _dateControllers[variantId] = TextEditingController(
         text: defaultDate != null
@@ -197,6 +268,12 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       controller.dispose();
     }
     for (var controller in _dateControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _lowStockControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _priceControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -227,16 +304,51 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
+  /// Ditto/RRA reject null, empty, or literal "null" for [Variant.bhfId].
+  String _coerceBhfId(
+    String? fromBox,
+    String? fromEbm,
+    String? existingOnVariant,
+  ) {
+    for (final candidate in <String?>[fromBox, fromEbm, existingOnVariant]) {
+      if (candidate == null) continue;
+      final t = candidate.trim();
+      if (t.isEmpty) continue;
+      if (t.toLowerCase() == 'null') continue;
+      return t;
+    }
+    return '00';
+  }
+
+  /// Ditto/RRA require non-empty [Variant.itemNm].
+  String _coerceItemNm(Variant v, {String? productTitle}) {
+    final raw = v.itemNm?.trim() ?? '';
+    if (raw.isNotEmpty && raw.toLowerCase() != 'null') return raw;
+    final n = v.name.trim();
+    if (n.isNotEmpty) return n;
+    final pt = productTitle?.trim() ?? '';
+    if (pt.isNotEmpty) return pt;
+    final pn = v.productName?.trim() ?? '';
+    if (pn.isNotEmpty) return pn;
+    return 'Item';
+  }
+
   final talker = TalkerFlutter.init();
 
-  Future<void> onScanItem(
-      {required String barCode,
-      required bool isTaxExempted,
-      required Product product,
-      required double retailPrice,
-      required double supplyPrice,
-      required bool editmode,
-      required String countryCode}) async {
+  Future<void> onScanItem({
+    required String barCode,
+    required bool isTaxExempted,
+    required Product product,
+    required double retailPrice,
+    required double supplyPrice,
+    required bool editmode,
+    required String countryCode,
+
+    /// Per-variant label (e.g. from Add variant sheet). When null/empty, falls back
+    /// to the in-progress product title so desktop scan-only flow still works.
+    String? variantDisplayName,
+    double? lowStock,
+  }) async {
     String branchId = ProxyService.box.getBranchId()!;
 
     /// scan item if the same item is scanned more than once
@@ -249,22 +361,41 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         variant.supplyPrice = supplyPrice;
         variant.rsdQty = (variant.qty!) + 1;
         variant.qty = (variant.qty!) + 1; // Increment the quantity safely
+        if (variantDisplayName != null &&
+            variantDisplayName.trim().isNotEmpty) {
+          final label = variantDisplayName.trim();
+          variant.name = label;
+          variant.itemNm = label;
+        }
         notifyListeners();
         return;
       }
     }
     talker.info(
-        "Scanned or about to create variant with productId ${product.id}");
+      "Scanned or about to create variant with productId ${product.id}",
+    );
     // If no matching variant was found, add a new one
     // Set correct tax type based on EBM VAT status
     final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    final boxBhfId = await ProxyService.box.bhfId();
+    final resolvedBhfId = _coerceBhfId(boxBhfId, ebm?.bhfId, null);
     final isVatEnabled = ebm?.vatEnabled ?? false;
+    // Prefer the in-progress product title (mobile) over persisted TEMP_PRODUCT name.
+    final productTitle =
+        (kProductName != null && kProductName!.trim().isNotEmpty)
+        ? kProductName!.trim()
+        : product.name;
+    final variantRowName =
+        (variantDisplayName != null && variantDisplayName.trim().isNotEmpty)
+        ? variantDisplayName.trim()
+        : productTitle;
     final variant = Variant(
-      name: product.name,
+      name: variantRowName,
+      itemNm: variantRowName,
       retailPrice: retailPrice,
       supplyPrice: supplyPrice,
       prc: retailPrice,
-      regrNm: product.name,
+      regrNm: productTitle,
       qty: 0,
       dcRt: 0,
       pkgUnitCd: "NT",
@@ -274,37 +405,51 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       productId: product.id,
       color: currentColor,
       unit: 'Per Item',
-      productName: product.name,
+      productName: productTitle,
       branchId: branchId,
+      taxName: isVatEnabled ? "B" : "D",
       taxTyCd: isVatEnabled
           ? "B"
           : "D", // Set correct tax type based on EBM VAT status
       lastTouched: DateTime.now().toUtc(),
+      // Add missing RRA fields
+      // itemClsCd: Default to "5020230602" (Beverages) as per product_mixin.dart
+      itemClsCd: "5020230602",
+      qtyUnitCd: "U", // Quantity Unit Code (Units)
+      useYn: "N", // Default as per product_mixin
+      orgnNatCd: "RW", // Origin National Code (Rwanda)
+      // regrId: Random 5-digit number as per product_mixin
+      regrId: randomNumber().toString().padLeft(5, '0').substring(0, 5),
+      modrNm: variantRowName,
+      isrcAplcbYn: "N", // Insurance Applicable Yes/No
+      tin: ebm?.tinNumber ?? -1,
+      bhfId: resolvedBhfId,
     );
     final stock = Stock(
       currentStock: 0,
       branchId: branchId,
       initialStock: 0,
       rsdQty: 0,
+      lowStock: lowStock ?? 0.0,
       tin: ebm?.tinNumber ?? -1,
       value: 0 * retailPrice,
       ebmSynced: false,
       active: false,
       showLowStockAlert: true,
-      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+      bhfId: resolvedBhfId,
     );
     variant.stock = stock;
     variant.stockId = stock.id;
 
-    scannedVariants.add(
-      variant,
-    );
+    scannedVariants.add(variant);
 
     notifyListeners();
   }
 
-  Future<Product?> createProduct(
-      {required String name, required bool createItemCode}) async {
+  Future<Product?> createProduct({
+    required String name,
+    required bool createItemCode,
+  }) async {
     String businessId = ProxyService.box.getBusinessId()!;
     String branchId = ProxyService.box.getBranchId()!;
     String bhfid = (await ProxyService.box.bhfId()) ?? "00";
@@ -337,9 +482,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Variant matchedVariant = scannedVariants[index];
       try {
         ProxyService.strategy.flipperDelete(
-            id: matchedVariant.id,
-            endPoint: 'variant',
-            flipperHttpClient: ProxyService.http);
+          id: matchedVariant.id,
+          endPoint: 'variant',
+          flipperHttpClient: ProxyService.http,
+        );
       } catch (e) {}
       scannedVariants.removeAt(index);
       notifyListeners();
@@ -360,124 +506,62 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
-  Future<void> updateVariantQuantity(String id, double newQuantity) async {
+  /// Updates quantity on the in-memory scanned variant (and linked [Stock] if any).
+  ///
+  /// When [persistToBackend] is false (e.g. Add variant sheet before **Save product**),
+  /// only local state is updated; persistence runs with the normal save flow.
+  Future<void> updateVariantQuantity(
+    String id,
+    double newQuantity, {
+    bool persistToBackend = true,
+    double? lowStock,
+  }) async {
     try {
       // Find the variant with the specified id
       int index = scannedVariants.indexWhere((variant) => variant.id == id);
-      String branchId = ProxyService.box.getBranchId()!;
 
       if (index != -1) {
-        // Create a *new* Variant object with the updated quantity
-        final scannedVariant =
-            scannedVariants[index]; // Store the original variant
+        // Update the existing variant and stock directly
+        final scannedVariant = scannedVariants[index];
+        scannedVariant.qty = newQuantity;
+        scannedVariant.lastTouched = DateTime.now().toUtc();
 
-        final updatedVariant = Variant(
-          id: scannedVariant.id,
-          stockId: scannedVariant.stockId,
-          stock: scannedVariant.stock != null
-              ? Stock(
-                  branchId: branchId,
-                  id: scannedVariant.stock!.id,
-                  currentStock: newQuantity,
-                  rsdQty: newQuantity,
-                  value: newQuantity * (scannedVariant.retailPrice ?? 0.0),
-                  lastTouched: DateTime.now().toUtc(),
-                )
-              : null,
-          taxPercentage: scannedVariant.taxPercentage,
-          name: scannedVariant.name,
-          color: scannedVariant.color,
-          sku: scannedVariant.sku,
-          productId: scannedVariant.productId,
-          unit: scannedVariant.unit,
-          productName: scannedVariant.productName,
-          branchId: scannedVariant.branchId,
-          taxName: scannedVariant.taxName,
-          itemSeq: scannedVariant.itemSeq,
-          isrccCd: scannedVariant.isrccCd,
-          isrccNm: scannedVariant.isrccNm,
-          isrcRt: scannedVariant.isrcRt,
-          isrcAmt: scannedVariant.isrcAmt,
-          taxTyCd: scannedVariant.taxTyCd,
-          bcd: scannedVariant.bcd,
-          itemClsCd: scannedVariant.itemClsCd,
-          itemTyCd: scannedVariant.itemTyCd,
-          itemStdNm: scannedVariant.itemStdNm,
-          orgnNatCd: scannedVariant.orgnNatCd,
-          pkg: scannedVariant.pkg,
-          itemCd: scannedVariant.itemCd,
-          pkgUnitCd: scannedVariant.pkgUnitCd,
-          qtyUnitCd: scannedVariant.qtyUnitCd,
-          itemNm: scannedVariant.itemNm,
-          prc: scannedVariant.prc,
-          splyAmt: scannedVariant.splyAmt,
-          tin: scannedVariant.tin,
-          bhfId: scannedVariant.bhfId,
-          dftPrc: scannedVariant.dftPrc,
-          addInfo: scannedVariant.addInfo,
-          isrcAplcbYn: scannedVariant.isrcAplcbYn,
-          useYn: scannedVariant.useYn,
-          regrId: scannedVariant.regrId,
-          regrNm: scannedVariant.regrNm,
-          modrId: scannedVariant.modrId,
-          modrNm: scannedVariant.modrNm,
-          lastTouched: DateTime.now().toUtc(),
-          supplyPrice: scannedVariant.supplyPrice,
-          retailPrice: scannedVariant.retailPrice,
-          spplrItemClsCd: scannedVariant.spplrItemClsCd,
-          spplrItemCd: scannedVariant.spplrItemCd,
-          spplrItemNm: scannedVariant.spplrItemNm,
-          ebmSynced: scannedVariant.ebmSynced,
-          dcRt: scannedVariant.dcRt,
-          expirationDate: scannedVariant.expirationDate,
-          qty: scannedVariant.qty,
-          totWt: scannedVariant.totWt,
-          netWt: scannedVariant.netWt,
-          spplrNm: scannedVariant.spplrNm,
-          agntNm: scannedVariant.agntNm,
-          invcFcurAmt: scannedVariant.invcFcurAmt,
-          invcFcurCd: scannedVariant.invcFcurCd,
-          invcFcurExcrt: scannedVariant.invcFcurExcrt,
-          exptNatCd: scannedVariant.exptNatCd,
-          dclNo: scannedVariant.dclNo,
-          taskCd: scannedVariant.taskCd,
-          dclDe: scannedVariant.dclDe,
-          hsCd: scannedVariant.hsCd,
-          imptItemSttsCd: scannedVariant.imptItemSttsCd,
-          barCode: scannedVariant.barCode,
-          bcdU: scannedVariant.bcdU,
-          quantity: scannedVariant.quantity,
-          category: scannedVariant.category,
-          dcAmt: scannedVariant.dcAmt,
-          taxblAmt: scannedVariant.taxblAmt,
-          taxAmt: scannedVariant.taxAmt,
-          totAmt: scannedVariant.totAmt,
-          pchsSttsCd: scannedVariant.pchsSttsCd,
-          isShared: scannedVariant.isShared,
-        );
+        if (scannedVariant.stock != null) {
+          scannedVariant.stock!.currentStock = newQuantity;
+          scannedVariant.stock!.rsdQty = newQuantity;
+          scannedVariant.stock!.value =
+              newQuantity * (scannedVariant.retailPrice ?? 0.0);
+          scannedVariant.stock!.lastTouched = DateTime.now().toUtc();
+          if (lowStock != null) {
+            scannedVariant.stock!.lowStock = lowStock;
+          }
+        }
 
-        // Replace the old variant with the new variant
-        scannedVariants[index] = updatedVariant;
-
-        //Persit to db
-        // ProxyService.strategy.updateVariant(
-        //   updatables: [updatedVariant],
-        //   variantId: updatedVariant.id,
-        // );
-        // // update io
-        // await StockIOUtil.saveStockIO(
-        //   repository: Repository(),
-        //   variant: updatedVariant,
-        //   approvedQty: updatedVariant.stock?.currentStock ?? 0,
-        //   remark: "New import item processing",
-        // );
-        await StockIOUtil.saveStockMaster(
-          variant: updatedVariant,
-          stockMasterQty: updatedVariant.stock?.currentStock ?? 0,
-        );
-
-        // Notify listeners to rebuild the UI
+        // Notify listeners immediately to update UI
         notifyListeners();
+
+        if (persistToBackend) {
+          try {
+            // Only sync master for items already registered with RRA (saveItems).
+            // New variants get the full saveItems → saveStockItems → saveStockMaster
+            // sequence from addVariant; calling saveStockMaster alone breaks RRA order.
+            if (scannedVariant.ebmSynced == true) {
+              await StockIOUtil.saveStockMaster(
+                variant: scannedVariant,
+                stockMasterQty: scannedVariant.stock?.currentStock ?? 0,
+              );
+            }
+            if (scannedVariant.stockId != null) {
+              await ProxyService.strategy.updateVariant(
+                updatables: [scannedVariant],
+              );
+            }
+          } catch (e) {
+            talker.warning(
+              "Failed to persist stock update (expected for new variants): $e",
+            );
+          }
+        }
       } else {
         // Handle the exception if the variant is not found
         print('Variant with ID $id not found');
@@ -494,9 +578,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     // Assuming that each variant has a unique ID
     for (var variant in scannedVariants) {
       await ProxyService.strategy.flipperDelete(
-          id: variant.id,
-          endPoint: 'variant',
-          flipperHttpClient: ProxyService.http);
+        id: variant.id,
+        endPoint: 'variant',
+        flipperHttpClient: ProxyService.http,
+      );
     }
 
     scannedVariants.clear();
@@ -506,15 +591,17 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   void updateVariantUnit(String id, String? selectedUnit) {
     try {
       // Find the variant with the specified id
-      Variant variant =
-          scannedVariants.firstWhere((variant) => variant.id == id);
+      Variant variant = scannedVariants.firstWhere(
+        (variant) => variant.id == id,
+      );
 
       // If the variant is found, update its unit
 
       ProxyService.strategy.updateVariant(
-          updatables: [variant],
-          unit: selectedUnit ?? 'Per Item',
-          variantId: id);
+        updatables: [variant],
+        unit: selectedUnit ?? 'Per Item',
+        variantId: id,
+      );
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found
@@ -523,22 +610,41 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     }
   }
 
-  Future<void> bulkUpdateVariants(bool editmode,
-      {required String color,
-      required String selectedProductType,
-      Map<String, TextEditingController>? rates,
-      required double newRetailPrice,
-      Map<String, TextEditingController>? dates,
-      required String productName,
-      Function(List<Variant>)? onCompleteCallback,
-      String? categoryId}) async {
+  Future<void> bulkUpdateVariants(
+    bool editmode, {
+    required String color,
+    required String selectedProductType,
+    Map<String, TextEditingController>? rates,
+    required double newRetailPrice,
+    Map<String, TextEditingController>? dates,
+    required String productName,
+    Function(List<Variant>)? onCompleteCallback,
+    String? categoryId,
+  }) async {
     if (editmode) {
       try {
+        String? finalCategoryId = categoryId;
+        final branchId = ProxyService.box.getBranchId()!;
+        if (finalCategoryId == null || finalCategoryId.isEmpty) {
+          final category = await ProxyService.strategy
+              .ensureUncategorizedCategory(branchId: branchId);
+          finalCategoryId = category.id;
+        }
+
+        final boxBhfId = await ProxyService.box.bhfId();
+
         for (var variant in scannedVariants) {
+          Ebm? ebmCache;
+          Future<Ebm?> loadEbm() async {
+            ebmCache ??= await ProxyService.strategy.ebm(branchId: branchId);
+            return ebmCache;
+          }
+
           // Update expiration date if available
           if (dates != null && dates.containsKey(variant.id)) {
-            variant.expirationDate =
-                DateFormat('yyyy-MM-dd').parse(dates[variant.id]!.text);
+            variant.expirationDate = DateFormat(
+              'yyyy-MM-dd',
+            ).parse(dates[variant.id]!.text);
           }
 
           // Update discount rate from discount controller if available
@@ -553,13 +659,61 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
               }
             }
           }
+          // Populate missing RRA fields if they are null
+          if (variant.itemClsCd == null || variant.itemClsCd!.isEmpty) {
+            variant.itemClsCd = "5020230602";
+          }
+          if (variant.qtyUnitCd == null || variant.qtyUnitCd!.isEmpty) {
+            variant.qtyUnitCd = "U";
+          }
+          if (variant.useYn == null || variant.useYn!.isEmpty) {
+            variant.useYn = "N";
+          }
+          if (variant.orgnNatCd == null || variant.orgnNatCd!.isEmpty) {
+            variant.orgnNatCd = "RW";
+          }
+          if (variant.regrId == null || variant.regrId!.isEmpty) {
+            variant.regrId = randomNumber()
+                .toString()
+                .padLeft(5, '0')
+                .substring(0, 5);
+          }
+          if (variant.isrcAplcbYn == null || variant.isrcAplcbYn!.isEmpty) {
+            variant.isrcAplcbYn = "N";
+          }
+          if (variant.tin == null ||
+              variant.tin == -1 ||
+              variant.tin.toString().length != 9) {
+            variant.tin = (await loadEbm())?.tinNumber ?? -1;
+          }
+          if (variant.modrNm == null || variant.modrNm!.isEmpty) {
+            variant.modrNm = variant.name.isNotEmpty
+                ? variant.name
+                : productName;
+          }
+          if (variant.itemCd == null || variant.itemCd!.isEmpty) {
+            variant.itemCd = await ProxyService.strategy.itemCode(
+              countryCode: "RW",
+              productType: "2",
+              packagingUnit: "CT",
+              quantityUnit: "U",
+              branchId: branchId,
+            );
+          }
+          variant.bhfId = _coerceBhfId(
+            boxBhfId,
+            (await loadEbm())?.bhfId,
+            variant.bhfId,
+          );
+
+          variant.itemNm = _coerceItemNm(variant, productTitle: productName);
 
           await ProxyService.strategy.updateVariant(
-            updatables: scannedVariants,
+            updatables: [variant],
             color: color,
             dcRt: variant.dcRt,
             // because we are in edit mode if there is no category selected then user use the one on variant.
-            categoryId: categoryId ?? variant.categoryId,
+            categoryId: finalCategoryId,
             selectedProductType: selectedProductType,
             productName: productName.isEmpty ? null : productName,
             expirationDate: variant.expirationDate,
@@ -569,6 +723,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             supplyPrice: supplyPrice != 0 ? supplyPrice : null,
             retailPrice: retailPrice != 0 ? retailPrice : null,
             updateIo: false,
+          );
+          await ProxyService.strategy.addVariant(
+            variations: [variant],
+            branchId: branchId,
+            skipRRaCall: variant.ebmSynced == true,
           );
         }
 

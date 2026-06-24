@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/SettingLayout.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class SettingPage extends StatelessWidget {
               onPop: () async {
                 _routerService.pop();
               },
-              title: 'Settings',
+              title: FLocalization.of(context).settings,
               disableButton: false,
               showActionButton: false,
             ),

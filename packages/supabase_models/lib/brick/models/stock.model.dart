@@ -18,7 +18,7 @@ part 'stock.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'stocks',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -29,13 +29,29 @@ class Stock extends OfflineFirstWithSupabaseModel {
 
   String? bhfId;
 
-  /// we kee both branchId and businessId as int as we are storing in it
-  /// the server it, but local id will be uuid
-  String? branchId;
+  /// SQLite may contain NULL legacy rows; Brick's default `as String` throws.
+  @Sqlite(
+    fromGenerator:
+        "data['branch_id'] == null ? '' : data['branch_id'].toString()",
+  )
+  @Supabase(
+    fromGenerator:
+        "data['branch_id'] == null ? '' : data['branch_id'].toString()",
+  )
+  String branchId;
+
   @Supabase(defaultValue: "0.0")
+  @Sqlite(
+    fromGenerator:
+        "data['current_stock'] == null ? null : (data['current_stock'] as num).toDouble()",
+  )
   double? currentStock;
 
   @Supabase(defaultValue: "0.0")
+  @Sqlite(
+    fromGenerator:
+        "data['low_stock'] == null ? null : (data['low_stock'] as num).toDouble()",
+  )
   double? lowStock;
   @Sqlite(defaultValue: "true")
   @Supabase(defaultValue: "true")
@@ -44,13 +60,27 @@ class Stock extends OfflineFirstWithSupabaseModel {
   bool? showLowStockAlert;
 
   bool? active;
+
+  @Sqlite(
+    fromGenerator:
+        "data['value'] == null ? null : (data['value'] as num).toDouble()",
+  )
   double? value;
+
+  @Sqlite(
+    fromGenerator:
+        "data['rsd_qty'] == null ? null : (data['rsd_qty'] as num).toDouble()",
+  )
   double? rsdQty;
   DateTime? lastTouched;
   @Sqlite(defaultValue: "false")
   @Supabase(defaultValue: "false")
   bool? ebmSynced;
   @Supabase(defaultValue: "0.0")
+  @Sqlite(
+    fromGenerator:
+        "data['initial_stock'] == null ? null : (data['initial_stock'] as num).toDouble()",
+  )
   double? initialStock;
 
   Stock({
@@ -113,5 +143,25 @@ class Stock extends OfflineFirstWithSupabaseModel {
       ebmSynced: ebmSynced ?? this.ebmSynced,
       initialStock: initialStock ?? this.initialStock,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'id': id,
+      'tin': tin,
+      'bhfId': bhfId,
+      'branchId': branchId,
+      'currentStock': currentStock,
+      'lowStock': lowStock,
+      'canTrackingStock': canTrackingStock,
+      'showLowStockAlert': showLowStockAlert,
+      'active': active,
+      'value': value,
+      'rsdQty': rsdQty,
+      'lastTouched': lastTouched?.toIso8601String(),
+      'ebmSynced': ebmSynced,
+      'initialStock': initialStock,
+    };
   }
 }

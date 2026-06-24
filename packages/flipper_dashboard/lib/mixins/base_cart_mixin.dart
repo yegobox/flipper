@@ -34,8 +34,9 @@ mixin BaseCartMixin<T extends ConsumerStatefulWidget>
   }
 
   double getSumOfItems({required String transactionId}) {
-    final transactionItems =
-        ref.watch(transactionItemsProvider(transactionId: transactionId));
+    final transactionItems = ref.watch(
+      transactionItemsProvider(transactionId: transactionId),
+    );
 
     if (transactionItems.hasValue) {
       return transactionItems.value!.fold(
@@ -47,7 +48,8 @@ mixin BaseCartMixin<T extends ConsumerStatefulWidget>
   }
 
   void handleTicketNavigation(ITransaction transaction) {
-    locator<RouterService>()
-        .navigateTo(TicketsListRoute(transaction: transaction));
+    locator<RouterService>().navigateTo(
+      TicketsListRoute(transaction: transaction),
+    );
   }
 }

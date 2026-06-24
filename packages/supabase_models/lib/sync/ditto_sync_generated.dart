@@ -1,5 +1,5 @@
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 typedef DittoAdapterRegistrar = Future<void> Function(
   DittoSyncCoordinator coordinator,

@@ -1,7 +1,6 @@
-import 'dart:developer';
-
 import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_dashboard/letter.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_scanner/scanner_view.dart';
@@ -56,10 +55,11 @@ class _ProfileWidgetState extends State<ProfileWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isWideLayout = MediaQuery.sizeOf(context).width >= 800;
     return Stack(
       children: [
         // Desktop/Web View
-        if (isDesktopOrWeb)
+        if (isDesktopOrWeb && isWideLayout)
           PDesktop(
             widget: widget,
             dialogService: _dialogService,
@@ -100,7 +100,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
                 // );
               },
             ),
-          )
+          ),
       ],
     );
   }
@@ -121,35 +121,39 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
-      future: Future.value(ProxyService.strategy
-          .getBusiness(businessId: widget.branch.businessId)),
+      future: ProxyService.strategy.getBusiness(
+        businessId: widget.branch.businessId,
+      ),
       builder: (context, snapshot) {
         return PopupMenuButton<String>(
           color: Colors.white,
           onSelected: (value) async {
             if (value == 'logOut') {
-              log('logout selected');
-              await logOut();
-              routeService.clearStackAndShow(LoginRoute());
+              // Always show confirmation + shift handling before logout.
+              dialogService.showCustomDialog(
+                variant: DialogType.logOut,
+                title: FLocalization.of(context).logOut,
+              );
             }
             if (value == 'personal') {
               routeService.clearStackAndShow(PersonalHomeRoute());
             }
           },
           itemBuilder: (BuildContext context) => [
-            PopupMenuItem<String>(
-              value: 'personal',
-              child: Row(
-                children: [
-                  const Icon(Icons.person, color: Colors.black),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Personal',
-                    style: primaryTextStyle,
-                  ),
-                ],
-              ),
-            ),
+            // TODO: resume this feature later.
+            // PopupMenuItem<String>(
+            //   value: 'personal',
+            //   child: Row(
+            //     children: [
+            //       const Icon(Icons.person, color: Colors.black),
+            //       const SizedBox(width: 8),
+            //       Text(
+            //         'Personal',
+            //         style: primaryTextStyle,
+            //       ),
+            //     ],
+            //   ),
+            // ),
             PopupMenuItem<String>(
               value: 'logOut',
               child: Row(
@@ -157,7 +161,7 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
                   const Icon(Icons.logout, color: Colors.black),
                   const SizedBox(width: 8),
                   Text(
-                    'Log out',
+                    FLocalization.of(context).logOut,
                     style: primaryTextStyle,
                   ),
                 ],
@@ -170,7 +174,7 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
                   const Icon(Icons.sync, color: Colors.black),
                   const SizedBox(width: 8),
                   Text(
-                    'Sync counter',
+                    FLocalization.of(context).syncCounter,
                     style: primaryTextStyle,
                   ),
                 ],
@@ -209,36 +213,35 @@ class PMobile extends HookConsumerWidget {
       onSelected: (value) async {
         if (value == 'logOut') {
           dialogService.showCustomDialog(
-              variant: DialogType.logOut, title: 'Log out');
+            variant: DialogType.logOut,
+            title: FLocalization.of(context).logOut,
+          );
         }
         if (value == 'personal') {
           routeService.clearStackAndShow(PersonalHomeRoute());
         }
       },
       itemBuilder: (BuildContext context) => [
-        PopupMenuItem<String>(
-          value: 'personal',
-          child: Row(
-            children: [
-              const Icon(Icons.person, color: Colors.black),
-              const SizedBox(width: 8),
-              Text(
-                'Personal',
-                style: primaryTextStyle,
-              ),
-            ],
-          ),
-        ),
+        // PopupMenuItem<String>(
+        //   value: 'personal',
+        //   child: Row(
+        //     children: [
+        //       const Icon(Icons.person, color: Colors.black),
+        //       const SizedBox(width: 8),
+        //       Text(
+        //         'Personal',
+        //         style: primaryTextStyle,
+        //       ),
+        //     ],
+        //   ),
+        // ),
         PopupMenuItem<String>(
           value: 'logOut',
           child: Row(
             children: [
               const Icon(Icons.logout, color: Colors.black),
               const SizedBox(width: 8),
-              Text(
-                'Log out',
-                style: primaryTextStyle,
-              ),
+              Text(FLocalization.of(context).logOut, style: primaryTextStyle),
             ],
           ),
         ),

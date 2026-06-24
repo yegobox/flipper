@@ -17,61 +17,79 @@ import 'package:riverpod/riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart'
     show ChangeNotifierProvider, StateProvider;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 
 final coreViewModelProvider = ChangeNotifierProvider((ref) => CoreViewModel());
-final unsavedProductProvider =
-    NotifierProvider<ProductNotifier, Product?>(ProductNotifier.new);
+final unsavedProductProvider = NotifierProvider<ProductNotifier, Product?>(
+  ProductNotifier.new,
+);
 
-final connectivityStreamProvider = StreamProvider<bool>((ref) {
-  return Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
+final connectivityStreamProvider = StreamProvider<bool>((ref) async* {
+  final connectivity = Connectivity();
+  final initial = await connectivity.checkConnectivity();
+  yield _connectivityListHasNetwork(initial);
+
+  await for (final result in connectivity.onConnectivityChanged) {
+    final online = _connectivityListHasNetwork(result);
+    if (!online) {
+      yield false;
+      continue;
+    }
+    // HTTP probe only after network interface comes back (not every 5s).
     try {
       final url =
-          await ProxyService.box.getServerUrl() ?? "https://turbo.yegobox.com/";
+          await ProxyService.box.getServerUrl() ??
+          'https://turbo.yegobox.com/';
       final response = await http.get(Uri.parse(url));
-
-      print('Connectivity check!: ${response.statusCode == 200}');
-      return response.statusCode == 200;
+      yield response.statusCode == 200;
     } catch (e) {
-      print('Connectivity check failed: $e');
-      return false;
+      yield false;
     }
-  });
+  }
 });
+
+bool _connectivityListHasNetwork(List<ConnectivityResult> results) {
+  return results.any((r) => r != ConnectivityResult.none);
+}
 
 final customersStreamProvider = StreamProvider.autoDispose
     .family<List<Customer>, ({String? branchId, String? id})>((ref, params) {
-  final (:branchId, :id) = params;
-  return ProxyService.strategy
-      .customersStream(branchId: branchId ?? "", id: id);
-});
+      final (:branchId, :id) = params;
+      return ProxyService.getStrategy(Strategy.capella).customersStream(
+        branchId: branchId ?? "",
+        id: id,
+      );
+    });
 
 final customerProvider = FutureProvider.autoDispose
     .family<Customer?, ({String? id})>((ref, params) async {
-  final (:id) = params;
-  String? branchId = ProxyService.box.getBranchId();
-  if (branchId == null || branchId.isEmpty) return null;
-  return (await ProxyService.getStrategy(Strategy.capella)
-          .customers(id: id, branchId: branchId))
-      .firstOrNull;
-});
+      final (:id) = params;
+      String? branchId = ProxyService.box.getBranchId();
+      if (branchId == null || branchId.isEmpty) return null;
+      return (await ProxyService.getStrategy(
+        Strategy.capella,
+      ).customers(id: id, branchId: branchId)).firstOrNull;
+    });
 
 /// Provider specifically for fetching a single attached customer by ID.
 /// Returns null when no valid customerId is provided, preventing unnecessary
 /// queries that would return all customers for the branch.
 final attachedCustomerProvider = FutureProvider.autoDispose
     .family<Customer?, String?>((ref, customerId) async {
-  // Return null immediately if customerId is null or empty
-  if (customerId == null || customerId.isEmpty) {
-    return null;
-  }
+      // Return null immediately if customerId is null or empty
+      if (customerId == null || customerId.isEmpty) {
+        return null;
+      }
 
-  String? branchId = ProxyService.box.getBranchId();
-  if (branchId == null || branchId.isEmpty) return null;
-  return (await ProxyService.getStrategy(Strategy.capella)
-          .customers(id: customerId, branchId: branchId))
-      .firstOrNull;
-});
+      String? branchId = ProxyService.box.getBranchId();
+      if (branchId == null || branchId.isEmpty) return null;
+      final customer = (await ProxyService.getStrategy(
+        Strategy.capella,
+      ).customers(id: customerId, branchId: branchId)).firstOrNull;
+      print('Customer: $customer');
+      return customer;
+    });
 
 class ProductNotifier extends Notifier<Product?> {
   @override
@@ -84,7 +102,8 @@ class ProductNotifier extends Notifier<Product?> {
 
 final customerSearchStringProvider =
     NotifierProvider<CustomerSearchStringNotifier, String>(
-        CustomerSearchStringNotifier.new);
+      CustomerSearchStringNotifier.new,
+    );
 
 class CustomerSearchStringNotifier extends Notifier<String> {
   @override
@@ -103,8 +122,9 @@ enum SellingMode {
 }
 
 // Change the argument type to SellingMode
-final sellingModeProvider =
-    NotifierProvider<SellingModeNotifier, SellingMode>(SellingModeNotifier.new);
+final sellingModeProvider = NotifierProvider<SellingModeNotifier, SellingMode>(
+  SellingModeNotifier.new,
+);
 
 class SellingModeNotifier extends Notifier<SellingMode> {
   @override
@@ -116,15 +136,19 @@ class SellingModeNotifier extends Notifier<SellingMode> {
   }
 }
 
-final initialStockProvider =
-    StreamProvider.autoDispose.family<double, String>((ref, branchId) {
+final initialStockProvider = StreamProvider.autoDispose.family<double, String>((
+  ref,
+  branchId,
+) {
   return ProxyService.strategy.totalSales(branchId: branchId);
 });
 
-final paginatedVariantsProvider = NotifierProvider.family<
-    PaginatedVariantsNotifier,
-    AsyncValue<List<Variant>>,
-    String>(PaginatedVariantsNotifier.new);
+final paginatedVariantsProvider =
+    NotifierProvider.family<
+      PaginatedVariantsNotifier,
+      AsyncValue<List<Variant>>,
+      String
+    >(PaginatedVariantsNotifier.new);
 
 class PaginatedVariantsNotifier extends Notifier<AsyncValue<List<Variant>>> {
   final String productId;
@@ -136,7 +160,10 @@ class PaginatedVariantsNotifier extends Notifier<AsyncValue<List<Variant>>> {
 
   @override
   AsyncValue<List<Variant>> build() {
-    futureLoad(productId);
+    if (_allVariants.isNotEmpty) {
+      return AsyncValue.data(List<Variant>.from(_allVariants));
+    }
+    Future.microtask(() => futureLoad(productId));
     return const AsyncValue.loading();
   }
 
@@ -188,16 +215,18 @@ class PaginatedVariantsNotifier extends Notifier<AsyncValue<List<Variant>>> {
   Future<List<Variant>> fetchVariants(String productId) async {
     final branchId = ProxyService.box.getBranchId()!;
     final paged = await ProxyService.strategy.variants(
-        branchId: branchId,
-        productId: productId,
-        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
+      branchId: branchId,
+      productId: productId,
+      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+    );
     return List<Variant>.from(paged.variants);
   }
 }
 
 final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
-  final productsState =
-      ref.watch(productsProvider(ProxyService.box.getBranchId() ?? ""));
+  final productsState = ref.watch(
+    productsProvider(ProxyService.box.getBranchId() ?? ""),
+  );
   return productsState.maybeWhen(
     data: (products) {
       try {
@@ -223,7 +252,8 @@ class ScanningModeNotifier extends Notifier<bool> {
 // ordering
 final receivingOrdersModeProvider =
     NotifierProvider<ReceiveOrderModeNotifier, bool>(
-        ReceiveOrderModeNotifier.new);
+      ReceiveOrderModeNotifier.new,
+    );
 
 class ReceiveOrderModeNotifier extends Notifier<bool> {
   @override
@@ -237,79 +267,48 @@ class ReceiveOrderModeNotifier extends Notifier<bool> {
 
 final customersProvider =
     NotifierProvider<CustomersNotifier, AsyncValue<List<Customer>>>(
-        CustomersNotifier.new);
+      CustomersNotifier.new,
+    );
 
 class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
-  late String? branchId;
-
   @override
   AsyncValue<List<Customer>> build() {
-    branchId = ProxyService.box.getBranchId();
-    // We should not await here for build method synchronous return,
-    // but we can start async load.
-    loadCustomers();
-    return const AsyncValue.loading();
-  }
-
-  Future<void> loadCustomers() async {
-    try {
-      // await any ongoing database persistance
-      List<Customer> customers = [];
-      if (branchId != null && branchId!.isNotEmpty) {
-        customers = await ProxyService.getStrategy(Strategy.capella)
-            .customers(branchId: branchId);
-      }
-
-      state = AsyncData(customers);
-    } catch (error) {
-      //state = AsyncError(error, StackTrace.current);
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) {
+      return const AsyncValue.data([]);
     }
-  }
-
-  void addCustomers({required List<Customer> customers}) {
-    final currentData = state.value ?? [];
-    final List<Customer> updatedCustomers = [...currentData, ...customers];
-    state = AsyncData(updatedCustomers);
-  }
-
-  void deleteCustomer({required String customerId}) {
-    state.maybeWhen(
-      data: (currentData) {
-        final updatedCustomers =
-            currentData.where((customer) => customer.id != customerId).toList();
-        state = AsyncData(updatedCustomers);
-      },
-      orElse: () {},
-    );
+    return ref.watch(customersStreamProvider((branchId: branchId, id: null)));
   }
 
   List<Customer> filterCustomers(
     List<Customer> customers,
     String searchString,
   ) {
-    if (searchString.isNotEmpty) {
-      return customers
-          .where((customer) => customer.custNm!
-              .toLowerCase()
-              .contains(searchString.toLowerCase()))
-          .toList();
-    }
-    return customers;
+    if (searchString.isEmpty) return customers;
+    final q = searchString.toLowerCase();
+    return customers.where((customer) {
+      final name = customer.custNm?.toLowerCase() ?? '';
+      final email = customer.email?.toLowerCase() ?? '';
+      final tel = customer.telNo?.toLowerCase() ?? '';
+      return name.contains(q) || email.contains(q) || tel.contains(q);
+    }).toList();
   }
 }
 
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, String>((ref, productId) async {
-  final paged = await ProxyService.strategy.variants(
-      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-      productId: productId,
-      branchId: ProxyService.box.getBranchId()!);
-  final data = List<Variant>.from(paged.variants);
-  return AsyncData(data);
-});
+      final paged = await ProxyService.strategy.variants(
+        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+        productId: productId,
+        branchId: ProxyService.box.getBranchId()!,
+      );
+      final data = List<Variant>.from(paged.variants);
+      return AsyncData(data);
+    });
 
-final unitsProvider =
-    FutureProvider.autoDispose<AsyncValue<List<IUnit>>>((ref) async {
+final unitsProvider = FutureProvider.autoDispose<AsyncValue<List<IUnit>>>((
+  ref,
+) async {
   try {
     // Use the unityOfQuantity constants from RRADEFAULTS
     final units = RRADEFAULTS.unityOfQuantity.map((unitStr) {
@@ -330,8 +329,9 @@ final unitsProvider =
 });
 
 // create riverpod to track the index of button clicked
-final buttonIndexProvider =
-    NotifierProvider<ButtonIndexNotifier, int>(ButtonIndexNotifier.new);
+final buttonIndexProvider = NotifierProvider<ButtonIndexNotifier, int>(
+  ButtonIndexNotifier.new,
+);
 
 class ButtonIndexNotifier extends Notifier<int> {
   @override
@@ -342,65 +342,85 @@ class ButtonIndexNotifier extends Notifier<int> {
   }
 }
 
-final currentTransactionsByIdStream =
-    StreamProvider.autoDispose.family<List<ITransaction>, String>((ref, id) {
-  // Retrieve the transaction status from the provider container, if needed
+final currentTransactionsByIdStream = StreamProvider.autoDispose
+    .family<List<ITransaction>, String>((ref, id) {
+      // Retrieve the transaction status from the provider container, if needed
 
-  // Use ProxyService to get the  of transactions
-  final transactionsStream = ProxyService.strategy.transactionsStream(
-      id: id,
-      filterType: FilterType.TRANSACTION,
-      forceRealData: true,
-      skipOriginalTransactionCheck: true,
-      removeAdjustmentTransactions: true);
+      // Use ProxyService to get the  of transactions
+      final transactionsStream = ProxyService.strategy.transactionsStream(
+        id: id,
+        filterType: FilterType.TRANSACTION,
+        forceRealData: true,
+        skipOriginalTransactionCheck: true,
+        removeAdjustmentTransactions: true,
+      );
 
-  // Return the stream
-  return transactionsStream;
-});
+      // Return the stream
+      return transactionsStream;
+    });
 
-final selectImportItemsProvider = FutureProvider.autoDispose
-    .family<List<Variant>, int?>((ref, productId) async {
-  // Fetch the list of variants from a remote service.
-  final response = await ProxyService.strategy.selectImportItems(
-      tin: 999909695, bhfId: (await ProxyService.box.bhfId()) ?? "00");
+final transactionTotalPaidProvider = FutureProvider.autoDispose
+    .family<double, String>((ref, transactionId) async {
+      if (transactionId.isEmpty) return 0.0;
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) return 0.0;
 
-  return response;
-});
+      try {
+        final totalPaid = await ProxyService.getStrategy(Strategy.capella)
+            .getTotalPaidForTransaction(
+              transactionId: transactionId,
+              branchId: branchId,
+              excludePaymentMethod: 'CREDIT',
+            );
+        return totalPaid ?? 0.0;
+      } catch (e) {
+        talker.error('Error getting total paid for transaction: $e');
+        return 0.0;
+      }
+    });
 
-final ordersStreamProvider =
-    StreamProvider.autoDispose<List<ITransaction>>((ref) {
+final ordersStreamProvider = StreamProvider.autoDispose<List<ITransaction>>((
+  ref,
+) {
   String branchId = ProxyService.box.getBranchId() ?? "";
   return ProxyService.strategy.transactionsStream(
-      branchId: branchId,
-      skipOriginalTransactionCheck: true,
-      removeAdjustmentTransactions: true,
-      forceRealData: true);
+    branchId: branchId,
+    skipOriginalTransactionCheck: true,
+    removeAdjustmentTransactions: true,
+    forceRealData: true,
+  );
 });
 
 final universalProductsNames =
     FutureProvider.autoDispose<AsyncValue<List<UnversalProduct>>>((ref) async {
-  try {
-    // final branchId = ProxyService.box.getBranchId()!;
+      try {
+        // final branchId = ProxyService.box.getBranchId()!;
 
-    // Check if units are already present in the database
-    final existingUnits =
-        await ProxyService.strategy.universalProductNames(branchId: "1");
+        // Check if units are already present in the database
+        final existingUnits = await ProxyService.strategy.universalProductNames(
+          branchId: "1",
+        );
 
-    return AsyncData(existingUnits);
-  } catch (error) {
-    // Return AsyncError with error and stack trace
-    return AsyncError(error, StackTrace.current);
-  }
+        return AsyncData(existingUnits);
+      } catch (error) {
+        // Return AsyncError with error and stack trace
+        return AsyncError(error, StackTrace.current);
+      }
+    });
+
+final skuProvider = StreamProvider.autoDispose.family<SKU?, String>((
+  ref,
+  branchId,
+) {
+  return ProxyService.strategy.sku(
+    branchId: branchId,
+    businessId: ProxyService.box.getBusinessId()!,
+  );
 });
 
-final skuProvider =
-    StreamProvider.autoDispose.family<SKU?, String>((ref, branchId) {
-  return ProxyService.strategy
-      .sku(branchId: branchId, businessId: ProxyService.box.getBusinessId()!);
-});
-
-final keypadProvider =
-    NotifierProvider<KeypadNotifier, String>(KeypadNotifier.new);
+final keypadProvider = NotifierProvider<KeypadNotifier, String>(
+  KeypadNotifier.new,
+);
 
 class KeypadNotifier extends Notifier<String> {
   @override
@@ -439,15 +459,9 @@ class LoadingState {
   final bool isLoading;
   final String? error;
 
-  const LoadingState({
-    this.isLoading = false,
-    this.error,
-  });
+  const LoadingState({this.isLoading = false, this.error});
 
-  LoadingState copyWith({
-    bool? isLoading,
-    String? error,
-  }) {
+  LoadingState copyWith({bool? isLoading, String? error}) {
     return LoadingState(
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
@@ -457,8 +471,9 @@ class LoadingState {
 
 // final isLoadingProvider = StateProvider<bool>((ref) => false);
 // Define the provider
-final loadingProvider =
-    NotifierProvider<LoadingNotifier, LoadingState>(LoadingNotifier.new);
+final loadingProvider = NotifierProvider<LoadingNotifier, LoadingState>(
+  LoadingNotifier.new,
+);
 
 // Create a notifier to handle loading state changes
 class LoadingNotifier extends Notifier<LoadingState> {
@@ -500,31 +515,31 @@ class CombinedNotifier {
     ref.read(searchStringProvider.notifier).emitString(value: "search");
     ref.read(searchStringProvider.notifier).emitString(value: "");
 
-    // Note: We don't call refresh() here because variants are already added
-    // directly in the onCompleteCallback via addVariants() method.
-    // Calling refresh() here would cause duplicates.
+    // Trigger refresh for outerVariantsProvider to show newly imported products
+    ref.read(outerVariantsProvider(branchId).notifier).refresh();
 
     // Reload products
-    ref.read(productsProvider(branchId).notifier).loadProducts(
-          searchString: productName,
-          scanMode: scanMode,
-        );
+    ref
+        .read(productsProvider(branchId).notifier)
+        .loadProducts(searchString: productName, scanMode: scanMode);
   }
 }
 
-final reportsProvider =
-    StreamProvider.autoDispose.family<List<Report>, String>((ref, branchId) {
-  return ProxyService.strategy.reports(branchId: branchId).map((reports) {
-    talker.warning(reports);
-    return reports;
-  });
-});
+final reportsProvider = StreamProvider.autoDispose.family<List<Report>, String>(
+  (ref, branchId) {
+    return ProxyService.strategy.reports(branchId: branchId).map((reports) {
+      talker.warning(reports);
+      return reports;
+    });
+  },
+);
 // TODO: hardcoding 2000 items is not ideal, I need to find permanent solution.
 final rowsPerPageProvider = StateProvider<int>((ref) => 20);
 
 final toggleBooleanValueProvider =
     NotifierProvider<PluReportToggleNotifier, bool>(
-        PluReportToggleNotifier.new);
+      PluReportToggleNotifier.new,
+    );
 
 class PluReportToggleNotifier extends Notifier<bool> {
   @override
@@ -535,8 +550,9 @@ class PluReportToggleNotifier extends Notifier<bool> {
   }
 }
 
-final isProcessingProvider =
-    NotifierProvider<IsProcessingNotifier, bool>(IsProcessingNotifier.new);
+final isProcessingProvider = NotifierProvider<IsProcessingNotifier, bool>(
+  IsProcessingNotifier.new,
+);
 
 class IsProcessingNotifier extends Notifier<bool> {
   @override
@@ -559,10 +575,43 @@ const String NO_SELECTION = "-1";
 
 final selectedItemIdProvider = StateProvider<String?>((ref) => NO_SELECTION);
 
+final selectedItemIdsProvider =
+    NotifierProvider<SelectedItemIdsNotifier, Set<String>>(
+      SelectedItemIdsNotifier.new,
+    );
+
+class SelectedItemIdsNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void toggleSelection(String id) {
+    if (state.contains(id)) {
+      state = Set.from(state)..remove(id);
+    } else {
+      state = Set.from(state)..add(id);
+    }
+    // Update the single selection provider for compatibility
+    if (state.isEmpty) {
+      ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
+    } else {
+      ref.read(selectedItemIdProvider.notifier).state = state.last;
+    }
+  }
+
+  void clearSelection() {
+    state = {};
+    ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
+  }
+
+  bool isSelected(String id) => state.contains(id);
+}
+
 final tenantProvider = FutureProvider<Tenant?>((ref) async {
   final userId = ProxyService.box.getUserId();
-  return await ProxyService.strategy
-      .tenant(userId: userId, fetchRemote: !Platform.isWindows);
+  return await ProxyService.strategy.tenant(
+    userId: userId,
+    fetchRemote: !Platform.isWindows,
+  );
 });
 
 /// check if a user has either, admin,read,write on a given feature
@@ -573,6 +622,14 @@ final businessesProvider = FutureProvider<List<Business>>((ref) async {
   try {
     final userId = ProxyService.box.getUserId();
     if (userId == null) return [];
+
+    // Check if Ditto is ready before calling getUserAccess
+    if (!ProxyService.ditto.isReady()) {
+      debugPrint(
+        '⚠️ businessesProvider: Ditto not ready yet, returning empty list',
+      );
+      return [];
+    }
 
     final userAccess = await ProxyService.ditto.getUserAccess(userId);
     if (userAccess != null && userAccess.containsKey('businesses')) {
@@ -603,8 +660,9 @@ final businessesProvider = FutureProvider<List<Business>>((ref) async {
 });
 
 // Define a provider for the selected branch
-final selectedBranchProvider =
-    StateProvider.autoDispose<Branch?>((ref) => null);
+final selectedBranchProvider = StateProvider.autoDispose<Branch?>(
+  (ref) => null,
+);
 // Provider to check if a user has access to a specific feature
 /// A provider that determines if a user has access to a specific feature based on their permissions.
 /// This provider implements a hierarchical access control system where certain elevated permissions
@@ -614,10 +672,7 @@ class BusinessSelectionState {
   final bool isLoading;
   final Business? selectedBusiness;
 
-  BusinessSelectionState({
-    required this.isLoading,
-    this.selectedBusiness,
-  });
+  BusinessSelectionState({required this.isLoading, this.selectedBusiness});
 
   BusinessSelectionState copyWith({
     bool? isLoading,
@@ -632,7 +687,8 @@ class BusinessSelectionState {
 
 final businessSelectionProvider =
     NotifierProvider<BusinessSelectionNotifier, BusinessSelectionState>(
-        BusinessSelectionNotifier.new);
+      BusinessSelectionNotifier.new,
+    );
 
 class BusinessSelectionNotifier extends Notifier<BusinessSelectionState> {
   @override
@@ -651,15 +707,9 @@ class BranchSelectionState {
   final bool isLoading;
   final Branch? selectedBranch;
 
-  BranchSelectionState({
-    required this.isLoading,
-    this.selectedBranch,
-  });
+  BranchSelectionState({required this.isLoading, this.selectedBranch});
 
-  BranchSelectionState copyWith({
-    bool? isLoading,
-    Branch? selectedBranch,
-  }) {
+  BranchSelectionState copyWith({bool? isLoading, Branch? selectedBranch}) {
     return BranchSelectionState(
       isLoading: isLoading ?? this.isLoading,
       selectedBranch: selectedBranch ?? this.selectedBranch,
@@ -681,7 +731,8 @@ final statusColorProvider = StreamProvider<Color?>((ref) {
 
 final branchSelectionProvider =
     NotifierProvider<BranchSelectionNotifier, BranchSelectionState>(
-        BranchSelectionNotifier.new);
+      BranchSelectionNotifier.new,
+    );
 
 class BranchSelectionNotifier extends Notifier<BranchSelectionState> {
   @override
@@ -698,12 +749,15 @@ class BranchSelectionNotifier extends Notifier<BranchSelectionState> {
 
 final variantsProvider = FutureProvider.autoDispose
     .family<List<Variant>, ({String branchId})>((ref, params) async {
-  final (:branchId) = params;
-  final paged = await ProxyService.strategy.variants(
-      branchId: branchId,
-      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
-  return List<Variant>.from(paged.variants);
-});
+      final (:branchId) = params;
+
+      Ebm? ebm = await ProxyService.strategy.ebm(branchId: branchId);
+      final paged = await ProxyService.getStrategy(Strategy.capella).variants(
+        branchId: branchId,
+        taxTyCds: ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'],
+      );
+      return List<Variant>.from(paged.variants);
+    });
 
 class Payment {
   double amount;
@@ -716,61 +770,104 @@ class Payment {
     required this.method,
     String? id,
     TextEditingController? controller,
-  })  : controller = controller ??
-            TextEditingController(text: amount.toStringAsFixed(2)),
-        id = id ?? UniqueKey().toString();
+  }) : controller =
+           controller ?? TextEditingController(text: amount.toStringAsFixed(2)),
+       id = id ?? UniqueKey().toString();
+
+  void dispose() {
+    controller.dispose();
+  }
 }
 
 final paymentMethodsProvider =
     NotifierProvider<PaymentMethodsNotifier, List<Payment>>(
-        PaymentMethodsNotifier.new);
+      PaymentMethodsNotifier.new,
+    );
 
 class PaymentMethodsNotifier extends Notifier<List<Payment>> {
   final List<Payment>? initialPayments;
   PaymentMethodsNotifier([this.initialPayments]);
 
   @override
-  List<Payment> build() =>
-      initialPayments ?? [Payment(amount: 0.0, method: 'CASH')];
+  List<Payment> build() {
+    return initialPayments ?? [Payment(amount: 0.0, method: 'CASH')];
+  }
+
+  void _safeDispose(Payment payment) {
+    final controller = payment.controller;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.dispose();
+    });
+  }
 
   // Method to add a payment method
   void addPaymentMethod(Payment method) {
     try {
       final existingIndex = state.indexWhere(
-          (existingMethod) => existingMethod.method == method.method);
+        (existingMethod) => existingMethod.method == method.method,
+      );
       if (existingIndex != -1) {
-        state[existingIndex] = method;
+        final oldPayment = state[existingIndex];
+        // Only dispose if we are NOT reusing the same controller
+        if (oldPayment.controller != method.controller) {
+          _safeDispose(oldPayment);
+        }
+        final updatedList = List<Payment>.from(state);
+        updatedList[existingIndex] = method;
+        state = updatedList;
       } else {
         state = [...state, method];
       }
-    } catch (e) {}
+    } catch (e) {
+      talker.error('Error adding payment method: $e');
+    }
   }
 
-  void updatePaymentMethod(int index, Payment payment,
-      {required String transactionId}) {
+  void updatePaymentMethod(
+    int index,
+    Payment payment, {
+    String? transactionId,
+  }) {
+    if (index < 0 || index >= state.length) {
+      talker.error(
+        "Invalid index $index for updatePaymentMethod. List length: ${state.length}",
+      );
+      return; // Early return if index is out of bounds
+    }
+
+    final oldPayment = state[index];
+    // Only dispose if we are NOT reusing the same controller
+    if (oldPayment.controller != payment.controller) {
+      _safeDispose(oldPayment);
+    }
+
     final updatedList = List<Payment>.from(state);
     updatedList[index] = payment;
     state = updatedList;
 
-    talker.warning("Payment Lenght:${state.length}");
-
-    ProxyService.strategy.savePaymentType(
-        amount: payment.amount,
-        singlePaymentOnly: state.length == 1,
-        paymentMethod: payment.method,
-        transactionId: transactionId);
+    talker.warning("Payment Length:${state.length}");
   }
 
-  // Method to remove a payment method
   void removePaymentMethod(int index) {
+    if (index >= 0 && index < state.length) {
+      _safeDispose(state[index]);
+    }
     state = [
       for (int i = 0; i < state.length; i++)
-        if (i != index) state[i]
+        if (i != index) state[i],
     ];
   }
 
-  // Method to update payment methods
   void setPaymentMethods(List<Payment> methods) {
+    // Collect controllers that are being kept
+    final newControllers = methods.map((p) => p.controller).toSet();
+
+    // Dispose only those that are NOT in the new list
+    for (final oldPayment in state) {
+      if (!newControllers.contains(oldPayment.controller)) {
+        _safeDispose(oldPayment);
+      }
+    }
     state = methods;
   }
 }
@@ -791,28 +888,33 @@ final stringProvider = NotifierProvider<StringState, String?>(() {
   return StringState(null);
 });
 
-final orderStatusProvider =
-    StateProvider<OrderStatus>((ref) => OrderStatus.pending);
-final requestStatusProvider =
-    StateProvider<String>((ref) => RequestStatus.pending);
+final orderStatusProvider = StateProvider<OrderStatus>(
+  (ref) => OrderStatus.pending,
+);
+final requestStatusProvider = StateProvider<String>(
+  (ref) => RequestStatus.pending,
+);
 
 final showProductsList = StateProvider.autoDispose<bool>((ref) => true);
 
-// Stock stream provider for live stock updates
-final stockByVariantProvider =
-    StreamProvider.autoDispose.family<Stock?, String>((ref, stockId) {
-  if (stockId.isEmpty) {
-    return Stream.value(null);
-  }
+final bulkDeleteProgressProvider = StateProvider<double>((ref) => 0.0);
 
-  try {
-    return ProxyService.getStrategy(Strategy.capella)
-        .watchStockByVariantId(stockId: stockId);
-  } catch (e) {
-    print('Error setting up stock stream from strategy: $e');
-    return Stream.value(null);
-  }
-});
+// Stock stream provider for live stock updates
+final stockByVariantProvider = StreamProvider.autoDispose
+    .family<Stock?, String>((ref, stockId) {
+      if (stockId.isEmpty) {
+        return Stream.value(null);
+      }
+
+      try {
+        return ProxyService.getStrategy(
+          Strategy.capella,
+        ).watchStockByVariantId(stockId: stockId);
+      } catch (e) {
+        print('Error setting up stock stream from strategy: $e');
+        return Stream.value(null);
+      }
+    });
 
 List<ProviderBase> allProviders = [
   unsavedProductProvider,

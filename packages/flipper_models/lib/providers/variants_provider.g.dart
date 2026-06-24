@@ -12,25 +12,30 @@ part of 'variants_provider.dart';
 @ProviderFor(variant)
 const variantProvider = VariantFamily._();
 
-final class VariantProvider extends $FunctionalProvider<
-        AsyncValue<List<Variant>>, List<Variant>, FutureOr<List<Variant>>>
+final class VariantProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Variant>>,
+          List<Variant>,
+          FutureOr<List<Variant>>
+        >
     with $FutureModifier<List<Variant>>, $FutureProvider<List<Variant>> {
-  const VariantProvider._(
-      {required VariantFamily super.from,
-      required ({
-        String branchId,
-        String? key,
-        bool forImportScreen,
-        bool forPurchaseScreen,
-      })
-          super.argument})
-      : super(
-          retry: null,
-          name: r'variantProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const VariantProvider._({
+    required VariantFamily super.from,
+    required ({
+      String branchId,
+      String? key,
+      bool forImportScreen,
+      bool forPurchaseScreen,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'variantProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$variantHash();
@@ -45,17 +50,19 @@ final class VariantProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<Variant>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<Variant>> create(Ref ref) {
-    final argument = this.argument as ({
-      String branchId,
-      String? key,
-      bool forImportScreen,
-      bool forPurchaseScreen,
-    });
+    final argument =
+        this.argument
+            as ({
+              String branchId,
+              String? key,
+              bool forImportScreen,
+              bool forPurchaseScreen,
+            });
     return variant(
       ref,
       branchId: argument.branchId,
@@ -81,34 +88,37 @@ String _$variantHash() => r'633c8c170a2dc31357da90faf430dd7748bf5808';
 final class VariantFamily extends $Family
     with
         $FunctionalFamilyOverride<
-            FutureOr<List<Variant>>,
-            ({
-              String branchId,
-              String? key,
-              bool forImportScreen,
-              bool forPurchaseScreen,
-            })> {
+          FutureOr<List<Variant>>,
+          ({
+            String branchId,
+            String? key,
+            bool forImportScreen,
+            bool forPurchaseScreen,
+          })
+        > {
   const VariantFamily._()
-      : super(
-          retry: null,
-          name: r'variantProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'variantProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   VariantProvider call({
     required String branchId,
     String? key,
     bool forImportScreen = false,
     bool forPurchaseScreen = false,
-  }) =>
-      VariantProvider._(argument: (
-        branchId: branchId,
-        key: key,
-        forImportScreen: forImportScreen,
-        forPurchaseScreen: forPurchaseScreen,
-      ), from: this);
+  }) => VariantProvider._(
+    argument: (
+      branchId: branchId,
+      key: key,
+      forImportScreen: forImportScreen,
+      forPurchaseScreen: forPurchaseScreen,
+    ),
+    from: this,
+  );
 
   @override
   String toString() => r'variantProvider';
@@ -117,23 +127,24 @@ final class VariantFamily extends $Family
 @ProviderFor(purchaseVariant)
 const purchaseVariantProvider = PurchaseVariantFamily._();
 
-final class PurchaseVariantProvider extends $FunctionalProvider<
-        AsyncValue<List<Variant>>, List<Variant>, FutureOr<List<Variant>>>
+final class PurchaseVariantProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Variant>>,
+          List<Variant>,
+          FutureOr<List<Variant>>
+        >
     with $FutureModifier<List<Variant>>, $FutureProvider<List<Variant>> {
-  const PurchaseVariantProvider._(
-      {required PurchaseVariantFamily super.from,
-      required ({
-        String branchId,
-        String? purchaseId,
-      })
-          super.argument})
-      : super(
-          retry: null,
-          name: r'purchaseVariantProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const PurchaseVariantProvider._({
+    required PurchaseVariantFamily super.from,
+    required ({String branchId, String? purchaseId}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'purchaseVariantProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$purchaseVariantHash();
@@ -148,15 +159,12 @@ final class PurchaseVariantProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<Variant>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<Variant>> create(Ref ref) {
-    final argument = this.argument as ({
-      String branchId,
-      String? purchaseId,
-    });
+    final argument = this.argument as ({String branchId, String? purchaseId});
     return purchaseVariant(
       ref,
       branchId: argument.branchId,
@@ -180,28 +188,25 @@ String _$purchaseVariantHash() => r'86ba21467610a011e19f121d9b465416f943af01';
 final class PurchaseVariantFamily extends $Family
     with
         $FunctionalFamilyOverride<
-            FutureOr<List<Variant>>,
-            ({
-              String branchId,
-              String? purchaseId,
-            })> {
+          FutureOr<List<Variant>>,
+          ({String branchId, String? purchaseId})
+        > {
   const PurchaseVariantFamily._()
-      : super(
-          retry: null,
-          name: r'purchaseVariantProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'purchaseVariantProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   PurchaseVariantProvider call({
     required String branchId,
     String? purchaseId,
-  }) =>
-      PurchaseVariantProvider._(argument: (
-        branchId: branchId,
-        purchaseId: purchaseId,
-      ), from: this);
+  }) => PurchaseVariantProvider._(
+    argument: (branchId: branchId, purchaseId: purchaseId),
+    from: this,
+  );
 
   @override
   String toString() => r'purchaseVariantProvider';
@@ -213,15 +218,16 @@ const stockByIdProvider = StockByIdFamily._();
 final class StockByIdProvider
     extends $FunctionalProvider<AsyncValue<Stock?>, Stock?, FutureOr<Stock?>>
     with $FutureModifier<Stock?>, $FutureProvider<Stock?> {
-  const StockByIdProvider._(
-      {required StockByIdFamily super.from, required String super.argument})
-      : super(
-          retry: null,
-          name: r'stockByIdProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const StockByIdProvider._({
+    required StockByIdFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'stockByIdProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$stockByIdHash();
@@ -241,10 +247,7 @@ final class StockByIdProvider
   @override
   FutureOr<Stock?> create(Ref ref) {
     final argument = this.argument as String;
-    return stockById(
-      ref,
-      stockId: argument,
-    );
+    return stockById(ref, stockId: argument);
   }
 
   @override
@@ -263,17 +266,15 @@ String _$stockByIdHash() => r'0656c9babb20066f9f25c8b657359d6112ff8428';
 final class StockByIdFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Stock?>, String> {
   const StockByIdFamily._()
-      : super(
-          retry: null,
-          name: r'stockByIdProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'stockByIdProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  StockByIdProvider call({
-    required String stockId,
-  }) =>
+  StockByIdProvider call({required String stockId}) =>
       StockByIdProvider._(argument: stockId, from: this);
 
   @override

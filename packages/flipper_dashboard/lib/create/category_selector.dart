@@ -3,12 +3,12 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_models/providers/category_provider.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:stacked_services/stacked_services.dart';
 
-class CategorySelector extends ConsumerWidget {
+class CategorySelector extends HookConsumerWidget {
   const CategorySelector({super.key, this.modeOfOperation = 'product'});
 
   const CategorySelector.transactionMode({
@@ -20,13 +20,32 @@ class CategorySelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<AsyncValue<List<Category>>>(categoryProvider, (previous, next) {
+      next.whenData((list) {
+        final optimistic =
+            ref.read(optimisticFocusedCategoryProvider);
+        if (optimistic == null) return;
+        Category? focusedDb;
+        try {
+          focusedDb = list.firstWhere(
+            (c) => c.focused && (c.active ?? false),
+          );
+        } catch (_) {
+          focusedDb = null;
+        }
+        if (focusedDb != null && focusedDb.id == optimistic.id) {
+          ref.read(optimisticFocusedCategoryProvider.notifier).clear();
+        }
+      });
+    });
+
     final categories = ref.watch(categoryProvider);
 
     return GestureDetector(
       onTap: () => _navigateToCategories(context, ref, modeOfOperation),
       child: modeOfOperation == 'product'
-          ? _buildProductMode(context, categories)
-          : _buildTransactionMode(context, categories),
+          ? _buildProductMode(context, ref, categories)
+          : _buildTransactionMode(context, ref, categories),
     );
   }
 
@@ -41,12 +60,13 @@ class CategorySelector extends ConsumerWidget {
       ListCategoriesRoute(modeOfOperation: modeOfOperation),
     );
     if (context.mounted) {
-      ref.refresh(categoryProvider);
+      final _ = ref.refresh(categoryProvider);
     }
   }
 
   Widget _buildProductMode(
     BuildContext context,
+    WidgetRef ref,
     AsyncValue<List<Category>> categories,
   ) {
     return Padding(
@@ -54,26 +74,28 @@ class CategorySelector extends ConsumerWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),
         leading: Text('Category', style: _getDefaultTextStyle()),
-        trailing: _buildTrailing(categories, context),
+        trailing: _buildTrailing(categories, context, ref),
       ),
     );
   }
 
   Widget _buildTransactionMode(
     BuildContext context,
+    WidgetRef ref,
     AsyncValue<List<Category>> categories,
   ) {
-    return _buildTrailing(categories, context);
+    return _buildTrailing(categories, context, ref);
   }
 
   Widget _buildTrailing(
     AsyncValue<List<Category>> categories,
     BuildContext context,
+    WidgetRef ref,
   ) {
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _buildCategoryText(categories, context),
+        _buildCategoryText(categories, context, ref),
         const SizedBox(width: 4),
         Icon(
           FluentIcons.arrow_forward_20_regular,
@@ -86,15 +108,29 @@ class CategorySelector extends ConsumerWidget {
   Widget _buildCategoryText(
     AsyncValue<List<Category>> categories,
     BuildContext context,
+    WidgetRef ref,
   ) {
     return categories.when(
-      data: (categoryList) => _buildCategoryName(context, categoryList),
+      data: (categoryList) =>
+          _buildCategoryName(context, ref, categoryList),
       loading: () => const Text('Loading...'),
       error: (error, _) => Text('Error: $error'),
     );
   }
 
-  Widget _buildCategoryName(BuildContext context, List<Category> categories) {
+  Widget _buildCategoryName(
+    BuildContext context,
+    WidgetRef ref,
+    List<Category> categories,
+  ) {
+    final optimistic = ref.watch(optimisticFocusedCategoryProvider);
+    if (optimistic != null && optimistic.id.isNotEmpty) {
+      return Text(
+        optimistic.name ?? 'Select Category',
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
+      );
+    }
+
     final focusedCategory = categories.firstWhere(
       (category) => category.focused && (category.active ?? false),
       orElse: () => Category(id: '', name: 'Select Category'),

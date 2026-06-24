@@ -1,29 +1,55 @@
 // router and auth wiring moved to router_provider
+import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flipper_web/features/login/theme_provider.dart';
 import 'package:flipper_web/core/localization/locale_provider.dart';
 import 'package:flipper_web/router/router_provider.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // go_router is used via the provider
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/l10n/app_localizations.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
+import 'package:flipper_web/core/utils/error_logging.dart';
 import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:flipper_web/core/utils/http_overrides.dart';
+import 'package:flipper_web/widgets/books_startup_splash.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  await runZonedWithErrorLogging(() async {
+    flipperWebIsHostApp = true;
+    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+    initializeErrorLogging();
 
-  // Run any critical IO-only initialization (sets HttpOverrides and trusted certs)
-  // This is awaited so subsequent initialization and network clients pick up the settings.
-  await initializeCriticalDependencies();
+    // flutter_native_splash has no macOS generator — paint logo during init.
+    final showMacStartupSplash =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
+    if (showMacStartupSplash) {
+      runApp(const BooksStartupSplash());
+    }
 
-  // Initialize Supabase
-  await initializeSupabase();
+    // Run any critical IO-only initialization (sets HttpOverrides and trusted certs)
+    // This is awaited so subsequent
+    // initialization and network clients pick up the settings.
+    await initializeCriticalDependencies();
 
-  // Initialize Ditto
-  // await initializeDitto(); // Removed early initialization as it requires userId
+    // Initialize Supabase
+    await initializeSupabase();
 
-  runApp(const ProviderScope(child: MyApp()));
+    // Ditto initializes after login via DittoBootstrap (needs pin user id).
+    debugPrint(
+      '[flipper_web] startup: Supabase ready; Ditto initializes after login',
+    );
+    AccountingBackendConfig.logStartupConfig();
+
+    runApp(const ProviderScope(child: MyApp()));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
+  });
 }
 
 class MyApp extends ConsumerWidget {
@@ -40,10 +66,8 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Flipper',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      darkTheme: ThemeData.dark(),
+      theme: FlipperTheme.light(),
+      darkTheme: FlipperTheme.dark(),
       themeMode: themeMode,
       locale: locale,
       routerConfig: router,

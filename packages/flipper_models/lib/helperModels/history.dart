@@ -19,7 +19,7 @@ class History extends IJsonSerializable {
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
 
-  String action;
+  String? action;
 
   late DateTime createdAt;
 

@@ -32,7 +32,7 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
     ITransaction transaction,
   ) async {
     return await ProxyService.getStrategy(Strategy.capella).transactionItems(
-      branchId: (await ProxyService.strategy.activeBranch(
+      branchId: (await ProxyService.getStrategy(Strategy.capella).activeBranch(
         branchId: ProxyService.box.getBranchId()!,
       )).id,
       transactionId: transaction.id,
@@ -70,7 +70,7 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
       }
     }
 
-    await ProxyService.strategy.updateTransaction(
+    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
       transaction: transaction,
       subTotal: itemsTotal - discountAmount,
     );
@@ -88,7 +88,7 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
         ? remainingDiscount
         : (item.price * item.qty / itemsTotal) * totalDiscountAmount;
 
-    await ProxyService.strategy.updateTransactionItem(
+    await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
       transactionItemId: item.id,
       dcRt: discountRate,
       ignoreForReport: false,

@@ -15,6 +15,10 @@
     "@currentSale": {
         "description": "The conventional newborn programmer greeting"
     },
+    "currentStock": "Hisa ya sasa",
+    "@currentStock": {
+        "description": "Current Stock"
+    },
     "addProduct": "Ongeza bidhaa",
     "@addProduct": {
         "description": "The conventional newborn programmer greeting"
@@ -70,5 +74,94 @@
     "addMembers": "Add Members",
     "@addMembers": {
         "description": "Add Members"
+    },
+    "logOut": "Ondoka",
+    "@logOut": {
+        "description": "Log out action"
+    },
+    "syncCounter": "Sawazisha kaunta",
+    "@syncCounter": {
+        "description": "Synchronize counter action"
+    },
+    "resetTransaction": "Weka Muamala Upya",
+    "@resetTransaction": {
+        "description": "Reset transaction action"
+    },
+    "resetTransactionQuestion": "Weka muamala upya?",
+    "@resetTransactionQuestion": {
+        "description": "Reset transaction confirmation title"
+    },
+    "resetTransactionDescription": "Hii itafuta muamala unaosubiri na bidhaa zake zote. Kitendo hiki hakiwezi kutenduliwa.",
+    "@resetTransactionDescription": {
+        "description": "Reset transaction confirmation description"
+    },
+    "transactionResetSuccessfully": "Muamala umewekwa upya kwa mafanikio",
+    "@transactionResetSuccessfully": {
+        "description": "Success message after resetting a transaction"
+    },
+    "errorResettingTransaction": "Hitilafu wakati wa kuweka muamala upya: {error}",
+    "@errorResettingTransaction": {
+        "description": "Error message after failing to reset a transaction",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "selectedContactHasNoPhoneNumber": "Anwani iliyochaguliwa haina nambari ya simu",
+    "@selectedContactHasNoPhoneNumber": {
+        "description": "Contact picker error message"
+    },
+    "contactsPermissionRequired": "Ruhusa ya anwani inahitajika ili kuchagua anwani",
+    "@contactsPermissionRequired": {
+        "description": "Contact picker permission snackbar"
+    },
+    "permissionRequired": "Ruhusa Inahitajika",
+    "@permissionRequired": {
+        "description": "Permission dialog title"
+    },
+    "contactsPermissionDeniedSettings": "Ruhusa ya anwani imekataliwa kabisa. Tafadhali iwezeshe kwenye mipangilio ya kifaa chako ili kutumia kipengele hiki.",
+    "@contactsPermissionDeniedSettings": {
+        "description": "Contact picker permission denied dialog body"
+    },
+    "cancel": "Ghairi",
+    "@cancel": {
+        "description": "Cancel action"
+    },
+    "openSettings": "Fungua Mipangilio",
+    "@openSettings": {
+        "description": "Open device settings action"
+    },
+    "errorMessage": "Hitilafu: {error}",
+    "@errorMessage": {
+        "description": "Generic error message",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "pickFromContacts": "Chagua kutoka kwa anwani",
+    "@pickFromContacts": {
+        "description": "Contact picker tooltip"
+    },
+    "linkDevice": "Unganisha Kifaa",
+    "@linkDevice": {
+        "description": "Link device screen title"
+    },
+    "useFlipperOnOtherDevices": "Tumia Flipper kwenye vifaa vingine",
+    "@useFlipperOnOtherDevices": {
+        "description": "Link device screen subtitle"
+    },
+    "linkADevice": "Unganisha Kifaa",
+    "@linkADevice": {
+        "description": "Link a device button"
+    },
+    "pinCode": "PIN: {pin}",
+    "@pinCode": {
+        "description": "PIN display for linking a device",
+        "placeholders": {
+            "pin": {}
+        }
+    },
+    "listOfConnectedDevices": "Orodha ya vifaa vilivyounganishwa",
+    "@listOfConnectedDevices": {
+        "description": "Connected devices list title"
     }
 }

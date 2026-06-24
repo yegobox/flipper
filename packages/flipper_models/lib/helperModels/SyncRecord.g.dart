@@ -6,19 +6,20 @@ part of 'SyncRecord.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-SyncRecord _$SyncRecordFromJson(Map<String, dynamic> json) => SyncRecord(
-      id: (json['id'] as num?)?.toInt(),
-      modelId: json['modelId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      branchId: (json['branchId'] as num).toInt(),
-    )
+SyncRecord _$SyncRecordFromJson(Map<String, dynamic> json) =>
+    SyncRecord(
+        id: (json['id'] as num?)?.toInt(),
+        modelId: json['modelId'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        branchId: (json['branchId'] as num).toInt(),
+      )
       ..lastTouched = json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String)
       ..deletedAt = json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String)
-      ..action = json['action'] as String;
+      ..action = json['action'] as String?;
 
 Map<String, dynamic> _$SyncRecordToJson(SyncRecord instance) =>
     <String, dynamic>{

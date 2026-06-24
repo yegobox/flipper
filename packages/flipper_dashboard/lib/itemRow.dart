@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:amplify_flutter/amplify_flutter.dart';
@@ -9,6 +10,7 @@ import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -17,17 +19,24 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
-import 'package:flipper_dashboard/transaction_item_adder.dart';
+import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
+import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/utils/pos_product_tile.dart';
+import 'package:flipper_dashboard/widgets/pos_catalog_grid_card.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -70,6 +79,10 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool isOrdering;
   final bool forceRemoteUrl;
   final bool forceListView;
+  /// Desktop POS catalog grid — uses [PosCatalogGridCard] (handoff layout).
+  final bool usePosCatalogTile;
+  /// Pre-loaded from [stocksForVisibleVariantsProvider]; skips per-row Ditto watch.
+  final Stock? liveStock;
 
   const RowItem({
     Key? key,
@@ -79,6 +92,7 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.stock,
     required this.forceRemoteUrl,
     required this.forceListView,
+    this.usePosCatalogTile = false,
     this.delete = _defaultFunction,
     this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
@@ -91,6 +105,7 @@ class RowItem extends StatefulHookConsumerWidget {
     this.favIndex,
     required this.isComposite,
     required this.isOrdering,
+    this.liveStock,
   }) : super(key: key);
 
   static _defaultFunction(String? id, String type) {
@@ -112,17 +127,50 @@ class _RowItemState extends ConsumerState<RowItem>
     return text.substring(0, maxLength) + '...';
   }
 
+  int _physicalStockValue(WidgetRef ref) {
+    if (widget.liveStock != null) {
+      final raw = widget.liveStock!.currentStock ?? widget.stock;
+      return raw is int ? raw as int : raw.floor().toInt();
+    }
+    final stockId = widget.variant?.stockId ?? '';
+    if (stockId.isEmpty) {
+      final raw = widget.stock;
+      return raw is int ? raw as int : raw.floor().toInt();
+    }
+    final stockAsync = ref.watch(stockByVariantProvider(stockId));
+    final stockRaw = stockAsync.value?.currentStock ?? widget.stock;
+    return stockRaw is int ? stockRaw as int : stockRaw.floor().toInt();
+  }
+
+  /// On-hand stock minus qty already on the pending cart (POS selling only).
+  int _resolveStockValue(WidgetRef ref) {
+    final physical = _physicalStockValue(ref);
+    if (widget.isOrdering) return physical;
+
+    final variantId = widget.variant?.id;
+    if (variantId == null || variantId.isEmpty) return physical;
+
+    final inCart = ref.watch(posCartQtyForVariantProvider(variantId));
+    return posAvailableStockForDisplay(
+      physicalStock: physical,
+      inCartQty: inCart,
+    );
+  }
+
   // Constants for consistent styling
-  static const double cardBorderRadius = 12.0;
-  static const double imageBorderRadius = 10.0;
+  static const double cardBorderRadius = PosTokens.radiusMd;
+  static const double imageBorderRadius = PosTokens.radiusMd;
   static const double contentPadding = 12.0;
-  static const int animationDuration = 200;
+
+  double get _lowStockThreshold =>
+      widget.variant?.stock?.lowStock ?? 10.0;
 
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
-  String? _imageUrl;
+  Future<String?>? _cachedLocalImageFuture;
   String? _branchId;
   Widget? _cachedImageWidget;
+  static final Map<String, Future<void>> _assetDownloadCache = {};
 
   @override
   void initState() {
@@ -137,15 +185,10 @@ class _RowItemState extends ConsumerState<RowItem>
 
   void _initImageCache() {
     try {
-      _imageUrl = widget.imageUrl;
-      _branchId = ProxyService.box.getBranchId();
-
-      if (_imageUrl != null && _imageUrl!.isNotEmpty && _branchId != null) {
-        _cachedRemoteUrlFuture = preSignedUrl(
-          imageInS3: _imageUrl!,
-          branchId: _branchId!,
-        );
-      }
+      // Objects live under `public/branch-{id}/…` for the branch that owned the
+      // upload. Prefer the variant's branch so rows match S3 even when the
+      // session branch id differs or is not ready yet.
+      _branchId = widget.variant?.branchId ?? ProxyService.box.getBranchId();
     } catch (e) {
       talker.error('Error initializing image cache: $e');
     }
@@ -157,11 +200,11 @@ class _RowItemState extends ConsumerState<RowItem>
 
     if (widget.imageUrl != oldWidget.imageUrl ||
         (widget.variant?.branchId != oldWidget.variant?.branchId)) {
-      _imageUrl = widget.imageUrl;
       _branchId = widget.variant?.branchId;
 
       // Clear cached futures and widget when image URL changes
       _cachedRemoteUrlFuture = null;
+      _cachedLocalImageFuture = null;
       _cachedImageWidget = null;
 
       // Reinitialize cache
@@ -169,12 +212,140 @@ class _RowItemState extends ConsumerState<RowItem>
     }
   }
 
+  void _handleProductTap({
+    required bool isMultiSelectActive,
+    required String? itemId,
+  }) {
+    if (isMultiSelectActive) {
+      if (itemId != null) {
+        ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+      }
+      return;
+    }
+    final flipperWatch? w =
+        kDebugMode ? flipperWatch('onAddingItemToQuickSell') : null;
+    w?.start();
+    _onAddToCartWithOptimistic();
+    w?.log('Item Added to Quick Sell');
+  }
+
+  Widget _buildDesktopPosGridCard({
+    required BuildContext context,
+    required WidgetRef ref,
+    required bool isSelected,
+    required bool isMultiSelectActive,
+    required String? itemId,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+    required int selectedCount,
+  }) {
+    final variantId = widget.variant?.id;
+    final inCartQty = (variantId != null && variantId.isNotEmpty)
+        ? ref.watch(posCartQtyForVariantProvider(variantId))
+        : 0;
+
+    final stockValue = _resolveStockValue(ref);
+    final visual = posStockVisual(
+      currentStock: stockValue,
+      lowStockThreshold: _lowStockThreshold,
+    );
+    final isOut = visual == PosStockVisual.out;
+
+    final price = widget.variant?.retailPrice ?? 0;
+    final currency = ProxyService.box.defaultCurrency();
+
+    final bcd = widget.variant?.bcd;
+    final bcdLabel =
+        bcd != null && bcd.isNotEmpty ? 'BCD: $bcd' : null;
+
+    final hasImage = widget.imageUrl?.isNotEmpty == true;
+
+    return _wrapWithSelectionChrome(
+      colorScheme: colorScheme,
+      isSelected: isSelected,
+      selectedCount: selectedCount,
+      child: PosCatalogGridCard(
+        key: Key('pos-catalog-tap-${variantId ?? itemId ?? ''}'),
+        productName: widget.productName.isNotEmpty
+            ? widget.productName
+            : 'Unnamed Product',
+        bcdLabel: bcdLabel,
+        currencySymbol: currency,
+        priceAmount: price,
+        stockVisual: visual,
+        stockLabel: posStockLabel(visual, stockValue),
+        inCartQty: inCartQty,
+        showSelectionBorder: isMultiSelectActive && isSelected,
+        isOutOfStock: isOut,
+        thumb: posCatalogThumb(
+          name: widget.productName,
+          hasImage: hasImage,
+          image: hasImage
+              ? ClipRRect(
+                  child: SizedBox.expand(child: _buildImage()),
+                )
+              : null,
+          isOutOfStock: isOut,
+        ),
+        onTap: isOut
+            ? null
+            : () => _handleProductTap(
+                isMultiSelectActive: isMultiSelectActive,
+                itemId: itemId,
+              ),
+        onLongPress: () {
+          if (itemId != null && !widget.isOrdering) {
+            ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _wrapWithSelectionChrome({
+    required Widget child,
+    required ColorScheme colorScheme,
+    required bool isSelected,
+    required int selectedCount,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        if (isSelected)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check,
+                color: Colors.white,
+                size: 14,
+              ),
+            ),
+          ),
+        if (isSelected && selectedCount == 1 && !widget.isOrdering)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: _buildFloatingActionButtons(colorScheme),
+          ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final selectedItem = ref.watch(selectedItemIdProvider);
-    final isSelected =
-        selectedItem == widget.variant?.id ||
-        widget.product?.id == selectedItem;
+    final selectedItemIds = ref.watch(selectedItemIdsProvider);
+    final itemId = widget.variant?.id ?? widget.product?.id;
+    final isSelected = selectedItemIds.contains(itemId);
+    final isMultiSelectActive = selectedItemIds.isNotEmpty;
+
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -186,97 +357,84 @@ class _RowItemState extends ConsumerState<RowItem>
             deviceType !=
                 'Desktop'); // Use list view on phones or when forced (except on desktop)
 
-    // Debug the selection state
-    if (isSelected) {
-      talker.debug(
-        "Card is selected: ${widget.variant?.id ?? widget.product?.id}",
+    final bool isCompactPosList =
+        widget.forceListView &&
+        !widget.isOrdering &&
+        MediaQuery.sizeOf(context).width < 600;
+
+    final bool renderPosCatalogTile = widget.usePosCatalogTile;
+
+    if (isCompactPosList) {
+      return _buildMposCatalogProductCard(
+        context: context,
+        ref: ref,
+        textTheme: textTheme,
+        colorScheme: colorScheme,
+        isSelected: isSelected,
+        isMultiSelectActive: isMultiSelectActive,
+        itemId: itemId,
+        selectedCount: selectedItemIds.length,
+      );
+    }
+    if (renderPosCatalogTile) {
+      return _buildDesktopPosGridCard(
+        context: context,
+        ref: ref,
+        isSelected: isSelected,
+        isMultiSelectActive: isMultiSelectActive,
+        itemId: itemId,
+        textTheme: textTheme,
+        colorScheme: colorScheme,
+        selectedCount: selectedItemIds.length,
       );
     }
 
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: animationDuration),
-          curve: Curves.easeInOut,
+        final listChild = useListView
+            ? _buildListItemContent(isSelected, textTheme, colorScheme)
+            : _buildItemContent(isSelected, textTheme, colorScheme);
+
+        return Container(
           decoration: BoxDecoration(
             color: isSelected
-                ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                ? colorScheme.primaryContainer.withValues(alpha: 0.25)
                 : Colors.white,
             borderRadius: BorderRadius.circular(cardBorderRadius),
             border: Border.all(
               color: isSelected
-                  ? colorScheme.primary.withValues(alpha: 0.12)
+                  ? colorScheme.primary
                   : Colors.grey.withValues(alpha: 0.12),
               width: isSelected ? 2.0 : 1.0,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: isSelected
-                    ? colorScheme.primary.withValues(alpha: 0.2)
-                    : Colors.black.withValues(alpha: 0.04),
-                blurRadius: isSelected ? 8.0 : 4.0,
-                spreadRadius: isSelected ? 1.0 : 0.0,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: PosTokens.shadow1,
           ),
-          // Add clipBehavior to ensure no child overflows
           clipBehavior: Clip.antiAlias,
           child: Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(cardBorderRadius),
             child: InkWell(
               borderRadius: BorderRadius.circular(cardBorderRadius),
-              onTap: () async {
-                if (isSelected && !widget.isOrdering) {
-                  ref.read(selectedItemIdProvider.notifier).state =
-                      NO_SELECTION;
-                  return;
-                }
-                final flipperWatch? w = kDebugMode
-                    ? flipperWatch("onAddingItemToQuickSell")
-                    : null;
-                w?.start();
-                await onTapItem(model: model, isOrdering: widget.isOrdering);
-                w?.log("Item Added to Quick Sell");
-              },
+              onTap: () => _handleProductTap(
+                isMultiSelectActive: isMultiSelectActive,
+                itemId: itemId,
+              ),
               onLongPress: () {
-                final itemId = widget.variant?.id ?? widget.product?.id;
                 if (itemId != null && !widget.isOrdering) {
-                  if (selectedItem == itemId) {
-                    ref.read(selectedItemIdProvider.notifier).state =
-                        NO_SELECTION;
-                  } else {
-                    ref.read(selectedItemIdProvider.notifier).state = itemId;
-                    // Show a toast to indicate selection
-                    toast("Item selected for editing");
-                  }
+                  ref
+                      .read(selectedItemIdsProvider.notifier)
+                      .toggleSelection(itemId);
                 }
               },
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(
-                      contentPadding - 4,
-                    ), // Further reduced padding
-                    child: useListView
-                        ? _buildListItemContent(
-                            isSelected,
-                            textTheme,
-                            colorScheme,
-                          )
-                        : _buildItemContent(isSelected, textTheme, colorScheme),
-                  ),
-
-                  // Overlay action buttons when selected
-                  if (isSelected)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: _buildFloatingActionButtons(colorScheme),
-                    ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
-                ],
+              child: _wrapWithSelectionChrome(
+                colorScheme: colorScheme,
+                isSelected: isSelected,
+                selectedCount: selectedItemIds.length,
+                child: Padding(
+                  padding: const EdgeInsets.all(contentPadding - 4),
+                  child: listChild,
+                ),
               ),
             ),
           ),
@@ -290,27 +448,24 @@ class _RowItemState extends ConsumerState<RowItem>
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
-    // Check if we're on desktop Windows
-    final isDesktopWindows = Platform.isWindows;
-
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate available height for content
         final double maxHeight = constraints.maxHeight;
 
         // Allocate space for image and info sections
-        // Reserve at least 40px for product info to prevent overflow
-        final double maxInfoHeight = 50.0; // Minimum height for info section
+        // Reserve at least 75px for product info to prevent overflow because some names are long
+        // and we display 4 rows of text.
+        final double maxInfoHeight =
+            75.0; // Increased height for info section from 50.0
         final double availableForImage =
             maxHeight - maxInfoHeight - 4; // 4px for spacing
 
-        // Cap image height to prevent overflow
-        final double imageHeight = isDesktopWindows
-            ? math.min(100, availableForImage) // More conservative on Windows
-            : math.min(
-                availableForImage,
-                maxHeight * 0.55,
-              ); // Cap at 55% of available height
+        // Cap image height to prevent overflow and maintain a balanced look
+        final double imageHeight = math.min(
+          availableForImage,
+          maxHeight * 0.55, // Cap at 55% of available height
+        );
 
         return Column(
           mainAxisSize: MainAxisSize.min, // Important to prevent overflow
@@ -327,7 +482,11 @@ class _RowItemState extends ConsumerState<RowItem>
             // Product Info Section with fixed maximum height
             Container(
               constraints: BoxConstraints(maxHeight: maxInfoHeight),
-              child: _buildCompactProductInfo(textTheme),
+              // Use SingleChildScrollView to prevent RenderFlex overflow if text is too large
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: _buildCompactProductInfo(textTheme),
+              ),
             ),
           ],
         );
@@ -358,7 +517,7 @@ class _RowItemState extends ConsumerState<RowItem>
           style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
-            fontSize: 11, // Smaller font size
+            fontSize: 13, // Increased from 11
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -370,7 +529,19 @@ class _RowItemState extends ConsumerState<RowItem>
             displayVariantName,
             style: textTheme.bodyMedium?.copyWith(
               color: Colors.grey[600],
-              fontSize: 9, // Smaller font size
+              fontSize: 11, // Increased from 9
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+        // Barcode display
+        if (widget.variant?.bcd != null && widget.variant!.bcd!.isNotEmpty)
+          Text(
+            'BCD: ${widget.variant!.bcd}',
+            style: textTheme.bodySmall?.copyWith(
+              color: Colors.grey[600],
+              fontSize: 11, // Increased from 9
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -396,10 +567,7 @@ class _RowItemState extends ConsumerState<RowItem>
         RepaintBoundary(
           child: Consumer(
             builder: (context, ref, child) {
-              final stockAsync = ref.watch(
-                stockByVariantProvider(widget.variant?.stockId ?? ''),
-              );
-              final stockValue = stockAsync.value?.currentStock ?? 0;
+              final stockValue = _resolveStockValue(ref);
 
               return Text(
                 '$stockValue in stock',
@@ -423,11 +591,25 @@ class _RowItemState extends ConsumerState<RowItem>
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
+    // POS compact list row (matches the new mobile POS design).
+    //
+    // Do NOT gate on [DeviceType] == 'Phone': diagonal-based classification
+    // labels many real phones as 'Phablet', which would incorrectly fall back
+    // to the legacy list row (no +/- controls). Keep this in sync with
+    // [ProductView] mobile layout (< 600 width) + forced list from POS.
+    final bool isCompactPosList =
+        widget.forceListView &&
+        !widget.isOrdering &&
+        MediaQuery.sizeOf(context).width < 600;
+    if (isCompactPosList) {
+      return _buildPosMobileListRow(textTheme, colorScheme);
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate available width for product info
         final double maxWidth = constraints.maxWidth;
-        final double imageWidth = 70; // Fixed image width
+        final double imageWidth = 95; // Fixed image width
         final double spacing = 8; // Reduced spacing
         final double availableForInfo = maxWidth - imageWidth - spacing;
 
@@ -437,7 +619,7 @@ class _RowItemState extends ConsumerState<RowItem>
             // Product Image - Fixed size for list view
             SizedBox(
               width: imageWidth,
-              height: 70,
+              height: 95,
               child: _buildProductImageSection(isSelected),
             ),
 
@@ -446,90 +628,605 @@ class _RowItemState extends ConsumerState<RowItem>
             // Product Info - Constrained width
             Container(
               width: availableForInfo,
-              constraints: BoxConstraints(maxHeight: 70), // Match image height
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Product name
-                  Text(
-                    _truncateString(
-                      widget.productName.isNotEmpty
-                          ? widget.productName
-                          : "Unnamed Product",
-                      20,
-                    ),
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                      fontSize: 12, // Smaller font size
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  const SizedBox(height: 2), // Reduced spacing
-                  // Variant name (if different from product name)
-                  if (widget.variantName != widget.productName &&
-                      widget.variantName.isNotEmpty)
+              constraints: BoxConstraints(maxHeight: 95), // Match image height
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Product name
                     Text(
-                      _truncateString(widget.variantName, 20),
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                        fontSize: 10, // Smaller font size
+                      _truncateString(
+                        widget.productName.isNotEmpty
+                            ? widget.productName
+                            : "Unnamed Product",
+                        20,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                  const SizedBox(height: 4), // Reduced spacing
-                  // Price tag - simplified to avoid overflow
-                  if (widget.variant?.retailPrice != null &&
-                      widget.variant?.retailPrice != 0)
-                    Text(
-                      (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
-                        symbol: ProxyService.box.defaultCurrency(),
-                      ),
-                      style: textTheme.labelSmall?.copyWith(
-                        color: Colors.blue[700],
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        fontSize: 12,
+                        color: Colors.black87,
+                        fontSize: 12, // Smaller font size
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                  // Stock display with live updates from Riverpod
-                  RepaintBoundary(
-                    child: Consumer(
-                      builder: (context, ref, child) {
-                        final stockAsync = ref.watch(
-                          stockByVariantProvider(widget.variant?.stockId ?? ''),
-                        );
-                        final stockValue = stockAsync.value?.currentStock ?? 0;
+                    const SizedBox(height: 2), // Reduced spacing
+                    // Variant name (if different from product name)
+                    if (widget.variantName != widget.productName &&
+                        widget.variantName.isNotEmpty)
+                      Text(
+                        _truncateString(widget.variantName, 20),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 10, // Smaller font size
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
 
-                        return Text(
-                          '$stockValue in stock',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: stockValue > 0
-                                ? Colors.green[700]
-                                : Colors.red[700],
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        );
-                      },
+                    const SizedBox(height: 2),
+
+                    // Barcode display
+                    if (widget.variant?.bcd != null &&
+                        widget.variant!.bcd!.isNotEmpty) ...[
+                      Text(
+                        'BCD: ${widget.variant!.bcd}',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 10,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+
+                    // Price tag - simplified to avoid overflow
+                    if (widget.variant?.retailPrice != null &&
+                        widget.variant?.retailPrice != 0)
+                      Text(
+                        (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency(),
+                        ),
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.blue[700],
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                    // Stock display with live updates from Riverpod
+                    RepaintBoundary(
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final stockValue = _resolveStockValue(ref);
+
+                          return Text(
+                            '$stockValue in stock',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: stockValue > 0
+                                  ? Colors.green[700]
+                                  : Colors.red[700],
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
         );
       },
     );
+  }
+
+  bool get _isMposCatalogRow =>
+      widget.forceListView &&
+      !widget.isOrdering &&
+      MediaQuery.sizeOf(context).width < 600;
+
+  Widget _buildMposCatalogProductCard({
+    required BuildContext context,
+    required WidgetRef ref,
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+    required bool isSelected,
+    required bool isMultiSelectActive,
+    required String? itemId,
+    required int selectedCount,
+  }) {
+    final card = Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? colorScheme.primaryContainer.withValues(alpha: 0.25)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isSelected ? colorScheme.primary : PosTokens.line,
+          width: isSelected ? 2 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: _buildPosMobileListRow(textTheme, colorScheme),
+    );
+
+    return GestureDetector(
+      onTap: isMultiSelectActive
+          ? () {
+              if (itemId != null) {
+                ref.read(selectedItemIdsProvider.notifier).toggleSelection(
+                      itemId,
+                    );
+              }
+            }
+          : null,
+      onLongPress: () {
+        if (itemId != null && !widget.isOrdering) {
+          ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+        }
+      },
+      child: _wrapWithSelectionChrome(
+        colorScheme: colorScheme,
+        isSelected: isSelected,
+        selectedCount: selectedCount,
+        child: card,
+      ),
+    );
+  }
+
+  Widget _buildPosMobileListRow(TextTheme textTheme, ColorScheme colorScheme) {
+    // Match non-compact rows: when variant label differs from product title,
+    // lead with variant name so POS/search rows match what was saved per SKU.
+    final productTitle = widget.productName.trim();
+    final variantTitle = widget.variantName.trim();
+    final hasDistinctVariant =
+        variantTitle.isNotEmpty && variantTitle != productTitle;
+    final String primaryLine = hasDistinctVariant
+        ? variantTitle
+        : (productTitle.isNotEmpty
+              ? productTitle
+              : (widget.variant?.productName?.trim().isNotEmpty == true
+                    ? widget.variant!.productName!.trim()
+                    : variantTitle));
+    final String? productSubtitle =
+        hasDistinctVariant && productTitle.isNotEmpty ? productTitle : null;
+
+    final num retailPrice = widget.variant?.retailPrice ?? 0;
+    final String priceText = retailPrice.toCurrencyFormatted(
+      symbol: ProxyService.box.defaultCurrency(),
+    );
+
+    final tileColor = widget.color.isEmpty
+        ? posTileColorForName(primaryLine)
+        : HexColor(widget.color);
+    final abbrText = posTileAbbr(primaryLine);
+
+    final thumbSize = _isMposCatalogRow ? 50.0 : 44.0;
+    final thumbRadius = _isMposCatalogRow ? 13.0 : 10.0;
+
+    final Widget leading = widget.imageUrl?.isNotEmpty == true
+        ? SizedBox(
+            width: thumbSize,
+            height: thumbSize,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(thumbRadius),
+              child: _buildImage(),
+            ),
+          )
+        : Container(
+            width: thumbSize,
+            height: thumbSize,
+            decoration: BoxDecoration(
+              color: tileColor,
+              borderRadius: BorderRadius.circular(thumbRadius),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              abbrText.isEmpty ? 'PRD' : abbrText,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                fontSize: _isMposCatalogRow ? 15 : 13,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+
+    final codeLine = widget.variant?.bcd?.trim().isNotEmpty == true
+        ? widget.variant!.bcd!.trim()
+        : (productSubtitle ?? '');
+
+    return SizedBox(
+      height: _isMposCatalogRow ? 72 : 68,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          leading,
+
+          const SizedBox(width: 12),
+
+          // Middle: name + barcode
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  primaryLine.isNotEmpty ? primaryLine : 'Unnamed',
+                  style: TextStyle(
+                    fontSize: _isMposCatalogRow ? 15 : 14,
+                    fontWeight: FontWeight.w700,
+                    color: PosTokens.ink1,
+                    letterSpacing: -0.01,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (!_isMposCatalogRow && productSubtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    productSubtitle,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (codeLine.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    codeLine,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: PosTokens.ink3,
+                      fontFamily: 'monospace',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                priceText,
+                style: TextStyle(
+                  fontSize: _isMposCatalogRow ? 14.5 : 14,
+                  fontWeight: FontWeight.w800,
+                  color: PosTokens.ink1,
+                  fontFamily: _isMposCatalogRow ? 'monospace' : null,
+                ),
+              ),
+              const SizedBox(height: 6),
+              RepaintBoundary(
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final stockValue = _resolveStockValue(ref);
+
+                    final threshold = _lowStockThreshold;
+                    final visual = posStockVisual(
+                      currentStock: stockValue,
+                      lowStockThreshold: threshold,
+                    );
+                    final Color bg = visual == PosStockVisual.out
+                        ? PosTokens.lossTint
+                        : (visual == PosStockVisual.low
+                              ? PosTokens.warnTint
+                              : PosTokens.gain.withValues(alpha: 0.14));
+                    final Color fg = posStockTextColor(visual);
+                    final label = visual == PosStockVisual.out
+                        ? 'Out of stock'
+                        : '$stockValue left';
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: fg,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 10),
+          _buildCartQtyControl(textTheme, colorScheme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCartQtyControl(TextTheme textTheme, ColorScheme colorScheme) {
+    final v = widget.variant;
+    if (v == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Consumer(
+      builder: (context, ref, _) {
+        final txnId = ref.watch(
+          posCartPendingTransactionIdProvider(widget.isOrdering),
+        );
+        if (txnId == null || txnId.isEmpty) {
+          return _buildPlusOnlyButton(textTheme, colorScheme);
+        }
+
+        final displayQty = ref.watch(posCartQtyForVariantProvider(v.id));
+
+        if (displayQty <= 0) {
+          return _buildPlusOnlyButton(textTheme, colorScheme);
+        }
+
+        return _buildStepper(
+          textTheme: textTheme,
+          colorScheme: colorScheme,
+          qty: displayQty,
+          decrementEnabled: displayQty > 0,
+          onDecrement: () async {
+            _decrementVariantFromCart(
+              transactionId: txnId,
+              variantId: v.id,
+            );
+          },
+          onIncrement: _onAddToCartWithOptimistic,
+        );
+      },
+    );
+  }
+
+  Widget _buildPlusOnlyButton(TextTheme textTheme, ColorScheme colorScheme) {
+    if (_isMposCatalogRow) {
+      return Consumer(
+        builder: (context, ref, _) {
+          // Keep physical on-hand for enablement so "sell below stock" still works.
+          final enabled = _physicalStockValue(ref) > 0;
+
+          return Material(
+            color: enabled ? PosTokens.blue : const Color(0xFFE8E8ED),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: enabled ? _onAddToCartWithOptimistic : null,
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(
+                  Icons.add_rounded,
+                  color: enabled ? Colors.white : const Color(0xFFAEAEB2),
+                  size: 22,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    return SizedBox(
+      width: 38,
+      height: 32,
+      child: OutlinedButton(
+        onPressed: _onAddToCartWithOptimistic,
+        style: OutlinedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.22)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          foregroundColor: colorScheme.onSurface,
+        ),
+        child: const Icon(Icons.add, size: 18),
+      ),
+    );
+  }
+
+  Widget _buildStepper({
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+    required num qty,
+    required bool decrementEnabled,
+    required Future<void> Function() onDecrement,
+    required VoidCallback onIncrement,
+  }) {
+    if (_isMposCatalogRow) {
+      return Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: PosTokens.blue,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _mposQtyTap(
+              icon: Icons.remove_rounded,
+              onTap: decrementEnabled ? () async => onDecrement() : null,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                qty.toString(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            _mposQtyTap(icon: Icons.add_rounded, onTap: onIncrement),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      height: 32,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: decrementEnabled ? () async => onDecrement() : null,
+              icon: const Icon(Icons.remove, size: 18),
+              color: decrementEnabled
+                  ? colorScheme.onSurface
+                  : colorScheme.onSurface.withValues(alpha: 0.35),
+              tooltip: 'Decrease quantity',
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Text(
+              qty.toString(),
+              style: textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: onIncrement,
+              icon: const Icon(Icons.add, size: 18),
+              color: colorScheme.onSurface,
+              tooltip: 'Increase quantity',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mposQtyTap({required IconData icon, VoidCallback? onTap}) {
+    return SizedBox(
+      width: 36,
+      height: 40,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
+      ),
+    );
+  }
+
+  void _decrementVariantFromCart({
+    required String transactionId,
+    required String variantId,
+  }) {
+    final matching = ref
+        .read(posCartDisplayItemsProvider)
+        .where((it) => it.active != false && it.variantId == variantId)
+        .toList();
+    final persisted = matching
+        .where((it) => !OptimisticCartIds.isOptimistic(it.id))
+        .toList();
+    if (persisted.isNotEmpty) {
+      unawaited(
+        _decrementOne(transactionId: transactionId, matchingItems: persisted),
+      );
+      return;
+    }
+
+    final txnForOpt = transactionId.isNotEmpty
+        ? transactionId
+        : (ref.read(posCartMergeTxnIdProvider(widget.isOrdering)));
+    if (txnForOpt.isEmpty) return;
+
+    ref.read(optimisticCartProvider.notifier).rollbackPending(
+          transactionId: txnForOpt,
+          variantId: variantId,
+        );
+    ref.read(optimisticOrderCountProvider.notifier).decrement();
+  }
+
+  Future<void> _decrementOne({
+    required String transactionId,
+    required List<TransactionItem> matchingItems,
+  }) async {
+    if (matchingItems.isEmpty) return;
+
+    // Prefer decrementing an item with qty > 1; otherwise delete one row
+    // (handles the case where the same variant exists as multiple qty=1 rows).
+    matchingItems.sort((a, b) {
+      final aq = a.qty;
+      final bq = b.qty;
+      return bq.compareTo(aq);
+    });
+
+    final item = matchingItems.first;
+    final currentQty = item.qty;
+
+    try {
+      if (currentQty > 1) {
+        await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
+          qty: (currentQty - 1).toDouble(),
+          transactionItemId: item.id,
+          ignoreForReport: false,
+        );
+      } else {
+        await ProxyService.getStrategy(Strategy.capella).deleteItemFromCart(
+          transactionItemId: item,
+          transactionId: transactionId,
+        );
+      }
+    } catch (e) {
+      // Keep UI resilient; errors are surfaced via existing global handlers/logging.
+      talker.error('Failed to decrement item: $e');
+    }
   }
 
   Widget _buildProductImageSection(bool isSelected) {
@@ -558,9 +1255,9 @@ class _RowItemState extends ConsumerState<RowItem>
               if (widget.imageUrl == null || widget.imageUrl!.isEmpty)
                 Container(
                   decoration: BoxDecoration(
-                    color: HexColor(
-                      widget.color.isEmpty ? "#FF0000" : widget.color,
-                    ),
+                    color: widget.color.isEmpty
+                        ? posTileColorForName(widget.productName)
+                        : HexColor(widget.color),
                     borderRadius: BorderRadius.circular(imageBorderRadius),
                   ),
                   child: Center(
@@ -574,7 +1271,7 @@ class _RowItemState extends ConsumerState<RowItem>
                                 : widget.productName),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 22.0,
+                        fontSize: 35.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -620,14 +1317,15 @@ class _RowItemState extends ConsumerState<RowItem>
   // to fix lint warnings and prevent potential regression issues
 
   Widget _buildImage() {
-    if (widget.imageUrl == null) {
+    final imageUrl = widget.imageUrl;
+    if (imageUrl == null || imageUrl.isEmpty) {
       return _buildImageErrorPlaceholder();
     }
 
-    // Always try local paths first (consistent with DesktopProductAdd.dart)
+    _cachedLocalImageFuture ??= _resolveLocalImagePath(imageUrl);
     return FutureBuilder<String?>(
-      key: ValueKey('local-${widget.variant?.id}-${widget.imageUrl}'),
-      future: getImageFilePath(imageFileName: widget.imageUrl!),
+      key: ValueKey('local-${widget.variant?.id}-$imageUrl'),
+      future: _cachedLocalImageFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildImageLoadingIndicator();
@@ -643,31 +1341,8 @@ class _RowItemState extends ConsumerState<RowItem>
               return _buildRemoteImageFallback();
             },
           );
-        } else {
-          // Try to load from asset's local path in database
-          return FutureBuilder<String?>(
-            key: ValueKey('db-local-${widget.imageUrl}'),
-            future: _tryLoadFromAssetPath(widget.imageUrl!),
-            builder: (context, assetSnapshot) {
-              if (assetSnapshot.connectionState == ConnectionState.waiting) {
-                return _buildImageLoadingIndicator();
-              } else if (assetSnapshot.hasData && assetSnapshot.data != null) {
-                return Image.file(
-                  File(assetSnapshot.data!),
-                  key: ValueKey('file-${assetSnapshot.data}'),
-                  fit: BoxFit.cover,
-                  cacheWidth: 300,
-                  cacheHeight: 300,
-                  errorBuilder: (context, error, stackTrace) =>
-                      _buildRemoteImageFallback(),
-                );
-              } else {
-                // No local images found, try remote URL
-                return _buildRemoteImageFallback();
-              }
-            },
-          );
         }
+        return _buildRemoteImageFallback();
       },
     );
   }
@@ -760,34 +1435,17 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
-  // Rest of the methods remain the same
-  Future<void> onTapItem({
-    required CoreViewModel model,
-    required bool isOrdering,
-  }) async {
-    final flipperWatch? w = kDebugMode
-        ? flipperWatch("onAddingItemToQuickSell")
-        : null;
-    w?.start();
-
-    if (widget.variant != null) {
-      // Debug: Log ttCatCd before adding to transaction
-      talker.warning(
-        "DEBUG: onTapItem - variant.ttCatCd before adding: ${widget.variant!.ttCatCd}",
-      );
-
-      // Use the shared TransactionItemAdder
-      final itemAdder = TransactionItemAdder(context, ref);
-      await itemAdder.addItemToTransaction(
-        variant: widget.variant!,
-        isOrdering: isOrdering,
-      );
-    } else if (widget.product != null) {
-      // _routerService.navigateTo(SellRoute(product: widget.product!));
-      throw Exception("Product navigation not implemented");
-    }
-
-    w?.log("Item Added to Quick Sell");
+  /// One hop: optimistic cart + background Ditto ([posCartAddServiceProvider]).
+  void _onAddToCartWithOptimistic() {
+    final v = widget.variant;
+    if (v == null) return;
+    ref.read(posCartAddServiceProvider).tapAdd(
+      context: context,
+      variant: v,
+      isOrdering: widget.isOrdering,
+      product: widget.product,
+      isComposite: widget.isComposite,
+    );
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
@@ -801,6 +1459,12 @@ class _RowItemState extends ConsumerState<RowItem>
     } else {
       return null;
     }
+  }
+
+  Future<String?> _resolveLocalImagePath(String assetName) async {
+    final localPath = await getImageFilePath(imageFileName: assetName);
+    if (localPath != null) return localPath;
+    return _tryLoadFromAssetPath(assetName);
   }
 
   // Try to load an image from the asset's localPath in the database
@@ -818,10 +1482,46 @@ class _RowItemState extends ConsumerState<RowItem>
           return asset.localPath!;
         }
       }
+
+      // Lazy download from S3 if missing locally (new device). Share the same
+      // in-flight download across all rows that render the same product image.
+      try {
+        final downloadKey = '${_branchId ?? ''}/$assetName';
+        _assetDownloadCache[downloadKey] ??= _downloadAsset(assetName);
+        try {
+          await _assetDownloadCache[downloadKey];
+        } catch (_) {
+          _assetDownloadCache.remove(downloadKey);
+          rethrow;
+        }
+
+        final downloaded = await getImageFilePath(imageFileName: assetName);
+        if (downloaded != null) return downloaded;
+      } catch (e) {
+        // Best-effort; remote URL fallback will still work when online.
+        talker.error('Error downloading asset from S3: $e');
+      }
       return null;
     } catch (e) {
       talker.error('Error loading asset from local path: $e');
       return null;
+    }
+  }
+
+  Future<void> _downloadAsset(String assetName) async {
+    final branchId = _branchId;
+    final stream = branchId == null || branchId.isEmpty
+        ? await ProxyService.strategy.downloadAssetSave(
+            assetName: assetName,
+            subPath: 'branch',
+          )
+        : await ProxyService.strategy.downloadAsset(
+            branchId: branchId,
+            assetName: assetName,
+            subPath: 'branch',
+          );
+    await for (final p in stream) {
+      if (p >= 100) break;
     }
   }
 
@@ -922,8 +1622,20 @@ class _RowItemState extends ConsumerState<RowItem>
                 final stock = await strategy.getStockById(
                   id: widget.variant!.stockId!,
                 );
+                final businessId = ProxyService.box.getBusinessId();
+                final branchId = ProxyService.box.getBranchId();
 
-                if ((stock.currentStock ?? 0) > 0 && !kDebugMode) {
+                final isEbmEnabled =
+                    businessId != null &&
+                    branchId != null &&
+                    await ProxyService.strategy.isTaxEnabled(
+                      businessId: businessId,
+                      branchId: branchId,
+                    );
+
+                if ((stock.currentStock ?? 0) > 0 &&
+                    isEbmEnabled &&
+                    !kDebugMode) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,
@@ -933,9 +1645,20 @@ class _RowItemState extends ConsumerState<RowItem>
                   );
                   return;
                 }
-                widget.delete(widget.variant!.productId!, 'product');
-              } else if (widget.product != null) {
-                widget.delete(widget.product?.id, 'product');
+
+                // PIN Verification
+                final settingsService = locator<SettingsService>();
+                if (settingsService.isAdminPinEnabled) {
+                  final setting = await settingsService.settings();
+                  final confirmed = await showAdminPinDialog(
+                    context: context,
+                    mode: AdminPinMode.verify,
+                    expectedPin: setting?.adminPin,
+                  );
+                  if (confirmed != true) return;
+                }
+
+                widget.delete(widget.variant!.id, 'variant');
               }
             },
           ),
@@ -948,7 +1671,19 @@ class _RowItemState extends ConsumerState<RowItem>
               size: 20,
             ),
             tooltip: 'Edit',
-            onPressed: () {
+            onPressed: () async {
+              // PIN Verification
+              final settingsService = locator<SettingsService>();
+              if (settingsService.isAdminPinEnabled) {
+                final setting = await settingsService.settings();
+                final confirmed = await showAdminPinDialog(
+                  context: context,
+                  mode: AdminPinMode.verify,
+                  expectedPin: setting?.adminPin,
+                );
+                if (confirmed != true) return;
+              }
+
               if (widget.variant != null) {
                 widget.edit(widget.variant?.productId, 'product');
               } else if (widget.product != null) {

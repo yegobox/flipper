@@ -12,19 +12,24 @@ part of 'country_provider.dart';
 @ProviderFor(countries)
 const countriesProvider = CountriesProvider._();
 
-final class CountriesProvider extends $FunctionalProvider<
-        AsyncValue<List<Country>>, List<Country>, FutureOr<List<Country>>>
+final class CountriesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Country>>,
+          List<Country>,
+          FutureOr<List<Country>>
+        >
     with $FutureModifier<List<Country>>, $FutureProvider<List<Country>> {
   const CountriesProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'countriesProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'countriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$countriesHash();
@@ -32,8 +37,8 @@ final class CountriesProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<Country>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<Country>> create(Ref ref) {

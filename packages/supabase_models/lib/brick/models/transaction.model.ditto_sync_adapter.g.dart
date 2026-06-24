@@ -22,8 +22,8 @@ part of 'transaction.model.dart';
 // - import 'package:supabase_models/brick/repository.dart';
 // **************************************************************************
 //
-// Sync Direction: bidirectional
-// This adapter supports full bidirectional sync (send and receive).
+// Sync Direction: sendOnly
+// This adapter sends data to Ditto but does NOT receive remote updates.
 // **************************************************************************
 
 class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
@@ -67,7 +67,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
   String get collectionName => "transactions";
 
   @override
-  SyncDirection get syncDirection => SyncDirection.bidirectional;
+  SyncDirection get syncDirection => SyncDirection.sendOnly;
 
   @override
   bool get shouldHydrateOnStartup => false;
@@ -97,73 +97,8 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    // Cleanup any existing observer before creating new one
-    await _cleanupActiveObserver();
-    return _buildQuery(waitForBranchId: false);
-  }
-
-  /// Cleanup active observer to prevent live query buildup
-  Future<void> _cleanupActiveObserver() async {
-    if (_activeObserver != null) {
-      await _activeObserver?.cancel();
-      _activeObserver = null;
-    }
-    if (_activeSubscription != null) {
-      await _activeSubscription?.cancel();
-      _activeSubscription = null;
-    }
-  }
-
-  Future<DittoSyncQuery?> _buildQuery({required bool waitForBranchId}) async {
-    final branchId = await _resolveBranchId(waitForValue: waitForBranchId);
-    final branchIdString = ProxyService.box.branchIdString();
-    final bhfId = await ProxyService.box.bhfId();
-    final arguments = <String, dynamic>{};
-    final whereParts = <String>[];
-
-    if (branchId != null) {
-      whereParts.add('branchId = :branchId');
-      arguments["branchId"] = branchId;
-    }
-
-    if (branchIdString != null && branchIdString.isNotEmpty) {
-      whereParts.add(
-          '(branchId = :branchIdString OR branchIdString = :branchIdString)');
-      arguments["branchIdString"] = branchIdString;
-    }
-
-    if (bhfId != null && bhfId.isNotEmpty) {
-      whereParts.add('bhfId = :bhfId');
-      arguments["bhfId"] = bhfId;
-    }
-
-    if (whereParts.isEmpty) {
-      if (waitForBranchId) {
-        if (kDebugMode) {
-          debugPrint(
-              "Ditto hydration for ITransaction skipped because branch context is unavailable");
-        }
-        return null;
-      }
-      if (kDebugMode) {
-        debugPrint(
-            "Ditto observation for ITransaction deferred until branch context is available");
-      }
-      return const DittoSyncQuery(
-        query: "SELECT * FROM transactions WHERE 1 = 0",
-      );
-    }
-
-    final whereClause = whereParts.join(" OR ");
-    return DittoSyncQuery(
-      query: "SELECT * FROM transactions WHERE $whereClause",
-      arguments: arguments,
-    );
-  }
-
-  @override
-  Future<DittoSyncQuery?> buildHydrationQuery() async {
-    return _buildQuery(waitForBranchId: true);
+    // Send-only mode: no remote observation
+    return null;
   }
 
   @override
@@ -197,6 +132,9 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "isIncome": model.isIncome,
       "isExpense": model.isExpense,
       "isRefunded": model.isRefunded,
+      "refundedAmount": model.refundedAmount,
+      "refundReason": model.refundReason,
+      "refundMethod": model.refundMethod,
       "customerName": model.customerName,
       "customerTin": model.customerTin,
       "remark": model.remark,
@@ -232,6 +170,12 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "discountAmount": model.discountAmount,
       "customerPhone": model.customerPhone,
       "agentId": model.agentId,
+      "attributedAgentUserId": model.attributedAgentUserId,
+      "agentCommissionType": model.agentCommissionType,
+      "agentCommissionValue": model.agentCommissionValue,
+      "agentCommissionAmount": model.agentCommissionAmount,
+      "cashierName": model.cashierName,
+      "deviceId": model.deviceId,
     };
   }
 
@@ -288,6 +232,9 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       isIncome: document["isIncome"],
       isExpense: document["isExpense"],
       isRefunded: document["isRefunded"],
+      refundedAmount: document["refundedAmount"],
+      refundReason: document["refundReason"],
+      refundMethod: document["refundMethod"],
       customerName: document["customerName"],
       customerTin: document["customerTin"],
       remark: document["remark"],
@@ -326,8 +273,16 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       numberOfItems: document["numberOfItems"],
       discountAmount: document["discountAmount"],
       items: null, // Excluded from Ditto sync
+      payments: null, // Excluded from Ditto sync
       customerPhone: document["customerPhone"],
       agentId: document["agentId"],
+      attributedAgentUserId: document["attributedAgentUserId"],
+      agentCommissionType: document["agentCommissionType"],
+      agentCommissionValue: document["agentCommissionValue"],
+      agentCommissionAmount: document["agentCommissionAmount"],
+      cashierName: document["cashierName"],
+      deviceId: document["deviceId"],
+      dataSource: null, // Excluded from Ditto sync
     );
   }
 

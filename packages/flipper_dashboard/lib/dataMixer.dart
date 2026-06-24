@@ -1,8 +1,8 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/itemRow.dart';
-import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -13,96 +13,132 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 
 // Create cached providers to reduce network requests
-final productProvider =
-    FutureProvider.family.autoDispose<Product?, String>((ref, productId) async {
+final productProvider = FutureProvider.family.autoDispose<Product?, String>((
+  ref,
+  productId,
+) async {
   if (productId.isEmpty) return null;
   return await ProxyService.strategy.getProduct(
-      businessId: ProxyService.box.getBusinessId()!,
-      id: productId,
-      branchId: ProxyService.box.getBranchId()!);
+    businessId: ProxyService.box.getBusinessId()!,
+    id: productId,
+    branchId: ProxyService.box.getBranchId()!,
+  );
 });
 
-final assetProvider =
-    FutureProvider.family.autoDispose<Assets?, String>((ref, productId) async {
+final assetProvider = FutureProvider.family.autoDispose<Assets?, String>((
+  ref,
+  productId,
+) async {
   if (productId.isEmpty) return null;
   return await ProxyService.strategy.getAsset(productId: productId);
 });
 
+/// Same resolution as mobile edit UI ([DesktopProductAdd] thumbnails): prefer
+/// [Variant.imageUrl], else legacy `asset:` prefix in [Variant.addInfo].
+String? variantRowImageAssetName(Variant v) {
+  final direct = v.imageUrl;
+  if (direct != null && direct.isNotEmpty) return direct;
+  final raw = v.addInfo;
+  if (raw == null || raw.isEmpty) return null;
+  return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
+}
+
 // Then update the mixin
 mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
+  void _openProductEntry(BuildContext context, {String? productId}) {
+    openProductEntryScreen(context, productId: productId);
+  }
+
   Widget buildVariantRow({
     required BuildContext context,
     required ProductViewModel model,
     required Variant variant,
     required bool isOrdering,
     required bool forceRemoteUrl,
-    bool forceListView = false, // Add parameter with default value
+    bool forceListView = false,
+    bool usePosCatalogTile = false,
+    Map<String, Stock?>? stocksById,
   }) {
+    final stockId = variant.stockId ?? '';
     return buildRowItem(
-        forceRemoteUrl: forceRemoteUrl,
-        forceListView: forceListView, // Pass the parameter
-        context: context,
-        model: model,
-        variant: variant,
-        stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
-        isOrdering: isOrdering);
+      forceRemoteUrl: forceRemoteUrl,
+      forceListView: forceListView,
+      usePosCatalogTile: usePosCatalogTile,
+      context: context,
+      model: model,
+      variant: variant,
+      stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
+      isOrdering: isOrdering,
+      liveStock: stocksById?[stockId],
+    );
   }
 
-  Future<void> deleteFunc(String? productId, ProductViewModel model) async {
+  Future<void> deleteFunc(String? variantId, ProductViewModel model) async {
     try {
       /// first if there is image attached delete if first
-      final product = await ref.read(productProvider(productId!).future);
-      Variant? variant =
-          await ProxyService.strategy.getVariant(productId: productId);
+      final product = await ref.read(productProvider(variantId!).future);
+      Variant? variant = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getVariant(id: variantId);
 
       /// Check if the product and variant are valid and if the variant is owned (not shared)
       ///
-      bool canDelete =
-          variant != null && (variant.isShared != null && !variant.isShared!);
+      bool canDelete = variant?.isShared == false;
 
       if (canDelete) {
         if (product == null) {
-          ProxyService.strategy
-              .flipperDelete(id: variant.id, endPoint: 'variant');
+          ProxyService.strategy.flipperDelete(
+            id: variantId,
+            endPoint: 'variant',
+          );
           // Remove the variant from the provider state directly
           ref
-              .read(outerVariantsProvider(ProxyService.box.getBranchId()!)
-                  .notifier)
-              .removeVariantById(variant.id);
+              .read(
+                outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
+              )
+              .removeVariantById(variantId);
           return;
         }
         // If the product is  composite, search and delete related composites
         if ((product.isComposite ?? false)) {
-          List<Composite> composites =
-              await ProxyService.strategy.composites(productId: productId);
+          List<Composite> composites = await ProxyService.strategy.composites(
+            variantId: variantId,
+          );
           for (Composite composite in composites) {
             await ProxyService.strategy.flipperDelete(
-                id: composite.id,
-                endPoint: 'composite',
-                flipperHttpClient: ProxyService.http);
+              id: composite.id,
+              endPoint: 'composite',
+              flipperHttpClient: ProxyService.http,
+            );
           }
         }
 
         // If the product has an associated image, attempt to remove it from S3
-        bool imageDeleted = product.imageUrl == null ||
-            await ProxyService.strategy
-                .removeS3File(fileName: product.imageUrl!);
+        bool imageDeleted =
+            product.imageUrl == null ||
+            await ProxyService.strategy.removeS3File(
+              fileName: product.imageUrl!,
+            );
 
         if (imageDeleted) {
-          await model.deleteProduct(productId: productId);
+          await model.deleteProduct(productId: product.id);
           // Remove the variant from the provider state directly
           ref
-              .read(outerVariantsProvider(ProxyService.box.getBranchId()!)
-                  .notifier)
-              .removeVariantById(variant.id);
+              .read(
+                outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
+              )
+              .removeVariantById(variantId);
 
           // Delete associated assets
           if (product.imageUrl != null) {
-            Assets? asset = await ProxyService.strategy
-                .getAsset(assetName: product.imageUrl!);
+            Assets? asset = await ProxyService.strategy.getAsset(
+              assetName: product.imageUrl!,
+            );
             if (asset != null) {
               await ProxyService.strategy.flipperDelete(
-                  id: asset.id, flipperHttpClient: ProxyService.http);
+                id: asset.id,
+                flipperHttpClient: ProxyService.http,
+              );
             }
           }
         } else {
@@ -124,12 +160,18 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required double stock,
     required bool forceRemoteUrl,
     required bool isOrdering,
-    bool forceListView = false, // Add parameter with default value
+    bool forceListView = false,
+    bool usePosCatalogTile = false,
+    Stock? liveStock,
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
 
-    // Only fetch asset if product exists and has a product ID
-    final assetAsync = variant.productId != null && variant.productId!.isNotEmpty
+    final variantImage = variantRowImageAssetName(variant);
+    // Only fetch product asset if the variant doesn't have its own image.
+    final assetAsync =
+        (variantImage == null || variantImage.isEmpty) &&
+            variant.productId != null &&
+            variant.productId!.isNotEmpty
         ? ref.watch(assetProvider(variant.productId ?? ""))
         : null;
 
@@ -143,10 +185,12 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         // Return a fallback UI instead of showing the error
         return RowItem(
           forceRemoteUrl: forceRemoteUrl,
-          forceListView: forceListView, // Pass the parameter
+          forceListView: forceListView,
+          usePosCatalogTile: usePosCatalogTile,
           isOrdering: isOrdering,
           color: variant.color ?? "#673AB7",
           stock: stock,
+          liveStock: liveStock,
           model: model,
           variant: variant,
           productName: variant.productName ?? "Unknown Product",
@@ -155,13 +199,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           isComposite: false, // Default to false in error case
           edit: (productId, type) {
             talker.info("navigating to Edit!");
-            showDialog(
-              barrierDismissible: false,
-              context: context,
-              builder: (context) => OptionModal(
-                child: ProductEntryScreen(productId: productId),
-              ),
-            );
+            _openProductEntry(context, productId: productId);
           },
           delete: (productId, type) async {
             await deleteFunc(productId, model);
@@ -176,25 +214,22 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (assetAsync == null) {
           return RowItem(
             forceRemoteUrl: forceRemoteUrl,
-            forceListView: forceListView, // Pass the parameter
+            forceListView: forceListView,
+            usePosCatalogTile: usePosCatalogTile,
             isOrdering: isOrdering,
             color: variant.color ?? "#673AB7",
             stock: stock,
+            liveStock: liveStock,
             model: model,
             variant: variant,
+            product: product,
             productName: variant.productName ?? "Unknown Product",
             variantName: variant.name,
-            imageUrl: null, // No image available in error case
+            imageUrl: variantImage, // Prefer variant image
             isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
             edit: (productId, type) {
               talker.info("navigating to Edit!");
-              showDialog(
-                barrierDismissible: false,
-                context: context,
-                builder: (context) => OptionModal(
-                  child: ProductEntryScreen(productId: productId),
-                ),
-              );
+              _openProductEntry(context, productId: productId);
             },
             delete: (productId, type) async {
               await deleteFunc(productId, model);
@@ -209,25 +244,22 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         return assetAsync.when(
           loading: () => RowItem(
             forceRemoteUrl: forceRemoteUrl,
-            forceListView: forceListView, // Pass the parameter
+            forceListView: forceListView,
+            usePosCatalogTile: usePosCatalogTile,
             isOrdering: isOrdering,
             color: variant.color ?? "#673AB7",
             stock: stock,
+            liveStock: liveStock,
             model: model,
             variant: variant,
+            product: product,
             productName: variant.productName ?? "Unknown Product",
             variantName: variant.name,
-            imageUrl: null, // No image available while loading asset
+            imageUrl: variantImage, // Prefer variant image
             isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
             edit: (productId, type) {
               talker.info("navigating to Edit!");
-              showDialog(
-                barrierDismissible: false,
-                context: context,
-                builder: (context) => OptionModal(
-                  child: ProductEntryScreen(productId: productId),
-                ),
-              );
+              _openProductEntry(context, productId: productId);
             },
             delete: (productId, type) async {
               await deleteFunc(productId, model);
@@ -244,26 +276,24 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             // Return the product row without asset data
             return RowItem(
               forceRemoteUrl: forceRemoteUrl,
-              forceListView: forceListView, // Pass the parameter
+              forceListView: forceListView,
+              usePosCatalogTile: usePosCatalogTile,
               isOrdering: isOrdering,
               color: variant.color ?? "#673AB7",
               stock: stock,
+              liveStock: liveStock,
               model: model,
               variant: variant,
+              product: product,
               productName: variant.productName ?? "Unknown Product",
               variantName: variant.name,
-              imageUrl: null, // No image available in error case
-              isComposite:
-                  !isOrdering ? (product?.isComposite ?? false) : false,
+              imageUrl: variantImage, // Prefer variant image
+              isComposite: !isOrdering
+                  ? (product?.isComposite ?? false)
+                  : false,
               edit: (productId, type) {
                 talker.info("navigating to Edit!");
-                showDialog(
-                  barrierDismissible: false,
-                  context: context,
-                  builder: (context) => OptionModal(
-                    child: ProductEntryScreen(productId: productId),
-                  ),
-                );
+                _openProductEntry(context, productId: productId);
               },
               delete: (productId, type) async {
                 await deleteFunc(productId, model);
@@ -276,27 +306,25 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           data: (asset) {
             return RowItem(
               forceRemoteUrl: forceRemoteUrl,
-              forceListView: forceListView, // Pass the parameter
+              forceListView: forceListView,
+              usePosCatalogTile: usePosCatalogTile,
               isOrdering: isOrdering,
               color: variant.color ?? "#673AB7",
               stock: stock,
+              liveStock: liveStock,
               model: model,
               variant: variant,
+              product: product,
               productName: variant.productName!,
               variantName: variant.name,
-              imageUrl: asset?.assetName,
-              isComposite:
-                  !isOrdering ? (product?.isComposite ?? false) : false,
+              imageUrl: variantImage ?? asset?.assetName,
+              isComposite: !isOrdering
+                  ? (product?.isComposite ?? false)
+                  : false,
               edit: (productId, type) {
                 talker.info("navigating to Edit!");
 
-                showDialog(
-                  barrierDismissible: false,
-                  context: context,
-                  builder: (context) => OptionModal(
-                    child: ProductEntryScreen(productId: productId),
-                  ),
-                );
+                _openProductEntry(context, productId: productId);
               },
               delete: (productId, type) async {
                 await deleteFunc(productId, model);

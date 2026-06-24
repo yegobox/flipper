@@ -5,6 +5,24 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Prepare Flutter Framework Script"
+               scriptText = "FLUTTER_ROOT_RESOLVED=&quot;$FLUTTER_ROOT&quot;&#10;if [ -z &quot;$FLUTTER_ROOT_RESOLVED&quot; ] || [ ! -f &quot;$FLUTTER_ROOT_RESOLVED/packages/flutter_tools/bin/xcode_backend.sh&quot; ]; then&#10;  if [ -f &quot;$SRCROOT/Flutter/Generated.xcconfig&quot; ]; then&#10;    FLUTTER_ROOT_RESOLVED=&quot;$(grep '^FLUTTER_ROOT=' &quot;$SRCROOT/Flutter/Generated.xcconfig&quot; | cut -d= -f2- | tr -d '[:space:]')&quot;&#10;  fi&#10;fi&#10;if [ -z &quot;$FLUTTER_ROOT_RESOLVED&quot; ] || [ ! -f &quot;$FLUTTER_ROOT_RESOLVED/packages/flutter_tools/bin/xcode_backend.sh&quot; ]; then&#10;  if [ -f &quot;$HOME/flutter/packages/flutter_tools/bin/xcode_backend.sh&quot; ]; then&#10;    FLUTTER_ROOT_RESOLVED=&quot;$HOME/flutter&quot;&#10;  fi&#10;fi&#10;if [ -z &quot;$FLUTTER_ROOT_RESOLVED&quot; ] || [ ! -f &quot;$FLUTTER_ROOT_RESOLVED/packages/flutter_tools/bin/xcode_backend.sh&quot; ]; then&#10;  echo &quot;error: FLUTTER_ROOT could not be resolved (SRCROOT=$SRCROOT)&quot; &gt;&amp;2&#10;  exit 1&#10;fi&#10;/bin/sh &quot;$FLUTTER_ROOT_RESOLVED/packages/flutter_tools/bin/xcode_backend.sh&quot; prepare&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "97C146ED1CF9000F007C117D"
+                     BuildableName = "Runner.app"
+                     BlueprintName = "Runner"
+                     ReferencedContainer = "container:Runner.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"

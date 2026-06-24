@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_services/ebm_sync_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -17,9 +19,13 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/asset_sync_service.dart';
+import 'package:flipper_services/receipt_sync_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
+  StartupViewModel() {
+    debugPrint('🚀 [StartupViewModel] constructor called');
+  }
   final appService = loc.getIt<AppService>();
   bool isBusinessSet = false;
   final _routerService = locator<RouterService>();
@@ -32,18 +38,19 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   // Internet connection service instance
   final _internetConnectionService = InternetConnectionService();
 
-  // Flag to track if we're currently on a payment screen
-  bool _isOnPaymentScreen = false;
-
   // Track last user activity to avoid interrupting active users
   DateTime? _lastUserActivity;
   static const Duration _userActivityThreshold = Duration(minutes: 5);
   bool _isInitialStartup = true;
+  double _progress = 0.0;
+  double get progress => _progress;
 
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
-      print('🚀 [StartupViewModel] Starting runStartupLogic...');
+      debugPrint('🚀 [StartupViewModel] Starting runStartupLogic...');
+      _progress = 0.0;
+      notifyListeners();
       final startTime = DateTime.now();
 
       final forceLogout = ProxyService.box.getForceLogout();
@@ -58,105 +65,99 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.warning("StartupViewModel runStartupLogic");
       // ------------------------------------------------------
 
-      print('⏳ [StartupViewModel] Checking requirements...');
-      // Ensure db is initialized before proceeding.
-      await _allRequirementsMeets();
-      print(
-          '✅ [StartupViewModel] Requirements met (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+      // Initialize Ditto early if user is logged in
+      // This ensures Ditto is available for LoginChoices screen to fetch businesses
+      final userId = ProxyService.box.getUserId();
+      if (userId == null) {
+        debugPrint(
+          '🚀 [StartupViewModel] No user in local storage; showing login',
+        );
+        _routerService.clearStackAndShow(LoginRoute());
+        return;
+      }
 
-      print('⏳ [StartupViewModel] Initializing app components...');
-      // Ensure admin access for API/onboarded users
+      try {
+        debugPrint(
+          '🚀 [StartupViewModel] Initializing Ditto early for userId: $userId',
+        );
+        final earlyInit = userId.startsWith('login-')
+            ? appService.initDittoForLogin(userId)
+            : appService.initDittoEarlyForSession(userId);
+        await earlyInit.timeout(const Duration(seconds: 10));
+        debugPrint('🚀 [StartupViewModel] Ditto initialized early');
+      } catch (e) {
+        debugPrint(
+          '⚠️ [StartupViewModel] Failed to initialize Ditto early (will continue): $e',
+        );
+      }
+      _progress = 0.2;
+      notifyListeners();
+
+      debugPrint('🚀 [StartupViewModel] Checking requirements...');
+      await _allRequirementsMeets().timeout(const Duration(seconds: 15));
+      debugPrint('🚀 [StartupViewModel] Requirements met');
+      _progress = 0.4;
+      notifyListeners();
+
+      debugPrint('🚀 [StartupViewModel] Initializing app components...');
       AppInitializer.initialize();
 
-      // Initialize the EBM Sync Service to listen for customer updates.
       final repository = Repository();
       EbmSyncService(repository);
 
       AssetSyncService().initialize();
+      ReceiptSyncService().initialize();
 
       ProxyService.strategy.cleanDuplicatePlans();
-      print(
-          '✅ [StartupViewModel] App components initialized (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+      debugPrint('🚀 [StartupViewModel] App components initialized');
+      _progress = 0.6;
+      notifyListeners();
 
-      print('⏳ [StartupViewModel] Setting up payment verification...');
-      // Set up payment verification callback and start periodic verification
-      _paymentVerificationService
-          .setPaymentStatusChangeCallback(_handlePaymentStatusChange);
+      _paymentVerificationService.setPaymentStatusChangeCallback((response) {
+        unawaited(_handlePaymentStatusChange(response));
+      });
       _paymentVerificationService.startPeriodicVerification(
-          intervalMinutes: kDebugMode ? 25 : 15);
+        intervalMinutes: kDebugMode ? 20 : 240,
+      );
 
-      // Start periodic internet connection check (check every 6 hours)
       _internetConnectionService.startPeriodicConnectionCheck();
-      print(
-          '✅ [StartupViewModel] Payment verification setup complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
 
-      /// listen all database change and replicate them in sync db.
-      // ProxyService.backUp.listen();
-      print('⏳ [StartupViewModel] Running appService.appInit()...');
-      await appService.appInit();
-      print(
-          '✅ [StartupViewModel] appService.appInit() complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+      debugPrint('🚀 [StartupViewModel] Running appService.appInit()...');
+      await appService.appInit().timeout(const Duration(seconds: 30));
+      debugPrint('🚀 [StartupViewModel] appService.appInit() complete');
+      _progress = 0.8;
+      notifyListeners();
 
-      // Check payment status before navigating to main app
-      print('⏳ [StartupViewModel] Verifying payment status...');
-      await _handleInitialPaymentVerification();
-      print(
-          '✅ [StartupViewModel] Payment verification complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+      debugPrint('🚀 [StartupViewModel] Verifying payment status...');
+      await _handleInitialPaymentVerification().timeout(
+        const Duration(seconds: 15),
+      );
+      debugPrint('🚀 [StartupViewModel] Payment verification complete');
+      _progress = 1.0;
+      notifyListeners();
 
-      print(
-          '🎉 [StartupViewModel] runStartupLogic completed in ${DateTime.now().difference(startTime).inMilliseconds}ms');
+      debugPrint(
+        '🎉 [StartupViewModel] runStartupLogic completed in ${DateTime.now().difference(startTime).inMilliseconds}ms',
+      );
     } catch (e, stackTrace) {
-      talker.info("StartupViewModel ${e}");
-      talker.error("StartupViewModel ${stackTrace}");
+      debugPrint('❌ [StartupViewModel] ERROR during runStartupLogic: $e');
+      talker.error(e, stackTrace);
       await _handleStartupError(e, stackTrace);
     }
   }
 
   /// Handle payment status changes from periodic verification
-  void _handlePaymentStatusChange(PaymentVerificationResponse response) {
-    // Check if user is currently on a modal or critical page
-    final currentRoute = _routerService.router.current.name;
-    final criticalRoutes = [
-      'AddProductView',
-      'Sell',
-      'Payments',
-      'PaymentConfirmation',
-      'TransactionDetail',
-      'CheckOut',
-      'NewTicket',
-      'CheckOut'
-    ];
-
-    // Don't interrupt user during critical operations
-    if (criticalRoutes.contains(currentRoute)) {
-      talker.info(
-          'Skipping payment verification navigation - user on critical page: $currentRoute');
-      return;
-    }
-
-    // Don't interrupt if user was recently active (but allow during initial startup)
-    if (!_isInitialStartup &&
-        _lastUserActivity != null &&
-        DateTime.now().difference(_lastUserActivity!) <
-            _userActivityThreshold) {
-      talker.info(
-          'Skipping payment verification navigation - user recently active');
-      return;
-    }
-
-    switch (response.result) {
-      case PaymentVerificationResult.active:
-        _handleActiveSubscription();
-        break;
-      case PaymentVerificationResult.noPlan:
-        _handleNoPlan();
-        break;
-      case PaymentVerificationResult.planExistsButInactive:
-        _handleInactivePlan(response);
-        break;
-      case PaymentVerificationResult.error:
-        _handleVerificationError(response);
-        break;
+  Future<void> _handlePaymentStatusChange(
+    PaymentVerificationResponse response,
+  ) async {
+    await PaymentVerificationNavigator.handle(
+      response,
+      isInitialStartup: _isInitialStartup,
+      lastUserActivity: _lastUserActivity,
+      userActivityThreshold: _userActivityThreshold,
+    );
+    if (response.result == PaymentVerificationResult.active) {
+      _isInitialStartup = false;
     }
   }
 
@@ -165,93 +166,20 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     try {
       final response = await _paymentVerificationService.verifyPaymentStatus();
       _handlePaymentStatusChange(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
       // If payment verification itself throws an exception, create a response and handle it
-      talker.error("Exception during initial payment verification: $e");
-      _handleVerificationError(PaymentVerificationResponse(
-        result: PaymentVerificationResult.error,
-        errorMessage: 'Payment verification failed: $e',
-        exception: Exception(e),
-      ));
+      talker.error(e, stackTrace);
+      await PaymentVerificationNavigator.handle(
+        PaymentVerificationResponse(
+          result: PaymentVerificationResult.error,
+          errorMessage: 'Payment verification failed: $e',
+          exception: Exception(e),
+        ),
+        isInitialStartup: _isInitialStartup,
+        lastUserActivity: _lastUserActivity,
+        userActivityThreshold: _userActivityThreshold,
+      );
     }
-  }
-
-  void _handleActiveSubscription() async {
-    talker.info('Payment verification successful: Subscription is active');
-
-    // Check if we should navigate to personal app for individual businesses
-    final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
-
-    if (shouldGoToPersonal) {
-      talker.info('Navigating to personal app for individual business');
-      _routerService.navigateTo(PersonalHomeRoute());
-      _isInitialStartup = false;
-      return;
-    }
-
-    // If we were on a payment screen, navigate back to the main app
-    if (_isOnPaymentScreen) {
-      talker
-          .info('Returning to main app after successful payment verification');
-      _clearPaymentScreenFlag();
-      _routerService.navigateTo(FlipperAppRoute());
-    } else {
-      // First time startup with active subscription
-      _routerService.navigateTo(FlipperAppRoute());
-      talker.warning("StartupViewModel Below navigateTo(FlipperAppRoute)");
-    }
-    _isInitialStartup = false;
-  }
-
-  void _handleNoPlan() {
-    talker.warning('No payment plan found, directing to payment plan screen');
-    _setOnPaymentScreen();
-    _routerService.navigateTo(PaymentPlanUIRoute());
-  }
-
-  void _handleInactivePlan(PaymentVerificationResponse response) {
-    talker.error(
-        'Payment plan exists but is not active: ${response.errorMessage}');
-    _setOnPaymentScreen();
-    _routerService.navigateTo(FailedPaymentRoute());
-  }
-
-  void _handleVerificationError(PaymentVerificationResponse response) async {
-    talker.error('Error during payment verification: ${response.errorMessage}');
-
-    // Check if we should navigate to personal app for individual businesses
-    final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
-
-    if (shouldGoToPersonal) {
-      talker.info(
-          'Navigating to personal app for individual business despite payment verification error');
-      _routerService.navigateTo(PersonalHomeRoute());
-      return;
-    }
-
-    // Handle specific error types
-    if (response.exception is NoPaymentPlanFoundException) {
-      _setOnPaymentScreen();
-      _routerService.navigateTo(PaymentPlanUIRoute());
-    } else if (response.exception is PaymentIncompleteException) {
-      _setOnPaymentScreen();
-      _routerService.navigateTo(FailedPaymentRoute());
-    } else {
-      // For other errors, still allow access to main app but log the issue
-      talker
-          .warning("Proceeding to main app despite payment verification error");
-      _routerService.navigateTo(FlipperAppRoute());
-    }
-  }
-
-  void _setOnPaymentScreen() {
-    _isOnPaymentScreen = true;
-    talker.info('Payment screen flag set to true');
-  }
-
-  void _clearPaymentScreenFlag() {
-    _isOnPaymentScreen = false;
-    talker.info('Payment screen flag set to false');
   }
 
   /// Call this method whenever user interacts with the app
@@ -260,24 +188,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     _isInitialStartup = false;
   }
 
-  /// Force payment verification with navigation handling
+  /// Force payment verification with navigation (e.g. sales / support).
   Future<void> forcePaymentVerification() async {
-    final response =
-        await _paymentVerificationService.forcePaymentVerification();
-    _handlePaymentStatusChange(response);
-  }
-
-  /// Check if we should navigate to personal app for individual businesses
-  Future<bool> _shouldNavigateToPersonalApp() async {
-    try {
-      final activeBusiness = await ProxyService.strategy.activeBusiness();
-      return activeBusiness != null &&
-          activeBusiness.businessTypeId == 2 &&
-          activeBusiness.isDefault == true;
-    } catch (e) {
-      talker.warning('Error checking if should navigate to personal app: $e');
-      return false;
-    }
+    await PaymentVerificationNavigator.verifyAndNavigate(userInitiated: true);
   }
 
   /// Ensures the specified user has all required admin access for all features.
@@ -289,13 +202,18 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   }) async {
     try {
       // Use features from flipper_services/constants.dart
-      final List<String> featureNames =
-          features.map((f) => f.toString()).toList();
+      final List<String> featureNames = features
+          .map((f) => f.toString())
+          .toList();
       for (String feature in featureNames) {
         talker.warning(
-            "Checking permission for userId: $userId, feature: $feature");
-        List<Access> hasAccess = await ProxyService.strategy
-            .access(userId: userId, featureName: feature, fetchRemote: true);
+          "Checking permission for userId: $userId, feature: $feature",
+        );
+        List<Access> hasAccess = await ProxyService.strategy.access(
+          userId: userId,
+          featureName: feature,
+          fetchRemote: true,
+        );
         if (hasAccess.isEmpty) {
           await ProxyService.strategy.addAccess(
             branchId: branchId,
@@ -310,7 +228,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         }
       }
     } catch (e, stack) {
-      talker.error("Error ensuring admin access: $e\n$stack");
+      talker.error(e, stack);
     }
   }
 
@@ -356,7 +274,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// Handles BusinessNotFoundException specifically for the desktop platform.
   void _handleBusinessNotFoundForDesktop() {
     ProxyService.notie.sendData(
-        'Could not login business with user ${ProxyService.box.getUserId()} not found!');
+      'Could not login business with user ${ProxyService.box.getUserId()} not found!',
+    );
     logOut();
     _routerService.clearStackAndShow(LoginRoute());
   }
@@ -370,8 +289,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       if (isTestEnvironment()) {
         return;
       }
-      // check there is a user logged in by getUserId()!
-      ProxyService.box.getUserId()!;
+      final userId = ProxyService.box.getUserId();
+      if (userId == null) {
+        throw SessionException(term: 'No user in local storage');
+      }
       talker.warning("StartupViewModel _allRequirementsMeets");
 
       // Check if business ID is set
@@ -380,25 +301,35 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         throw Exception("Business ID is not set in local storage");
       }
 
+      // Check if branch ID is set
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        throw LoginChoicesException(term: "Branch ID not set");
+      }
+
       // Check if the specific business exists instead of fetching all businesses
-      final business =
-          await ProxyService.strategy.getBusiness(businessId: businessId);
+      final business = await ProxyService.strategy.getBusiness(
+        businessId: businessId,
+      );
       if (business == null) {
         throw Exception("Business not found locally");
       }
       talker.warning("Business found: ${business.name}");
 
       // Check branches for the specific business
-      List<Branch> branches = await ProxyService.strategy
-          .branches(businessId: businessId, active: true);
+      List<Branch> branches = await ProxyService.strategy.branches(
+        businessId: businessId,
+        active: true,
+      );
       talker.warning("branches: ${branches.length}");
 
       if (branches.isEmpty) {
         throw Exception(
-            "requirements failed for having branches saved locally");
+          "requirements failed for having branches saved locally",
+        );
       }
-    } catch (e) {
-      talker.error("StartupViewModel _allRequirementsMeets ${e}");
+    } catch (e, stackTrace) {
+      talker.error(e, stackTrace);
       rethrow;
     }
   }
@@ -406,7 +337,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// Clean up resources when the view model is disposed
   @override
   void dispose() {
-    _paymentVerificationService.dispose();
     _internetConnectionService.stopPeriodicConnectionCheck();
     super.dispose();
   }

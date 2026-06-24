@@ -6,6 +6,7 @@ import 'package:flipper_models/db_model_export.dart';
 
 class SearchableCategoryDropdown extends ConsumerStatefulWidget {
   final String? selectedValue;
+  final String? initialName;
   final ValueChanged<String?> onChanged;
   final VoidCallback? onAdd;
   final bool isEnabled;
@@ -15,6 +16,7 @@ class SearchableCategoryDropdown extends ConsumerStatefulWidget {
   const SearchableCategoryDropdown({
     super.key,
     this.selectedValue,
+    this.initialName,
     required this.onChanged,
     this.onAdd,
     this.isEnabled = true,
@@ -56,6 +58,10 @@ class _SearchableCategoryDropdownState
           _controller!.text = '';
         }
         return;
+      }
+
+      if (widget.initialName != null && _controller!.text.isEmpty) {
+        _controller!.text = widget.initialName!;
       }
 
       final categoryAsyncValue = ref.read(categoryProvider);

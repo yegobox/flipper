@@ -1,9 +1,11 @@
 import 'dart:async' show FutureOr;
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -19,30 +21,70 @@ mixin DeleteMixin implements DeleteInterface {
     String? name,
     required String businessId,
   }) async {
-    final query = Query(where: [
-      if (id != null) Where('id').isExactly(id),
-      if (barCode != null) Where('barCode').isExactly(barCode),
-      if (name != null) Where('name').isExactly(name),
-      Where('branchId').isExactly(branchId),
-      Where('businessId').isExactly(businessId),
-    ]);
+    final query = Query(
+      where: [
+        if (id != null) Where('id').isExactly(id),
+        if (barCode != null) Where('barCode').isExactly(barCode),
+        if (name != null) Where('name').isExactly(name),
+        Where('branchId').isExactly(branchId),
+        Where('businessId').isExactly(businessId),
+      ],
+    );
 
     final result = await repository.get<Product>(query: query);
     return result.firstOrNull;
   }
 
   Future<Stock?> getStockById({required String id});
-  FutureOr<List<Customer>> customers(
-      {String? branchId, String? key, String? id});
+  FutureOr<List<Customer>> customers({
+    String? branchId,
+    String? key,
+    String? id,
+  });
   // FutureOr<List<InventoryRequest>> requests({String? branchId, String? requestId});
+  @override
+  Future<void> deleteAllTransactionItems({
+    required String transactionId,
+  }) async {
+    try {
+      final items = await repository.get<TransactionItem>(
+        query: Query(where: [Where('transactionId').isExactly(transactionId)]),
+      );
+
+      final toDelete = items
+          .where((item) => !(item.partOfComposite ?? false))
+          .toList();
+      if (toDelete.isEmpty) return;
+
+      await Future.wait(
+        toDelete.map(
+          (item) => repository.delete<TransactionItem>(
+            item,
+            query: Query(
+              action: QueryAction.delete,
+              where: [Where('id').isExactly(item.id)],
+            ),
+          ),
+        ),
+      );
+
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+        transactionId: transactionId,
+        subTotal: 0,
+        updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
+      );
+    } catch (e, s) {
+      talker.error(s);
+      rethrow;
+    }
+  }
+
   @override
   Future<void> deleteTransactionItemAndResequence({required String id}) async {
     try {
       final transactionItemToDelete = await repository.get<TransactionItem>(
-        query: Query(
-          where: [Where('id').isExactly(id)],
-          limit: 1,
-        ),
+        query: Query(where: [Where('id').isExactly(id)], limit: 1),
       );
 
       if (transactionItemToDelete.isEmpty) {
@@ -62,9 +104,7 @@ mixin DeleteMixin implements DeleteInterface {
       );
 
       final remainingItems = await repository.get<TransactionItem>(
-        query: Query(
-          where: [Where('transactionId').isExactly(transactionId)],
-        ),
+        query: Query(where: [Where('transactionId').isExactly(transactionId)]),
       );
 
       remainingItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
@@ -73,6 +113,18 @@ mixin DeleteMixin implements DeleteInterface {
         remainingItems[i].itemSeq = i + 1;
         await repository.upsert<TransactionItem>(remainingItems[i]);
       }
+
+      // Calculate and update the transaction's subtotal
+      double newSubTotal = remainingItems.fold(
+        0,
+        (sum, item) => sum + (item.price * item.qty),
+      );
+      await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+        transactionId: transactionId,
+        subTotal: newSubTotal,
+        updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
+      );
     } catch (e, s) {
       talker.error(s);
       rethrow;
@@ -80,47 +132,28 @@ mixin DeleteMixin implements DeleteInterface {
   }
 
   @override
-  Future<bool> flipperDelete(
-      {required String id,
-      String? endPoint,
-      HttpClientInterface? flipperHttpClient}) async {
+  Future<bool> flipperDelete({
+    required String id,
+    String? endPoint,
+    HttpClientInterface? flipperHttpClient,
+  }) async {
     switch (endPoint) {
       case 'product':
         final product = await getProduct(
-            id: id,
-            branchId: ProxyService.box.getBranchId()!,
-            businessId: ProxyService.box.getBusinessId()!);
+          id: id,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!,
+        );
         if (product != null) {
           await repository.delete<Product>(product);
         }
         break;
       case 'variant':
         try {
-          final variant = await ProxyService.strategy.getVariant(id: id);
-          final stock = await getStockById(id: variant!.stockId ?? "");
-
-          await repository.delete<Variant>(
-            variant,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
-          await repository.delete<Stock>(
-            stock!,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
+          await _deleteVariantFromDittoAndSupabase(id: id);
         } catch (e, s) {
-          final variant = await ProxyService.strategy.getVariant(id: id);
-          if (variant == null) {
-            talker.error('Variant with id $id not found for deletion.');
-            rethrow;
-          }
-          await repository.delete<Variant>(
-            variant,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
-          //talker.warning(s);
+          talker.error('Error during variant deletion: $e');
+          talker.warning(s);
           rethrow;
         }
 
@@ -132,8 +165,10 @@ mixin DeleteMixin implements DeleteInterface {
       case 'customer':
         String? branchId = ProxyService.box.getBranchId();
         if (branchId == null || branchId.isEmpty) return false;
-        final customer =
-            (await customers(id: id, branchId: branchId)).firstOrNull;
+        final customer = (await customers(
+          id: id,
+          branchId: branchId,
+        )).firstOrNull;
         if (customer != null) {
           await repository.delete<Customer>(
             customer,
@@ -142,7 +177,9 @@ mixin DeleteMixin implements DeleteInterface {
               where: [
                 Where('id').isExactly(id),
                 Where('branchId').isExactly(branchId),
-                Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
+                Where(
+                  'businessId',
+                ).isExactly(ProxyService.box.getBusinessId()!),
               ],
             ),
           );
@@ -151,21 +188,22 @@ mixin DeleteMixin implements DeleteInterface {
       case 'stockRequest':
         final request = (await ProxyService.strategy.requests(
           requestId: id,
-        ))
-            .firstOrNull;
+        )).firstOrNull;
         if (request != null) {
           // get dependent first
           if (request.financing != null) {
             final financing = await repository.get<Financing>(
-              query:
-                  Query(where: [Where('id').isExactly(request.financing!.id)]),
+              query: Query(
+                where: [Where('id').isExactly(request.financing!.id)],
+              ),
             );
             try {
               await repository.delete<Financing>(
                 financing.first,
                 query: Query(
-                    action: QueryAction.delete,
-                    where: [Where('id').isExactly(financing.first.id)]),
+                  action: QueryAction.delete,
+                  where: [Where('id').isExactly(financing.first.id)],
+                ),
               );
             } catch (e) {
               talker.warning(e);
@@ -188,9 +226,7 @@ mixin DeleteMixin implements DeleteInterface {
           fetchRemote: false,
           tenantId: id,
         ));
-        if (tenant != null) {
-          await repository.delete<Tenant>(tenant);
-        }
+
         break;
       case 'transaction':
         final transaction = (await ProxyService.strategy.getTransaction(
@@ -198,14 +234,84 @@ mixin DeleteMixin implements DeleteInterface {
           branchId: ProxyService.box.getBranchId()!,
         ));
         if (transaction != null) {
+          // Prevent deleting tickets or transactions with partial payments
+          if (transaction.ticketName != null &&
+              transaction.ticketName!.isNotEmpty) {
+            talker.warning(
+              'Attempted to delete a parked transaction (ticket): ${transaction.id}',
+            );
+            return false;
+          }
+          if ((transaction.cashReceived ?? 0) > 0) {
+            talker.warning(
+              'Attempted to delete a transaction with partial payments: ${transaction.id}',
+            );
+            return false;
+          }
           await repository.delete<ITransaction>(
             transaction,
             query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
+              action: QueryAction.delete,
+              where: [Where('id').isExactly(id)],
+            ),
           );
         }
         break;
     }
     return true;
+  }
+
+  /// Variants and stocks live in Ditto (Capella), not Brick SQLite.
+  Future<void> _deleteVariantFromDittoAndSupabase({required String id}) async {
+    final variant = await ProxyService.strategy.getVariant(id: id);
+    String? stockId = variant?.stockId;
+
+    if (stockId == null || stockId.isEmpty) {
+      final remoteVariant = await Supabase.instance.client
+          .from('variants')
+          .select('stock_id')
+          .eq('id', id)
+          .maybeSingle();
+      if (remoteVariant != null && remoteVariant['stock_id'] != null) {
+        stockId = remoteVariant['stock_id'] as String;
+      }
+    }
+
+    if (variant == null && stockId == null) {
+      talker.warning(
+        'Variant with id $id not found in Ditto or Supabase, attempting Ditto delete only.',
+      );
+    }
+
+    try {
+      if (stockId != null && stockId.isNotEmpty) {
+        await Supabase.instance.client.from('stocks').delete().eq('id', stockId);
+        talker.info('Deleted stock $stockId from Supabase');
+      }
+
+      await Supabase.instance.client.from('variants').delete().eq('id', id);
+      talker.info('Deleted variant $id from Supabase');
+    } catch (e) {
+      talker.warning('Supabase variant delete skipped or failed: $e');
+    }
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized: variant delete');
+    }
+
+    if (stockId != null && stockId.isNotEmpty) {
+      await ditto.store.execute(
+        'DELETE FROM stocks WHERE _id = :id',
+        arguments: {'id': stockId},
+      );
+      talker.info('Deleted stock $stockId from Ditto');
+    }
+
+    await ditto.store.execute(
+      'DELETE FROM variants WHERE _id = :id',
+      arguments: {'id': id},
+    );
+    talker.info('Deleted variant $id from Ditto');
   }
 }

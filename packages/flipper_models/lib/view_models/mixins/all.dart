@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/keypad_service.dart';
@@ -42,7 +43,7 @@ mixin SharebleMethods {
   Stream<Customer?> getCustomer({String? key, String? id}) {
     // Convert FutureOr<List<Customer>> to Future<List<Customer>>
     Future<List<Customer>> customersFuture = Future(() async {
-      return await ProxyService.strategy.customers(
+      return await ProxyService.getStrategy(Strategy.capella).customers(
           key: key, id: id, branchId: ProxyService.box.getBranchId()!);
     });
 

@@ -8,7 +8,6 @@
 import 'dart:ui' as _i8;
 
 import 'package:firebase_auth/firebase_auth.dart' as _i7;
-import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i6;
 import 'package:flipper_dashboard/QuickSellingView.dart' as _i2;
 import 'package:flipper_models/db_model_export.dart' as _i9;
 import 'package:flutter/material.dart' as _i5;
@@ -117,7 +116,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         routeData: routeData,
         child: _i1.PhoneInputScreen(
           key: args.key,
-          action: args.action,
+          countryCode: args.countryCode,
           subtitleBuilder: args.subtitleBuilder,
           footerBuilder: args.footerBuilder,
         ),
@@ -420,6 +419,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    AgentCommissionRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.AgentCommissionScreen(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     DrawerScreenRoute.name: (routeData) {
       final args = routeData.argsAs<DrawerScreenArgs>();
       return _i4.CustomPage<dynamic>(
@@ -473,7 +480,8 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     CheckOutRoute.name: (routeData) {
-      final args = routeData.argsAs<CheckOutArgs>();
+      final args = routeData.argsAs<CheckOutArgs>(
+          orElse: () => const CheckOutArgs(isBigScreen: false));
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.CheckOut(
@@ -763,6 +771,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           path: '/tenant-management',
         ),
         _i4.RouteConfig(
+          AgentCommissionRoute.name,
+          path: '/agent-commission',
+        ),
+        _i4.RouteConfig(
           SocialHomeViewRoute.name,
           path: '/social-home-view',
         ),
@@ -1018,44 +1030,17 @@ class CreditAppRoute extends _i4.PageRouteInfo<void> {
 class PhoneInputScreenRoute extends _i4.PageRouteInfo<PhoneInputScreenArgs> {
   PhoneInputScreenRoute({
     _i5.Key? key,
-    _i6.AuthAction? action,
-    List<_i6.FirebaseUIAction>? actions,
-    _i7.FirebaseAuth? auth,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-      double,
-    )? headerBuilder,
-    double? headerMaxExtent,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-    )? sideBuilder,
-    _i8.TextDirection? desktopLayoutDirection,
-    double breakpoint = 500,
-    _i7.MultiFactorSession? multiFactorSession,
-    _i7.PhoneMultiFactorInfo? mfaHint,
   }) : super(
           PhoneInputScreenRoute.name,
           path: '/phone-input-screen',
           args: PhoneInputScreenArgs(
             key: key,
-            action: action,
-            actions: actions,
-            auth: auth,
             countryCode: countryCode,
             subtitleBuilder: subtitleBuilder,
             footerBuilder: footerBuilder,
-            headerBuilder: headerBuilder,
-            headerMaxExtent: headerMaxExtent,
-            sideBuilder: sideBuilder,
-            desktopLayoutDirection: desktopLayoutDirection,
-            breakpoint: breakpoint,
-            multiFactorSession: multiFactorSession,
-            mfaHint: mfaHint,
           ),
         );
 
@@ -1065,28 +1050,12 @@ class PhoneInputScreenRoute extends _i4.PageRouteInfo<PhoneInputScreenArgs> {
 class PhoneInputScreenArgs {
   const PhoneInputScreenArgs({
     this.key,
-    this.action,
-    this.actions,
-    this.auth,
     required this.countryCode,
     this.subtitleBuilder,
     this.footerBuilder,
-    this.headerBuilder,
-    this.headerMaxExtent,
-    this.sideBuilder,
-    this.desktopLayoutDirection,
-    this.breakpoint = 500,
-    this.multiFactorSession,
-    this.mfaHint,
   });
 
   final _i5.Key? key;
-
-  final _i6.AuthAction? action;
-
-  final List<_i6.FirebaseUIAction>? actions;
-
-  final _i7.FirebaseAuth? auth;
 
   final String countryCode;
 
@@ -1094,30 +1063,22 @@ class PhoneInputScreenArgs {
 
   final _i5.Widget Function(_i5.BuildContext)? footerBuilder;
 
-  final _i5.Widget Function(
-    _i5.BuildContext,
-    _i5.BoxConstraints,
-    double,
-  )? headerBuilder;
-
-  final double? headerMaxExtent;
-
-  final _i5.Widget Function(
-    _i5.BuildContext,
-    _i5.BoxConstraints,
-  )? sideBuilder;
-
-  final _i8.TextDirection? desktopLayoutDirection;
-
-  final double breakpoint;
-
-  final _i7.MultiFactorSession? multiFactorSession;
-
-  final _i7.PhoneMultiFactorInfo? mfaHint;
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PhoneInputScreenArgs &&
+        other.key == key &&
+        other.countryCode == countryCode &&
+        other.subtitleBuilder == subtitleBuilder &&
+        other.footerBuilder == footerBuilder;
+  }
 
   @override
-  String toString() {
-    return 'PhoneInputScreenArgs{key: $key, action: $action, actions: $actions, auth: $auth, countryCode: $countryCode, subtitleBuilder: $subtitleBuilder, footerBuilder: $footerBuilder, headerBuilder: $headerBuilder, headerMaxExtent: $headerMaxExtent, sideBuilder: $sideBuilder, desktopLayoutDirection: $desktopLayoutDirection, breakpoint: $breakpoint, multiFactorSession: $multiFactorSession, mfaHint: $mfaHint}';
+  int get hashCode {
+    return key.hashCode ^
+        countryCode.hashCode ^
+        subtitleBuilder.hashCode ^
+        footerBuilder.hashCode;
   }
 }
 
@@ -1869,6 +1830,18 @@ class TenantManagementRoute extends _i4.PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [_i1.AgentCommissionScreen]
+class AgentCommissionRoute extends _i4.PageRouteInfo<void> {
+  const AgentCommissionRoute()
+      : super(
+          AgentCommissionRoute.name,
+          path: '/agent-commission',
+        );
+
+  static const String name = 'AgentCommissionScreen';
+}
+
+/// generated route for
 /// [_i1.SocialHomeView]
 class SocialHomeViewRoute extends _i4.PageRouteInfo<void> {
   const SocialHomeViewRoute()
@@ -2088,7 +2061,7 @@ class AppsArgs {
 class CheckOutRoute extends _i4.PageRouteInfo<CheckOutArgs> {
   CheckOutRoute({
     _i5.Key? key,
-    required bool isBigScreen,
+    bool isBigScreen = false,
   }) : super(
           CheckOutRoute.name,
           path: '/check-out',
@@ -2104,7 +2077,7 @@ class CheckOutRoute extends _i4.PageRouteInfo<CheckOutArgs> {
 class CheckOutArgs {
   const CheckOutArgs({
     this.key,
-    required this.isBigScreen,
+    this.isBigScreen = false,
   });
 
   final _i5.Key? key;
@@ -2477,44 +2450,17 @@ extension RouterStateExtension on _i3.RouterService {
 
   Future<dynamic> navigateToPhoneInputScreen({
     _i5.Key? key,
-    _i6.AuthAction? action,
-    List<_i6.FirebaseUIAction>? actions,
-    _i7.FirebaseAuth? auth,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-      double,
-    )? headerBuilder,
-    double? headerMaxExtent,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-    )? sideBuilder,
-    _i8.TextDirection? desktopLayoutDirection,
-    double breakpoint = 500,
-    _i7.MultiFactorSession? multiFactorSession,
-    _i7.PhoneMultiFactorInfo? mfaHint,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PhoneInputScreenRoute(
         key: key,
-        action: action,
-        actions: actions,
-        auth: auth,
         countryCode: countryCode,
         subtitleBuilder: subtitleBuilder,
         footerBuilder: footerBuilder,
-        headerBuilder: headerBuilder,
-        headerMaxExtent: headerMaxExtent,
-        sideBuilder: sideBuilder,
-        desktopLayoutDirection: desktopLayoutDirection,
-        breakpoint: breakpoint,
-        multiFactorSession: multiFactorSession,
-        mfaHint: mfaHint,
       ),
       onFailure: onFailure,
     );
@@ -2864,6 +2810,14 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
+  Future<dynamic> navigateToAgentCommission(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const AgentCommissionRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> navigateToSocialHomeView(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
@@ -3186,44 +3140,17 @@ extension RouterStateExtension on _i3.RouterService {
 
   Future<dynamic> replaceWithPhoneInputScreen({
     _i5.Key? key,
-    _i6.AuthAction? action,
-    List<_i6.FirebaseUIAction>? actions,
-    _i7.FirebaseAuth? auth,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-      double,
-    )? headerBuilder,
-    double? headerMaxExtent,
-    _i5.Widget Function(
-      _i5.BuildContext,
-      _i5.BoxConstraints,
-    )? sideBuilder,
-    _i8.TextDirection? desktopLayoutDirection,
-    double breakpoint = 500,
-    _i7.MultiFactorSession? multiFactorSession,
-    _i7.PhoneMultiFactorInfo? mfaHint,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PhoneInputScreenRoute(
         key: key,
-        action: action,
-        actions: actions,
-        auth: auth,
         countryCode: countryCode,
         subtitleBuilder: subtitleBuilder,
         footerBuilder: footerBuilder,
-        headerBuilder: headerBuilder,
-        headerMaxExtent: headerMaxExtent,
-        sideBuilder: sideBuilder,
-        desktopLayoutDirection: desktopLayoutDirection,
-        breakpoint: breakpoint,
-        multiFactorSession: multiFactorSession,
-        mfaHint: mfaHint,
       ),
       onFailure: onFailure,
     );
@@ -3569,6 +3496,14 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const TenantManagementRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAgentCommission(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const AgentCommissionRoute(),
       onFailure: onFailure,
     );
   }

@@ -1,10 +1,10 @@
 name: flipper_rw
 description: "A new Flutter project."
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
-# 1.170.4252223234854+1755779343
-# 1.180.4252223234901+1756527939
+publish_to: "none"
+#  ios : 1.184
+# macos : 1.181
 
-version: 1.180.4252223234901+1756528664
+version: 1.185.4252223235594+1756529599
 
 
 environment:
@@ -14,10 +14,10 @@ dependencies:
   flutter:
     sdk: flutter
   sentry: ^9.6.0
-  sentry_flutter: 9.8.0
+  sentry_flutter: ^9.18.0
   jni: ^0.14.2
   firebase_crashlytics: ^5.0.2
-  flutter_local_notifications: ^19.5.0
+  flutter_local_notifications: ^22.0.1
   intl: ^0.20.2
   injectable: ^2.5.0
   get_it: ^8.0.3
@@ -28,18 +28,16 @@ dependencies:
   mime: ^2.0.0
   open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
-  ditto_live: ^4.14.0
-  feather_icons: ^1.1.0-nullsafety.0
+  ditto_live: ^5.0.1
   flex_color_scheme: ^4.2.0
   image_picker: ^1.2.1
-  file_picker: ^10.3.7
-  firebase_ui_auth: ^3.0.0
+  file_picker: 10.3.7
   azlistview: ^2.0.0
   cached_network_image: ^3.2.1
   flutter_slidable: ^1.3.0
   flutter_text_drawable: ^1.0.0
   font_awesome_flutter: ^9.0.0
-  upgrader: ^11.5.0
+  upgrader: ^13.5.0
   universal_platform: ^1.0.0+1
   ionicons: ^0.1.2
   overlay_support: ^2.1.0
@@ -54,10 +52,11 @@ dependencies:
   gap: ^2.0.0
   barcode: ">=2.2.3 <3.0.0"
   flutter_native_splash: ^2.3.2
-  permission_handler: ^12.0.1
+  permission_handler: ^12.0.3
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
+  flipper_design_system: any
   fluentui_system_icons: ^1.1.273
   easy_sidemenu: ^0.6.0
   flipper_localize: ^1.0.0-dev
@@ -76,10 +75,10 @@ dependencies:
   dropdown_search: ^6.0.2
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
-  syncfusion_flutter_datagrid: ^29.2.11
-  syncfusion_flutter_xlsio: ^29.2.11
-  syncfusion_flutter_datagrid_export: ^29.2.11
-  syncfusion_flutter_core: ^29.2.11
+  syncfusion_flutter_datagrid: ^33.2.7
+  syncfusion_flutter_xlsio: ^33.2.7
+  syncfusion_flutter_datagrid_export: ^33.2.7
+  syncfusion_flutter_core: ^33.2.7
   flex_color_picker: ^3.7.1
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
@@ -92,14 +91,14 @@ dependencies:
   getwidget: ^6.0.0
   fast_cached_network_image: ^1.1.1
   flutter_chat_ui: ^1.6.10
-  firebase_remote_config: ^6.0.0
+  # firebase_remote_config: ^6.2.0  # Disabled on Windows - see conditional dependency below
+  # firebase_remote_config: ^6.2.0  # Disabled on Windows - see conditional dependency below
   share_plus: ^10.1.4
   firebase_messaging: ^16.1.0
   country_code_picker: ^3.0.0
-  firebase_ui_localizations: ^2.0.1
   flutter_localizations:
     sdk: flutter
-  flutter_localization: ^0.2.2
+  flutter_localization: ^0.4.0
   get_storage: ^2.1.1
   flutter_web_plugins:
     sdk: flutter
@@ -107,21 +106,20 @@ dependencies:
   htmltopdfwidgets:
   markdown:
   string_scanner:
-  pdf: ^3.11.3
-  printing: ^5.14.2
+  pdf: ^3.13.0
+  printing: ^5.15.0
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   # plugin_platform_interface: ^2.1.0
   web: ^1.1.0
-  archive: ^3.6.1
+  archive: ^4.0.9
   bidi: ^2.0.10
   crypto: ^3.0.7
   path_parsing: ">=0.2.0 <2.0.0"
   vector_math: ^2.1.0
-  xml: ">=6.3.0 <7.0.0"
   dotted_line: ^3.2.2
-  syncfusion_flutter_pdf: ^29.2.11
-  syncfusion_flutter_barcodes: ^29.2.11
+  syncfusion_flutter_pdf: ^33.2.7
+  syncfusion_flutter_barcodes: ^33.2.7
   win32: ^5.14.0
   qr: ^3.0.2
   flutter_bloc: ^9.1.1
@@ -133,7 +131,7 @@ dependencies:
   flipper_services: any
   flipper_login: any
   supabase_models: any
-  sqlite3: ^3.1.3
+  sqlite3: ^3.3.1
   amplify_core: ^2.8.0
   amplify_api: ^2.8.0
   amplify_flutter: ^2.7.0
@@ -149,21 +147,28 @@ dependencies:
   logging: ^1.3.0
   
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   jni: ^0.14.2
+  # 2.3.0+ requires jni ^1.0; keep in sync with flipper/melos.yaml
+  path_provider_android: ">=2.2.5 <2.3.0"
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.1.0
-  sqlite3: ^3.1.3
+  sqlite3: ^3.3.1
   stacked_services: ^1.6.0
   stacked: ^3.5.0
   device_info_plus: ^12.3.0
-  firebase_ui_auth: ^3.0.0
-  archive: ^3.6.1
+
+
   mime: ^2.0.0
   get_it: ^8.0.3
   cbor: ^6.3.7
-  
-  
+  record_linux: 1.3.0
+  record_web: 1.3.0
 
 dev_dependencies:
   flutter_test:
@@ -171,6 +176,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   msix: ^3.16.12
   patrol: ^3.20.0
+  device_preview_plus: ^2.7.2
   # Java interop code generation
   jnigen: ^0.14.2
   flutter_launcher_icons: ^0.14.4
@@ -195,8 +201,11 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.5051.727
-  publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
+  # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
+  msix_version: 1.170.5487.0
+  publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
+  # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
+  # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
   tile_icon_path: "./assets/icon.png"
@@ -207,6 +216,8 @@ msix_config:
   app_uri_handler_hosts: flipper.rw
   capabilities: internetClient
 flutter:
+  config:
+    enable-swift-package-manager: false
   uses-material-design: true
   assets:
     - assets/

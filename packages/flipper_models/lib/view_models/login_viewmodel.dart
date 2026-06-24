@@ -62,10 +62,8 @@ class LoginViewModel extends FlipperBaseModel
     talker.info(
         '[completeLoginProcess] Starting with pin: ${userPin.userId}, user: ${user?.uid}');
     try {
-      await ProxyService.box
-          .writeString(key: "userId", value: userPin.userId.toString());
-      talker.info('[completeLoginProcess] userId written to box');
-
+      // Do not write pin.userId here — it can be stale. login() calls /v2/api/user
+      // and persists the canonical API `id` via sendLoginRequest.
       await ProxyService.strategy.login(
         userPhone: userPin.phoneNumber!,
         isInSignUpProgress: false,
@@ -229,7 +227,7 @@ class LoginViewModel extends FlipperBaseModel
       talker.info('[processUserLogin] Returning final result');
       final result = {
         'pin': Pin(
-            userId: pin.userId,
+            userId: iUser.id,
             pin: pin.pin,
             branchId: pin.branchId,
             businessId: pin.businessId,

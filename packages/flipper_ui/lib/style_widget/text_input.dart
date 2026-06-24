@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:flipper_infra/size.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 
 class FlowyFormTextInput extends StatelessWidget {
   static EdgeInsets kDefaultTextInputPadding =

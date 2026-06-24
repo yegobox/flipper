@@ -1,16 +1,23 @@
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/export/headless_detailed_transaction_export_host.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'widgets/radio_buttons.dart';
+
+DateTime? _transactionListInstant(ITransaction t) {
+  return t.lastTouched ?? t.updatedAt ?? t.createdAt;
+}
 
 class Transactions extends StatefulHookConsumerWidget {
   const Transactions({Key? key}) : super(key: key);
@@ -27,9 +34,69 @@ class TransactionsState extends ConsumerState<Transactions>
   int displayedTransactionType = 0;
   List<String> transactionTypeOptions = ["All", "Sales", "Purchases"];
 
+  final GlobalKey<DetailedTransactionReportExportHostState> _exportHostKey =
+      GlobalKey<DetailedTransactionReportExportHostState>();
+  bool _isExportingReport = false;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  Future<void> _onDownloadDetailedReport() async {
+    final host = _exportHostKey.currentState;
+    if (host == null) {
+      if (mounted) {
+        showWarningNotification(
+          context,
+          'Export is not ready yet. Try again in a moment.',
+        );
+      }
+      return;
+    }
+
+    final range = ref.read(dateRangeProvider);
+    if (range.startDate == null || range.endDate == null) {
+      if (mounted) {
+        showWarningNotification(context, 'Please select a date range first');
+      }
+      return;
+    }
+
+    setState(() => _isExportingReport = true);
+    try {
+      await host.exportDetailedReport(headerTitle: 'Report');
+    } on UnsupportedError catch (e) {
+      if (mounted) {
+        showWarningNotification(context, e.message ?? e.toString());
+      }
+    } on StateError catch (e) {
+      if (!mounted) return;
+      if (e.message == 'missing_date_range') {
+        showWarningNotification(context, 'Please select a date range first');
+      } else if (e.message == 'no_line_items') {
+        showWarningNotification(
+          context,
+          'No line items to export for this period.',
+        );
+      } else {
+        showErrorNotification(
+          context,
+          'Export failed: ${e.message}',
+          duration: const Duration(seconds: 5),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorNotification(
+          context,
+          'Export failed: $e',
+          duration: const Duration(seconds: 5),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isExportingReport = false);
+    }
   }
 
   Widget _buildTransactionFilterButtons() {
@@ -61,7 +128,7 @@ class TransactionsState extends ConsumerState<Transactions>
               const SizedBox(width: 8),
               Text(
                 'Filter Transactions',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF1A1A1A),
@@ -90,13 +157,39 @@ class TransactionsState extends ConsumerState<Transactions>
       builder: (context, model, child) {
         return Scaffold(
           appBar: AppBar(
-            actions: [datePicker()],
+            actions: [
+              IconButton(
+                tooltip: 'Export detailed report (Excel)',
+                onPressed: _isExportingReport
+                    ? null
+                    : _onDownloadDetailedReport,
+                icon: _isExportingReport
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.download_outlined),
+              ),
+              datePicker(),
+            ],
             title: const Text('Transactions'),
           ),
-          body: Column(
+          body: Stack(
+            fit: StackFit.expand,
             children: [
-              _buildTransactionFilterButtons(),
-              Expanded(child: _buildTransactionContent(context)),
+              Column(
+                children: [
+                  _buildTransactionFilterButtons(),
+                  Expanded(child: _buildTransactionContent(context)),
+                ],
+              ),
+              // Same export pipeline as TransactionList/DataView, without showing the grid.
+              Visibility(
+                visible: false,
+                maintainState: true,
+                child: DetailedTransactionReportExportHost(key: _exportHostKey),
+              ),
             ],
           ),
         );
@@ -105,13 +198,13 @@ class TransactionsState extends ConsumerState<Transactions>
   }
 
   Widget _buildTransactionContent(BuildContext context) {
-    final transactionsData = ref.watch(dashboardTransactionsProvider);
+    final transactionsData = ref.watch(transactionsScreenTransactionsProvider);
     final dateRange = ref.watch(dateRangeProvider);
 
     return transactionsData.when(
       data: (value) {
         List<ITransaction> filteredByDateTransactions = value.where((trans) {
-          final transactionDate = trans.lastTouched;
+          final transactionDate = _transactionListInstant(trans);
 
           if (transactionDate == null) return false;
 
@@ -131,22 +224,22 @@ class TransactionsState extends ConsumerState<Transactions>
           return true; // If no date range is selected, include all
         }).toList();
 
-        List<ITransaction> finalFilteredTransactions =
-            filteredByDateTransactions.where((transaction) {
-              if (displayedTransactionType == 1 &&
-                  transaction.isIncome == false) {
-                return false; // Filter out expenses for "Sales"
-              }
-              if (displayedTransactionType == 2 &&
-                  transaction.isIncome == true) {
-                return false; // Filter out income for "Purchases"
-              }
-              // Also filter out unclassified (null) transactions for "Sales" and "Purchases"
-              if (displayedTransactionType != 0 && transaction.isIncome == null) {
-                return false; // Filter out unclassified for "Sales" and "Purchases"
-              }
-              return true; // Include all for "All" or matching filter
-            }).toList();
+        List<ITransaction>
+        finalFilteredTransactions = filteredByDateTransactions.where((
+          transaction,
+        ) {
+          if (displayedTransactionType == 1 && transaction.isIncome == false) {
+            return false; // Filter out expenses for "Sales"
+          }
+          if (displayedTransactionType == 2 && transaction.isIncome == true) {
+            return false; // Filter out income for "Purchases"
+          }
+          // Also filter out unclassified (null) transactions for "Sales" and "Purchases"
+          if (displayedTransactionType != 0 && transaction.isIncome == null) {
+            return false; // Filter out unclassified for "Sales" and "Purchases"
+          }
+          return true; // Include all for "All" or matching filter
+        }).toList();
 
         if (finalFilteredTransactions.isEmpty) {
           return _buildEmptyStateWithPeriod(
@@ -156,7 +249,8 @@ class TransactionsState extends ConsumerState<Transactions>
         }
 
         return RefreshIndicator(
-          onRefresh: () async => ref.invalidate(dashboardTransactionsProvider),
+          onRefresh: () async =>
+              ref.invalidate(transactionsScreenTransactionsProvider),
           child: _buildModernTransactionList(
             context: context,
             transactions: finalFilteredTransactions,
@@ -245,8 +339,11 @@ Widget _buildModernTransactionItem({
                 colors: isIncome == true
                     ? [const Color(0xFF10B981), const Color(0xFF34D399)]
                     : isIncome == false
-                        ? [const Color(0xFFEF4444), const Color(0xFFF87171)]
-                        : [const Color(0xFF6B7280), const Color(0xFF9CA3AF)], // Grey for unclassified
+                    ? [const Color(0xFFEF4444), const Color(0xFFF87171)]
+                    : [
+                        const Color(0xFF6B7280),
+                        const Color(0xFF9CA3AF),
+                      ], // Grey for unclassified
               ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
@@ -255,8 +352,8 @@ Widget _buildModernTransactionItem({
                       (isIncome == true
                               ? const Color(0xFF10B981)
                               : isIncome == false
-                                  ? const Color(0xFFEF4444)
-                                  : const Color(0xFF6B7280))
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFF6B7280))
                           .withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
@@ -267,8 +364,8 @@ Widget _buildModernTransactionItem({
               isIncome == true
                   ? Icons.trending_up_rounded
                   : isIncome == false
-                      ? Icons.trending_down_rounded
-                      : Icons.question_mark_rounded, // Icon for unclassified
+                  ? Icons.trending_down_rounded
+                  : Icons.question_mark_rounded, // Icon for unclassified
               color: Colors.white,
               size: 24,
             ),
@@ -289,7 +386,7 @@ Widget _buildModernTransactionItem({
                           .last
                           .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
                           .toUpperCase(),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF374151),
@@ -299,16 +396,17 @@ Widget _buildModernTransactionItem({
                       isIncome == true
                           ? '+$amount RWF'
                           : isIncome == false
-                              ? '-$amount RWF'
-                              : '$amount RWF', // No prefix for unclassified
-                      style: GoogleFonts.inter(
+                          ? '-$amount RWF'
+                          : '$amount RWF', // No prefix for unclassified
+                      style: FlipperFonts.mono(
                         fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
                         color: isIncome == true
                             ? const Color(0xFF059669)
                             : isIncome == false
-                                ? const Color(0xFFDC2626)
-                                : const Color(0xFF6B7280), // Grey for unclassified
+                            ? const Color(0xFFDC2626)
+                            : const Color(0xFF6B7280), // Grey for unclassified
                       ),
                     ),
                   ],
@@ -323,10 +421,10 @@ Widget _buildModernTransactionItem({
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      DateFormat(
-                        'MMM dd, yyyy',
-                      ).format(transaction.lastTouched!),
-                      style: GoogleFonts.inter(
+                      DateFormat('MMM dd, yyyy').format(
+                        _transactionListInstant(transaction) ?? DateTime.now(),
+                      ),
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: Colors.grey.shade600,
@@ -340,8 +438,10 @@ Widget _buildModernTransactionItem({
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      DateFormat('HH:mm').format(transaction.lastTouched!),
-                      style: GoogleFonts.inter(
+                      DateFormat('HH:mm').format(
+                        _transactionListInstant(transaction) ?? DateTime.now(),
+                      ),
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: Colors.grey.shade600,
@@ -397,7 +497,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         const SizedBox(height: 20),
         Text(
           'No records for ${period.toLowerCase()}',
-          style: GoogleFonts.nunito(
+          style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF4B4B4B),
@@ -407,7 +507,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         Text(
           'Try selecting a different time period or add some transactions.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: const Color(0xFF777777),
@@ -442,7 +542,7 @@ Widget _buildLoadingState(BuildContext context) {
         const SizedBox(height: 24),
         Text(
           'Loading transactions...',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.outfit(
             fontSize: 16,
             fontWeight: FontWeight.w500,
             color: const Color(0xFF605E5C),
@@ -476,7 +576,7 @@ Widget _buildErrorState(BuildContext context, String error) {
         const SizedBox(height: 20),
         Text(
           'Something went wrong',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.outfit(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF1F2937),
@@ -486,7 +586,7 @@ Widget _buildErrorState(BuildContext context, String error) {
         Text(
           error,
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: const Color(0xFF6B7280),

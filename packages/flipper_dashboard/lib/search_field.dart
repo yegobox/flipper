@@ -1,8 +1,11 @@
 // ignore_for_file: unused_result
 
+import 'dart:async';
+
 import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/AddRoomDialog.dart';
-import 'package:flipper_dashboard/import_purchase_dialog.dart';
+import 'package:flipper_dashboard/SyncFuelDialog.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
@@ -11,7 +14,7 @@ import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
-import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -21,14 +24,17 @@ import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flipper_models/providers/notice_provider.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 
+import 'package:flipper_dashboard/umusada_helper.dart';
 import 'package:supabase_models/brick/models/notice.model.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
@@ -39,6 +45,8 @@ class SearchField extends StatefulHookConsumerWidget {
     required this.showIncomingButton,
     required this.showAddButton,
     required this.showDatePicker,
+    this.hintText,
+    this.showTrailingToolbar = true,
   }) : super(key: key);
 
   final TextEditingController controller;
@@ -46,6 +54,11 @@ class SearchField extends StatefulHookConsumerWidget {
   final bool showIncomingButton;
   final bool showAddButton;
   final bool showDatePicker;
+  final String? hintText;
+
+  /// Full suffix (scan, notices, orders, …). When false, only a clear button
+  /// appears when there is text (e.g. product grid search strip).
+  final bool showTrailingToolbar;
 
   @override
   SearchFieldState createState() => SearchFieldState();
@@ -54,19 +67,47 @@ class SearchField extends StatefulHookConsumerWidget {
 class SearchFieldState extends ConsumerState<SearchField>
     with DateCoreWidget, HandleScannWhileSelling<SearchField> {
   final _textSubject = BehaviorSubject<String>();
+  final _model = CoreViewModel();
+  StreamSubscription<String>? _debounceSub;
 
   bool hasText = false;
   bool isSearching = false;
+  late int _saleSessionSnapshotAtLastTextChange;
 
   @override
   void initState() {
     super.initState();
+    _saleSessionSnapshotAtLastTextChange =
+        ref.read(pendingCartSaleSessionProvider);
     focusNode = FocusNode();
     widget.controller.addListener(_handleTextChange);
+    _debounceSub = _textSubject
+        .debounceTime(posCatalogSearchDebounce)
+        .listen((value) => unawaited(_onDebounced(value)));
+    _textSubject.add(widget.controller.text);
+  }
+
+  Future<void> _onDebounced(String value) async {
+    if (!mounted) return;
+    if (ref.read(pendingCartSaleSessionProvider) !=
+        _saleSessionSnapshotAtLastTextChange) {
+      return;
+    }
+    if (ref.read(searchStringProvider) == value) return;
+    setState(() => isSearching = true);
+    try {
+      await processDebouncedValue(value, _model, widget.controller);
+    } finally {
+      if (mounted) {
+        setState(() => isSearching = false);
+      }
+    }
   }
 
   void _handleTextChange() {
     final text = widget.controller.text;
+    _saleSessionSnapshotAtLastTextChange =
+        ref.read(pendingCartSaleSessionProvider);
     _textSubject.add(text);
     if (mounted) {
       setState(() {
@@ -78,6 +119,7 @@ class SearchFieldState extends ConsumerState<SearchField>
   @override
   void dispose() {
     widget.controller.removeListener(_handleTextChange);
+    _debounceSub?.cancel();
     focusNode.dispose();
     _textSubject.close();
     super.dispose();
@@ -94,44 +136,20 @@ class SearchFieldState extends ConsumerState<SearchField>
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: padding),
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
-        viewModelBuilder: () => CoreViewModel(),
-        onViewModelReady: (model) {
-          _textSubject
-              .debounceTime(const Duration(milliseconds: 400))
-              .listen((value) {
-            if (ref.read(searchStringProvider) != value) {
-              if (!isSearching) {
-                setState(() {
-                  isSearching = true;
-                });
-
-                processDebouncedValue(value, model, widget.controller)
-                    .then((_) {
-                  // Add a small delay to ensure all operations complete
-                  return Future.delayed(const Duration(milliseconds: 300));
-                }).then((_) {
-                  if (mounted) {
-                    setState(() {
-                      isSearching = false;
-                    });
-                  }
-                }).catchError((error) {
-                  if (mounted) {
-                    setState(() {
-                      isSearching = false;
-                    });
-                  }
-                });
-              }
-            }
-          });
-        },
+        viewModelBuilder: () => _model,
         builder: (context, model, _) {
           return TextFormField(
             controller: widget.controller,
             focusNode: focusNode,
             textInputAction: TextInputAction.done,
             keyboardType: TextInputType.text,
+            onFieldSubmitted: (value) {
+              if (!ref.read(autoAddSearchProvider)) return;
+              final trimmed = value.trim();
+              if (trimmed.isEmpty) return;
+              if (ref.read(searchStringProvider) == trimmed) return;
+              unawaited(_onDebounced(trimmed));
+            },
             decoration: InputDecoration(
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
@@ -139,6 +157,7 @@ class SearchFieldState extends ConsumerState<SearchField>
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
               ),
+              hintText: widget.hintText,
               prefixIcon: isSearching
                   ? Container(
                       padding: const EdgeInsets.all(8),
@@ -150,55 +169,95 @@ class SearchFieldState extends ConsumerState<SearchField>
                       ),
                     )
                   : Icon(FluentIcons.search_24_regular, color: Colors.grey),
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final notice = ref.watch(noticesProvider);
-                      return notices(notice: notice.value ?? []);
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final orders = ref.watch(stockRequestsProvider(
-                          status: RequestStatus.pending,
-                          search: stringValue.isNotEmpty ? stringValue : null));
-                      return orders.when(
-                        data: (orders) => widget.showOrderButton
-                            ? orderButton(orders.length).shouldSeeTheApp(ref,
-                                featureName: AppFeature.Orders)
-                            : const SizedBox.shrink(),
-                        loading: () => widget.showOrderButton
-                            ? orderButton(0).shouldSeeTheApp(ref,
-                                featureName: AppFeature.Orders)
-                            : const SizedBox.shrink(),
-                        error: (err, stack) => Text('Error: $err'),
-                      );
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final appMode = ref.watch(appModeProvider);
-                      final deviceType = _getDeviceType(context);
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (widget.showIncomingButton &&
-                              deviceType != 'Phone' &&
-                              deviceType != 'Phablet' &&
-                              appMode)
-                            incomingButton(),
-                          if (widget.showAddButton && appMode)
-                            addButton()
-                                .eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
-                        ],
-                      );
-                    },
-                  ),
-                  SizedBox(width: 12),
-                ],
-              ),
+              suffixIcon: widget.showTrailingToolbar
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final isAutoAdd = ref.watch(autoAddSearchProvider);
+                            return IconButton(
+                              onPressed: () {
+                                ref
+                                    .read(autoAddSearchProvider.notifier)
+                                    .toggle();
+                              },
+                              icon: Icon(
+                                isAutoAdd
+                                    ? FluentIcons.barcode_scanner_24_filled
+                                    : FluentIcons.barcode_scanner_24_regular,
+                                color: isAutoAdd ? Colors.blue : Colors.grey,
+                              ),
+                              tooltip: 'Toggle Scan Mode',
+                            );
+                          },
+                        ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final notice = ref.watch(noticesProvider);
+                            return notices(notice: notice.value ?? []);
+                          },
+                        ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final orders = ref.watch(
+                              stockRequestsProvider(
+                                status: RequestStatus.pending,
+                                search: stringValue.isNotEmpty
+                                    ? stringValue
+                                    : null,
+                              ),
+                            );
+                            return orders.when(
+                              data: (orders) => widget.showOrderButton
+                                  ? orderButton(orders.length).shouldSeeTheApp(
+                                      ref,
+                                      featureName: AppFeature.Orders,
+                                    )
+                                  : const SizedBox.shrink(),
+                              loading: () => widget.showOrderButton
+                                  ? orderButton(0).shouldSeeTheApp(
+                                      ref,
+                                      featureName: AppFeature.Orders,
+                                    )
+                                  : const SizedBox.shrink(),
+                              error: (err, stack) => Text('Error: $err'),
+                            );
+                          },
+                        ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final appMode = ref.watch(appModeProvider);
+                            final deviceType = _getDeviceType(context);
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (widget.showIncomingButton &&
+                                    deviceType != 'Phone' &&
+                                    deviceType != 'Phablet' &&
+                                    appMode)
+                                  incomingButton(),
+                                if (widget.showAddButton && appMode)
+                                  addButton().eligibleToSeeIfYouAre(ref, [
+                                    UserType.ADMIN,
+                                  ]),
+                              ],
+                            );
+                          },
+                        ),
+                        SizedBox(width: 12),
+                      ],
+                    )
+                  : (hasText
+                        ? IconButton(
+                            onPressed: _clearSearchText,
+                            icon: const Icon(
+                              FluentIcons.dismiss_24_regular,
+                              color: Colors.grey,
+                            ),
+                            tooltip: 'Clear',
+                          )
+                        : null),
             ),
           );
         },
@@ -231,8 +290,10 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   Widget _buildNoticesIcon({required List<Notice> notice}) {
     return badges.Badge(
-      badgeContent: Text(notice.length.toString(),
-          style: const TextStyle(color: Colors.white)),
+      badgeContent: Text(
+        notice.length.toString(),
+        style: const TextStyle(color: Colors.white),
+      ),
       child: Icon(FluentIcons.mail_24_regular, color: Colors.grey),
     );
   }
@@ -246,9 +307,7 @@ class SearchFieldState extends ConsumerState<SearchField>
     );
   }
 
-  IconButton orderButton(
-    int orders,
-  ) {
+  IconButton orderButton(int orders) {
     return IconButton(
       onPressed: () {
         _handleReceiveOrderToggle();
@@ -258,19 +317,23 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handleReceiveOrderToggle() {
-    try {
-      ProxyService.box.writeBool(key: 'isOrdering', value: true);
+    UmusadaHelper.handleOrderingFlow(context, () {
+      try {
+        ProxyService.box.writeBool(key: 'isOrdering', value: true);
 
-      _routerService.navigateTo(OrdersRoute());
-    } catch (e) {
-      print(e);
-    }
+        _routerService.navigateTo(OrdersRoute());
+      } catch (e) {
+        print(e);
+      }
+    });
   }
 
   Widget _buildOrderIcon(int orders) {
     return badges.Badge(
-      badgeContent:
-          Text(orders.toString(), style: const TextStyle(color: Colors.white)),
+      badgeContent: Text(
+        orders.toString(),
+        style: const TextStyle(color: Colors.white),
+      ),
       child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
     );
   }
@@ -292,7 +355,10 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handlePurchaseImport() {
-    ImportPurchaseDialog.show(context);
+    // Same gate the former dialog applied: not available on small screens.
+    final deviceType = _getDeviceType(context);
+    if (deviceType == 'Phone' || deviceType == 'Phablet') return;
+    ref.read(selectedPageProvider.notifier).state = DashboardPage.purchases;
   }
 
   void _handleShowingCustomAmountCalculator({required CoreViewModel model}) {
@@ -334,37 +400,37 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handleAddProduct() {
+    final rootContext = context;
     showDialog(
       barrierDismissible: true,
-      context: context,
-      builder: (context) => AddProductDialog(
+      context: rootContext,
+      builder: (dialogContext) => AddProductDialog(
         onChoiceSelected: (choice) {
           if (choice == 'bulk') {
             showDialog(
               barrierDismissible: true,
-              context: context,
-              builder: (context) => OptionModal(
-                child: BulkAddProduct(),
-              ),
+              context: rootContext,
+              builder: (context) => OptionModal(child: BulkAddProduct()),
             );
           } else if (choice == 'single') {
-            showDialog(
-              barrierDismissible: true,
-              context: context,
-              builder: (context) => OptionModal(
-                child: ProductEntryScreen(),
-              ),
-            );
+            Navigator.of(dialogContext).maybePop();
+            openProductEntryScreen(rootContext);
           } else if (choice == 'rooms') {
             showDialog(
               barrierDismissible: true,
-              context: context,
+              context: rootContext,
               builder: (context) => AddRoomDialog(
                 onRoomAdded: (roomData) {
                   // Handle room data here
                   print('Room added: $roomData');
                 },
               ),
+            );
+          } else if (choice == 'fuel') {
+            showDialog(
+              barrierDismissible: true,
+              context: rootContext,
+              builder: (context) => SyncFuelDialog(hostContext: rootContext),
             );
           }
         },

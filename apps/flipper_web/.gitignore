@@ -45,3 +45,7 @@ app.*.map.json
 /android/app/release
 chromedriver
 secrets.dart
+
+.symlinks
+macos/Flutter/ephemeral/
+macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/

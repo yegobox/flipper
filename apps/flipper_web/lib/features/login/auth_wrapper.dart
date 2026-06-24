@@ -1,5 +1,8 @@
+import 'package:flipper_web/core/routing/app_entry_route.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
+import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
+import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +19,8 @@ class AuthWrapper extends ConsumerWidget {
       data: (state) {
         switch (state) {
           case AuthState.authenticated:
-            // Use the hasSelectedBusinessAndBranch provider to check if business and branch are selected
+            // Load profile + restore business/branch before Books opens.
+            ref.watch(selectedBusinessRestoreProvider);
             final hasSelectedBusinessAndBranchAsync = ref.watch(
               hasSelectedBusinessAndBranchProvider,
             );
@@ -26,8 +30,8 @@ class AuthWrapper extends ConsumerWidget {
                 // Ensure the URL reflects the appropriate route for web
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   final current = Uri.base.path;
-                  if (hasSelected && current != '/dashboard') {
-                    context.go('/dashboard');
+                  if (hasSelected && current != '/accounting') {
+                    context.go('/accounting');
                   } else if (!hasSelected && current != '/business-selection') {
                     context.go('/business-selection');
                   }
@@ -46,7 +50,18 @@ class AuthWrapper extends ConsumerWidget {
               ),
             );
           case AuthState.unauthenticated:
-            // If unauthenticated, ensure we land on the home screen
+            if (opensOnLoginScreen) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (GoRouterState.of(context).uri.path != '/login') {
+                  context.go('/login');
+                }
+              });
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            // Web: marketing home at `/`.
             WidgetsBinding.instance.addPostFrameCallback((_) {
               final current = Uri.base.path;
               if (current != '/') {
@@ -56,8 +71,15 @@ class AuthWrapper extends ConsumerWidget {
             return const HomeScreen();
         }
       },
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => Theme(
+        data: BooksHomeTheme.data,
+        child: const Scaffold(
+          backgroundColor: AppColors.bg,
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.violet),
+          ),
+        ),
+      ),
       error: (error, stackTrace) =>
           Scaffold(body: Center(child: Text('Error: $error'))),
     );

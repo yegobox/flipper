@@ -4,8 +4,20 @@
   },
   "cmake.sourceDirectory": "/Users/richard/Documents/GitHub/flipper/open-sources/receipt/windows/runner",
   "deno.enablePaths": [
-    "supabase/functions"
+    "packages/edges/supabase/functions"
   ],
+  "dart.analysisExcludedFolders": [
+    "**/build",
+    "**/.dart_tool"
+  ],
+  "files.watcherExclude": {
+    "**/build/**": true,
+    "**/.dart_tool/**": true
+  },
+  "search.exclude": {
+    "**/build": true,
+    "**/.dart_tool": true
+  },
   "deno.lint": true,
   "deno.unstable": [
     "bare-node-builtins",

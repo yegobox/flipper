@@ -15,15 +15,16 @@ const totalSaleProvider = TotalSaleFamily._();
 final class TotalSaleProvider
     extends $FunctionalProvider<AsyncValue<double>, double, FutureOr<double>>
     with $FutureModifier<double>, $FutureProvider<double> {
-  const TotalSaleProvider._(
-      {required TotalSaleFamily super.from, required String super.argument})
-      : super(
-          retry: null,
-          name: r'totalSaleProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const TotalSaleProvider._({
+    required TotalSaleFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'totalSaleProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$totalSaleHash();
@@ -43,10 +44,7 @@ final class TotalSaleProvider
   @override
   FutureOr<double> create(Ref ref) {
     final argument = this.argument as String;
-    return TotalSale(
-      ref,
-      branchId: argument,
-    );
+    return TotalSale(ref, branchId: argument);
   }
 
   @override
@@ -65,17 +63,15 @@ String _$totalSaleHash() => r'ca4aeafa03a148bd15abf3aaa937e077254d2abb';
 final class TotalSaleFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<double>, String> {
   const TotalSaleFamily._()
-      : super(
-          retry: null,
-          name: r'totalSaleProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'totalSaleProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  TotalSaleProvider call({
-    required String branchId,
-  }) =>
+  TotalSaleProvider call({required String branchId}) =>
       TotalSaleProvider._(argument: branchId, from: this);
 
   @override

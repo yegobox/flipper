@@ -1,24 +1,29 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
-import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_tax_ty_cds.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flutter/material.dart';
+
+import 'package:flipper_dashboard/transaction_item_adder.dart';
 
 mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   late bool hasText;
   late FocusNode focusNode;
 
-  Future<void> processDebouncedValue(String value, CoreViewModel model,
-      TextEditingController controller) async {
-    final enableAutoAdd =
-        ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
+  Future<void> processDebouncedValue(
+    String value,
+    CoreViewModel model,
+    TextEditingController controller,
+  ) async {
+    final enableAutoAdd = ref.read(autoAddSearchProvider);
 
     if (value.isNotEmpty && enableAutoAdd) {
       // Use auto-add search when enabled
@@ -29,115 +34,122 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> handleScanningMode(String value, CoreViewModel model,
-      TextEditingController controller) async {
+  /// Barcode-first lookup, then a minimal text search (max 2 rows).
+  Future<List<Variant>> _resolveAutoAddMatches(String value) async {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return const [];
+
+    final byBcd = await ProxyService.strategy.getVariant(bcd: trimmed);
+    if (byBcd != null) return [byBcd];
+
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) return const [];
+
+    final vatEnabled = await getVatEnabledFromEbm();
+    final taxTyCds = posCatalogTaxTyCds(vatEnabled: vatEnabled);
+
+    final paged = await ProxyService.getStrategy(Strategy.capella).variants(
+      branchId: branchId,
+      bcd: trimmed,
+      page: 0,
+      itemsPerPage: 2,
+      taxTyCds: taxTyCds,
+    );
+    return List<Variant>.from(paged.variants);
+  }
+
+  Future<void> handleScanningMode(
+    String value,
+    CoreViewModel model,
+    TextEditingController controller,
+  ) async {
     // Only clear controller and set hasText if in scanning mode
     controller.clear();
     hasText = false;
     if (value.isNotEmpty) {
-      // Trigger search in outerVariantsProvider
-      ref.read(searchStringProvider.notifier).emitString(value: value);
-
-      // Wait for search results
-      await Future.delayed(const Duration(milliseconds: 200));
-
-      // Get results from outerVariantsProvider
-      final branchId = ProxyService.box.getBranchId()!;
-      final variantsAsync = ref.read(outerVariantsProvider(branchId));
-
-      variantsAsync.when(
-        data: (variants) async {
-          if (variants.isNotEmpty) {
-            if (variants.length == 1) {
-              // If only one variant is found, proceed directly
-              await _processTransaction(variants.first, model);
-            } else {
-              // If multiple variants are found, prompt the user to select one
-              Variant? selectedVariant =
-                  await _showVariantSelectionDialog(variants);
-              if (selectedVariant != null) {
-                await _processTransaction(selectedVariant, model);
-              }
-            }
-          } else {
-            // Show a message when no variants are found
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('No variants found for "$value"'),
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
-          }
-        },
-        loading: () {
-          // Show loading indicator
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    SizedBox(width: 10),
-                    Text('Searching...'),
-                  ],
-                ),
-                duration: Duration(milliseconds: 500),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        },
-        error: (error, _) {
-          // Handle errors
+      final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
+      try {
+        final variants = await _resolveAutoAddMatches(value);
+        if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+          return;
+        }
+        if (variants.isEmpty) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content:
-                    Text('Error searching for variants: ${error.toString()}'),
+                content: Text('No variants found for "$value"'),
                 duration: const Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
               ),
             );
           }
-        },
-      );
+          return;
+        }
+        if (variants.length == 1) {
+          if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+            return;
+          }
+          await _processTransaction(variants.first, model);
+        } else {
+          final Variant? selectedVariant = await _showVariantSelectionDialog(
+            variants,
+          );
+          if (selectedVariant != null) {
+            if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+              return;
+            }
+            await _processTransaction(selectedVariant, model);
+          }
+        }
+      } catch (e, _) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error searching for variants: ${e.toString()}',
+              ),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     }
   }
 
-  Future<void> searchAndAutoAdd(String value, CoreViewModel model,
-      TextEditingController controller) async {
-    // Trigger search in outerVariantsProvider
+  Future<void> searchAndAutoAdd(
+    String value,
+    CoreViewModel model,
+    TextEditingController controller,
+  ) async {
+    final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return;
+
+    List<Variant> variants;
+    try {
+      variants = await _resolveAutoAddMatches(trimmed);
+    } catch (_) {
+      return;
+    }
+
+    if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+      return;
+    }
+
+    if (variants.length == 1) {
+      controller.clear();
+      hasText = false;
+      ref.read(searchStringProvider.notifier).emitString(value: '');
+      if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
+        return;
+      }
+      await _processTransaction(variants.first, model);
+      return;
+    }
+
+    // Zero or multiple matches: refresh the product grid only.
     ref.read(searchStringProvider.notifier).emitString(value: value);
-
-    // Wait for search results
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    // Get results from outerVariantsProvider
-    final branchId = ProxyService.box.getBranchId()!;
-    final variantsAsync = ref.read(outerVariantsProvider(branchId));
-
-    variantsAsync.when(
-      data: (variants) async {
-        if (variants.length == 1) {
-          // Exactly one match - auto-add to cart
-          controller.clear();
-          hasText = false;
-          // Clear search to avoid showing search results
-          ref.read(searchStringProvider.notifier).emitString(value: "");
-          await _processTransaction(variants.first, model);
-        }
-        // If multiple or no matches, search results are already showing via outerVariantsProvider
-      },
-      loading: () {}, // Search is in progress
-      error: (e, _) {}, // Error handled by UI
-    );
   }
 
   Future<void> refreshTransactionItems({required String transactionId}) async {
@@ -156,103 +168,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _processTransaction(Variant variant, CoreViewModel model) async {
-    try {
-      // Get the current pending transaction
-      final pendingTransaction =
-          ref.read(pendingTransactionStreamProvider(isExpense: false));
-
-      if (pendingTransaction.hasValue && pendingTransaction.value != null) {
-        final transactionId = pendingTransaction.value!.id;
-
-        // Show a loading indicator to provide feedback to the user
-        if (mounted) {
-          talker.info("Adding item to cart..");
-          // showCustomSnackBar(context, );
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(
-          //     margin: const EdgeInsets.only(
-          //       left: 350.0,
-          //       right: 350.0,
-          //       bottom: 20.0,
-          //     ),
-          //     content: Text('Adding item to cart..'),
-          //     backgroundColor: Colors.black,
-          //     behavior: SnackBarBehavior.floating,
-          //     shape: RoundedRectangleBorder(
-          //       borderRadius: BorderRadius.circular(8),
-          //     ),
-          //   ),
-          // );
-        }
-
-        // STEP 1: Save the transaction item directly using the strategy
-        final success = await ProxyService.strategy.saveTransactionItem(
-          variation: variant,
-          ignoreForReport: false,
-          amountTotal: variant.retailPrice!,
-          customItem: false,
-          doneWithTransaction: false,
-          pendingTransaction: pendingTransaction.value!,
-          currentStock: variant.stock!.currentStock!,
-          partOfComposite: false,
-        );
-
-        if (!success) {
-          throw Exception("Failed to save transaction item");
-        }
-
-        // STEP 2: Clear the search field
-        ref.read(searchStringProvider.notifier).emitString(value: "");
-
-        // Then refresh them to ensure the UI updates
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        ref.refresh(
-            transactionItemsStreamProvider(transactionId: transactionId));
-
-        // STEP 5: Show a success message
-        if (mounted) {
-          talker.info("Added ${variant.name} to cart");
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(
-          //     margin: const EdgeInsets.only(
-          //       left: 350.0,
-          //       right: 350.0,
-          //       bottom: 20.0,
-          //     ),
-          //     content: Text('Added ${variant.name} to cart'),
-          //     backgroundColor: Colors.black,
-          //     behavior: SnackBarBehavior.floating,
-          //     shape: RoundedRectangleBorder(
-          //       borderRadius: BorderRadius.circular(8),
-          //     ),
-          //   ),
-          // );
-        }
-      } else {
-        // Handle case where there's no pending transaction
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No active transaction found. Please try again.'),
-              duration: Duration(seconds: 2),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      // Handle any errors that might occur during the process
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error adding item: ${e.toString()}'),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+    final itemAdder = TransactionItemAdder(context, ref);
+    await itemAdder.addItemToTransaction(variant: variant, isOrdering: false);
   }
 
   Future<Variant?> _showVariantSelectionDialog(List<Variant> variants) async {
@@ -291,19 +208,25 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
                 setState(() {
                   filteredVariants = variants
-                      .where((variant) =>
-                          variant.name.toLowerCase().contains(lowercaseQuery) ||
-                          (variant.bcd
-                                  ?.toLowerCase()
-                                  .contains(lowercaseQuery) ??
-                              false))
+                      .where(
+                        (variant) =>
+                            variant.name.toLowerCase().contains(
+                              lowercaseQuery,
+                            ) ||
+                            (variant.bcd?.toLowerCase().contains(
+                                  lowercaseQuery,
+                                ) ??
+                                false),
+                      )
                       .toList();
                 });
               }
 
               return Dialog(
-                insetPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                insetPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 24,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -324,12 +247,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                           children: [
                             Text(
                               'Select Product Variant',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             IconButton(
                               icon: const Icon(Icons.close),
@@ -369,8 +288,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                               ? Center(
                                   child: Text(
                                     'No matching variants found',
-                                    style:
-                                        Theme.of(context).textTheme.bodyLarge,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge,
                                   ),
                                 )
                               : ListView.separated(

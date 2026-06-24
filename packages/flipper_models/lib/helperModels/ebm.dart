@@ -27,22 +27,25 @@ class EBM extends IJsonSerializable {
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
 
-  String action;
+  String? action;
 
   factory EBM.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
-    json['deletedAt'] = json['deletedAt'] == null ||
+    json['deletedAt'] =
+        json['deletedAt'] == null ||
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
 
-    json['lastTouched'] = (json['lastTouched'] == null ||
-            json['lastTouched'].toString().isEmpty)
+    json['lastTouched'] =
+        (json['lastTouched'] == null || json['lastTouched'].toString().isEmpty)
         ? DateTime.now().toIso8601String()
         : (json['lastTouched'] is String
-            ? json['lastTouched']
-            : DateTime.parse(json['lastTouched'].toString()).toIso8601String());
+              ? json['lastTouched']
+              : DateTime.parse(
+                  json['lastTouched'].toString(),
+                ).toIso8601String());
 
     return _$EBMFromJson(json);
   }

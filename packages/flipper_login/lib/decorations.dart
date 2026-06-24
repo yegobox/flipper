@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 
 //
+typedef HeaderBuilder = Widget Function(
+  BuildContext context,
+  BoxConstraints constraints,
+  double shrinkOffset,
+);
+
+typedef SideBuilder = Widget Function(
+  BuildContext context,
+  BoxConstraints constraints,
+);
+
 HeaderBuilder headerImage(String assetName) {
   return (context, constraints, _) {
     return Padding(

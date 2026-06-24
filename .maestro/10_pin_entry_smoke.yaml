@@ -1,0 +1,16 @@
+appId: ${APP_ID}
+name: PIN entry smoke
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "flipper.login.pin.screen"
+    timeout: 30000
+- tapOn:
+    id: "flipper.login.keypad.digit.1"
+- tapOn:
+    id: "flipper.login.keypad.digit.2"
+- tapOn:
+    id: "flipper.login.keypad.backspace"
+- assertVisible:
+    id: "flipper.login.pin.cells"

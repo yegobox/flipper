@@ -2,6 +2,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 // ignore_for_file: type=lint
+// ignore_for_file: invalid_use_of_protected_member
 // ignore_for_file: unused_element, unnecessary_cast, override_on_non_overriding_member
 // ignore_for_file: strict_raw_type, inference_failure_on_untyped_parameter
 
@@ -52,6 +53,15 @@ class BusinessAIConfigMapper extends ClassMapperBase<BusinessAIConfig> {
     opt: true,
     def: 0,
   );
+  static bool _$leadsAiMatchEnabled(BusinessAIConfig v) =>
+      v.leadsAiMatchEnabled;
+  static const Field<BusinessAIConfig, bool> _f$leadsAiMatchEnabled = Field(
+    'leadsAiMatchEnabled',
+    _$leadsAiMatchEnabled,
+    key: r'leads_ai_match_enabled',
+    opt: true,
+    def: true,
+  );
   static DateTime _$updatedAt(BusinessAIConfig v) => v.updatedAt;
   static const Field<BusinessAIConfig, DateTime> _f$updatedAt = Field(
     'updatedAt',
@@ -66,6 +76,7 @@ class BusinessAIConfigMapper extends ClassMapperBase<BusinessAIConfig> {
     #aiModelId: _f$aiModelId,
     #usageLimit: _f$usageLimit,
     #currentUsage: _f$currentUsage,
+    #leadsAiMatchEnabled: _f$leadsAiMatchEnabled,
     #updatedAt: _f$updatedAt,
   };
 
@@ -76,6 +87,7 @@ class BusinessAIConfigMapper extends ClassMapperBase<BusinessAIConfig> {
       aiModelId: data.dec(_f$aiModelId),
       usageLimit: data.dec(_f$usageLimit),
       currentUsage: data.dec(_f$currentUsage),
+      leadsAiMatchEnabled: data.dec(_f$leadsAiMatchEnabled),
       updatedAt: data.dec(_f$updatedAt),
     );
   }
@@ -148,6 +160,7 @@ abstract class BusinessAIConfigCopyWith<$R, $In extends BusinessAIConfig, $Out>
     String? aiModelId,
     int? usageLimit,
     int? currentUsage,
+    bool? leadsAiMatchEnabled,
     DateTime? updatedAt,
   });
   BusinessAIConfigCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -170,6 +183,7 @@ class _BusinessAIConfigCopyWithImpl<$R, $Out>
     Object? aiModelId = $none,
     int? usageLimit,
     int? currentUsage,
+    bool? leadsAiMatchEnabled,
     DateTime? updatedAt,
   }) => $apply(
     FieldCopyWithData({
@@ -178,6 +192,8 @@ class _BusinessAIConfigCopyWithImpl<$R, $Out>
       if (aiModelId != $none) #aiModelId: aiModelId,
       if (usageLimit != null) #usageLimit: usageLimit,
       if (currentUsage != null) #currentUsage: currentUsage,
+      if (leadsAiMatchEnabled != null)
+        #leadsAiMatchEnabled: leadsAiMatchEnabled,
       if (updatedAt != null) #updatedAt: updatedAt,
     }),
   );
@@ -188,6 +204,10 @@ class _BusinessAIConfigCopyWithImpl<$R, $Out>
     aiModelId: data.get(#aiModelId, or: $value.aiModelId),
     usageLimit: data.get(#usageLimit, or: $value.usageLimit),
     currentUsage: data.get(#currentUsage, or: $value.currentUsage),
+    leadsAiMatchEnabled: data.get(
+      #leadsAiMatchEnabled,
+      or: $value.leadsAiMatchEnabled,
+    ),
     updatedAt: data.get(#updatedAt, or: $value.updatedAt),
   );
 

@@ -1,6 +1,5 @@
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ebm_provider.g.dart';
@@ -8,6 +7,7 @@ part 'ebm_provider.g.dart';
 /// Provider that fetches the VAT enabled status from the EBM configuration
 @riverpod
 Future<bool> ebmVatEnabled(Ref ref) async {
+  ref.keepAlive();
   try {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return false;

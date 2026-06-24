@@ -1,14 +1,18 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/layout.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -42,6 +46,7 @@ class FlipperApp extends HookConsumerWidget {
     _disableScreenshots();
     _requestPermissions();
     ProxyService.status.updateStatusColor();
+    unawaited(getIt<SettingsService>().hydrateToggleStatesFromSettings());
     // ProxyService.dynamicLink.handleDynamicLink(context);
     if (isAndroid || isIos) {
       _startNFCForModel(model);
@@ -151,13 +156,68 @@ class FlipperAppBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Tenant?>(
-      stream: ProxyService.strategy.authState(
-        branchId: ProxyService.box.getBranchId() ?? "",
+    return _DashboardShortcutLaunchHost(
+      child: StreamBuilder<Tenant?>(
+        stream: ProxyService.strategy.authState(
+          branchId: ProxyService.box.getBranchId() ?? '',
+        ),
+        builder: (context, snapshot) => const DashboardLayout(),
       ),
-      builder: (context, snapshot) => const DashboardLayout(),
     );
   }
+}
+
+/// Applies native cold-start shortcut intent plus persisted warm shortcut ([kPendingLauncherShortcutPageKey]).
+class _DashboardShortcutLaunchHost extends StatefulWidget {
+  const _DashboardShortcutLaunchHost({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_DashboardShortcutLaunchHost> createState() =>
+      _DashboardShortcutLaunchHostState();
+}
+
+class _DashboardShortcutLaunchHostState
+    extends State<_DashboardShortcutLaunchHost> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_applyPendingLauncherShortcuts());
+    });
+  }
+
+  Future<void> _applyPendingLauncherShortcuts() async {
+    final cold = await AppShortcutsPlatform.consumePendingShortcutPage();
+    final boxed = ProxyService.box.readString(
+      key: kPendingLauncherShortcutPageKey,
+    );
+    final target =
+        (cold != null && cold.isNotEmpty) ? cold : boxed;
+    if (!mounted || target == null || target.isEmpty) return;
+
+    final ctx = context;
+    if (!ctx.mounted) return;
+
+    final width = MediaQuery.sizeOf(ctx).width;
+    final isBigScreen =
+        width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    try {
+      await navigateToDashboardAppPage(
+        context: ctx,
+        isBigScreen: isBigScreen,
+        page: target,
+      );
+      if (!mounted) return;
+      ProxyService.box.remove(key: kPendingLauncherShortcutPageKey);
+    } catch (_) {
+      // Leave boxed key when navigation fails (e.g. transient auth).
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// A custom WidgetsBindingObserver to handle app lifecycle events functionally.
@@ -173,6 +233,18 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
     } else if (state == AppLifecycleState.detached) {
       // Clean up global event bus on app shutdown
       EventBus().dispose();
+      // Also dispose of Ditto singleton to ensure proper cleanup
+      _cleanupDitto();
+    }
+  }
+
+  /// Clean up Ditto singleton to ensure proper resource disposal
+  Future<void> _cleanupDitto() async {
+    try {
+      await DittoSingleton.instance.dispose();
+      print('✅ Ditto singleton disposed on app shutdown');
+    } catch (e) {
+      print('⚠️ Error disposing Ditto singleton on app shutdown: $e');
     }
   }
 }

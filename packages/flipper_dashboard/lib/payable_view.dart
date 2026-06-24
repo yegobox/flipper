@@ -1,14 +1,21 @@
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/typeDef.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/material.dart';
 
 class PayableView extends HookConsumerWidget {
+  static const double _kBarButtonHeight = PosTokens.payButtonHeight;
+  static const double _kVerticalGap = 10;
+
   const PayableView({
     Key? key,
     required this.ticketHandler,
@@ -30,78 +37,193 @@ class PayableView extends HookConsumerWidget {
   final SellingMode mode;
   final bool digitalPaymentEnabled;
 
+  /// Stacked Tickets / Pay instead of a single row.
+  ///
+  /// We avoid [LayoutBuilder] here: combining it with Riverpod rebuilds and
+  /// [Consumer] descendants (e.g. [PreviewSaleButton]) has triggered
+  /// re-entrant layout (`!_debugDoingThisLayout`) and unpainted
+  /// [_RenderLayoutBuilder] in production.
+  ///
+  /// Heuristic: narrow checkout pane, or landscape with a short viewport.
+  /// Prefers [constraints] from the parent when bounded; falls back to
+  /// [MediaQuery] for loose/unbounded parents.
+  static bool _useVerticalCheckoutBar(
+    BuildContext context, {
+    BoxConstraints? constraints,
+  }) {
+    final width = constraints != null && constraints.maxWidth.isFinite
+        ? constraints.maxWidth
+        : MediaQuery.sizeOf(context).width;
+    final height = constraints != null && constraints.maxHeight.isFinite
+        ? constraints.maxHeight
+        : MediaQuery.sizeOf(context).height;
+    final landscape = constraints != null &&
+            constraints.maxWidth.isFinite &&
+            constraints.maxHeight.isFinite
+        ? constraints.maxWidth > constraints.maxHeight
+        : MediaQuery.orientationOf(context) == Orientation.landscape;
+    if (width < PosLayoutBreakpoints.payableVerticalBarMaxWidth) return true;
+    if (landscape &&
+        height < PosLayoutBreakpoints.payableVerticalBarMaxLandscapeHeight) {
+      return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync =
         ref.watch(transactionsProvider(forceRealData: true));
-    // Get the current screen width to determine layout
-    final screenWidth = MediaQuery.of(context).size.width;
-    // Threshold for switching to vertical layout
-    final isSmallScreen = screenWidth < 600;
+    final showTickets = ref.watch(
+      featureAccessProvider(
+        userId: ProxyService.box.getUserId() ?? '',
+        featureName: AppFeature.Tickets,
+      ),
+    );
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
-      child: isSmallScreen
-          ? _buildVerticalLayout(context, ref, transactionsAsync)
-          : _buildHorizontalLayout(context, ref, transactionsAsync),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final body = _useVerticalCheckoutBar(
+          context,
+          constraints: constraints,
+        )
+            ? _buildVerticalLayout(
+                context,
+                ref,
+                transactionsAsync,
+                showTickets,
+              )
+            : _buildHorizontalLayout(
+                context,
+                ref,
+                transactionsAsync,
+                showTickets,
+              );
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
+          child: body,
+        );
+      },
     );
   }
 
   // Vertical layout for small screens and mobile
-  Widget _buildVerticalLayout(BuildContext context, WidgetRef ref,
-      AsyncValue<List<ITransaction>> transactionsAsync) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        SizedBox(
-          height: 64,
-          width: double.infinity,
-          child: TextButton(
-            style: secondaryButtonStyle,
-            onPressed: () {
-              ticketHandler();
-            },
-            child: transactionsAsync.when(
-              data: (transactions) => _buildTicket(
-                tickets: transactions.length,
-                transactions: transactions.length,
-                context: context,
-                isCompact: true,
+  Widget _buildVerticalLayout(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<ITransaction>> transactionsAsync,
+    bool showTickets,
+  ) {
+    // Fixed outer height so parents (Scaffold bottomNavigationBar, Column
+    // siblings) get a stable intrinsic height. Row/Column + [Expanded] under a
+    // loose vertical max otherwise leaves RenderPadding without a laid-out
+    // child during intrinsic measurement.
+    final barHeight = showTickets
+        ? (_kBarButtonHeight + _kVerticalGap + _kBarButtonHeight)
+        : _kBarButtonHeight;
+
+    return SizedBox(
+      width: double.infinity,
+      height: barHeight,
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (showTickets) ...[
+            SizedBox(
+              height: _kBarButtonHeight,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: PosTokens.surface,
+                  foregroundColor: PosTokens.ink2,
+                  side: const BorderSide(color: PosTokens.line),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+                  ),
+                ),
+                onPressed: () {
+                  ticketHandler();
+                },
+                child: transactionsAsync.when(
+                  data: (transactions) => _buildTicket(
+                    tickets: transactions.length,
+                    transactions: transactions.length,
+                    context: context,
+                    isCompact: true,
+                  ),
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, stack) => Text('Error: $error'),
+                ),
               ),
-              loading: () => const CircularProgressIndicator(),
-              error: (error, stack) => Text('Error: $error'),
+            ),
+            const SizedBox(height: _kVerticalGap),
+          ],
+          SizedBox(
+            height: _kBarButtonHeight,
+            child: PreviewSaleButton(
+              digitalPaymentEnabled: digitalPaymentEnabled,
+              transactionId: transactionId,
+              mode: mode,
+              wording: wording ?? "Pay",
+              completeTransaction: completeTransaction,
+              previewCart: previewCart,
             ),
           ),
-        ).shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
-        const SizedBox(height: 10)
-            .shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
-        SizedBox(
-          height: 64,
-          width: double.infinity,
-          child: PreviewSaleButton(
-            digitalPaymentEnabled: digitalPaymentEnabled,
-            transactionId: transactionId,
-            mode: mode,
-            wording: wording ?? "Pay",
-            completeTransaction: completeTransaction,
-            previewCart: previewCart,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   // Horizontal layout for larger screens
-  Widget _buildHorizontalLayout(BuildContext context, WidgetRef ref,
-      AsyncValue<List<ITransaction>> transactionsAsync) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Expanded(
-          child: SizedBox(
-            height: 64,
-            child: TextButton(
-              style: secondaryButtonStyle,
+  Widget _buildHorizontalLayout(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<ITransaction>> transactionsAsync,
+    bool showTickets,
+  ) {
+    Widget payExpanded({required int flex}) {
+      return Expanded(
+        flex: flex,
+        child: PreviewSaleButton(
+          digitalPaymentEnabled: digitalPaymentEnabled,
+          transactionId: transactionId,
+          mode: mode,
+          wording: wording ?? "Pay",
+          completeTransaction: completeTransaction,
+          previewCart: previewCart,
+        ),
+      );
+    }
+
+    if (!showTickets) {
+      return SizedBox(
+        width: double.infinity,
+        height: _kBarButtonHeight,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[payExpanded(flex: 1)],
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      height: _kBarButtonHeight,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Expanded(
+            flex: 2,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                side: const BorderSide(color: Color(0xFFE5E7EB)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               onPressed: () {
                 ticketHandler();
               },
@@ -117,18 +239,10 @@ class PayableView extends HookConsumerWidget {
               ),
             ),
           ),
-        ).shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
-        const SizedBox(width: 10)
-            .shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
-        PreviewSaleButton(
-          digitalPaymentEnabled: digitalPaymentEnabled,
-          transactionId: transactionId,
-          mode: mode,
-          wording: wording ?? "Pay",
-          completeTransaction: completeTransaction,
-          previewCart: previewCart,
-        ),
-      ],
+          const SizedBox(width: 10),
+          payExpanded(flex: 3),
+        ],
+      ),
     );
   }
 
@@ -147,6 +261,8 @@ class PayableView extends HookConsumerWidget {
           ? Text(
               FLocalization.of(context).tickets,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: primaryTextStyle.copyWith(
                 fontWeight: FontWeight.w400,
                 fontSize: 16,
@@ -155,6 +271,8 @@ class PayableView extends HookConsumerWidget {
           : Text(
               FLocalization.of(context).save,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: primaryTextStyle.copyWith(
                 fontWeight: FontWeight.w400,
                 fontSize: 16,
@@ -167,6 +285,8 @@ class PayableView extends HookConsumerWidget {
         ? Text(
             FLocalization.of(context).tickets,
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: primaryTextStyle.copyWith(
               fontWeight: FontWeight.w400,
               fontSize: 17,
@@ -174,10 +294,13 @@ class PayableView extends HookConsumerWidget {
           )
         : Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
                 FLocalization.of(context).save,
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: primaryTextStyle.copyWith(
                   fontWeight: FontWeight.w400,
                   fontSize: 17,
@@ -187,6 +310,7 @@ class PayableView extends HookConsumerWidget {
                 'New Transaction${tickets > 1 ? 's' : ''}',
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
+                maxLines: 1,
                 style: primaryTextStyle.copyWith(
                   fontWeight: FontWeight.w400,
                   fontSize: 17,

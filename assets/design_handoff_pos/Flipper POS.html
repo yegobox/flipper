@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flipper · Point of Sale</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="onboarding/styles.css" />
+  <link rel="stylesheet" href="pos/pos.css" />
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="onboarding/tweaks-panel.jsx"></script>
+  <script type="text/babel" src="onboarding/icons.jsx"></script>
+  <script type="text/babel" src="onboarding/frame.jsx"></script>
+  <script type="text/babel" src="pos/pos.jsx"></script>
+
+  <script type="text/babel" data-presets="react">
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "accent": "#2563EB"
+    }/*EDITMODE-END*/;
+
+    function Root() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      const [scale, setScale] = React.useState(1);
+
+      React.useEffect(() => {
+        const r = document.documentElement;
+        r.style.setProperty('--blue', t.accent);
+        r.style.setProperty('--grad-btn', `linear-gradient(180deg, ${tint(t.accent,0.12)} 0%, ${shade(t.accent,-0.18)} 100%)`);
+        r.style.setProperty('--blue-tint', tint(t.accent, 0.9));
+        r.style.setProperty('--blue-tint2', tint(t.accent, 0.82));
+        r.style.setProperty('--sh-blue', `0 12px 28px -8px ${rgba(t.accent,.45)}, 0 3px 8px ${rgba(t.accent,.25)}`);
+      }, [t.accent]);
+
+      React.useEffect(() => {
+        const fit = () => setScale(Math.min(window.innerWidth / 1440, window.innerHeight / 912));
+        fit();
+        window.addEventListener('resize', fit);
+        return () => window.removeEventListener('resize', fit);
+      }, []);
+
+      const w = 1440 * scale, h = 912 * scale;
+      const left = Math.max(0, (window.innerWidth - w) / 2);
+      const top = Math.max(0, (window.innerHeight - h) / 2);
+
+      return (
+        <>
+          <div className="pos-stage">
+            <div className="pos-scaler" style={{ transform: `scale(${scale})`, left, top }}>
+              <POSApp tweaks={t} />
+            </div>
+          </div>
+          <TweaksPanel>
+            <TweakSection label="Brand" />
+            <TweakColor label="Accent" value={t.accent}
+              options={['#2563EB', '#4F46E5', '#0EA5E9', '#0E5132', '#111827']}
+              onChange={(v) => setTweak('accent', v)} />
+            <div style={{ fontSize: 11.5, color: '#8A8A82', padding: '2px', lineHeight: 1.4 }}>Tap products to build a sale — the cart, totals and change are live. Try a quick-cash button.</div>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    function hexToRgb(h){const x=h.replace('#','');const n=parseInt(x.length===3?x.split('').map(c=>c+c).join(''):x,16);return [(n>>16)&255,(n>>8)&255,n&255];}
+    function rgbToHex(r,g,b){const c=(v)=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0');return '#'+c(r)+c(g)+c(b);}
+    function shade(hex,amt){const [r,g,b]=hexToRgb(hex);const f=1+amt;return rgbToHex(r*f,g*f,b*f);}
+    function tint(hex,ratio){const [r,g,b]=hexToRgb(hex);return rgbToHex(r+(255-r)*ratio,g+(255-g)*ratio,b+(255-b)*ratio);}
+    function rgba(hex,a){const [r,g,b]=hexToRgb(hex);return `rgba(${r},${g},${b},${a})`;}
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
+  </script>
+</body>
+</html>

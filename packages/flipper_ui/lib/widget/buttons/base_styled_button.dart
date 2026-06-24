@@ -1,4 +1,4 @@
-import 'package:flipper_infra/size.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flutter/material.dart';
 
 class BaseStyledButton extends StatefulWidget {

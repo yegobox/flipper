@@ -16,6 +16,10 @@ void main() {
     await env.init();
   });
 
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   group('ItemsList Tests', () {
     late InventoryRequest mockRequest;
     late Branch mockBranch;
@@ -182,11 +186,10 @@ void main() {
 
       await tester.pump();
 
-      expect(
-        find.byType(Column),
-        findsNWidgets(4),
-      ); // Main column + 2 item columns + 1 data column
+      expect(find.text('Items'), findsOneWidget);
       expect(find.byType(Card), findsNWidgets(2)); // 2 item cards
+      expect(find.text('Test Item 1'), findsOneWidget);
+      expect(find.text('Test Item 2'), findsOneWidget);
     });
 
     testWidgets('handles empty items list', (tester) async {

@@ -7,16 +7,16 @@ part of 'challenge_code.dart';
 // **************************************************************************
 
 Reward _$RewardFromJson(Map<String, dynamic> json) => Reward(
-      type: json['type'] as String,
-      value: json['value'] as String,
-      discountAmount: (json['discountAmount'] as num?)?.toDouble(),
-    );
+  type: json['type'] as String,
+  value: json['value'] as String,
+  discountAmount: (json['discountAmount'] as num?)?.toDouble(),
+);
 
 Map<String, dynamic> _$RewardToJson(Reward instance) => <String, dynamic>{
-      'type': instance.type,
-      'value': instance.value,
-      'discountAmount': instance.discountAmount,
-    };
+  'type': instance.type,
+  'value': instance.value,
+  'discountAmount': instance.discountAmount,
+};
 
 ChallengeCode _$ChallengeCodeFromJson(Map<String, dynamic> json) =>
     ChallengeCode(

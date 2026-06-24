@@ -14,12 +14,14 @@ class BusinessType extends OfflineFirstWithSupabaseModel {
   final String name;
   final String? description;
   final DateTime? createdAt;
+  final List<String>? features;
 
   BusinessType({
     String? id,
     required this.name,
     this.description,
     DateTime? createdAt,
+    this.features,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -28,12 +30,14 @@ class BusinessType extends OfflineFirstWithSupabaseModel {
     String? name,
     String? description,
     DateTime? createdAt,
+    List<String>? features,
   }) {
     return BusinessType(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
+      features: features ?? this.features,
     );
   }
 }

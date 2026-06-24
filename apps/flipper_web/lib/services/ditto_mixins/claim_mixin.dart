@@ -1,5 +1,4 @@
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
 
 mixin ClaimMixin on DittoCore {
@@ -13,7 +12,8 @@ mixin ClaimMixin on DittoCore {
 
   /// Get claims for a user from the claims collection
   Future<List<Map<String, dynamic>>> getClaimsForUser(String userId) async {
-    if (dittoInstance == null) return handleNotInitializedAndReturn('getClaimsForUser', []);
+    if (dittoInstance == null)
+      return handleNotInitializedAndReturn('getClaimsForUser', []);
     final result = await dittoInstance!.store.execute(
       "SELECT * FROM claims WHERE userId = :userId ORDER BY claimedAt DESC",
       arguments: {"userId": userId},
@@ -28,7 +28,8 @@ mixin ClaimMixin on DittoCore {
     String userId,
     String challengeCodeId,
   ) async {
-    if (dittoInstance == null) return handleNotInitializedAndReturn('isChallengeCodeClaimed', false);
+    if (dittoInstance == null)
+      return handleNotInitializedAndReturn('isChallengeCodeClaimed', false);
     final result = await dittoInstance!.store.execute(
       "SELECT * FROM claims WHERE userId = :userId AND challengeCodeId = :challengeCodeId LIMIT 1",
       arguments: {"userId": userId, "challengeCodeId": challengeCodeId},

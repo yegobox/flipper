@@ -1,5 +1,5 @@
 import 'package:flipper_web/models/user_profile.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
 
 mixin BusinessMixin on DittoCore {
@@ -21,7 +21,8 @@ mixin BusinessMixin on DittoCore {
 
   /// Get businesses for a specific user
   Future<List<Business>> getBusinessesForUser(String userId) async {
-    if (dittoInstance == null) return handleNotInitializedAndReturn('getBusinessesForUser', []);
+    if (dittoInstance == null)
+      return handleNotInitializedAndReturn('getBusinessesForUser', []);
     final result = await dittoInstance!.store.execute(
       "SELECT * FROM businesses WHERE userId = :userId",
       arguments: {"userId": userId},

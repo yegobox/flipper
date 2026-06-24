@@ -73,12 +73,42 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     });
   }
 
+  double _currentClosingBalance() {
+    return double.tryParse(_closingBalanceController.text.trim()) ?? 0.0;
+  }
+
+  void _setClosingBalance(double value) {
+    final sanitized = value.isFinite ? value : 0.0;
+    final clamped = sanitized < 0 ? 0.0 : sanitized;
+    final text = clamped == clamped.toInt()
+        ? clamped.toInt().toString()
+        : clamped.toStringAsFixed(2);
+    _closingBalanceController.value = _closingBalanceController.value.copyWith(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+      composing: TextRange.empty,
+    );
+  }
+
+  void _incrementClosingBalance() {
+    _setClosingBalance(_currentClosingBalance() + 1);
+  }
+
+  void _decrementClosingBalance() {
+    _setClosingBalance(_currentClosingBalance() - 1);
+  }
+
   String _formatCurrency(num amount, {int decimalDigits = 2, String? symbol}) {
     if (amount == amount.toInt()) {
-      return amount.toCurrencyFormatted(decimalDigits: decimalDigits);
+      return amount.toCurrencyFormatted(
+        decimalDigits: decimalDigits,
+        symbol: symbol,
+      );
     }
     return amount.toCurrencyFormatted(
-        decimalDigits: decimalDigits, symbol: symbol);
+      decimalDigits: decimalDigits,
+      symbol: symbol,
+    );
   }
 
   @override
@@ -97,9 +127,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           horizontal: isSmallScreen ? 12 : 24,
           vertical: 12,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 8,
         backgroundColor: colorScheme.surface,
         child: SingleChildScrollView(
@@ -125,15 +153,24 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                       _buildHeader(context, isSmallScreen),
                       const SizedBox(height: 16),
                       _buildShiftSummary(
-                          context, currencySymbol, isSmallScreen),
+                        context,
+                        currencySymbol,
+                        isSmallScreen,
+                      ),
                       const SizedBox(height: 16),
                       _buildCashReconciliation(context, isSmallScreen),
                       const SizedBox(height: 16),
                       _buildClosingBalanceSection(
-                          context, currencySymbol, isSmallScreen),
+                        context,
+                        currencySymbol,
+                        isSmallScreen,
+                      ),
                       const SizedBox(height: 16),
                       _buildCashDifferenceSection(
-                          context, currencySymbol, isSmallScreen),
+                        context,
+                        currencySymbol,
+                        isSmallScreen,
+                      ),
                       const SizedBox(height: 16),
                       _buildNotesSection(context, isSmallScreen),
                       if (_hasError) ...[
@@ -149,9 +186,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                     ],
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stack) => Center(
                   child: Text(
                     'Error loading shift data',
@@ -178,21 +213,23 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (!isSmallScreen)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.schedule_send,
-                  color: colorScheme.primary,
-                  size: 24,
-                ),
+            Container(
+              width: isSmallScreen ? 36 : 40,
+              height: isSmallScreen ? 36 : 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEAF3FF),
+                borderRadius: BorderRadius.circular(12),
               ),
-            if (!isSmallScreen) const SizedBox(width: 16),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.schedule,
+                color: const Color(0xFF2B6DE9),
+                size: isSmallScreen ? 18 : 20,
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,26 +244,47 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'End time: ${timeFormat.format(now)}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: colorScheme.onSurface.withValues(alpha: 0.55),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'End time: ${timeFormat.format(now)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.65),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            IconButton(
-              onPressed: () =>
-                  widget.completer(DialogResponse(confirmed: false)),
-              icon: Icon(
-                Icons.close,
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
-                size: isSmallScreen ? 20 : 24,
+            Container(
+              width: isSmallScreen ? 34 : 36,
+              height: isSmallScreen ? 34 : 36,
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.18),
+                ),
               ),
-              tooltip: 'Close',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+              child: IconButton(
+                onPressed: () =>
+                    widget.completer(DialogResponse(confirmed: false)),
+                icon: Icon(
+                  Icons.close,
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  size: isSmallScreen ? 20 : 24,
+                ),
+                tooltip: 'Close',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
             ),
           ],
         ),
@@ -237,58 +295,108 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
   }
 
   Widget _buildShiftSummary(
-      BuildContext context, String currencySymbol, bool isSmallScreen) {
+    BuildContext context,
+    String currencySymbol,
+    bool isSmallScreen,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.2),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.credit_card,
+              size: isSmallScreen ? 18 : 20,
+              color: colorScheme.onSurface.withValues(alpha: 0.75),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Shift Summary',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Shift Summary',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
+        const SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF4F6FA),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.12),
             ),
           ),
-          const SizedBox(height: 8),
-          _buildSummaryRow(
-            context,
-            label: 'Opening Balance:',
-            value:
-                '${_formatCurrency(_openingBalance, symbol: currencySymbol)}',
-            isSmallScreen: isSmallScreen,
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 12 : 16,
+                  vertical: isSmallScreen ? 12 : 14,
+                ),
+                child: _buildSummaryRow(
+                  context,
+                  label: 'Opening Balance',
+                  value:
+                      '$currencySymbol  ${_formatCurrency(_openingBalance, symbol: '')}',
+                  isSmallScreen: isSmallScreen,
+                  valueColor: colorScheme.onSurface,
+                ),
+              ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.outline.withValues(alpha: 0.10),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 12 : 16,
+                  vertical: isSmallScreen ? 12 : 14,
+                ),
+                child: _buildSummaryRow(
+                  context,
+                  label: 'Cash Sales',
+                  value:
+                      '$currencySymbol  ${_formatCurrency(_cashSales, symbol: '')}',
+                  isSmallScreen: isSmallScreen,
+                  isHighlighted: true,
+                ),
+              ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.outline.withValues(alpha: 0.10),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 12 : 16,
+                  vertical: isSmallScreen ? 12 : 14,
+                ),
+                child: _buildSummaryRow(
+                  context,
+                  label: 'Expected Cash',
+                  value:
+                      '$currencySymbol  ${_formatCurrency(_expectedCash, symbol: '')}',
+                  isSmallScreen: isSmallScreen,
+                  isHighlighted: true,
+                  isLarge: true,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          _buildSummaryRow(
-            context,
-            label: 'Cash Sales:',
-            value: '${_formatCurrency(_cashSales, symbol: currencySymbol)}',
-            isSmallScreen: isSmallScreen,
-            isHighlighted: true,
-          ),
-          const SizedBox(height: 6),
-          Divider(color: colorScheme.outline.withValues(alpha: 0.3)),
-          const SizedBox(height: 6),
-          _buildSummaryRow(
-            context,
-            label: 'Expected Cash:',
-            value: '${_formatCurrency(_expectedCash, symbol: currencySymbol)}',
-            isSmallScreen: isSmallScreen,
-            isHighlighted: true,
-            isLarge: true,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -299,6 +407,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     bool isSmallScreen = false,
     bool isHighlighted = false,
     bool isLarge = false,
+    Color? valueColor,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -322,18 +431,22 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
         Flexible(
           child: Text(
             value,
-            style: (isSmallScreen
-                    ? isLarge
-                        ? theme.textTheme.bodyMedium
-                        : theme.textTheme.bodySmall
-                    : isLarge
+            style:
+                (isSmallScreen
+                        ? isLarge
+                              ? theme.textTheme.bodyMedium
+                              : theme.textTheme.bodySmall
+                        : isLarge
                         ? theme.textTheme.bodyLarge
                         : theme.textTheme.bodyMedium)
-                ?.copyWith(
-              fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.w500,
-              color:
-                  isHighlighted ? colorScheme.primary : colorScheme.onSurface,
-            ),
+                    ?.copyWith(
+                      fontWeight: isHighlighted
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                      color: isHighlighted
+                          ? const Color(0xFF2B6DE9)
+                          : (valueColor ?? colorScheme.onSurface),
+                    ),
             textAlign: TextAlign.end,
             overflow: TextOverflow.ellipsis,
           ),
@@ -344,15 +457,14 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
 
   Widget _buildCashReconciliation(BuildContext context, bool isSmallScreen) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       decoration: BoxDecoration(
-        color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
+        color: const Color(0xFFEAF3FF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.3),
+          color: const Color(0xFF2B6DE9).withValues(alpha: 0.20),
         ),
       ),
       child: Column(
@@ -361,8 +473,8 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           Row(
             children: [
               Icon(
-                Icons.calculate,
-                color: colorScheme.secondary,
+                Icons.info_outline,
+                color: const Color(0xFF2B6DE9),
                 size: isSmallScreen ? 18 : 20,
               ),
               const SizedBox(width: 8),
@@ -371,7 +483,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                   'Cash Reconciliation',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: colorScheme.onSecondaryContainer,
+                    color: const Color(0xFF2B6DE9),
                   ),
                 ),
               ),
@@ -379,9 +491,9 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           ),
           const SizedBox(height: 8),
           Text(
-            'Count the physical cash and enter the closing balance below.',
+            'Count the physical cash in the drawer and enter the\nclosing balance below.',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
+              color: const Color(0xFF2B6DE9).withValues(alpha: 0.85),
             ),
           ),
         ],
@@ -390,7 +502,10 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
   }
 
   Widget _buildClosingBalanceSection(
-      BuildContext context, String currencySymbol, bool isSmallScreen) {
+    BuildContext context,
+    String currencySymbol,
+    bool isSmallScreen,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -406,7 +521,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
         ),
         const SizedBox(height: 6),
         Text(
-          'Enter actual cash counted',
+          'Enter actual cash counted in the drawer',
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -430,36 +545,65 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           },
           decoration: InputDecoration(
             isDense: isSmallScreen,
-            contentPadding: isSmallScreen
-                ? const EdgeInsets.symmetric(vertical: 12, horizontal: 12)
-                : const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 12,
+            ),
             prefixIcon: Padding(
-              padding: const EdgeInsets.only(left: 12.0),
+              padding: const EdgeInsets.only(left: 12.0, right: 10),
               child: Text(
-                ' ',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w500,
+                currencySymbol,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.75),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            prefixIconConstraints:
-                const BoxConstraints(minWidth: 0, minHeight: 0),
-            hintText: '0.00',
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
+            suffixIcon: SizedBox(
+              width: 44,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  InkResponse(
+                    onTap: _incrementClosingBalance,
+                    radius: 18,
+                    child: Icon(
+                      Icons.arrow_drop_up,
+                      color: colorScheme.onSurface.withValues(alpha: 0.60),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  InkResponse(
+                    onTap: _decrementClosingBalance,
+                    radius: 18,
+                    child: Icon(
+                      Icons.arrow_drop_down,
+                      color: colorScheme.onSurface.withValues(alpha: 0.60),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            hintText: '0',
             filled: true,
-            fillColor: colorScheme.surface,
+            fillColor: const Color(0xFFF4F6FA),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: colorScheme.outline),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.18),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+              borderSide: BorderSide(color: const Color(0xFF2B6DE9), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -470,8 +614,8 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
               borderSide: BorderSide(color: colorScheme.error, width: 2),
             ),
           ),
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w500,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -479,7 +623,10 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
   }
 
   Widget _buildCashDifferenceSection(
-      BuildContext context, String currencySymbol, bool isSmallScreen) {
+    BuildContext context,
+    String currencySymbol,
+    bool isSmallScreen,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -506,19 +653,28 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
       decoration: BoxDecoration(
         color: differenceColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: differenceColor.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: differenceColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                differenceIcon,
-                color: differenceColor,
-                size: isSmallScreen ? 18 : 20,
+              Container(
+                width: isSmallScreen ? 24 : 26,
+                height: isSmallScreen ? 24 : 26,
+                decoration: BoxDecoration(
+                  color: differenceColor,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  differenceIcon == Icons.remove_circle
+                      ? Icons.remove
+                      : Icons.check,
+                  color: Colors.white,
+                  size: isSmallScreen ? 14 : 16,
+                ),
               ),
               const SizedBox(width: 8),
               Flexible(
@@ -536,20 +692,33 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Difference:',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: differenceColor.withValues(alpha: 0.9),
+              Expanded(
+                child: Text(
+                  'Difference',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text(
-                '${_cashDifference > 0 ? '+' : ''}${_formatCurrency(_cashDifference.abs(), symbol: currencySymbol)}',
-                style: (isSmallScreen
-                        ? theme.textTheme.titleMedium
-                        : theme.textTheme.headlineSmall)
-                    ?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: differenceColor,
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  '$currencySymbol  ${_formatCurrency(_cashDifference.abs(), symbol: '')}',
+                  style:
+                      (isSmallScreen
+                              ? theme.textTheme.titleMedium
+                              : theme.textTheme.headlineSmall)
+                          ?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface.withValues(
+                              alpha: 0.25,
+                            ),
+                          ),
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  softWrap: false,
                 ),
               ),
             ],
@@ -590,11 +759,21 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
             ),
             if (isRequired) ...[
               const SizedBox(width: 4),
-              Text(
-                '(Required)',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.error,
-                  fontWeight: FontWeight.w500,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: colorScheme.error.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Text(
+                  'Required',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -602,7 +781,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
         ),
         const SizedBox(height: 6),
         Text(
-          isRequired ? 'Explain the difference' : 'Add any notes',
+          isRequired ? 'Explain the shortage' : 'Add any notes',
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -625,21 +804,24 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
             contentPadding: isSmallScreen
                 ? const EdgeInsets.all(12)
                 : const EdgeInsets.all(16),
-            hintText: isRequired ? 'Explain difference...' : 'Enter notes...',
+            hintText: isRequired
+                ? 'Explain the difference...'
+                : 'Enter notes...',
             filled: true,
-            fillColor: colorScheme.surface,
+            fillColor: const Color(0xFFF4F6FA),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: colorScheme.outline),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.18),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+              borderSide: const BorderSide(color: Color(0xFF2B6DE9), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -668,11 +850,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            color: colorScheme.error,
-            size: 20,
-          ),
+          Icon(Icons.error_outline, color: colorScheme.error, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -744,8 +922,9 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
             child: OutlinedButton(
               onPressed: () => setState(() => _showConfirmation = false),
               style: OutlinedButton.styleFrom(
-                padding:
-                    EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
+                padding: EdgeInsets.symmetric(
+                  vertical: isSmallScreen ? 12 : 16,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -769,14 +948,15 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                   onPressed: _isLoading
                       ? null
                       : () =>
-                          widget.completer(DialogResponse(confirmed: false)),
+                            widget.completer(DialogResponse(confirmed: false)),
                   style: OutlinedButton.styleFrom(
-                    padding:
-                        EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    side: BorderSide(color: colorScheme.outline),
+                    side: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.35),
+                    ),
                   ),
                   child: Text(
                     'Cancel',
@@ -793,10 +973,9 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _closeShift,
                 style: ElevatedButton.styleFrom(
-                  padding:
-                      EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: const Color(0xFF2B6DE9),
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -809,28 +988,22 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              colorScheme.onPrimary),
+                            colorScheme.onPrimary,
+                          ),
                         ),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.stop,
-                            size: isSmallScreen ? 18 : 20,
-                            color: colorScheme.onPrimary,
-                          ),
-                          if (!isSmallScreen) const SizedBox(width: 8),
-                          if (!isSmallScreen)
-                            Text(
-                              _showConfirmation
-                                  ? 'Confirm Close'
-                                  : 'Close Shift',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: colorScheme.onPrimary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          Icon(Icons.check, size: 18, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            _showConfirmation ? 'Confirm Close' : 'Close Shift',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
                             ),
+                          ),
                         ],
                       ),
               ),
@@ -872,18 +1045,20 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     try {
       final notes = _notesController.text.trim();
 
-      widget.completer(DialogResponse(
-        confirmed: true,
-        data: {
-          'closingBalance': closingBalance,
-          'cashDifference': _cashDifference,
-          'notes': notes.isEmpty ? null : notes,
-          'timestamp': DateTime.now().toIso8601String(),
-          'openingBalance': _openingBalance,
-          'cashSales': _cashSales,
-          'expectedCash': _expectedCash,
-        },
-      ));
+      widget.completer(
+        DialogResponse(
+          confirmed: true,
+          data: {
+            'closingBalance': closingBalance,
+            'cashDifference': _cashDifference,
+            'notes': notes.isEmpty ? null : notes,
+            'timestamp': DateTime.now().toIso8601String(),
+            'openingBalance': _openingBalance,
+            'cashSales': _cashSales,
+            'expectedCash': _expectedCash,
+          },
+        ),
+      );
     } catch (e) {
       setState(() {
         _hasError = true;

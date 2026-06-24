@@ -38,7 +38,7 @@ class _ReusableDropdownState extends State<ReusableDropdown> {
               padding: EdgeInsets.only(left: 16.0),
               child: Text(
                 option,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 18,
                   color: Colors.grey.shade600,
                 ),

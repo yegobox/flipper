@@ -5,8 +5,8 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
   desktop_drop
-  desktop_webview_auth
   file_selector_linux
+  flutter_gemma
   flutter_localization
   gtk
   pasteboard
@@ -21,7 +21,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   ditto_live
-  flutter_soloud
   jni
 )
 

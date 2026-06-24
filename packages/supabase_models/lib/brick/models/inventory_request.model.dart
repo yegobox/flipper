@@ -24,6 +24,10 @@ class InventoryRequest {
   String? bhfId;
   String? tinNumber;
 
+  // audit fields
+  String? approvedBy;
+  DateTime? approvedAt;
+
   // stock financing
   Financing? financing;
   String? financingId;
@@ -54,6 +58,8 @@ class InventoryRequest {
     this.transactionItems,
     this.updatedAt,
     this.financing,
+    this.approvedBy,
+    this.approvedAt,
   }) : id = id ?? const Uuid().v4();
 
   Future<InventoryRequest> copyWith(
@@ -81,6 +87,8 @@ class InventoryRequest {
       tinNumber: tinNumber,
       financing: financing ?? this.financing,
       branch: branch ?? this.branch,
+      approvedBy: approvedBy,
+      approvedAt: approvedAt,
     );
   }
 }

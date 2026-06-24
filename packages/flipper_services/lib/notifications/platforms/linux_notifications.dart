@@ -46,7 +46,7 @@ class LinuxNotifications extends BaseNotifications {
     );
 
     await notificationsPlugin.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveBackgroundNotificationResponse:
           notificationBackgroundCallback,
       onDidReceiveNotificationResponse: notificationCallback,
@@ -139,10 +139,10 @@ class LinuxNotifications extends BaseNotifications {
     final notificationDetails = createPlatformNotificationDetails();
 
     await notificationsPlugin.show(
-      id,
-      title,
-      body,
-      notificationDetails,
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: notificationDetails,
       payload: payload,
     );
   }
@@ -173,5 +173,11 @@ class LinuxNotifications extends BaseNotifications {
     return const NotificationDetails(
       linux: linuxNotificationDetails,
     );
+  }
+
+  @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    // Use the base implementation from BaseNotifications
+    await super.showOrderNotification(order);
   }
 }

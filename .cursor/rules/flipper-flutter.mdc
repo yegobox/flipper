@@ -1,0 +1,18 @@
+---
+description: Flipper Flutter monorepo (see parent yego-project AGENTS.md)
+globs: "**/*"
+alwaysApply: true
+---
+
+# Flipper
+
+Part of **yego-project** workspace. Full context: `../../AGENTS.md` at workspace root.
+
+- Melos monorepo; `secrets.dart` not in git
+- Brick + Ditto sync: `docs/ditto_sync.md`
+- **Main Brick DB (native):** Turso via `PlatformHelpers.getMainDatabaseFactory()` — local `tursoDatabaseFactory()` or `tursoSyncDatabaseFactory()` when `tursoDatabaseUrl` + token are set in `secrets.dart`. Do not open `flipper.sqlite` with sqlite3 while the app runs.
+- **Turso + get policies:** `open-sources/brick/docs/sqlite/turso_get_policies.md` — `awaitRemoteWhenNoneExist` / `alwaysHydrate` pull Turso Cloud before Supabase hydrate.
+- **Offline HTTP queue:** sqflite only (`getQueueDatabaseFactory()` / `brick_offline_queue_v45.sqlite`) — per Brick Turso docs.
+- Bulk RRA: prefer data-connector when “Register via server (RRA first)” toggle is on
+- Reports pagination: repo root `QUICK_REFERENCE.md` (parent workspace)
+- Riverpod perf: `.cursor/rules/flipper-riverpod-perf.mdc` + `docs/riverpod_perf.md` — `select()`, batched Ditto observers, page-scoped reports; preserve optimistic cart tap

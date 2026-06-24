@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'package:flipper_models/models/ai_model.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:flipper_services/local_notification_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,13 +11,19 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:record/record.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
-import 'package:supabase_models/brick/models/pin.model.dart';
-import 'package:supabase_models/brick/models/plans.model.dart';
+import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:supabase_models/brick/models/retryable.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/view_models/ScannViewModel.dart';
+import 'package:flipper_models/Supabase.dart';
+import 'package:flipper_models/whatsapp.dart';
+import 'package:flipper_services/event_interface.dart';
+import 'package:flipper_services/sentry_service.dart';
+
+class MockScannViewModel extends Mock implements ScannViewModel {}
 
 class MockRepository extends Mock implements Repository {}
 
@@ -44,6 +48,8 @@ class GeminiBusinessAnalyticsMock extends Mock
     String? filePath,
     List<Content>? history,
     AIModel? aiModel,
+    String useCase = 'business',
+    String? connectedExternalDataContext,
   }) async {
     return 'Mocked response';
   }
@@ -71,6 +77,14 @@ class MockProxyService extends Mock implements DatabaseSyncInterface {
 class MockRouterService extends Mock implements RouterService {}
 
 class MockStartupViewModel extends Mock implements StartupViewModel {}
+
+class MockSupabase extends Mock implements SupabaseInterface {}
+
+class MockWhatsApp extends Mock implements WhatsApp {}
+
+class MockSentry extends Mock implements SentryServiceInterface {}
+
+class MockEvent extends Mock implements EventInterface {}
 
 class MockUser extends Mock implements IUser {}
 

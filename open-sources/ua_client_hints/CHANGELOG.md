@@ -1,0 +1,129 @@
+## 1.7.0
+
+**Feature**
+- Add macOS support.
+
+**Development**
+- Add macOS build to CI.
+- Align the macOS CocoaPods deployment target with Flutter macOS minimum requirements.
+
+## 1.6.0
+
+**Feature**
+- Add Web support.
+
+**Bug fix**
+- Respect the platform `mobile` flag in `userAgentData()`.
+
+**Development**
+- Raise the minimum Dart SDK to 3.3.0 and Flutter to 3.19.0 for the Web interop implementation.
+- Update selected toolchain dependencies manually:
+  - `husky` to `9.1.7`
+  - `actions/setup-java` to `v5`
+  - `flutter_lints` to `4.0.0`
+  - Gradle wrapper to `8.14.4`
+
+## 1.5.0
+
+**Feature**
+- Add Swift Package Manager support for iOS while keeping CocoaPods compatibility.
+
+**Development**
+- Update the iOS native package layout and raise the iOS deployment target to 12.0 for native builds.
+
+## 1.4.1
+
+**Development**
+- [#127](https://github.com/wasabeef/flutter_ua_client_hints/pull/127) Support the Android Studio Ladybug.
+
+## 1.4.0
+
+**Feature**
+- [#124](https://github.com/wasabeef/flutter_ua_client_hints/pull/124) Add Privacy Manifest for iOS
+
+**Development**
+- [#119](https://github.com/wasabeef/flutter_ua_client_hints/pull/119) Replace Kotlin JvmToolchain function
+
+## 1.3.1
+
+**Development**
+
+- [#106](https://github.com/wasabeef/flutter_ua_client_hints/pull/106) Update to Java 17 and Gradle 8.4 by [@lemonderon](https://github.com/lemonderon).
+
+## 1.3.0
+
+**Bug fix**
+
+- [**BREAKING CHANGE**] [#101](https://github.com/wasabeef/flutter_ua_client_hints/pull/101)  Prefix UA with appName instead of brand by [@sgrodzicki](https://github.com/sgrodzicki).
+
+```
+Before:
+ User-Agent: Apple/1.0.0 (iOS 17.2; iPhone; Simulator; x86)
+
+After:
+ User-Agent: SampleApp/1.0.0 (iOS 17.2; iPhone; Simulator; x86)
+```
+
+## 1.2.2
+
+**Development**
+- Update Kotlin kotlin-stdlib-jdk7 to kotlin-stdlib
+
+
+## 1.2.1
+
+**Development**
+- Update Flutter to >=3.0.0
+- Update Gradle plugins to v8
+
+
+## 1.2.0
+
+**Bug fix**
+- Wrong brand name.
+
+## 1.1.3
+
+**Development**
+- Migrate jCenter to MavenCentral for android apps.
+
+## 1.1.2
+
+**Feature**
+- Change Android compileSdkVersion to 33
+- Update Flutter to >=2.10.0
+
+**Development**
+- Update Flutter to 3.3.0
+- Update Dart to 2.18.0
+
+## 1.1.1
+
+**Feature**
+- Update Dart SDK to >=2.14.0
+- Require Android minSdkVersion to 22
+
+**Development**
+- Replace effective_dart to flutter_lints
+
+## 1.1.0
+
+**Feature**
+- Update Flutter to >=2.0.0
+- Update Dart to >=2.12.0
+
+## 1.0.2
+
+**Bug Fix**
+- Set Android minSdkVersion to 21.
+
+## 1.0.0, 1.0.1
+
+Initial release.
+
+**Feature**
+- userAgent() return String.
+- userAgentData() return UserAgentData
+- userAgentClientHintsHeader return Map
+
+[Check API docs](https://pub.dev/documentation/ua_client_hints/latest/ua_client_hints/ua_client_hints-library.html)

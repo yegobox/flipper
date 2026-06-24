@@ -2,7 +2,20 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'test_helpers/setup.dart';
+
 void main() {
+  late TestEnvironment env;
+
+  setUpAll(() async {
+    env = TestEnvironment();
+    await env.init();
+  });
+
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   group('NewTicket UI Tests', () {
     late ITransaction mockTransaction;
 

@@ -1,10 +1,15 @@
 import 'package:flipper_models/models/ai_model.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/business_ai_config.dart';
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AIModelRepository {
   AIModelRepository();
+
+  Future<void> _ensureAuthenticatedSession() async {
+    await SupabaseSessionService.ensureAccessToken();
+  }
 
   /// Get all available AI models
   /// Returns global models
@@ -12,10 +17,12 @@ class AIModelRepository {
     try {
       talker.info('AIModelRepository: Fetching available models');
 
+      await _ensureAuthenticatedSession();
+
       final supabase = Supabase.instance.client;
       final response = await supabase
           .from('ai_models')
-          .select()
+          .select(kAiModelCatalogSelect)
           .eq('is_active', true)
           .order('is_default', ascending: false)
           .order('name', ascending: true);
@@ -49,39 +56,72 @@ class AIModelRepository {
     }
   }
 
-  /// Get AI configuration for a business
+  /// Get AI configuration for a business (creates row if missing).
   Future<BusinessAIConfig?> getBusinessConfig(String businessId) async {
     try {
+      await _ensureAuthenticatedSession();
+
       final supabase = Supabase.instance.client;
 
-      // Perform an upsert to ensure the config exists, then return the result
-      final response = await supabase
+      var row = await supabase
           .from('business_ai_configs')
-          .upsert({
-            'business_id': businessId,
-            'usage_limit': 100, // Default limit
-            'current_usage': 0,
-            'ai_model_id': null, // Use global default
-          },
-          onConflict: 'business_id') // Use the unique constraint on business_id
           .select()
-          .single();
+          .eq('business_id', businessId)
+          .maybeSingle();
 
-      // Manual mapping until mapper is generated/fixed
-      return BusinessAIConfig(
-        id: response['id'],
-        businessId: response['business_id'],
-        aiModelId: response['ai_model_id'],
-        usageLimit: response['usage_limit'] ?? 100,
-        currentUsage: response['current_usage'] ?? 0,
-        updatedAt: DateTime.parse(response['updated_at']),
-      );
+      if (row == null) {
+        try {
+          row = await supabase
+              .from('business_ai_configs')
+              .insert({
+                'business_id': businessId,
+                'usage_limit': 100,
+                'current_usage': 0,
+                'ai_model_id': null,
+              })
+              .select()
+              .single();
+        } catch (_) {
+          row = await supabase
+              .from('business_ai_configs')
+              .select()
+              .eq('business_id', businessId)
+              .maybeSingle();
+        }
+      }
+
+      if (row == null) return null;
+      return _businessConfigFromRow(Map<String, dynamic>.from(row));
     } catch (e) {
       talker.error('AIModelRepository: Failed to get business config: $e');
       return null;
     }
   }
 
+  /// Whether background lead catalogue AI matching is enabled (Supabase).
+  /// Defaults to true when unset or config missing.
+  Future<bool> isLeadsAiMatchEnabledForBusiness(String businessId) async {
+    final config = await getBusinessConfig(businessId);
+    return config?.leadsAiMatchEnabled ?? true;
+  }
+
+  BusinessAIConfig _businessConfigFromRow(Map<String, dynamic> row) {
+    return BusinessAIConfig(
+      id: row['id'] as String,
+      businessId: row['business_id'] as String,
+      aiModelId: row['ai_model_id'] as String?,
+      usageLimit: row['usage_limit'] as int? ?? 100,
+      currentUsage: row['current_usage'] as int? ?? 0,
+      leadsAiMatchEnabled: row['leads_ai_match_enabled'] as bool? ?? true,
+      updatedAt: _parseUpdatedAt(row['updated_at']),
+    );
+  }
+
+  DateTime _parseUpdatedAt(dynamic v) {
+    if (v is DateTime) return v;
+    if (v is String) return DateTime.parse(v);
+    return DateTime.now().toUtc();
+  }
 
   /// Increment usage for a business config
   Future<void> incrementUsage(String configId) async {
@@ -102,9 +142,14 @@ class AIModelRepository {
   /// Get a specific model by ID
   Future<AIModel?> getModelById(String modelId) async {
     try {
+      await _ensureAuthenticatedSession();
+
       final supabase = Supabase.instance.client;
-      final response =
-          await supabase.from('ai_models').select().eq('id', modelId).single();
+      final response = await supabase
+          .from('ai_models')
+          .select(kAiModelCatalogSelect)
+          .eq('id', modelId)
+          .single();
 
       return AIModel.fromJson(response);
     } catch (e) {

@@ -1,4 +1,4 @@
-import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,7 +10,6 @@ import 'phone_auth_state.dart';
 class PhoneInputUI extends StatelessWidget {
   final PhoneAuthState state;
   final ColorScheme colorScheme;
-  final FirebaseUILocalizations l;
   final Function(BuildContext, String) onVerifyPhone;
   final WidgetBuilder? subtitleBuilder;
   final WidgetBuilder? footerBuilder;
@@ -19,7 +18,6 @@ class PhoneInputUI extends StatelessWidget {
     Key? key,
     required this.state,
     required this.colorScheme,
-    required this.l,
     required this.onVerifyPhone,
     this.subtitleBuilder,
     this.footerBuilder,
@@ -164,7 +162,7 @@ class PhoneInputUI extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: InputDecoration(
-                            labelText: 'Phone Number',
+                            labelText: FLocalization.of(context).phoneNumber,
                             hintText: '783054874 (without leading 0)',
                             hintStyle: GoogleFonts.poppins(
                               color: Colors.grey.withValues(alpha: 0.5),
@@ -254,12 +252,12 @@ class PhoneInputUI extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 18),
-                      Text('Sending code...',
+                      Text(FLocalization.of(context).sendingCode,
                           style: GoogleFonts.poppins(
                               fontSize: 16, fontWeight: FontWeight.w600)),
                     ],
                   )
-                : Text('Continue',
+                : Text(FLocalization.of(context).continueAction,
                     style: GoogleFonts.poppins(
                         fontSize: 18, fontWeight: FontWeight.w600)),
           ),

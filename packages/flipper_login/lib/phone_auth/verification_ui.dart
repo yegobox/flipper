@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
@@ -73,7 +74,9 @@ class VerificationUI extends StatelessWidget {
                   height: 1.5,
                 ),
                 children: [
-                  const TextSpan(text: 'Enter the 6-digit code sent to '),
+                  TextSpan(
+                    text: FLocalization.of(context).enterSixDigitCodeSentTo,
+                  ),
                   TextSpan(
                     text:
                         '${state.selectedCountryCode} ${state.phoneController.text}',
@@ -135,7 +138,7 @@ class VerificationUI extends StatelessWidget {
                             horizontal: 16, vertical: 8),
                       ),
                       child: Text(
-                        'Code Expired - Tap to Resend',
+                        FLocalization.of(context).codeExpiredTapToResend,
                         style: GoogleFonts.poppins(
                           color: Colors.red,
                           fontWeight: FontWeight.w500,
@@ -146,7 +149,7 @@ class VerificationUI extends StatelessWidget {
                       ? TextButton(
                           onPressed: onResendCode,
                           child: Text(
-                            'Resend Code',
+                            FLocalization.of(context).resendCode,
                             style: GoogleFonts.poppins(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.w500,
@@ -160,9 +163,12 @@ class VerificationUI extends StatelessWidget {
                               fontSize: 14,
                             ),
                             children: [
-                              const TextSpan(text: 'Resend code in '),
                               TextSpan(
-                                text: '${state.timerSeconds} seconds',
+                                text: FLocalization.of(context).resendCodeIn,
+                              ),
+                              TextSpan(
+                                text:
+                                    '${state.timerSeconds} ${FLocalization.of(context).seconds}',
                                 style: TextStyle(
                                   color: colorScheme.primary,
                                   fontWeight: FontWeight.w500,
@@ -213,12 +219,12 @@ class VerificationUI extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 18),
-                          Text('Verifying...',
+                          Text(FLocalization.of(context).verifying,
                               style: GoogleFonts.poppins(
                                   fontSize: 16, fontWeight: FontWeight.w600)),
                         ],
                       )
-                    : Text('Verify Code',
+                    : Text(FLocalization.of(context).verifyCode,
                         style: GoogleFonts.poppins(
                             fontSize: 18, fontWeight: FontWeight.w600)),
               ),

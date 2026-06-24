@@ -20,17 +20,21 @@ class StockIOUtil {
     final ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);
 
+    final qty = approvedQty.toDouble();
+    final supplyUnit = variant.supplyPrice ?? 0;
+    final retailUnit = variant.retailPrice ?? 0;
+
     await ProxyService.tax.saveStockItems(
       updateMaster: false,
       items: [
         TransactionItemUtil.fromVariant(variant,
-            itemSeq: 1, approvedQty: approvedQty.toDouble())
+            itemSeq: 1, approvedQty: qty)
       ],
       tinNumber: ebm!.tinNumber.toString(),
       bhFId: ebm.bhfId,
-      totalSupplyPrice: variant.supplyPrice ?? 0,
+      totalSupplyPrice: supplyUnit * qty,
       totalvat: 0,
-      totalAmount: variant.retailPrice ?? 0,
+      totalAmount: retailUnit * qty,
       sarTyCd: "06",
       sarNo: sar.sarNo.toString(),
       invoiceNumber: sar.sarNo,

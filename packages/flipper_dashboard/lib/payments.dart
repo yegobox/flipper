@@ -2,6 +2,7 @@
 
 import 'dart:developer';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -45,8 +46,9 @@ class PaymentsState extends ConsumerState<Payments> {
   final TextEditingController _cash = TextEditingController();
   final TextEditingController _discount = TextEditingController();
   final TextEditingController _customer = TextEditingController();
-  final TextEditingController _countryCodeController =
-      TextEditingController(text: '+250');
+  final TextEditingController _countryCodeController = TextEditingController(
+    text: '+250',
+  );
 
   bool _busy = false;
   final TextEditingController _controller = TextEditingController();
@@ -66,7 +68,7 @@ class PaymentsState extends ConsumerState<Payments> {
       "Mobile": false,
       "Bank": false,
       "Cheque": false,
-      "Credit": false,
+      "CREDIT": false,
     };
     cashPayment = false;
   }
@@ -114,10 +116,12 @@ class PaymentsState extends ConsumerState<Payments> {
         /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
         /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
         /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
-        Customer? customer = (await ProxyService.strategy.customers(
-                id: widget.transaction.customerId ?? "",
-                branchId: ProxyService.box.getBranchId()!))
-            .firstOrNull;
+        Customer? customer = (await ProxyService.getStrategy(
+          Strategy.capella,
+        ).customers(
+          id: widget.transaction.customerId ?? "",
+          branchId: ProxyService.box.getBranchId()!,
+        )).firstOrNull;
         if (customer == null) {
           /// there is no customer attached to this transaction then enable extra field.
           showCustomerField = true;
@@ -152,7 +156,7 @@ class PaymentsState extends ConsumerState<Payments> {
         Text(
           '${ProxyService.box.defaultCurrency()} ' +
               NumberFormat('#,###').format(totalPayable),
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w400,
             fontSize: 32,
             color: Colors.black,
@@ -178,10 +182,7 @@ class PaymentsState extends ConsumerState<Payments> {
                 ),
                 child: Text(
                   showDiscountField ? "Hide Discount" : "Add Discount",
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.black,
-                  ),
+                  style: GoogleFonts.outfit(fontSize: 14, color: Colors.black),
                 ),
               ),
             ),
@@ -190,8 +191,9 @@ class PaymentsState extends ConsumerState<Payments> {
         const SizedBox(height: 10),
         Visibility(
           visible: cashPayment,
-          child:
-              _buildCashReceivedFormField(totalTransactionAmount: totalPayable),
+          child: _buildCashReceivedFormField(
+            totalTransactionAmount: totalPayable,
+          ),
         ),
       ],
     );
@@ -204,9 +206,8 @@ class PaymentsState extends ConsumerState<Payments> {
       child: OutlinedButton(
         style: primary3ButtonStyle.copyWith(
           shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-            (states) => RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
+            (states) =>
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           ),
         ),
         onPressed: () async {
@@ -215,7 +216,7 @@ class PaymentsState extends ConsumerState<Payments> {
         },
         child: Text(
           "Send Invoice",
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w400,
             fontSize: 20,
             color: Color(0xFF01B8E4),
@@ -247,10 +248,7 @@ class PaymentsState extends ConsumerState<Payments> {
           onChanged: (value) {},
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.grey.shade400,
-                width: 1.0,
-              ),
+              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
               borderRadius: BorderRadius.circular(4.0),
             ),
             enabledBorder: OutlineInputBorder(
@@ -306,11 +304,15 @@ class PaymentsState extends ConsumerState<Payments> {
                   onFieldSubmitted: (value) {
                     _customer.text = value;
                     ProxyService.box.writeString(
-                        key: 'currentSaleCustomerPhoneNumber', value: value);
+                      key: 'currentSaleCustomerPhoneNumber',
+                      value: value,
+                    );
                   },
                   onChanged: (value) {
                     ProxyService.box.writeString(
-                        key: 'currentSaleCustomerPhoneNumber', value: value);
+                      key: 'currentSaleCustomerPhoneNumber',
+                      value: value,
+                    );
                   },
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
@@ -350,8 +352,9 @@ class PaymentsState extends ConsumerState<Payments> {
               return 'Please enter Cash Received';
             }
             final amountReceived = double.parse(value);
-            final discount =
-                _discount.text.isEmpty ? 0.0 : double.parse(_discount.text);
+            final discount = _discount.text.isEmpty
+                ? 0.0
+                : double.parse(_discount.text);
             if (amountReceived < (totalTransactionAmount - discount)) {
               return "Amount is less than amount payable";
             }
@@ -363,10 +366,7 @@ class PaymentsState extends ConsumerState<Payments> {
           onChanged: (value) {},
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.grey.shade400,
-                width: 1.0,
-              ),
+              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
               borderRadius: BorderRadius.circular(4.0),
             ),
             enabledBorder: OutlineInputBorder(
@@ -392,25 +392,16 @@ class PaymentsState extends ConsumerState<Payments> {
           icon: FluentIcons.money_calculator_24_regular,
           type: "Cash",
         ),
-        _buildPaymentButton(
-          icon: Icons.payment,
-          type: "Card",
-        ),
-        _buildPaymentButton(
-          icon: FluentIcons.phone_28_regular,
-          type: "Mobile",
-        ),
-        _buildPaymentButton(
-          icon: FluentIcons.savings_24_regular,
-          type: "Bank",
-        ),
+        _buildPaymentButton(icon: Icons.payment, type: "Card"),
+        _buildPaymentButton(icon: FluentIcons.phone_28_regular, type: "Mobile"),
+        _buildPaymentButton(icon: FluentIcons.savings_24_regular, type: "Bank"),
         _buildPaymentButton(
           icon: FluentIcons.checkmark_circle_24_regular,
           type: "Cheque",
         ),
         _buildPaymentButton(
           icon: FluentIcons.wallet_credit_card_20_regular,
-          type: "Credit",
+          type: "CREDIT",
         ),
       ],
     );
@@ -457,16 +448,16 @@ class PaymentsState extends ConsumerState<Payments> {
             TextStyle(color: Colors.white),
           ),
           backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
-          overlayColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
-              if (states.contains(WidgetState.hovered) ||
-                  states.contains(WidgetState.focused) ||
-                  states.contains(WidgetState.pressed)) {
-                return Colors.white;
-              }
-              return null;
-            },
-          ),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((
+            Set<WidgetState> states,
+          ) {
+            if (states.contains(WidgetState.hovered) ||
+                states.contains(WidgetState.focused) ||
+                states.contains(WidgetState.pressed)) {
+              return Colors.white;
+            }
+            return null;
+          }),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min, // Fix: Shrink-wrap Column
@@ -478,11 +469,8 @@ class PaymentsState extends ConsumerState<Payments> {
             ),
             Text(
               type,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: textColor,
-              ),
-            )
+              style: GoogleFonts.outfit(fontSize: 14, color: textColor),
+            ),
           ],
         ),
       ),
@@ -502,10 +490,11 @@ class PaymentsState extends ConsumerState<Payments> {
               if (paymentType == "Cash") {
                 if (_formKey.currentState!.validate()) {
                   await confirmPayment(
-                      model: model,
-                      isIncome: isIncome,
-                      categoryId: widget.categoryId,
-                      transactionType: widget.transactionType);
+                    model: model,
+                    isIncome: isIncome,
+                    categoryId: widget.categoryId,
+                    transactionType: widget.transactionType,
+                  );
                 }
               } else {
                 if (paymentType == null) {
@@ -517,10 +506,11 @@ class PaymentsState extends ConsumerState<Payments> {
                   return;
                 }
                 await confirmPayment(
-                    model: model,
-                    isIncome: isIncome,
-                    transactionType: widget.transactionType,
-                    categoryId: widget.categoryId);
+                  model: model,
+                  isIncome: isIncome,
+                  transactionType: widget.transactionType,
+                  categoryId: widget.categoryId,
+                );
               }
             }
           },
@@ -533,35 +523,44 @@ class PaymentsState extends ConsumerState<Payments> {
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
       if (ProxyService.box.isProformaMode()) {
-        await TaxController(object: widget.transaction)
-            .handleReceipt(filterType: FilterType.PS);
+        await TaxController(
+          object: widget.transaction,
+        ).handleReceipt(filterType: FilterType.PS, purchaseCode: purchaseCode);
       } else if (ProxyService.box.isTrainingMode()) {
-        await TaxController(object: widget.transaction)
-            .handleReceipt(filterType: FilterType.NS);
+        await TaxController(
+          object: widget.transaction,
+        ).handleReceipt(filterType: FilterType.NS, purchaseCode: purchaseCode);
       } else {
-        await TaxController(object: widget.transaction)
-            .handleReceipt(filterType: FilterType.NS);
+        await TaxController(
+          object: widget.transaction,
+        ).handleReceipt(filterType: FilterType.NS, purchaseCode: purchaseCode);
       }
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);
-      showSnackBar(context, e.toString().split(': ').last,
-          textColor: Colors.white, backgroundColor: Colors.green);
+      showSnackBar(
+        context,
+        e.toString().split(': ').last,
+        textColor: Colors.white,
+        backgroundColor: Colors.green,
+      );
     }
   }
 
-  Future<void> confirmPayment(
-      {required CoreViewModel model,
-      required bool isIncome,
-      required String transactionType,
-      required String categoryId}) async {
+  Future<void> confirmPayment({
+    required CoreViewModel model,
+    required bool isIncome,
+    required String transactionType,
+    required String categoryId,
+  }) async {
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty
         ? widget.transaction.subTotal!
         : double.parse(_cash.text);
     // Parse discount ONLY if _discount.text is NOT empty
-    double discount =
-        _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
+    double discount = _discount.text.isNotEmpty
+        ? double.parse(_discount.text)
+        : 0.0;
 
     final customerPhoneNumber = _countryCodeController.text + _customer.text;
 
@@ -579,10 +578,7 @@ class PaymentsState extends ConsumerState<Payments> {
       paymentType: paymentType!,
       discount: discount,
       directlyHandleReceipt: true,
-      customerPhone: customerPhoneNumber,
     );
-
-    await handleReceiptGeneration();
 
     if (widget.transaction.customerId != null) {
       showDialog(
@@ -595,9 +591,7 @@ class PaymentsState extends ConsumerState<Payments> {
           return AlertDialog(
             title: Text('Digital Receipt'),
             content: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: adjustedHeight,
-              ),
+              constraints: BoxConstraints(maxHeight: adjustedHeight),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -607,9 +601,7 @@ class PaymentsState extends ConsumerState<Payments> {
                     TextFormField(
                       controller: _controller,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Purchase Code',
-                      ),
+                      decoration: InputDecoration(labelText: 'Purchase Code'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter a purchase code';
@@ -638,7 +630,7 @@ class PaymentsState extends ConsumerState<Payments> {
                     log("received purchase code: ${purchaseCode}");
                     try {
                       await handleReceiptGeneration(purchaseCode);
-                      Navigator.of(context).pop();
+                      // Navigator.of(context).pop(); // This pop is handled inside handleReceiptGeneration
                     } catch (e) {
                       setState(() {
                         _busy = false;
@@ -649,9 +641,12 @@ class PaymentsState extends ConsumerState<Payments> {
                         errorMessage = errorMessage.substring(startIndex + 2);
                       }
                       // toast(errorMessage);
-                      showSnackBar(context, errorMessage,
-                          textColor: Colors.white,
-                          backgroundColor: Colors.green);
+                      showSnackBar(
+                        context,
+                        errorMessage,
+                        textColor: Colors.white,
+                        backgroundColor: Colors.green,
+                      );
                       return;
                     }
                   }
@@ -662,16 +657,15 @@ class PaymentsState extends ConsumerState<Payments> {
                 onPressed: () async {
                   /// still print the purchase code without the customer information!
                   /// this is standard for non customer attached receipt
-                  await TaxController(object: widget.transaction)
-                      .handleReceipt(filterType: FilterType.NS);
-                  // Handle when the user doesn't need a digital receipt
-                  Navigator.of(context).pop();
+                  await handleReceiptGeneration();
                 },
               ),
             ],
           );
         },
       );
+    } else {
+      await handleReceiptGeneration();
     }
 
     /// refresh and go home

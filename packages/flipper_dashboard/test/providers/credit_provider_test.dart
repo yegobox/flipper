@@ -33,6 +33,10 @@ void main() {
     );
   });
 
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   setUp(() {
     // Reset mocks before each test. These mocks are already initialized in setUpAll.
     reset(mockDbSync);

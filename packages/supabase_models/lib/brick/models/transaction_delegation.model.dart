@@ -23,8 +23,7 @@ part 'transaction_delegation.model.ditto_sync_adapter.g.dart';
     tableName: 'transaction_delegations',
   ),
 )
-@DittoAdapter('transaction_delegations',
-    syncDirection: SyncDirection.bidirectional)
+@DittoAdapter('transaction_delegations', syncDirection: SyncDirection.sendOnly)
 class TransactionDelegation extends OfflineFirstWithSupabaseModel {
   /// Unique identifier for this delegation
   @Supabase(unique: true)

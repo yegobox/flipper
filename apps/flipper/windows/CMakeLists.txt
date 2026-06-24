@@ -2,6 +2,12 @@
 cmake_minimum_required(VERSION 3.14)
 project(flipper LANGUAGES CXX)
 
+# MSVC 18.6+ (STL1011): silence deprecated <experimental/coroutine> headers in older plugins.
+# Do not set /await globally — geolocator_windows uses /await:strict (D8016 if both are set).
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS /WX-")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX-")
+
 # The target_link_libraries call can stay the same since it will use
 # whichever sqlite3 target exists
 
@@ -13,6 +19,8 @@ set(BINARY_NAME "flipper")
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
+# CMP0175 (CMake 3.31+): some plugins use DEPENDS on add_custom_command(TARGET).
+cmake_policy(SET CMP0175 OLD)
 
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -40,7 +48,8 @@ add_definitions(-DUNICODE -D_UNICODE)
 # Compilation settings that should be applied to most targets.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
-  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
+  set_target_properties(${TARGET} PROPERTIES COMPILE_WARNING_AS_ERROR OFF)
+  target_compile_options(${TARGET} PRIVATE /W4 /WX- /wd"4100")
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
@@ -58,6 +67,13 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# Legacy /await for WebView2/cppwinrt (LNK4078 .voltbl). Per-target only — not in APPLY_STANDARD_SETTINGS.
+function(APPLY_LEGACY_COROUTINE_AWAIT TARGET)
+  target_compile_options(${TARGET} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:/await>")
+endfunction()
+# Match coroutine ABI on runner + static wrappers (LNK4078 .voltbl).
+apply_legacy_coroutine_await(${BINARY_NAME})
+apply_legacy_coroutine_await(flutter_wrapper_app)
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
@@ -88,16 +104,31 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 if(PLUGIN_BUNDLED_LIBRARIES)
-  install(FILES "${PLUGIN_BUNDLED_LIBRARIES}"
-    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
+  foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
+    # Generator expressions ($<TARGET_FILE:...>) are fine; literal Windows paths
+    # must use forward slashes or cmake_install.cmake treats \a etc. as escapes.
+    if(bundled_library MATCHES "^\\$<")
+      install(FILES "${bundled_library}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
+    else()
+      file(TO_CMAKE_PATH "${bundled_library}" bundled_library)
+      string(REPLACE "\\" "/" bundled_library "${bundled_library}")
+      install(FILES "${bundled_library}"
+        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+        COMPONENT Runtime)
+    endif()
+  endforeach()
 endif()
 
 # Copy the native assets provided by the build.dart from all packages.
+# Skip when absent (Flutter may skip native_assets after flutter clean).
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
-install(DIRECTORY "${NATIVE_ASSETS_DIR}"
-   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-   COMPONENT Runtime)
+if(EXISTS "${NATIVE_ASSETS_DIR}")
+  install(DIRECTORY "${NATIVE_ASSETS_DIR}"
+     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+     COMPONENT Runtime)
+endif()
 
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.

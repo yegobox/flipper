@@ -4,7 +4,6 @@ import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:uuid/uuid.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
-import 'package:brick_core/query.dart';
 import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -20,7 +19,7 @@ part 'transactionItem.model.ditto_sync_adapter.g.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transaction_items'),
 )
-@DittoAdapter('transaction_items', syncDirection: SyncDirection.bidirectional)
+@DittoAdapter('transaction_items', syncDirection: SyncDirection.sendOnly)
 class TransactionItem extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -501,6 +500,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       'pkgUnitCd': pkgUnitCd,
       'qtyUnitCd': qtyUnitCd,
       'itemNm': itemNm,
+      'bcd': bcd,
       'splyAmt': splyAmt,
       'tin': tin,
       'bhfId': bhfId,

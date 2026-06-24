@@ -1,14 +1,31 @@
-import 'package:flipper_models/helperModels/pin.dart';
+import 'dart:async';
+
+import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_login/login_semantics.dart';
+import 'package:flipper_login/mfa_provider.dart';
+import 'package:flipper_login/pin_login_brand_panel.dart';
+import 'package:flipper_login/pin_login_signin_motion.dart';
+import 'package:flipper_login/pin_login_signin_widgets.dart';
+import 'package:flipper_login/signin_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flipper_login/pin_login_signin_text.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_login/mfa_provider.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 enum AuthMethod { authenticator, sms }
+
+/// Cold Ditto init + Firebase + business setup can exceed 3 minutes on desktop.
+const Duration _kLoginPipelineTimeout = Duration(seconds: 300);
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
@@ -26,200 +43,374 @@ class _PinLoginState extends State<PinLogin>
   final FocusNode _otpFocusNode = FocusNode();
 
   bool _isProcessing = false;
-  bool _isObscure = true;
+  bool _isDone = false;
+  bool _showPinDigits = false;
   bool _hasError = false;
   String _errorMessage = '';
   bool _showOtpField = false;
+  Pin? _localPin;
+
   AuthMethod _authMethod = AuthMethod.authenticator;
   final MfaProvider _mfa = const MfaProvider();
+  Future<void>? _qrLoginTeardown;
 
-  late AnimationController _slideController;
   late AnimationController _fadeController;
   late AnimationController _shakeController;
-
-  late Animation<Offset> _slideAnimation;
+  late AnimationController _errorBlinkController;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _shakeAnimation;
+  late Animation<double> _shakeOffset;
+  late Animation<double> _errorBlinkOpacity;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _pinFocusNode.addListener(_onFocusChange);
+    _pinController.addListener(_onPinTextChanged);
+    // Paint PIN UI first; join any in-flight QR teardown after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _qrLoginTeardown = locator<AppService>().beginQrLoginTeardown();
+    });
+    unawaited(_loadLocalAccount());
   }
 
-  void _initializeAnimations() {
-    _slideController = AnimationController(
-      duration: Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _fadeController = AnimationController(
-      duration: Duration(milliseconds: 400),
-      vsync: this,
-    );
-
-    _shakeController = AnimationController(
-      duration: Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: Offset(0.0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOut,
-    ));
-
-    _shakeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _shakeController,
-      curve: Curves.elasticOut,
-    ));
-
-    _slideController.forward();
-    _fadeController.forward();
+  Future<void> _ensureQrLoginTeardownComplete() async {
+    final pending =
+        _qrLoginTeardown ?? locator<AppService>().beginQrLoginTeardown();
+    try {
+      await pending.timeout(const Duration(seconds: 2));
+    } on TimeoutException {
+      // PIN login can still dispose stale login-* identity during API auth.
+    }
   }
 
-  void _onFocusChange() {
-    if (_hasError && _pinFocusNode.hasFocus) {
-      setState(() {
-        _hasError = false;
-        _errorMessage = '';
+  Never _loginPipelineTimedOut() => throw TimeoutException(
+        'Sign-in timed out. Check your connection and try again.',
+      );
+
+  Future<T> _withLoginPipelineTimeout<T>(Future<T> future) => future.timeout(
+        _kLoginPipelineTimeout,
+        onTimeout: _loginPipelineTimedOut,
+      );
+
+  Future<void> _loadLocalAccount() async {
+    try {
+      final pin = await ProxyService.strategy.getPinLocal(
+        alwaysHydrate: false,
+      );
+      if (mounted) setState(() => _localPin = pin);
+    } catch (_) {
+      // Account chip is optional when no local pin exists.
+    }
+  }
+
+  void _onPinTextChanged() {
+    _clearErrorOnKeypress();
+    if (mounted) setState(() {});
+    if (!_showOtpField &&
+        !_isProcessing &&
+        !_isDone &&
+        _pinController.text.length == SignInTokens.pinCellCount) {
+      // Wait for the hidden field / controller to settle before validating.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_pinController.text.length == SignInTokens.pinCellCount) {
+          unawaited(_handleLogin());
+        }
       });
     }
   }
 
+  void _clearErrorOnKeypress() {
+    if (!_hasError) return;
+    setState(() {
+      _hasError = false;
+      _errorMessage = '';
+    });
+  }
+
+  int get _pinActiveIndex {
+    final len = _pinController.text.length;
+    if (len >= SignInTokens.pinCellCount) return -1;
+    return len;
+  }
+
+  String get _successBusinessLabel {
+    final owner = _localPin?.ownerName?.trim();
+    if (owner != null && owner.isNotEmpty) return owner;
+    return 'your business';
+  }
+
+  void _initializeAnimations() {
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    )..forward();
+
+    _shakeController = AnimationController(
+      duration: SignInMotion.shake,
+      vsync: this,
+    );
+
+    _errorBlinkController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOut,
+    );
+
+    _shakeOffset = SignInMotion.pinShake(_shakeController);
+
+    _errorBlinkOpacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1, end: 0.45), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 0.45, end: 1), weight: 50),
+    ]).animate(
+      CurvedAnimation(parent: _errorBlinkController, curve: Curves.easeInOut),
+    );
+  }
+
+  /// ANIMATIONS.md §1 — shake on PIN auth failure; blink only when reduced motion.
+  void _playPinShake() {
+    if (!mounted) return;
+    HapticFeedback.heavyImpact();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _errorBlinkController.forward(from: 0);
+      return;
+    }
+    _shakeController.forward(from: 0);
+  }
+
+  void _markSignInSuccess() {
+    if (!mounted) return;
+    setState(() => _isDone = true);
+  }
+
+  void _onFocusChange() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
-    _slideController.dispose();
     _fadeController.dispose();
     _shakeController.dispose();
+    _errorBlinkController.dispose();
     _pinFocusNode.dispose();
     _otpFocusNode.dispose();
+    _pinController.removeListener(_onPinTextChanged);
     _pinController.dispose();
     _otpController.dispose();
     super.dispose();
   }
 
+  void _focusPinEntry() {
+    if (!_pinFocusNode.hasFocus) {
+      _pinFocusNode.requestFocus();
+    }
+  }
+
+  void _appendPinDigit(String digit) {
+    if (_isProcessing || _isDone) return;
+    if (_pinController.text.length >= SignInTokens.pinCellCount) return;
+    _pinController.text = '${_pinController.text}$digit';
+  }
+
+  void _backspacePin() {
+    if (_isProcessing || _isDone) return;
+    final text = _pinController.text;
+    if (text.isEmpty) return;
+    _pinController.text = text.substring(0, text.length - 1);
+  }
+
+  /// PIN rules for the 6-cell UI (supports 4–6 digit PINs used in the field).
+  String? _pinInputError(String pin) {
+    if (pin.isEmpty) return 'PIN is required';
+    if (pin.length < 4) return 'PIN must be at least 4 digits';
+    if (pin.length > SignInTokens.pinCellCount) {
+      return 'PIN must be at most ${SignInTokens.pinCellCount} digits';
+    }
+    return null;
+  }
+
+  String? _otpInputError(String otp, {required bool isAuthenticator}) {
+    if (otp.isEmpty) {
+      return isAuthenticator
+          ? 'Authenticator code is required'
+          : 'OTP is required';
+    }
+    if (otp.length != 6 || int.tryParse(otp) == null) {
+      return isAuthenticator
+          ? 'Authenticator code must be a 6-digit number.'
+          : 'OTP must be a 6-digit number.';
+    }
+    return null;
+  }
+
+  Future<void> _switchAccount() async {
+    _pinController.clear();
+    _otpController.clear();
+    setState(() {
+      _showOtpField = false;
+      _hasError = false;
+      _errorMessage = '';
+      _localPin = null;
+    });
+    await locator<RouterService>().replaceWith(LoginRoute());
+  }
+
   Future<void> _handleLogin() async {
-    if (_formKey.currentState?.validate() ?? false) {
+    if (_isProcessing || _isDone) return;
+
+    final pin = _pinController.text;
+    final pinError = _pinInputError(pin);
+    if (pinError != null) {
       setState(() {
-        _isProcessing = true;
-        _hasError = false;
+        _hasError = true;
+        _errorMessage = pinError;
       });
+      return;
+    }
 
-      HapticFeedback.lightImpact();
+    if (_showOtpField) {
+      final otpError = _otpInputError(
+        _otpController.text,
+        isAuthenticator: _authMethod == AuthMethod.authenticator,
+      );
+      if (otpError != null) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = otpError;
+        });
+        return;
+      }
+    }
 
-      try {
-        if (_showOtpField) {
-          final pin = await _getPin();
-          if (_authMethod == AuthMethod.authenticator) {
-            final otpCode = _otpController.text;
-            if (otpCode.length != 6 || int.tryParse(otpCode) == null) {
-              setState(() {
-                _hasError = true;
-                _errorMessage = 'Authenticator code must be a 6-digit number.';
-              });
-              return;
-            }
+    setState(() {
+      _isProcessing = true;
+      _hasError = false;
+      _errorMessage = '';
+    });
 
-            if (pin == null) {
-              setState(() {
-                _hasError = true;
-                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
-              });
-              return;
-            }
+    HapticFeedback.lightImpact();
 
-            final ok = await _mfa.validateTotpThenLogin(
-              pin: pin,
+    try {
+      await _ensureQrLoginTeardownComplete();
+
+      if (_showOtpField) {
+        final pinRecord = await _getPin();
+        if (_authMethod == AuthMethod.authenticator) {
+          final otpCode = _otpController.text;
+
+          if (pinRecord == null) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+            });
+            _pinController.clear();
+            _playPinShake();
+            return;
+          }
+
+          final ok = await _withLoginPipelineTimeout(
+            _mfa.validateTotpThenLogin(
+              pin: pinRecord,
               code: otpCode,
-            );
-            if (!ok) {
-              setState(() {
-                _hasError = true;
-                _errorMessage = 'Invalid authenticator code. Please try again.';
-              });
-            }
+            ),
+          );
+          if (!ok) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid authenticator code. Please try again.';
+            });
           } else {
-            // SMS selected while already at OTP stage
-            if (_otpController.text.isEmpty) {
-              // Ensure an SMS is sent, keep OTP visible
-              await _requestSmsOtp();
-              return;
-            }
-            if (pin == null) {
-              setState(() {
-                _hasError = true;
-                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
-              });
-              return;
-            }
-            await _mfa.verifySmsOtpThenLogin(
-                otp: _otpController.text, pin: pin);
+            _markSignInSuccess();
           }
         } else {
-          if (_authMethod == AuthMethod.sms) {
-            final response =
-                await _mfa.requestSmsOtp(pinString: _pinController.text);
-            if (response['requiresOtp']) {
-              setState(() {
-                _showOtpField = true;
-                _otpFocusNode.requestFocus();
-              });
-            } else {
-              // No OTP required: proceed to login directly using the PIN details
-              final pin = await _getPin();
-              if (pin != null) {
-                await ProxyService.strategy.login(
-                  userPhone: pin.phoneNumber,
-                  isInSignUpProgress: false,
-                  skipDefaultAppSetup: false,
-                  pin: Pin(
-                    userId: pin.userId,
-                    pin: pin.pin,
-                    businessId: pin.businessId,
-                    branchId: pin.branchId,
-                    ownerName: pin.ownerName ?? '',
-                    phoneNumber: pin.phoneNumber,
-                  ),
-                  flipperHttpClient: ProxyService.http,
-                );
-              }
-            }
-          } else {
-            // Authenticator selected: show OTP field without requesting SMS
-            // Validate PIN exists before proceeding
-            await _getPin();
+          if (_otpController.text.isEmpty) {
+            await _requestSmsOtp();
+            return;
+          }
+          if (pinRecord == null) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+            });
+            _pinController.clear();
+            _playPinShake();
+            return;
+          }
+          await _withLoginPipelineTimeout(
+            _mfa.verifySmsOtpThenLogin(
+              otp: _otpController.text,
+              pin: pinRecord,
+            ),
+          );
+          _markSignInSuccess();
+        }
+      } else {
+        if (_authMethod == AuthMethod.sms) {
+          final response =
+              await _mfa.requestSmsOtp(pinString: _pinController.text);
+          if (response['requiresOtp']) {
             setState(() {
               _showOtpField = true;
               _otpFocusNode.requestFocus();
             });
+          } else {
+            final pinRecord = await _getPin();
+            if (pinRecord != null) {
+              _markSignInSuccess();
+              await _withLoginPipelineTimeout(
+                ProxyService.strategy.login(
+                  userPhone: pinRecord.phoneNumber,
+                  isInSignUpProgress: false,
+                  skipDefaultAppSetup: false,
+                  pin: Pin(
+                    userId: pinRecord.userId,
+                    pin: pinRecord.pin,
+                    businessId: pinRecord.businessId,
+                    branchId: pinRecord.branchId,
+                    ownerName: pinRecord.ownerName ?? '',
+                    phoneNumber: pinRecord.phoneNumber,
+                  ),
+                  flipperHttpClient: ProxyService.http,
+                ),
+              );
+            } else {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              });
+              _pinController.clear();
+              _playPinShake();
+            }
           }
+        } else {
+          final pinRecord = await _getPin();
+          if (pinRecord == null) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+            });
+            _pinController.clear();
+            _playPinShake();
+            return;
+          }
+          setState(() {
+            _showOtpField = true;
+            _otpFocusNode.requestFocus();
+          });
         }
-      } catch (e, s) {
-        await _handleLoginError(e, s);
-      } finally {
-        setState(() {
-          _isProcessing = false;
-        });
       }
-    } else {
-      _shakeController.reset();
-      _shakeController.forward();
-      HapticFeedback.heavyImpact();
+    } catch (e, s) {
+      await _handleLoginError(e, s);
+    } finally {
+      if (mounted && !_isDone) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
@@ -231,21 +422,24 @@ class _PinLoginState extends State<PinLogin>
   }
 
   Future<void> _handleLoginError(dynamic e, StackTrace s) async {
-    _shakeController.reset();
-    _shakeController.forward();
-
-    HapticFeedback.heavyImpact();
-
-    final errorDetails = await ProxyService.strategy.handleLoginError(e, s);
-    final String errorMessage = errorDetails['errorMessage'];
+    String errorMessage;
+    if (e is TimeoutException) {
+      errorMessage = e.message?.isNotEmpty == true
+          ? e.message!
+          : 'Sign-in timed out. Check your connection and try again.';
+    } else if (e is NeedSignUpException) {
+      errorMessage = 'Account not found';
+    } else {
+      final errorDetails = await ProxyService.strategy.handleLoginError(e, s);
+      errorMessage = (errorDetails['errorMessage'] as String?) ??
+          'An unexpected error occurred.';
+    }
 
     GlobalErrorHandler.logError(
       e,
       stackTrace: s,
       type: 'Pin Login Error',
-      extra: {
-        'error_type': e.runtimeType.toString(),
-      },
+      extra: {'error_type': e.runtimeType.toString()},
     );
 
     if (!mounted) return;
@@ -254,15 +448,10 @@ class _PinLoginState extends State<PinLogin>
       _hasError = true;
       _errorMessage = errorMessage.isNotEmpty
           ? errorMessage
-          : 'Invalid PIN or OTP. Please try again.';
+          : 'That PIN doesn’t match. Try again.';
+      _pinController.clear();
     });
-  }
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _isObscure = !_isObscure;
-    });
-    HapticFeedback.selectionClick();
+    _playPinShake();
   }
 
   void _setAuthMethod(AuthMethod method) {
@@ -271,10 +460,8 @@ class _PinLoginState extends State<PinLogin>
       _authMethod = method;
       _hasError = false;
       _errorMessage = '';
-      // Keep OTP stage if already shown; just clear current code
       _otpController.clear();
     });
-    // If switching to SMS while already in OTP stage, request an SMS code immediately
     if (method == AuthMethod.sms && _showOtpField) {
       _requestSmsOtp();
     }
@@ -291,92 +478,79 @@ class _PinLoginState extends State<PinLogin>
       if (!mounted) return;
 
       if (response['requiresOtp'] == true) {
-        setState(() {
-          _showOtpField = true;
-        });
+        setState(() => _showOtpField = true);
         _otpFocusNode.requestFocus();
       }
     } catch (e, s) {
-      if (mounted) {
-        await _handleLoginError(e, s);
-      }
+      if (mounted) await _handleLoginError(e, s);
     }
+  }
+
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(FLocalization.of(context).troubleSigningIn),
+          content: Text(FLocalization.of(context).troubleSigningInHelp),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(FLocalization.of(context).ok),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String get _accountName {
+    final owner = _localPin?.ownerName?.trim();
+    if (owner != null && owner.isNotEmpty) return owner;
+    final phone = _localPin?.phoneNumber?.trim();
+    if (phone != null && phone.isNotEmpty) return phone;
+    return FLocalization.of(context).welcomeBack;
+  }
+
+  String get _accountSubtitle {
+    final owner = _localPin?.ownerName?.trim();
+    if (owner != null && owner.isNotEmpty) {
+      return 'Your Flipper account';
+    }
+    return 'Sign in with your PIN';
+  }
+
+  String get _accountInitial {
+    final name = _accountName.trim();
+    if (name.isEmpty) return 'F';
+    return name[0];
+  }
+
+  bool _useSignInDesktopLayout(BoxConstraints constraints) {
+    return constraints.maxWidth >= SignInTokens.desktopSplitBreakpoint;
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return ViewModelBuilder<LoginViewModel>.reactive(
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
-        return Scaffold(
-          key: Key('PinLogin'),
-          backgroundColor: isDark ? Color(0xFF1a1a1a) : Color(0xFFF8F9FA),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final contentPadding = screenHeight < 600
-                    ? EdgeInsets.symmetric(horizontal: 16, vertical: 8)
-                    : EdgeInsets.symmetric(horizontal: 24, vertical: 16);
-
-                final cardPadding =
-                    screenWidth < 400 ? EdgeInsets.all(16) : EdgeInsets.all(24);
-
-                return Column(
-                  children: [
-                    _buildAppBar(context, isDark, screenHeight),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: BouncingScrollPhysics(),
-                        padding: contentPadding,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight -
-                                contentPadding.vertical -
-                                60,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              FadeTransition(
-                                opacity: _fadeAnimation,
-                                child: SlideTransition(
-                                  position: _slideAnimation,
-                                  child: AnimatedBuilder(
-                                    animation: _shakeAnimation,
-                                    builder: (context, child) {
-                                      return Transform.translate(
-                                        offset: Offset(
-                                          _shakeAnimation.value *
-                                              8 *
-                                              (1 - _shakeAnimation.value),
-                                          0,
-                                        ),
-                                        child: _buildLoginCard(
-                                          context,
-                                          model,
-                                          isDark,
-                                          cardPadding,
-                                          screenWidth,
-                                          screenHeight,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+        return Semantics(
+          key: const Key(LoginMaestroIds.pinScreen),
+          identifier: LoginMaestroIds.pinScreen,
+          label: 'PIN login',
+          child: Scaffold(
+            key: const Key('PinLogin'),
+            backgroundColor: SignInTokens.surface,
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (_useSignInDesktopLayout(constraints)) {
+                    return _buildDesktopSignInLayout(constraints);
+                  }
+                  return _buildCompactSignInLayout(constraints);
+                },
+              ),
             ),
           ),
         );
@@ -384,668 +558,423 @@ class _PinLoginState extends State<PinLogin>
     );
   }
 
-  Widget _buildAppBar(BuildContext context, bool isDark, double screenHeight) {
-    return Container(
-      height: screenHeight < 600 ? 48 : 60,
-      padding: EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
+  Widget _buildDesktopSignInLayout(BoxConstraints constraints) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(child: _buildSignInLeftColumn(constraints, compact: false)),
+        const Expanded(child: PinLoginBrandPanel()),
+      ],
+    );
+  }
+
+  Widget _buildCompactSignInLayout(BoxConstraints constraints) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
+      child: _buildSignInLeftColumn(constraints, compact: true),
+    );
+  }
+
+  Widget _buildSignInFormContent({required bool compact}) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxWidth: SignInTokens.formMaxWidth,
+      ),
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Welcome back',
+                style: context.signInText(
+                  fontSize: compact ? 32 : 40,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.2,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Enter your PIN to manage your business securely.',
+                style: context.signInText(
+                  fontSize: compact ? 15 : 16,
+                  height: 1.5,
+                  color: SignInTokens.ink2,
+                ),
+              ),
+              SizedBox(height: compact ? 28 : 36),
+              if (_localPin != null) ...[
+                SignInAccountChip(
+                  initial: _accountInitial,
+                  name: _accountName,
+                  subtitle: _accountSubtitle,
+                  onNotYou: _switchAccount,
+                ),
+                const SizedBox(height: 24),
+              ],
+              _buildPinEntrySection(compact: compact),
+              if (_showOtpField) ...[
+                const SizedBox(height: 24),
+                _buildMethodToggle(compact),
+                const SizedBox(height: 16),
+                _buildOtpField(compact),
+              ],
+              const SizedBox(height: 26),
+              Semantics(
+                key: const Key(LoginMaestroIds.pinSubmit),
+                identifier: LoginMaestroIds.pinSubmit,
+                label: _isDone
+                    ? 'Signed in'
+                    : (_isProcessing ? 'Verifying' : 'Sign in'),
+                button: true,
+                enabled: !_isProcessing && !_isDone,
+                child: FlipperGradientButton(
+                  key: const Key('pinLoginButton'),
+                  text: _isDone
+                      ? 'Signed in ✓'
+                      : (_isProcessing ? 'Verifying…' : 'Sign in'),
+                  icon: _isDone ? null : Icons.arrow_outward_rounded,
+                  isLoading: false,
+                  onPressed: (_isProcessing || _isDone) ? null : _handleLogin,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Center(
+                child: Semantics(
+                  key: const Key(LoginMaestroIds.pinHelp),
+                  identifier: LoginMaestroIds.pinHelp,
+                  label: 'Trouble signing in',
+                  button: true,
+                  enabled: true,
+                  child: TextButton(
+                    onPressed: _showHelpDialog,
+                    child: Text(
+                      'Trouble signing in?',
+                      style: context.signInText(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: SignInTokens.blue,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSignInLeftColumn(
+    BoxConstraints constraints, {
+    required bool compact,
+  }) {
+    final formContent = Center(
+      child: _buildSignInFormContent(compact: compact),
+    );
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 0 : 48,
+        vertical: compact ? 0 : 40,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              size: screenHeight < 600 ? 20 : 24,
-              color: isDark ? Colors.white : Colors.black87,
+          const SignInBrandHeader(),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, scrollConstraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: scrollConstraints.maxHeight,
+                    ),
+                    child: formContent,
+                  ),
+                );
+              },
             ),
-            onPressed: () => Navigator.of(context).pop(),
           ),
-          Text(
-            'Sign In',
-            style: TextStyle(
-              fontSize: screenHeight < 600 ? 18 : 20,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
+          if (!compact) const SignInBottomBar(),
         ],
       ),
     );
   }
 
-  Widget _buildLoginCard(
-    BuildContext context,
-    LoginViewModel model,
-    bool isDark,
-    EdgeInsets cardPadding,
-    double screenWidth,
-    double screenHeight,
-  ) {
-    final cardWidth = screenWidth > 1200
-        ? 480.0
-        : (screenWidth > 800 ? 400.0 : double.infinity);
-
-    final cardMargin = screenWidth < 400
-        ? EdgeInsets.symmetric(horizontal: 8)
-        : EdgeInsets.symmetric(horizontal: 16);
-
-    return Container(
-      width: cardWidth,
-      margin: cardMargin,
-      padding: cardPadding,
-      decoration: BoxDecoration(
-        color: isDark ? Color(0xFF2D2D2D) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Color(0xFF3a3a3a) : Color(0xFFE5E7EB),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.4)
-                : Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: Offset(0, 8),
-            spreadRadius: -4,
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildWelcomeSection(isDark, screenHeight),
-            SizedBox(height: screenHeight < 600 ? 16 : 24),
-            _buildPinField(isDark, screenHeight),
-            if (_showOtpField) ...[
-              SizedBox(height: screenHeight < 600 ? 8 : 12),
-              _buildMethodToggle(isDark, screenHeight),
-              SizedBox(height: screenHeight < 600 ? 12 : 16),
-              _buildOtpField(isDark, screenHeight),
-            ],
-            if (_hasError) ...[
-              SizedBox(height: screenHeight < 600 ? 8 : 12),
-              _buildErrorMessage(isDark),
-            ],
-            SizedBox(height: screenHeight < 600 ? 16 : 24),
-            _buildLoginButton(model, isDark, screenHeight),
-            SizedBox(height: screenHeight < 600 ? 12 : 16),
-            _buildHelpText(isDark, screenHeight),
-            SizedBox(height: screenHeight < 600 ? 8 : 12),
-            _buildSecurityNote(isDark, screenHeight),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWelcomeSection(bool isDark, double screenHeight) {
-    final isSmallScreen = screenHeight < 600;
-
+  Widget _buildPinEntrySection({required bool compact}) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF4285F4), Color(0xFF34A853)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF4285F4).withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.lock_person_outlined,
-                color: Colors.white,
-                size: isSmallScreen ? 20 : 24,
+            Text(
+              'PIN',
+              style: context.signInText(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: SignInTokens.ink2,
               ),
             ),
-            SizedBox(width: isSmallScreen ? 8 : 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Secure Access',
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 13 : 14,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Color(0xFF374151),
-                    ),
+            const Spacer(),
+            Semantics(
+              key: const Key(LoginMaestroIds.pinShowToggle),
+              identifier: LoginMaestroIds.pinShowToggle,
+              label: _showPinDigits ? 'Hide PIN' : 'Show PIN',
+              button: true,
+              enabled: true,
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() => _showPinDigits = !_showPinDigits);
+                  HapticFeedback.selectionClick();
+                },
+                icon: Icon(
+                  _showPinDigits
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  size: 15,
+                  color: SignInTokens.ink3,
+                ),
+                label: Text(
+                  _showPinDigits ? 'Hide' : 'Show',
+                  style: context.signInText(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: SignInTokens.ink3,
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Your data is protected',
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 11 : 12,
-                      color: isDark ? Colors.white60 : Color(0xFF6B7280),
-                    ),
-                  ),
-                ],
+                ),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
             ),
           ],
         ),
-        SizedBox(height: isSmallScreen ? 12 : 16),
-        Text(
-          'Welcome back!',
-          style: TextStyle(
-            fontSize: isSmallScreen ? 20 : 24,
-            fontWeight: FontWeight.w700,
-            color: isDark ? Colors.white : Color(0xFF1a1a1a),
-            letterSpacing: -0.5,
-          ),
-        ),
-        SizedBox(height: isSmallScreen ? 6 : 8),
-        Text(
-          'Enter your PIN to access your account securely',
-          style: TextStyle(
-            fontSize: isSmallScreen ? 12 : 14,
-            color: isDark ? Colors.white70 : Color(0xFF6B7280),
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPinField(bool isDark, double screenHeight) {
-    final isSmallScreen = screenHeight < 600;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'PIN',
-          style: TextStyle(
-            fontSize: isSmallScreen ? 13 : 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Color(0xFF374151),
-          ),
-        ),
-        SizedBox(height: isSmallScreen ? 6 : 8),
-        TextFormField(
-          key: Key('pinField'), // Added for testability
-          controller: _pinController,
-          focusNode: _pinFocusNode,
-          obscureText: _isObscure,
-          keyboardType: TextInputType.number,
-          textInputAction:
-              _showOtpField ? TextInputAction.next : TextInputAction.done,
-          onFieldSubmitted: (_) =>
-              _showOtpField ? _otpFocusNode.requestFocus() : _handleLogin(),
-          style: TextStyle(
-            fontSize: isSmallScreen ? 14 : 15,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white : Color(0xFF1a1a1a),
-            letterSpacing: _isObscure ? 3 : 0,
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF8F9FB),
-            hintText: 'Enter your PIN',
-            hintStyle: TextStyle(
-              color: isDark ? Colors.white38 : Color(0xFF9CA3AF),
-              fontWeight: FontWeight.w400,
-            ),
-            prefixIcon: Container(
-              margin: EdgeInsets.all(isSmallScreen ? 6 : 8),
-              padding: EdgeInsets.all(isSmallScreen ? 4 : 6),
-              decoration: BoxDecoration(
-                color: Color(0xFF4285F4).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(
-                Icons.pin_outlined,
-                color: Color(0xFF4285F4),
-                size: isSmallScreen ? 16 : 18,
-              ),
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _isObscure
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                color: isDark ? Colors.white54 : Color(0xFF6B7280),
-                size: isSmallScreen ? 18 : 20,
-              ),
-              onPressed: _togglePasswordVisibility,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _hasError
-                    ? Color(0xFFEF4444)
-                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _hasError
-                    ? Color(0xFFEF4444)
-                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _hasError ? Color(0xFFEF4444) : Color(0xFF4285F4),
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1.5,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1.5,
-              ),
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: isSmallScreen ? 12 : 16,
-              vertical: isSmallScreen ? 12 : 14,
-            ),
-            errorStyle: TextStyle(
-              fontSize: isSmallScreen ? 10 : 11,
-              height: 1.2,
-            ),
-          ),
-          validator: (text) {
-            if (text == null || text.isEmpty) {
-              return "PIN is required";
-            }
-            if (text.length < 4) {
-              return "PIN must be at least 4 digits";
-            }
-            return null;
+        const SizedBox(height: 10),
+        _buildHiddenPinField(),
+        AnimatedBuilder(
+          animation: Listenable.merge([_shakeOffset, _errorBlinkOpacity]),
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(_shakeOffset.value, 0),
+              child: child,
+            );
           },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOtpField(bool isDark, double screenHeight) {
-    final isSmallScreen = screenHeight < 600;
-    final isAuthenticator = _authMethod == AuthMethod.authenticator;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          isAuthenticator ? 'Authenticator code' : 'OTP',
-          style: TextStyle(
-            fontSize: isSmallScreen ? 13 : 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Color(0xFF374151),
+          child: SignInPinCells(
+            pin: _pinController.text,
+            showDigits: _showPinDigits,
+            hasError: _hasError,
+            activeIndex: _pinActiveIndex,
+            pinFocused: _pinFocusNode.hasFocus,
+            compact: compact,
+            onTap: _focusPinEntry,
           ),
         ),
-        SizedBox(height: isSmallScreen ? 6 : 8),
-        TextFormField(
-          key: Key('otpField'), // Added key for testability
-          controller: _otpController,
-          focusNode: _otpFocusNode,
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => _handleLogin(),
-          style: TextStyle(
-            fontSize: isSmallScreen ? 14 : 15,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white : Color(0xFF1a1a1a),
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF8F9FB),
-            hintText: isAuthenticator ? 'Enter 6-digit code' : 'Enter your OTP',
-            hintStyle: TextStyle(
-              color: isDark ? Colors.white38 : Color(0xFF9CA3AF),
-              fontWeight: FontWeight.w400,
-            ),
-            prefixIcon: Container(
-              margin: EdgeInsets.all(isSmallScreen ? 6 : 8),
-              padding: EdgeInsets.all(isSmallScreen ? 4 : 6),
-              decoration: BoxDecoration(
-                color: Color(0xFF4285F4).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(
-                isAuthenticator ? Icons.shield_outlined : Icons.sms_outlined,
-                color: Color(0xFF4285F4),
-                size: isSmallScreen ? 16 : 18,
-              ),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _hasError
-                    ? Color(0xFFEF4444)
-                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _hasError
-                    ? Color(0xFFEF4444)
-                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _hasError ? Color(0xFFEF4444) : Color(0xFF4285F4),
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1.5,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1.5,
-              ),
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: isSmallScreen ? 12 : 16,
-              vertical: isSmallScreen ? 12 : 14,
-            ),
-            errorStyle: TextStyle(
-              fontSize: isSmallScreen ? 10 : 11,
-              height: 1.2,
-            ),
-          ),
-          validator: (text) {
-            if (text == null || text.isEmpty) {
-              return isAuthenticator
-                  ? "Authenticator code is required"
-                  : "OTP is required";
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMethodToggle(bool isDark, double screenHeight) {
-    final isSmallScreen = screenHeight < 600;
-    return Row(
-      children: [
-        Expanded(
-          child: ChoiceChip(
-            label: Text(
-              'Authenticator',
-              style: TextStyle(
-                fontSize: isSmallScreen ? 11 : 12,
-                fontWeight: FontWeight.w600,
-                color: _authMethod == AuthMethod.authenticator
-                    ? Colors.white
-                    : (isDark ? Colors.white70 : Color(0xFF374151)),
-              ),
-            ),
-            selected: _authMethod == AuthMethod.authenticator,
-            onSelected: (v) => _setAuthMethod(AuthMethod.authenticator),
-            selectedColor: Color(0xFF4285F4),
-            backgroundColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF3F4F6),
-            shape: StadiumBorder(
-              side: BorderSide(
-                color: _authMethod == AuthMethod.authenticator
-                    ? Color(0xFF4285F4)
-                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-              ),
-            ),
+        const SizedBox(height: 12),
+        FadeTransition(
+          opacity: _hasError && MediaQuery.disableAnimationsOf(context)
+              ? _errorBlinkOpacity
+              : const AlwaysStoppedAnimation(1),
+          child: SignInPinStatusLine(
+            hasError: _hasError,
+            isSuccess: _isDone,
+            message: _errorMessage,
+            successBusinessName: _successBusinessLabel,
           ),
         ),
-        SizedBox(width: 8),
-        Expanded(
-          child: ChoiceChip(
-            label: Text(
-              'SMS',
-              style: TextStyle(
-                fontSize: isSmallScreen ? 11 : 12,
-                fontWeight: FontWeight.w600,
-                color: _authMethod == AuthMethod.sms
-                    ? Colors.white
-                    : (isDark ? Colors.white70 : Color(0xFF374151)),
-              ),
-            ),
-            selected: _authMethod == AuthMethod.sms,
-            onSelected: (v) => _setAuthMethod(AuthMethod.sms),
-            selectedColor: Color(0xFF4285F4),
-            backgroundColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF3F4F6),
-            shape: StadiumBorder(
-              side: BorderSide(
-                color: _authMethod == AuthMethod.sms
-                    ? Color(0xFF4285F4)
-                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildErrorMessage(bool isDark) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Color(0xFFEF4444).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: Color(0xFFEF4444),
-            size: 16,
-          ),
-          SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              _errorMessage,
-              style: TextStyle(
-                color: Color(0xFFEF4444),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+        if (compact) ...[
+          const SizedBox(height: 22),
+          SignInPinKeypad(
+            enabled: !_isProcessing && !_isDone,
+            onDigit: _appendPinDigit,
+            onBackspace: _backspacePin,
+            onToggleShow: () =>
+                setState(() => _showPinDigits = !_showPinDigits),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildHiddenPinField() {
+    return Opacity(
+      opacity: 0,
+      child: SizedBox(
+        height: 0,
+        child: Semantics(
+          key: const Key(LoginMaestroIds.pinField),
+          identifier: LoginMaestroIds.pinField,
+          label: 'PIN',
+          textField: true,
+          enabled: !_isProcessing && !_isDone,
+          value: '${_pinController.text.length} digits entered',
+          child: TextFormField(
+            key: const Key('pinField'),
+            controller: _pinController,
+            focusNode: _pinFocusNode,
+            autofocus: true,
+            enabled: !_isProcessing && !_isDone,
+            keyboardType: TextInputType.number,
+            textInputAction:
+                _showOtpField ? TextInputAction.next : TextInputAction.done,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(SignInTokens.pinCellCount),
+            ],
+            onFieldSubmitted: (_) =>
+                _showOtpField ? _otpFocusNode.requestFocus() : _handleLogin(),
+            style: const TextStyle(fontSize: 1, height: 0),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
+            ),
+            validator: (text) => _pinInputError(text ?? ''),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildLoginButton(
-      LoginViewModel model, bool isDark, double screenHeight) {
-    final isSmallScreen = screenHeight < 600;
-
+  Widget _buildMethodToggle(bool compact) {
     return Container(
-      width: double.infinity,
-      height: isSmallScreen ? 44 : 48,
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
+        color: SignInTokens.surface2,
         borderRadius: BorderRadius.circular(12),
-        gradient: LinearGradient(
-          colors: [Color(0xFF4285F4), Color(0xFF1976D2)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFF4285F4).withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _isProcessing ? null : _handleLogin,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 10 : 12),
-            child: _isProcessing
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: isSmallScreen ? 14 : 16,
-                        width: isSmallScreen ? 14 : 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      ),
-                      SizedBox(width: isSmallScreen ? 6 : 8),
-                      Text(
-                        'Signing in...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isSmallScreen ? 13 : 14,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.lock_open_outlined,
-                        color: Colors.white,
-                        size: isSmallScreen ? 16 : 18,
-                      ),
-                      SizedBox(width: isSmallScreen ? 4 : 6),
-                      Text(
-                        'Sign In',
-                        key: Key('signInButtonText'),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isSmallScreen ? 13 : 14,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHelpText(bool isDark, double screenHeight) {
-    final isSmallScreen = screenHeight < 600;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        TextButton.icon(
-          onPressed: () {
-            // Handle forgot PIN
-          },
-          icon: Icon(
-            Icons.help_outline,
-            size: isSmallScreen ? 14 : 16,
-            color: Color(0xFF4285F4),
-          ),
-          label: Text(
-            'Forgot PIN?',
-            style: TextStyle(
-              color: Color(0xFF4285F4),
-              fontSize: isSmallScreen ? 11 : 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        TextButton.icon(
-          onPressed: () {
-            // Handle contact support
-          },
-          icon: Icon(
-            Icons.support_agent_outlined,
-            size: isSmallScreen ? 14 : 16,
-            color: isDark ? Colors.white60 : Color(0xFF6B7280),
-          ),
-          label: Text(
-            'Need help?',
-            style: TextStyle(
-              color: isDark ? Colors.white60 : Color(0xFF6B7280),
-              fontSize: isSmallScreen ? 11 : 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSecurityNote(bool isDark, double screenHeight) {
-    final isSmallScreen = screenHeight < 600;
-
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Color(0xFF10B981).withValues(alpha: 0.2)
-            : Color(0xFF10B981).withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDark
-              ? Color(0xFF10B981).withValues(alpha: 0.3)
-              : Color(0xFF10B981).withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: SignInTokens.line),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.verified_user_outlined,
-            color: Color(0xFF10B981),
-            size: isSmallScreen ? 16 : 18,
-          ),
-          SizedBox(width: isSmallScreen ? 6 : 8),
           Expanded(
-            child: Text(
-              'Your PIN is encrypted and stored securely.',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Color(0xFF065F46),
-                fontSize: isSmallScreen ? 11 : 12,
-                fontWeight: FontWeight.w500,
-              ),
+            child: _buildToggleItem(
+              'Authenticator',
+              AuthMethod.authenticator,
+              compact,
             ),
+          ),
+          Expanded(
+            child: _buildToggleItem('SMS', AuthMethod.sms, compact),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildToggleItem(String label, AuthMethod method, bool compact) {
+    final isSelected = _authMethod == method;
+    final semanticId = method == AuthMethod.authenticator
+        ? LoginMaestroIds.authAuthenticator
+        : LoginMaestroIds.authSms;
+
+    return Semantics(
+      key: Key(semanticId),
+      identifier: semanticId,
+      label: label,
+      button: true,
+      selected: isSelected,
+      enabled: true,
+      child: GestureDetector(
+        onTap: () => _setAuthMethod(method),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? SignInTokens.surface : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF102040).withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: context.signInText(
+              fontSize: compact ? 12 : 13,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? SignInTokens.ink1 : SignInTokens.ink3,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOtpField(bool compact) {
+    final isAuthenticator = _authMethod == AuthMethod.authenticator;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isAuthenticator ? 'Authenticator Code' : 'SMS Code',
+          style: context.signInText(
+            fontSize: compact ? 13 : 14,
+            fontWeight: FontWeight.w700,
+            color: SignInTokens.ink2,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Semantics(
+          key: const Key(LoginMaestroIds.otpField),
+          identifier: LoginMaestroIds.otpField,
+          label: isAuthenticator ? 'Authenticator code' : 'SMS code',
+          textField: true,
+          enabled: true,
+          child: TextFormField(
+            key: const Key('otpField'),
+            controller: _otpController,
+            focusNode: _otpFocusNode,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => _handleLogin(),
+            style: context.signInPinDigit(fontSize: compact ? 16 : 18),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: SignInTokens.surface2,
+              hintText: '000000',
+              hintStyle: context
+                  .signInPinDigit(fontSize: compact ? 16 : 18)
+                  .copyWith(color: SignInTokens.ink3),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(SignInTokens.radiusMd),
+                borderSide: BorderSide(
+                  color: _hasError ? SignInTokens.danger : SignInTokens.blue,
+                  width: 2,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: compact ? 14 : 18,
+              ),
+            ),
+            validator: (text) {
+              if (text == null || text.isEmpty) {
+                return isAuthenticator
+                    ? 'Authenticator code is required'
+                    : 'OTP is required';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
     );
   }
 }

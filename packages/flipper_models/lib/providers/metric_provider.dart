@@ -1,7 +1,6 @@
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter/material.dart';
 
@@ -23,8 +22,6 @@ Future<List<Metric>> fetchMetrics(Ref ref, String branchId) async {
       0.0, (sum, a) => sum + (a.supplyPrice! * a.unitsSold!));
   final totalInventory =
       analytics.fold<double>(0.0, (sum, a) => sum + a.currentStock!);
-  final totalStockValue =
-      analytics.fold<double>(0.0, (sum, a) => sum + a.stockValue!);
   final totalProfit = analytics.fold<double>(0.0, (sum, a) => sum + a.profit!);
   final totalTransactions = analytics.length;
 

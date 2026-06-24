@@ -12,6 +12,7 @@ import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
 
 part 'business.model.ditto_sync_adapter.g.dart';
 
@@ -20,7 +21,7 @@ part 'business.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'businesses',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Business extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -67,7 +68,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   bool? taxEnabled;
   String? taxServerUrl;
   bool? isDefault;
-  String? businessTypeId;
+  int? businessTypeId;
   String? referredBy;
 
   String? encryptionKey;
@@ -84,6 +85,10 @@ class Business extends OfflineFirstWithSupabaseModel {
     ''',
   )
   String? messagingChannels;
+
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  List<Branch>? branches;
 
   Business({
     String? id,
@@ -130,6 +135,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.encryptionKey,
     this.phoneNumber,
     this.messagingChannels,
+    this.branches,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -173,13 +179,14 @@ class Business extends OfflineFirstWithSupabaseModel {
     bool? taxEnabled,
     String? taxServerUrl,
     bool? isDefault,
-    String? businessTypeId,
+    int? businessTypeId,
     String? referredBy,
     DateTime? lastTouched,
     DateTime? deletedAt,
     String? encryptionKey,
     String? phoneNumber,
     String? messagingChannels,
+    List<Branch>? branches,
   }) {
     return Business(
       id: id ?? this.id,
@@ -215,6 +222,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       messagingChannels: messagingChannels ?? this.messagingChannels,
       referredBy: referredBy ?? this.referredBy,
+      branches: branches ?? this.branches,
     );
   }
 
@@ -255,20 +263,29 @@ class Business extends OfflineFirstWithSupabaseModel {
       email: map['email'] as String?,
       lastDbBackup: map['last_db_backup'] as String?,
       fullName: map['full_name'] as String?,
-      tinNumber: map['tin_number'] as int?,
+      tinNumber: map['tin_number'] == null
+          ? null
+          : map['tin_number'] is int
+              ? map['tin_number'] as int
+              : int.tryParse(map['tin_number'].toString()),
       bhfId: map['bhf_id'] as String?,
       dvcSrlNo: map['dvc_srl_no'] as String?,
       adrs: map['adrs'] as String?,
       taxEnabled: map['tax_enabled'] as bool?,
       taxServerUrl: map['tax_server_url'] as String?,
       isDefault: map['is_default'] as bool?,
-      businessTypeId: map['business_type_id'] is int
-          ? map['business_type_id'].toString()
-          : map['business_type_id'] as String?,
+      businessTypeId: map['business_type_id'] == null
+          ? null
+          : map['business_type_id'] is int
+              ? map['business_type_id'] as int
+              : int.tryParse(map['business_type_id'].toString()),
       referredBy: map['referred_by'] as String?,
       encryptionKey: map['encryption_key'] as String?,
       phoneNumber: map['phone_number'] as String?,
       messagingChannels: map['messaging_channels'] as String?,
+      branches: map['branches'] != null
+          ? (map['branches'] as List).map((x) => Branch.fromMap(x)).toList()
+          : null,
     );
   }
   // to json

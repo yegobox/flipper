@@ -4,11 +4,14 @@ version: 1.0.0-dev
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=3.0.0"
+  sdk: '>=3.10.4 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  firebase_ui_auth: ^3.0.0
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
 
-  firebase_ui_localizations: ^2.0.1
+flutter:
+  generate: true

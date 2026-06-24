@@ -12,18 +12,24 @@ part of 'metric_provider.dart';
 @ProviderFor(fetchMetrics)
 const fetchMetricsProvider = FetchMetricsFamily._();
 
-final class FetchMetricsProvider extends $FunctionalProvider<
-        AsyncValue<List<Metric>>, List<Metric>, FutureOr<List<Metric>>>
+final class FetchMetricsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Metric>>,
+          List<Metric>,
+          FutureOr<List<Metric>>
+        >
     with $FutureModifier<List<Metric>>, $FutureProvider<List<Metric>> {
-  const FetchMetricsProvider._(
-      {required FetchMetricsFamily super.from, required String super.argument})
-      : super(
-          retry: null,
-          name: r'fetchMetricsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const FetchMetricsProvider._({
+    required FetchMetricsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'fetchMetricsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$fetchMetricsHash();
@@ -38,16 +44,13 @@ final class FetchMetricsProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<Metric>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<Metric>> create(Ref ref) {
     final argument = this.argument as String;
-    return fetchMetrics(
-      ref,
-      argument,
-    );
+    return fetchMetrics(ref, argument);
   }
 
   @override
@@ -66,17 +69,15 @@ String _$fetchMetricsHash() => r'86d3fda28b0d29c8662a037ed56c49c6c27a89fb';
 final class FetchMetricsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Metric>>, String> {
   const FetchMetricsFamily._()
-      : super(
-          retry: null,
-          name: r'fetchMetricsProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'fetchMetricsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  FetchMetricsProvider call(
-    String branchId,
-  ) =>
+  FetchMetricsProvider call(String branchId) =>
       FetchMetricsProvider._(argument: branchId, from: this);
 
   @override

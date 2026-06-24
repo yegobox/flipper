@@ -15,15 +15,15 @@ const ticketSelectionProvider = TicketSelectionProvider._();
 final class TicketSelectionProvider
     extends $NotifierProvider<TicketSelection, Set<String>> {
   const TicketSelectionProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'ticketSelectionProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'ticketSelectionProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$ticketSelectionHash();
@@ -50,8 +50,14 @@ abstract class _$TicketSelection extends $Notifier<Set<String>> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<Set<String>, Set<String>>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<Set<String>, Set<String>>, Set<String>, Object?, Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Set<String>, Set<String>>,
+              Set<String>,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

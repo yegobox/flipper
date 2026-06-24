@@ -5,6 +5,9 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
+import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/sync/capella/mixins/delegation_mixin.dart';
@@ -12,19 +15,24 @@ import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_core/query.dart' as brick;
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:http/src/base_request.dart';
 import 'package:http/src/response.dart';
 import 'package:http/src/streamed_response.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/services/loan_customer_linker.dart';
+import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/business_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/conversation_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/customer_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/daily_report_files_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/delete_operations_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/favorite_mixin.dart';
@@ -40,11 +48,24 @@ import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/stock_recount_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/personal_goals_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
+import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
+import 'package:flipper_models/sync/capella/mixins/production_output_mixin.dart';
+import 'package:flipper_models/sync/mixins/bulk_process_item_mixin.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
+
+import 'package:flipper_models/SyncStrategy.dart';
+
+import 'package:flipper_services/constants.dart';
 
 class CapellaSync extends AiStrategyImpl
     with
@@ -60,6 +81,7 @@ class CapellaSync extends AiStrategyImpl
         CoreMiscellaneous,
         CapellaGetterOperationsMixin,
         CapellaProductMixin,
+        PurchaseMixin,
         CapellaPurchaseMixin,
         CapellaReceiptMixin,
         CapellaStorageMixin,
@@ -71,8 +93,15 @@ class CapellaSync extends AiStrategyImpl
         CapellaShiftMixin,
         CapellaStockMixin,
         CategoryMixin,
+        CapellaCategoryDittoMixin,
         CapellaDelegationMixin,
-        StockRecountMixin
+        StockRecountMixin,
+        CapellaStockRecountMixin,
+        CapellaSettingsMixin,
+        CapellaProductionOutputMixin,
+        CapellaPersonalGoalsMixin,
+        CapellaDailyReportFilesMixin,
+        BulkProcessItemMixin
     implements DatabaseSyncInterface {
   CapellaSync();
 
@@ -92,8 +121,10 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> upsertPlan(
-      {required String businessId, required Plan selectedPlan}) async {
+  Future<void> upsertPlan({
+    required String businessId,
+    required Plan selectedPlan,
+  }) async {
     throw UnimplementedError('upsertPlan needs to be implemented');
   }
 
@@ -104,12 +135,16 @@ class CapellaSync extends AiStrategyImpl
     required double amount,
   }) async {
     try {
-      final response =
-          await Supabase.instance.client.rpc('validate_discount_code', params: {
-        'p_code': code,
-        'p_plan_name': planName,
-        'p_amount': amount,
-      }).single();
+      final response = await Supabase.instance.client
+          .rpc(
+            'validate_discount_code',
+            params: {
+              'p_code': code,
+              'p_plan_name': planName,
+              'p_amount': amount,
+            },
+          )
+          .single();
 
       return response;
     } catch (e) {
@@ -131,15 +166,17 @@ class CapellaSync extends AiStrategyImpl
     required String businessId,
   }) async {
     try {
-      final response =
-          await Supabase.instance.client.rpc('apply_discount_to_plan', params: {
-        'p_plan_id': planId,
-        'p_discount_code_id': discountCodeId,
-        'p_original_price': originalPrice,
-        'p_discount_amount': discountAmount,
-        'p_final_price': finalPrice,
-        'p_business_id': businessId,
-      });
+      final response = await Supabase.instance.client.rpc(
+        'apply_discount_to_plan',
+        params: {
+          'p_plan_id': planId,
+          'p_discount_code_id': discountCodeId,
+          'p_original_price': originalPrice,
+          'p_discount_amount': discountAmount,
+          'p_final_price': finalPrice,
+          'p_business_id': businessId,
+        },
+      );
 
       talker.info('Discount applied successfully to plan $planId');
       return response as String?;
@@ -201,47 +238,13 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Tenant?> tenant(
-      {String? businessId,
-      String? userId,
-      String? tenantId,
-      required bool fetchRemote}) {
+  Future<Tenant?> tenant({
+    String? businessId,
+    String? userId,
+    String? tenantId,
+    required bool fetchRemote,
+  }) {
     // TODO: implement tenant
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) {
-    // TODO: implement tenants
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<ITransaction?> manageTransaction(
-      {required String transactionType,
-      required String branchId,
-      String status = PENDING,
-      required bool isExpense,
-      bool includeSubTotalCheck = false,
-      String? shiftId}) {
-    // TODO: implement manageTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<ITransaction> pendingTransaction(
-      {String? branchId,
-      required String transactionType,
-      bool forceRealData = true,
-      required bool isExpense}) {
-    // TODO: implement pendingTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> mergeTransactions(
-      {required ITransaction from, required ITransaction to}) {
-    // TODO: implement mergeTransactions
     throw UnimplementedError();
   }
 
@@ -252,69 +255,60 @@ class CapellaSync extends AiStrategyImpl
   SendPort? sendPort;
 
   @override
-  Future<List<Access>> access(
-      {required String userId,
-      String? featureName,
-      required bool fetchRemote}) {
+  Future<List<Access>> access({
+    required String userId,
+    String? featureName,
+    required bool fetchRemote,
+  }) {
     // TODO: implement access
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<void> addAccess(
-      {required String userId,
-      required String featureName,
-      required String accessLevel,
-      required String userType,
-      required String status,
-      required String branchId,
-      required String businessId,
-      DateTime? createdAt}) {
+  FutureOr<void> addAccess({
+    required String userId,
+    required String featureName,
+    required String accessLevel,
+    required String userType,
+    required String status,
+    required String branchId,
+    required String businessId,
+    DateTime? createdAt,
+  }) {
     // TODO: implement addAccess
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<void> addAsset(
-      {required String productId,
-      required assetName,
-      required String branchId,
-      required String businessId}) {
+  FutureOr<void> addAsset({
+    required String productId,
+    required assetName,
+    required String branchId,
+    required String businessId,
+    String? variantId,
+  }) {
     // TODO: implement addAsset
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<Branch> addBranch(
-      {required String name,
-      required String businessId,
-      required String location,
-      String? userOwnerPhoneNumber,
-      HttpClientInterface? flipperHttpClient,
-      int? serverId,
-      String? description,
-      num? longitude,
-      num? latitude,
-      required bool isDefault,
-      required bool active,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
-      int? id}) {
+  FutureOr<Branch> addBranch({
+    required String name,
+    required String businessId,
+    required String location,
+    String? userOwnerPhoneNumber,
+    HttpClientInterface? flipperHttpClient,
+    int? serverId,
+    String? description,
+    num? longitude,
+    num? latitude,
+    required bool isDefault,
+    required bool active,
+    DateTime? lastTouched,
+    DateTime? deletedAt,
+    int? id,
+  }) {
     // TODO: implement addBranch
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<void> addCategory(
-      {required String name,
-      required String branchId,
-      required bool active,
-      required bool focused,
-      required DateTime lastTouched,
-      String? id,
-      required DateTime createdAt,
-      required deletedAt}) {
-    // TODO: implement addCategory
     throw UnimplementedError();
   }
 
@@ -346,13 +340,13 @@ class CapellaSync extends AiStrategyImpl
       }
 
       // Subscribe to the collection first
-      ditto.sync.registerSubscription(
+      final preparedBa = prepareDqlSyncSubscription(
         "SELECT * FROM business_analytics WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+        {'branchId': branchId},
       );
-      ditto.store.registerObserver(
-        "SELECT * FROM business_analytics WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+      ditto.sync.registerSubscription(
+        preparedBa.dql,
+        arguments: preparedBa.arguments,
       );
 
       final result = await ditto.store.execute(
@@ -366,8 +360,10 @@ class CapellaSync extends AiStrategyImpl
         final data = Map<String, dynamic>.from(item.value);
         return BusinessAnalytic(
           id: data['_id'] ?? data['id'],
-          stockRemainedAtTheTimeOfSale: double.tryParse(
-                  data['stockRemainedAtTheTimeOfSale']?.toString() ?? '0') ??
+          stockRemainedAtTheTimeOfSale:
+              double.tryParse(
+                data['stockRemainedAtTheTimeOfSale']?.toString() ?? '0',
+              ) ??
               0.0,
           transactionId: data['transactionId'],
           branchId: data['branchId'],
@@ -420,21 +416,16 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> assignCustomerToTransaction(
-      {required Customer customer, required ITransaction transaction}) {
-    // TODO: implement assignCustomerToTransaction
-    throw UnimplementedError();
-  }
-
-  @override
   Stream<Tenant?> authState({required String branchId}) {
     // TODO: implement authState
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> bindProduct(
-      {required String productId, required String tenantId}) {
+  Future<bool> bindProduct({
+    required String productId,
+    required String tenantId,
+  }) {
     // TODO: implement bindProduct
     throw UnimplementedError();
   }
@@ -452,25 +443,376 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<ITransaction> collectPayment(
-      {required double cashReceived,
-      ITransaction? transaction,
-      required String paymentType,
-      required double discount,
-      required String branchId,
-      required String bhfId,
-      required bool isProformaMode,
-      required bool isTrainingMode,
-      required String transactionType,
-      String? categoryId,
-      bool directlyHandleReceipt = false,
-      required bool isIncome,
-      String? customerName,
-      String? customerTin,
-      String? customerPhone,
-      required String countryCode}) {
-    // TODO: implement collectPayment
-    throw UnimplementedError();
+  Future<ITransaction> collectPayment({
+    required double cashReceived,
+    ITransaction? transaction,
+    required String paymentType,
+    required double discount,
+    required String branchId,
+    required String bhfId,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionType,
+    String? categoryId,
+    bool directlyHandleReceipt = false,
+    required bool isIncome,
+    String? customerName,
+    String? customerTin,
+    String? customerPhone,
+    required String countryCode,
+    String? note,
+    String? completionStatus,
+    List<TransactionItem>? preloadedLineItems,
+    bool isUtilityCashbookMovement = false,
+    bool skipPersonalGoalAutoSweep = false,
+    bool skipTransactionPersist = false,
+    bool skipCashMutation = false,
+  }) async {
+    if (transaction == null) {
+      throw Exception('transaction is null');
+    }
+
+    try {
+      if (note != null) transaction.note = note;
+
+      final userId = ProxyService.box.getUserId();
+      transaction.customerTin = customerTin;
+
+      final resolvedSalePhone =
+          customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+      if (countryCode != "N/A" &&
+          countryCode != "" &&
+          resolvedSalePhone != null &&
+          resolvedSalePhone.isNotEmpty) {
+        transaction.currentSaleCustomerPhoneNumber =
+            countryCode + resolvedSalePhone;
+      }
+      transaction.customerPhone = resolvedSalePhone;
+      transaction.customerName =
+          customerName ?? ProxyService.box.customerName();
+
+      // Line items: caller can pass fresh lines to skip an extra Ditto read on hot paths.
+      final List<TransactionItem> items;
+      if (preloadedLineItems != null && preloadedLineItems.isNotEmpty) {
+        items = preloadedLineItems;
+      } else {
+        items = await transactionItems(transactionId: transaction.id);
+      }
+      transaction.numberOfItems = items.length;
+      transaction.discountAmount = items.fold<double>(
+        0.0,
+        (a, b) => a + (b.dcAmt?.toDouble() ?? 0.0),
+      );
+
+      final computedSubTotal = items.isEmpty
+          ? cashReceived
+          : items.fold(0.0, (a, b) => a + (b.price * b.qty));
+      transaction.subTotal = computedSubTotal;
+
+      transaction.customerChangeDue =
+          cashReceived - (transaction.subTotal ?? 0);
+
+      // Update shift totals via SQLite (shifts aren't managed in Ditto yet);
+      // must run after [transaction.subTotal] is known from line items.
+      Future<void> updateOpenShiftTotals() async {
+        if (userId == null) return;
+        try {
+          final shifts = await repository.get<Shift>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(
+              where: [
+                brick.Where('userId').isExactly(userId),
+                brick.Where(
+                  'businessId',
+                ).isExactly(ProxyService.box.getBusinessId()!),
+                brick.Where('status').isExactly(ShiftStatus.Open.name),
+              ],
+            ),
+          );
+          final currentShift = shifts.lastOrNull;
+          if (currentShift != null) {
+            num saleAmount = transaction.subTotal ?? 0.0;
+            if (!isIncome) {
+              saleAmount = -saleAmount;
+            }
+
+            final updatedCashSales = (currentShift.cashSales ?? 0) + saleAmount;
+            final updatedExpectedCash =
+                currentShift.openingBalance + updatedCashSales;
+
+            await repository.upsert<Shift>(
+              currentShift.copyWith(
+                cashSales: updatedCashSales,
+                expectedCash: updatedExpectedCash,
+              ),
+            );
+          }
+        } catch (e) {
+          talker.warning('Shift update during collectPayment failed: $e');
+        }
+      }
+
+      if (skipTransactionPersist && skipCashMutation) {
+        await updateOpenShiftTotals();
+      } else if (skipTransactionPersist) {
+        unawaited(updateOpenShiftTotals());
+      } else {
+        await updateOpenShiftTotals();
+      }
+
+      if (!skipCashMutation) {
+        if (transaction.isLoan == true) {
+          transaction.originalLoanAmount ??= computedSubTotal;
+          final totalPaidSoFar =
+              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.cashReceived = totalPaidSoFar;
+          transaction.remainingBalance = computedSubTotal - totalPaidSoFar;
+          transaction.lastPaymentDate = DateTime.now().toUtc();
+          transaction.lastPaymentAmount = cashReceived;
+        } else {
+          transaction.cashReceived =
+              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.remainingBalance =
+              computedSubTotal - (transaction.cashReceived ?? 0.0);
+        }
+      }
+
+      transaction.transactionType = transactionType;
+      transaction.categoryId = categoryId;
+      transaction.isIncome = isIncome;
+      transaction.isExpense = !isIncome;
+      transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
+
+      // Write transaction to Ditto (optional: caller persists once on completion).
+      if (!skipTransactionPersist) {
+        await updateTransaction(
+          transaction: transaction,
+          status: completionStatus,
+          subTotal: transaction.subTotal,
+          cashReceived: transaction.cashReceived,
+          customerName: transaction.customerName,
+          customerTin: customerTin,
+          customerPhone: transaction.customerPhone,
+          note: transaction.note,
+          updatedAt: DateTime.now(),
+          lastTouched: DateTime.now(),
+          remainingBalance: transaction.remainingBalance?.toDouble(),
+          isLoan: transaction.isLoan,
+        );
+      }
+
+      if (skipTransactionPersist && skipCashMutation) {
+        try {
+          final resolvedCompletionForGoals =
+              completionStatus ?? transaction.status;
+          await applyPersonalGoalAutoSweepIfEligible(
+            branchId: branchId,
+            transactionId: transaction.id,
+            completionStatus: resolvedCompletionForGoals,
+            isIncome: isIncome,
+            isProformaMode: isProformaMode,
+            isTrainingMode: isTrainingMode,
+            transactionType: transactionType,
+            items: items,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+            skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+          );
+        } catch (e, s) {
+          talker.warning(
+            'collectPayment: personal goal auto-sweep failed: $e\n$s',
+          );
+        }
+      } else if (skipTransactionPersist) {
+        final resolvedCompletionForGoals =
+            completionStatus ?? transaction.status;
+        final sweepItems = List<TransactionItem>.from(items);
+        unawaited(
+          applyPersonalGoalAutoSweepIfEligible(
+            branchId: branchId,
+            transactionId: transaction.id,
+            completionStatus: resolvedCompletionForGoals,
+            isIncome: isIncome,
+            isProformaMode: isProformaMode,
+            isTrainingMode: isTrainingMode,
+            transactionType: transactionType,
+            items: sweepItems,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+            skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+          ).catchError((e, s) {
+            talker.warning(
+              'collectPayment: deferred personal goal auto-sweep failed: $e\n$s',
+            );
+          }),
+        );
+      } else {
+        try {
+          final resolvedCompletionForGoals =
+              completionStatus ?? transaction.status;
+          await applyPersonalGoalAutoSweepIfEligible(
+            branchId: branchId,
+            transactionId: transaction.id,
+            completionStatus: resolvedCompletionForGoals,
+            isIncome: isIncome,
+            isProformaMode: isProformaMode,
+            isTrainingMode: isTrainingMode,
+            transactionType: transactionType,
+            items: items,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+            skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+          );
+        } catch (e, s) {
+          talker.warning(
+            'collectPayment: personal goal auto-sweep skipped: $e\n$s',
+          );
+        }
+      }
+
+      // Defer variant lastTouched updates to avoid DB contention during receipt
+      Future.delayed(const Duration(seconds: 5), () async {
+        try {
+          final variantIds = items
+              .map((i) => i.variantId)
+              .whereType<String>()
+              .toSet();
+          for (final id in variantIds) {
+            final variant = await getVariant(id: id);
+            if (variant != null) {
+              variant.lastTouched = DateTime.now().toUtc();
+              await repository.upsert<Variant>(variant);
+            }
+          }
+        } catch (e) {
+          talker.warning('Deferred variant touch failed: $e');
+        }
+      });
+
+      // Record the event in the accounting ledger so Books finds the journal
+      // entry already posted, whether or not the accounting app is running.
+      unawaited(
+        PosJournalPoster.onTransactionFinalized(
+          transaction: transaction,
+          items: items,
+          eventCashReceived: cashReceived,
+          completionStatus: completionStatus,
+          isProformaMode: isProformaMode,
+          isTrainingMode: isTrainingMode,
+        ),
+      );
+
+      // Link (or auto-create) the canonical customer record for loans so
+      // accounting tracks debtors by customer id — runs in the background,
+      // adds no latency to checkout. A parked sale is a loan even before
+      // markTransactionAsCompleted persists isLoan.
+      unawaited(
+        LoanCustomerLinker.ensureLinked(
+          transaction: transaction,
+          branchId: branchId,
+          markAsLoan: transaction.isLoan == true || completionStatus == PARKED,
+        ),
+      );
+
+      return transaction;
+    } catch (e, s) {
+      talker.error('Capella collectPayment failed: $e', s);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<ITransaction> completeCashMovement({
+    required String branchId,
+    required String bhfId,
+    required double cashReceived,
+    required bool isIncome,
+    required String utilityVariantName,
+    required String paymentType,
+    required double discount,
+    required String countryCode,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionTypeForRecord,
+    String? categoryId,
+    String? note,
+    bool skipPersonalGoalAutoSweep = false,
+  }) async {
+    final pending = await manageTransaction(
+      branchId: branchId,
+      transactionType: utilityVariantName,
+      isExpense: !isIncome,
+    );
+    if (pending == null) {
+      throw StateError(
+        'completeCashMovement: could not create or load pending transaction',
+      );
+    }
+
+    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
+      db: this,
+      branchId: branchId,
+      utilityName: utilityVariantName,
+    );
+    if (baseVariant == null) {
+      throw StateError(
+        'completeCashMovement: missing utility variant for $utilityVariantName',
+      );
+    }
+
+    final linedVariant = cloneUtilityVariantForCashLine(
+      utilityVariant: baseVariant,
+      cashReceived: cashReceived,
+      transactionType: utilityVariantName,
+    );
+
+    await saveTransactionItem(
+      variation: linedVariant,
+      amountTotal: cashReceived,
+      customItem: true,
+      pendingTransaction: pending,
+      currentStock: 0,
+      partOfComposite: false,
+      doneWithTransaction: true,
+      ignoreForReport: false,
+      updatePendingTransactionSubtotal: false,
+    );
+
+    final preloaded = syntheticPreloadedCashLine(
+      linedVariant: linedVariant,
+      transactionId: pending.id,
+      branchId: branchId,
+      cashReceived: cashReceived,
+    );
+
+    final txn = await collectPayment(
+      cashReceived: cashReceived,
+      transaction: pending,
+      paymentType: paymentType,
+      discount: discount,
+      branchId: branchId,
+      bhfId: bhfId,
+      countryCode: countryCode,
+      isProformaMode: isProformaMode,
+      isTrainingMode: isTrainingMode,
+      transactionType: transactionTypeForRecord,
+      categoryId: categoryId,
+      directlyHandleReceipt: false,
+      isIncome: isIncome,
+      note: note,
+      completionStatus: COMPLETE,
+      preloadedLineItems: preloaded,
+      isUtilityCashbookMovement: true,
+      skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
+    );
+    final movementReceipt = isIncome
+        ? TransactionType.cashIn
+        : TransactionType.cashOut;
+    await updateTransaction(
+      transaction: txn,
+      receiptType: movementReceipt,
+      updatedAt: DateTime.now(),
+      lastTouched: DateTime.now(),
+    );
+    txn.receiptType = movementReceipt;
+    return txn;
   }
 
   @override
@@ -480,9 +822,19 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<Composite>> composites({String? productId, String? variantId}) {
-    // TODO: implement composites
-    throw UnimplementedError();
+  FutureOr<List<Composite>> composites({
+    String? productId,
+    String? variantId,
+  }) async {
+    return repository.get<Composite>(
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(
+        where: [
+          if (productId != null) brick.Where('productId').isExactly(productId),
+          if (variantId != null) brick.Where('variantId').isExactly(variantId),
+        ],
+      ),
+    );
   }
 
   @override
@@ -504,49 +856,42 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> createNewStock(
-      {required Variant variant,
-      required TransactionItem item,
-      required String subBranchId}) {
+  Future<void> createNewStock({
+    required Variant variant,
+    required TransactionItem item,
+    required String subBranchId,
+  }) {
     // TODO: implement createNewStock
     throw UnimplementedError();
   }
 
   @override
-  Future<void> createOrUpdateBranchOnCloud(
-      {required Branch branch, required bool isOnline}) {
+  Future<void> createOrUpdateBranchOnCloud({
+    required Branch branch,
+    required bool isOnline,
+  }) {
     // TODO: implement createOrUpdateBranchOnCloud
     throw UnimplementedError();
   }
 
   @override
-  Future<String> createStockRequest(List<TransactionItem> items,
-      {required String mainBranchId,
-      required String subBranchId,
-      String? deliveryNote,
-      String? orderNote,
-      String? financingId}) {
-    // TODO: implement createStockRequest
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Variant> createVariant(
-      {required String barCode,
-      required int sku,
-      required String productId,
-      required String branchId,
-      required double retailPrice,
-      required double supplierPrice,
-      required double qty,
-      Map<String, String>? taxTypes,
-      Map<String, String>? itemClasses,
-      Map<String, String>? itemTypes,
-      required String color,
-      required int tinNumber,
-      required int itemSeq,
-      required String name,
-      Configurations? taxType}) {
+  Future<Variant> createVariant({
+    required String barCode,
+    required int sku,
+    required String productId,
+    required String branchId,
+    required double retailPrice,
+    required double supplierPrice,
+    required double qty,
+    Map<String, String>? taxTypes,
+    Map<String, String>? itemClasses,
+    Map<String, String>? itemTypes,
+    required String color,
+    required int tinNumber,
+    required int itemSeq,
+    required String name,
+    Configurations? taxType,
+  }) {
     // TODO: implement createVariant
     throw UnimplementedError();
   }
@@ -558,21 +903,18 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<Customer>> customersStream(
-      {required String branchId, String? key, String? id}) {
-    // TODO: implement customersStream
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<Branch?> defaultBranch() {
     // TODO: implement defaultBranch
     throw UnimplementedError();
   }
 
   @override
-  Future<Response> delete(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+  Future<Response> delete(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) {
     // TODO: implement delete
     throw UnimplementedError();
   }
@@ -620,17 +962,9 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> flipperDelete(
-      {required String id,
-      String? endPoint,
-      HttpClientInterface? flipperHttpClient}) {
-    // TODO: implement flipperDelete
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Variant>> geVariantStreamByProductId(
-      {required String productId}) {
+  Stream<List<Variant>> geVariantStreamByProductId({
+    required String productId,
+  }) {
     // TODO: implement geVariantStreamByProductId
     throw UnimplementedError();
   }
@@ -648,7 +982,11 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Assets?> getAsset({String? assetName, String? productId}) {
+  FutureOr<Assets?> getAsset({
+    String? assetName,
+    String? productId,
+    String? variantId,
+  }) {
     // TODO: implement getAsset
     throw UnimplementedError();
   }
@@ -694,13 +1032,16 @@ class CapellaSync extends AiStrategyImpl
   @override
   Future<void> updateCredit(Credit credit) async {
     try {
-      await Supabase.instance.client.from('credits').update({
-        'branch_id': credit.branchId,
-        'business_id': credit.businessId,
-        'credits': credit.credits,
-        'updated_at': credit.updatedAt.toIso8601String(),
-        'branch_server_id': credit.branchServerId,
-      }).eq('id', credit.id);
+      await Supabase.instance.client
+          .from('credits')
+          .update({
+            'branch_id': credit.branchId,
+            'business_id': credit.businessId,
+            'credits': credit.credits,
+            'updated_at': credit.updatedAt.toIso8601String(),
+            'branch_server_id': credit.branchServerId,
+          })
+          .eq('id', credit.id);
     } catch (e) {
       talker.error('CapellaSync: Failed to update credit: $e');
       rethrow;
@@ -708,11 +1049,12 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Variant?> getCustomVariant(
-      {required String businessId,
-      required String branchId,
-      required int tinNumber,
-      required String bhFId}) {
+  Future<Variant?> getCustomVariant({
+    required String businessId,
+    required String branchId,
+    required int tinNumber,
+    required String bhFId,
+  }) {
     // TODO: implement getCustomVariant
     throw UnimplementedError();
   }
@@ -721,14 +1063,52 @@ class CapellaSync extends AiStrategyImpl
   Future<Variant?> getUtilityVariant({
     required String name,
     required String branchId,
-  }) {
-    // TODO: implement getUtilityVariant
-    throw UnimplementedError();
+  }) async {
+    try {
+      final businessId = ProxyService.box.getBusinessId();
+      final ditto = dittoService.dittoInstance;
+      if (businessId != null && ditto != null) {
+        final utilityProduct = await getProduct(
+          branchId: branchId,
+          businessId: businessId,
+          name: 'Utility',
+        );
+        if (utilityProduct != null) {
+          final r = await ditto.store.execute(
+            'SELECT * FROM variants WHERE branchId = :branchId '
+            'AND productId = :productId AND name = :name LIMIT 1',
+            arguments: {
+              'branchId': branchId,
+              'productId': utilityProduct.id,
+              'name': name,
+            },
+          );
+          if (r.items.isNotEmpty) {
+            return Variant.fromJson(
+              Map<String, dynamic>.from(r.items.first.value),
+            );
+          }
+        }
+      }
+    } catch (e, st) {
+      talker.warning('getUtilityVariant Ditto path failed: $e\n$st');
+    }
+    try {
+      return await ProxyService.getStrategy(
+        Strategy.cloudSync,
+      ).getUtilityVariant(name: name, branchId: branchId);
+    } catch (e, st) {
+      talker.error('getUtilityVariant fallback failed: $e\n$st');
+      return null;
+    }
   }
 
   @override
-  Future<List<Log>> getLogs(
-      {String? type, String? businessId, int limit = 100}) {
+  Future<List<Log>> getLogs({
+    String? type,
+    String? businessId,
+    int limit = 100,
+  }) {
     // TODO: implement getLogs
     throw UnimplementedError();
   }
@@ -746,27 +1126,18 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Setting?> getSetting({required String businessId}) {
-    // TODO: implement getSetting
-    throw UnimplementedError();
-  }
-
-  @override
   getTop5RecentConversations() {
     // TODO: implement getTop5RecentConversations
     throw UnimplementedError();
   }
 
   @override
-  Future<TransactionItem?> getTransactionItem(
-      {required String variantId, String? transactionId}) {
-    // TODO: implement getTransactionItem
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Response> getUniversalProducts(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+  Future<Response> getUniversalProducts(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) {
     // TODO: implement getUniversalProducts
     throw UnimplementedError();
   }
@@ -778,8 +1149,11 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<BusinessInfo> initializeEbm(
-      {required String tin, required String bhfId, required String dvcSrlNo}) {
+  Future<BusinessInfo> initializeEbm({
+    required String tin,
+    required String bhfId,
+    required String dvcSrlNo,
+  }) {
     // TODO: implement initializeEbm
     throw UnimplementedError();
   }
@@ -797,10 +1171,19 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<bool> isBranchEnableForPayment(
-      {required String currentBranchId, bool fetchRemote = false}) {
-    // TODO: implement isBranchEnableForPayment
-    throw UnimplementedError();
+  FutureOr<bool> isBranchEnableForPayment({
+    required String currentBranchId,
+    bool fetchRemote = false,
+  }) async {
+    final paymentStatus = await repository.get<BranchPaymentIntegration>(
+      policy: fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(currentBranchId)],
+      ),
+    );
+    return paymentStatus.firstOrNull?.isEnabled ?? false;
   }
 
   @override
@@ -810,18 +1193,106 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> isTaxEnabled(
-      {required String businessId, required String branchId}) {
-    // TODO: implement isTaxEnabled
-    throw UnimplementedError();
+  Future<bool> isTaxEnabled({
+    required String businessId,
+    required String branchId,
+  }) async {
+    // Ported verbatim from the brick (CoreSync) Ditto-backed implementation so
+    // the Capella strategy resolves tax-enabled state identically (no regression).
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized:001');
+        return false;
+      }
+      final preparedEbm = prepareDqlSyncSubscription(
+        "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
+        {'businessId': businessId, 'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedEbm.dql,
+        arguments: preparedEbm.arguments,
+      );
+
+      // Query the ebms table using Ditto
+      String query =
+          'SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId';
+      final arguments = <String, dynamic>{
+        'businessId': businessId,
+        'branchId': branchId,
+      };
+
+      // Subscribe to ensure we have the latest data from Ditto mesh
+      final preparedEbm2 = prepareDqlSyncSubscription(query, arguments);
+      await ditto.sync.registerSubscription(
+        preparedEbm2.dql,
+        arguments: preparedEbm2.arguments,
+      );
+
+      // Use registerObserver to wait for data
+      final completer = Completer<List<dynamic>>();
+      final observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (result) {
+          if (!completer.isCompleted) {
+            completer.complete(result.items.toList());
+          }
+        },
+      );
+
+      List<dynamic> items = [];
+      try {
+        // Wait for data or timeout
+        items = await completer.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            if (!completer.isCompleted) {
+              talker.warning('Timeout waiting for ebms data');
+              completer.complete([]);
+            }
+            return [];
+          },
+        );
+      } finally {
+        observer.cancel();
+      }
+
+      // Check if any EBM configuration exists and if VAT is enabled
+      if (items.isNotEmpty) {
+        final ebmData = items.first.value as Map<String, dynamic>;
+        final vatEnabled = ebmData['vatEnabled'] as bool?;
+        final taxServerUrl = ebmData['taxServerUrl'] as String?;
+
+        final isMobile = defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android;
+
+        if (isMobile &&
+            taxServerUrl != null &&
+            taxServerUrl.contains('localhost')) {
+          talker.info('Tax disabled on mobile with localhost tax server');
+          return false;
+        }
+
+        return vatEnabled ==
+            true; // Return true if vatEnabled is true, false otherwise
+      }
+
+      // If no EBM configuration found, tax is not enabled
+      return false;
+    } catch (e, st) {
+      talker.error('Error checking if tax is enabled from Ditto: $e\n$st');
+      return false;
+    }
   }
 
   @override
-  Future<void> loadConversations(
-      {required String businessId,
-      int? pageSize = 10,
-      String? pk,
-      String? sk}) {
+  Future<void> loadConversations({
+    required String businessId,
+    int? pageSize = 10,
+    String? pk,
+    String? sk,
+  }) {
     // TODO: implement loadConversations
     throw UnimplementedError();
   }
@@ -832,18 +1303,17 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Response> patch(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+  Future<Response> patch(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) {
     // TODO: implement patch
     throw UnimplementedError();
   }
 
   @override
-  Future<void> patchSocialSetting({required Setting setting}) {
-    // TODO: implement patchSocialSetting
-    throw UnimplementedError();
-  }
-
   @override
   FutureOr<LPermission?> permission({required String userId}) {
     // TODO: implement permission
@@ -857,20 +1327,13 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Response> post(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+  Future<Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) {
     // TODO: implement post
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> processItem(
-      {required Variant item,
-      required Map<String, String> quantitis,
-      required Map<String, String> taxTypes,
-      required Map<String, String> itemClasses,
-      required Map<String, String> itemTypes}) {
-    // TODO: implement processItem
     throw UnimplementedError();
   }
 
@@ -881,8 +1344,12 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Response> put(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+  Future<Response> put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) {
     // TODO: implement put
     throw UnimplementedError();
   }
@@ -900,8 +1367,10 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> refreshSession(
-      {required String branchId, int? refreshRate = 5}) {
+  Future<void> refreshSession({
+    required String branchId,
+    int? refreshRate = 5,
+  }) {
     // TODO: implement refreshSession
     throw UnimplementedError();
   }
@@ -931,33 +1400,30 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<InventoryRequest>> requestsStream(
-      {required String branchId,
-      String filter = RequestStatus.pending,
-      String? search}) {
-    // TODO: implement requestsStream
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> saveComposite({required Composite composite}) {
     // TODO: implement saveComposite
     throw UnimplementedError();
   }
 
   @override
-  Future<void> saveDiscount(
-      {required String branchId, required name, double? amount}) {
+  Future<void> saveDiscount({
+    required String branchId,
+    required name,
+    double? amount,
+  }) {
     // TODO: implement saveDiscount
     throw UnimplementedError();
   }
 
   @override
-  Future<Assets> saveImageLocally(
-      {required File imageFile,
-      required String productId,
-      required String branchId,
-      required String businessId}) {
+  Future<Assets> saveImageLocally({
+    required File imageFile,
+    required String productId,
+    required String branchId,
+    required String businessId,
+    String subPath = 'branch',
+    String? variantId,
+  }) {
     // TODO: implement saveImageLocally
     throw UnimplementedError();
   }
@@ -969,31 +1435,167 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Plan?> saveOrUpdatePaymentPlan(
-      {required String businessId,
-      List<String>? addons,
-      required String selectedPlan,
-      required int additionalDevices,
-      required bool isYearlyPlan,
-      required double totalPrice,
-      required String paymentMethod,
-      String? customerCode,
-      Plan? plan,
-      int numberOfPayments = 1,
-      required HttpClientInterface flipperHttpClient}) {
+  FutureOr<Plan?> saveOrUpdatePaymentPlan({
+    required String businessId,
+    List<String>? addons,
+    required String selectedPlan,
+    required int additionalDevices,
+    required bool isYearlyPlan,
+    required double totalPrice,
+    required String paymentMethod,
+    String? customerCode,
+    Plan? plan,
+    int numberOfPayments = 1,
+    required HttpClientInterface flipperHttpClient,
+  }) {
     // TODO: implement saveOrUpdatePaymentPlan
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<void> savePaymentType(
-      {TransactionPaymentRecord? paymentRecord,
-      String? transactionId,
-      double amount = 0.0,
-      String? paymentMethod,
-      required bool singlePaymentOnly}) {
-    // TODO: implement savePaymentType
-    throw UnimplementedError();
+  FutureOr<void> savePaymentType({
+    TransactionPaymentRecord? paymentRecord,
+    String? transactionId,
+    double amount = 0.0,
+    String? paymentMethod,
+    required bool singlePaymentOnly,
+    bool saleCompletionFastPath = false,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for savePaymentType');
+      return;
+    }
+
+    if (transactionId == null) {
+      throw ArgumentError('transactionId cannot be null');
+    }
+
+    if (paymentMethod == null && paymentRecord == null) {
+      throw ArgumentError(
+        'Either paymentMethod or paymentRecord must be provided',
+      );
+    }
+
+    Future<void> mirrorDeleteZeroAmountSqlite() async {
+      final withAmount0 = await repository
+          .get<TransactionPaymentRecord>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(
+              where: [
+                brick.Where('transactionId').isExactly(transactionId),
+                brick.Where('amount').isExactly(0.0),
+              ],
+            ),
+          )
+          .then((records) => records.isEmpty ? null : records.first);
+      if (withAmount0 != null) {
+        await repository.delete<TransactionPaymentRecord>(
+          withAmount0,
+          query: brick.Query(action: QueryAction.delete),
+        );
+      }
+    }
+
+    // 1) Drop stale zero-amount rows (matches CoreSync semantics).
+    if (!saleCompletionFastPath) {
+      try {
+        await ditto.store.execute(
+          'DELETE FROM transaction_payment_records WHERE transactionId = :transactionId AND amount = :zero',
+          arguments: {'transactionId': transactionId, 'zero': 0.0},
+        );
+      } catch (e, s) {
+        talker.warning(
+          'savePaymentType: Ditto delete zero-amount rows failed: $e',
+          s,
+        );
+      }
+
+      await mirrorDeleteZeroAmountSqlite();
+    }
+
+    // 2) Single-payment mode: clear existing tender rows before inserting the new one.
+    if (singlePaymentOnly) {
+      await deletePaymentRecords(transactionId: transactionId);
+
+      final existingRecords = await repository.get<TransactionPaymentRecord>(
+        query: brick.Query(
+          where: [brick.Where('transactionId').isExactly(transactionId)],
+        ),
+      );
+
+      await Future.wait(
+        existingRecords.map(
+          (record) => repository.delete<TransactionPaymentRecord>(
+            record,
+            query: brick.Query(action: QueryAction.delete),
+          ),
+        ),
+      );
+    }
+
+    Future<void> upsertDitto(TransactionPaymentRecord r) async {
+      final doc = <String, dynamic>{
+        'id': r.id,
+        '_id': r.id,
+        'transactionId': r.transactionId,
+        'amount': r.amount,
+        'paymentMethod': r.paymentMethod,
+        'createdAt': r.createdAt?.toUtc().toIso8601String(),
+      };
+
+      await ditto.store.execute(
+        'INSERT INTO transaction_payment_records DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+        arguments: {'doc': doc},
+      );
+    }
+
+    Future<void> mirrorToSqlite(TransactionPaymentRecord r) {
+      return repository.upsert<TransactionPaymentRecord>(
+        r,
+        query: brick.Query(action: QueryAction.insert),
+      );
+    }
+
+    if (paymentRecord != null) {
+      await upsertDitto(paymentRecord);
+      if (saleCompletionFastPath) {
+        unawaited(
+          mirrorToSqlite(paymentRecord).catchError((e, s) {
+            talker.warning(
+              'savePaymentType: deferred SQLite mirror failed: $e',
+              s,
+            );
+          }),
+        );
+      } else {
+        await mirrorToSqlite(paymentRecord);
+      }
+      return;
+    }
+
+    if (amount != 0) {
+      final newPaymentRecord = TransactionPaymentRecord(
+        createdAt: DateTime.now().toUtc(),
+        amount: amount,
+        transactionId: transactionId,
+        paymentMethod: paymentMethod,
+      );
+
+      await upsertDitto(newPaymentRecord);
+      if (saleCompletionFastPath) {
+        unawaited(
+          mirrorToSqlite(newPaymentRecord).catchError((e, s) {
+            talker.warning(
+              'savePaymentType: deferred SQLite mirror failed: $e',
+              s,
+            );
+          }),
+        );
+      } else {
+        await mirrorToSqlite(newPaymentRecord);
+      }
+    }
   }
 
   @override
@@ -1009,7 +1611,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> sendMessageToIsolate() {
+  Future<void> sendMessageToIsolate({Map<String, dynamic>? message}) async {
     // TODO: implement sendMessageToIsolate
     throw UnimplementedError();
   }
@@ -1021,15 +1623,19 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> setBranchPaymentStatus(
-      {required String currentBranchId, required bool status}) {
+  FutureOr<void> setBranchPaymentStatus({
+    required String currentBranchId,
+    required bool status,
+  }) {
     // TODO: implement setBranchPaymentStatus
     throw UnimplementedError();
   }
 
   @override
-  Future<Business?> signup(
-      {required Map business, required HttpClientInterface flipperHttpClient}) {
+  Future<Business?> signup({
+    required Map business,
+    required HttpClientInterface flipperHttpClient,
+  }) {
     // TODO: implement signup
     throw UnimplementedError();
   }
@@ -1059,8 +1665,9 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<BusinessAnalytic>> streamRemoteAnalytics(
-      {required String branchId}) {
+  Stream<List<BusinessAnalytic>> streamRemoteAnalytics({
+    required String branchId,
+  }) {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       _talker.error('Ditto not initialized');
@@ -1095,7 +1702,8 @@ class CapellaSync extends AiStrategyImpl
   }
 
   BusinessAnalytic? _convertBusinessAnalyticFromDitto(
-      Map<String, dynamic> data) {
+    Map<String, dynamic> data,
+  ) {
     try {
       return BusinessAnalytic(
         id: data['id'] ?? data['_id'],
@@ -1129,12 +1737,13 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<({String customerCode, String url, int userId})> subscribe(
-      {required String businessId,
-      required Business business,
-      required int agentCode,
-      required HttpClientInterface flipperHttpClient,
-      required int amount}) {
+  Future<({String customerCode, String url, int userId})> subscribe({
+    required String businessId,
+    required Business business,
+    required int agentCode,
+    required HttpClientInterface flipperHttpClient,
+    required int amount,
+  }) {
     // TODO: implement subscribe
     throw UnimplementedError();
   }
@@ -1158,32 +1767,35 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<UnversalProduct>> universalProductNames(
-      {required String branchId}) {
+  Future<List<UnversalProduct>> universalProductNames({
+    required String branchId,
+  }) {
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
 
   @override
-  void updateAccess(
-      {required String accessId,
-      required String userId,
-      required String featureName,
-      required String accessLevel,
-      required String status,
-      required String branchId,
-      required String businessId,
-      required String userType}) {
+  void updateAccess({
+    required String accessId,
+    required String userId,
+    required String featureName,
+    required String accessLevel,
+    required String status,
+    required String branchId,
+    required String businessId,
+    required String userType,
+  }) {
     // TODO: implement updateAccess
   }
 
   @override
-  FutureOr<void> updateAcess(
-      {required String userId,
-      String? featureName,
-      String? status,
-      String? accessLevel,
-      String? userType}) {
+  FutureOr<void> updateAcess({
+    required String userId,
+    String? featureName,
+    String? status,
+    String? accessLevel,
+    String? userType,
+  }) {
     // TODO: implement updateAcess
     throw UnimplementedError();
   }
@@ -1195,22 +1807,30 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateColor(
-      {required String colorId, String? name, bool? active}) {
+  FutureOr<void> updateColor({
+    required String colorId,
+    String? name,
+    bool? active,
+  }) {
     // TODO: implement updateColor
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<void> updateNotification(
-      {required String notificationId, bool? completed}) {
+  FutureOr<void> updateNotification({
+    required String notificationId,
+    bool? completed,
+  }) {
     // TODO: implement updateNotification
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<void> updatePin(
-      {required String userId, String? phoneNumber, String? tokenUid}) {
+  FutureOr<void> updatePin({
+    required String userId,
+    String? phoneNumber,
+    String? tokenUid,
+  }) {
     // TODO: implement updatePin
     throw UnimplementedError();
   }
@@ -1222,33 +1842,22 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateStockRequest(
-      {required String stockRequestId, DateTime? updatedAt, String? status}) {
-    // TODO: implement updateStockRequest
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateStockRequestItem({
-    required String requestId,
-    required String transactionItemId,
-    int? quantityApproved,
-    bool? ignoreForReport,
+  FutureOr<void> updateUnit({
+    required String unitId,
+    String? name,
+    bool? active,
+    String? branchId,
   }) {
-    // TODO: implement updateStockRequestItem
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<void> updateUnit(
-      {required String unitId, String? name, bool? active, String? branchId}) {
     // TODO: implement updateUnit
     throw UnimplementedError();
   }
 
   @override
-  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
-      {required String transactionId}) {
+  Future<String> uploadPdfToS3(
+    Uint8List pdfData,
+    String fileName, {
+    required String transactionId,
+  }) {
     // TODO: implement uploadPdfToS3
     throw UnimplementedError();
   }
@@ -1260,15 +1869,19 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<int> userNameAvailable(
-      {required String name, required HttpClientInterface flipperHttpClient}) {
+  Future<int> userNameAvailable({
+    required String name,
+    required HttpClientInterface flipperHttpClient,
+  }) {
     // TODO: implement userNameAvailable
     throw UnimplementedError();
   }
 
   @override
-  Future<VariantBranch?> variantBranch(
-      {required String variantId, required String destinationBranchId}) {
+  Future<VariantBranch?> variantBranch({
+    required String variantId,
+    required String destinationBranchId,
+  }) {
     // TODO: implement variantBranch
     throw UnimplementedError();
   }
@@ -1301,44 +1914,105 @@ class CapellaSync extends AiStrategyImpl
   Talker get talker => _talker;
 
   @override
-  Future<Plan?> getPaymentPlan(
-      {required String businessId, bool? fetchOnline}) {
-    // TODO: implement getPaymentPlan
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<Pin?> getPinLocal(
-      {String? userId, String? phoneNumber, required bool alwaysHydrate}) {
+  FutureOr<Pin?> getPinLocal({
+    String? userId,
+    String? phoneNumber,
+    required bool alwaysHydrate,
+  }) {
     // TODO: implement getPinLocal
     throw UnimplementedError();
   }
 
   @override
-  Future<void> updateTenant(
-      {String? tenantId,
-      String? name,
-      String? phoneNumber,
-      String? email,
-      String? userId,
-      String? businessId,
-      String? type,
-      String? id,
-      int? pin,
-      bool? sessionActive,
-      String? branchId}) {
+  Future<void> updateTenant({
+    String? tenantId,
+    String? name,
+    String? phoneNumber,
+    String? email,
+    String? userId,
+    String? businessId,
+    String? type,
+    String? id,
+    int? pin,
+    bool? sessionActive,
+    String? branchId,
+  }) {
     // TODO: implement updateTenant
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<void> updateCategory(
-      {required String categoryId,
-      String? name,
-      bool? active,
-      bool? focused,
-      String? branchId}) {
-    // TODO: implement updateCategory
+  FutureOr<void> updateCategory({
+    required String categoryId,
+    String? name,
+    bool? active,
+    bool? focused,
+    String? branchId,
+  }) async {
+    // Native: keep Brick/SQLite authoritative for focus flags (same as pre-Capella-category work).
+    // Web: only Ditto path below runs.
+    if (!kIsWeb) {
+      try {
+        await ProxyService.getStrategy(Strategy.cloudSync).updateCategory(
+          categoryId: categoryId,
+          name: name,
+          active: active,
+          focused: focused,
+          branchId: branchId,
+        );
+      } catch (e, s) {
+        talker.error('updateCategory SQLite/Brick failed: $e', s);
+        rethrow;
+      }
+    }
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    final updates = <String>[];
+    final args = <String, dynamic>{'cid': categoryId};
+
+    final whereClause = branchId != null
+        ? '(_id = :cid OR id = :cid) AND branchId = :branchId'
+        : '(_id = :cid OR id = :cid)';
+    if (branchId != null) {
+      args['branchId'] = branchId;
+    }
+
+    void addIfNonNull(String col, dynamic v) {
+      if (v == null) return;
+      updates.add('$col = :$col');
+      args[col] = v is DateTime ? v.toUtc().toIso8601String() : v;
+    }
+
+    addIfNonNull('name', name);
+    addIfNonNull('active', active);
+    addIfNonNull('focused', focused);
+    if (updates.isEmpty) return;
+    addIfNonNull('lastTouched', DateTime.now());
+
+    try {
+      await ditto.store.execute(
+        'UPDATE categories SET ${updates.join(', ')} WHERE $whereClause',
+        arguments: args,
+      );
+    } catch (e, s) {
+      talker.warning(
+        'Capella updateCategory Ditto mirror failed (non-fatal): $e',
+        s,
+      );
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> sendOtpForSignup(String contact) {
+    // TODO: implement sendOtpForSignup
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> verifyOtpForSignup(String contact, String otp) {
+    // TODO: implement verifyOtpForSignup
     throw UnimplementedError();
   }
 }

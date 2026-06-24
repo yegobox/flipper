@@ -4,7 +4,7 @@
 
 // ignore_for_file: curly_braces_in_flow_control_structures, unnecessary_null_comparison
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 

@@ -71,7 +71,7 @@ class ExportService {
           ExcelUtils.addClosingBalanceRow(
               reportSheet, styler, config.currencyFormat,
               bottomEndOfRowTitle: bottomEndOfRowTitle);
-          ExcelUtils.formatColumns(reportSheet, config.currencyFormat);
+          ExcelUtils.formatColumns(reportSheet);
 
           if (expenses != null && expenses.isNotEmpty) {
             ExcelUtils.addExpensesSheet(

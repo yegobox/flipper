@@ -1,5 +1,6 @@
 import 'package:flipper_models/sync/interfaces/system_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
@@ -28,7 +29,6 @@ mixin CapellaSystemMixin implements SystemInterface {
 
   @override
   Future<void> suserbaseAuth() async {
-    throw UnimplementedError(
-        'suserbaseAuth needs to be implemented for Capella');
+    await SupabaseSessionService.ensureAccessToken();
   }
 }

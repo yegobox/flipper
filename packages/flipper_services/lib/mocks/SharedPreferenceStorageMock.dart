@@ -93,6 +93,11 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  String? getUserName() {
+    return 'Test User';
+  }
+
+  @override
   bool hasSignedInForAutoBackup() {
     return true; // Sample auto-backup sign-in status
   }
@@ -350,7 +355,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   String getDatabaseFilename() {
-    return 'flipper_v17.sqlite'; // Default database filename
+    return 'flipper.sqlite'; // Default database filename
   }
 
   @override

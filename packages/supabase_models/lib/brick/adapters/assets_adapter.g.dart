@@ -18,10 +18,14 @@ Future<Assets> _$AssetsFromSupabase(
     productId: data['product_id'] == null
         ? null
         : data['product_id'] as String?,
+    variantId: data['variant_id'] == null
+        ? null
+        : data['variant_id'] as String?,
     isUploaded: data['is_uploaded'] as bool,
     localPath: data['local_path'] == null
         ? null
         : data['local_path'] as String?,
+    subPath: data['sub_path'] == null ? null : data['sub_path'] as String?,
   );
 }
 
@@ -36,8 +40,10 @@ Future<Map<String, dynamic>> _$AssetsToSupabase(
     'business_id': instance.businessId,
     'asset_name': instance.assetName,
     'product_id': instance.productId,
+    'variant_id': instance.variantId,
     'is_uploaded': instance.isUploaded,
     'local_path': instance.localPath,
+    'sub_path': instance.subPath,
   };
 }
 
@@ -58,10 +64,14 @@ Future<Assets> _$AssetsFromSqlite(
     productId: data['product_id'] == null
         ? null
         : data['product_id'] as String?,
+    variantId: data['variant_id'] == null
+        ? null
+        : data['variant_id'] as String?,
     isUploaded: data['is_uploaded'] == 1,
     localPath: data['local_path'] == null
         ? null
         : data['local_path'] as String?,
+    subPath: data['sub_path'] == null ? null : data['sub_path'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -76,8 +86,10 @@ Future<Map<String, dynamic>> _$AssetsToSqlite(
     'business_id': instance.businessId,
     'asset_name': instance.assetName,
     'product_id': instance.productId,
+    'variant_id': instance.variantId,
     'is_uploaded': instance.isUploaded ? 1 : 0,
     'local_path': instance.localPath,
+    'sub_path': instance.subPath,
   };
 }
 
@@ -111,6 +123,10 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
       association: false,
       columnName: 'product_id',
     ),
+    'variantId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'variant_id',
+    ),
     'isUploaded': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_uploaded',
@@ -118,6 +134,10 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
     'localPath': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'local_path',
+    ),
+    'subPath': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'sub_path',
     ),
   };
   @override
@@ -162,6 +182,12 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
       iterable: false,
       type: String,
     ),
+    'variantId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'variant_id',
+      iterable: false,
+      type: String,
+    ),
     'isUploaded': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'is_uploaded',
@@ -171,6 +197,12 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
     'localPath': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'local_path',
+      iterable: false,
+      type: String,
+    ),
+    'subPath': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'sub_path',
       iterable: false,
       type: String,
     ),

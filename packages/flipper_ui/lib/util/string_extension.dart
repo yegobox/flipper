@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-extension StringExtension on String {
+extension UIStringExtension on String {
   static const _specialCharacters = r'\/:*?"<>| ';
 
   /// Encode a string to a file name.

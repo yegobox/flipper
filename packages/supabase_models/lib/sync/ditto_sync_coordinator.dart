@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flutter/foundation.dart' hide Category;
+import 'package:supabase_models/brick/models/counter.model.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 
 /// Coordinates two-way synchronisation between Ditto and OfflineFirst models.
@@ -21,6 +23,7 @@ class DittoSyncCoordinator {
   bool _isObserving = false;
   bool _skipInitialFetch = false;
   Timer? _upsertDebouncer;
+  Ditto? get ditto => _ditto;
 
   /// Set the Ditto instance to be used for sync operations.
   /// Passing `null` tears down existing observers.
@@ -104,6 +107,10 @@ class DittoSyncCoordinator {
   /// written to Ditto.
   Future<void> notifyLocalUpsert<T extends OfflineFirstWithSupabaseModel>(
       T model) async {
+    // Receipt counters live in Ditto only via Capella (sales path), not Brick.
+    if (model is Counter) {
+      return;
+    }
     final adapter = _adapters[T];
     final ditto = _ditto;
     if (adapter == null || ditto == null) {
@@ -241,9 +248,11 @@ class DittoSyncCoordinator {
     }
 
     try {
+      final preparedAdapter =
+          prepareDqlSyncSubscription(query.query, query.arguments);
       final subscription = ditto.sync.registerSubscription(
-        query.query,
-        arguments: query.arguments,
+        preparedAdapter.dql,
+        arguments: preparedAdapter.arguments,
       );
       _subscriptions[type] = subscription;
       if (kDebugMode) {
@@ -403,8 +412,8 @@ class DittoSyncCoordinator {
     }
 
     // Process in small batches with delays to prevent database locking
-    const batchSize = 5;
-    const delayBetweenBatches = Duration(milliseconds: 100);
+    const batchSize = 3;
+    const delayBetweenBatches = Duration(milliseconds: 200);
 
     for (var i = 0; i < upsertTasks.length; i += batchSize) {
       final end = (i + batchSize < upsertTasks.length)

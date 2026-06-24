@@ -1,13 +1,14 @@
 // ignore_for_file: unused_result
 
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/features/config/tax_config_logic.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/style_widget/button.dart';
-import 'package:flipper_services/app_service.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flipper_models/providers/outer_variant_provider.dart';
-import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 class TaxConfigForm extends ConsumerStatefulWidget {
   const TaxConfigForm({Key? key}) : super(key: key);
@@ -18,10 +19,20 @@ class TaxConfigForm extends ConsumerStatefulWidget {
 
 class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
   final _formKey = GlobalKey<FormState>();
+  final _serverFieldKey = GlobalKey();
+  final _dataConnectorFieldKey = GlobalKey();
+  final _branchFieldKey = GlobalKey();
+  final _mrcFieldKey = GlobalKey();
+
   final _serverUrlController = TextEditingController();
+  final _dataConnectorUrlController = TextEditingController();
   final _branchController = TextEditingController();
   final _mrcController = TextEditingController();
+
   bool _vatEnabled = false;
+  bool _isSaving = false;
+  bool _dataLoaded = false;
+  TaxConfigSnapshot? _initialSnapshot;
 
   @override
   void initState() {
@@ -29,36 +40,148 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     _loadData();
   }
 
+  TaxConfigSnapshot _snapshotFromControllers() {
+    return TaxConfigSnapshot.fromInputs(
+      serverUrl: _serverUrlController.text,
+      dataConnectorUrl: _dataConnectorUrlController.text,
+      bhfId: _branchController.text,
+      mrc: _mrcController.text,
+      vatEnabled: _vatEnabled,
+    );
+  }
+
   Future<void> _loadData() async {
     final ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);
     final serverUrl =
-        await ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
+        ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
 
-    _serverUrlController.text = serverUrl ?? "";
+    _serverUrlController.text = serverUrl ?? '';
+    _dataConnectorUrlController.text = ebm?.dataConnectorUrl?.trim() ?? '';
 
-    final bhFId = ebm?.bhfId ?? (await ProxyService.box.bhfId()) ?? "";
+    final bhFId = ebm?.bhfId ?? (await ProxyService.box.bhfId()) ?? '';
     _branchController.text = bhFId;
-    String? mrc = ebm?.mrc ?? ProxyService.box.mrc();
-    _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
+    final mrc = ebm?.mrc ?? ProxyService.box.mrc();
+    _mrcController.text = (mrc == null || mrc.isEmpty) ? '' : mrc;
 
-    // Load VAT enabled status from EBM only
     if (ebm != null) {
-      setState(() {
-        _vatEnabled = ebm.vatEnabled ?? false;
-      });
-      // Save the EBM value to local storage for consistency
       await ProxyService.box
           .writeBool(key: 'vatEnabled', value: ebm.vatEnabled ?? false);
     }
+
+    if (!mounted) return;
+    setState(() {
+      if (ebm != null) {
+        _vatEnabled = ebm.vatEnabled ?? false;
+      }
+      _initialSnapshot = _snapshotFromControllers();
+      _dataLoaded = true;
+    });
+  }
+
+  void _syncInitialVatFromProvider(bool vatEnabled) {
+    final base = _initialSnapshot;
+    if (base == null) return;
+    _initialSnapshot = TaxConfigSnapshot(
+      serverUrl: base.serverUrl,
+      dataConnectorUrlOrNull: base.dataConnectorUrlOrNull,
+      bhfId: base.bhfId,
+      mrc: base.mrc,
+      vatEnabled: vatEnabled,
+    );
   }
 
   @override
   void dispose() {
     _serverUrlController.dispose();
+    _dataConnectorUrlController.dispose();
     _branchController.dispose();
     _mrcController.dispose();
     super.dispose();
+  }
+
+  void _feedbackSuccess() {
+    if (!mounted) return;
+    const msg = 'Tax configuration saved';
+    showSimpleNotification(
+      const Text(msg),
+      background: Colors.green.shade700,
+      position: NotificationPosition.bottom,
+      duration: const Duration(seconds: 4),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(msg),
+        backgroundColor: Colors.green.shade700,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _feedbackError(String message) {
+    if (!mounted) return;
+    final text = message.length > 200 ? '${message.substring(0, 200)}…' : message;
+    showSimpleNotification(
+      Text(text),
+      background: Colors.red.shade800,
+      position: NotificationPosition.bottom,
+      duration: const Duration(seconds: 5),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        backgroundColor: Colors.red.shade800,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _feedbackNoChanges() {
+    if (!mounted) return;
+    const msg = 'No changes to save';
+    showSimpleNotification(
+      const Text(msg),
+      background: Colors.amber.shade800,
+      position: NotificationPosition.bottom,
+      duration: const Duration(seconds: 3),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(msg),
+        backgroundColor: Colors.amber.shade800,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _scrollToFirstError() async {
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    final validators = <String? Function()>[
+      () => _validateUrl(_serverUrlController.text),
+      () => _validateOptionalUrl(_dataConnectorUrlController.text),
+      () => _validateBhfid(_branchController.text),
+      () => _validateMrc(_mrcController.text),
+    ];
+    final fieldKeys = [
+      _serverFieldKey,
+      _dataConnectorFieldKey,
+      _branchFieldKey,
+      _mrcFieldKey,
+    ];
+    for (var i = 0; i < validators.length; i++) {
+      if (validators[i]() != null) {
+        final ctx = fieldKeys[i].currentContext;
+        if (ctx != null) {
+          await Scrollable.ensureVisible(
+            ctx,
+            alignment: 0.12,
+            duration: const Duration(milliseconds: 280),
+          );
+        }
+        break;
+      }
+    }
   }
 
   @override
@@ -74,151 +197,203 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
           children: [
             Form(
               key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tax Configuration',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 16),
-                  // VAT Enabled Switch - Read-only, controlled by EBM configuration
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
-                      return vatEnabledAsync.when(
-                        data: (vatEnabled) {
-                          // Update local state to match EBM
-                          if (_vatEnabled != vatEnabled) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              setState(() {
-                                _vatEnabled = vatEnabled;
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tax Configuration',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Save applies to EBM / tax URL, data connector URL, branch code, and MRC.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade700,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
+                        return vatEnabledAsync.when(
+                          data: (vatEnabled) {
+                            if (_vatEnabled != vatEnabled) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (!mounted) return;
+                                setState(() {
+                                  _vatEnabled = vatEnabled;
+                                  _syncInitialVatFromProvider(vatEnabled);
+                                });
                               });
-                            });
-                          }
-                          return SwitchListTile(
+                            }
+                            return SwitchListTile(
+                              title: const Text('VAT Enabled'),
+                              subtitle: const Text(
+                                'VAT status is controlled by EBM configuration',
+                              ),
+                              value: vatEnabled,
+                              activeThumbColor: Colors.blue,
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 0),
+                              onChanged: null,
+                            );
+                          },
+                          loading: () => SwitchListTile(
                             title: const Text('VAT Enabled'),
-                            subtitle: const Text(
-                                'VAT status is controlled by EBM configuration'),
-                            value: vatEnabled,
+                            subtitle: const Text('Loading...'),
+                            value: _vatEnabled,
                             activeThumbColor: Colors.blue,
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 0),
-                            onChanged: null, // Disabled - read-only
-                          );
-                        },
-                        loading: () => SwitchListTile(
-                          title: const Text('VAT Enabled'),
-                          subtitle: const Text('Loading...'),
-                          value: _vatEnabled,
-                          activeThumbColor: Colors.blue,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 0),
-                          onChanged: null,
+                            onChanged: null,
+                          ),
+                          error: (error, stack) => SwitchListTile(
+                            title: const Text('VAT Enabled'),
+                            subtitle: const Text('Error loading VAT status'),
+                            value: _vatEnabled,
+                            activeThumbColor: Colors.blue,
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 0),
+                            onChanged: null,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      key: _serverFieldKey,
+                      controller: _serverUrlController,
+                      decoration: InputDecoration(
+                        labelText: 'EBM / Tax server URL',
+                        hintText: 'Enter EBM URL',
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
                         ),
-                        error: (error, stack) => SwitchListTile(
-                          title: const Text('VAT Enabled'),
-                          subtitle: const Text('Error loading VAT status'),
-                          value: _vatEnabled,
-                          activeThumbColor: Colors.blue,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 0),
-                          onChanged: null,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.blue),
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _serverUrlController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter EBM URL',
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 16,
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.blue),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 16),
+                      validator: _validateUrl,
                     ),
-                    validator: _validateUrl,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _branchController,
-                    decoration: InputDecoration(
-                      hintText: 'Branch Code',
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      key: _dataConnectorFieldKey,
+                      controller: _dataConnectorUrlController,
+                      decoration: InputDecoration(
+                        labelText: 'Data connector URL',
+                        hintText: 'http://127.0.0.1:8084',
+                        helperText:
+                            'Bulk product RRA uses this service; RRA tax URL is configured on data-connector.',
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 16,
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.blue),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 16),
+                      validator: _validateOptionalUrl,
                     ),
-                    validator: _validateBhfid,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _mrcController,
-                    decoration: InputDecoration(
-                      hintText: 'MRC',
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      key: _branchFieldKey,
+                      controller: _branchController,
+                      decoration: InputDecoration(
+                        labelText: 'Branch code (bhfId)',
+                        hintText: 'Branch Code',
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 16,
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.blue),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 16),
+                      validator: _validateBhfid,
                     ),
-                    validator: _validateMrc,
-                  ),
-                  const SizedBox(height: 16),
-                  FlipperButton(
-                    color: Colors.blue,
-                    width: double.infinity,
-                    textColor: Colors.white,
-                    onPressed: _saveForm,
-                    text: "Save",
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      key: _mrcFieldKey,
+                      controller: _mrcController,
+                      decoration: InputDecoration(
+                        labelText: 'MRC',
+                        hintText: 'MRC',
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 16,
+                        ),
+                      ),
+                      validator: _validateMrc,
+                    ),
+                    const SizedBox(height: 16),
+                    FlipperButton(
+                      color: Colors.blue,
+                      width: double.infinity,
+                      textColor: Colors.white,
+                      isLoading: _isSaving,
+                      onPressed:
+                          _dataLoaded && !_isSaving ? _saveForm : null,
+                      text: 'Save',
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
             Center(
               child: FutureBuilder<String>(
-                future: AppService().version(), // Fetch version from AppService
+                future: AppService().version(),
                 builder: (context, snapshot) {
-                  // Check the state of the Future
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CircularProgressIndicator();
                   } else if (snapshot.hasError) {
-                    return Text("Error: ${snapshot.error}");
+                    return Text('Error: ${snapshot.error}');
                   } else if (snapshot.hasData) {
                     return Text(
-                      "Version: ${snapshot.data}",
+                      'Version: ${snapshot.data}',
                       style: const TextStyle(
-                          fontSize: 10, fontWeight: FontWeight.normal),
+                        fontSize: 10,
+                        fontWeight: FontWeight.normal,
+                      ),
                     );
                   } else {
-                    return const Text("Version not available");
+                    return const Text('Version not available');
                   }
                 },
               ),
@@ -233,7 +408,19 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     if (value == null || value.isEmpty) {
       return 'Please enter a valid URL';
     }
-    if (!Uri.tryParse(value.trim())!.hasScheme) {
+    final uri = Uri.tryParse(value.trim());
+    if (uri == null || !uri.hasScheme) {
+      return 'Please enter a valid URL with a scheme (e.g., http:// or https://)';
+    }
+    return null;
+  }
+
+  String? _validateOptionalUrl(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    final uri = Uri.tryParse(value.trim());
+    if (uri == null || !uri.hasScheme) {
       return 'Please enter a valid URL with a scheme (e.g., http:// or https://)';
     }
     return null;
@@ -256,55 +443,88 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     return null;
   }
 
-  void _saveForm() async {
-    if (_formKey.currentState!.validate()) {
-      // Get current MRC value from storage
-      final currentMrc = ProxyService.box.mrc() ?? '';
-      final newMrc = _mrcController.text;
-      final currentVatEnabled = ProxyService.box.vatEnabled();
+  Future<void> _saveForm() async {
+    if (!_dataLoaded || _initialSnapshot == null) return;
 
-      // Check if MRC or VAT status has changed
-      if (currentMrc.isNotEmpty &&
-          currentMrc == newMrc &&
-          currentVatEnabled == _vatEnabled) {
-        toast("No changes detected");
+    FocusScope.of(context).unfocus();
+
+    if (!_formKey.currentState!.validate()) {
+      await _scrollToFirstError();
+      return;
+    }
+
+    final current = _snapshotFromControllers();
+    if (!taxConfigHasChanges(_initialSnapshot!, current)) {
+      _feedbackNoChanges();
+      return;
+    }
+
+    final trimmedServer = trimTaxConfigUrl(_serverUrlController.text);
+    final dataConnectorForSave =
+        normalizeOptionalConnectorUrl(_dataConnectorUrlController.text);
+    final bhf = trimTaxConfigUrl(_branchController.text);
+    final mrc = trimTaxConfigUrl(_mrcController.text);
+
+    setState(() => _isSaving = true);
+    try {
+      final ok = await ProxyService.strategy.saveEbm(
+        branchId: ProxyService.box.getBranchId()!,
+        severUrl: trimmedServer,
+        bhFId: bhf,
+        vatEnabled: _vatEnabled,
+        mrc: mrc,
+        dataConnectorUrl: dataConnectorForSave,
+      );
+
+      if (!mounted) return;
+
+      if (!ok) {
+        _feedbackError(
+          'Could not save tax configuration. Check your connection and try again.',
+        );
         return;
       }
 
-      // Save EBM configuration
-      await ProxyService.strategy.saveEbm(
-          branchId: ProxyService.box.getBranchId()!,
-          severUrl: _serverUrlController.text,
-          bhFId: _branchController.text,
-          vatEnabled: _vatEnabled,
-          mrc: newMrc);
+      final dcBox = dataConnectorForSave ?? '';
 
-      // Save to local storage
       await Future.wait([
         ProxyService.box.writeString(
-          key: "getServerUrl",
-          value: _serverUrlController.text,
+          key: 'getServerUrl',
+          value: trimmedServer,
         ),
         ProxyService.box.writeString(
-          key: "bhfId",
-          value: _branchController.text,
+          key: 'dataConnectorUrl',
+          value: dcBox,
         ),
         ProxyService.box.writeString(
-          key: "mrc",
-          value: newMrc,
+          key: 'bhfId',
+          value: bhf,
+        ),
+        ProxyService.box.writeString(
+          key: 'mrc',
+          value: mrc,
         ),
         ProxyService.box.writeBool(key: 'vatEnabled', value: _vatEnabled),
       ]);
 
-      // Invalidate the outerVariantsProvider to refresh the variants list
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
         ref.refresh(outerVariantsProvider(branchId));
-        // Also invalidate the EBM VAT provider to reflect any changes
         ref.invalidate(ebmVatEnabledProvider);
       }
 
-      toast("Saved successfully");
+      setState(() {
+        _initialSnapshot = _snapshotFromControllers();
+      });
+
+      _feedbackSuccess();
+    } catch (e) {
+      if (!mounted) return;
+      _feedbackError(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 }

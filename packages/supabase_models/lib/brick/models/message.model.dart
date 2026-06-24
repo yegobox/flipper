@@ -18,7 +18,7 @@ part 'message.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'messages',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Message extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

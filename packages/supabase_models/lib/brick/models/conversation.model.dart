@@ -13,7 +13,17 @@ class Conversation extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  final String title;
+  @Sqlite(fromGenerator: "data['title'] == null ? '' : data['title'] as String")
+  @Supabase(
+      fromGenerator: "data['title'] == null ? '' : data['title'] as String")
+  String title;
+
+  @Sqlite(
+      fromGenerator:
+          "data['branch_id'] == null ? '' : data['branch_id'] as String")
+  @Supabase(
+      fromGenerator:
+          "data['branch_id'] == null ? '' : data['branch_id'] as String")
   final String branchId;
 
   @Sqlite(nullable: true)
@@ -28,6 +38,14 @@ class Conversation extends OfflineFirstWithSupabaseModel {
   @Sqlite(nullable: true)
   final String? whatsappWaId; // WhatsApp ID associated with this conversation
 
+  @Sqlite(
+      fromGenerator:
+          "data['use_case'] == null ? 'business' : data['use_case'] as String")
+  @Supabase(
+      fromGenerator:
+          "data['use_case'] == null ? 'business' : data['use_case'] as String")
+  final String useCase; // 'business' or 'personal'
+
   Conversation({
     String? id,
     required this.title,
@@ -36,6 +54,7 @@ class Conversation extends OfflineFirstWithSupabaseModel {
     DateTime? lastMessageAt,
     this.messages,
     this.whatsappWaId,
+    this.useCase = 'business',
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
         lastMessageAt = lastMessageAt ?? DateTime.now();

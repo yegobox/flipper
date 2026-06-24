@@ -9,14 +9,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:image_picker/image_picker.dart';
-
 import 'package:flipper_models/providers/upload_providers.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/asset_sync_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_dashboard/utils/image_source_sheet.dart';
 
 class Browsephotos extends StatefulHookConsumerWidget {
   final ValueChanged<Color> onColorSelected;
@@ -36,7 +35,6 @@ class Browsephotos extends StatefulHookConsumerWidget {
 
 class _BrowsephotosState extends ConsumerState<Browsephotos> {
   final talker = TalkerFlutter.init();
-  final ImagePicker _picker = ImagePicker();
   bool isUploading = false;
   bool isOfflineMode = false;
 
@@ -153,6 +151,25 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
           return asset.localPath!;
         }
       }
+
+      // If missing locally but we have connectivity, lazily download from S3.
+      if (!isOfflineMode) {
+        try {
+          final stream = await ProxyService.strategy.downloadAssetSave(
+            assetName: assetName,
+            subPath: 'branch',
+          );
+          await for (final p in stream) {
+            if (p >= 100) break;
+          }
+
+          // After download completes, resolve from app support directory.
+          final downloaded = await getImageFilePath(imageFileName: assetName);
+          if (downloaded != null) return downloaded;
+        } catch (e) {
+          talker.error('Error downloading asset from S3: $e');
+        }
+      }
       return null;
     } catch (e) {
       talker.error('Error loading asset from local path: $e');
@@ -222,8 +239,30 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
     }
   }
 
+  Future<ImageSourceSheetResult?> _showImageSourceSheet() async {
+    final hasImage = (_currentImageUrl ?? widget.imageUrl) != null;
+    return showImageSourceSheet(
+      context,
+      extraActions: hasImage
+          ? const []
+          : [
+              ListTile(
+                leading: const Icon(Icons.color_lens),
+                title: const Text('Pick a color instead'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await _showColorPickerDialog(context);
+                },
+              ),
+            ],
+    );
+  }
+
   // Helper function to handle image upload with offline support
-  Future<void> _handleImageUpload(UploadViewModel model) async {
+  Future<void> _handleImageUpload(
+    UploadViewModel model, {
+    required String pickedPath,
+  }) async {
     // Check connectivity before proceeding
     await _checkConnectivity();
 
@@ -232,7 +271,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
     });
 
     // Reset upload progress
-    ref.read(uploadProgressProvider.notifier).state = 0.0;
+    ref.read(uploadProgressProvider.notifier).setProgress(0.0);
 
     try {
       // Check connectivity again before proceeding
@@ -279,14 +318,22 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
       }
 
       if (isOfflineMode) {
-        // Handle offline image upload
-        await _handleOfflineImageUpload(productRef.id);
+        await _handleOfflineWithPickedPath(productRef.id, pickedPath);
       } else {
-        // Handle online image upload using existing method
-        final product = await model.browsePictureFromGallery(
+        model.setRef(ref);
+        await model.uploadPickedImagePath(
+          pickedPath: pickedPath,
           id: productRef.id,
           urlType: URLTYPE.PRODUCT,
+          updateProductImage: true,
+          persistAssetRecord: true,
         );
+        final branchId = ProxyService.box.getBranchId()!;
+        final product = (await ProxyService.strategy.getProduct(
+          id: productRef.id,
+          branchId: branchId,
+          businessId: ProxyService.box.getBusinessId()!,
+        ))!;
         talker.warning("ImageToProduct:${product.imageUrl}");
         ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
       }
@@ -294,37 +341,22 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
       setState(() {
         isUploading = false;
       });
-      ref.read(uploadProgressProvider.notifier).state = 0.0;
+      ref.read(uploadProgressProvider.notifier).setProgress(0.0);
     } catch (e) {
       setState(() {
         isUploading = false;
       });
-      ref.read(uploadProgressProvider.notifier).state = 0.0;
+      ref.read(uploadProgressProvider.notifier).setProgress(0.0);
       talker.error("Upload error: $e");
     }
   }
 
-  // Handle offline image upload
-  Future<void> _handleOfflineImageUpload(String productId) async {
-    setState(() {
-      isUploading = true;
-    });
-
+  Future<void> _handleOfflineWithPickedPath(String productId, String path) async {
     try {
       // Simulate upload progress
       _startProgressSimulation();
 
-      // Get image from gallery
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image == null) {
-        setState(() {
-          isUploading = false;
-        });
-        ref.read(uploadProgressProvider.notifier).state = 0.0;
-        return;
-      }
-
-      final File imageFile = File(image.path);
+      final File imageFile = File(path);
       final branchId = ProxyService.box.getBranchId();
       final businessId = ProxyService.box.getBusinessId();
 
@@ -341,7 +373,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
       );
 
       // Set progress to 100% when complete
-      ref.read(uploadProgressProvider.notifier).state = 1.0;
+      ref.read(uploadProgressProvider.notifier).setProgress(1.0);
 
       // Update the product with the local asset name
       final product = ref.read(unsavedProductProvider);
@@ -383,7 +415,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
       setState(() {
         isUploading = false;
       });
-      ref.read(uploadProgressProvider.notifier).state = 0.0;
+      ref.read(uploadProgressProvider.notifier).setProgress(0.0);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -396,7 +428,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
 
   // Simulate upload progress for better user experience
   void _startProgressSimulation() {
-    ref.read(uploadProgressProvider.notifier).state = 0.0;
+    ref.read(uploadProgressProvider.notifier).setProgress(0.0);
     Timer.periodic(const Duration(milliseconds: 100), (timer) {
       final currentProgress = ref.read(uploadProgressProvider);
       if (currentProgress >= 0.95 || !isUploading) {
@@ -405,7 +437,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
       }
       // Gradually increase progress, slowing down as it approaches 95%
       final newProgress = currentProgress + (0.95 - currentProgress) * 0.1;
-      ref.read(uploadProgressProvider.notifier).state = newProgress;
+      ref.read(uploadProgressProvider.notifier).setProgress(newProgress);
     });
   }
 
@@ -426,11 +458,12 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
           children: [
             InkWell(
               onTap: () async {
-                if (displayImageUrl == null) {
-                  await _showColorPickerDialog(context);
-                } else {
-                  await _handleImageUpload(model);
-                }
+                final sourceResult = await _showImageSourceSheet();
+                if (sourceResult == null) return;
+                final path =
+                    await pickLocalImagePathForSheetResult(sourceResult);
+                if (path == null) return;
+                await _handleImageUpload(model, pickedPath: path);
               },
               child: Container(
                 width: 200,
@@ -632,7 +665,13 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                   onPressed: isUploading
                       ? null
                       : () async {
-                          await _handleImageUpload(model);
+                          final sourceResult = await _showImageSourceSheet();
+                          if (sourceResult == null) return;
+                          final path = await pickLocalImagePathForSheetResult(
+                            sourceResult,
+                          );
+                          if (path == null) return;
+                          await _handleImageUpload(model, pickedPath: path);
                         },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

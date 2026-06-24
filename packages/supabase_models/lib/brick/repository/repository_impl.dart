@@ -69,19 +69,12 @@ class RepositoryImpl extends OfflineFirstWithSupabaseRepository {
     );
   }
 
-  /// Configure the database for better crash resilience
+  /// No-op: main Brick DB uses Turso (no sqflite PRAGMA pass).
   Future<void> configureDatabase() async {
-    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
+    if (kIsWeb) {
       return;
     }
-
-    try {
-      await _databaseManager.configureDatabaseSettings(
-          _dbPath, PlatformHelpers.getDatabaseFactory());
-      _logger.info('Database configured for better crash resilience');
-    } catch (e) {
-      _logger.warning('Error during database configuration: $e');
-    }
+    _logger.fine('configureDatabase skipped — main DB uses Turso');
   }
 
   /// Get the number of requests in the queue

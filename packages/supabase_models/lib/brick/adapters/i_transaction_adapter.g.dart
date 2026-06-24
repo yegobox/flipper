@@ -75,6 +75,15 @@ Future<ITransaction> _$ITransactionFromSupabase(
     isRefunded: data['is_refunded'] == null
         ? null
         : data['is_refunded'] as bool? ?? false,
+    refundedAmount: data['refunded_amount'] == null
+        ? null
+        : data['refunded_amount'] as double?,
+    refundReason: data['refund_reason'] == null
+        ? null
+        : data['refund_reason'] as String?,
+    refundMethod: data['refund_method'] == null
+        ? null
+        : data['refund_method'] as String?,
     customerName: data['customer_name'] == null
         ? null
         : data['customer_name'] as String?,
@@ -173,6 +182,22 @@ Future<ITransaction> _$ITransactionFromSupabase(
         ? null
         : data['customer_phone'] as String?,
     agentId: data['agent_id'] == null ? null : data['agent_id'] as String?,
+    attributedAgentUserId: data['attributed_agent_user_id'] == null
+        ? null
+        : data['attributed_agent_user_id'] as String?,
+    agentCommissionType: data['agent_commission_type'] == null
+        ? null
+        : data['agent_commission_type'] as String?,
+    agentCommissionValue: data['agent_commission_value'] == null
+        ? null
+        : data['agent_commission_value'] as num?,
+    agentCommissionAmount: data['agent_commission_amount'] == null
+        ? null
+        : data['agent_commission_amount'] as num?,
+    cashierName: data['cashier_name'] == null
+        ? null
+        : data['cashier_name'] as String?,
+    deviceId: data['device_id'] == null ? null : data['device_id'] as String?,
   );
 }
 
@@ -206,6 +231,9 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'is_income': instance.isIncome,
     'is_expense': instance.isExpense,
     'is_refunded': instance.isRefunded,
+    'refunded_amount': instance.refundedAmount,
+    'refund_reason': instance.refundReason,
+    'refund_method': instance.refundMethod,
     'customer_name': instance.customerName,
     'customer_tin': instance.customerTin,
     'remark': instance.remark,
@@ -242,6 +270,12 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'discount_amount': instance.discountAmount,
     'customer_phone': instance.customerPhone,
     'agent_id': instance.agentId,
+    'attributed_agent_user_id': instance.attributedAgentUserId,
+    'agent_commission_type': instance.agentCommissionType,
+    'agent_commission_value': instance.agentCommissionValue,
+    'agent_commission_amount': instance.agentCommissionAmount,
+    'cashier_name': instance.cashierName,
+    'device_id': instance.deviceId,
   };
 }
 
@@ -309,6 +343,15 @@ Future<ITransaction> _$ITransactionFromSqlite(
     isIncome: data['is_income'] == null ? null : data['is_income'] == 1,
     isExpense: data['is_expense'] == null ? null : data['is_expense'] == 1,
     isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
+    refundedAmount: data['refunded_amount'] == null
+        ? null
+        : data['refunded_amount'] as double?,
+    refundReason: data['refund_reason'] == null
+        ? null
+        : data['refund_reason'] as String?,
+    refundMethod: data['refund_method'] == null
+        ? null
+        : data['refund_method'] as String?,
     customerName: data['customer_name'] == null
         ? null
         : data['customer_name'] as String?,
@@ -425,10 +468,48 @@ Future<ITransaction> _$ITransactionFromSqlite(
                 }))
             .toList()
             .cast<TransactionItem>(),
+    payments:
+        (await provider
+                .rawQuery(
+                  'SELECT DISTINCT `f_TransactionPaymentRecord_brick_id` FROM `_brick_ITransaction_payments` WHERE l_ITransaction_brick_id = ?',
+                  [data['_brick_id'] as int],
+                )
+                .then((results) {
+                  final ids = results.map(
+                    (r) => r['f_TransactionPaymentRecord_brick_id'],
+                  );
+                  return Future.wait<TransactionPaymentRecord>(
+                    ids.map(
+                      (primaryKey) => repository!
+                          .getAssociation<TransactionPaymentRecord>(
+                            Query.where('primaryKey', primaryKey, limit1: true),
+                          )
+                          .then((r) => r!.first),
+                    ),
+                  );
+                }))
+            .toList()
+            .cast<TransactionPaymentRecord>(),
     customerPhone: data['customer_phone'] == null
         ? null
         : data['customer_phone'] as String?,
     agentId: data['agent_id'] == null ? null : data['agent_id'] as String?,
+    attributedAgentUserId: data['attributed_agent_user_id'] == null
+        ? null
+        : data['attributed_agent_user_id'] as String?,
+    agentCommissionType: data['agent_commission_type'] == null
+        ? null
+        : data['agent_commission_type'] as String?,
+    agentCommissionValue: data['agent_commission_value'] == null
+        ? null
+        : data['agent_commission_value'] as num?,
+    agentCommissionAmount: data['agent_commission_amount'] == null
+        ? null
+        : data['agent_commission_amount'] as num?,
+    cashierName: data['cashier_name'] == null
+        ? null
+        : data['cashier_name'] as String?,
+    deviceId: data['device_id'] == null ? null : data['device_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -470,6 +551,9 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'is_refunded': instance.isRefunded == null
         ? null
         : (instance.isRefunded! ? 1 : 0),
+    'refunded_amount': instance.refundedAmount,
+    'refund_reason': instance.refundReason,
+    'refund_method': instance.refundMethod,
     'customer_name': instance.customerName,
     'customer_tin': instance.customerTin,
     'remark': instance.remark,
@@ -514,6 +598,12 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'discount_amount': instance.discountAmount,
     'customer_phone': instance.customerPhone,
     'agent_id': instance.agentId,
+    'attributed_agent_user_id': instance.attributedAgentUserId,
+    'agent_commission_type': instance.agentCommissionType,
+    'agent_commission_value': instance.agentCommissionValue,
+    'agent_commission_amount': instance.agentCommissionAmount,
+    'cashier_name': instance.cashierName,
+    'device_id': instance.deviceId,
   };
 }
 
@@ -623,6 +713,18 @@ class ITransactionAdapter
     'isRefunded': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_refunded',
+    ),
+    'refundedAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'refunded_amount',
+    ),
+    'refundReason': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'refund_reason',
+    ),
+    'refundMethod': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'refund_method',
     ),
     'customerName': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -763,6 +865,30 @@ class ITransactionAdapter
     'agentId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'agent_id',
+    ),
+    'attributedAgentUserId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'attributed_agent_user_id',
+    ),
+    'agentCommissionType': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_type',
+    ),
+    'agentCommissionValue': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_value',
+    ),
+    'agentCommissionAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_amount',
+    ),
+    'cashierName': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'cashier_name',
+    ),
+    'deviceId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'device_id',
     ),
   };
   @override
@@ -920,6 +1046,24 @@ class ITransactionAdapter
       columnName: 'is_refunded',
       iterable: false,
       type: bool,
+    ),
+    'refundedAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'refunded_amount',
+      iterable: false,
+      type: double,
+    ),
+    'refundReason': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'refund_reason',
+      iterable: false,
+      type: String,
+    ),
+    'refundMethod': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'refund_method',
+      iterable: false,
+      type: String,
     ),
     'customerName': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1125,6 +1269,12 @@ class ITransactionAdapter
       iterable: true,
       type: TransactionItem,
     ),
+    'payments': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'payments',
+      iterable: true,
+      type: TransactionPaymentRecord,
+    ),
     'customerPhone': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'customer_phone',
@@ -1134,6 +1284,42 @@ class ITransactionAdapter
     'agentId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'agent_id',
+      iterable: false,
+      type: String,
+    ),
+    'attributedAgentUserId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'attributed_agent_user_id',
+      iterable: false,
+      type: String,
+    ),
+    'agentCommissionType': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_type',
+      iterable: false,
+      type: String,
+    ),
+    'agentCommissionValue': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_value',
+      iterable: false,
+      type: num,
+    ),
+    'agentCommissionAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'agent_commission_amount',
+      iterable: false,
+      type: num,
+    ),
+    'cashierName': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'cashier_name',
+      iterable: false,
+      type: String,
+    ),
+    'deviceId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'device_id',
       iterable: false,
       type: String,
     ),
@@ -1196,6 +1382,48 @@ class ITransactionAdapter
                   );
               return await provider.rawInsert(
                 'INSERT OR IGNORE INTO `_brick_ITransaction_items` (`l_ITransaction_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
+                [instance.primaryKey, id],
+              );
+            }) ??
+            [],
+      );
+    }
+
+    if (instance.primaryKey != null) {
+      final paymentsOldColumns = await provider.rawQuery(
+        'SELECT `f_TransactionPaymentRecord_brick_id` FROM `_brick_ITransaction_payments` WHERE `l_ITransaction_brick_id` = ?',
+        [instance.primaryKey],
+      );
+      final paymentsOldIds = paymentsOldColumns.map(
+        (a) => a['f_TransactionPaymentRecord_brick_id'],
+      );
+      final paymentsNewIds =
+          instance.payments?.map((s) => s.primaryKey).whereType<int>() ?? [];
+      final paymentsIdsToDelete = paymentsOldIds.where(
+        (id) => !paymentsNewIds.contains(id),
+      );
+
+      await Future.wait<void>(
+        paymentsIdsToDelete.map((id) async {
+          return await provider
+              .rawExecute(
+                'DELETE FROM `_brick_ITransaction_payments` WHERE `l_ITransaction_brick_id` = ? AND `f_TransactionPaymentRecord_brick_id` = ?',
+                [instance.primaryKey, id],
+              )
+              .catchError((e) => null);
+        }),
+      );
+
+      await Future.wait<int?>(
+        instance.payments?.map((s) async {
+              final id =
+                  s.primaryKey ??
+                  await provider.upsert<TransactionPaymentRecord>(
+                    s,
+                    repository: repository,
+                  );
+              return await provider.rawInsert(
+                'INSERT OR IGNORE INTO `_brick_ITransaction_payments` (`l_ITransaction_brick_id`, `f_TransactionPaymentRecord_brick_id`) VALUES (?, ?)',
                 [instance.primaryKey, id],
               );
             }) ??

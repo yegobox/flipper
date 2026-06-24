@@ -1,0 +1,207 @@
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
+
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/setting_service.dart';
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+
+mixin TransactionComputationMixin {
+  double calculateTransactionTotal({
+    required List<TransactionItem> items,
+    ITransaction? transaction,
+    double discountPercent = 0.0,
+  }) {
+    // Default to using the sum of items
+    // Round each item's subtotal to 2 decimal places to avoid
+    // floating-point drift (e.g. 3000 * 2.6666... = 7999.80 → 8000.00)
+    final settingsService = locator<SettingsService>();
+    final isCurrencyDecimal = settingsService.isCurrencyDecimal;
+
+    double baseTotal = items.fold(0.0, (sum, item) {
+      final lineNet = SaleLinePricing.subtotalNetForItem(
+        unitPrice: item.price.toDouble(),
+        qty: item.qty.toDouble(),
+        dcRt: item.dcRt?.toDouble(),
+        dcAmt: item.dcAmt?.toDouble(),
+      );
+      return sum +
+          (isCurrencyDecimal
+              ? lineNet.roundToTwoDecimalPlaces()
+              : lineNet.roundToDouble());
+    });
+
+    // Fallback/Validation: REMOVED
+    // We strictly use the sum of items because relying on transaction.subTotal
+    // can lead to stale totals when items are deleted but the transaction
+    // object hasn't been updated/refreshed yet.
+    // if (transaction != null && (transaction.subTotal ?? 0.0) > baseTotal) {
+    //   baseTotal = transaction.subTotal!;
+    // }
+
+    if (discountPercent > 0) {
+      final discountAmount = (baseTotal * discountPercent) / 100;
+      return baseTotal - discountAmount;
+    }
+
+    return baseTotal;
+  }
+
+  double calculateTotalPaid(
+    List<Payment> payments, {
+    double alreadyPaid = 0.0,
+  }) {
+    return payments.fold<double>(alreadyPaid, (sum, p) => sum + p.amount);
+  }
+
+  double calculateRemainingBalance({
+    required double total,
+    required double paid,
+  }) {
+    final remaining = total - paid;
+    // Use a small epsilon for float comparison
+    return remaining > 0.01 ? remaining : 0.0;
+  }
+
+  double calculateAmountToChange({
+    required double total,
+    required double paid,
+  }) {
+    final change = paid - total;
+    return change > 0.01 ? change : 0.0;
+  }
+
+  void updatePaymentRemainder({
+    required WidgetRef ref,
+    required ITransaction transaction,
+    required double total,
+    required double lastAutoSetAmount,
+    double? overrideAlreadyPaid,
+    TextEditingController? receivedAmountController,
+    Function(double)? onAutoSetAmountChanged,
+  }) {
+    final alreadyPaid = overrideAlreadyPaid ?? transaction.cashReceived ?? 0.0;
+    final currentRemainder = total - alreadyPaid;
+    final displayRemainder = currentRemainder > 0 ? currentRemainder : 0.0;
+
+    // Only auto-update if remainder has meaningfully changed or field is empty.
+    if ((displayRemainder - lastAutoSetAmount).abs() > 0.01 ||
+        (receivedAmountController != null &&
+            receivedAmountController.text.isEmpty)) {
+      if (receivedAmountController != null) {
+        receivedAmountController.text = displayRemainder.toString();
+      }
+
+      if (onAutoSetAmountChanged != null) {
+        onAutoSetAmountChanged(displayRemainder);
+      }
+
+      final payments = ref.read(paymentMethodsProvider);
+      if (payments.isNotEmpty) {
+        final payment = payments[0];
+        if (payment.controller.text != displayRemainder.toString()) {
+          payment.controller.text = displayRemainder.toString();
+        }
+
+        ref
+            .read(paymentMethodsProvider.notifier)
+            .updatePaymentMethod(
+              0,
+              Payment(
+                amount: displayRemainder,
+                method: payment.method,
+                id: payment.id,
+                controller: payment.controller,
+              ),
+            );
+      }
+    }
+  }
+
+  double calculateCurrentRemainder(
+    ITransaction transaction,
+    double total, {
+    double? overrideAlreadyPaid,
+  }) {
+    final alreadyPaid = overrideAlreadyPaid ?? transaction.cashReceived ?? 0.0;
+    final currentRemainder = total - alreadyPaid;
+    return currentRemainder > 0.01 ? currentRemainder : 0.0;
+  }
+
+  /// Fetches the actual cash paid for a transaction from payment records,
+  /// excluding CREDIT entries so only real money received is counted.
+  Future<double> fetchNonCreditPaid(String transactionId) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return 0.0;
+
+    try {
+      final paid = await ProxyService.getStrategy(Strategy.capella)
+          .getTotalPaidForTransaction(
+            transactionId: transactionId,
+            branchId: branchId,
+            excludePaymentMethod: 'CREDIT',
+          );
+      if (paid != null && paid > 0) return paid;
+    } catch (_) {
+      // Capella/Ditto is the POS cart source of truth.
+    }
+    return 0.0;
+  }
+
+  void standardizedPaymentInitialization({
+    required WidgetRef ref,
+    required ITransaction transaction,
+    required double total,
+    double? overrideAlreadyPaid,
+  }) {
+    final alreadyPaid = overrideAlreadyPaid ?? transaction.cashReceived ?? 0.0;
+    final remainder = total - alreadyPaid;
+    final displayRemainder = remainder > 0.01 ? remainder : 0.0;
+
+    final payments = ref.read(paymentMethodsProvider);
+    if (payments.isEmpty) {
+      ref
+          .read(paymentMethodsProvider.notifier)
+          .addPaymentMethod(
+            Payment(
+              amount: displayRemainder,
+              method: "Cash",
+              controller: TextEditingController(
+                text: displayRemainder.toString(),
+              ),
+            ),
+          );
+    } else {
+      final firstPayment = payments[0];
+      // If the first payment is 0 or matches a "default" state,
+      // update it to the true remainder for this session.
+      if (firstPayment.amount == 0 ||
+          (firstPayment.amount - displayRemainder).abs() > 0.01) {
+        // Only update if the current controller text is empty or matches old logic
+        bool shouldUpdateControllerText =
+            firstPayment.controller.text.isEmpty ||
+            double.tryParse(firstPayment.controller.text) == 0;
+
+        if (shouldUpdateControllerText &&
+            firstPayment.controller.text != displayRemainder.toString()) {
+          firstPayment.controller.text = displayRemainder.toString();
+        }
+
+        // Create a new Payment with updated amount but REUSE controller
+        Payment updatedPayment = Payment(
+          amount: displayRemainder,
+          method: firstPayment.method,
+          id: firstPayment.id,
+          controller: firstPayment.controller,
+        );
+
+        ref
+            .read(paymentMethodsProvider.notifier)
+            .updatePaymentMethod(0, updatedPayment);
+      }
+    }
+  }
+}

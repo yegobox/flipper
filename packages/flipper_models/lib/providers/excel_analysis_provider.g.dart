@@ -15,15 +15,15 @@ const excelAnalysisProvider = ExcelAnalysisProvider._();
 final class ExcelAnalysisProvider
     extends $NotifierProvider<ExcelAnalysis, ExcelAnalysisState> {
   const ExcelAnalysisProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'excelAnalysisProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'excelAnalysisProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$excelAnalysisHash();
@@ -41,7 +41,7 @@ final class ExcelAnalysisProvider
   }
 }
 
-String _$excelAnalysisHash() => r'edac2db8b3907981fad9e12877dbb2aefae6f786';
+String _$excelAnalysisHash() => r'd0092d546a86b1d7a684d527c1e11e7126789163';
 
 abstract class _$ExcelAnalysis extends $Notifier<ExcelAnalysisState> {
   ExcelAnalysisState build();
@@ -50,11 +50,14 @@ abstract class _$ExcelAnalysis extends $Notifier<ExcelAnalysisState> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<ExcelAnalysisState, ExcelAnalysisState>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<ExcelAnalysisState, ExcelAnalysisState>,
-        ExcelAnalysisState,
-        Object?,
-        Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ExcelAnalysisState, ExcelAnalysisState>,
+              ExcelAnalysisState,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

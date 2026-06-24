@@ -2,17 +2,106 @@ import 'dart:convert';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+class _CreateAgentMigrationRequired implements Exception {
+  _CreateAgentMigrationRequired(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class TenantOperationsMixin {
+  static bool _isCreateAgentSchemaMismatch(PostgrestException e) {
+    return e.code == 'PGRST202' &&
+        (e.message.contains('create_agent') ||
+            e.message.contains('schema cache'));
+  }
+
+  static Future<dynamic> _invokeCreateAgent(
+    SupabaseClient client, {
+    required String userId,
+    required String name,
+    required String email,
+    required String businessId,
+    required String branchId,
+    required List<Map<String, String>> accesses,
+    required String userType,
+    required bool allowBusinessLogin,
+  }) async {
+    final baseParams = <String, dynamic>{
+      'p_user_id': userId,
+      'p_name': name,
+      'p_email': email,
+      'p_business_id': businessId,
+      'p_branch_id': branchId,
+      'p_accesses': accesses,
+      'p_user_type': userType,
+    };
+
+    final withLoginFlag = {
+      ...baseParams,
+      'p_allow_business_login': allowBusinessLogin,
+    };
+    talker.info('create_agent params: $withLoginFlag');
+
+    try {
+      return await client.rpc('create_agent', params: withLoginFlag);
+    } on PostgrestException catch (e) {
+      if (!_isCreateAgentSchemaMismatch(e)) rethrow;
+
+      talker.warning(
+        'create_agent missing p_allow_business_login — apply migration '
+        '20260518120000_agent_allow_business_login.sql',
+      );
+
+      if (userType == 'Agent' && !allowBusinessLogin) {
+        throw _CreateAgentMigrationRequired(
+          'Commission-only agents need a database update. '
+          'Apply migration supabase/migrations/20260518120000_agent_allow_business_login.sql '
+          '(e.g. supabase db push), or turn on "Allow login on this business" and try again.',
+        );
+      }
+
+      talker.info('create_agent legacy params: $baseParams');
+      return await client.rpc('create_agent', params: baseParams);
+    }
+  }
+
   // Helper function to display error messages
   static void _showError(BuildContext context, String message) {
     showCustomSnackBarUtil(context, message, backgroundColor: Colors.red[600]);
+  }
+
+  static Never _fail(BuildContext context, String message, [Object? error]) {
+    _showError(context, message);
+    throw Exception(error ?? message);
+  }
+
+  static String? _normalizeAccessLevelForApi(String raw) {
+    final v = raw.trim();
+    if (v.isEmpty) return null;
+    if (v == 'No Access') return null;
+    switch (v.toLowerCase()) {
+      case 'read':
+      case 'write':
+      case 'admin':
+        return v.toLowerCase();
+      // Some older values can appear in DB; map them safely.
+      case 'read_write':
+      case 'readwrite':
+        return 'write';
+      default:
+        return null;
+    }
   }
 
   static Future<void> addUserStatic(
@@ -24,28 +113,90 @@ class TenantOperationsMixin {
     required String userType,
     required String? userId,
     required WidgetRef ref,
+    String? branchIdOverride,
+    String? agentBranchName,
     required Map<String, String> tenantAllowedFeatures,
     required Map<String, bool> activeFeatures,
+    Map<String, String>? permissionsBaseline,
+    Map<String, bool>? activeFeaturesBaseline,
+    bool allowBusinessLogin = false,
   }) async {
     try {
       Branch? branch;
-      if (userType == 'Agent') {
-        // Create a new branch for the agent
+      final currentBusinessId = ProxyService.box.getBusinessId();
+      if (currentBusinessId == null || currentBusinessId.isEmpty) {
+        _fail(context, 'business_id can not be null');
+      }
+
+      // Agent: create a dedicated branch for this agent (remote) using the provided name.
+      if (!editMode && userType == 'Agent') {
+        final bn = (agentBranchName ?? '').trim();
+        if (bn.isEmpty) {
+          _fail(context, 'Please enter a branch name for Agent');
+        }
         branch = await ProxyService.strategy.addBranch(
-          businessId: ProxyService.box.getBusinessId()!,
-          name: name,
-          location: name, // Using name for location as well
+          businessId: currentBusinessId,
+          name: bn,
+          location: bn,
           isDefault: false,
           active: true,
           flipperHttpClient: ProxyService.http,
         );
       } else {
-        // Use the selected or default branch for other user types
-        branch =
-            // ref.read(selectedBranchProvider) ??
-            await ProxyService.strategy.activeBranch(
-              branchId: ProxyService.box.getBranchId()!,
+        // Non-agent (or edit): use existing branch (override when editing to upsert correctly).
+        final currentBranchId = branchIdOverride ?? ProxyService.box.getBranchId();
+        if (currentBranchId == null || currentBranchId.isEmpty) {
+          _fail(context, 'branch_id can not be null');
+        }
+        branch = await ProxyService.strategy.activeBranch(branchId: currentBranchId);
+      }
+
+      final businessIdFromBox = currentBusinessId;
+
+      talker.info(
+        'addUserStatic: context ids → businessId=$businessIdFromBox, branchId=${branch.id}, branch.businessId=${branch.businessId}, userType=$userType, editMode=$editMode',
+      );
+      debugPrint(
+        'addUserStatic ids: businessId=$businessIdFromBox branchId=${branch.id} branch.businessId=${branch.businessId} userType=$userType editMode=$editMode',
+      );
+
+      // Guardrail: ensure selected branch belongs to the current business.
+      // This prevents create_agent from failing with "branch does not belong".
+      try {
+        final branchRow = await Supabase.instance.client
+            .from('branches')
+            .select('id,business_id')
+            .eq('id', branch.id)
+            .maybeSingle();
+        if (branchRow == null) {
+          // Could be RLS filtering the row; don't block, just log and let RPC decide.
+          talker.warning(
+            'addUserStatic: branches lookup returned null for branchId=${branch.id}. Skipping guardrail (possible RLS/offline).',
+          );
+          debugPrint(
+            'addUserStatic: branches lookup returned null for branchId=${branch.id}',
+          );
+        } else {
+          final branchBusinessId = branchRow['business_id']?.toString();
+          talker.info(
+            'addUserStatic: branches.business_id for branchId=${branch.id} is $branchBusinessId (current businessId=$businessIdFromBox)',
+          );
+          debugPrint(
+            'addUserStatic: branches.business_id for branchId=${branch.id} is $branchBusinessId (current businessId=$businessIdFromBox)',
+          );
+          if (branchBusinessId != null &&
+              branchBusinessId.isNotEmpty &&
+              branchBusinessId != businessIdFromBox) {
+            _fail(
+              context,
+              'Selected branch does not belong to current business. Please switch business/branch and try again.',
             );
+          }
+        }
+      } catch (e) {
+        // If the guardrail query fails (offline), let the RPC decide.
+        talker.warning('addUserStatic: branch guardrail query failed: $e');
+        debugPrint('addUserStatic: branch guardrail query failed: $e');
       }
 
       // Call the v2/api/user endpoint to get user information
@@ -58,11 +209,10 @@ class TenantOperationsMixin {
       );
 
       if (userResponse.statusCode != 200) {
-        _showError(
+        _fail(
           context,
           "Failed to find user with provided phone/email: ${userResponse.body}",
         );
-        return;
       }
 
       final userJson = jsonDecode(userResponse.body);
@@ -72,17 +222,47 @@ class TenantOperationsMixin {
       // Call Supabase RPC function to create agent
       final supabaseClient = Supabase.instance.client;
 
-      // Prepare access permissions from tenantAllowedFeatures
+      // Prepare access permissions: on edit, only send rows that changed vs baseline
+      // (new users still send the full map from tenantAllowedFeatures).
       List<Map<String, String>> accessPermissions = [];
-      for (final entry in tenantAllowedFeatures.entries) {
-        accessPermissions.add({
-          'feature_name': entry.key,
-          'access_level': entry.value,
-          'status':
-              activeFeatures[entry.key] != null && activeFeatures[entry.key]!
-              ? 'active'
-              : 'inactive',
-        });
+      if (editMode &&
+          permissionsBaseline != null &&
+          activeFeaturesBaseline != null) {
+        final seen = <String>{};
+        for (final feature in features) {
+          if (!seen.add(feature)) {
+            continue;
+          }
+          final level =
+              tenantAllowedFeatures[feature] ?? 'No Access';
+          final active = activeFeatures[feature] ?? false;
+          final baseLevel = permissionsBaseline[feature] ?? 'No Access';
+          final baseActive = activeFeaturesBaseline[feature] ?? false;
+          if (level == baseLevel && active == baseActive) {
+            continue;
+          }
+          final normalized = _normalizeAccessLevelForApi(level);
+          // If user set "No Access" or toggled inactive, persist as inactive.
+          // We still send a stable access_level value to avoid writing arbitrary strings
+          // like "No Access" into the DB column.
+          accessPermissions.add({
+            'feature_name': feature,
+            'access_level': normalized ?? 'read',
+            'status': (active && normalized != null) ? 'active' : 'inactive',
+          });
+        }
+      } else {
+        for (final entry in tenantAllowedFeatures.entries) {
+          final normalized = _normalizeAccessLevelForApi(entry.value);
+          final active = activeFeatures[entry.key] ?? false;
+          // For new users, do not send "No Access" rows at all.
+          if (normalized == null || !active) continue;
+          accessPermissions.add({
+            'feature_name': entry.key,
+            'access_level': normalized,
+            'status': 'active',
+          });
+        }
       }
 
       // Log the data being sent to create_agent
@@ -90,25 +270,52 @@ class TenantOperationsMixin {
       talker.info('  User ID: $userIdFromApi');
       talker.info('  Name: $name');
       talker.info('  Email/Phone: $phoneNumber');
-      talker.info('  Business ID: ${branch.businessId}');
+      talker.info('  Business ID: $businessIdFromBox');
       talker.info('  Branch ID: ${branch.id}');
       talker.info('  Access Permissions: $accessPermissions');
 
       // Call the create_agent RPC function
-      final data = await supabaseClient.rpc(
-        'create_agent',
-        params: {
-          'p_user_id': userIdFromApi,
-          'p_name': name,
-          'p_email': phoneNumber, // Using phone number as email for now
-          'p_business_id': branch.businessId,
-          'p_branch_id': branch.id, // Can be null for non-agent users
-          'p_accesses': accessPermissions,
-        },
-      );
+      dynamic data;
+      try {
+        final allowLogin =
+            userType == 'Agent' ? allowBusinessLogin : true;
+        data = await _invokeCreateAgent(
+          supabaseClient,
+          userId: userIdFromApi,
+          name: name,
+          email: phoneNumber,
+          businessId: businessIdFromBox,
+          branchId: branch.id,
+          accesses: accessPermissions,
+          userType: userType,
+          allowBusinessLogin: allowLogin,
+        );
+      } on PostgrestException catch (e, s) {
+        talker.error(s);
+        final base = e.message.isNotEmpty
+            ? e.message
+            : 'Failed to save permissions (Supabase error).';
+        _fail(
+          context,
+          '$base '
+          'The login account may already exist without a tenant for this business — '
+          'open User Management and add this user again to finish setup.',
+          e,
+        );
+      } on _CreateAgentMigrationRequired catch (e) {
+        _fail(context, e.message, e);
+      } catch (e, s) {
+        talker.error(s);
+        _fail(context, 'Failed to save permissions: $e', e);
+      }
 
-      // Get the tenant ID returned by the RPC function
-      final String tenantId = data;
+      // Get the tenant ID returned by the RPC function (PostgREST can return
+      // a JSON string, or a 1-row json list depending on headers).
+      final String tenantId = switch (data) {
+        final String v => v,
+        final List v when v.isNotEmpty => v.first.toString(),
+        _ => data.toString(),
+      };
       // query the agent on local for display
       await ProxyService.strategy.tenant(tenantId: tenantId, fetchRemote: true);
 
@@ -120,23 +327,70 @@ class TenantOperationsMixin {
           'phoneNumber': phone,
           'userId': userIdFromApi,
           'branchId': branch.id,
-          'businessId': branch.businessId,
+          'businessId': businessIdFromBox,
           'defaultApp': 1,
+          'ownerName': name,
         }),
       );
 
       if (pinResponse.statusCode != 200 && pinResponse.statusCode != 201) {
-        _showError(
+        _fail(
           context,
           "Failed to generate pin for the new tenant: ${pinResponse.body}",
         );
-        return;
       }
 
-      showCustomSnackBarUtil(context, 'Tenant Created Successfully');
+      final linkedTenant = await Supabase.instance.client
+          .from('tenants')
+          .select('id')
+          .eq('user_id', userIdFromApi)
+          .eq('business_id', businessIdFromBox)
+          .maybeSingle();
+      if (linkedTenant == null) {
+        _fail(
+          context,
+          'User was created but has no tenant for this business. '
+          'Re-open User Management and save again, or run supabase migration '
+          '20260519150000_repair_orphan_users_with_pins.sql.',
+        );
+      }
 
-      // Refresh the tenant list
       await model.loadTenants();
+
+      String successMessage;
+      if (!editMode) {
+        successMessage = 'Tenant Created Successfully';
+      } else {
+        successMessage =
+            'Permissions saved. Other users update automatically when online (or after sign-in).';
+        final selfId = ProxyService.box.getUserId();
+        if (selfId != null &&
+            selfId == userIdFromApi &&
+            context.mounted) {
+          final loginKey = ProxyService.box.getUserPhone() ?? phone;
+          try {
+            await ProxyService.strategy.sendLoginRequest(
+              loginKey,
+              ProxyService.http,
+              AppSecrets.apihubProd,
+            );
+          } catch (e, s) {
+            talker.warning('sendLoginRequest after permission edit: $e\n$s');
+          }
+          ref.invalidate(allAccessesProvider(userIdFromApi));
+          for (final f in features) {
+            ref.invalidate(
+              userAccessesProvider(userIdFromApi, featureName: f),
+            );
+          }
+          successMessage =
+              'Permissions saved. Your menus have been refreshed.';
+        }
+      }
+
+      if (context.mounted) {
+        showCustomSnackBarUtil(context, successMessage);
+      }
     } on DuplicateTenantException catch (e) {
       // Handle duplicate tenant error with a user-friendly message
       showCustomSnackBarUtil(

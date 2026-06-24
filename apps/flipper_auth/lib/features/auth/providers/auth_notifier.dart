@@ -69,10 +69,15 @@ class AuthNotifier extends _$AuthNotifier {
   Future<void> signUp({
     required String email,
     required String password,
+    required String name,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _authService.signUp(email: email, password: password);
+      await _authService.signUp(
+        email: email,
+        password: password,
+        name: name,
+      );
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,

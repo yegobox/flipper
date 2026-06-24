@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
   const OrderingAppBar({Key? key, required this.isOrdering}) : super(key: key);
@@ -9,7 +9,8 @@ class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     // Web-safe platform detection
-    final isMobile = !kIsWeb &&
+    final isMobile =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
 
@@ -20,9 +21,9 @@ class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         title: Text(
           isOrdering ? 'New Order' : 'Point of Sale',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         actions: [
           if (!isOrdering)
@@ -45,7 +46,8 @@ class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize {
     // Match the platform check in build()
-    final isMobile = !kIsWeb &&
+    final isMobile =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
 

@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
+import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
+import 'package:flipper_models/sync/transaction_query_helpers.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
@@ -8,11 +12,13 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:synchronized/synchronized.dart';
 
-extension DateOnly on DateTime {
+extension DateOnlyConversion on DateTime {
   DateTime get toDateOnly => DateTime(year, month, day);
 }
 
@@ -25,24 +31,37 @@ mixin TransactionMixin implements TransactionInterface {
     required bool isExpense,
     required String transactionType,
     bool forceRealData = true,
-  }) {
+  }) async* {
     if (!forceRealData) {
-      return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
+      yield DummyTransactionGenerator.generateDummyTransactions(
         count: 1,
         branchId: branchId ?? "",
         status: PENDING,
         transactionType: transactionType,
         withItems: false,
-      ).first);
+      ).first;
+      return;
     }
-    return repository
+    final saleDeviceId = await resolveSaleDeviceId();
+    yield* repository
         .subscribe<ITransaction>(
-          query: Query(where: [
-            Where('isExpense').isExactly(isExpense),
-            Where('transactionType').isExactly(transactionType),
-            Where('status').isExactly(PENDING),
-            if (branchId != null) Where('branchId').isExactly(branchId),
-          ]),
+          query: Query(
+            where: [
+              Where('isExpense').isExactly(isExpense),
+              Where('transactionType').isExactly(transactionType),
+              Where('status').isExactly(PENDING),
+              Where('agentId').isExactly(ProxyService.box.getUserId()!),
+              Where('deviceId').isExactly(saleDeviceId),
+              if (branchId != null) Where('branchId').isExactly(branchId),
+            ],
+            orderBy: [
+              OrderBy(
+                'subTotal',
+                ascending: false,
+              ), // Prioritize transactions with items
+              OrderBy('lastTouched', ascending: false), // Then most recent
+            ],
+          ),
         )
         .map((event) => event.first);
   }
@@ -57,14 +76,18 @@ mixin TransactionMixin implements TransactionInterface {
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,
-    bool isExpense = false,
+    bool? isExpense = false,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
     List<String>? receiptNumber,
     String? customerId,
+    String? agentId,
+    String? attributedAgentUserId,
+    bool filterPeriodByCreatedAt = false,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -77,11 +100,13 @@ mixin TransactionMixin implements TransactionInterface {
 
     if (receiptNumber != null && receiptNumber.isNotEmpty) {
       final response = await repository.get<ITransaction>(
-        query: Query(where: [
-          Or('invoiceNumber').isIn(receiptNumber),
-          Where('receiptNumber').isIn(receiptNumber),
-          if (branchId != null) Where('branchId').isExactly(branchId),
-        ]),
+        query: Query(
+          where: [
+            Or('invoiceNumber').isIn(receiptNumber),
+            Where('receiptNumber').isIn(receiptNumber),
+            if (branchId != null) Where('branchId').isExactly(branchId),
+          ],
+        ),
         policy: fetchRemote
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
             : OfflineFirstGetPolicy.localOnly,
@@ -90,11 +115,13 @@ mixin TransactionMixin implements TransactionInterface {
     }
     if (customerId != null && status != null) {
       final response = await repository.get<ITransaction>(
-        query: Query(where: [
-          Where('customerId').isExactly(customerId),
-          Where('status').isExactly(status),
-          if (branchId != null) Where('branchId').isExactly(branchId),
-        ]),
+        query: Query(
+          where: [
+            Where('customerId').isExactly(customerId),
+            Where('status').isExactly(status),
+            if (branchId != null) Where('branchId').isExactly(branchId),
+          ],
+        ),
         policy: fetchRemote
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
             : OfflineFirstGetPolicy.localOnly,
@@ -105,36 +132,84 @@ mixin TransactionMixin implements TransactionInterface {
       if (id != null)
         Where('id').isExactly(id)
       else ...[
-        Where('status').isExactly(status ?? COMPLETE), // Ensure default value
+        if (includePending && includeParked)
+          Where(
+            'status',
+          ).isIn([status ?? COMPLETE, PENDING, PARKED, WAITING_MOMO_COMPLETE])
+        else if (includePending)
+          Where('status').isIn([status ?? COMPLETE, PENDING])
+        else if (includeParked)
+          Where(
+            'status',
+          ).isIn([status ?? COMPLETE, PARKED, WAITING_MOMO_COMPLETE])
+        else
+          Where('status').isExactly(status ?? COMPLETE),
         if (skipOriginalTransactionCheck == false)
           Where('isOriginalTransaction').isExactly(true),
         if (!includeZeroSubTotal)
           Where('subTotal').isGreaterThan(0), // Optional condition
         if (branchId != null) Where('branchId').isExactly(branchId),
-        Where('isExpense').isExactly(isExpense),
-        if (includePending) Where('status').isExactly(PENDING),
+        if (isExpense != null) Where('isExpense').isExactly(isExpense),
         if (filterType != null) Where('type').isExactly(filterType.name),
         if (transactionType != null)
           Where('transactionType').isExactly(transactionType),
-      ]
+        if (agentId != null) Where('agentId').isExactly(agentId),
+        if (attributedAgentUserId != null)
+          Where('attributedAgentUserId').isExactly(attributedAgentUserId),
+      ],
     ];
 
+    final periodField = transactionsPeriodDateField(
+      filterPeriodByCreatedAt: filterPeriodByCreatedAt,
+    );
     if (startDate != null && endDate != null) {
       // Use local timezone for precise date matching
-      final localStartDate =
-          DateTime(startDate.year, startDate.month, startDate.day);
-      final localEndDate =
-          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+      final localStartDate = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+      final localEndDate = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+        999,
+      );
 
       conditions.add(
-        Where('lastTouched').isGreaterThanOrEqualTo(
-          localStartDate.toIso8601String(),
-        ),
+        Where(
+          periodField,
+        ).isGreaterThanOrEqualTo(localStartDate.toIso8601String()),
       );
       conditions.add(
-        Where('lastTouched').isLessThanOrEqualTo(
-          localEndDate.toIso8601String(),
-        ),
+        Where(periodField).isLessThanOrEqualTo(localEndDate.toIso8601String()),
+      );
+    } else if (startDate != null) {
+      final localStartDate = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
+      conditions.add(
+        Where(
+          periodField,
+        ).isGreaterThanOrEqualTo(localStartDate.toIso8601String()),
+      );
+    } else if (endDate != null) {
+      final localEndDate = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+        999,
+      );
+      conditions.add(
+        Where(periodField).isLessThanOrEqualTo(localEndDate.toIso8601String()),
       );
     }
 
@@ -175,10 +250,11 @@ mixin TransactionMixin implements TransactionInterface {
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,
-    bool isExpense = false,
+    bool? isExpense = false,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
   }) async {
     // Step 1: Fetch transactions using the same logic as the transactions() method
@@ -195,6 +271,7 @@ mixin TransactionMixin implements TransactionInterface {
       filterType: filterType,
       includeZeroSubTotal: includeZeroSubTotal,
       includePending: includePending,
+      includeParked: includeParked,
       skipOriginalTransactionCheck: skipOriginalTransactionCheck,
     );
     if (transactionss.isEmpty) return [];
@@ -209,24 +286,6 @@ mixin TransactionMixin implements TransactionInterface {
     List<TransactionItem> items = []; // Default to empty list
 
     if (transactionIds.isNotEmpty) {
-      // Construct the list of OR conditions for transaction IDs
-      // final List<WhereCondition> orConditions = transactionIds.map((id) {
-      //   // Each Where condition for an ID is optional (OR'd with the next)
-      //   return Where('transactionId',
-      //       value: id, compare: Compare.exact, isRequired: false);
-      // }).toList();
-
-      // Create a WherePhrase to group these OR conditions.
-      // This phrase itself is required for the query.
-      // final WherePhrase transactionIdInPhrase =
-      //     WherePhrase(orConditions, isRequired: true);
-
-      // items = await repository.get<TransactionItem>(
-      //   policy: fetchRemote
-      //       ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-      //       : OfflineFirstGetPolicy.localOnly,
-      //   query: Query(where: [transactionIdInPhrase]),
-      // );
       final where = Where('transactionId').isIn(transactionIds);
       items = await repository.get<TransactionItem>(
         policy: fetchRemote
@@ -252,10 +311,9 @@ mixin TransactionMixin implements TransactionInterface {
       // Only include the transaction if it has associated items
       if (transactionSpecificItems != null &&
           transactionSpecificItems.isNotEmpty) {
-        result.add(TransactionWithItems(
-          transaction: t,
-          items: transactionSpecificItems,
-        ));
+        result.add(
+          TransactionWithItems(transaction: t, items: transactionSpecificItems),
+        );
       }
     }
     return result;
@@ -264,10 +322,12 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   Future<List<Configurations>> taxes({required String branchId}) async {
     return await repository.get<Configurations>(
-      query: Query(where: [
-        Where('branchId').isExactly(branchId),
-        Where('type').isExactly('tax'),
-      ]),
+      query: Query(
+        where: [
+          Where('branchId').isExactly(branchId),
+          Where('type').isExactly('tax'),
+        ],
+      ),
     );
   }
 
@@ -277,20 +337,28 @@ mixin TransactionMixin implements TransactionInterface {
     required double taxPercentage,
   }) async {
     final config = Configurations(
-        id: configId, taxPercentage: taxPercentage, taxType: 'vat');
+      id: configId,
+      taxPercentage: taxPercentage,
+      taxType: 'vat',
+    );
 
     return (await repository.upsert<Configurations>(config));
   }
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return null;
+
     return (await repository.get<Configurations>(
-      query: Query(where: [
-        Where('type').isExactly('tax'),
-        Where('taxType').isExactly(taxtype),
-      ]),
-    ))
-        .firstOrNull;
+      query: Query(
+        where: [
+          Where('taxType').isExactly(taxtype),
+          Where('branchId').isExactly(branchId),
+        ],
+      ),
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    )).firstOrNull;
   }
 
   Future<ITransaction?> _pendingTransaction({
@@ -302,24 +370,31 @@ mixin TransactionMixin implements TransactionInterface {
     String? shiftId,
   }) async {
     try {
+      final userId = ProxyService.box.getUserId();
+      if (userId == null) return null;
+      final saleDeviceId = await resolveSaleDeviceId();
       // Base query to find PENDING transactions matching the criteria
       final baseWhere = [
         Where('branchId').isExactly(branchId),
-        Where('agentId').isExactly(ProxyService.box.getUserId()!),
+        Where('agentId').isExactly(userId),
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(status),
-        Where('transactionType').isExactly(transactionType),
+        Where('transactionType').isIn([transactionType, "NS"]),
+        Where('deviceId').isExactly(saleDeviceId),
         if (shiftId != null) Where('shiftId').isExactly(shiftId),
       ];
 
       // First try to find transactions with subtotal > 0
       if (includeSubTotalCheck) {
         final queryWithSubtotal = Query(
-          where: [
-            ...baseWhere,
-            Where('subTotal').isGreaterThan(0),
+          where: [...baseWhere, Where('subTotal').isGreaterThan(0)],
+          orderBy: [
+            OrderBy(
+              'subTotal',
+              ascending: false,
+            ), // Prioritize higher subtotals
+            OrderBy('lastTouched', ascending: false), // Then latest activity
           ],
-          orderBy: [OrderBy('lastTouched', ascending: false)],
         );
 
         final transactionsWithSubtotal = await repository.get<ITransaction>(
@@ -336,7 +411,10 @@ mixin TransactionMixin implements TransactionInterface {
       // find any pending transaction regardless of subtotal
       final query = Query(
         where: baseWhere,
-        orderBy: [OrderBy('lastTouched', ascending: false)],
+        orderBy: [
+          OrderBy('subTotal', ascending: false), // Prioritize higher subtotals
+          OrderBy('lastTouched', ascending: false), // Then latest activity
+        ],
       );
 
       final transactions = await repository.get<ITransaction>(
@@ -371,6 +449,7 @@ mixin TransactionMixin implements TransactionInterface {
 
       _isProcessingTransaction = true;
       try {
+        final saleDeviceId = await resolveSaleDeviceId();
         // Always pass includeSubTotalCheck: false to find any existing PENDING transaction
         // regardless of subtotal to prevent duplicate transactions
         final existTransaction = await _pendingTransaction(
@@ -389,6 +468,7 @@ mixin TransactionMixin implements TransactionInterface {
 
         final transaction = ITransaction(
           agentId: ProxyService.box.getUserId()!,
+          deviceId: saleDeviceId,
           lastTouched: now,
           reference: randomRef,
           transactionNumber: randomRef,
@@ -445,6 +525,9 @@ mixin TransactionMixin implements TransactionInterface {
     );
     yield transaction;
 
+    // Track the current transaction ID to avoid yielding duplicates
+    String currentTransactionId = transaction.id;
+
     // Poll for updates
     while (true) {
       await Future.delayed(Duration(seconds: 1));
@@ -458,7 +541,11 @@ mixin TransactionMixin implements TransactionInterface {
       );
 
       if (updatedTransaction != null) {
-        yield updatedTransaction;
+        // Only yield if the transaction has changed
+        if (updatedTransaction.id != currentTransactionId) {
+          currentTransactionId = updatedTransaction.id;
+          yield updatedTransaction;
+        }
       } else {
         // Transaction was completed/deleted, create new one
         transaction = await _getOrCreateTransaction(
@@ -466,12 +553,15 @@ mixin TransactionMixin implements TransactionInterface {
           isExpense: isExpense,
           transactionType: transactionType,
         );
-        yield transaction;
+        if (transaction.id != currentTransactionId) {
+          currentTransactionId = transaction.id;
+          yield transaction;
+        }
       }
     }
   }
 
-// Extracted helper method to reduce duplication
+  // Extracted helper method to reduce duplication
   Future<ITransaction> _getOrCreateTransaction({
     required String branchId,
     required bool isExpense,
@@ -505,8 +595,13 @@ mixin TransactionMixin implements TransactionInterface {
       final now = DateTime.now().toUtc();
       final randomRef = randomNumber().toString();
 
+      final userId = ProxyService.box.getUserId();
+      if (userId == null) {
+        throw StateError('User ID is null. Cannot create transaction.');
+      }
+
       final newTransaction = ITransaction(
-        agentId: ProxyService.box.getUserId()!,
+        agentId: userId,
         lastTouched: now,
         reference: randomRef,
         transactionNumber: randomRef,
@@ -534,9 +629,14 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  FutureOr<void> removeCustomerFromTransaction(
-      {required ITransaction transaction}) {
+  FutureOr<void> removeCustomerFromTransaction({
+    required ITransaction transaction,
+  }) {
     transaction.customerId = null;
+    transaction.customerName = null;
+    transaction.customerTin = null;
+    transaction.customerPhone = null;
+    transaction.currentSaleCustomerPhoneNumber = null;
     repository.upsert(transaction);
   }
 
@@ -607,7 +707,7 @@ mixin TransactionMixin implements TransactionInterface {
   }) async {
     final effectiveInvoiceNumber = purchase?.spplrInvcNo ?? invoiceNumber;
 
-    final transaction = await updateTransaction(
+    await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
       sarNo: effectiveInvoiceNumber?.toString(),
@@ -629,29 +729,33 @@ mixin TransactionMixin implements TransactionInterface {
       customerName: business.name,
     );
 
-    return transaction;
+    return pendingTransaction;
   }
 
   @override
-  Future<bool> saveTransactionItem(
-      {double? compositePrice,
-      required Variant variation,
-      required double amountTotal,
-      required bool customItem,
-      required ITransaction pendingTransaction,
-      required double currentStock,
-      bool useTransactionItemForQty = false,
-      required bool partOfComposite,
-      required bool doneWithTransaction,
-      int? invoiceNumber,
-      TransactionItem? item,
-      double? updatableQty,
-      String? sarTyCd,
-      required bool ignoreForReport}) async {
+  Future<bool> saveTransactionItem({
+    double? compositePrice,
+    required Variant variation,
+    required double amountTotal,
+    required bool customItem,
+    required ITransaction pendingTransaction,
+    required double currentStock,
+    bool useTransactionItemForQty = false,
+    required bool partOfComposite,
+    required bool doneWithTransaction,
+    int? invoiceNumber,
+    TransactionItem? item,
+    double? updatableQty,
+    String? sarTyCd,
+    required bool ignoreForReport,
+    bool updatePendingTransactionSubtotal = true,
+  }) async {
     try {
       TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItem(
-              variantId: variation.id, transactionId: pendingTransaction.id);
+            variantId: variation.id,
+            transactionId: pendingTransaction.id,
+          );
 
       await addTransactionItems(
         doneWithTransaction: doneWithTransaction,
@@ -684,41 +788,53 @@ mixin TransactionMixin implements TransactionInterface {
     repository.upsert(transaction);
   }
 
-  Future<void> addTransactionItems(
-      {required String variationId,
-      required ITransaction pendingTransaction,
-      required String name,
-      required Variant variation,
-      required double currentStock,
-      required double amountTotal,
-      required bool isCustom,
-      TransactionItem? item,
-      double? compositePrice,
-      required bool partOfComposite,
-      bool useTransactionItemForQty = false,
-      String? sarTyCd,
-      bool? doneWithTransaction,
-      double? updatableQty,
-      required bool ignoreForReport}) async {
+  Future<void> addTransactionItems({
+    required String variationId,
+    required ITransaction pendingTransaction,
+    required String name,
+    required Variant variation,
+    required double currentStock,
+    required double amountTotal,
+    required bool isCustom,
+    TransactionItem? item,
+    double? compositePrice,
+    required bool partOfComposite,
+    bool useTransactionItemForQty = false,
+    String? sarTyCd,
+    bool? doneWithTransaction,
+    double? updatableQty,
+    required bool ignoreForReport,
+  }) async {
     try {
       // Update existing item if found and not custom
+      // Update existing item if found and not custom
       if (item != null && !isCustom) {
-        await _updateExistingTransactionItem(
-          item: item,
-          ignoreForReport: ignoreForReport,
-
-          /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
-          quantity: updatableQty != null
-              ? updatableQty
-              : sarTyCd == "02" || sarTyCd == "01"
-                  ? variation.stock!.currentStock!
-                  : item.qty + 1,
-          variation: variation,
-          amountTotal: amountTotal,
+        // Check if it exists in local DB
+        final existing = await repository.get<TransactionItem>(
+          query: Query(where: [Where('id').isExactly(item.id)]),
+          policy: OfflineFirstGetPolicy.localOnly,
         );
-        await updatePendingTransactionTotals(pendingTransaction,
-            sarTyCd: sarTyCd ?? "11");
-        return;
+
+        if (existing.isNotEmpty) {
+          await _updateExistingTransactionItem(
+            item: item,
+            ignoreForReport: ignoreForReport,
+
+            /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
+            quantity: updatableQty != null
+                ? updatableQty
+                : sarTyCd == "02" || sarTyCd == "01"
+                ? variation.stock!.currentStock!
+                : item.qty + 1,
+            variation: variation,
+            amountTotal: amountTotal,
+          );
+          await updatePendingTransactionTotals(
+            pendingTransaction,
+            sarTyCd: sarTyCd ?? "11",
+          );
+          return;
+        }
       }
 
       // Add a new item
@@ -727,14 +843,14 @@ mixin TransactionMixin implements TransactionInterface {
         partOfComposite: partOfComposite,
         variation: variation,
       );
-      final quantity =
-          useTransactionItemForQty && item != null ? item.qty : computedQty;
+      final quantity = useTransactionItemForQty && item != null
+          ? item.qty
+          : computedQty;
       final sarQty = sarTyCd == "02" || sarTyCd == "01"
           ? variation.stock!.currentStock!
           : quantity;
 
-      await ProxyService.strategy.addTransactionItem(
-        doneWithTransaction: doneWithTransaction,
+      await ProxyService.getStrategy(Strategy.capella).addTransactionItem(
         transaction: pendingTransaction,
         ignoreForReport: false,
         lastTouched: DateTime.now().toUtc(),
@@ -743,17 +859,15 @@ mixin TransactionMixin implements TransactionInterface {
         quantity: updatableQty != null
             ? updatableQty.toDouble()
             : sarTyCd == null
-                ? quantity.toDouble()
-                : sarQty.toDouble(),
+            ? quantity.toDouble()
+            : sarQty.toDouble(),
         currentStock: currentStock,
         partOfComposite: partOfComposite,
         variation: variation,
         name: name,
         amountTotal: amountTotal,
+        item: item,
       );
-
-      await updatePendingTransactionTotals(pendingTransaction,
-          sarTyCd: sarTyCd ?? "11");
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
@@ -761,7 +875,7 @@ mixin TransactionMixin implements TransactionInterface {
     }
   }
 
-// Helper: Update existing transaction item
+  // Helper: Update existing transaction item
   Future<void> _updateExistingTransactionItem({
     required TransactionItem item,
     required double quantity,
@@ -769,7 +883,7 @@ mixin TransactionMixin implements TransactionInterface {
     required double amountTotal,
     required bool ignoreForReport,
   }) async {
-    await ProxyService.strategy.updateTransactionItem(
+    await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
       transactionItemId: item.id,
       ignoreForReport: ignoreForReport,
       doneWithTransaction: false,
@@ -784,7 +898,7 @@ mixin TransactionMixin implements TransactionInterface {
     );
   }
 
-// Helper: Calculate quantity
+  // Helper: Calculate quantity
   Future<double> _calculateQuantity({
     required bool isCustom,
     required bool partOfComposite,
@@ -794,9 +908,9 @@ mixin TransactionMixin implements TransactionInterface {
 
     /// because for composite we might have more than one item to be added to the cart at once hence why we have this
     if (partOfComposite) {
-      final composite =
-          (await ProxyService.strategy.composites(variantId: variation.id))
-              .firstOrNull;
+      final composite = (await ProxyService.strategy.composites(
+        variantId: variation.id,
+      )).firstOrNull;
       return composite?.qty ?? 0.0;
     }
 
@@ -804,16 +918,19 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<void> markItemAsDoneWithTransaction(
-      {required List<TransactionItem> inactiveItems,
-      required ITransaction pendingTransaction,
-      required bool ignoreForReport,
-      bool isDoneWithTransaction = false}) async {
+  Future<void> markItemAsDoneWithTransaction({
+    required List<TransactionItem> inactiveItems,
+    required ITransaction pendingTransaction,
+    required bool ignoreForReport,
+    bool isDoneWithTransaction = false,
+  }) async {
     if (inactiveItems.isNotEmpty) {
       for (TransactionItem inactiveItem in inactiveItems) {
         inactiveItem.active = true;
         if (isDoneWithTransaction) {
-          await ProxyService.strategy.updateTransactionItem(
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).updateTransactionItem(
             transactionItemId: inactiveItem.id,
             ignoreForReport: ignoreForReport,
             doneWithTransaction: true,
@@ -823,18 +940,23 @@ mixin TransactionMixin implements TransactionInterface {
     }
   }
 
-  Future<void> updatePendingTransactionTotals(ITransaction pendingTransaction,
-      {required String sarTyCd}) async {
+  Future<void> updatePendingTransactionTotals(
+    ITransaction pendingTransaction, {
+    required String sarTyCd,
+  }) async {
     DateTime newUpdatedAt = DateTime.now();
     DateTime newLastTouched = DateTime.now();
 
     // Check if we're already in a write transaction
-    await repository.upsert<ITransaction>(pendingTransaction.copyWith(
-      updatedAt: newUpdatedAt,
-      lastTouched: newLastTouched,
-      receiptType: "NS",
-      sarTyCd: sarTyCd,
-    ));
+    await repository.upsert<ITransaction>(
+      pendingTransaction.copyWith(
+        updatedAt: newUpdatedAt,
+        lastTouched: newLastTouched,
+        createdAt: newLastTouched,
+        receiptType: "NS",
+        sarTyCd: sarTyCd,
+      ),
+    );
   }
 
   /// Updates a transaction with the provided details.
@@ -844,7 +966,7 @@ mixin TransactionMixin implements TransactionInterface {
   /// meaning it is neither income nor expense. This helps avoid incorrect computations
   /// on the dashboard.
   @override
-  Future<ITransaction> updateTransaction({
+  Future<void> updateTransaction({
     ITransaction? transaction,
     String? receiptType,
     double? subTotal,
@@ -859,6 +981,9 @@ mixin TransactionMixin implements TransactionInterface {
     String? customerBhfId,
     double? cashReceived,
     bool? isRefunded,
+    double? refundedAmount,
+    String? refundReason,
+    String? refundMethod,
     String? customerName,
     String? ticketName,
     DateTime? updatedAt,
@@ -879,14 +1004,23 @@ mixin TransactionMixin implements TransactionInterface {
     bool isUnclassfied = false,
     bool? isTrainingMode,
     String? customerPhone,
+    String? customerType,
+    String? cashierName,
+    bool? isLoan,
+    double? remainingBalance,
+    bool skipDittoSync = false,
+    bool deferEnsureNextPendingCart = false,
   }) async {
     if (transaction == null) {
       if (transactionId == null) {
         throw ArgumentError(
-            "Transaction and transactionId are both null in updateTransaction."); // Exit if transaction is null.
+          "Transaction and transactionId are both null in updateTransaction.",
+        ); // Exit if transaction is null.
       }
       transaction = await getTransaction(
-          id: transactionId, branchId: ProxyService.box.getBranchId()!);
+        id: transactionId,
+        branchId: ProxyService.box.getBranchId()!,
+      );
       if (transaction == null) {
         throw ArgumentError("Transaction with ID $transactionId not found.");
       }
@@ -896,19 +1030,25 @@ mixin TransactionMixin implements TransactionInterface {
     receiptType = isProformaMode == true
         ? TransactionReceptType.PS
         : isTrainingMode == true
-            ? TransactionReceptType.TS
-            : receiptType;
+        ? TransactionReceptType.TS
+        : receiptType;
 
     // update to avoid the same issue, make sure that every parameter is update correctly.
     transaction.receiptType = receiptType ?? transaction.receiptType;
     transaction.subTotal = subTotal ?? transaction.subTotal;
     transaction.note = note ?? transaction.note;
     transaction.supplierId = supplierId ?? transaction.supplierId;
-    transaction.status = status ?? transaction.status;
+    if (status != null) {
+      transaction.status = status;
+    }
     transaction.ticketName = ticketName ?? transaction.ticketName;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;
     transaction.customerId = customerId ?? transaction.customerId;
+    transaction.customerType = customerType ?? transaction.customerType;
     transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+    transaction.refundedAmount = refundedAmount ?? transaction.refundedAmount;
+    transaction.refundReason = refundReason ?? transaction.refundReason;
+    transaction.refundMethod = refundMethod ?? transaction.refundMethod;
     transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
     transaction.sarNo = sarNo ?? transaction.sarNo;
     transaction.orgSarNo = orgSarNo ?? transaction.orgSarNo;
@@ -926,37 +1066,49 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.cashReceived = cashReceived ?? transaction.cashReceived;
     transaction.customerName = customerName ?? transaction.customerName;
     transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+    if (lastTouched != null) {
+      transaction.createdAt = lastTouched;
+    }
     transaction.receiptPrinted = receiptPrinted ?? transaction.receiptPrinted;
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
     transaction.customerPhone = customerPhone ?? transaction.customerPhone;
     transaction.currentSaleCustomerPhoneNumber =
         customerPhone ?? transaction.customerPhone;
+    transaction.cashierName = cashierName ?? transaction.cashierName;
+    transaction.isLoan = isLoan ?? transaction.isLoan;
+    transaction.remainingBalance =
+        remainingBalance ?? transaction.remainingBalance;
 
-    final result = await repository.upsert<ITransaction>(transaction);
-    return result;
+    await repository.upsert<ITransaction>(
+      transaction,
+      skipDittoSync: skipDittoSync,
+    );
   }
 
   @override
-  Future<ITransaction?> getTransaction(
-      {String? sarNo,
-      required String branchId,
-      String? id,
-      bool awaitRemote = false}) async {
+  Future<ITransaction?> getTransaction({
+    String? sarNo,
+    String? branchId,
+    String? id,
+    bool awaitRemote = false,
+  }) async {
     try {
-      final query = Query(where: [
-        if (sarNo != null) Where('sarNo').isExactly(sarNo),
-        Where('branchId').isExactly(branchId),
-        if (id != null) Where('id').isExactly(id)
-      ]);
-
-      final List<ITransaction> transactions =
-          await repository.get<ITransaction>(
-        query: query,
-        policy: awaitRemote
-            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-            : OfflineFirstGetPolicy.localOnly,
+      final query = Query(
+        where: [
+          if (sarNo != null) Where('sarNo').isExactly(sarNo),
+          Where('branchId').isExactly(branchId),
+          if (id != null) Where('id').isExactly(id),
+        ],
       );
+
+      final List<ITransaction> transactions = await repository
+          .get<ITransaction>(
+            query: query,
+            policy: awaitRemote
+                ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+                : OfflineFirstGetPolicy.localOnly,
+          );
 
       return transactions.isNotEmpty ? transactions.last : null;
     } catch (e, s) {
@@ -979,19 +1131,34 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? startDate,
     DateTime? endDate,
     bool forceRealData = true,
+    bool includeParked = false,
     required bool skipOriginalTransactionCheck,
+    bool includeZeroSubTotal = false,
   }) {
     if (!forceRealData) {
-      return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
-        count: 100,
-        branchId: branchId ?? "",
-        status: status,
-        transactionType: transactionType,
-      ));
+      return Stream.value(
+        DummyTransactionGenerator.generateDummyTransactions(
+          count: 100,
+          branchId: branchId ?? "",
+          status: status,
+          transactionType: transactionType,
+        ),
+      );
     }
     final List<Where> conditions = [
-      Where('status').isExactly(status ?? COMPLETE),
-      Where('subTotal').isGreaterThan(0),
+      if (includePending && includeParked)
+        Where(
+          'status',
+        ).isIn([status ?? COMPLETE, PENDING, PARKED, WAITING_MOMO_COMPLETE])
+      else if (includePending)
+        Where('status').isIn([status ?? COMPLETE, PENDING])
+      else if (includeParked)
+        Where(
+          'status',
+        ).isIn([status ?? COMPLETE, PARKED, WAITING_MOMO_COMPLETE])
+      else
+        Where('status').isExactly(status ?? COMPLETE),
+      if (!includeZeroSubTotal) Where('subTotal').isGreaterThan(0),
       if (!skipOriginalTransactionCheck)
         Where('isOriginalTransaction').isExactly(true),
       if (id != null) Where('id').isExactly(id),
@@ -1005,47 +1172,68 @@ mixin TransactionMixin implements TransactionInterface {
     if (startDate != null || endDate != null) {
       // Case 1: Both dates provided (date range)
       if (startDate != null && endDate != null) {
-        final localStartDate =
-            DateTime(startDate.year, startDate.month, startDate.day);
-        final localEndDate =
-            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+        final localStartDate = DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day,
+        );
+        final localEndDate = DateTime(
+          endDate.year,
+          endDate.month,
+          endDate.day,
+          23,
+          59,
+          59,
+          999,
+        );
 
         conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
-            localStartDate.toIso8601String(),
-          ),
+          Where(
+            'lastTouched',
+          ).isGreaterThanOrEqualTo(localStartDate.toIso8601String()),
         );
         conditions.add(
-          Where('lastTouched').isLessThanOrEqualTo(
-            localEndDate.toIso8601String(),
-          ),
+          Where(
+            'lastTouched',
+          ).isLessThanOrEqualTo(localEndDate.toIso8601String()),
         );
       }
       // Case 2: Only startDate provided (everything from this date onwards)
       else if (startDate != null) {
-        final localStartDate =
-            DateTime(startDate.year, startDate.month, startDate.day);
+        final localStartDate = DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day,
+        );
         conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
-            localStartDate.toIso8601String(),
-          ),
+          Where(
+            'lastTouched',
+          ).isGreaterThanOrEqualTo(localStartDate.toIso8601String()),
         );
       }
       // Case 3: Only endDate provided (everything up to this date)
       else if (endDate != null) {
-        final localEndDate =
-            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+        final localEndDate = DateTime(
+          endDate.year,
+          endDate.month,
+          endDate.day,
+          23,
+          59,
+          59,
+          999,
+        );
         conditions.add(
-          Where('lastTouched').isLessThanOrEqualTo(
-            localEndDate.toIso8601String(),
-          ),
+          Where(
+            'lastTouched',
+          ).isLessThanOrEqualTo(localEndDate.toIso8601String()),
         );
       }
     }
     final queryString = Query(
-        // limit: 5000,
-        where: conditions,
-        orderBy: [OrderBy('lastTouched', ascending: false)]);
+      // limit: 5000,
+      where: conditions,
+      orderBy: [OrderBy('lastTouched', ascending: false)],
+    );
 
     // Debug: Log all query conditions
     talker.info('Query conditions (${conditions.length}):');
@@ -1054,26 +1242,117 @@ mixin TransactionMixin implements TransactionInterface {
     }
 
     if (ProxyService.box.enableDebug() ?? false) {
-      return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
-        count: 100,
-        branchId: branchId ?? "",
-        status: status,
-        transactionType: transactionType,
-      ));
+      return Stream.value(
+        DummyTransactionGenerator.generateDummyTransactions(
+          count: 100,
+          branchId: branchId ?? "",
+          status: status,
+          transactionType: transactionType,
+        ),
+      );
     }
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
-            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
+          query: queryString,
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
+        )
         .map((data) {
-      talker.info('Transaction stream returned: ${data.length} records');
-      return data;
-    });
+          talker.info('Transaction stream returned: ${data.length} records');
+          return data;
+        });
+  }
+
+  @override
+  Stream<List<ITransaction>> openPosTicketsTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
+    required bool skipOriginalTransactionCheck,
+  }) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).openPosTicketsTransactionsStream(
+      branchId: branchId,
+      removeAdjustmentTransactions: removeAdjustmentTransactions,
+      forceRealData: forceRealData,
+      skipOriginalTransactionCheck: skipOriginalTransactionCheck,
+    );
+  }
+
+  @override
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  }) async {
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).clearPendingSaleCartsExcept(
+      branchId: branchId,
+      agentId: agentId,
+      excludeTransactionId: excludeTransactionId,
+    );
+  }
+
+  @override
+  Future<void> parkSaleTicketFast({
+    required ITransaction transaction,
+    required String ticketName,
+    required String ticketNote,
+    String? customerId,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).parkSaleTicketFast(
+      transaction: transaction,
+      ticketName: ticketName,
+      ticketNote: ticketNote,
+      customerId: customerId,
+    );
+  }
+
+  @override
+  Future<void> resumeSaleTicketFast({
+    required ITransaction ticket,
+    required String agentId,
+    required String deviceId,
+    required String branchId,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).resumeSaleTicketFast(
+      ticket: ticket,
+      agentId: agentId,
+      deviceId: deviceId,
+      branchId: branchId,
+    );
+  }
+
+  @override
+  Future<void> updateKitchenOrderStatusFast({
+    required String transactionId,
+    required String status,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).updateKitchenOrderStatusFast(
+      transactionId: transactionId,
+      status: status,
+      dueDate: dueDate,
+      clearDueDate: clearDueDate,
+    );
   }
 
   @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
-    return await repository.delete<ITransaction>(transaction);
+    try {
+      return await repository.delete<ITransaction>(transaction);
+    } catch (e) {
+      if (e.toString().contains('does not exist in the SQLite database')) {
+        await ProxyService.getStrategy(
+          Strategy.capella,
+        ).deleteTransaction(transaction: transaction);
+        return true;
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -1082,11 +1361,12 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<ITransaction?> pendingTransactionFuture(
-      {String? branchId,
-      required String transactionType,
-      bool forceRealData = true,
-      required bool isExpense}) async {
+  Future<ITransaction?> pendingTransactionFuture({
+    String? branchId,
+    required String transactionType,
+    bool forceRealData = true,
+    required bool isExpense,
+  }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
         count: 1,
@@ -1095,30 +1375,31 @@ mixin TransactionMixin implements TransactionInterface {
         transactionType: transactionType,
       ).firstOrNull;
     }
+    final saleDeviceId = await resolveSaleDeviceId();
+    final userId = ProxyService.box.getUserId();
     return (await repository.get<ITransaction>(
-      query: Query(where: [
-        Where('isExpense').isExactly(isExpense),
-        Where('transactionType').isExactly(transactionType),
-        Where('status').isExactly(PENDING),
-        if (branchId != null) Where('branchId').isExactly(branchId),
-      ]),
-    ))
-        .firstOrNull;
+      query: Query(
+        where: [
+          Where('isExpense').isExactly(isExpense),
+          Where('transactionType').isExactly(transactionType),
+          Where('status').isExactly(PENDING),
+          if (userId != null) Where('agentId').isExactly(userId),
+          Where('deviceId').isExactly(saleDeviceId),
+          if (branchId != null) Where('branchId').isExactly(branchId),
+        ],
+      ),
+    )).firstOrNull;
   }
 
-//   See ‘4.15.
-// Stock In/Out
+  //   See ‘4.15.
+  // Stock In/Out
 
   @override
   Future<Sar?> getSar({required String branchId}) async {
-    return (await repository.get<Sar>(
-      query: Query(orderBy: [
-        const OrderBy('createdAt', ascending: false)
-      ], where: [
-        Where('branchId').isExactly(branchId),
-      ]),
-    ))
-        .firstOrNull;
+    return resolveSarForBranch(
+      branchId: branchId,
+      ditto: DittoService.instance.dittoInstance,
+    );
   }
 
   @override
@@ -1128,7 +1409,8 @@ mixin TransactionMixin implements TransactionInterface {
   }) async {
     if (from.id == to.id) {
       talker.warning(
-          'mergeTransactions called with identical transaction IDs (${from.id}). Skipping.');
+        'mergeTransactions called with identical transaction IDs (${from.id}). Skipping.',
+      );
       return;
     }
 
@@ -1141,6 +1423,16 @@ mixin TransactionMixin implements TransactionInterface {
       await repository.upsert<TransactionItem>(item);
     }
 
+    // Move payment records from 'from' to 'to'
+    final paymentsToMove = await repository.get<TransactionPaymentRecord>(
+      query: Query(where: [Where('transactionId').isExactly(from.id)]),
+    );
+
+    for (final payment in paymentsToMove) {
+      payment.transactionId = to.id;
+      await repository.upsert<TransactionPaymentRecord>(payment);
+    }
+
     // Recalculate total for the 'to' transaction
     final allItems = await repository.get<TransactionItem>(
       query: Query(where: [Where('transactionId').isExactly(to.id)]),
@@ -1151,12 +1443,116 @@ mixin TransactionMixin implements TransactionInterface {
     );
 
     to.subTotal = newTotal;
+
+    // Recalculate cashReceived for the 'to' transaction
+    final totalPaid = await getTotalPaidForTransaction(
+      transactionId: to.id,
+      branchId: to.branchId!,
+    );
+    to.cashReceived = totalPaid ?? 0.0;
+
     final now = DateTime.now();
     to.updatedAt = now;
     to.lastTouched = now;
+    to.createdAt = now;
     await repository.upsert<ITransaction>(to);
 
     // Delete the 'from' transaction
     await deleteTransaction(transaction: from);
+  }
+
+  @override
+  Future<double?> getTotalPaidForTransaction({
+    required String transactionId,
+    required String branchId,
+    String? excludePaymentMethod,
+  }) async {
+    try {
+      final paymentRecords = await repository.get<TransactionPaymentRecord>(
+        query: Query(where: [Where('transactionId').isExactly(transactionId)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+
+      if (paymentRecords.isEmpty) {
+        return 0.0;
+      }
+
+      final filtered = excludePaymentMethod != null
+          ? paymentRecords.where(
+              (r) => !paymentMethodEqualsIgnoreCase(
+                r.paymentMethod,
+                excludePaymentMethod,
+              ),
+            )
+          : paymentRecords;
+
+      return filtered.fold<double>(
+        0.0,
+        (sum, record) => sum + (record.amount ?? 0.0),
+      );
+    } catch (e, s) {
+      talker.error('Error getting total paid for transaction: $e', s);
+      throw Exception('Failed to get total paid: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, TransactionPaymentSums>> getPaymentSumsByTransactionIds(
+    List<String> transactionIds, {
+    required String branchId,
+  }) async {
+    if (transactionIds.isEmpty) return {};
+
+    final byId = <String, ({double byHand, double credit, int count})>{
+      for (final id in transactionIds) id: (byHand: 0.0, credit: 0.0, count: 0),
+    };
+
+    try {
+      final paymentRecords = await repository.get<TransactionPaymentRecord>(
+        query: Query(where: [Where('transactionId').isIn(transactionIds)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+
+      for (final r in paymentRecords) {
+        final tid = r.transactionId;
+        if (tid == null || !byId.containsKey(tid)) continue;
+        final amt = r.amount ?? 0.0;
+        final method = r.paymentMethod;
+        final bucket = byId[tid]!;
+        byId[tid] = (
+          byHand: bucket.byHand + (paymentMethodIsCredit(method) ? 0.0 : amt),
+          credit: bucket.credit + (paymentMethodIsCredit(method) ? amt : 0.0),
+          count: bucket.count + 1,
+        );
+      }
+    } catch (e, s) {
+      talker.error('Error in getPaymentSumsByTransactionIds: $e', s);
+      rethrow;
+    }
+
+    return {
+      for (final id in transactionIds)
+        id: TransactionPaymentSums(
+          byHand: byId[id]!.byHand,
+          credit: byId[id]!.credit,
+          hasAnyRecord: byId[id]!.count > 0,
+        ),
+    };
+  }
+
+  @override
+  FutureOr<void> deletePaymentRecords({required String transactionId}) async {
+    final existingRecords = await repository.get<TransactionPaymentRecord>(
+      query: Query(where: [Where('transactionId').isExactly(transactionId)]),
+    );
+
+    await Future.wait(
+      existingRecords.map(
+        (record) => repository.delete<TransactionPaymentRecord>(
+          record,
+          query: Query(action: QueryAction.delete),
+        ),
+      ),
+    );
   }
 }

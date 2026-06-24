@@ -33,7 +33,19 @@
             "type": "dart",
             "flutterMode": "profile"
         },
-        
-       
+        {
+            "name": "flipper_web (macOS)",
+            "cwd": "apps/flipper_web",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "macos"
+        },
+        {
+            "name": "flipper_web (iOS)",
+            "cwd": "apps/flipper_web",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "ios"
+        }
     ]
 }

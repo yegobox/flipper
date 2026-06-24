@@ -16,7 +16,8 @@ mixin ReceiptMixin implements ReceiptInterface {
       required String receiptType,
       required int highestInvcNo,
       required String timeReceivedFromserver,
-      required int invoiceNumber}) async {
+      required int invoiceNumber,
+      bool skipDittoSync = false}) async {
     String branchId = ProxyService.box.getBranchId()!;
 
     Receipt receipt = Receipt(
@@ -60,15 +61,21 @@ mixin ReceiptMixin implements ReceiptInterface {
         ..invcNo = receipt.invcNo
         ..whenCreated = receipt.whenCreated
         ..resultDt = receipt.resultDt;
-      return await repository.upsert(existingReceipt,
-          query: Query(
-            action: QueryAction.update,
-          ));
+      return await repository.upsert(
+        existingReceipt,
+        query: Query(
+          action: QueryAction.update,
+        ),
+        skipDittoSync: skipDittoSync,
+      );
     } else {
-      return await repository.upsert(receipt,
-          query: Query(
-            action: QueryAction.insert,
-          ));
+      return await repository.upsert(
+        receipt,
+        query: Query(
+          action: QueryAction.insert,
+        ),
+        skipDittoSync: skipDittoSync,
+      );
     }
   }
 }

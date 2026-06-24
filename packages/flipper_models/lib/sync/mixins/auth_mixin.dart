@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -18,14 +17,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -53,12 +53,17 @@ mixin AuthMixin implements AuthInterface {
       await ProxyService.strategy.savePin(pin: thePin);
       await loc.getIt<AppService>().appInit();
       final defaultApp = ProxyService.box.getDefaultApp();
+      final branchId = ProxyService.box.getBranchId() ?? thePin.branchId;
 
       if (defaultApp == "2") {
         final routerService = locator<RouterService>();
         routerService.navigateTo(SocialHomeViewRoute());
       } else {
-        locator<RouterService>().navigateTo(FlipperAppRoute());
+        if (branchId == null) {
+          locator<RouterService>().navigateTo(LoginChoicesRoute());
+        } else {
+          locator<RouterService>().navigateTo(FlipperAppRoute());
+        }
       }
     } catch (e) {
       print(e); // Log or handle error during login completion
@@ -70,8 +75,11 @@ mixin AuthMixin implements AuthInterface {
   /// Returns a tuple with (errorMessage, shouldNavigateToLoginChoices, isPinError)
   /// UI-specific handling should be done by the caller
   @override
-  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
-      {String? responseChannel}) async {
+  Future<Map<String, dynamic>> handleLoginError(
+    dynamic e,
+    StackTrace s, {
+    String? responseChannel,
+  }) async {
     String errorMessage = '';
     bool shouldNavigateToLoginChoices = false;
     bool isPinError = false;
@@ -123,8 +131,9 @@ mixin AuthMixin implements AuthInterface {
         //   'status': 'failure',
         //   'message': errorMessage.isEmpty ? 'Login failed' : errorMessage,
         // });
-        talker
-            .debug("Sent login failure response to channel: $responseChannel");
+        talker.debug(
+          "Sent login failure response to channel: $responseChannel",
+        );
       } catch (responseError) {
         talker.error('Failed to send login response: $responseError');
       }
@@ -142,7 +151,7 @@ mixin AuthMixin implements AuthInterface {
     return {
       'errorMessage': errorMessage,
       'shouldNavigateToLoginChoices': shouldNavigateToLoginChoices,
-      'isPinError': isPinError
+      'isPinError': isPinError,
     };
   }
 
@@ -151,8 +160,11 @@ mixin AuthMixin implements AuthInterface {
 
   // Required methods that should be provided by other mixins
   @override
-  Future<List<Business>> businesses(
-      {String? userId, bool fetchOnline = false, bool active = false});
+  Future<List<Business>> businesses({
+    String? userId,
+    bool fetchOnline = false,
+    bool active = false,
+  });
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
@@ -160,8 +172,10 @@ mixin AuthMixin implements AuthInterface {
     if (userId == null) return false;
 
     // Get the existing PIN for this user ID
-    final pinLocal = await ProxyService.strategy
-        .getPinLocal(userId: userId, alwaysHydrate: true);
+    final pinLocal = await ProxyService.strategy.getPinLocal(
+      userId: userId,
+      alwaysHydrate: true,
+    );
 
     try {
       token ??= pinLocal?.tokenUid;
@@ -174,9 +188,10 @@ mixin AuthMixin implements AuthInterface {
         if (pinLocal != null && pinLocal.tokenUid != token) {
           talker.debug("Updating PIN with new token for userId: $userId");
           ProxyService.strategy.updatePin(
-              userId: userId,
-              phoneNumber: pinLocal.phoneNumber,
-              tokenUid: token);
+            userId: userId,
+            phoneNumber: pinLocal.phoneNumber,
+            tokenUid: token,
+          );
         }
 
         return true;
@@ -200,9 +215,10 @@ mixin AuthMixin implements AuthInterface {
 
             // Update the existing PIN with the new token
             ProxyService.strategy.updatePin(
-                userId: user.id,
-                phoneNumber: pinLocal.phoneNumber,
-                tokenUid: user.uid);
+              userId: user.id,
+              phoneNumber: pinLocal.phoneNumber,
+              tokenUid: user.uid,
+            );
           }
         } catch (requestError) {
           talker.error("Error getting new token: $requestError");
@@ -220,22 +236,68 @@ mixin AuthMixin implements AuthInterface {
     required bool fetchRemote,
   }) async {
     // if (isTestEnvironment()) return true;
-    final Plan? plan = await ProxyService.strategy
-        .getPaymentPlan(businessId: businessId, fetchOnline: true);
+    // Plan reads are Ditto-first (see CoreSync / CapellaSync); [preferFresh] is
+    // ignored there but kept for API compatibility.
+    final Plan? plan = await ProxyService.strategy.getPaymentPlan(
+      businessId: businessId,
+      fetchOnline: true,
+      preferFresh: true,
+    );
 
     // there might be cases where plan is not in supabase
     // so we need to check if plan is null
 
     if (plan == null) {
       throw NoPaymentPlanFound(
-          "No payment plan found for businessId: $businessId");
+        "No payment plan found for businessId: $businessId",
+      );
     }
-    ProxyService.strategy.upsertPlan(
-      businessId: businessId,
-      selectedPlan: plan,
-    );
 
-    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
+    // Align with HttpApi.isPaymentComplete: payment is complete if EITHER
+    // paymentCompletedByUser OR paymentStatus == 'COMPLETED' (from payment processor)
+    final now = DateTime.now();
+    final nextBillingDate = plan.nextBillingDate;
+    final paymentStatus = plan.paymentStatus;
+    final isPaymentStatusCompleted =
+        paymentStatus?.toUpperCase() == 'COMPLETED';
+    final isPaymentCompletedLocally =
+        (plan.paymentCompletedByUser ?? false) || isPaymentStatusCompleted;
+
+    // If next billing date is in the future and payment is marked complete
+    // (processor COMPLETED or manual payment_completed_by_user), treat as active.
+    if (nextBillingDate != null &&
+        now.isBefore(nextBillingDate) &&
+        isPaymentCompletedLocally) {
+      talker.info(
+        'Subscription is active: nextBillingDate ($nextBillingDate) is in the future and payment is complete',
+      );
+      // Sync paymentCompletedByUser so local state matches paymentStatus
+      if (!(plan.paymentCompletedByUser ?? false)) {
+        plan.paymentCompletedByUser = true;
+        await ProxyService.strategy.upsertPlan(
+          businessId: businessId,
+          selectedPlan: plan,
+        );
+      }
+      return true;
+    }
+
+    if (nextBillingDate != null && now.isAfter(nextBillingDate)) {
+      talker.warning(
+        'Subscription expired: nextBillingDate ($nextBillingDate) is in the past',
+      );
+      // Update local state to reflect expired subscription
+      if (isPaymentCompletedLocally) {
+        plan.paymentCompletedByUser = false;
+        await ProxyService.strategy.upsertPlan(
+          businessId: businessId,
+          selectedPlan: plan,
+        );
+      }
+      throw PaymentIncompleteException(
+        'Payment plan expired on $nextBillingDate. Please renew your subscription.',
+      );
+    }
 
     // Always check online if fetchRemote is true, or if local is false
     if (fetchRemote || !isPaymentCompletedLocally) {
@@ -264,18 +326,154 @@ mixin AuthMixin implements AuthInterface {
   Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
     final id = (await ProxyService.strategy.activeBusiness())?.id ?? "";
     await hasActiveSubscription(
-        businessId: id,
-        flipperHttpClient: ProxyService.http,
-        fetchRemote: fetchRemote);
+      businessId: id,
+      flipperHttpClient: ProxyService.http,
+      fetchRemote: fetchRemote,
+    );
+  }
+
+  /// Loads the same payload as POST `/v2/api/user` when we already know [userId].
+  Future<Map<String, dynamic>?> _fetchUserWithNestedData(String userId) async {
+    try {
+      final raw = await Supabase.instance.client.rpc(
+        'get_user_with_nested_data',
+        params: {'p_user_id': userId},
+      );
+      if (raw is String && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          return Map<String, dynamic>.from(decoded);
+        }
+      }
+      if (raw is Map) {
+        return Map<String, dynamic>.from(raw);
+      }
+    } catch (e, s) {
+      talker.warning('get_user_with_nested_data($userId): $e\n$s');
+    }
+    return null;
+  }
+
+  /// Persists `/v2/api/user` top-level `id` (not `businesses[].user_id`).
+  Future<void> _persistApiUserId(String apiUserId) async {
+    final id = apiUserId.trim();
+    if (id.isEmpty) return;
+    await ProxyService.box.writeString(key: 'userIdString', value: id);
+    await ProxyService.box.writeString(key: 'userId', value: id);
+  }
+
+  /// Pins can carry a stale [Pin.userId]; [sendLoginRequest] returns the canonical
+  /// `public.users.id` from `/v2/api/user`. Realign local Brick pin rows.
+  Future<void> _realignPinUserId({
+    required String phoneNumber,
+    required String canonicalUserId,
+    int? pinCode,
+  }) async {
+    try {
+      final localPin = await ProxyService.strategy.getPinLocal(
+        phoneNumber: phoneNumber,
+        alwaysHydrate: false,
+      );
+      if (localPin == null) return;
+      if (localPin.userId == canonicalUserId) return;
+
+      talker.warning(
+        'Realigning PIN userId ${localPin.userId} -> $canonicalUserId '
+        'for $phoneNumber',
+      );
+      localPin.userId = canonicalUserId;
+      await ProxyService.strategy.savePin(pin: localPin);
+    } catch (e, s) {
+      talker.warning('Could not realign PIN userId: $e\n$s');
+    }
+  }
+
+  Future<IUser> _authenticateUserOnline(
+    String phoneNumber,
+    Pin pin,
+    HttpClientInterface flipperHttpClient,
+  ) async {
+    talker.debug('Online auth: refreshing identity from /v2/api/user');
+    final http.Response response = await sendLoginRequest(
+      phoneNumber,
+      flipperHttpClient,
+      apihub,
+      expectedPinUserId: pin.userId,
+      pinLookupPhone: pin.phoneNumber,
+    );
+
+    if (response.statusCode != 200 || response.body.isEmpty) {
+      await _handleLoginError(response);
+      throw Exception('Error during login');
+    }
+
+    final IUser user = IUser.fromJson(json.decode(response.body));
+    talker.debug(
+      'Online auth: API user id=${user.id} (pin.userId=${pin.userId})',
+    );
+
+    await _realignPinUserId(
+      phoneNumber: phoneNumber,
+      canonicalUserId: user.id,
+      pinCode: pin.pin,
+    );
+
+    if (user.pin != null) {
+      try {
+        unawaited(
+          _patchPin(
+            user.pin!,
+            flipperHttpClient,
+            apihub,
+            ownerName: pin.ownerName ?? 'Default Tenant',
+          ),
+        );
+      } catch (e) {
+        talker.warning('Failed to patch PIN, but continuing login: $e');
+      }
+    }
+
+    await _persistApiUserId(user.id);
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || currentUser.uid != user.uid) {
+      await firebaseLogin(token: user.uid);
+    }
+
+    return user;
   }
 
   Future<IUser> _authenticateUser(
-      String phoneNumber, Pin pin, HttpClientInterface flipperHttpClient,
-      {bool forceOffline = false,
-      bool freshUser = false,
-      required bool isInSignUpProgress}) async {
-    final userId = pin.userId ?? ProxyService.box.getUserId();
-    final userAccess = await ProxyService.ditto.getUserAccess(userId!);
+    String phoneNumber,
+    Pin pin,
+    HttpClientInterface flipperHttpClient, {
+    bool forceOffline = false,
+    bool freshUser = false,
+    required bool isInSignUpProgress,
+  }) async {
+    final isOnline = await ProxyService.status.isInternetAvailable();
+
+    // When online, always use /v2/api/user so box + Ditto get `response.id`
+    // (not business.user_id or a stale pin.userId).
+    if (isOnline && !forceOffline) {
+      offlineLogin = false;
+      return _authenticateUserOnline(phoneNumber, pin, flipperHttpClient);
+    }
+
+    final accessUserId = ProxyService.box.getUserId() ?? pin.userId;
+    if (accessUserId == null || accessUserId.isEmpty) {
+      throw Exception('Cannot authenticate offline without a saved user id');
+    }
+
+    var userAccess = await ProxyService.ditto.getUserAccess(accessUserId);
+    if (userAccess == null &&
+        pin.userId != null &&
+        pin.userId != accessUserId) {
+      userAccess = await ProxyService.ditto.getUserAccess(pin.userId!);
+    }
+
+    final canonicalUserId = userAccess?['id']?.toString() ?? accessUserId;
+
     List<Business> businessesE = [];
     List<Branch> branchesE = [];
 
@@ -294,110 +492,65 @@ mixin AuthMixin implements AuthInterface {
       }
     }
 
-    final bool shouldEnableOfflineLogin = forceOffline ||
-        (businessesE.isNotEmpty &&
-            branchesE.isNotEmpty &&
-            !(await ProxyService.status.isInternetAvailable()));
+    final bool shouldEnableOfflineLogin =
+        forceOffline ||
+        (businessesE.isNotEmpty && branchesE.isNotEmpty && !isOnline);
 
-    talker.debug("Offline login decision factors:");
-    talker.debug("- forceOffline: $forceOffline");
-    talker.debug("- businessesE not empty: ${businessesE.isNotEmpty}");
-    talker.debug("- branchesE not empty: ${branchesE.isNotEmpty}");
-    talker.debug("- kDebugMode: ${foundation.kDebugMode}");
-    talker.debug(
-        "- Internet available: ${await ProxyService.status.isInternetAvailable()}");
-    talker.debug("Final shouldEnableOfflineLogin: $shouldEnableOfflineLogin");
+    talker.debug('Offline login decision factors:');
+    talker.debug('- forceOffline: $forceOffline');
+    talker.debug('- businessesE not empty: ${businessesE.isNotEmpty}');
+    talker.debug('- branchesE not empty: ${branchesE.isNotEmpty}');
+    talker.debug('- Internet available: $isOnline');
+    talker.debug('Final shouldEnableOfflineLogin: $shouldEnableOfflineLogin');
 
     if (shouldEnableOfflineLogin) {
       offlineLogin = true;
-      final offlineUser =
-          _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
-
-      return offlineUser;
-    }
-
-    // Check if we already have a valid Firebase user and token
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final existingToken = await ProxyService.box.getBearerToken();
-    final existingUserId = ProxyService.box.getUserId();
-
-    // If we have a valid token and the user ID matches the pin's user ID,
-    // we can skip the sendLoginRequest call
-    if (currentUser != null &&
-        existingToken != null &&
-        existingUserId != null &&
-        existingUserId.toString() == pin.userId.toString() &&
-        !isInSignUpProgress) {
-      talker.debug("Using existing Firebase authentication");
-
-      // Create a user object from existing data
-      final user = IUser(
-        token: ProxyService.box.getBearerToken(),
-        id: existingUserId,
-        uid: currentUser.uid,
-        phoneNumber: phoneNumber,
+      final offlineName = userAccess?['name']?.toString().trim();
+      return _createOfflineUser(
+        phoneNumber,
+        pin,
+        businessesE,
+        branchesE,
+        canonicalUserId: canonicalUserId,
+        name: offlineName,
       );
-
-      return user;
     }
 
-    // Otherwise, proceed with normal authentication flow
-    talker.debug("Performing full authentication flow");
-    final http.Response response =
-        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
-
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      // Parse the user from the response
-      final IUser user = IUser.fromJson(json.decode(response.body));
-
-      // Make PIN patching non-blocking for the login flow
-      try {
-        final ownerName = 'Default Tenant';
-        unawaited(_patchPin(user.pin!, flipperHttpClient, apihub,
-            ownerName: ownerName));
-      } catch (e) {
-        // Log the error but don't block login
-        talker.warning("Failed to patch PIN, but continuing login: $e");
-        // This ensures offline login still works even if PIN patching fails
-      }
-
-      ProxyService.box.writeString(key: 'userId', value: user.id);
-
-      // Initialize Ditto with the authenticated user ID using shared helper
-      await _initializeDitto(user.id);
-
-      // Only perform Firebase login if not already logged in
-      if (currentUser == null || currentUser.uid != user.uid) {
-        await firebaseLogin(token: user.uid);
-      }
-
-      return user;
-    } else {
-      await _handleLoginError(response);
-      throw Exception("Error during login");
+    if (isOnline) {
+      return _authenticateUserOnline(phoneNumber, pin, flipperHttpClient);
     }
+
+    throw Exception('Login requires an internet connection');
   }
 
   @override
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false,
-      required Pin pin,
-      required bool isInSignUpProgress,
-      bool freshUser = false,
-      required HttpClientInterface flipperHttpClient,
-      IUser? existingUser}) async {
-    final flipperWatch? w =
-        foundation.kDebugMode ? flipperWatch("callLoginApi") : null;
+  Future<IUser> login({
+    required String userPhone,
+    required bool skipDefaultAppSetup,
+    bool stopAfterConfigure = false,
+    required Pin pin,
+    required bool isInSignUpProgress,
+    bool freshUser = false,
+    required HttpClientInterface flipperHttpClient,
+    IUser? existingUser,
+  }) async {
+    final flipperWatch? w = foundation.kDebugMode
+        ? flipperWatch("callLoginApi")
+        : null;
     w?.start();
     final String phoneNumber = _formatPhoneNumber(userPhone);
 
     // Use existing user data if provided, otherwise make the API call
     print('Before _authenticateUser');
-    final IUser user = existingUser ??
-        await _authenticateUser(phoneNumber, pin, flipperHttpClient,
-            freshUser: freshUser, isInSignUpProgress: isInSignUpProgress);
+    final IUser user =
+        existingUser ??
+        await _authenticateUser(
+          phoneNumber,
+          pin,
+          flipperHttpClient,
+          freshUser: freshUser,
+          isInSignUpProgress: isInSignUpProgress,
+        );
     print('After _authenticateUser');
 
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
@@ -405,57 +558,56 @@ mixin AuthMixin implements AuthInterface {
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
     print('After setting authComplete');
 
-    if (stopAfterConfigure) return user;
+    if (stopAfterConfigure) {
+      unawaited(_completeDittoLoginSetup());
+      return user;
+    }
     if (!skipDefaultAppSetup) {
       // Ensure business and branch IDs are set in storage
       // This is critical for when a user logs in again
       if (pin.businessId != null) {
         talker.debug("Setting businessId to ${pin.businessId}");
-        await ProxyService.box
-            .writeString(key: 'businessId', value: pin.businessId!);
+        await ProxyService.box.writeString(
+          key: 'businessId',
+          value: pin.businessId!,
+        );
 
         // Also set business preferences
         try {
-          final businesses = await this.businesses(userId: pin.userId!);
+          final resolvedBusinesses = await _businessesForLogin(user);
           Business? selectedBusiness;
 
-          // Find the matching business or use the first one if none matches
-          for (final business in businesses) {
-            // Compare serverId with pin.businessId, handling both string and int types
-            if (business.id.toString() == pin.businessId.toString()) {
+          for (final business in resolvedBusinesses) {
+            if (_pinMatchesBusiness(pin, business)) {
               selectedBusiness = business;
               break;
             }
           }
 
-          // If no match found, use the first business if available
-          if (selectedBusiness == null && businesses.isNotEmpty) {
-            selectedBusiness = businesses.first;
+          if (selectedBusiness == null && resolvedBusinesses.isNotEmpty) {
+            selectedBusiness = resolvedBusinesses.first;
           }
 
           if (selectedBusiness != null) {
             talker.debug(
-                "Setting business preferences for ${selectedBusiness.name}");
+              "Setting business preferences for ${selectedBusiness.name}",
+            );
             await ProxyService.box.writeString(
-                key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00");
+              key: 'bhfId',
+              value: (await ProxyService.box.bhfId()) ?? "00",
+            );
 
-            // Get existing tin value if available
             final existingTin = ProxyService.box.readInt(key: 'tin');
-
-            // Resolve effective TIN (prefer Ebm) and update box if needed
-            final resolvedTin = await effectiveTin(business: selectedBusiness);
-            if (resolvedTin != null || existingTin == null) {
-              await ProxyService.box
-                  .writeInt(key: 'tin', value: resolvedTin ?? existingTin ?? 0);
-              talker.debug(
-                  'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})');
-            } else {
-              talker.debug('Preserving existing tin value: $existingTin');
+            final tinToStore = selectedBusiness.tinNumber ?? existingTin;
+            if (tinToStore != null) {
+              await ProxyService.box.writeInt(key: 'tin', value: tinToStore);
+              talker.debug('Setting tin to $tinToStore (from login payload)');
             }
 
             await ProxyService.box.writeString(
-                key: 'encryptionKey',
-                value: selectedBusiness.encryptionKey ?? "");
+              key: 'encryptionKey',
+              value: selectedBusiness.encryptionKey ?? "",
+            );
 
             // Don't automatically set business as active and default during PIN login
             // The business's active/default status should only be changed when:
@@ -480,33 +632,55 @@ mixin AuthMixin implements AuthInterface {
       // Handle the case where pin already has a branchId (for backward compatibility)
       if (pin.branchId != null && pin.businessId != null) {
         talker.debug("Setting branchId to ${pin.branchId}");
-        await ProxyService.box
-            .writeString(key: 'branchId', value: pin.branchId!);
+        await ProxyService.box.writeString(
+          key: 'branchId',
+          value: pin.branchId!,
+        );
 
         try {
-          // Get the branch ID string if available
-          final branches =
-              await ProxyService.strategy.branches(businessId: pin.businessId!);
           Branch? selectedBranch;
-
-          // Find the matching branch or use the first one if none matches
-          for (final branch in branches) {
-            // Compare serverId with pin.branchId, handling both string and int types
-            if (branch.id.toString() == pin.branchId.toString()) {
-              selectedBranch = branch;
+          Business? pinBusiness;
+          for (final business in _businessesFromUser(user)) {
+            if (_pinMatchesBusiness(pin, business)) {
+              pinBusiness = business;
               break;
             }
           }
-
-          // If no match found, use the first branch if available
-          if (selectedBranch == null && branches.isNotEmpty) {
-            selectedBranch = branches.first;
+          final nestedBranches = pinBusiness?.branches;
+          if (nestedBranches != null && nestedBranches.isNotEmpty) {
+            for (final branch in nestedBranches) {
+              if (pin.branchId != null &&
+                  pin.branchId!.isNotEmpty &&
+                  branch.id.toString() == pin.branchId.toString()) {
+                selectedBranch = branch;
+                break;
+              }
+            }
+            selectedBranch ??= nestedBranches.first;
+          } else {
+            final branchesJson = await ProxyService.ditto.getBranches(
+              user.id,
+              pin.businessId!,
+            );
+            final branches =
+                branchesJson.map((j) => Branch.fromMap(j)).toList();
+            for (final branch in branches) {
+              if (branch.id.toString() == pin.branchId.toString()) {
+                selectedBranch = branch;
+                break;
+              }
+            }
+            if (selectedBranch == null && branches.isNotEmpty) {
+              selectedBranch = branches.first;
+            }
           }
 
           if (selectedBranch != null) {
             talker.debug("Setting branchIdString to ${selectedBranch.id}");
-            await ProxyService.box
-                .writeString(key: 'branchIdString', value: selectedBranch.id);
+            await ProxyService.box.writeString(
+              key: 'branchIdString',
+              value: selectedBranch.id,
+            );
 
             // Don't automatically set branch as active and default during PIN login
             // The branch's active/default status should only be changed when:
@@ -550,7 +724,51 @@ mixin AuthMixin implements AuthInterface {
       }
     }
 
+    unawaited(_completeDittoLoginSetup());
+
     return user;
+  }
+
+  bool _pinMatchesBusiness(Pin pin, Business business) {
+    final target = pin.businessId?.toString();
+    if (target == null || target.isEmpty) return false;
+    return business.id == target || business.serverId.toString() == target;
+  }
+
+  List<Business> _businessesFromUser(IUser user) {
+    final fromApi = user.businesses;
+    if (fromApi == null || fromApi.isEmpty) return [];
+    return fromApi.map((b) {
+      final map = Map<String, dynamic>.from(b.toJson());
+      if (b.branches != null) {
+        map['branches'] = b.branches!.map((br) => br.toJson()).toList();
+      }
+      return Business.fromMap(map);
+    }).toList();
+  }
+
+  /// Login reads tenant data from the API response or Ditto `user_access` only.
+  Future<List<Business>> _businessesForLogin(IUser user) async {
+    final fromUser = _businessesFromUser(user);
+    if (fromUser.isNotEmpty) return fromUser;
+
+    final access = await ProxyService.ditto.getUserAccess(user.id);
+    if (access == null || !access.containsKey('businesses')) return [];
+
+    return (access['businesses'] as List)
+        .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
+        .toList();
+  }
+
+  /// Legacy box default when the account has a single business + branch.
+  void _applyLoginBoxDefaultsFromApi(List<dynamic> businessesData) {
+    if (businessesData.length != 1) return;
+    final branches = businessesData.first['branches'] as List? ?? [];
+    if (branches.length != 1) return;
+    final branchId = branches.first['id']?.toString();
+    if (branchId != null && branchId.isNotEmpty) {
+      ProxyService.box.writeString(key: 'branchId', value: branchId);
+    }
   }
 
   String _formatPhoneNumber(String phoneNumber) {
@@ -560,27 +778,39 @@ mixin AuthMixin implements AuthInterface {
 
   @override
   Future<http.Response> sendLoginRequest(
-      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
-      {String? uid}) async {
+    String phoneNumber,
+    HttpClientInterface flipperHttpClient,
+    String apihub, {
+    String? uid,
+    String? expectedPinUserId,
+    String? pinLookupPhone,
+  }) async {
     uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
 
+    var lookupPhone = phoneNumber.trim();
+    if (pinLookupPhone != null && pinLookupPhone.trim().isNotEmpty) {
+      lookupPhone = pinLookupPhone.trim();
+    }
+
     // get userId of the user that is trying to log in
-    final savedLocalPinForThis = await ProxyService.strategy
-        .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
+    final savedLocalPinForThis = await ProxyService.strategy.getPinLocal(
+      phoneNumber: lookupPhone,
+      alwaysHydrate: false,
+    );
     uid ??= savedLocalPinForThis?.uid;
+    final pinUserId = expectedPinUserId ?? savedLocalPinForThis?.userId;
 
     // If local data is not sufficient, proceed with the actual API call
     try {
-      talker.debug("Sending login request to API for phone: $phoneNumber");
+      talker.debug("Sending login request to API for phone: $lookupPhone");
+      var apiPhone = lookupPhone;
       // Only add '+' prefix if it's a phone number (not email) and doesn't start with '+'
-      if (!phoneNumber.startsWith('+') && !phoneNumber.contains('@')) {
-        phoneNumber = '+$phoneNumber';
+      if (!apiPhone.startsWith('+') && !apiPhone.contains('@')) {
+        apiPhone = '+$apiPhone';
       }
       final response = await flipperHttpClient.post(
         Uri.parse(apihub + '/v2/api/user'),
-        body: jsonEncode(<String, String?>{
-          'phoneNumber': phoneNumber,
-        }),
+        body: jsonEncode(<String, String?>{'phoneNumber': apiPhone}),
       );
 
       // Check for 401 Unauthorized response
@@ -592,9 +822,11 @@ mixin AuthMixin implements AuthInterface {
       // Check for error response
       if (response.statusCode != 200) {
         talker.error(
-            "Authentication failed with status code ${response.statusCode}: ${response.body}");
+          "Authentication failed with status code ${response.statusCode}: ${response.body}",
+        );
         throw Exception(
-            "Authentication failed with status code ${response.statusCode}");
+          "Authentication failed with status code ${response.statusCode}",
+        );
       }
       //
 
@@ -604,14 +836,34 @@ mixin AuthMixin implements AuthInterface {
         throw Exception("Empty response from server");
       }
 
-      final responseBody = jsonDecode(response.body);
+      var responseBody = Map<String, dynamic>.from(
+        jsonDecode(response.body) as Map,
+      );
+
+      // Duplicate public.users rows (e.g. murag.richard+agent2 vs murag.richardagent2):
+      // trust pins.user_id when API returns a different id.
+      if (pinUserId != null &&
+          pinUserId.isNotEmpty &&
+          responseBody['id']?.toString() != pinUserId) {
+        talker.warning(
+          'POST /v2/api/user returned id=${responseBody['id']} but '
+          'pins.user_id=$pinUserId — using PIN user for session',
+        );
+        final corrected = await _fetchUserWithNestedData(pinUserId);
+        if (corrected != null) {
+          responseBody = corrected;
+        } else {
+          responseBody['id'] = pinUserId;
+        }
+      }
 
       // Check if this is an error response
       if (responseBody.containsKey('details') &&
           responseBody['details'] is String &&
           responseBody['details'].toString().startsWith('Error id')) {
         talker.error(
-            "Error response from login request: ${responseBody['details']}");
+          "Error response from login request: ${responseBody['details']}",
+        );
         throw Exception("Server error: ${responseBody['details']}");
       }
 
@@ -621,62 +873,33 @@ mixin AuthMixin implements AuthInterface {
       talker.warning("$responseBody");
       // Handle userId which could now be a string or int
       if (responseBody['id'] is String) {
-        // Store the original string ID for reference
-        ProxyService.box
-            .writeString(key: 'userIdString', value: responseBody['id']);
-        // Convert string ID to integer for backward compatibility
-        final String userId = responseBody['id'];
-        ProxyService.box.writeString(key: 'userId', value: userId);
+        await _persistApiUserId(responseBody['id'] as String);
       } else if (responseBody['id'] != null) {
-        ProxyService.box.writeString(key: 'userId', value: responseBody['id']);
+        await _persistApiUserId(responseBody['id'].toString());
       } else {
         talker.error("Missing ID in response: ${responseBody}");
         throw Exception("Missing user ID in server response");
       }
 
-      // Process businesses and branches
+      // Tenant data: Ditto user_access only (login choices / businessesProvider).
       final List<dynamic> businessesData = responseBody['businesses'] ?? [];
+      final userId = responseBody['id'].toString();
 
-      // Save businesses and branches locally
-      for (var businessData in businessesData) {
-        final iBusiness = IBusiness.fromJson(businessData);
-        // Save business locally
-        await ProxyService.strategy
-            .getBusinessById(businessId: iBusiness.id, fetchOnline: true);
-
-        // Process branches if they are nested in the business (new structure)
-        final List<dynamic> branchesData = businessData['branches'] ?? [];
-
-        for (var branchData in branchesData) {
-          final iBranch = IBranch.fromJson(branchData);
-          // Only set the last branch ID if there's only one branch total (legacy behavior)
-          if (branchesData.length == 1 && businessesData.length == 1) {
-            ProxyService.box.writeString(key: 'branchId', value: iBranch.id!);
-          }
-
-          final branch = Branch(
-            id: iBranch.id!,
-            serverId: iBranch.serverId,
-            description: iBranch.description,
-            name: iBranch.name,
-            businessId: iBranch.businessId,
-            longitude: iBranch.longitude,
-            latitude: iBranch.latitude,
-            location: iBranch.location,
-            isDefault: iBranch.isDefault ?? false,
-          );
-          await repository.upsert<Branch>(branch);
-          talker.debug(
-              "Saved branch locally: ${branch.name} (isDefault: ${branch.isDefault})");
-        }
+      ProxyService.box.writeString(key: 'userPhone', value: lookupPhone);
+      final apiName = responseBody['name']?.toString().trim();
+      if (apiName != null && apiName.isNotEmpty) {
+        await ProxyService.box.writeString(key: 'userName', value: apiName);
       }
+      _applyLoginBoxDefaultsFromApi(businessesData);
 
-      ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-      await _initializeDitto(responseBody['id']);
-      // Save user access to Ditto for cross-device synchronization
+      await _initializeDitto(userId, loginFastPath: true);
       await ProxyService.ditto.saveUserAccess(responseBody);
 
-      return response;
+      return http.Response(
+        jsonEncode(responseBody),
+        response.statusCode,
+        headers: response.headers,
+      );
     } catch (e, s) {
       // If it's already a SessionException, rethrow it
       if (e is SessionException) {
@@ -700,8 +923,11 @@ mixin AuthMixin implements AuthInterface {
   }
 
   Future<http.Response> _patchPin(
-      int pin, HttpClientInterface flipperHttpClient, String apihub,
-      {required String ownerName}) async {
+    int pin,
+    HttpClientInterface flipperHttpClient,
+    String apihub, {
+    required String ownerName,
+  }) async {
     return await flipperHttpClient.patch(
       Uri.parse(apihub + '/v2/api/pin/${pin}'),
       body: jsonEncode(<String, String?>{
@@ -716,8 +942,10 @@ mixin AuthMixin implements AuthInterface {
     return businesses.map((e) {
       // Store the string ID for reference if needed
       // The id field is non-nullable, so we don't need to check for null
-      ProxyService.box
-          .writeString(key: 'business_${e.serverId}_uuid', value: e.id);
+      ProxyService.box.writeString(
+        key: 'business_${e.serverId}_uuid',
+        value: e.id,
+      );
 
       return IBusiness(
         phoneNumber: e.phoneNumber,
@@ -738,21 +966,29 @@ mixin AuthMixin implements AuthInterface {
         adrs: e.adrs ?? '',
         taxEnabled: e.taxEnabled ?? false,
         isDefault: e.isDefault ?? false,
-        businessTypeId: e.businessTypeId ?? "",
+        businessTypeId: e.businessTypeId ?? 0,
         encryptionKey: e.encryptionKey ?? '',
       );
     }).toList();
   }
 
-  IUser _createOfflineUser(String phoneNumber, Pin pin,
-      List<Business> businesses, List<Branch> branches) {
-    // For businessId, convert to int if it's a string for backward compatibility
+  IUser _createOfflineUser(
+    String phoneNumber,
+    Pin pin,
+    List<Business> businesses,
+    List<Branch> branches, {
+    String? canonicalUserId,
+    String? name,
+  }) {
+    final resolvedId =
+        canonicalUserId ?? ProxyService.box.getUserId() ?? pin.userId ?? '';
 
     return IUser(
       token: ProxyService.box.getBearerToken() ?? "",
       uid: pin.uid,
       phoneNumber: pin.phoneNumber!,
-      id: pin.userId!,
+      id: resolvedId,
+      name: name,
       businesses: _convertBusinesses(businesses),
     );
   }
@@ -807,20 +1043,23 @@ mixin AuthMixin implements AuthInterface {
       await ProxyService.box.writeString(key: 'userId', value: userId);
 
       if (businessId != null) {
-        await ProxyService.box
-            .writeString(key: 'businessIdString', value: businessId);
+        await ProxyService.box.writeString(
+          key: 'businessIdString',
+          value: businessId,
+        );
       }
       // Fetch the user details using the new token
       final user = await login(
         userPhone: phoneNumber,
         skipDefaultAppSetup: false,
         pin: Pin(
-            userId: userId,
-            pin: pin!.pin,
-            businessId: businessId ?? serverId.toString(),
-            branchId: "", // Will be determined in the login flow
-            ownerName: responseData['businessName'] ?? '',
-            phoneNumber: phoneNumber),
+          userId: userId,
+          pin: pin!.pin,
+          businessId: businessId ?? serverId.toString(),
+          branchId: "", // Will be determined in the login flow
+          ownerName: responseData['businessName'] ?? '',
+          phoneNumber: phoneNumber,
+        ),
         isInSignUpProgress: false,
         flipperHttpClient: ProxyService.http,
       );
@@ -832,35 +1071,144 @@ mixin AuthMixin implements AuthInterface {
     }
   }
 
+  @override
+  Future<Map<String, dynamic>> sendOtpForSignup(String contact) async {
+    final response = await ProxyService.http.post(
+      Uri.parse(apihub + '/v2/api/login/send-otp-signup'),
+      body: jsonEncode({'contact': contact}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 409) {
+      // Conflict - contact already exists
+      final errorBody = jsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Contact already exists');
+    } else {
+      throw Exception('Failed to send OTP for signup');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> verifyOtpForSignup(
+    String contact,
+    String otp,
+  ) async {
+    final response = await ProxyService.http.post(
+      Uri.parse(apihub + '/v2/api/login/verify-otp-signup'),
+      body: jsonEncode({'contact': contact, 'otp': otp}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return _safeJsonDecode(response.body);
+    } else {
+      final errorBody = _safeJsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Failed to verify OTP for signup');
+    }
+  }
+
   /// Helper function to initialize Ditto with proper guards against repeated initialization
   /// This prevents double initialization while preserving skipInitialFetch and error logging behavior
-  Future<void> _initializeDitto(String userId) async {
-    // Check if Ditto is already initialized to prevent repeated initialization
-    // Using a static flag to track initialization state since DittoSingleton doesn't have isInitialized
-    if (_isDittoInitialized) {
-      talker.debug("Ditto already initialized, skipping re-initialization");
+  Future<void> _initializeDitto(
+    String userId, {
+    bool loginFastPath = false,
+  }) async {
+    final existingDitto = DittoSingleton.instance.ditto;
+    final existingUserId = DittoSingleton.persistenceUserId;
+
+    // QR-login uses a temporary `login-*` identity in an isolated store. Tear it
+    // down before opening the real user's db2 directory during PIN login.
+    if (existingUserId != null &&
+        existingUserId.startsWith('login-') &&
+        existingUserId != userId) {
+      talker.debug(
+        'Disposing QR-login Ditto ($existingUserId) before init for $userId',
+      );
+      await DittoSingleton.instance.dispose(quick: true);
+      _isDittoInitialized = false;
+    }
+
+    // Only skip when the singleton truly matches this user. Otherwise a stale
+    // [_isDittoInitialized] flag (e.g. after Ditto.dispose or QR-login teardown)
+    // would skip initialization and strand login behind replication / JWT retries.
+    if (_isDittoInitialized &&
+        existingDitto != null &&
+        existingUserId != null &&
+        existingUserId == userId) {
+      talker.debug(
+        'Ditto already initialized for userId $userId, skipping re-initialization',
+      );
       return;
     }
 
-    final appID =
-        foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+    if (_isDittoInitialized &&
+        (existingDitto == null || existingUserId != userId)) {
+      talker.debug(
+        'Clearing Ditto init flag (ditto=${existingDitto != null}, '
+        'persistedUser=$existingUserId, requested=$userId)',
+      );
+      _isDittoInitialized = false;
+    }
+
+    final appID = foundation.kDebugMode
+        ? AppSecrets.appIdDebug
+        : AppSecrets.appId;
     print("User id set to $userId and Ditto initializing now");
     try {
       await DittoSingleton.instance.initialize(
         appId: appID,
         userId: userId,
+        deferSyncStart: loginFastPath,
       );
-      DittoSyncCoordinator.instance.setDitto(
-        DittoSingleton.instance.ditto,
-        skipInitialFetch:
-            true, // Skip initial fetch to prevent upserting all models on startup
-      );
-      _isDittoInitialized = true; // Mark as initialized after successful setup
+      _isDittoInitialized = true;
+      if (!loginFastPath) {
+        await _attachDittoCoordinatorAndStorage();
+      }
     } catch (e) {
       talker.error("Failed to initialize Ditto: $e");
       rethrow;
     }
     print("Ditto initialized");
+  }
+
+  static bool _dittoCoordinatorAttached = false;
+  static bool _dittoLoginSetupComplete = false;
+
+  Future<void> _attachDittoCoordinatorAndStorage() async {
+    if (_dittoCoordinatorAttached) return;
+    final ditto = DittoSingleton.instance.ditto;
+    if (ditto == null) return;
+
+    await DittoSyncCoordinator.instance.setDitto(
+      ditto,
+      skipInitialFetch: true,
+    );
+    final box = ProxyService.box;
+    if (box is SharedPreferenceStorage) {
+      await box.attachDittoPersistence();
+    }
+    _dittoCoordinatorAttached = true;
+  }
+
+  Future<void> _completeDittoLoginSetup() async {
+    if (_dittoLoginSetupComplete) return;
+    final ditto = DittoSingleton.instance.ditto;
+    if (ditto == null) return;
+
+    final appID = foundation.kDebugMode
+        ? AppSecrets.appIdDebug
+        : AppSecrets.appId;
+    try {
+      await DittoSingleton.instance.ensureAuthenticatedAndSyncing(
+        appId: appID,
+      );
+      await _attachDittoCoordinatorAndStorage();
+      _dittoLoginSetupComplete = true;
+    } catch (e, s) {
+      talker.warning('Background Ditto login setup failed: $e\n$s');
+    }
   }
 
   // Static flag to track Ditto initialization status
@@ -874,5 +1222,17 @@ mixin AuthMixin implements AuthInterface {
   /// Static method to reset Ditto initialization state, can be called from anywhere
   static void resetDittoInitializationStatic() {
     _isDittoInitialized = false;
+    _dittoCoordinatorAttached = false;
+    _dittoLoginSetupComplete = false;
+  }
+
+  /// Helper function to safely decode JSON responses
+  Map<String, dynamic> _safeJsonDecode(String body) {
+    try {
+      return jsonDecode(body) as Map<String, dynamic>;
+    } catch (e) {
+      talker.error("Failed to parse JSON response: $body. Error: $e");
+      return {'error': 'Invalid server response format.'};
+    }
   }
 }

@@ -2,11 +2,12 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -129,6 +130,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     final isTestEnvironment =
         const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
     try {
+      await setCommissionOnlySession(false);
       // set authComplete to false
       ProxyService.box.writeBool(key: 'authComplete', value: false);
       if (ProxyService.box.getUserId() != null &&

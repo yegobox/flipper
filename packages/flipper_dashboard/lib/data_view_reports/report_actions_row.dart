@@ -87,22 +87,22 @@ class ReportActionsRow extends ConsumerWidget {
       children: [
         _buildReportTypeSwitch(ref),
         const Spacer(),
-        Tooltip(
-          message: 'Export as CSV',
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: isExporting
-                ? const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : IconButton(
-                    icon: const Icon(Icons.download_rounded),
-                    onPressed: onExportPressed,
-                  ),
-          ),
-        ),
+        // Tooltip(
+        //   message: 'Export as CSV',
+        //   child: SizedBox(
+        //     width: 40,
+        //     height: 40,
+        //     child: isExporting
+        //         ? const Padding(
+        //             padding: EdgeInsets.all(8.0),
+        //             child: CircularProgressIndicator(strokeWidth: 2),
+        //           )
+        //         : IconButton(
+        //             icon: const Icon(Icons.download_rounded),
+        //             onPressed: onExportPressed,
+        //           ),
+        //   ),
+        // ),
         Tooltip(
           message: 'Z Report',
           child: SizedBox(

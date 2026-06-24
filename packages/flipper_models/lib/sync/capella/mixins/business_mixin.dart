@@ -1,116 +1,164 @@
 import 'dart:async';
 
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_models/sync/capella/category_ditto_mapper.dart';
 
 mixin CapellaBusinessMixin implements BusinessInterface {
   Repository get repository;
   Talker get talker;
+  DittoService get dittoService => DittoService.instance;
 
   @override
   Future<Business?> activeBusiness({int? userId}) async {
     throw UnimplementedError(
-        'activeBusiness needs to be implemented for Capella');
+      'activeBusiness needs to be implemented for Capella',
+    );
   }
 
   @override
   Future<Category?> activeCategory({required String branchId}) async {
-    throw UnimplementedError(
-        'activeCategory needs to be implemented for Capella');
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for activeCategory');
+      return null;
+    }
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM categories WHERE branchId = :branchId '
+        'AND focused = :focused AND active = :active LIMIT 1',
+        arguments: {'branchId': branchId, 'focused': true, 'active': true},
+      );
+      if (result.items.isEmpty) return null;
+      final data = Map<String, dynamic>.from(result.items.first.value);
+      return categoryFromDittoMap(data);
+    } catch (e, s) {
+      talker.error('Error in Capella activeCategory: $e', s);
+      return null;
+    }
   }
 
   @override
-  FutureOr<Business?> getBusinessById(
-      {required String businessId, bool fetchOnline = false}) async {
-    throw UnimplementedError(
-        'getBusinessById needs to be implemented for Capella');
+  FutureOr<Business?> getBusinessById({
+    required String businessId,
+    bool fetchOnline = false,
+  }) async {
+    final query = Query(where: [Where('id').isExactly(businessId)]);
+    final result = await repository.get<Business>(
+      query: query,
+      policy: fetchOnline
+          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+          : OfflineFirstGetPolicy.localOnly,
+    );
+    return result.firstOrNull;
   }
 
   @override
-  Future<List<Business>> businesses(
-      {String? userId, bool fetchOnline = false, bool active = false}) async {
+  Future<List<Business>> businesses({
+    String? userId,
+    bool fetchOnline = false,
+    bool active = false,
+  }) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 
   @override
-  FutureOr<Business?> getBusiness({String? businessId}) async {
-    throw UnimplementedError('getBusiness needs to be implemented for Capella');
+  Future<Business?> getBusiness({String? businessId}) async {
+    final query = Query(
+      where: businessId != null
+          ? [Where('id').isExactly(businessId)]
+          : [Where('isDefault').isExactly(true)],
+    );
+    final result = await repository.get<Business>(
+      query: query,
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+    return result.firstOrNull;
   }
 
   @override
-  Future<Business?> getBusinessFromOnlineGivenId(
-      {required int id, required HttpClientInterface flipperHttpClient}) async {
+  Future<Business?> getBusinessFromOnlineGivenId({
+    required int id,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
     throw UnimplementedError(
-        'getBusinessFromOnlineGivenId needs to be implemented for Capella');
+      'getBusinessFromOnlineGivenId needs to be implemented for Capella',
+    );
   }
 
   @override
-  Future<void> addBusiness(
-      {required String id,
-      required String userId,
-      required int serverId,
-      required String businessId,
-      String? name,
-      String? currency,
-      String? categoryId,
-      num? latitude,
-      num? longitude,
-      String? timeZone,
-      String? country,
-      String? businessUrl,
-      String? hexColor,
-      String? imageUrl,
-      String? type,
-      bool? active,
-      String? chatUid,
-      String? metadata,
-      String? role,
-      int? lastSeen,
-      String? firstName,
-      String? lastName,
-      String? createdAt,
-      String? deviceToken,
-      bool? backUpEnabled,
-      String? subscriptionPlan,
-      String? nextBillingDate,
-      String? previousBillingDate,
-      bool? isLastSubscriptionPaymentSucceeded,
-      String? backupFileId,
-      String? email,
-      String? lastDbBackup,
-      String? fullName,
-      int? tinNumber,
-      required String bhfId,
-      String? dvcSrlNo,
-      String? adrs,
-      bool? taxEnabled,
-      String? taxServerUrl,
-      bool? isDefault,
-      String? businessTypeId,
-      DateTime? lastTouched,
-      required String phoneNumber,
-      DateTime? deletedAt,
-      required String encryptionKey}) async {
+  Future<void> addBusiness({
+    required String id,
+    required String userId,
+    required int serverId,
+    required String businessId,
+    String? name,
+    String? currency,
+    String? categoryId,
+    num? latitude,
+    num? longitude,
+    String? timeZone,
+    String? country,
+    String? businessUrl,
+    String? hexColor,
+    String? imageUrl,
+    String? type,
+    bool? active,
+    String? chatUid,
+    String? metadata,
+    String? role,
+    int? lastSeen,
+    String? firstName,
+    String? lastName,
+    String? createdAt,
+    String? deviceToken,
+    bool? backUpEnabled,
+    String? subscriptionPlan,
+    String? nextBillingDate,
+    String? previousBillingDate,
+    bool? isLastSubscriptionPaymentSucceeded,
+    String? backupFileId,
+    String? email,
+    String? lastDbBackup,
+    String? fullName,
+    int? tinNumber,
+    required String bhfId,
+    String? dvcSrlNo,
+    String? adrs,
+    bool? taxEnabled,
+    String? taxServerUrl,
+    bool? isDefault,
+    int? businessTypeId,
+    DateTime? lastTouched,
+    required String phoneNumber,
+    DateTime? deletedAt,
+    required String encryptionKey,
+  }) async {
     throw UnimplementedError('addBusiness needs to be implemented for Capella');
   }
 
   @override
-  Future<void> updateBusiness(
-      {required String businessId,
-      String? name,
-      bool? active,
-      bool? isDefault,
-      String? backupFileId}) async {
+  Future<void> updateBusiness({
+    required String businessId,
+    String? name,
+    bool? active,
+    bool? isDefault,
+    String? backupFileId,
+  }) async {
     throw UnimplementedError(
-        'updateBusiness needs to be implemented for Capella');
+      'updateBusiness needs to be implemented for Capella',
+    );
   }
 
   @override
   Future<Business?> defaultBusiness() async {
     throw UnimplementedError(
-        'defaultBusiness needs to be implemented for Capella');
+      'defaultBusiness needs to be implemented for Capella',
+    );
   }
 }

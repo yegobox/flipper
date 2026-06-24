@@ -17,7 +17,7 @@ class DittoAdapter {
   final String collectionName;
 
   /// The synchronization direction for this model.
-  /// Defaults to [SyncDirection.bidirectional].
+  /// Defaults to [SyncDirection.sendOnly].
   final SyncDirection syncDirection;
 
   /// Whether this adapter should expose a backup pull workflow even if the
@@ -40,7 +40,7 @@ class DittoAdapter {
   /// Creates a DittoAdapter annotation.
   const DittoAdapter(
     this.collectionName, {
-    this.syncDirection = SyncDirection.bidirectional,
+    this.syncDirection = SyncDirection.sendOnly,
     this.enableBackupPull = false,
     this.hydrateOnStartup = false,
     this.includeFields,

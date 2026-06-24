@@ -1,6 +1,6 @@
 import 'package:flipper_ui/style_widget/text.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_infra/size.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 
 import 'base_styled_button.dart';
 

@@ -1,6 +1,12 @@
 # Dependency overrides for the entire workspace
 # This ensures consistent versions across all packages
 dependency_overrides:
-  archive: ^3.6.1
+  archive: ^4.0.9
+  # Align with flipper_models (excel_plus needs archive 4); pub excel 4.0.6 is archive-3-only.
+  excel:
+    git:
+      url: https://github.com/justkawal/excel.git
+      ref: 751dfc597c893a0b34eccfe6921f126e03a5c683
   flutter_native_splash: ^2.3.2
+  # Prevent Couchbase Lite from being pulled in transitively (causes NO_OPUS_OGG_LIBS error on Windows)
   # Add any other problematic dependencies here

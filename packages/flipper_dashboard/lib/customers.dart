@@ -1,3 +1,5 @@
+import 'package:flipper_dashboard/theme/mpos_tokens.dart';
+import 'package:flipper_dashboard/widgets/add_new_customer_button.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,6 +11,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 
 class Customers extends StatefulHookConsumerWidget {
   const Customers({Key? key}) : super(key: key);
@@ -146,6 +149,13 @@ class CustomersState extends ConsumerState<Customers> {
                   return Column(
                     children: [
                       _buildSearchBar(),
+                      _buildAddButton(
+                        context,
+                        model,
+                        customersRef,
+                        searchKeyword,
+                        transaction,
+                      ),
                       _buildResultStats(filteredCustomers),
                       Expanded(
                         child: _buildCustomerList(
@@ -153,13 +163,6 @@ class CustomersState extends ConsumerState<Customers> {
                           transaction,
                           filteredCustomers,
                         ),
-                      ),
-                      _buildAddButton(
-                        context,
-                        model,
-                        customersRef,
-                        searchKeyword,
-                        transaction,
                       ),
                     ],
                   );
@@ -214,57 +217,40 @@ class CustomersState extends ConsumerState<Customers> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: PhysicalModel(
-        color: Colors.transparent,
-        elevation: 4,
-        borderRadius: BorderRadius.circular(8),
-        child: FocusScope(
-          child: Focus(
-            onFocusChange: (hasFocus) => setState(() {}),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: FocusScope.of(context).hasFocus
-                      ? primaryColor
-                      : Colors.transparent,
-                  width: 2,
-                ),
-              ),
-              child: TextField(
-                controller: _searchController,
-                style: TextStyle(fontSize: 16, color: textPrimaryColor),
-                decoration: InputDecoration(
-                  hintText: 'Search customers by name or phone number',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 8),
-                    child: Icon(Icons.search, color: primaryColor, size: 24),
-                  ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(Icons.clear, color: deleteColor, size: 22),
-                          tooltip: 'Clear search',
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged("");
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 16,
-                  ),
-                ),
-                onChanged: _onSearchChanged,
-              ),
-            ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: TextField(
+        controller: _searchController,
+        style: TextStyle(fontSize: 15, color: textPrimaryColor),
+        decoration: InputDecoration(
+          hintText: 'Search customers by name or phone',
+          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 15),
+          prefixIcon: Icon(Icons.search_rounded, color: primaryColor, size: 22),
+          filled: true,
+          fillColor: cardColor,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: primaryColor, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: primaryColor, width: 1.5),
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.clear_rounded, color: deleteColor, size: 20),
+                  tooltip: 'Clear search',
+                  onPressed: () {
+                    _searchController.clear();
+                    _onSearchChanged('');
+                  },
+                )
+              : null,
         ),
+        onChanged: _onSearchChanged,
       ),
     );
   }
@@ -315,78 +301,19 @@ class CustomersState extends ConsumerState<Customers> {
               style: TextStyle(color: textSecondaryColor),
             ),
             const SizedBox(height: 24),
-            _searchController.text.isNotEmpty
-                ? ElevatedButton.icon(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        constraints: BoxConstraints(maxHeight: maxHeight),
-                        context: context,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(16.0),
-                          ),
-                        ),
-                        isScrollControlled: true,
-                        builder: (BuildContext context) {
-                          return Padding(
-                            padding: MediaQuery.of(context).viewInsets,
-                            child: AddCustomer(
-                              transactionId: transaction.id,
-                              searchedKey: _searchController.text,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    icon: const Icon(Icons.add_circle_outline),
-                    label: Text(
-                      'Add "${_searchController.text}" as new customer',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  )
-                : ElevatedButton.icon(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        useSafeArea: true,
-                        constraints: BoxConstraints(maxHeight: maxHeight),
-                        context: context,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(16.0),
-                          ),
-                        ),
-                        isScrollControlled: true,
-                        builder: (BuildContext context) {
-                          return Padding(
-                            padding: MediaQuery.of(context).viewInsets,
-                            child: AddCustomer(
-                              transactionId: transaction.id,
-                              searchedKey: '',
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    icon: const Icon(Icons.add_circle_outline),
-                    label: const Text('Add New Customer'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: AddNewCustomerButton(
+                label: _searchController.text.isNotEmpty
+                    ? 'Add "${_searchController.text}" as new customer'
+                    : 'Add new customer',
+                onPressed: () => _openAddCustomerSheet(
+                  context,
+                  transaction,
+                  _searchController.text,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -458,18 +385,16 @@ class CustomersState extends ConsumerState<Customers> {
                   context: context,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(16.0),
+                      top: Radius.circular(MposTokens.sheetRadius),
                     ),
                   ),
                   isScrollControlled: true,
+                  backgroundColor: Colors.white,
                   builder: (BuildContext context) {
-                    return Padding(
-                      padding: MediaQuery.of(context).viewInsets,
-                      child: AddCustomer(
-                        transactionId: transaction.id,
-                        searchedKey: customer.custNm ?? '',
-                        customer: customer,
-                      ),
+                    return AddCustomer(
+                      transactionId: transaction.id,
+                      searchedKey: customer.custNm ?? '',
+                      customer: customer,
                     );
                   },
                 );
@@ -490,6 +415,8 @@ class CustomersState extends ConsumerState<Customers> {
                   customer: customer,
                   transaction: transaction,
                 );
+                ref.read(customerPhoneNumberProvider.notifier).state =
+                    customer.telNo;
                 model.getTransactionById();
               },
               backgroundColor: successColor,
@@ -500,6 +427,7 @@ class CustomersState extends ConsumerState<Customers> {
             SlidableAction(
               onPressed: (_) async {
                 await model.removeFromSale(transaction: transaction);
+                ref.read(customerPhoneNumberProvider.notifier).state = null;
                 model.getTransactionById();
                 showSimpleNotification(
                   const Text(
@@ -532,6 +460,8 @@ class CustomersState extends ConsumerState<Customers> {
             borderRadius: BorderRadius.circular(12),
             onTap: () {
               model.assignToSale(customer: customer, transaction: transaction);
+              ref.read(customerPhoneNumberProvider.notifier).state =
+                  customer.telNo;
               model.getTransactionById();
             },
             child: Padding(
@@ -649,27 +579,10 @@ class CustomersState extends ConsumerState<Customers> {
     String searchKeyword,
     ITransaction transaction,
   ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.add_circle_outline),
-        label: Text(_getButtonText(customersRef, searchKeyword)),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          elevation: 0,
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: AddNewCustomerButton(
+        label: _getButtonText(customersRef, searchKeyword),
         onPressed: () => _handleButtonPress(
           context,
           model,
@@ -678,6 +591,31 @@ class CustomersState extends ConsumerState<Customers> {
           transaction,
         ),
       ),
+    );
+  }
+
+  void _openAddCustomerSheet(
+    BuildContext context,
+    ITransaction transaction,
+    String searchedKey,
+  ) {
+    showModalBottomSheet(
+      useSafeArea: true,
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MposTokens.sheetRadius),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      builder: (BuildContext context) {
+        return AddCustomer(
+          transactionId: transaction.id,
+          searchedKey: searchedKey,
+        );
+      },
     );
   }
 
@@ -692,12 +630,12 @@ class CustomersState extends ConsumerState<Customers> {
         .isEmpty;
 
     if (searchKeyword.isEmpty) {
-      return 'Add New Customer';
+      return 'Add new customer';
     }
 
     return isCustomerListEmpty
-        ? 'Add Customer "$searchKeyword"'
-        : 'Add "$searchKeyword" to Sale';
+        ? 'Add customer "$searchKeyword"'
+        : 'Add "$searchKeyword" to sale';
   }
 
   Future<void> _handleButtonPress(
@@ -713,27 +651,12 @@ class CustomersState extends ConsumerState<Customers> {
         .filterCustomers(customers, searchKeyword);
 
     if (filteredCustomers.isEmpty || searchKeyword.isEmpty) {
-      showModalBottomSheet(
-        useSafeArea: true,
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        context: context,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-        ),
-        isScrollControlled: true,
-        builder: (BuildContext context) {
-          return Padding(
-            padding: MediaQuery.of(context).viewInsets,
-            child: AddCustomer(
-              transactionId: transaction.id,
-              searchedKey: searchKeyword,
-            ),
-          );
-        },
-      );
+      _openAddCustomerSheet(context, transaction, searchKeyword);
     } else {
       final customer = filteredCustomers.first;
       model.assignToSale(customer: customer, transaction: transaction);
+      ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
+      model.getTransactionById();
     }
   }
 }

@@ -82,7 +82,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get priceEnterprise => '1,500,000+';
 
   @override
-  String get currencyPerMonth => 'RWF/month';
+  String get currencyPerMonth => 'RWF / month';
 
   @override
   String get featureMobileAppAccess => 'Mobile app access';
@@ -155,5 +155,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mostPopular => 'Most Popular';
 
   @override
-  String get getStarted => 'Get Started';
+  String get getStarted => 'Get started';
 }

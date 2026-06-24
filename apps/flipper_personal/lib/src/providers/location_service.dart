@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flipper_models/models/challenge_code.dart';

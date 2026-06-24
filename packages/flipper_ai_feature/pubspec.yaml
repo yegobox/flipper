@@ -1,0 +1,83 @@
+name: flipper_ai_feature
+description: "Reusable AI feature module for Flipper apps - can be embedded in flipper app or used standalone"
+version: 1.0.0+1
+repository: https://github.com/yegobox/flipper
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: any
+  hooks_riverpod: any
+  flutter_hooks: any
+
+  # UI components
+  cupertino_icons: any
+  
+  # Authentication (optional - can work with or without auth)
+  supabase_flutter: any
+  
+  # Utilities
+  equatable: any
+  http: any
+  shared_preferences: any
+  path_provider: ^2.1.5
+  intl: any
+  path: any
+  markdown_widget: any
+  record: ^6.2.0
+  file_picker: ^10.3.7
+  mime: any
+  flutter_svg: any
+  
+  # Flipper packages
+  flipper_services: any
+  flipper_models: any
+  flipper_ui: any
+  supabase_models: any
+  flipper_dashboard: any
+
+  # On-device AI (iOS + desktop only; gated at runtime in GemmaInferenceEngine).
+  # litertlm runs .litertlm weights on both iOS and desktop (single format).
+  flutter_gemma: ^1.0.0
+  flutter_gemma_litertlm: any
+  # Phase 2 (on-device RAG over sales/transactions):
+  flutter_gemma_embeddings: any
+  flutter_gemma_rag_qdrant: any
+
+  pasteboard: any
+  brick_offline_first: any
+  fl_chart: any
+  # flutter_riverpod: any
+  # path_provider: any
+  # record: any
+  # file_picker: any
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: any
+  build_runner: any
+  riverpod_generator: any
+
+  flipper_routing: any
+  mocktail: any
+  stacked_services: any
+  sqflite_common_ffi: any
+  visibility_detector: any
+
+dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
+  sqlite3: ^3.3.1
+  # Align with workspace / receipt; sentry_flutter pins jni 0.14.x without this.
+  jni: ^0.14.2
+  path_provider_android: ">=2.2.5 <2.3.0"
+flutter:

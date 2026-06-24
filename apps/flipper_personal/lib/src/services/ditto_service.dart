@@ -4,7 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flipper_models/models/challenge_code.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 class DittoService {
   Stream<List<ChallengeCode>> getNearbyChallenges(

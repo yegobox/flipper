@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/proxy.dart';
@@ -14,55 +16,87 @@ mixin EbmMixin implements EbmInterface {
   Repository get repository;
 
   @override
-  Future<void> saveEbm({
+  Future<bool> saveEbm({
     required String branchId,
     required String severUrl,
     required String mrc,
     required String bhFId,
     bool vatEnabled = false,
+    String? dataConnectorUrl,
   }) async {
-    final business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    try {
+      final business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-    if (business == null) {
-      throw Exception("Business not found");
+      if (business == null) {
+        throw Exception("Business not found");
+      }
+
+      final query = Query(where: [
+        Where('branchId').isExactly(branchId),
+        Where('bhfId').isExactly(bhFId),
+      ]);
+
+      final ebm = await repository.get<Ebm>(
+        query: query,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+
+      final existingEbm = ebm.firstOrNull;
+
+      final resolvedTin =
+          (await effectiveTin(business: business, branchId: branchId));
+
+      // Check if resolvedTin is null to avoid runtime exception
+      if (resolvedTin == null) {
+        throw Exception(
+            "Could not resolve TIN number for EBM creation. Business or branch may not have a valid TIN.");
+      }
+
+      Ebm updatedEbm = existingEbm ??
+          Ebm(
+            mrc: mrc,
+            bhfId: bhFId,
+            tinNumber: resolvedTin,
+            dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
+            userId: ProxyService.box.getUserId()!,
+            taxServerUrl: severUrl,
+            businessId: business.id,
+            branchId: branchId,
+            vatEnabled: vatEnabled,
+            dataConnectorUrl: dataConnectorUrl,
+          );
+
+      if (existingEbm != null) {
+        updatedEbm.taxServerUrl = severUrl;
+        updatedEbm.vatEnabled = vatEnabled;
+        updatedEbm.mrc = mrc;
+        updatedEbm.dataConnectorUrl = dataConnectorUrl;
+      } else if (dataConnectorUrl != null) {
+        updatedEbm.dataConnectorUrl = dataConnectorUrl;
+      }
+
+      await repository.upsert(updatedEbm);
+
+      final supabase = Supabase.instance.client;
+      await supabase.from('ebms').upsert({
+        'id': updatedEbm.id,
+        'bhf_id': updatedEbm.bhfId,
+        'tin_number': updatedEbm.tinNumber,
+        'dvc_srl_no': updatedEbm.dvcSrlNo,
+        'user_id': updatedEbm.userId,
+        'tax_server_url': updatedEbm.taxServerUrl,
+        'business_id': updatedEbm.businessId,
+        'branch_id': updatedEbm.branchId,
+        'vat_enabled': updatedEbm.vatEnabled,
+        'mrc': updatedEbm.mrc,
+        'data_connector_url': updatedEbm.dataConnectorUrl,
+      });
+      return true;
+    } catch (e) {
+      talker.error('Error saving EBM: $e');
+      return false;
     }
-
-    final query = Query(where: [
-      Where('branchId').isExactly(branchId),
-      Where('bhfId').isExactly(bhFId),
-    ]);
-
-    final ebm = await repository.get<Ebm>(
-      query: query,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    );
-
-    final existingEbm = ebm.firstOrNull;
-
-    final resolvedTin =
-        (await effectiveTin(business: business, branchId: branchId));
-
-    Ebm updatedEbm = existingEbm ??
-        Ebm(
-          mrc: mrc,
-          bhfId: bhFId,
-          tinNumber: resolvedTin!,
-          dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
-          userId: ProxyService.box.getUserId()!,
-          taxServerUrl: severUrl,
-          businessId: business.id,
-          branchId: branchId,
-          vatEnabled: vatEnabled,
-        );
-
-    if (existingEbm != null) {
-      updatedEbm.taxServerUrl = severUrl;
-      updatedEbm.vatEnabled = vatEnabled;
-      updatedEbm.mrc = mrc;
-    }
-
-    await repository.upsert(updatedEbm);
   }
 
   @override
@@ -73,9 +107,14 @@ mixin EbmMixin implements EbmInterface {
         where: [Where('branchId').isExactly(branchId)],
       );
 
+      // Select policy based on fetchRemote parameter
+      final policy = fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly;
+
       List<Ebm> fetchedEbms = await repository.get<Ebm>(
         query: query,
-        policy: OfflineFirstGetPolicy.localOnly,
+        policy: policy,
       );
 
       // If no data found locally and fetchRemote is true, try Ditto direct query
@@ -85,8 +124,12 @@ mixin EbmMixin implements EbmInterface {
           const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';
           final arguments = {'branchId': branchId};
 
-          await ditto.sync
-              .registerSubscription(dittoQuery, arguments: arguments);
+          final preparedEbmFetch =
+              prepareDqlSyncSubscription(dittoQuery, arguments);
+          await ditto.sync.registerSubscription(
+            preparedEbmFetch.dql,
+            arguments: preparedEbmFetch.arguments,
+          );
           // Give it a moment to sync
           await Future.delayed(const Duration(milliseconds: 500));
 
@@ -126,6 +169,10 @@ mixin EbmMixin implements EbmInterface {
                   branchId,
               vatEnabled: ebmData['vatEnabled'] as bool? ??
                   ebmData['vat_enabled'] as bool?,
+              remoteServerUrl: ebmData['remoteServerUrl'] as String? ??
+                  ebmData['remote_server_url'] as String?,
+              dataConnectorUrl: ebmData['dataConnectorUrl'] as String? ??
+                  ebmData['data_connector_url'] as String?,
             );
 
             // Save to local repository to ensure offline availability

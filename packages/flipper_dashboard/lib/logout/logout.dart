@@ -1,4 +1,6 @@
+import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/ui/common/ui_helpers.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
@@ -111,12 +113,11 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                   Expanded(
                     child: TextButton(
                       onPressed: () async {
-                        // Set busy state to show loading indicator
-                        viewModel.setBusy(true);
-
-                        try {
-                          if (request.data != null) {
-                            Device device = request.data!;
+                        final dialogService = locator<DialogService>();
+                        if (request.data != null) {
+                          viewModel.setBusy(true);
+                          try {
+                            final device = request.data! as Device;
                             if (ProxyService.box.getUserId() != null &&
                                 ProxyService.box.getBusinessId() != null) {
                               ProxyService.event.publish(loginDetails: {
@@ -141,15 +142,33 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                                 // );
                               } catch (e) {}
                             }
-                          } else {
-                            //this is mobile client we can safely logout without deleting devices
-                            await logOut();
-                            await viewModel.runStartupLogic();
+                          } finally {
+                            viewModel.setBusy(false);
                           }
+                          completer(DialogResponse(confirmed: true));
+                          return;
+                        }
+
+                        final proceed =
+                            await prepareSessionExitAfterShiftHandling(
+                          context: context,
+                          dialogService: dialogService,
+                          confirmWhenNoOpenShift: true,
+                          loaderUseRootNavigator: false,
+                        );
+                        if (!proceed) {
+                          completer(DialogResponse(confirmed: false));
+                          return;
+                        }
+
+                        viewModel.setBusy(true);
+                        try {
+                          await logOut();
+                          await viewModel.runStartupLogic();
                         } finally {
                           viewModel.setBusy(false);
-                          completer(DialogResponse(confirmed: true));
                         }
+                        completer(DialogResponse(confirmed: true));
                       },
                       child: const Text(
                         'Logout',

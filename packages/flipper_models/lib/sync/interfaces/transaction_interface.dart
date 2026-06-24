@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
@@ -14,15 +15,21 @@ abstract class TransactionInterface {
     String? branchId,
     bool isCashOut = false,
     String? id,
-    bool isExpense = false,
+    bool? isExpense = false,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool fetchRemote = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
     List<String>? receiptNumber,
     String? customerId,
+    String? agentId,
+    String? attributedAgentUserId,
+    /// When true with [startDate]/[endDate], filters on [createdAt] instead of
+    /// [lastTouched] (used for agent commission reporting).
+    bool filterPeriodByCreatedAt = false,
   });
 
   /// Merge `from` into `to`:
@@ -64,6 +71,16 @@ abstract class TransactionInterface {
     DateTime? endDate,
     required bool removeAdjustmentTransactions,
     bool forceRealData = true,
+    bool includeParked = false,
+    required bool skipOriginalTransactionCheck,
+    bool includeZeroSubTotal = false,
+  });
+
+  /// WAITING + PARKED + IN_PROGRESS for the POS tickets screen (single observer).
+  Stream<List<ITransaction>> openPosTicketsTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
     required bool skipOriginalTransactionCheck,
   });
 
@@ -92,8 +109,9 @@ abstract class TransactionInterface {
     bool includeSubTotalCheck = false,
   });
 
-  FutureOr<void> removeCustomerFromTransaction(
-      {required ITransaction transaction});
+  FutureOr<void> removeCustomerFromTransaction({
+    required ITransaction transaction,
+  });
 
   Future<ITransaction> assignTransaction({
     double? updatableQty,
@@ -112,27 +130,33 @@ abstract class TransactionInterface {
     int? invoiceNumber,
   });
 
-  Future<bool> saveTransactionItem(
-      {double? compositePrice,
-      required Variant variation,
-      required double amountTotal,
-      required bool ignoreForReport,
-      required bool customItem,
-      required bool doneWithTransaction,
-      required ITransaction pendingTransaction,
-      required double currentStock,
-      bool useTransactionItemForQty = false,
-      required bool partOfComposite,
-      double? updatableQty,
-      TransactionItem? item,
-      int? invoiceNumber,
-      String? sarTyCd});
+  Future<bool> saveTransactionItem({
+    double? compositePrice,
+    required Variant variation,
+    required double amountTotal,
+    required bool ignoreForReport,
+    required bool customItem,
+    required bool doneWithTransaction,
+    required ITransaction pendingTransaction,
+    required double currentStock,
+    bool useTransactionItemForQty = false,
+    required bool partOfComposite,
+    double? updatableQty,
+    TransactionItem? item,
+    int? invoiceNumber,
+    String? sarTyCd,
 
-  Future<void> markItemAsDoneWithTransaction(
-      {required List<TransactionItem> inactiveItems,
-      required ITransaction pendingTransaction,
-      required bool ignoreForReport,
-      bool isDoneWithTransaction = false});
+    /// When false, avoid updating the parent transaction's subtotal on insert (Capella:
+    /// [collectPayment] will recompute from line items). Speeds up cash book save.
+    bool updatePendingTransactionSubtotal = true,
+  });
+
+  Future<void> markItemAsDoneWithTransaction({
+    required List<TransactionItem> inactiveItems,
+    required ITransaction pendingTransaction,
+    required bool ignoreForReport,
+    bool isDoneWithTransaction = false,
+  });
   Future<void> updateTransaction({
     ITransaction? transaction,
     String? receiptType,
@@ -147,6 +171,9 @@ abstract class TransactionInterface {
     String? customerBhfId,
     double? cashReceived,
     bool? isRefunded,
+    double? refundedAmount,
+    String? refundReason,
+    String? refundMethod,
     String? customerName,
     String? ticketName,
     DateTime? updatedAt,
@@ -168,12 +195,22 @@ abstract class TransactionInterface {
     String? transactionId,
     bool? receiptPrinted,
     String? customerPhone,
+    String? customerType,
+    String? cashierName,
+    bool? isLoan,
+    double? remainingBalance,
+    bool skipDittoSync = false,
+
+    /// When true, creates the next pending POS cart after the UPDATE returns,
+    /// not on the caller's await chain (Quick Selling completion).
+    bool deferEnsureNextPendingCart = false,
   });
-  Future<ITransaction?> getTransaction(
-      {String? sarNo,
-      required String branchId,
-      String? id,
-      bool awaitRemote = false});
+  Future<ITransaction?> getTransaction({
+    String? sarNo,
+    String? branchId,
+    String? id,
+    bool awaitRemote = false,
+  });
   Future<bool> deleteTransaction({required ITransaction transaction});
 
   Future<bool> migrateToNewDateTime({required String branchId});
@@ -186,10 +223,62 @@ abstract class TransactionInterface {
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,
-    bool isExpense = false,
+    bool? isExpense = false,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
+  });
+
+  /// Get total amount paid for a transaction by summing all payment records.
+  /// When [excludePaymentMethod] is provided, records with that method
+  /// (e.g. "CREDIT") are excluded from the sum so only real cash is counted.
+  /// Returns null if there's an error fetching payment records.
+  Future<double?> getTotalPaidForTransaction({
+    required String transactionId,
+    required String branchId,
+    String? excludePaymentMethod,
+  });
+
+  /// Batch load [TransactionPaymentSums] for many transactions (one query per backend).
+  /// Every id in [transactionIds] appears in the result map.
+  Future<Map<String, TransactionPaymentSums>> getPaymentSumsByTransactionIds(
+    List<String> transactionIds, {
+    required String branchId,
+  });
+
+  FutureOr<void> deletePaymentRecords({required String transactionId});
+
+  /// Fast Ditto path for resume: drop other pending sale carts for [agentId]
+  /// without registering broad transaction sync subscriptions.
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+  });
+
+  /// Single targeted Ditto UPDATE for park — no pre-read, ensure-next-cart deferred.
+  Future<void> parkSaleTicketFast({
+    required ITransaction transaction,
+    required String ticketName,
+    required String ticketNote,
+    String? customerId,
+  });
+
+  /// Clear other pending carts + minimal Ditto UPDATE to resume on this device.
+  Future<void> resumeSaleTicketFast({
+    required ITransaction ticket,
+    required String agentId,
+    required String deviceId,
+    required String branchId,
+  });
+
+  /// Kitchen display column moves — status/timestamps only, no POS cart side effects.
+  Future<void> updateKitchenOrderStatusFast({
+    required String transactionId,
+    required String status,
+    DateTime? dueDate,
+    bool clearDueDate = false,
   });
 }

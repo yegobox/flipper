@@ -15,4 +15,10 @@ abstract class DeleteOperationsInterface {
   });
 
   Future<int> deleteTransactionByIndex({required String transactionIndex});
+
+  Future<bool> flipperDelete({
+    required String id,
+    String? endPoint,
+    HttpClientInterface? flipperHttpClient,
+  });
 }

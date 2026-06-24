@@ -1,0 +1,27 @@
+name: flutter_keyboard_visibility_web
+description: Wasm-compatible drop-in for the web implementation of flutter_keyboard_visibility (uses package:web instead of dart:html).
+version: 2.0.1
+homepage: https://github.com/MisterJimson/flutter_keyboard_visibility
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+flutter:
+  plugin:
+    platforms:
+      web:
+        pluginClass: FlutterKeyboardVisibilityPlugin
+        fileName: flutter_keyboard_visibility_web.dart
+
+dependencies:
+  flutter_keyboard_visibility_platform_interface: ^2.0.0
+  flutter_web_plugins:
+    sdk: flutter
+  flutter:
+    sdk: flutter
+  web: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

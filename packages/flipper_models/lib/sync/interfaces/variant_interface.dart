@@ -10,7 +10,8 @@ abstract class VariantInterface {
     String? productId,
     int? page,
     String? variantId,
-    String? name, // Can be a name or a barcode
+    String? name,
+    String? bcd,
     String? pchsSttsCd,
     String? purchaseId,
     int? itemsPerPage,
@@ -20,10 +21,15 @@ abstract class VariantInterface {
     bool fetchRemote = false,
     bool forImportScreen = false,
     bool? stockSynchronized,
-    required List<String> taxTyCds,
+    List<String>? taxTyCds,
     bool scanMode = false,
+    String? itemTyCd,
   });
   Future<Variant?> getVariant({required String id});
+
+  /// Loads many variants in as few round-trips as possible (Capella: single Ditto query).
+  /// Map keys include variant [Variant.id] and Ditto `_id` when they differ.
+  Future<Map<String, Variant>> batchGetVariantsByIds(List<String> ids);
 
   Future<int> addVariant({
     required List<Variant> variations,
@@ -36,37 +42,38 @@ abstract class VariantInterface {
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
   // Future<void> updateIoFunc(
   //     {required Variant variant, Purchase? purchase, double? approvedQty});
-  FutureOr<void> updateVariant(
-      {required List<Variant> updatables,
-      String? color,
-      String? taxTyCd,
-      String? variantId,
-      double? newRetailPrice,
-      double? retailPrice,
-      Map<String, String>? rates,
-      double? supplyPrice,
-      Map<String, String>? dates,
-      String? selectedProductType,
-      String? productId,
-      String? productName,
-      String? unit,
-      String? pkgUnitCd,
-      DateTime? expirationDate,
-      bool? ebmSynced,
-      String? categoryId,
-      double? dcRt,
-      Purchase? purchase,
+  FutureOr<void> updateVariant({
+    required List<Variant> updatables,
+    String? color,
+    String? taxTyCd,
+    String? variantId,
+    double? newRetailPrice,
+    double? retailPrice,
+    Map<String, String>? rates,
+    double? supplyPrice,
+    Map<String, String>? dates,
+    String? selectedProductType,
+    String? productId,
+    String? productName,
+    String? unit,
+    String? pkgUnitCd,
+    DateTime? expirationDate,
+    bool? ebmSynced,
+    String? categoryId,
+    double? dcRt,
+    Purchase? purchase,
 
-      /// this is used when we need to update variant without updating IO
-      /// case of Normal refund as this might have been updated before
-      bool updateIo = true,
-      double? prc,
-      num? approvedQty,
-      num? invoiceNumber,
-      double? dftPrc,
-      String? propertyTyCd,
-      String? roomTypeCd,
-      String? ttCatCd});
+    /// this is used when we need to update variant without updating IO
+    /// case of Normal refund as this might have been updated before
+    bool updateIo = true,
+    double? prc,
+    num? approvedQty,
+    num? invoiceNumber,
+    double? dftPrc,
+    String? propertyTyCd,
+    String? roomTypeCd,
+    String? ttCatCd,
+  });
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
 
@@ -80,7 +87,5 @@ abstract class VariantInterface {
     int? daysToExpiry,
     int? limit,
   });
-  Future<List<Variant>> variantsByStockId({
-    required String stockId,
-  });
+  Future<List<Variant>> variantsByStockId({required String stockId});
 }

@@ -31,7 +31,7 @@ class VariationList extends StatelessWidget {
                 leading: Icon(FluentIcons.cart_24_regular),
                 subtitle: Text(
                   '${variant.name} \nRWF ${variant.retailPrice}',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                     color: Colors.black,
                     fontSize: 17,
                     fontWeight: FontWeight.w400,
@@ -46,7 +46,7 @@ class VariationList extends StatelessWidget {
                                 variant.stock!.currentStock == 0.0
                             ? 'Receive Stock'
                             : '${variant.stock!.currentStock} in stock',
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           color: Colors.black,
                           fontSize: 17,
                           fontWeight: FontWeight.w400,

@@ -3,13 +3,28 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 
+import '../../test_helpers/setup.dart';
+
 // flutter test test/features/tickets/ticket_selection_test.dart
 void main() {
+  late TestEnvironment env;
+
+  setUpAll(() async {
+    env = TestEnvironment();
+    await env.init();
+  });
+
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   group('TicketSelectionProvider', () {
     late ProviderContainer container;
     late TicketSelection notifier;
 
     setUp(() {
+      env.injectMocks();
+      env.stubCommonMethods();
       container = ProviderContainer();
       notifier = container.read(ticketSelectionProvider.notifier);
     });

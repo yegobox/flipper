@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:ditto_live/ditto_live.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
 

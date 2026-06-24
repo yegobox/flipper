@@ -2,12 +2,13 @@ import 'dart:async';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helpers/tenant_supabase_queries.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
-import 'package:flipper_services/constants.dart';
 
 mixin GetterOperationsMixin implements GetterOperationsInterface {
   Repository get repository;
@@ -18,25 +19,6 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
       {required String businessId, bool fetchOnline = false});
   @override
   FutureOr<Branch?> branch({String? name, String? serverId});
-  @override
-  Future<List<ITransaction>> transactions({
-    DateTime? startDate,
-    bool fetchRemote = false,
-    DateTime? endDate,
-    String? status,
-    String? transactionType,
-    bool isCashOut = false,
-    String? id,
-    FilterType? filterType,
-    bool includeZeroSubTotal = false,
-    String? branchId,
-    bool isExpense = false,
-    bool includePending = false,
-    bool forceRealData = true,
-    bool skipOriginalTransactionCheck = false,
-    List<String>? receiptNumber,
-    String? customerId,
-  });
 
   @override
   Future<Device?> getDevice(
@@ -199,18 +181,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
 
   @override
   FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
-    if (userId != null) {
-      return (await repository.get<Tenant>(
-        query: Query(where: [Where('userId').isExactly(userId)]),
-      ))
-          .firstOrNull;
-    } else if (pin != null) {
-      return (await repository.get<Tenant>(
-        query: Query(where: [Where('pin').isExactly(pin)]),
-      ))
-          .firstOrNull;
-    }
-    throw Exception("UserId or Pin is required");
+    return TenantSupabaseQueries.getTenant(userId: userId, pin: pin);
   }
 
   @override
@@ -258,29 +229,20 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
+    bool? preferFresh,
   }) async {
     try {
-      final query = Query(where: [Where('businessId').isExactly(businessId)]);
-
-      // Use awaitRemote when explicitly requesting online data to ensure
-      // remote fetch happens even if local data exists (important for new devices)
-      final policy = (fetchOnline == true)
-          ? OfflineFirstGetPolicy.awaitRemote
-          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist;
-
+      // Plan is not stored in Brick/SQLite — read from Supabase (CoreSync uses this
+      // mixin; CapellaSync uses [CapellaGetterOperationsMixin] for Ditto-first).
       talker.info(
-          'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy');
-
-      final result = await repository.get<Plan>(
-        query: query,
-        policy: policy,
-      );
-
-      final plan = result.firstOrNull;
-      talker.info(
-          'getPaymentPlan: found plan=${plan != null}, planId=${plan?.id}');
-
-      return plan;
+          'getPaymentPlan (mixin): businessId=$businessId fetchOnline=$fetchOnline preferFresh=$preferFresh');
+      final row = await Supabase.instance.client
+          .from('plans')
+          .select()
+          .eq('business_id', businessId)
+          .maybeSingle();
+      if (row == null) return null;
+      return Plan.fromSupabaseJson(Map<String, dynamic>.from(row));
     } catch (e) {
       talker.error('getPaymentPlan error: $e');
       rethrow;

@@ -4,7 +4,7 @@ version: 0.0.1
 # homepage: 
 
 environment:
-  sdk: ">=3.0.0"
+  sdk: '>=3.10.4 <4.0.0'
 
 dependencies:
   flutter:
@@ -13,16 +13,22 @@ dependencies:
   flipper_models: any
   flipper_services: any
   intl: ^0.20.2
+  supabase_flutter: ^2.12.0
 
 
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.3
+  sqlite3: ^3.3.1
   device_info_plus: ^12.3.0
-  archive: ^3.6.1
+  archive: ^4.0.9
   cbor: ^6.3.7
   jni: ^0.14.2
   

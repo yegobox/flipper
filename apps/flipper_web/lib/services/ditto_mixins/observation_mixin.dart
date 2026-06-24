@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_web/models/user_profile.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
 
 mixin ObservationMixin on DittoCore {
@@ -12,7 +12,8 @@ mixin ObservationMixin on DittoCore {
     try {
       // This method will be available from the class that mixes in UserProfileMixin
       final profiles = await getAllUserProfiles();
-      _userProfilesController ??= StreamController<List<UserProfile>>.broadcast();
+      _userProfilesController ??=
+          StreamController<List<UserProfile>>.broadcast();
       _userProfilesController!.add(profiles);
     } catch (e) {
       debugPrint('Error updating user profiles: $e');

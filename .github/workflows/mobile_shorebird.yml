@@ -1,0 +1,172 @@
+name: Flipper Mobile Shorebird
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Create a Shorebird release or patch"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - release
+          - patch
+      platform:
+        description: "Mobile platform"
+        required: true
+        default: "both"
+        type: choice
+        options:
+          - android
+          - ios
+          - both
+      release_version:
+        description: "Patch target version. Use latest for the newest release. Leave empty for release."
+        required: false
+        default: "latest"
+  push:
+    tags:
+      - "mobile-android-v*"
+      - "mobile-ios-v*"
+      - "mobile-v*"
+    branches:
+      - main
+
+env:
+  FLUTTER_VERSION: "3.44.2" # flutter_gemma >=1.0.0 requires Dart SDK >=3.12.0
+  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+
+jobs:
+  shorebird:
+    name: "${{ github.event.inputs.action || 'patch' }} ${{ github.event.inputs.platform || 'both' }}"
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/mobile-v') || contains(github.event.head_commit.message, '[shorebird patch]')
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Configure Git credentials for private dependencies
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config --global user.email "info@yegobox.com"
+          git config --global user.name "YEGOBOX"
+          git config --global credential.helper store
+          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+          git submodule sync --recursive
+          git submodule update --init --force --recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Verify Shorebird auth
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+        run: |
+          bash scripts/ci/verify_shorebird_token.sh
+          shorebird --version
+          shorebird doctor -v
+
+      - name: Install Melos
+        run: |
+          dart pub global activate melos 7.3.0
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Configure app files
+        shell: bash
+        run: |
+          echo "$INDEX" > apps/flipper/web/index.html
+          echo "$CONFIGDART" > packages/flipper_login/lib/config.dart
+          echo "$SECRETS" > packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" > apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" > packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" > apps/flipper/lib/amplifyconfiguration.dart
+          mkdir -p apps/flipper/amplify
+          echo "$AMPLIFY_TEAM_PROVIDER" > apps/flipper/amplify/team-provider-info.json
+          if [ -n "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" ]; then
+            echo "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" > apps/flipper/ios/GoogleService-Info.plist
+          fi
+          if [ -n "$GOOGLE_SERVICE_JSON" ]; then
+            echo "$GOOGLE_SERVICE_JSON" > apps/flipper/android/app/google-services.json
+          fi
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+          GOOGLE_SERVICE_INFO_PLIST_CONTENT: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_CONTENT }}
+          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Bootstrap workspace
+        run: dart run melos bootstrap
+
+      - name: Configure Android signing
+        if: (github.event_name == 'workflow_dispatch' && (github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both')) || startsWith(github.ref, 'refs/tags/mobile-android-v') || startsWith(github.ref, 'refs/tags/mobile-v')
+        working-directory: apps/flipper/android
+        env:
+          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+        run: |
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+          echo "storeFile=key.jks" > key.properties
+          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
+          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+
+      - name: Build Shorebird release or patch
+        shell: bash
+        run: |
+          action="${{ github.event.inputs.action || 'patch' }}"
+          platform="${{ github.event.inputs.platform || 'both' }}"
+
+          if [[ "${GITHUB_REF}" == refs/tags/mobile-v* ]]; then
+            action="release"
+            platform="both"
+          elif [[ "${GITHUB_REF}" == refs/tags/mobile-android-v* ]]; then
+            action="release"
+            platform="android"
+          elif [[ "${GITHUB_REF}" == refs/tags/mobile-ios-v* ]]; then
+            action="release"
+            platform="ios"
+          fi
+
+          args=()
+          if [[ "$action" == "patch" ]]; then
+            release_version="${{ github.event.inputs.release_version || 'latest' }}"
+            args+=(--release-version "$release_version")
+          fi
+
+          apps/flipper/tool/shorebird_mobile.sh "$action" "$platform" "${args[@]}"
+
+      - name: Upload generated mobile artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shorebird-mobile-artifacts
+          if-no-files-found: ignore
+          path: |
+            apps/flipper/build/app/outputs/bundle/**/*.aab
+            apps/flipper/build/app/outputs/apk/**/*.apk
+            apps/flipper/build/ios/ipa/**/*.ipa

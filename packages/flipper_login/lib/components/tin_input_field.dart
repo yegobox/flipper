@@ -1,14 +1,22 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/ippis_service.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
+import '../blocs/signup_form_bloc.dart';
 
 class TinInputField extends StatefulWidget {
-  final TextFieldBloc<String> tinNumberBloc;
+  final TextFieldBloc tinNumberBloc;
+  final AsyncFieldValidationFormBloc? formBloc;
+  final Function(bool isValid, bool isRelaxed)? onValidationResult;
 
   const TinInputField({
     Key? key,
     required this.tinNumberBloc,
+    this.formBloc,
+    this.onValidationResult,
   }) : super(key: key);
 
   @override
@@ -17,6 +25,7 @@ class TinInputField extends StatefulWidget {
 
 class _TinInputFieldState extends State<TinInputField> {
   bool _isLoading = false;
+  bool _isValidating = false;
   String? _errorText;
 
   Future<void> _pickAndProcessPdf() async {
@@ -67,6 +76,64 @@ class _TinInputFieldState extends State<TinInputField> {
     }
   }
 
+  Future<void> _validateTin(String tin) async {
+    setState(() {
+      _isValidating = true;
+      _errorText = null;
+    });
+
+    try {
+      final ippisService = IppisService();
+      final business = await ippisService.getBusinessDetails(tin);
+
+      if (business != null) {
+        if (mounted) {
+          showSuccessNotification(
+              context, 'TIN validated: ${business.taxPayerName}');
+
+          // Update the username field with the taxpayer name if formBloc is available.
+          // Truncate to 11 chars to satisfy the username length validator.
+          if (widget.formBloc != null) {
+            final truncatedName = business.taxPayerName.length > 11
+                ? business.taxPayerName.substring(0, 11)
+                : business.taxPayerName;
+            widget.formBloc!.username.updateValue(truncatedName);
+          }
+
+          setState(() {
+            _errorText = null; // clear any previous error
+          });
+          widget.onValidationResult?.call(true, false);
+        }
+      } else {
+        setState(() {
+          _errorText = 'No data found for this TIN';
+        });
+        widget.onValidationResult?.call(false, false);
+      }
+    } catch (e) {
+      if (e.toString().contains("Server Error")) {
+        // Relax validation
+        if (mounted) {
+          showErrorNotification(
+              context, 'Service Unavailable: Validation skipped');
+          widget.onValidationResult?.call(false, true);
+        }
+      } else {
+        setState(() {
+          _errorText = 'Error validating TIN: ${e.toString()}';
+        });
+        widget.onValidationResult?.call(false, false);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isValidating = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -75,7 +142,7 @@ class _TinInputFieldState extends State<TinInputField> {
         TextFieldBlocBuilder(
           textFieldBloc: widget.tinNumberBloc,
           decoration: InputDecoration(
-            labelText: 'TIN Number',
+            labelText: FLocalization.of(context).tinNumber,
             labelStyle: const TextStyle(
               color: Colors.black87,
               fontSize: 14,
@@ -86,20 +153,65 @@ class _TinInputFieldState extends State<TinInputField> {
               size: 20,
               color: Colors.black87,
             ),
-            suffixIcon: IconButton(
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(
-                      Icons.upload_file_outlined,
-                      size: 20,
-                      color: Colors.black87,
+            suffixIcon: BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+              bloc: widget.tinNumberBloc,
+              builder: (context, state) {
+                final isVerified = (state.extraData is Map &&
+                    (state.extraData as Map)['verified'] == true);
+
+                if (isVerified && state.value.toString().isNotEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(right: 12.0),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 24,
                     ),
-              onPressed: _isLoading ? null : _pickAndProcessPdf,
-              tooltip: 'Upload PDF with TIN',
+                  );
+                }
+
+                if (state.value.toString().isNotEmpty) {
+                  return TextButton(
+                    onPressed: _isValidating
+                        ? null
+                        : () => _validateTin(state.value.toString()),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF0078D4),
+                      disabledForegroundColor: Colors.grey,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    child: _isValidating
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF0078D4)),
+                            ),
+                          )
+                        : Text(FLocalization.of(context).validate,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
+                  );
+                } else {
+                  return IconButton(
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
+                            Icons.upload_file_outlined,
+                            size: 20,
+                            color: Colors.black87,
+                          ),
+                    onPressed: _isLoading ? null : _pickAndProcessPdf,
+                    tooltip: FLocalization.of(context).uploadPdfWithTin,
+                  );
+                }
+              },
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
@@ -122,7 +234,7 @@ class _TinInputFieldState extends State<TinInputField> {
               borderSide: const BorderSide(color: Colors.red),
             ),
             errorText: _errorText,
-            hintText: 'Enter TIN number or tap the upload icon',
+            hintText: FLocalization.of(context).enterTinOrUpload,
             hintStyle: TextStyle(
               color: Colors.grey[400],
               fontSize: 14,

@@ -1,12 +1,58 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:brick_offline_first/brick_offline_first.dart' as brick;
+import 'package:flipper_models/ebm_helper.dart';
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/log_service.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:uuid/uuid.dart';
+
+/// Ditto sync subscriptions registered once per scope (branch / branch+business).
+final Set<String> _productSyncSubscriptionKeys = {};
 
 mixin CapellaProductMixin implements ProductInterface {
+  DittoService get dittoService => DittoService.instance;
   Repository get repository;
   Talker get talker;
+
+  void _ensureProductSyncSubscriptions({
+    required dynamic ditto,
+    required String branchId,
+    required String businessId,
+  }) {
+    final branchKey = 'products|branch|$branchId';
+    if (_productSyncSubscriptionKeys.add(branchKey)) {
+      final preparedProd = prepareDqlSyncSubscription(
+        'SELECT * FROM products WHERE branchId = :branchId',
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedProd.dql,
+        arguments: preparedProd.arguments,
+      );
+    }
+
+    final bizKey = 'products|branch|$branchId|business|$businessId';
+    if (_productSyncSubscriptionKeys.add(bizKey)) {
+      final preparedProdBiz = prepareDqlSyncSubscription(
+        'SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId',
+        {'branchId': branchId, 'businessId': businessId},
+      );
+      ditto.sync.registerSubscription(
+        preparedProdBiz.dql,
+        arguments: preparedProdBiz.arguments,
+      );
+    }
+  }
 
   @override
   Future<List<Product>> products({required String branchId}) async {
@@ -16,7 +62,8 @@ mixin CapellaProductMixin implements ProductInterface {
   @override
   Stream<List<Product>> productStreams({String? prodIndex}) {
     throw UnimplementedError(
-        'productStreams needs to be implemented for Capella');
+      'productStreams needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -27,7 +74,8 @@ mixin CapellaProductMixin implements ProductInterface {
   @override
   Stream<double> wholeStockValue({required String branchId}) {
     throw UnimplementedError(
-        'wholeStockValue needs to be implemented for Capella');
+      'wholeStockValue needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -38,7 +86,24 @@ mixin CapellaProductMixin implements ProductInterface {
     required String branchId,
     required String quantityUnit,
   }) async {
-    throw UnimplementedError('itemCode needs to be implemented for Capella');
+    final lastSequence = await maxRraItemCodeSequenceForBranch(
+      repository: repository,
+      branchId: branchId,
+      ditto: dittoService.dittoInstance,
+    );
+    final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
+    final newItemCode =
+        '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
+
+    await repository.upsert(
+      ItemCode(
+        code: newItemCode,
+        createdAt: DateTime.now().toUtc(),
+        branchId: branchId,
+      ),
+    );
+
+    return newItemCode;
   }
 
   @override
@@ -49,13 +114,122 @@ mixin CapellaProductMixin implements ProductInterface {
     String? name,
     required String businessId,
   }) async {
-    throw UnimplementedError('getProduct needs to be implemented for Capella');
+    final logService = LogService();
+    try {
+      if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+        await logService.logException(
+          'Starting getProduct fetch',
+          type: 'business_fetch',
+          tags: {
+            'userId':
+                (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
+            'method': 'getProduct',
+            'branchId': branchId,
+            'businessId': businessId,
+            'id': id ?? 'null',
+            'barCode': barCode ?? 'null',
+            'name': name ?? 'null',
+          },
+        );
+      }
+
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized:19');
+        return null;
+      }
+
+      /// Register broad product subscriptions once per branch/business so repeated
+      /// cart adds do not leak Ditto sync observers (see Ditto #2648 workaround).
+      _ensureProductSyncSubscriptions(
+        ditto: ditto,
+        branchId: branchId,
+        businessId: businessId,
+      );
+
+      final List<String> whereClauses = [
+        'branchId = :branchId',
+        'businessId = :businessId',
+      ];
+      final Map<String, dynamic> arguments = {
+        'branchId': branchId,
+        'businessId': businessId,
+      };
+
+      if (id != null) {
+        whereClauses.add('id = :id');
+        arguments['id'] = id;
+      }
+      if (barCode != null) {
+        whereClauses.add('barCode = :barCode');
+        arguments['barCode'] = barCode;
+      }
+      if (name != null) {
+        whereClauses.add('name = :name');
+        arguments['name'] = name;
+      }
+
+      final query =
+          "SELECT * FROM products WHERE ${whereClauses.join(' AND ')}";
+
+      // Use direct execution for immediate results
+      final result = await ditto.store.execute(query, arguments: arguments);
+
+      if (result.items.isNotEmpty) {
+        return Product.fromJson(
+          Map<String, dynamic>.from(result.items.first.value),
+        );
+      }
+      return null;
+    } catch (e, st) {
+      talker.error('Error in getProduct: $e\n$st');
+      return null;
+    }
   }
 
   @override
-  FutureOr<SKU> getSku(
-      {required String branchId, required String businessId}) async {
-    throw UnimplementedError('getSku needs to be implemented for Capella');
+  FutureOr<SKU> getSku({
+    required String branchId,
+    required String businessId,
+  }) async {
+    final query = brick.Query(
+      where: [
+        brick.Where('branchId').isExactly(branchId),
+        brick.Where('businessId').isExactly(businessId),
+      ],
+      orderBy: [brick.OrderBy('sku', ascending: true)],
+    );
+
+    final skus = await repository.get<SKU>(
+      query: query,
+      policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
+
+    int lastSequence = skus.isEmpty ? 0 : skus.last.sku ?? 0;
+    final newSequence = lastSequence + 1;
+
+    final newSku = SKU(
+      sku: newSequence,
+      branchId: branchId,
+      businessId: businessId,
+    );
+    await repository.upsert(newSku);
+
+    // Sync SKU to Ditto
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      await ditto.store.execute(
+        "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+        arguments: {'doc': newSku.toJson()},
+      );
+    }
+
+    return newSku;
   }
 
   @override
@@ -106,24 +280,473 @@ mixin CapellaProductMixin implements ProductInterface {
     double? taxblAmt,
     String? itemCd,
   }) async {
-    throw UnimplementedError(
-        'createProduct needs to be implemented for Capella');
+    try {
+      final String productName = product.name;
+      if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
+        final Product? existingProduct = await getProduct(
+          name: productName,
+          businessId: businessId,
+          branchId: branchId,
+        );
+        if (existingProduct != null) {
+          return existingProduct;
+        }
+      }
+
+      SKU sku = await getSku(branchId: branchId, businessId: businessId);
+
+      sku.consumed = true;
+      await repository.upsert(sku);
+
+      final ditto = dittoService.dittoInstance;
+      if (ditto != null) {
+        await ditto.store.execute(
+          "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+          arguments: {'doc': sku.toJson()},
+        );
+      }
+
+      final createdProduct = await repository.upsert<Product>(product);
+      if (ditto != null) {
+        await ditto.store.execute(
+          "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+          arguments: {'doc': createdProduct.toJson()},
+        );
+      }
+
+      if (!skipRegularVariant) {
+        // Check if a variant with the same product and barcode already exists
+        final queryConditions = [
+          brick.Where('productId').isExactly(createdProduct.id),
+        ];
+
+        if (product.barCode?.isNotEmpty == true) {
+          queryConditions.add(brick.Where('bcd').isExactly(product.barCode!));
+        }
+
+        final existingVariants = await repository.get<Variant>(
+          query: brick.Query(where: queryConditions),
+        );
+
+        if (existingVariants.isNotEmpty) {
+          final existing = existingVariants.first;
+          talker.info(
+            'Variant already exists with ID: ${existing.id}; ebmSynced=${existing.ebmSynced}',
+          );
+          if (!skipRRaCall) {
+            var toSync = existing;
+            if (toSync.stock != null && qty > 0) {
+              final s = toSync.stock!;
+              toSync.stock = s.copyWith(
+                currentStock: qty,
+                rsdQty: qty,
+                initialStock: qty,
+                value: qty * (retailPrice > 0 ? retailPrice : supplyPrice),
+              );
+            }
+            await ProxyService.strategy.addVariant(
+              variations: [toSync],
+              branchId: branchId,
+              skipRRaCall: false,
+            );
+          }
+          return createdProduct;
+        }
+
+        Variant newVariant = await _createRegularVariant(
+          branchId,
+          tinNumber,
+          orgnNatCd: orgnNatCd,
+          exptNatCd: exptNatCd,
+          pchsSttsCd: pchsSttsCd,
+          pkg: pkg,
+          taxblAmt: taxblAmt,
+          taxAmt: taxAmt,
+          totAmt: totAmt,
+          itemCd: itemCd,
+          createItemCode: createItemCode,
+          taxTypes: taxTypes,
+          saleListId: saleListId,
+          itemClasses: itemClasses,
+          itemTypes: itemTypes,
+          pkgUnitCd: pkgUnitCd,
+          qtyUnitCd: qtyUnitCd,
+          totWt: totWt,
+          netWt: netWt,
+          spplrNm: spplrNm,
+          agntNm: agntNm,
+          invcFcurAmt: invcFcurAmt,
+          invcFcurExcrt: invcFcurExcrt,
+          invcFcurCd: invcFcurCd,
+          qty: qty,
+          dclNo: dclNo,
+          taskCd: taskCd,
+          dclDe: dclDe,
+          hsCd: hsCd,
+          imptItemsttsCd: imptItemsttsCd,
+          product: createdProduct,
+          bhFId: bhFId,
+          supplierPrice: supplyPrice,
+          retailPrice: retailPrice,
+          name: createdProduct.name,
+          sku: sku.sku!,
+          productId: product.id,
+          itemSeq: itemSeq,
+          bcd: product.barCode,
+          ebmSynced: ebmSynced,
+          spplrItemCd: spplrItemCd,
+          taxTyCd: taxTyCd,
+          splyAmt: splyAmt,
+          spplrItemClsCd: spplrItemClsCd,
+          categoryId: product.categoryId,
+        );
+        talker.info('New variant created: ${newVariant.toFlipperJson()}');
+
+        // Create and save the stock first
+        final stock = Stock(
+          id: const Uuid().v4(),
+          lastTouched: DateTime.now().toUtc(),
+          rsdQty: qty,
+          initialStock: qty,
+          value: (qty * (retailPrice > 0 ? retailPrice : supplyPrice))
+              .toDouble(),
+          branchId: branchId,
+          currentStock: qty,
+        );
+
+        // Save stock first and get the created instance
+        final createdStock = await repository.upsert<Stock>(stock);
+        if (ditto != null) {
+          await ditto.store.execute(
+            "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+            arguments: {'doc': createdStock.toJson()},
+          );
+        }
+        talker.info('Created stock: ${createdStock.id} for variant');
+
+        // Set stock reference on variant
+        newVariant.stock = createdStock;
+        newVariant.stockId = createdStock.id;
+        newVariant.ebmSynced = false;
+
+        // Use ProxyService.strategy.addVariant to save the variant
+        // This ensures EBM sync and SAR increment logic is applied
+        await ProxyService.strategy.addVariant(
+          variations: [newVariant],
+          branchId: branchId,
+          skipRRaCall: skipRRaCall,
+        );
+
+        final savedVariant = newVariant;
+        if (savedVariant.stockId == null) {
+          talker.error('Variant ${savedVariant.id} has no stockId after save!');
+        }
+
+        talker.info(
+          'Variant ${savedVariant.id} created with stock ${savedVariant.stockId}',
+        );
+
+        // If associated with a purchase ... (omitting purchase logic for brevity if not strictly needed now, or I can add it)
+        // Adding it to be safe.
+        if (purchase != null) {
+          if (purchase.variants == null) {
+            purchase.variants = [];
+          }
+          final variantExists =
+              purchase.variants?.any((v) => v.id == savedVariant.id) ?? false;
+
+          if (!variantExists) {
+            purchase.variants = [...purchase.variants ?? [], savedVariant];
+            savedVariant.spplrNm = purchase.spplrNm;
+            savedVariant.purchaseId = purchase.id;
+
+            try {
+              await repository.upsert<Variant>(savedVariant);
+              // Ditto sync for variant done in addVariant? Yes.
+              await repository.upsert<Purchase>(purchase);
+              if (ditto != null) {
+                final doc = await PurchaseDittoAdapter.instance
+                    .toDittoDocument(purchase);
+                await ditto.store.execute(
+                  'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+                  arguments: {'doc': doc},
+                );
+              }
+
+              talker.info(
+                'Added variant ${savedVariant.id} to purchase ${purchase.id}',
+              );
+            } catch (e) {
+              talker.error('Error saving variant/purchase association: $e');
+              rethrow;
+            }
+          } else {
+            talker.info(
+              'Variant ${savedVariant.id} already exists in purchase ${purchase.id}',
+            );
+          }
+        }
+      }
+      if (purchase != null) {
+        await repository.upsert<Purchase>(purchase);
+        if (ditto != null) {
+          final doc =
+              await PurchaseDittoAdapter.instance.toDittoDocument(purchase);
+          await ditto.store.execute(
+            'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+            arguments: {'doc': doc},
+          );
+        }
+      }
+
+      return createdProduct;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Variant> _createRegularVariant(
+    String branchId,
+    int? tinNumber, {
+    required double qty,
+    required double supplierPrice,
+    required double retailPrice,
+    required int itemSeq,
+    String? bhFId,
+    bool createItemCode = false,
+    required bool ebmSynced,
+    Product? product,
+    required String productId,
+    required String name,
+    String? orgnNatCd,
+    String? exptNatCd,
+    int? pkg,
+    String? pkgUnitCd,
+    String? qtyUnitCd,
+    int? totWt,
+    int? netWt,
+    String? spplrNm,
+    String? agntNm,
+    int? invcFcurAmt,
+    String? invcFcurCd,
+    double? invcFcurExcrt,
+    String? dclNo,
+    String? taskCd,
+    String? dclDe,
+    String? hsCd,
+    String? imptItemsttsCd,
+    String? spplrItemCd,
+    String? spplrItemClsCd,
+    String? categoryId,
+    Map<String, String>? taxTypes,
+    Map<String, String>? itemClasses,
+    Map<String, String>? itemTypes,
+    required int sku,
+    Configurations? taxType,
+    String? bcd,
+    String? saleListId,
+    String? pchsSttsCd,
+    double? totAmt,
+    double? taxAmt,
+    double? taxblAmt,
+    String? itemCd,
+    String? taxTyCd,
+    double? splyAmt,
+  }) async {
+    final String variantId = const Uuid().v4();
+    final number = randomNumber().toString().substring(0, 5);
+    Category? category = (await repository.get<Category>(
+      query: brick.Query(where: [brick.Where('id').isExactly(categoryId)]),
+    )).firstOrNull;
+
+    // Determine tax type code - explicit taxTyCd, then taxTypes map, then EBM VAT default.
+    final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
+    String finalTaxTyCd =
+        taxTyCd ?? taxTypes?[product?.barCode] ?? defaultTaxTyCdForVat(vatEnabled);
+
+    // Get tax percentage based on the tax type code
+    double finalTaxPercentage = taxType?.taxPercentage ?? 18.0;
+    try {
+      Configurations? taxConfig = await ProxyService.strategy.getByTaxType(
+        taxtype: finalTaxTyCd,
+      );
+      if (taxConfig != null) {
+        finalTaxPercentage = taxConfig.taxPercentage!;
+      }
+    } catch (e) {
+      talker.warning(
+        'Failed to get tax configuration for $finalTaxTyCd, using default: $e',
+      );
+    }
+
+    return Variant(
+      spplrNm: spplrNm ?? "",
+      agntNm: agntNm ?? "",
+      totAmt: totAmt,
+      netWt: netWt ?? 0,
+      totWt: totWt ?? 0,
+      pchsSttsCd: pchsSttsCd,
+      taxblAmt: taxblAmt,
+      taxAmt: taxAmt,
+      invcFcurAmt: invcFcurAmt ?? 0,
+      invcFcurCd: invcFcurCd ?? "",
+      exptNatCd: exptNatCd ?? "",
+      dclNo: dclNo ?? "",
+      taskCd: taskCd ?? "",
+      dclDe: dclDe ?? "",
+      hsCd: hsCd ?? "",
+      imptItemSttsCd: imptItemsttsCd ?? null,
+      lastTouched: DateTime.now().toUtc(),
+      name: product?.name ?? name,
+      sku: sku.toString(),
+      dcRt: 0.0,
+      productId: product?.id ?? productId,
+      categoryId: categoryId,
+      categoryName: category?.name,
+      color: product?.color,
+      unit: 'Per Item',
+      productName: product?.name ?? name,
+      branchId: branchId,
+      supplyPrice: supplierPrice,
+      retailPrice: retailPrice,
+      id: variantId,
+      bhfId: bhFId ?? '00',
+      itemStdNm: product?.name ?? name,
+      addInfo: "A",
+      pkg: pkg ?? 1,
+      splyAmt: supplierPrice,
+      itemClsCd: itemClasses?[product?.barCode] ?? "5020230602",
+      itemCd: createItemCode
+          ? await itemCode(
+              countryCode: orgnNatCd ?? "RW",
+              productType: "2",
+              packagingUnit: pkgUnitCd ?? "CT",
+              quantityUnit: qtyUnitCd ?? "U",
+              branchId: branchId,
+            )
+          : itemCd ?? "",
+      modrNm: name,
+      modrId: number,
+      pkgUnitCd: pkgUnitCd ?? "CT",
+      regrId: randomNumber().toString().substring(0, 5),
+      itemTyCd: itemTypes?.containsKey(product?.barCode) == true
+          ? itemTypes![product!.barCode]!
+          : "2", // this is a finished product
+      /// available type for itemTyCd are 1 for raw material and 3 for service
+      /// is insurance applicable default is not applicable
+      isrcAplcbYn: "N",
+      useYn: "N",
+      itemSeq: itemSeq,
+      itemNm: product?.name ?? name,
+      taxPercentage: finalTaxPercentage,
+      taxName: finalTaxTyCd,
+      tin: tinNumber,
+      bcd:
+          bcd ??
+          (product?.name ?? name).substring(
+            0,
+            min((product?.name ?? name).length, 20),
+          ),
+
+      /// country of origin for this item we default until we support something different
+      /// and this will happen when we do import.
+      orgnNatCd: orgnNatCd ?? "RW",
+
+      /// registration name
+      regrNm: product?.name ?? name,
+
+      /// taxation type code
+      taxTyCd: finalTaxTyCd,
+
+      // default unit price
+      dftPrc: retailPrice,
+      prc: retailPrice,
+
+      /// Packaging Unit and Quantity Unit
+      qtyUnitCd: qtyUnitCd ?? "U", // see 4.6 in doc
+      ebmSynced: ebmSynced,
+      spplrItemCd: spplrItemCd ?? "",
+      spplrItemClsCd: itemClasses?[product?.barCode] ?? spplrItemClsCd,
+      spplrItemNm: product?.name ?? name,
+      isrccNm: "",
+      isrcRt: 0,
+    );
   }
 
   @override
-  FutureOr<void> updateProduct(
-      {String? productId,
-      String? name,
-      bool? isComposite,
-      String? unit,
-      String? color,
-      required String branchId,
-      required String businessId,
-      String? imageUrl,
-      String? expiryDate,
-      String? categoryId}) {
-    throw UnimplementedError(
-        'updateProduct needs to be implemented for Capella');
+  FutureOr<void> updateProduct({
+    String? productId,
+    String? name,
+    bool? isComposite,
+    String? unit,
+    String? color,
+    required String branchId,
+    required String businessId,
+    String? imageUrl,
+    String? expiryDate,
+    String? categoryId,
+  }) async {
+    final logService = LogService();
+    try {
+      if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+        await logService.logException(
+          'Starting updateProduct',
+          type: 'business_update',
+          tags: {
+            'method': 'updateProduct',
+            'productId': productId ?? 'null',
+            'branchId': branchId,
+          },
+        );
+      }
+
+      final Product? product = await getProduct(
+        id: productId,
+        branchId: branchId,
+        businessId: businessId,
+      );
+
+      if (product != null) {
+        final ditto = dittoService.dittoInstance;
+
+        // Update local object
+        product.name = name ?? product.name;
+        product.categoryId = categoryId ?? product.categoryId;
+        product.isComposite = isComposite ?? product.isComposite;
+        product.unit = unit ?? product.unit;
+        product.expiryDate = expiryDate ?? product.expiryDate;
+        product.imageUrl = imageUrl ?? product.imageUrl;
+        product.color = color ?? product.color;
+        product.lastTouched = DateTime.now().toUtc(); // Update last touched
+
+        // Upsert to local repository
+        await repository.upsert(product);
+
+        // Update in Ditto
+        if (ditto != null) {
+          await ditto.store.execute(
+            "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+            arguments: {'doc': product.toJson()},
+          );
+          if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+            await logService.logException(
+              'Updated product in Ditto',
+              type: 'business_update',
+              tags: {'method': 'updateProduct', 'productId': product.id},
+            );
+          }
+        }
+      }
+    } catch (e, st) {
+      talker.error('Error updating product: $e\n$st');
+      await logService.logException(
+        'Error updating product',
+        stackTrace: st,
+        type: 'business_update',
+        tags: {'method': 'updateProduct', 'error': e.toString()},
+      );
+      rethrow;
+    }
   }
 
   @override
@@ -138,8 +761,12 @@ mixin CapellaProductMixin implements ProductInterface {
   }
 
   @override
-  Future<void> hydrateSars({required String branchId}) {
-    // TODO: implement hydrateSars
-    throw UnimplementedError();
+  Future<void> hydrateSars({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await ensureBranchSarCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
+    );
   }
 }

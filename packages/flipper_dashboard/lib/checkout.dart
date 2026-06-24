@@ -1,38 +1,47 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_dashboard/IncomingOrders.dart';
-import 'package:flipper_dashboard/OrderStatusSelector.dart';
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/CheckoutProductView.dart';
-import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/refresh.dart';
-import 'package:flipper_models/providers/active_branch_provider.dart';
-import 'package:flipper_models/providers/pay_button_provider.dart';
+import 'package:flipper_dashboard/controllers/checkout_controller.dart';
+import 'package:flipper_dashboard/widgets/checkout_error_recovery_screen.dart';
+import 'package:flipper_dashboard/widgets/pos_default_view.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
-import 'package:flipper_dashboard/SearchCustomer.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/functions.dart';
-import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
-import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_dashboard/providers/customer_provider.dart';
+
+/// Customer search now lives inside [QuickSellingView] (cart column). No top
+/// overlay inset on desktop checkout.
+const double _kDesktopCheckoutBodyTopInset = 0.0;
 
 enum OrderStatus { pending, approved }
 
 class CheckOut extends StatefulHookConsumerWidget {
-  const CheckOut({Key? key, required this.isBigScreen}) : super(key: key);
+  const CheckOut({Key? key, this.isBigScreen = false}) : super(key: key);
 
+  /// When omitted (e.g. web URL `/check-out`), layout follows viewport width.
   final bool isBigScreen;
 
   @override
@@ -47,37 +56,67 @@ class CheckOutState extends ConsumerState<CheckOut>
         TransactionMixinOld,
         PreviewCartMixin,
         Refresh {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-  late TabController tabController;
-  OrderStatus _selectedStatus = OrderStatus.pending;
+  TabController? tabController;
+  bool _attachCartReconciliation = false;
+  bool _mobileFirstFrameReady = false;
 
   @override
   void initState() {
     super.initState();
     NavigationGuardService().startCriticalWorkflow();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(_animationController);
-    _animationController.forward();
 
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
-      tabController = TabController(length: 3, vsync: this);
+      if (widget.isBigScreen) {
+        tabController = TabController(length: 3, vsync: this);
+        _attachCartReconciliation = true;
+      } else {
+        // [CheckoutProductView] requires a controller; mobile UI does not use tabs.
+        tabController = TabController(length: 1, vsync: this);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            _mobileFirstFrameReady = true;
+            _attachCartReconciliation = true;
+          });
+        });
+      }
     }
+
+    if (widget.isBigScreen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _warmPendingCartAfterOpen();
+      });
+    }
+  }
+
+  void _warmPendingCartAfterOpen() {
+    warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) return;
+    unawaited(
+      ProxyService.getStrategy(Strategy.capella)
+          .pendingTransactionFuture(
+            branchId: branchId,
+            transactionType: TransactionType.sale,
+            isExpense: false,
+          )
+          .then((txn) {
+            scheduleWriteCachedPendingCartTransactionWidget(
+              ref,
+              isExpense: false,
+              transaction: txn,
+            );
+          }),
+    );
   }
 
   @override
   void dispose() {
     NavigationGuardService().endCriticalWorkflow();
     WidgetsBinding.instance.removeObserver(this);
-    _animationController.dispose();
-    tabController.dispose();
+    tabController?.dispose();
     discountController.dispose();
     receivedAmountController.dispose();
     customerPhoneNumberController.dispose();
@@ -87,35 +126,89 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: _buildMainContent());
+    return Material(color: Colors.white, child: _buildMainContent());
   }
 
   Widget _buildMainContent() {
+    if (!widget.isBigScreen && !_mobileFirstFrameReady) {
+      return _buildMobileOpeningFrame();
+    }
+
+    if (_attachCartReconciliation) {
+      ref.listen(posCartStreamReconciliationProvider, (_, __) {});
+    }
+
+    // Mobile POS: [CheckoutProductView] owns pending-txn + catalog streams; skip
+    // an extra outer [when] so the route paints on the first frame.
+    if (!widget.isBigScreen) {
+      return _buildDataWidget(
+        readCachedPendingCartTransactionWidget(ref, isExpense: false),
+      );
+    }
+
     final transactionAsyncValue = ref.watch(
       pendingTransactionStreamProvider(isExpense: false),
     );
 
     return transactionAsyncValue.when(
+      // Keep last transaction visible when the stream reloads (e.g. dependency
+      // change); only the initial load uses loading: below.
+      skipLoadingOnReload: true,
       data: (transaction) => _buildDataWidget(transaction),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error: $stackTrace')),
+      // Show product grid / POS shell immediately; QuickSellingView and
+      // PosDefaultView handle their own loading; footer waits for transaction id.
+      loading: () => _buildDataWidget(null),
+      error: (error, stackTrace) => CheckoutErrorRecoveryScreen(
+        error: error,
+        isExpense: false,
+        onRecovered: () async {
+          ref.refresh(
+            pendingTransactionStreamProvider(isExpense: false),
+          );
+        },
+        onClose: () {
+          if (!mounted) return;
+          onWillPop(
+            context: context,
+            navigationPurpose: NavigationPurpose.home,
+            message: 'Do you want to go home?',
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildDataWidget(ITransaction transaction) {
-    return widget.isBigScreen
-        ? _buildBigScreenLayout(
-            transaction,
-            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart),
-          )
-        : _buildSmallScreenLayout(
-            transaction,
-            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart),
-          );
+  Widget _buildMobileOpeningFrame() {
+    return const Scaffold(
+      backgroundColor: Color(0xFFF4F6FB),
+      body: SafeArea(
+        child: Center(
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataWidget(ITransaction? transaction) {
+    final showCart = ref.watch(oldImplementationOfRiverpod.previewingCart);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useDesktopLayout =
+            widget.isBigScreen ||
+            constraints.maxWidth >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+        return useDesktopLayout
+            ? _buildBigScreenLayout(transaction, showCart: showCart)
+            : _buildSmallScreenLayout(showCart: showCart);
+      },
+    );
   }
 
   Widget _buildBigScreenLayout(
-    ITransaction transaction, {
+    ITransaction? transaction, {
     required bool showCart,
   }) {
     return ViewModelBuilder<CoreViewModel>.reactive(
@@ -128,134 +221,50 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildBigScreenContent(ITransaction transaction, CoreViewModel model) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 160.0),
-              child: Container(
-                width: constraints.maxWidth,
-                height: constraints.maxHeight,
-                child: FadeTransition(
-                  opacity: _animation,
-                  child: (ProxyService.box.isPosDefault() ?? true)
-                      ? _buildPosDefaultContent(transaction, model)
-                      : SizedBox.shrink(),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 160.0),
-              child: FadeTransition(
-                opacity: _animation,
-                child: (ProxyService.box.isOrdersDefault() ?? false)
-                    ? _buildOrdersContent()
-                    : SizedBox.shrink(),
-              ),
-            ),
-            Positioned(
-              top: 5.0,
-              left: 5.0,
-              right: 8.0,
-              child: Card(
-                color: Colors.white,
-                surfaceTintColor: Colors.white,
-                child: Column(
-                  children: [
-                    _buildIconRow().eligibleToSeeIfYouAre(ref, [
-                      UserType.ADMIN,
-                    ]),
-                    SearchInputWithDropdown(),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildOrdersContent() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 30.0),
-      child: Column(
-        children: [
-          OrderStatusSelector(
-            selectedStatus: _selectedStatus,
-            onStatusChanged: (newStatus) {
-              setState(() {
-                _selectedStatus = newStatus;
-              });
-              ref
-                  .watch(oldImplementationOfRiverpod.stringProvider.notifier)
-                  .updateString(
-                    newStatus == OrderStatus.approved
-                        ? RequestStatus.approved
-                        : RequestStatus.pending,
-                  );
-            },
-          ),
-          const SizedBox(height: 20),
-          Flexible(child: SingleChildScrollView(child: const IncomingOrders())),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPosDefaultContent(
-    ITransaction transaction,
+  Widget _buildBigScreenContent(
+    ITransaction? transaction,
     CoreViewModel model,
   ) {
-    final branchAsync = ref.watch(activeBranchProvider);
-    return branchAsync.when(
-      data: (branch) {
-        return FutureBuilder<bool>(
-          future:
-              ProxyService.strategy.isBranchEnableForPayment(
-                    currentBranchId: branch.id,
-                  )
-                  as Future<bool>,
-          builder: (context, snapshot) {
-            final digitalPaymentEnabled = snapshot.data ?? false;
-            return ListView(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _buildQuickSellingView(),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: PayableView(
-                    transactionId: transaction.id,
-                    mode: oldImplementationOfRiverpod.SellingMode.forSelling,
-                    completeTransaction:
-                        (
-                          immediateCompletion, [
-                          onPaymentConfirmed,
-                          onPaymentFailed,
-                        ]) async {
-                          return await _handleCompleteTransaction(
-                            transaction,
-                            immediateCompletion,
-                            onPaymentConfirmed,
-                            onPaymentFailed,
-                          );
-                        },
-                    model: model,
-                    ticketHandler: () => handleTicketNavigation(transaction),
-                    digitalPaymentEnabled: digitalPaymentEnabled,
-                  ),
-                ),
-              ],
-            );
-          },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          width: constraints.maxWidth,
+          height: math.max(
+            0.0,
+            constraints.maxHeight - _kDesktopCheckoutBodyTopInset,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
+            child: PosDefaultView(
+              transaction: transaction,
+              quickSellingView: _buildQuickSellingView(),
+              onCompleteTransaction:
+                  (
+                    immediateCompletion, [
+                    onPaymentConfirmed,
+                    onPaymentFailed,
+                  ]) async {
+                    final txn = transaction;
+                    if (txn == null) {
+                      return false;
+                    }
+                    return await _handleCompleteTransaction(
+                      txn,
+                      immediateCompletion,
+                      onPaymentConfirmed,
+                      onPaymentFailed,
+                    );
+                  },
+              onTicketNavigation: () {
+                final txn = transaction;
+                if (txn != null) {
+                  handleTicketNavigation(txn);
+                }
+              },
+            ),
+          ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 
@@ -271,31 +280,54 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildIconRow() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Padding(padding: EdgeInsets.all(8.0), child: IconRow());
-        },
+  String getCartText({required String transactionId}) {
+    final count = ref.watch(
+      posCartDisplayItemsProvider.select(
+        (items) =>
+            posCartDisplayItemsForTransaction(items, transactionId).length,
       ),
     );
+    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
-  String getCartText({required String transactionId}) {
-    // Get the latest count with a fresh watch to ensure reactivity
-    final itemsAsync = ref.watch(
-      transactionItemsStreamProvider(transactionId: transactionId),
+  Future<void> _resetCheckoutAfterSuccessfulSale(
+    ITransaction transaction,
+  ) async {
+    ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
+    ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+
+    if (!mounted) return;
+
+    final branchId = ProxyService.box.getBranchId() ?? '0';
+    ref.invalidate(
+      transactionItemsStreamProvider(
+        transactionId: transaction.id,
+        branchId: branchId,
+      ),
+    );
+    ref.invalidate(oldImplementationOfRiverpod.paymentMethodsProvider);
+    ref.read(optimisticOrderCountProvider.notifier).reset();
+
+    discountController.clear();
+    receivedAmountController.clear();
+    customerPhoneNumberController.clear();
+    deliveryNoteCotroller.clear();
+    ref.read(customerNameControllerProvider).clear();
+
+    await newTransaction(
+      typeOfThisTransactionIsExpense: ProxyService.box.isOrdering() ?? false,
     );
 
-    // Get the count from the async value
-    final count = itemsAsync.when(
-      data: (items) => items.length,
-      loading: () => int.parse(getCartItemCount(transactionId: transactionId)),
-      error: (_, __) => 0,
+    ref.invalidate(
+      pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false,
+      ),
     );
 
-    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+    if (ref.read(oldImplementationOfRiverpod.previewingCart)) {
+      ref.read(oldImplementationOfRiverpod.previewingCart.notifier).state =
+          false;
+    }
   }
 
   Future<bool> _handleCompleteTransaction(
@@ -304,81 +336,42 @@ class CheckOutState extends ConsumerState<CheckOut>
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
   ]) async {
-    final startTime = transaction.createdAt!;
+    final controller = CheckoutController(ref: ref, context: context);
 
-    // Set flags to prevent UI flicker during transaction completion
-    ProxyService.box.writeBool(key: 'transactionInProgress', value: true);
-    ProxyService.box.writeBool(key: 'transactionCompleting', value: true);
+    final transactionItemsHint =
+        ref.read(optimisticCartProvider.notifier).hasPendingFor(transaction.id)
+        ? null
+        : () {
+            final lines = ref
+                .read(posCartDisplayItemsProvider)
+                .where((i) => !OptimisticCartIds.isOptimistic(i.id))
+                .toList();
+            return lines.isEmpty ? null : lines;
+          }();
 
-    if (discountController.text.isEmpty) {
-      ProxyService.box.remove(key: 'discountRate');
-    }
-    try {
-      applyDiscount(transaction);
-      final isWaitingForPayment = await startCompleteTransactionFlow(
-        transactionId: transaction.id,
-        immediateCompletion: immediateCompletion,
-        onPaymentConfirmed: onPaymentConfirmed,
-        onPaymentFailed: onPaymentFailed,
-        completeTransaction: () {
-          ref.read(payButtonStateProvider.notifier).stopLoading();
-
-          // Close the bottom sheet if it's open (for digital payments)
-          if (!kIsWeb &&
-              (defaultTargetPlatform == TargetPlatform.iOS ||
-                  defaultTargetPlatform == TargetPlatform.android) &&
-              mounted &&
-              Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
-
-          newTransaction(typeOfThisTransactionIsExpense: false).then((_) {
-            final endTime = DateTime.now().toUtc();
-            final duration = endTime.difference(startTime).inSeconds;
-
-            ProxyService.box.writeBool(
-              key: 'transactionInProgress',
-              value: false,
-            );
-            ProxyService.box.writeBool(
-              key: 'transactionCompleting',
-              value: false,
-            );
-            PosthogService.instance.capture(
-              'transaction_completed',
-              properties: {
-                'transaction_id': transaction.id,
-                'branch_id': transaction.branchId!,
-                'business_id': ProxyService.box.getBusinessId()!,
-                'created_at': startTime.toIso8601String(),
-                'completed_at': endTime.toIso8601String(),
-                'duration_seconds': duration,
-                'source': 'checkout',
-              },
-            );
-          });
-        },
-        paymentMethods: ref.watch(
-          oldImplementationOfRiverpod.paymentMethodsProvider,
-        ),
-      );
-      return isWaitingForPayment;
-      // No need to call newTransaction here as it's already called in the completeTransaction callback
-      // This prevents creating a new transaction when there's an error in the flow
-    } catch (e) {
-      // Reset flags in case of error
-      ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
-      ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
-      ref.read(payButtonStateProvider.notifier).stopLoading();
-      await refreshTransactionItems(transactionId: transaction.id);
-      rethrow;
-    }
+    return await controller.handleCompleteTransaction(
+      transaction: transaction,
+      immediateCompletion: immediateCompletion,
+      startCompleteTransactionFlow: startCompleteTransactionFlow,
+      applyDiscount: applyDiscount,
+      refreshTransactionItems: refreshTransactionItems,
+      discountController: discountController,
+      afterCheckoutSaleCleanup: _resetCheckoutAfterSuccessfulSale,
+      transactionItemsHint: transactionItemsHint,
+      onPaymentConfirmed: onPaymentConfirmed != null
+          ? () {
+              onPaymentConfirmed();
+              newTransaction(
+                typeOfThisTransactionIsExpense:
+                    ProxyService.box.isOrdering() ?? false,
+              );
+            }
+          : null,
+      onPaymentFailed: onPaymentFailed,
+    );
   }
 
-  Widget _buildSmallScreenLayout(
-    ITransaction transaction, {
-    required bool showCart,
-  }) {
+  Widget _buildSmallScreenLayout({required bool showCart}) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -396,7 +389,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: !showCart
               ? CheckoutProductView(
                   widget: widget,
-                  tabController: tabController,
+                  tabController: tabController!,
                   textEditController: textEditController,
                   model: model,
                   onCompleteTransaction:
@@ -414,7 +407,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                         );
                       },
                 )
-              : Scaffold(body: SafeArea(child: _buildQuickSellingView())),
+              : SafeArea(child: _buildQuickSellingView()),
         );
       },
     );

@@ -79,7 +79,7 @@ Future<Business> _$BusinessFromSupabase(
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
     businessTypeId: data['business_type_id'] == null
         ? null
-        : data['business_type_id'] as String?,
+        : data['business_type_id'] as int?,
     referredBy: data['referred_by'] == null
         ? null
         : data['referred_by'] as String?,
@@ -229,7 +229,7 @@ Future<Business> _$BusinessFromSqlite(
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
     businessTypeId: data['business_type_id'] == null
         ? null
-        : data['business_type_id'] as String?,
+        : data['business_type_id'] as int?,
     referredBy: data['referred_by'] == null
         ? null
         : data['referred_by'] as String?,
@@ -744,7 +744,7 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       association: false,
       columnName: 'business_type_id',
       iterable: false,
-      type: String,
+      type: int,
     ),
     'referredBy': const RuntimeSqliteColumnDefinition(
       association: false,

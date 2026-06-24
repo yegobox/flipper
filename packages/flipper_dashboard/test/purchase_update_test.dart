@@ -45,9 +45,11 @@ void main() {
     selectedPurchaseItem = item;
     if (item != null) {
       // Find the index of the SaleList in finalSaleList
-      int saleListIndex = finalSaleList.indexWhere((s) =>
-          s.spplrTin == saleList.spplrTin &&
-          s.spplrInvcNo == saleList.spplrInvcNo);
+      int saleListIndex = finalSaleList.indexWhere(
+        (s) =>
+            s.spplrTin == saleList.spplrTin &&
+            s.spplrInvcNo == saleList.spplrInvcNo,
+      );
       if (saleListIndex != -1) {
         // Find the index of the ItemList within the found SaleList
         // int itemListIndex = finalSaleList[saleListIndex]
@@ -64,6 +66,7 @@ void main() {
   test('selectItemPurchase updates finalSaleList correctly', () {
     // Arrange
     Variant updatedItem = Variant(
+      branchId: "22111",
       itemSeq: 1,
       name: "Updated Room Name",
       itemCd: "RW3NTNO0000101",

@@ -8,9 +8,13 @@ class VariantConverter
 
   @override
   models.Variant fromJson(Map<String, dynamic> json) {
+    final branchId = json['branchId'] as String? ?? '';
+    final name =
+        json['name'] as String? ?? json['itemNm'] as String? ?? '';
     final variant = models.Variant(
+      branchId: branchId,
       id: json['id'] as String?,
-      name: json['name'] as String? ?? '',
+      name: name,
     );
 
     // Set optional fields
@@ -26,7 +30,7 @@ class VariantConverter
     variant.productName = json['productName'] as String?;
     variant.categoryId = json['categoryId'] as String?;
     variant.categoryName = json['categoryName'] as String?;
-    variant.branchId = json['branchId'] as String?;
+    variant.branchId = branchId;
     variant.taxName = json['taxName'] as String?;
 
     // Set RRA and import fields
@@ -58,8 +62,9 @@ class VariantConverter
     variant.agntNm = json['agntNm'] as String?;
     variant.invcFcurCd = json['invcFcurCd'] as String?;
     final invcFcurExcrtRaw = json['invcFcurExcrt'];
-    variant.invcFcurExcrt =
-        invcFcurExcrtRaw != null ? (invcFcurExcrtRaw as num).toDouble() : null;
+    variant.invcFcurExcrt = invcFcurExcrtRaw != null
+        ? (invcFcurExcrtRaw as num).toDouble()
+        : null;
 
     return variant;
   }

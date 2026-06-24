@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
@@ -16,6 +17,7 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'dart:async'; // Add missing import for Timer
 
 mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
@@ -104,7 +106,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
     try {
       // Store the current branch ID before making changes
-      final currentBranchId = ProxyService.box.readInt(key: 'branchId');
+      final currentBranchId = ProxyService.box.getBranchId();
 
       // Only update if we're actually changing branches
       if (currentBranchId != branch.id) {
@@ -170,6 +172,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       ref.invalidate(
         branchesProvider(businessId: ProxyService.box.getBusinessId()),
       );
+      ref.invalidate(activeBranchProvider);
 
       // Add a small delay to ensure branch ID is fully set before invalidating transaction providers
       await Future.delayed(Duration(milliseconds: 100));
@@ -206,10 +209,16 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     required Future<void> Function() onLogout,
     required RouterService routerService,
   }) async {
-    await showLogoutLoadingDialog(context);
-    await onLogout();
-    Navigator.of(context).pop(); // Close loading dialog
-    routerService.replaceWith(LoginRoute());
+    showLogoutLoadingDialog(context, useRootNavigator: true);
+    try {
+      await onLogout();
+    } finally {
+      final rootNav = Navigator.of(context, rootNavigator: true);
+      if (rootNav.mounted && rootNav.canPop()) {
+        rootNav.pop();
+      }
+    }
+    routerService.clearStackAndShow(const LoginRoute());
   }
 
   Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
@@ -218,12 +227,12 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to log out?'),
+          title: Text(context.flipperL10n.confirmLogout),
+          content: Text(context.flipperL10n.confirmLogoutMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(context.flipperL10n.cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -232,7 +241,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                 Navigator.of(context).pop(); // Dismiss the loading dialog
                 locator<RouterService>().navigateTo(LoginRoute());
               },
-              child: const Text('Logout'),
+              child: Text(context.flipperL10n.logOut),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
           ],
@@ -256,7 +265,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       required void Function(bool) setIsLoading,
     })
     handleBranchSelection,
-    required VoidCallback onLogout,
+    required Future<void> Function() onLogout,
     required void Function(String? id) setLoadingState,
   }) async {
     // Check if we're already in the middle of branch navigation
@@ -371,10 +380,14 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<void> showLogoutLoadingDialog(BuildContext context) {
-    return showDialog(
+  void showLogoutLoadingDialog(
+    BuildContext context, {
+    bool useRootNavigator = false,
+  }) {
+    showDialog(
       barrierDismissible: false,
       context: context,
+      useRootNavigator: useRootNavigator,
       builder: (_) => Dialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -494,7 +507,7 @@ class _BranchSwitchDialog extends StatefulWidget {
     required void Function(bool) setIsLoading,
   })
   handleBranchSelection;
-  final VoidCallback onLogout;
+  final Future<void> Function() onLogout;
   final void Function(String? id) setLoadingState;
 
   const _BranchSwitchDialog({
@@ -514,6 +527,11 @@ class _BranchSwitchDialog extends StatefulWidget {
 class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
   bool _isLoading = false;
   List<Branch>? _branches;
+
+  Future<void> _handleLogoutTap() async {
+    Navigator.of(context).pop();
+    await widget.onLogout();
+  }
 
   @override
   void initState() {
@@ -607,9 +625,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  widget.onLogout();
-                },
+                onTap: _handleLogoutTap,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -689,9 +705,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    widget.onLogout();
-                  },
+                  onTap: _handleLogoutTap,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -791,9 +805,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      widget.onLogout();
-                    },
+                    onTap: _handleLogoutTap,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,

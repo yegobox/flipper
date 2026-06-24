@@ -70,10 +70,4 @@ mixin CapellaTenantMixin implements TenantInterface {
     // TODO: implement tenant
     throw UnimplementedError();
   }
-
-  @override
-  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) {
-    // TODO: implement tenants
-    throw UnimplementedError();
-  }
 }

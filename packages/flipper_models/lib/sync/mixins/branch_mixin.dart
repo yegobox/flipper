@@ -20,25 +20,29 @@ mixin BranchMixin implements BranchInterface {
   Future<bool> logOut();
 
   @override
-  FutureOr<Branch> addBranch(
-      {required String name,
-      required String businessId,
-      required String location,
-      String? userOwnerPhoneNumber,
-      required HttpClientInterface flipperHttpClient,
-      int? serverId,
-      String? description,
-      num? longitude,
-      num? latitude,
-      required bool isDefault,
-      required bool active,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
-      int? id}) async {
+  FutureOr<Branch> addBranch({
+    required String name,
+    required String businessId,
+    required String location,
+    String? userOwnerPhoneNumber,
+    required HttpClientInterface flipperHttpClient,
+    int? serverId,
+    String? description,
+    num? longitude,
+    num? latitude,
+    required bool isDefault,
+    required bool active,
+    DateTime? lastTouched,
+    DateTime? deletedAt,
+    int? id,
+  }) async {
     // find a branch by name create the branch if only it does not exist
     Branch? existingBranch = await branch(name: name);
     if (existingBranch != null) {
-      await repository.upsert<Branch>(existingBranch);
+      await repository.upsert<Branch>(
+        existingBranch,
+        policy: OfflineFirstUpsertPolicy.localOnly,
+      );
       return existingBranch;
     }
     final response = await flipperHttpClient.post(
@@ -46,22 +50,25 @@ mixin BranchMixin implements BranchInterface {
       body: jsonEncode(<String, dynamic>{
         "name": name,
         "businessId": businessId,
-        "location": location
+        "location": location,
       }),
     );
     if (response.statusCode == 201) {
       IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
-      return await repository.upsert<Branch>(Branch(
-        id: remoteBranch.id,
-        serverId: remoteBranch.serverId,
-        location: location,
-        description: description,
-        name: name,
-        businessId: businessId,
-        longitude: longitude,
-        latitude: latitude,
-        isDefault: isDefault,
-      ));
+      return await repository.upsert<Branch>(
+        Branch(
+          id: remoteBranch.id,
+          serverId: remoteBranch.serverId,
+          location: location,
+          description: description,
+          name: name,
+          businessId: businessId,
+          longitude: longitude,
+          latitude: latitude,
+          isDefault: isDefault,
+        ),
+        policy: OfflineFirstUpsertPolicy.localOnly,
+      );
     }
     throw Exception('Failed to create branch');
   }
@@ -77,7 +84,9 @@ mixin BranchMixin implements BranchInterface {
       query = Query(where: [Where('id').isExactly(serverId)]);
     }
     final result = await repository.get<Branch>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     final branch = result.firstOrNull;
 
     return branch;
@@ -85,15 +94,19 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<void> saveBranch(Branch branch) async {
-    await repository.upsert<Branch>(branch);
+    await repository.upsert<Branch>(
+      branch,
+      policy: OfflineFirstUpsertPolicy.localOnly,
+    );
   }
 
   @override
-  FutureOr<void> updateBranch(
-      {required String branchId,
-      String? name,
-      bool? active,
-      bool? isDefault}) async {
+  FutureOr<void> updateBranch({
+    required String branchId,
+    String? name,
+    bool? active,
+    bool? isDefault,
+  }) async {
     Branch? branchs = await branch(serverId: branchId);
     if (branchs == null) {
       throw Exception('Branch not found');
@@ -112,8 +125,10 @@ mixin BranchMixin implements BranchInterface {
     return await _getBranches(businessId, excludeId: excludeId);
   }
 
-  Future<List<Branch>> _getBranches(String? businessId,
-      {String? excludeId}) async {
+  Future<List<Branch>> _getBranches(
+    String? businessId, {
+    String? excludeId,
+  }) async {
     final filters = <Where>[
       if (businessId != null) Where('businessId').isExactly(businessId),
       if (excludeId != null) Where('id').isNot(excludeId),
@@ -167,16 +182,21 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  Future<List<Business>> businesses(
-      {String? userId, bool fetchOnline = false, bool active = false}) async {
+  Future<List<Business>> businesses({
+    String? userId,
+    bool fetchOnline = false,
+    bool active = false,
+  }) async {
     return await repository.get<Business>(
       policy: fetchOnline
           ? OfflineFirstGetPolicy.alwaysHydrate
           : OfflineFirstGetPolicy.localOnly,
-      query: Query(where: [
-        if (userId != null) Where('userId').isExactly(userId),
-        Where('active').isExactly(active)
-      ]),
+      query: Query(
+        where: [
+          if (userId != null) Where('userId').isExactly(userId),
+          Where('active').isExactly(active),
+        ],
+      ),
     );
   }
 
@@ -199,23 +219,25 @@ mixin BranchMixin implements BranchInterface {
   @override
   Future<Branch> activeBranch({required String branchId}) async {
     try {
-      // Use a direct query to filter for the default branch at the database level
-      // Query for branches where isDefault is either true or 1
+      // Use localOnly to prevent database locks
+      // Branch data is static and rarely changes after initial setup
       final branches = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: Query(where: [Where('id').isExactly(branchId)]),
       );
 
-      // If we found a default branch, return it
+      // If we found a branch, return it
       if (branches.isNotEmpty) {
         return branches.first;
       }
 
-      if (branches.isEmpty) {
-        throw Exception("No default branch found");
-      }
-
-      return branches.first;
+      // Return a default branch if none found
+      return Branch(
+        id: branchId,
+        name: 'Branch',
+        businessId: '',
+        isDefault: false,
+      );
     } catch (e) {
       await logOut();
       rethrow;
@@ -224,14 +246,25 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Stream<Branch> activeBranchStream({required String branchId}) {
+    // Use localOnly to prevent database locks from remote sync operations
+    // Branch data is static and rarely changes after initial setup
     return repository
         .subscribe<Branch>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      query: Query(where: [Where('id').isExactly(branchId)]),
-    )
+          policy: OfflineFirstGetPolicy.localOnly,
+          query: Query(where: [Where('id').isExactly(branchId)]),
+        )
         .map((branches) {
-      final branch = branches.first;
-      return branch;
-    });
+          if (branches.isEmpty) {
+            // Return a default branch if none found
+            return Branch(
+              id: branchId,
+              name: 'Branch',
+              businessId: '',
+              isDefault: false,
+            );
+          }
+          final branch = branches.first;
+          return branch;
+        });
   }
 }

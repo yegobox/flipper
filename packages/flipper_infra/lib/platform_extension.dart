@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 extension PlatformExtension on Platform {
   /// Returns true if the operating system is macOS and not running on Web platform.

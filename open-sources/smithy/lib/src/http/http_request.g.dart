@@ -1,0 +1,393 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'http_request.dart';
+
+// **************************************************************************
+// BuiltValueGenerator
+// **************************************************************************
+
+class _$HttpRequest extends HttpRequest {
+  @override
+  final String? hostPrefix;
+  @override
+  final String method;
+  @override
+  final String path;
+  @override
+  final BuiltMap<String, String> headers;
+  @override
+  final BuiltListMultimap<String, String> queryParameters;
+  @override
+  final BuiltList<HttpRequestInterceptor> requestInterceptors;
+  @override
+  final BuiltList<HttpResponseInterceptor> responseInterceptors;
+
+  factory _$HttpRequest([void Function(HttpRequestBuilder)? updates]) =>
+      (HttpRequestBuilder()..update(updates))._build();
+
+  _$HttpRequest._({
+    this.hostPrefix,
+    required this.method,
+    required this.path,
+    required this.headers,
+    required this.queryParameters,
+    required this.requestInterceptors,
+    required this.responseInterceptors,
+  }) : super._();
+  @override
+  HttpRequest rebuild(void Function(HttpRequestBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  HttpRequestBuilder toBuilder() => HttpRequestBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is HttpRequest &&
+        hostPrefix == other.hostPrefix &&
+        method == other.method &&
+        path == other.path &&
+        headers == other.headers &&
+        queryParameters == other.queryParameters &&
+        requestInterceptors == other.requestInterceptors &&
+        responseInterceptors == other.responseInterceptors;
+  }
+
+  @override
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, hostPrefix.hashCode);
+    _$hash = $jc(_$hash, method.hashCode);
+    _$hash = $jc(_$hash, path.hashCode);
+    _$hash = $jc(_$hash, headers.hashCode);
+    _$hash = $jc(_$hash, queryParameters.hashCode);
+    _$hash = $jc(_$hash, requestInterceptors.hashCode);
+    _$hash = $jc(_$hash, responseInterceptors.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper(r'HttpRequest')
+          ..add('hostPrefix', hostPrefix)
+          ..add('method', method)
+          ..add('path', path)
+          ..add('headers', headers)
+          ..add('queryParameters', queryParameters)
+          ..add('requestInterceptors', requestInterceptors)
+          ..add('responseInterceptors', responseInterceptors))
+        .toString();
+  }
+}
+
+class HttpRequestBuilder implements Builder<HttpRequest, HttpRequestBuilder> {
+  _$HttpRequest? _$v;
+
+  String? _hostPrefix;
+  String? get hostPrefix => _$this._hostPrefix;
+  set hostPrefix(String? hostPrefix) => _$this._hostPrefix = hostPrefix;
+
+  String? _method;
+  String? get method => _$this._method;
+  set method(String? method) => _$this._method = method;
+
+  String? _path;
+  String? get path => _$this._path;
+  set path(String? path) => _$this._path = path;
+
+  MapBuilder<String, String>? _headers;
+  MapBuilder<String, String> get headers =>
+      _$this._headers ??= MapBuilder<String, String>();
+  set headers(MapBuilder<String, String>? headers) => _$this._headers = headers;
+
+  ListMultimapBuilder<String, String>? _queryParameters;
+  ListMultimapBuilder<String, String> get queryParameters =>
+      _$this._queryParameters ??= ListMultimapBuilder<String, String>();
+  set queryParameters(ListMultimapBuilder<String, String>? queryParameters) =>
+      _$this._queryParameters = queryParameters;
+
+  ListBuilder<HttpRequestInterceptor>? _requestInterceptors;
+  ListBuilder<HttpRequestInterceptor> get requestInterceptors =>
+      _$this._requestInterceptors ??= ListBuilder<HttpRequestInterceptor>();
+  set requestInterceptors(
+    ListBuilder<HttpRequestInterceptor>? requestInterceptors,
+  ) => _$this._requestInterceptors = requestInterceptors;
+
+  ListBuilder<HttpResponseInterceptor>? _responseInterceptors;
+  ListBuilder<HttpResponseInterceptor> get responseInterceptors =>
+      _$this._responseInterceptors ??= ListBuilder<HttpResponseInterceptor>();
+  set responseInterceptors(
+    ListBuilder<HttpResponseInterceptor>? responseInterceptors,
+  ) => _$this._responseInterceptors = responseInterceptors;
+
+  HttpRequestBuilder();
+
+  HttpRequestBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _hostPrefix = $v.hostPrefix;
+      _method = $v.method;
+      _path = $v.path;
+      _headers = $v.headers.toBuilder();
+      _queryParameters = $v.queryParameters.toBuilder();
+      _requestInterceptors = $v.requestInterceptors.toBuilder();
+      _responseInterceptors = $v.responseInterceptors.toBuilder();
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(HttpRequest other) {
+    _$v = other as _$HttpRequest;
+  }
+
+  @override
+  void update(void Function(HttpRequestBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  HttpRequest build() => _build();
+
+  _$HttpRequest _build() {
+    _$HttpRequest _$result;
+    try {
+      _$result =
+          _$v ??
+          _$HttpRequest._(
+            hostPrefix: hostPrefix,
+            method: BuiltValueNullFieldError.checkNotNull(
+              method,
+              r'HttpRequest',
+              'method',
+            ),
+            path: BuiltValueNullFieldError.checkNotNull(
+              path,
+              r'HttpRequest',
+              'path',
+            ),
+            headers: headers.build(),
+            queryParameters: queryParameters.build(),
+            requestInterceptors: requestInterceptors.build(),
+            responseInterceptors: responseInterceptors.build(),
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'headers';
+        headers.build();
+        _$failedField = 'queryParameters';
+        queryParameters.build();
+        _$failedField = 'requestInterceptors';
+        requestInterceptors.build();
+        _$failedField = 'responseInterceptors';
+        responseInterceptors.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+          r'HttpRequest',
+          _$failedField,
+          e.toString(),
+        );
+      }
+      rethrow;
+    }
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$HttpResponse extends HttpResponse {
+  @override
+  final BuiltMap<String, String> headers;
+
+  factory _$HttpResponse([void Function(HttpResponseBuilder)? updates]) =>
+      (HttpResponseBuilder()..update(updates))._build();
+
+  _$HttpResponse._({required this.headers}) : super._();
+  @override
+  HttpResponse rebuild(void Function(HttpResponseBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  HttpResponseBuilder toBuilder() => HttpResponseBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is HttpResponse && headers == other.headers;
+  }
+
+  @override
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, headers.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper(
+      r'HttpResponse',
+    )..add('headers', headers)).toString();
+  }
+}
+
+class HttpResponseBuilder
+    implements Builder<HttpResponse, HttpResponseBuilder> {
+  _$HttpResponse? _$v;
+
+  MapBuilder<String, String>? _headers;
+  MapBuilder<String, String> get headers =>
+      _$this._headers ??= MapBuilder<String, String>();
+  set headers(MapBuilder<String, String>? headers) => _$this._headers = headers;
+
+  HttpResponseBuilder();
+
+  HttpResponseBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _headers = $v.headers.toBuilder();
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(HttpResponse other) {
+    _$v = other as _$HttpResponse;
+  }
+
+  @override
+  void update(void Function(HttpResponseBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  HttpResponse build() => _build();
+
+  _$HttpResponse _build() {
+    _$HttpResponse _$result;
+    try {
+      _$result = _$v ?? _$HttpResponse._(headers: headers.build());
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'headers';
+        headers.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+          r'HttpResponse',
+          _$failedField,
+          e.toString(),
+        );
+      }
+      rethrow;
+    }
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$HttpRequestContext extends HttpRequestContext {
+  @override
+  final String? awsSigningService;
+  @override
+  final String? awsSigningRegion;
+
+  factory _$HttpRequestContext([
+    void Function(HttpRequestContextBuilder)? updates,
+  ]) => (HttpRequestContextBuilder()..update(updates))._build();
+
+  _$HttpRequestContext._({this.awsSigningService, this.awsSigningRegion})
+    : super._();
+  @override
+  HttpRequestContext rebuild(
+    void Function(HttpRequestContextBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
+
+  @override
+  HttpRequestContextBuilder toBuilder() =>
+      HttpRequestContextBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is HttpRequestContext &&
+        awsSigningService == other.awsSigningService &&
+        awsSigningRegion == other.awsSigningRegion;
+  }
+
+  @override
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, awsSigningService.hashCode);
+    _$hash = $jc(_$hash, awsSigningRegion.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper(r'HttpRequestContext')
+          ..add('awsSigningService', awsSigningService)
+          ..add('awsSigningRegion', awsSigningRegion))
+        .toString();
+  }
+}
+
+class HttpRequestContextBuilder
+    implements Builder<HttpRequestContext, HttpRequestContextBuilder> {
+  _$HttpRequestContext? _$v;
+
+  String? _awsSigningService;
+  String? get awsSigningService => _$this._awsSigningService;
+  set awsSigningService(String? awsSigningService) =>
+      _$this._awsSigningService = awsSigningService;
+
+  String? _awsSigningRegion;
+  String? get awsSigningRegion => _$this._awsSigningRegion;
+  set awsSigningRegion(String? awsSigningRegion) =>
+      _$this._awsSigningRegion = awsSigningRegion;
+
+  HttpRequestContextBuilder();
+
+  HttpRequestContextBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _awsSigningService = $v.awsSigningService;
+      _awsSigningRegion = $v.awsSigningRegion;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(HttpRequestContext other) {
+    _$v = other as _$HttpRequestContext;
+  }
+
+  @override
+  void update(void Function(HttpRequestContextBuilder)? updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  HttpRequestContext build() => _build();
+
+  _$HttpRequestContext _build() {
+    final _$result =
+        _$v ??
+        _$HttpRequestContext._(
+          awsSigningService: awsSigningService,
+          awsSigningRegion: awsSigningRegion,
+        );
+    replace(_$result);
+    return _$result;
+  }
+}
+
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

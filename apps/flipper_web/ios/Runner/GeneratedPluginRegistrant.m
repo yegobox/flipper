@@ -24,16 +24,16 @@
 @import app_links;
 #endif
 
+#if __has_include(<background_downloader/BackgroundDownloaderPlugin.h>)
+#import <background_downloader/BackgroundDownloaderPlugin.h>
+#else
+@import background_downloader;
+#endif
+
 #if __has_include(<connectivity_plus/ConnectivityPlusPlugin.h>)
 #import <connectivity_plus/ConnectivityPlusPlugin.h>
 #else
 @import connectivity_plus;
-#endif
-
-#if __has_include(<desktop_webview_auth/DesktopWebviewAuthPlugin.h>)
-#import <desktop_webview_auth/DesktopWebviewAuthPlugin.h>
-#else
-@import desktop_webview_auth;
 #endif
 
 #if __has_include(<device_info_plus/FPPDeviceInfoPlusPlugin.h>)
@@ -78,10 +78,16 @@
 @import firebase_messaging;
 #endif
 
-#if __has_include(<firebase_remote_config/FirebaseRemoteConfigPlugin.h>)
-#import <firebase_remote_config/FirebaseRemoteConfigPlugin.h>
+#if __has_include(<flutter_contacts/FlutterContactsPlugin.h>)
+#import <flutter_contacts/FlutterContactsPlugin.h>
 #else
-@import firebase_remote_config;
+@import flutter_contacts;
+#endif
+
+#if __has_include(<flutter_gemma/FlutterGemmaPlugin.h>)
+#import <flutter_gemma/FlutterGemmaPlugin.h>
+#else
+@import flutter_gemma;
 #endif
 
 #if __has_include(<flutter_keyboard_visibility/FlutterKeyboardVisibilityPlugin.h>)
@@ -132,6 +138,12 @@
 @import integration_test;
 #endif
 
+#if __has_include(<large_file_handler/LargeFileHandlerPlugin.h>)
+#import <large_file_handler/LargeFileHandlerPlugin.h>
+#else
+@import large_file_handler;
+#endif
+
 #if __has_include(<local_auth_darwin/LocalAuthPlugin.h>)
 #import <local_auth_darwin/LocalAuthPlugin.h>
 #else
@@ -166,12 +178,6 @@
 #import <pasteboard/PasteboardPlugin.h>
 #else
 @import pasteboard;
-#endif
-
-#if __has_include(<path_provider_foundation/PathProviderPlugin.h>)
-#import <path_provider_foundation/PathProviderPlugin.h>
-#else
-@import path_provider_foundation;
 #endif
 
 #if __has_include(<permission_handler_apple/PermissionHandlerPlugin.h>)
@@ -246,8 +252,8 @@
   [AmplifyAuthCognitoPlugin registerWithRegistrar:[registry registrarForPlugin:@"AmplifyAuthCognitoPlugin"]];
   [AmplifySecureStoragePlugin registerWithRegistrar:[registry registrarForPlugin:@"AmplifySecureStoragePlugin"]];
   [AppLinksIosPlugin registerWithRegistrar:[registry registrarForPlugin:@"AppLinksIosPlugin"]];
+  [BackgroundDownloaderPlugin registerWithRegistrar:[registry registrarForPlugin:@"BackgroundDownloaderPlugin"]];
   [ConnectivityPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"ConnectivityPlusPlugin"]];
-  [DesktopWebviewAuthPlugin registerWithRegistrar:[registry registrarForPlugin:@"DesktopWebviewAuthPlugin"]];
   [FPPDeviceInfoPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPDeviceInfoPlusPlugin"]];
   [FilePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FilePickerPlugin"]];
   [FirebaseAnalyticsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FirebaseAnalyticsPlugin"]];
@@ -255,7 +261,8 @@
   [FLTFirebaseCorePlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseCorePlugin"]];
   [FLTFirebaseCrashlyticsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseCrashlyticsPlugin"]];
   [FLTFirebaseMessagingPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseMessagingPlugin"]];
-  [FirebaseRemoteConfigPlugin registerWithRegistrar:[registry registrarForPlugin:@"FirebaseRemoteConfigPlugin"]];
+  [FlutterContactsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterContactsPlugin"]];
+  [FlutterGemmaPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterGemmaPlugin"]];
   [FlutterKeyboardVisibilityPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterKeyboardVisibilityPlugin"]];
   [FlutterLocalNotificationsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterLocalNotificationsPlugin"]];
   [FlutterLocalizationPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterLocalizationPlugin"]];
@@ -264,13 +271,13 @@
   [FLTGoogleSignInPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTGoogleSignInPlugin"]];
   [FLTImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTImagePickerPlugin"]];
   [IntegrationTestPlugin registerWithRegistrar:[registry registrarForPlugin:@"IntegrationTestPlugin"]];
+  [LargeFileHandlerPlugin registerWithRegistrar:[registry registrarForPlugin:@"LargeFileHandlerPlugin"]];
   [LocalAuthPlugin registerWithRegistrar:[registry registrarForPlugin:@"LocalAuthPlugin"]];
   [LocationPlugin registerWithRegistrar:[registry registrarForPlugin:@"LocationPlugin"]];
   [MobileScannerPlugin registerWithRegistrar:[registry registrarForPlugin:@"MobileScannerPlugin"]];
   [OpenFilePlugin registerWithRegistrar:[registry registrarForPlugin:@"OpenFilePlugin"]];
   [FPPPackageInfoPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPPackageInfoPlusPlugin"]];
   [PasteboardPlugin registerWithRegistrar:[registry registrarForPlugin:@"PasteboardPlugin"]];
-  [PathProviderPlugin registerWithRegistrar:[registry registrarForPlugin:@"PathProviderPlugin"]];
   [PermissionHandlerPlugin registerWithRegistrar:[registry registrarForPlugin:@"PermissionHandlerPlugin"]];
   [PointerInterceptorIosPlugin registerWithRegistrar:[registry registrarForPlugin:@"PointerInterceptorIosPlugin"]];
   [PosthogFlutterPlugin registerWithRegistrar:[registry registrarForPlugin:@"PosthogFlutterPlugin"]];

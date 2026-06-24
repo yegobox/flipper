@@ -15,6 +15,7 @@ abstract class LocalStorage {
   int? getBranchServerId();
   bool? getIsTokenRegistered();
   String? getUserPhone();
+  String? getUserName();
   String? getUserId();
   double? getCashReceived();
   bool getNeedAccountLinkWithPhone();
@@ -100,7 +101,7 @@ abstract class LocalStorage {
   bool lockPatching();
 
   /// Returns the main database filename
-  /// Default is 'flipper_v17.sqlite'
+  /// Default is 'flipper.sqlite'
   String getDatabaseFilename();
 
   /// Sets the main database filename

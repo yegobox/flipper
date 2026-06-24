@@ -10,37 +10,115 @@ import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/customer_payments.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 
+/// Response from [HttpApiInterface.makePaymentWithReference] (`/v2/api/payNow` with `planId`).
+///
+/// [paymentReference] is the id for `GET .../requesttopay/status/{paymentReference}/{branchId}` (payNow JSON field).
+/// [HttpApi] only returns this on HTTP 200/202 when that value is non-empty; otherwise it throws.
+class MakePaymentWithReferenceResult {
+  final String? paymentReference;
+
+  const MakePaymentWithReferenceResult({this.paymentReference});
+}
+
+/// One GET `.../requesttopay/status/{ref}/{branch}` result (for polling / commission fields).
+class RequestToPayHttpSnapshot {
+  RequestToPayHttpSnapshot({
+    required this.httpStatus,
+    required this.json,
+    required this.sanitizedReference,
+  });
+
+  final int httpStatus;
+  final Map<String, dynamic> json;
+  final String sanitizedReference;
+
+  static String? _normStatus(Map<String, dynamic> j) =>
+      j['status']?.toString().trim().toUpperCase();
+
+  /// MTN success: 2xx HTTP and body status SUCCESSFUL (case-insensitive).
+  bool get isMtnSuccessful =>
+      httpStatus >= 200 &&
+      httpStatus < 300 &&
+      _normStatus(json) == 'SUCCESSFUL';
+
+  String? get financialTransactionId =>
+      json['financialTransactionId']?.toString();
+
+  String? get externalId => json['externalId']?.toString();
+
+  /// RWF from MTN body [amount] (string or number).
+  int? get settledAmountRwf {
+    final a = json['amount'];
+    if (a is num) return a.round();
+    return int.tryParse(a?.toString().trim() ?? '');
+  }
+}
+
 abstract class HttpApiInterface {
-  Future<bool> isCouponValid(
-      {required HttpClientInterface flipperHttpClient,
-      required String couponCode});
-  Future<bool> isPaymentComplete(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId});
-  Future<bool> hasAcessSaved(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId});
-  Future<bool> makePayment(
-      {required HttpClientInterface flipperHttpClient,
-      String? businessId,
-      required String phoneNumber,
-      String? externalId,
-      required String branchId,
-      required String paymentType,
-      required String payeemessage,
-      required int amount});
-  Future<bool> subscribe(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId,
-      int? agentCode,
-      int? timeInSeconds = 120,
-      required int amount});
-  Future<Map<String, dynamic>> payNow(
-      {required Map<String, dynamic> paymentData,
-      required HttpClientInterface flipperHttpClient});
-  Future<bool> checkPaymentStatus(
-      {required HttpClientInterface flipperHttpClient,
-      required String paymentReference});
+  Future<bool> isCouponValid({
+    required HttpClientInterface flipperHttpClient,
+    required String couponCode,
+  });
+  Future<bool> isPaymentComplete({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  });
+  Future<bool> hasAcessSaved({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  });
+  Future<bool> makePayment({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String phoneNumber,
+    String? externalId,
+    required String branchId,
+    required String paymentType,
+    required String payeemessage,
+    required String payerMessage,
+    required int amount,
+  });
+
+  /// POST `/v2/api/payNow`; parses `paymentReference` from JSON on HTTP 200 or 202.
+  Future<MakePaymentWithReferenceResult> initiatePayNowWithReference({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    required String payeemessage,
+    required String payerMessage,
+    required int amount,
+    required String phoneNumber,
+  });
+
+  Future<bool> subscribe({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+    required String phoneNumber,
+    int? agentCode,
+    int? timeInSeconds = 120,
+    required int amount,
+  });
+  Future<Map<String, dynamic>> payNow({
+    required Map<String, dynamic> paymentData,
+    required HttpClientInterface flipperHttpClient,
+  });
+  /// Polls MTN via `GET .../requesttopay/status/{paymentReference}/{branchId}`.
+  /// [paymentReference] must be the payNow response `paymentReference` (same value as MTN's X-Reference-Id).
+  /// [branchId] must match payNow `branchId`; when null, the default collection branch id is used.
+  Future<bool> checkPaymentStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
+  });
+
+  /// GET request-to-pay status (parsed JSON). Use [RequestToPayHttpSnapshot.isMtnSuccessful] when polling.
+  Future<RequestToPayHttpSnapshot?> fetchRequestToPayHttpSnapshot({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
+  });
 
   /// Uploads a PDF document and extracts company information from it
   /// Returns a Map containing the extracted company information
@@ -53,11 +131,77 @@ abstract class HttpApiInterface {
     required Variant variant,
     required HttpClientInterface client,
   });
-  Future<int?> getBusinessId(
-      {required HttpClientInterface client, required String businessId});
+  Future<int?> getBusinessId({
+    required HttpClientInterface client,
+    required String businessId,
+  });
+
+  /// Accumulated subscription amount due (RWF) from flipper-turbo
+  /// `GET /v2/api/plans/{planId}/amount-due`.
+  Future<Map<String, dynamic>?> getPlanAmountDue({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+  });
+
+  /// Client confirmed MTN SUCCESSFUL; backend verifies MTN, updates plan, creates invoice.
+  /// POST `/v2/api/payment/finalize-on-success` (flipper-turbo `MTNPaymentController`).
+  Future<void> finalizePaymentOnSuccess({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+    required String paymentReference,
+  });
+
+  /// MTN request-to-pay after pre-approval; includes [planId] for backend tracking (`MTNModel`).
+  /// POST `/v2/api/payNow`.
+  Future<MakePaymentWithReferenceResult> makePaymentWithReference({
+    required HttpClientInterface flipperHttpClient,
+    required Object businessId,
+    required String phoneNumber,
+    required String paymentType,
+    required String payeemessage,
+    required String payerMessage,
+    required String branchId,
+    String? planId,
+    required int amount,
+  });
 }
 
 class HttpApi implements HttpApiInterface {
+  /// MTN collection branch id — must match payNow JSON `branchId` when calling requesttopay status.
+  static const String defaultMtnRequestToPayBranchId =
+      '2f83b8b1-6d41-4d80-b0e7-de8ab36910af';
+
+  static final RegExp _ansiSgr = RegExp('\u001B\\[[0-9;]*m');
+  static final RegExp _uuidPattern = RegExp(
+    r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
+  );
+
+  /// MTN request-to-pay id: payNow `paymentReference` / `externalId` (same as [X-Reference-Id] on the wire).
+  static String? sanitizeMtnRequestToPayReferenceId(String? raw) {
+    if (raw == null) return null;
+    var s = raw.trim();
+    s = s.replaceAll(_ansiSgr, '');
+    final m = _uuidPattern.firstMatch(s);
+    if (m != null) return m.group(0);
+    return s.isEmpty ? null : s;
+  }
+
+  /// [json.decode] often yields [Map] without [Map<String,dynamic>] at runtime; always normalize.
+  static Map<String, dynamic>? jsonObjectFromDecoded(dynamic decoded) {
+    if (decoded is Map) {
+      return Map<String, dynamic>.from(decoded);
+    }
+    return null;
+  }
+
+  /// Value for the status URL path: payNow JSON `paymentReference`, else `externalId` (server sends both; same MTN id).
+  static String? paymentReferenceForStatusPolling(Map<String, dynamic> decoded) {
+    final fromPr =
+        sanitizeMtnRequestToPayReferenceId(decoded['paymentReference']?.toString());
+    if (fromPr != null && fromPr.isNotEmpty) return fromPr;
+    return sanitizeMtnRequestToPayReferenceId(decoded['externalId']?.toString());
+  }
+
   @override
   Future<bool> fetchRemoteStockQuantity({
     required Variant variant,
@@ -68,14 +212,18 @@ class HttpApi implements HttpApiInterface {
       final String baseUrl = AppSecrets.superbaseurl;
       final String anonKey = AppSecrets.supabaseAnonKey;
       final Uri uri = Uri.parse(
-          '$baseUrl/rest/v1/variants?id=eq.${variant.id}&select=stock_id');
+        '$baseUrl/rest/v1/variants?id=eq.${variant.id}&select=stock_id',
+      );
 
       // Fetch the variant to get the stock_id
-      final variantResp = await client.get(uri, headers: {
-        'apikey': anonKey,
-        'Authorization': 'Bearer $anonKey',
-        'Accept': 'application/json',
-      });
+      final variantResp = await client.get(
+        uri,
+        headers: {
+          'apikey': anonKey,
+          'Authorization': 'Bearer $anonKey',
+          'Accept': 'application/json',
+        },
+      );
       if (variantResp.statusCode != 200) {
         talker.error('Failed to fetch variant: \\${variantResp.body}');
         return false;
@@ -91,12 +239,16 @@ class HttpApi implements HttpApiInterface {
 
       // Now fetch the stock
       final Uri stockUri = Uri.parse(
-          '$baseUrl/rest/v1/stocks?id=eq.$stockId&select=current_stock');
-      final stockResp = await client.get(stockUri, headers: {
-        'apikey': anonKey,
-        'Authorization': 'Bearer $anonKey',
-        'Accept': 'application/json',
-      });
+        '$baseUrl/rest/v1/stocks?id=eq.$stockId&select=current_stock',
+      );
+      final stockResp = await client.get(
+        stockUri,
+        headers: {
+          'apikey': anonKey,
+          'Authorization': 'Bearer $anonKey',
+          'Accept': 'application/json',
+        },
+      );
       if (stockResp.statusCode != 200) {
         talker.error('Failed to fetch stock: \\${stockResp.body}');
         return false;
@@ -116,9 +268,10 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<Map<String, dynamic>> payNow(
-      {required Map<String, dynamic> paymentData,
-      required HttpClientInterface flipperHttpClient}) async {
+  Future<Map<String, dynamic>> payNow({
+    required Map<String, dynamic> paymentData,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
     try {
       // Ensure the URL is properly formatted
       final Uri uri = Uri.parse('${AppSecrets.apihubProd}/v2/api/payNow');
@@ -129,14 +282,14 @@ class HttpApi implements HttpApiInterface {
         "currency": paymentData['currency'] ?? "RWF",
         "payer": {
           "partyIdType": "MSISDN",
-          "partyId": paymentData['phoneNumber']
+          "partyId": paymentData['phoneNumber'],
         },
         // this is constant for now.
         "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
         "payerMessage": paymentData['description'] ?? "Flipper Credit Purchase",
         "payeeNote": "Flipper Credit",
         "businessId": ProxyService.box.getBusinessId() ?? 1,
-        "paymentType": "Credit Purchase"
+        "paymentType": "Credit Purchase",
       };
 
       // Convert formatted payment data to JSON string
@@ -145,31 +298,34 @@ class HttpApi implements HttpApiInterface {
       talker.info('PayNow request body: $body');
 
       // Make the POST request
-      final response = await flipperHttpClient.post(
-        uri,
-        body: body,
-      );
+      final response = await flipperHttpClient.post(uri, body: body);
 
-      // Parse the response
-      final Map<String, dynamic> responseData = json.decode(response.body);
+      final decoded = json.decode(response.body);
+      final responseData = HttpApi.jsonObjectFromDecoded(decoded);
+      if (responseData == null) {
+        throw Exception('PayNow response is not a JSON object');
+      }
 
       // Log the response
       talker.info('PayNow response: ${response.body}');
 
       // Check if the request was successful
       if (response.statusCode == 200 || response.statusCode == 202) {
-        await ProxyService.strategy.upsertPayment(CustomerPayments(
-          phoneNumber: paymentData['phoneNumber'],
-          paymentStatus: "pending",
-          amountPayable: paymentData['amount'].toDouble(),
-          transactionId: responseData['paymentReference'],
-        ));
+        await ProxyService.strategy.upsertPayment(
+          CustomerPayments(
+            phoneNumber: paymentData['phoneNumber'],
+            paymentStatus: "pending",
+            amountPayable: paymentData['amount'].toDouble(),
+            transactionId: responseData['paymentReference'],
+          ),
+        );
         return responseData;
       } else {
         // Handle error response
         talker.error('PayNow error: ${response.statusCode} - ${response.body}');
         throw Exception(
-            'PayNow request failed with status: ${response.statusCode}');
+          'PayNow request failed with status: ${response.statusCode}',
+        );
       }
     } catch (e, stackTrace) {
       // Log and rethrow any exceptions
@@ -181,22 +337,24 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<bool> isCouponValid(
-      {required HttpClientInterface flipperHttpClient,
-      required String couponCode}) async {
+  Future<bool> isCouponValid({
+    required HttpClientInterface flipperHttpClient,
+    required String couponCode,
+  }) async {
     var headers = {
       'api-key': AppSecrets.apikey,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
     final response = await flipperHttpClient.post(
-        headers: headers,
-        Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
-        body: json.encode({
-          "collection": AppSecrets.flipperCompaignCollection,
-          "database": AppSecrets.database,
-          "dataSource": AppSecrets.dataSource,
-          "filter": {"couponCode": couponCode}
-        }));
+      headers: headers,
+      Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
+      body: json.encode({
+        "collection": AppSecrets.flipperCompaignCollection,
+        "database": AppSecrets.database,
+        "dataSource": AppSecrets.dataSource,
+        "filter": {"couponCode": couponCode},
+      }),
+    );
     if (response.statusCode == 200) {
       // Parse the response body
       final Map<String, dynamic> responseData = json.decode(response.body);
@@ -230,7 +388,8 @@ class HttpApi implements HttpApiInterface {
       final response = await flipperHttpClient.get(
         headers: headers,
         Uri.parse(
-            '${AppSecrets.superbaseurl}/rest/v1/plans?business_id=eq.$businessId'),
+          '${AppSecrets.superbaseurl}/rest/v1/plans?business_id=eq.$businessId',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -241,8 +400,12 @@ class HttpApi implements HttpApiInterface {
           // Get the first item from the array
           final Map<String, dynamic> planData = responseData.first;
 
-          // Use the correct field name from the API response
-          return planData['payment_completed_by_user'] ?? false;
+          final bool isCompletedByUser =
+              planData['payment_completed_by_user'] ?? false;
+          final bool isStatusCompleted =
+              planData['payment_status'] == 'COMPLETED';
+
+          return isCompletedByUser || isStatusCompleted;
         }
       }
 
@@ -256,22 +419,24 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<bool> hasAcessSaved(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId}) async {
+  Future<bool> hasAcessSaved({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  }) async {
     var headers = {
       'api-key': AppSecrets.apikey,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
     final response = await flipperHttpClient.post(
-        headers: headers,
-        Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
-        body: json.encode({
-          "collection": AppSecrets.AccessCollection,
-          "database": AppSecrets.database,
-          "dataSource": AppSecrets.dataSource,
-          "filter": {"businessId": businessId}
-        }));
+      headers: headers,
+      Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
+      body: json.encode({
+        "collection": AppSecrets.AccessCollection,
+        "database": AppSecrets.database,
+        "dataSource": AppSecrets.dataSource,
+        "filter": {"businessId": businessId},
+      }),
+    );
     if (response.statusCode == 200) {
       // Parse the response body
       final Map<String, dynamic> responseData = json.decode(response.body);
@@ -288,37 +453,54 @@ class HttpApi implements HttpApiInterface {
     }
   }
 
-  @override
-  Future<bool> makePayment(
-      {required HttpClientInterface flipperHttpClient,
-      String? businessId,
-      required String branchId,
-      required String paymentType,
-      String? externalId,
-      required String payeemessage,
-      required int amount,
-      required String phoneNumber}) async {
-    // get active business or profile
+  /// Strips `+`, spaces, and non-digits so `partyId` matches gateway MSISDN rules.
+  static String _normalizePayNowMsisdn(String phoneNumber) {
+    var s = phoneNumber.trim();
+    s = s.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    s = s.replaceAll('+', '');
+    s = s.replaceAll('\uFF0B', '');
+    return s.replaceAll(RegExp(r'\D'), '');
+  }
 
+  Future<http.Response> _payNowPost({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    required String payeemessage,
+    required String payerMessage,
+    required int amount,
+    required String phoneNumber,
+  }) async {
+    final partyId = _normalizePayNowMsisdn(phoneNumber);
+    final payload = <String, dynamic>{
+      "amount": amount,
+      "currency": "RWF",
+      "payer": {"partyIdType": "MSISDN", "partyId": partyId},
+      "payerMessage": payerMessage,
+      "payeeNote": payeemessage,
+      "branchId": branchId,
+      "paymentType": paymentType,
+      "externalId": externalId,
+    };
+    if (businessId != null) {
+      payload["businessId"] = businessId;
+    } else {
+      payload.remove("businessId");
+    }
+    final body = json.encode(payload);
+    talker.debug(body);
     final response = await flipperHttpClient.post(
-        headers: {'Content-Type': 'application/json'},
-        Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
-        body: json.encode({
-          "amount": amount,
-          "currency": "RWF",
-          "payer": {
-            "partyIdType": "MSISDN",
-            "partyId": phoneNumber,
-          },
-          "payerMessage": "Flipper Subscription",
-          "payeeNote": payeemessage,
-          "businessId": businessId,
-          "branchId": branchId,
-          "paymentType": paymentType,
-          "externalId": externalId
-        }));
+      headers: {'Content-Type': 'application/json'},
+      Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
+      body: body,
+    );
     talker.debug(response.body);
-    final status = response.statusCode;
+    return response;
+  }
+
+  void _throwIfPayNowHttpError(int status) {
     if (status == 400) {
       throw Exception("Bad request");
     } else if (status == 401) {
@@ -338,54 +520,186 @@ class HttpApi implements HttpApiInterface {
     } else if (status == 504) {
       throw Exception("Gateway timeout");
     }
-    return status == 200;
   }
 
   @override
-  Future<bool> subscribe(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId,
-      int? agentCode,
-      int? timeInSeconds = 120,
-      required int amount}) async {
-    final phone =
-        ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
-            ProxyService.box.getUserPhone()!.replaceAll("+", "");
+  Future<bool> makePayment({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    required String payeemessage,
+    required String payerMessage,
+    required int amount,
+    required String phoneNumber,
+  }) async {
+    final response = await _payNowPost(
+      flipperHttpClient: flipperHttpClient,
+      businessId: businessId,
+      branchId: branchId,
+      paymentType: paymentType,
+      externalId: externalId,
+      payeemessage: payeemessage,
+      payerMessage: payerMessage,
+      amount: amount,
+      phoneNumber: phoneNumber,
+    );
+    final status = response.statusCode;
+    _throwIfPayNowHttpError(status);
+    return status == 200 || status == 202;
+  }
+
+  @override
+  Future<MakePaymentWithReferenceResult> initiatePayNowWithReference({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    required String payeemessage,
+    required String payerMessage,
+    required int amount,
+    required String phoneNumber,
+  }) async {
+    final response = await _payNowPost(
+      flipperHttpClient: flipperHttpClient,
+      businessId: businessId,
+      branchId: branchId,
+      paymentType: paymentType,
+      externalId: externalId,
+      payeemessage: payeemessage,
+      payerMessage: payerMessage,
+      amount: amount,
+      phoneNumber: phoneNumber,
+    );
+    final status = response.statusCode;
+    _throwIfPayNowHttpError(status);
+    if (status != 200 && status != 202) {
+      throw Exception('PayNow failed: HTTP $status');
+    }
+    dynamic decoded;
+    try {
+      decoded = json.decode(response.body);
+    } catch (e, st) {
+      talker.error(
+        'initiatePayNowWithReference: invalid JSON (HTTP $status): ${response.body}',
+        e,
+        st,
+      );
+      throw Exception('PayNow returned invalid JSON (HTTP $status)');
+    }
+    final decodedMap = HttpApi.jsonObjectFromDecoded(decoded);
+    if (decodedMap == null) {
+      throw Exception('PayNow response is not a JSON object (HTTP $status)');
+    }
+    final paymentReference =
+        HttpApi.paymentReferenceForStatusPolling(decodedMap);
+    if (paymentReference == null || paymentReference.isEmpty) {
+      throw Exception(
+        'PayNow response missing paymentReference/externalId (HTTP $status)',
+      );
+    }
+    return MakePaymentWithReferenceResult(
+      paymentReference: paymentReference,
+    );
+  }
+
+  @override
+  Future<bool> subscribe({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+    required String phoneNumber,
+    int? agentCode,
+    int? timeInSeconds = 120,
+    required int amount,
+  }) async {
+    final phone = phoneNumber.replaceAll('+', '').replaceAll(' ', '').trim();
     final response = await flipperHttpClient.post(
-        Uri.parse('${AppSecrets.coreApi}/v2/api/preApprove'),
-        body: json.encode({
-          "payer": {"partyIdType": "MSISDN", "partyId": phone},
-          "payerCurrency": "RWF",
-          "payerMessage": "Flipper Subscription",
-          "validityTime": timeInSeconds,
-          "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af"
-        }));
+      Uri.parse('${AppSecrets.coreApi}/v2/api/preApprove'),
+      body: json.encode({
+        "payer": {"partyIdType": "MSISDN", "partyId": phone},
+        "payerCurrency": "RWF",
+        "payerMessage": "Flipper Subscription",
+        "validityTime": timeInSeconds,
+        "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
+      }),
+    );
     return response.statusCode == 200;
   }
 
   @override
-  Future<bool> checkPaymentStatus(
-      {required HttpClientInterface flipperHttpClient,
-      required String paymentReference}) async {
+  Future<RequestToPayHttpSnapshot?> fetchRequestToPayHttpSnapshot({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
+  }) async {
+    final idForStatusPath =
+        HttpApi.sanitizeMtnRequestToPayReferenceId(paymentReference);
+    if (idForStatusPath == null || idForStatusPath.isEmpty) {
+      talker.error(
+        'fetchRequestToPayHttpSnapshot: invalid paymentReference (input: $paymentReference)',
+      );
+      return null;
+    }
+    final branch = (branchId != null && branchId.trim().isNotEmpty)
+        ? branchId.trim()
+        : defaultMtnRequestToPayBranchId;
+    final response = await flipperHttpClient.get(
+      Uri.parse(
+        '${AppSecrets.apihubProd}/v2/api/requesttopay/status/$idForStatusPath/$branch',
+      ),
+    );
+
+    talker.info('Payment status response: ${response.body}');
+
+    Map<String, dynamic>? map;
     try {
-      final response = await flipperHttpClient.get(Uri.parse(
-          '${AppSecrets.apihubProd}/v2/api/requesttopay/status/$paymentReference/2f83b8b1-6d41-4d80-b0e7-de8ab36910af'));
+      map = HttpApi.jsonObjectFromDecoded(json.decode(response.body));
+    } catch (e, st) {
+      talker.error(
+        'fetchRequestToPayHttpSnapshot: invalid JSON (HTTP ${response.statusCode})',
+        e,
+        st,
+      );
+      return null;
+    }
+    if (map == null) {
+      talker.warning(
+        'fetchRequestToPayHttpSnapshot: body is not a JSON object (HTTP ${response.statusCode})',
+      );
+      return null;
+    }
+    final snap = RequestToPayHttpSnapshot(
+      httpStatus: response.statusCode,
+      json: map,
+      sanitizedReference: idForStatusPath,
+    );
+    talker.info(
+      'Request-to-pay snapshot HTTP ${response.statusCode} mtnStatus=${snap.json['status']} isMtnSuccessful=${snap.isMtnSuccessful}',
+    );
+    return snap;
+  }
 
-      talker.info('Payment status response: ${response.body}');
-
-      // Parse the response
-      final Map<String, dynamic> responseData = json.decode(response.body);
-
-      // Check if payment was successful
-      if (response.statusCode == 200 &&
-          responseData['status'] == 'SUCCESSFUL') {
-        // Update payment status in database
-        await _updatePaymentStatus(paymentReference, responseData);
-        return true;
-      } else {
-        talker.error('Payment not successful: ${responseData['status']}');
+  @override
+  Future<bool> checkPaymentStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
+  }) async {
+    try {
+      final snap = await fetchRequestToPayHttpSnapshot(
+        flipperHttpClient: flipperHttpClient,
+        paymentReference: paymentReference,
+        branchId: branchId,
+      );
+      if (snap == null) return false;
+      if (!snap.isMtnSuccessful) {
+        talker.error('Payment not successful: ${snap.json['status']}');
         return false;
       }
+      await _updatePaymentStatus(snap.sanitizedReference, snap.json);
+      return true;
     } catch (e, stackTrace) {
       talker.error('Error checking payment status', e, stackTrace);
       return false;
@@ -393,11 +707,14 @@ class HttpApi implements HttpApiInterface {
   }
 
   Future<void> _updatePaymentStatus(
-      String paymentReference, Map<String, dynamic> responseData) async {
+    String paymentReference,
+    Map<String, dynamic> responseData,
+  ) async {
     try {
       // Find the payment record
-      final payments = await ProxyService.strategy
-          .getPayment(paymentReference: paymentReference);
+      final payments = await ProxyService.strategy.getPayment(
+        paymentReference: paymentReference,
+      );
 
       if (payments != null) {
         final payment = payments;
@@ -406,12 +723,14 @@ class HttpApi implements HttpApiInterface {
         payment.paymentStatus = 'completed';
 
         // Add credits to user account if payment was successful
-        if (responseData['status'] == 'SUCCESSFUL') {
-          final amount = double.tryParse(responseData['amount'] ?? '0') ?? 0;
+        if (responseData['status']?.toString().trim().toUpperCase() ==
+            'SUCCESSFUL') {
+          final amount = double.tryParse(responseData['amount']?.toString() ?? '0') ?? 0;
           Credit? credit = await ProxyService.strategy.getCredit(
-              branchId: (await ProxyService.strategy
-                      .branch(serverId: ProxyService.box.getBranchId()!))!
-                  .id);
+            branchId: (await ProxyService.strategy.branch(
+              serverId: ProxyService.box.getBranchId()!,
+            ))!.id,
+          );
           if (credit != null) {
             credit.credits += amount;
             await ProxyService.strategy.updateCredit(credit);
@@ -421,11 +740,11 @@ class HttpApi implements HttpApiInterface {
               createdAt: DateTime.now(),
               updatedAt: DateTime.now(),
               businessId: (await ProxyService.strategy.getBusiness(
-                      businessId: ProxyService.box.getBusinessId()!))!
-                  .id,
-              branchId: (await ProxyService.strategy
-                      .branch(serverId: ProxyService.box.getBranchId()!))!
-                  .id,
+                businessId: ProxyService.box.getBusinessId()!,
+              ))!.id,
+              branchId: (await ProxyService.strategy.branch(
+                serverId: ProxyService.box.getBranchId()!,
+              ))!.id,
               credits: amount,
             );
             await ProxyService.strategy.updateCredit(credit);
@@ -436,8 +755,11 @@ class HttpApi implements HttpApiInterface {
         await ProxyService.strategy.upsertPayment(payment);
         talker.info('Payment status updated for reference: $paymentReference');
       } else {
-        talker
-            .error('Payment record not found for reference: $paymentReference');
+        // MTN success does not imply a local Brick [CustomerPayments] row: subscription
+        // flows usually sync one (transactionId == reference); gig / ad-hoc payNow often does not.
+        talker.info(
+          'No local payment row for reference $paymentReference — skipping credit/upsert (normal for some payNow flows)',
+        );
       }
     } catch (e, stackTrace) {
       talker.error('Error updating payment status', e, stackTrace);
@@ -479,9 +801,11 @@ class HttpApi implements HttpApiInterface {
         return responseData;
       } else {
         talker.error(
-            'PDF extraction failed: ${response.statusCode} - ${response.body}');
+          'PDF extraction failed: ${response.statusCode} - ${response.body}',
+        );
         throw Exception(
-            'Failed to extract company info from PDF: ${response.statusCode}');
+          'Failed to extract company info from PDF: ${response.statusCode}',
+        );
       }
     } catch (e, stackTrace) {
       talker.error('Error in extractCompanyInfoFromPdf', e, stackTrace);
@@ -490,10 +814,159 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<int?> getBusinessId(
-      {required HttpClientInterface client, required String businessId}) {
+  Future<int?> getBusinessId({
+    required HttpClientInterface client,
+    required String businessId,
+  }) {
     // TODO: implement getBusinessId
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getPlanAmountDue({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+  }) async {
+    try {
+      final response = await flipperHttpClient.get(
+        Uri.parse('${AppSecrets.apihubProd}/v2/api/plans/$planId/amount-due'),
+      );
+      if (response.statusCode == 200) {
+        final map = HttpApi.jsonObjectFromDecoded(json.decode(response.body));
+        if (map != null) {
+          return map;
+        }
+      } else {
+        talker.warning(
+          'getPlanAmountDue failed: ${response.statusCode} ${response.body}',
+        );
+      }
+      return null;
+    } catch (e, stackTrace) {
+      talker.error('getPlanAmountDue error', e, stackTrace);
+      return null;
+    }
+  }
+
+  @override
+  Future<void> finalizePaymentOnSuccess({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+    required String paymentReference,
+  }) async {
+    final uri = Uri.parse(
+      '${AppSecrets.apihubProd}/v2/api/payment/finalize-on-success',
+    );
+    final body = json.encode({
+      'planId': planId,
+      'paymentReference': paymentReference,
+    });
+    final response = await flipperHttpClient.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
+    if (response.statusCode != 200) {
+      talker.warning(
+        'finalizePaymentOnSuccess failed: ${response.statusCode} ${response.body}',
+      );
+      throw Exception(
+        'finalizePaymentOnSuccess failed: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  @override
+  Future<MakePaymentWithReferenceResult> makePaymentWithReference({
+    required HttpClientInterface flipperHttpClient,
+    required Object businessId,
+    required String phoneNumber,
+    required String paymentType,
+    required String payeemessage,
+    required String payerMessage,
+    required String branchId,
+    String? planId,
+    required int amount,
+  }) async {
+    final payload = <String, dynamic>{
+      'amount': amount,
+      'currency': 'RWF',
+      'payer': {'partyIdType': 'MSISDN', 'partyId': phoneNumber},
+      'payerMessage': payerMessage,
+      'payeeNote': payeemessage,
+      'businessId': '$businessId',
+      'branchId': branchId,
+      'paymentType': paymentType,
+      if (planId != null) 'planId': planId,
+    };
+
+    final response = await flipperHttpClient.post(
+      headers: {'Content-Type': 'application/json'},
+      Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
+      body: json.encode(payload),
+    );
+    talker.debug(response.body);
+
+    final status = response.statusCode;
+    if (status == 200 || status == 202) {
+      dynamic decoded;
+      try {
+        decoded = json.decode(response.body);
+      } catch (e, st) {
+        talker.error(
+          'makePaymentWithReference: invalid JSON on HTTP $status (body: ${response.body})',
+          e,
+          st,
+        );
+        throw Exception(
+          'makePaymentWithReference: invalid JSON response (HTTP $status)',
+        );
+      }
+      final decodedMap = HttpApi.jsonObjectFromDecoded(decoded);
+      if (decodedMap == null) {
+        talker.error(
+          'makePaymentWithReference: HTTP $status but body is not a JSON object '
+          '(got ${decoded.runtimeType}). body=${response.body}',
+        );
+        throw Exception(
+          'makePaymentWithReference: unexpected response shape (HTTP $status)',
+        );
+      }
+      final paymentReference =
+          HttpApi.paymentReferenceForStatusPolling(decodedMap);
+      if (paymentReference == null || paymentReference.isEmpty) {
+        talker.error(
+          'makePaymentWithReference: HTTP $status but paymentReference/externalId missing. '
+          'body=${response.body}',
+        );
+        throw Exception(
+          'makePaymentWithReference: missing payment reference (HTTP $status)',
+        );
+      }
+      return MakePaymentWithReferenceResult(
+        paymentReference: paymentReference,
+      );
+    }
+    if (status == 400) {
+      throw Exception('Bad request');
+    } else if (status == 401) {
+      throw Exception('Unauthorized');
+    } else if (status == 403) {
+      throw Exception('Forbidden');
+    } else if (status == 404) {
+      throw Exception('Not found');
+    } else if (status == 409) {
+      throw Exception('Duplicate payment Id');
+    } else if (status == 500) {
+      throw Exception('Internal server error');
+    } else if (status == 502) {
+      throw Exception('Payment gateway down');
+    } else if (status == 503) {
+      throw Exception('Service unavailable');
+    } else if (status == 504) {
+      throw Exception('Gateway timeout');
+    }
+    throw Exception('payNow failed: $status ${response.body}');
   }
 }
 
@@ -508,65 +981,99 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   }
 
   @override
-  Future<bool> isCouponValid(
-      {required HttpClientInterface flipperHttpClient,
-      required String couponCode}) async {
+  Future<bool> isCouponValid({
+    required HttpClientInterface flipperHttpClient,
+    required String couponCode,
+  }) async {
     return true;
   }
 
   @override
-  Future<bool> isPaymentComplete(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId}) async {
+  Future<bool> isPaymentComplete({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  }) async {
     return true;
   }
 
   @override
-  Future<bool> hasAcessSaved(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId}) {
+  Future<bool> hasAcessSaved({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  }) {
     // TODO: implement hasAcessSaved
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> subscribe(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId,
-      int? timeInSeconds,
-      int? agentCode,
-      required int amount}) {
+  Future<bool> subscribe({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+    required String phoneNumber,
+    int? timeInSeconds,
+    int? agentCode,
+    required int amount,
+  }) {
     // TODO: implement subscribe
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> makePayment(
-      {required HttpClientInterface flipperHttpClient,
-      String? businessId,
-      required String paymentType,
-      required String phoneNumber,
-      String? externalId,
-      required String branchId,
-      required String payeemessage,
-      required int amount}) {
+  Future<bool> makePayment({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String paymentType,
+    required String phoneNumber,
+    String? externalId,
+    required String branchId,
+    required String payeemessage,
+    required String payerMessage,
+    required int amount,
+  }) {
     // TODO: implement makePayment
     throw UnimplementedError();
   }
 
   @override
-  Future<Map<String, dynamic>> payNow(
-      {required Map<String, dynamic> paymentData,
-      required HttpClientInterface flipperHttpClient}) {
+  Future<MakePaymentWithReferenceResult> initiatePayNowWithReference({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    required String payeemessage,
+    required String payerMessage,
+    required int amount,
+    required String phoneNumber,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> payNow({
+    required Map<String, dynamic> paymentData,
+    required HttpClientInterface flipperHttpClient,
+  }) {
     // TODO: implement payNow
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> checkPaymentStatus(
-      {required HttpClientInterface flipperHttpClient,
-      required String paymentReference}) {
+  Future<bool> checkPaymentStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
+  }) {
     // TODO: implement checkPaymentStatus
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RequestToPayHttpSnapshot?> fetchRequestToPayHttpSnapshot({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
+  }) {
     throw UnimplementedError();
   }
 
@@ -590,17 +1097,56 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
         "Address": "Management details:",
         "MainBusinessActivityDescription": "Computer programming activities",
         "PhoneNumber": "+250788360058",
-        "CompanyCode": "108754813"
+        "CompanyCode": "108754813",
       },
       "Title": "DomesticDetail",
-      "Creator": "Microsoft Reporting Services 11.0.0.0"
+      "Creator": "Microsoft Reporting Services 11.0.0.0",
     };
   }
 
   @override
-  Future<int?> getBusinessId(
-      {required HttpClientInterface client, required String businessId}) {
+  Future<int?> getBusinessId({
+    required HttpClientInterface client,
+    required String businessId,
+  }) {
     // TODO: implement getBusinessId
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getPlanAmountDue({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+  }) async {
+    return {
+      'amountDue': 5000,
+      'periodsBucket': 0,
+      'partialDays': 0,
+      'basePeriodPrice': 5000,
+    };
+  }
+
+  @override
+  Future<void> finalizePaymentOnSuccess({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+    required String paymentReference,
+  }) async {}
+
+  @override
+  Future<MakePaymentWithReferenceResult> makePaymentWithReference({
+    required HttpClientInterface flipperHttpClient,
+    required Object businessId,
+    required String phoneNumber,
+    required String paymentType,
+    required String payeemessage,
+    required String payerMessage,
+    required String branchId,
+    String? planId,
+    required int amount,
+  }) async {
+    return const MakePaymentWithReferenceResult(
+      paymentReference: 'mock-payment-reference',
+    );
   }
 }

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/models/user_profile.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:permission_handler/permission_handler.dart';
 import 'ditto_core_mixin.dart';
 
@@ -10,6 +10,9 @@ mixin SyncMixin on DittoCore {
   Timer? _observationTimer;
   final List<void Function(Ditto?)> _dittoListeners = [];
   StreamController<List<UserProfile>>? _userProfilesController;
+  // Track the last Ditto instance we successfully set up to prevent duplicate setup
+  // but allow setup when the instance actually changes
+  Ditto? _lastSetupDitto;
 
   /// Register a listener that will be notified whenever the underlying Ditto
   /// instance changes. The listener is invoked immediately with the current
@@ -22,6 +25,15 @@ mixin SyncMixin on DittoCore {
   /// Remove a previously registered Ditto listener.
   void removeDittoListener(void Function(Ditto?) listener) {
     _dittoListeners.remove(listener);
+  }
+
+  /// Clears [dittoInstance] after the native client was closed elsewhere.
+  void clearDittoInstance() {
+    _observationTimer?.cancel();
+    _observationTimer = null;
+    _lastSetupDitto = null;
+    clearDittoReference();
+    _notifyDittoListeners();
   }
 
   void _notifyDittoListeners() {
@@ -37,6 +49,8 @@ mixin SyncMixin on DittoCore {
   /// Sets the Ditto instance (called from main.dart after initialization)
   /// This method should be called by the class that uses this mixin after setting the Ditto instance in DittoCore
   void setupDittoWithSync(Ditto ditto) {
+    final isLoginDitto = _isLoginDitto(ditto);
+
     // Request necessary permissions for Ditto
     final platform = Ditto.currentPlatform;
     if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
@@ -44,11 +58,15 @@ mixin SyncMixin on DittoCore {
     }
 
     // Only set if we don't already have the same instance
-    if (dittoInstance == ditto) {
-      debugPrint('Same Ditto instance already set, skipping');
-      startSync();
+    if (_lastSetupDitto == ditto) {
+      debugPrint('Same Ditto instance already set up, skipping');
+      if (!isLoginDitto && !kIsWeb) {
+        startSync();
+      }
       return;
     }
+
+    _lastSetupDitto = ditto;
 
     _notifyDittoListeners();
 
@@ -56,9 +74,9 @@ mixin SyncMixin on DittoCore {
     try {
       debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
       debugPrint(
-        '📁 Ditto persistence directory: ${ditto.persistenceDirectory}',
+        '📁 Ditto persistence directory: ${ditto.absolutePersistenceDirectory}',
       );
-      debugPrint('🔗 Ditto sync active: ${dittoInstance!.isSyncActive}');
+      debugPrint('🔗 Ditto sync active: ${dittoInstance!.sync.isActive}');
       debugPrint('🔑 Ditto auth status: ${dittoInstance!.auth.status}');
     } catch (e) {
       debugPrint('❌ ERROR: Ditto instance is not properly initialized: $e');
@@ -66,7 +84,7 @@ mixin SyncMixin on DittoCore {
       return;
     }
 
-    if (kDebugMode) {
+    if (kDebugMode && !isLoginDitto) {
       debugPrint(
         'ℹ️  mDNS NameConflict warnings are normal in development when multiple instances are running',
       );
@@ -75,8 +93,18 @@ mixin SyncMixin on DittoCore {
       );
     }
 
-    startSync();
+    if (!isLoginDitto && !kIsWeb) {
+      startSync();
+    }
     _setupObservation();
+  }
+
+  bool _isLoginDitto(Ditto ditto) {
+    try {
+      return ditto.deviceName.contains('-login-');
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Request necessary permissions for Ditto
@@ -205,7 +233,7 @@ mixin SyncMixin on DittoCore {
   /// Internal method to start sync
   void _startSync({bool fallback = false}) {
     try {
-      dittoInstance!.startSync();
+      dittoInstance!.sync.start();
       debugPrint(
         fallback
             ? 'Ditto sync started (fallback after permission check error)'
@@ -220,7 +248,7 @@ mixin SyncMixin on DittoCore {
   void stopSync() {
     if (dittoInstance != null) {
       try {
-        dittoInstance!.stopSync();
+        dittoInstance!.sync.stop();
         debugPrint('Ditto sync stopped');
       } catch (e) {
         debugPrint('Error stopping Ditto sync: $e');
@@ -241,8 +269,12 @@ mixin SyncMixin on DittoCore {
         await _loadAndUpdateUserProfiles();
       });
       if (kIsWeb) {
+        // Ditto Flutter install guide: web uses an in-memory store (not retained
+        // across reloads) and cloud-only sync (no P2P).
+        // https://docs.ditto.live/sdk/latest/install-guides/flutter
         debugPrint(
-          'Warning: On web platform, Ditto data is in-memory only and will not persist across page reloads.',
+          'ℹ️  Ditto web: in-memory local store (cleared on reload); '
+          'cloud sync only — see Ditto Flutter web considerations.',
         );
       }
     } catch (e) {
@@ -280,9 +312,7 @@ mixin SyncMixin on DittoCore {
 
   /// Placeholder method to be implemented by the class using this mixin
   Future<List<UserProfile>> getAllUserProfiles() async {
-    debugPrint(
-      '⚠️ getAllUserProfiles() not implemented in the class using this mixin',
-    );
+    // TODO: implement
     return [];
   }
 }

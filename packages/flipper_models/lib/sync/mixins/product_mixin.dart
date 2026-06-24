@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
+import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -165,10 +169,29 @@ mixin ProductMixin implements ProductInterface {
           query: brick.Query(where: queryConditions),
         );
 
-        // If a variant with the same product and barcode exists, return the product
+        // Variant already created for this product+barcode (e.g. prior bulk row failed at RRA).
         if (existingVariants.isNotEmpty) {
+          final existing = existingVariants.first;
           talker.info(
-              'Variant already exists with ID: ${existingVariants.first.id}');
+            'Variant already exists with ID: ${existing.id}; ebmSynced=${existing.ebmSynced}',
+          );
+          if (!skipRRaCall) {
+            var toSync = existing;
+            if (toSync.stock != null && qty > 0) {
+              final s = toSync.stock!;
+              toSync.stock = s.copyWith(
+                currentStock: qty,
+                rsdQty: qty,
+                initialStock: qty,
+                value: qty * (retailPrice > 0 ? retailPrice : supplyPrice),
+              );
+            }
+            await ProxyService.strategy.addVariant(
+              variations: [toSync],
+              branchId: branchId,
+              skipRRaCall: false,
+            );
+          }
           return createdProduct;
         }
 
@@ -217,6 +240,7 @@ mixin ProductMixin implements ProductInterface {
           taxTyCd: taxTyCd,
           splyAmt: splyAmt,
           spplrItemClsCd: spplrItemClsCd,
+          categoryId: product.categoryId,
         );
         talker.info('New variant created: ${newVariant.toFlipperJson()}');
 
@@ -355,8 +379,10 @@ mixin ProductMixin implements ProductInterface {
     ))
         .firstOrNull;
 
-    // Determine tax type code - prioritize explicit taxTyCd, then taxTypes map, then default to "B"
-    String finalTaxTyCd = taxTyCd ?? taxTypes?[product?.barCode] ?? "B";
+    // Determine tax type code - explicit taxTyCd, then taxTypes map, then EBM VAT default.
+    final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
+    String finalTaxTyCd =
+        taxTyCd ?? taxTypes?[product?.barCode] ?? defaultTaxTyCdForVat(vatEnabled);
 
     // Get tax percentage based on the tax type code
     double finalTaxPercentage = taxType?.taxPercentage ?? 18.0;
@@ -470,34 +496,14 @@ mixin ProductMixin implements ProductInterface {
       required String branchId,
       required String quantityUnit}) async {
     final repository = Repository();
-    final query = Query(
-      limit: 1,
-      where: [
-        Where('code').isNot(null),
-        Where('branchId').isExactly(branchId),
-      ],
-      orderBy: [OrderBy('createdAt', ascending: false)],
+    final lastSequence = await maxRraItemCodeSequenceForBranch(
+      repository: repository,
+      branchId: branchId,
     );
-    final items = await repository.get<ItemCode>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-
-    // Extract the last sequence number and increment it
-    int lastSequence = 0;
-    if (items.isNotEmpty) {
-      final lastItemCode = items.first.code;
-      final sequencePart = lastItemCode.substring(lastItemCode.length - 7);
-      try {
-        lastSequence = int.parse(sequencePart);
-      } catch (e) {
-        lastSequence = 0;
-      }
-    }
     final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
-    // Construct the new item code
     final newItemCode =
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
 
-    // Save the new item code in the database
     final newItem = ItemCode(
         code: newItemCode,
         createdAt: DateTime.now().toUtc(),
@@ -640,6 +646,13 @@ mixin ProductMixin implements ProductInterface {
 
   @override
   Future<void> hydrateSars({required String branchId}) async {
+    final ditto = DittoService.instance.dittoInstance;
+    if (ditto != null) {
+      await ensureBranchSarCloudSubscription(
+        ditto: ditto,
+        branchId: branchId,
+      );
+    }
     await repository.get<Sar>(
       policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
       query: brick.Query(

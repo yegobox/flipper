@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
@@ -32,7 +33,11 @@ class RealDittoObserverRunner implements DittoObserverRunner {
     if (ditto == null) {
       throw Exception('Ditto not initialized:20');
     }
-    await ditto.sync.registerSubscription(query, arguments: arguments ?? {});
+    final preparedWa = prepareDqlSyncSubscription(query, arguments);
+    await ditto.sync.registerSubscription(
+      preparedWa.dql,
+      arguments: preparedWa.arguments,
+    );
   }
 
   @override

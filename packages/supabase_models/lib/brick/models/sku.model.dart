@@ -22,4 +22,23 @@ class SKU extends OfflineFirstWithSupabaseModel {
     this.businessId,
     this.consumed,
   }) : id = id ?? const Uuid().v4();
+  factory SKU.fromJson(Map<String, dynamic> json) {
+    return SKU(
+      id: json['id'] as String?,
+      sku: json['sku'] as int?,
+      branchId: json['branchId'] as String?,
+      businessId: json['businessId'] as String?,
+      consumed: json['consumed'] as bool?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'sku': sku,
+      'branchId': branchId,
+      'businessId': businessId,
+      'consumed': consumed,
+    };
+  }
 }

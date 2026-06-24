@@ -1,4 +1,5 @@
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_tax_ty_cds.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
@@ -10,7 +11,7 @@ class VariantUtils {
     if (branchId == null) return [];
 
     if (filter.isEmpty) {
-      // Return initial variants when no search filter
+      final taxTyCds = posCatalogTaxTyCds(vatEnabled: ProxyService.box.vatEnabled());
       final variants =
           await ProxyService.getStrategy(Strategy.capella).variants(
         name: '',
@@ -18,7 +19,7 @@ class VariantUtils {
         branchId: branchId,
         page: 0,
         itemsPerPage: 20,
-        taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
+        taxTyCds: taxTyCds,
         scanMode: false,
       );
       return variants.variants
@@ -27,14 +28,14 @@ class VariantUtils {
           .toList();
     }
 
-    // Perform global search similar to search_field.dart
+    final taxTyCds = posCatalogTaxTyCds(vatEnabled: ProxyService.box.vatEnabled());
     final variants = await ProxyService.getStrategy(Strategy.capella).variants(
       name: filter.toLowerCase(),
-      fetchRemote: true, // Always fetch remote for searches
+      fetchRemote: true,
       branchId: branchId,
       page: 0,
-      itemsPerPage: 50, // Larger page size for search results
-      taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
+      itemsPerPage: 50,
+      taxTyCds: taxTyCds,
       scanMode: false,
     );
 

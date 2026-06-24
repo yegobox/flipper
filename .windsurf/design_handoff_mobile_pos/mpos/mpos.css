@@ -1,0 +1,412 @@
+/* ===========================================================
+   Flipper · Mobile POS (clean re-imagined sale flow)
+   Depends on onboarding/styles.css for base tokens
+   =========================================================== */
+
+:root {
+  --mpos-bg:    #F4F6FB;
+  --mpos-head:  #FFFFFF;
+  --gain:       #16A34A;
+  --gain-ink:   #15803D;
+  --gain-tint:  #E7F6EE;
+  --loss:       #E5484D;
+  --loss-ink:   #B42318;
+  --loss-tint:  #FDECEC;
+  --warnamber:  #B7791F;
+  --warn-tint:  #FBF1DC;
+  --pend:       #D97706;
+  --pend-tint:  #FCEFD6;
+}
+
+/* screen scaffold inside the Phone frame */
+.mp {
+  position: relative;
+  height: 100%;
+  display: flex; flex-direction: column;
+  background: var(--mpos-bg);
+  font-family: var(--sans);
+  color: var(--ink-1);
+  overflow: hidden;
+}
+.mp-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.mp-scroll::-webkit-scrollbar { width: 0; }
+
+/* ============================ header ============================ */
+.mp-head {
+  flex-shrink: 0;
+  background: var(--mpos-head);
+  border-bottom: 1px solid var(--line);
+  padding: 6px 16px 12px;
+}
+.mp-head-row { display: flex; align-items: center; gap: 12px; }
+.mp-back {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  display: grid; place-items: center; color: var(--ink-1);
+  background: var(--surface-2); border: 1px solid var(--line);
+  transition: background .12s, transform .1s;
+}
+.mp-back:active { transform: scale(.94); }
+.mp-head-titles { flex: 1; min-width: 0; }
+.mp-head-title { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+.mp-head-meta { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; font-variant-numeric: tabular-nums; }
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 26px; padding: 0 11px 0 9px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 800; letter-spacing: .04em;
+  background: var(--pend-tint); color: var(--pend);
+}
+.status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.status-pill.paid { background: var(--gain-tint); color: var(--gain-ink); }
+
+/* ============================ search ============================ */
+.mp-tools { display: flex; gap: 10px; margin-top: 14px; }
+.mp-search {
+  flex: 1; display: flex; align-items: center; gap: 10px;
+  height: 50px; padding: 0 14px;
+  background: var(--surface-2); border: 1.5px solid transparent; border-radius: var(--r-md);
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.mp-search:focus-within { background: var(--surface); border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-tint); }
+.mp-search svg { color: var(--ink-3); flex-shrink: 0; }
+.mp-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 15.5px; font-weight: 500; }
+.mp-search input::placeholder { color: var(--ink-4); }
+.mp-scan {
+  display: flex; align-items: center; gap: 7px;
+  height: 50px; padding: 0 15px; border-radius: var(--r-md);
+  background: var(--blue-tint); color: var(--blue);
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+  transition: transform .1s, background .12s;
+}
+.mp-scan:active { transform: scale(.96); background: var(--blue-tint2); }
+
+/* meta row */
+.mp-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 8px;
+}
+.mp-meta-count { font-size: 13px; color: var(--ink-3); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mp-sort {
+  display: flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 12px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--line);
+  font-size: 13px; font-weight: 600; color: var(--ink-2);
+}
+
+/* ============================ product rows ============================ */
+.mp-list { padding: 2px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.mp-prod {
+  display: flex; align-items: center; gap: 13px;
+  padding: 12px; border-radius: var(--r-md);
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--sh-1);
+  transition: transform .1s, box-shadow .15s, border-color .15s;
+}
+.mp-prod:active { transform: scale(.99); }
+.mp-prod.is-out { opacity: .55; }
+.mp-prod-thumb {
+  width: 50px; height: 50px; border-radius: 13px; flex-shrink: 0;
+  display: grid; place-items: center; color: #fff;
+  font-size: 14px; font-weight: 800; letter-spacing: -.02em;
+}
+.mp-prod-mid { flex: 1; min-width: 0; }
+.mp-prod-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-prod-sub { font-size: 12px; color: var(--ink-3); font-family: var(--mono); margin-top: 2px; }
+.mp-prod-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.mp-prod-price { font-family: var(--mono); font-size: 14.5px; font-weight: 700; white-space: nowrap; }
+.mp-stock {
+  font-size: 10.5px; font-weight: 700; font-family: var(--mono); white-space: nowrap;
+  padding: 2px 8px; border-radius: 999px;
+  background: var(--gain-tint); color: var(--gain-ink);
+}
+.mp-stock.low { background: var(--warn-tint); color: var(--warnamber); }
+.mp-stock.out { background: var(--loss-tint); color: var(--loss-ink); }
+
+.mp-add {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: grid; place-items: center;
+  background: var(--blue); color: #fff;
+  box-shadow: var(--sh-blue);
+  transition: transform .1s, background .12s;
+}
+.mp-add:active { transform: scale(.9); }
+.mp-add:disabled { background: var(--line-strong); box-shadow: none; color: #fff; }
+/* qty pill replaces + once in cart */
+.mp-qty-pill {
+  display: flex; align-items: center; gap: 0;
+  height: 40px; border-radius: 12px; flex-shrink: 0;
+  background: var(--blue); color: #fff; overflow: hidden;
+  box-shadow: var(--sh-blue);
+}
+.mp-qty-pill button { width: 34px; height: 100%; display: grid; place-items: center; color: #fff; transition: background .12s; }
+.mp-qty-pill button:active { background: rgba(255,255,255,.18); }
+.mp-qty-pill .n { min-width: 22px; text-align: center; font-family: var(--mono); font-size: 15px; font-weight: 700; }
+
+/* ============================ sticky cart bar ============================ */
+.mp-cartbar {
+  flex-shrink: 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -10px 30px -16px rgba(16,32,64,.18);
+}
+.mp-cartbar-btn {
+  display: flex; align-items: center; gap: 13px;
+  width: 100%; height: 60px; padding: 0 8px 0 18px;
+  border-radius: 16px; color: #fff;
+  background: var(--grad-btn); box-shadow: var(--sh-blue);
+  transition: transform .12s, opacity .2s;
+}
+.mp-cartbar-btn:active { transform: scale(.985); }
+.mp-cartbar-btn:disabled { opacity: .5; box-shadow: none; cursor: default; }
+.mp-cartbar-badge {
+  min-width: 30px; height: 30px; padding: 0 9px; border-radius: 999px;
+  background: rgba(255,255,255,.22); display: grid; place-items: center;
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+}
+.mp-cartbar-mid { flex: 1; text-align: left; }
+.mp-cartbar-lbl { font-size: 11.5px; opacity: .85; font-weight: 600; }
+.mp-cartbar-total { font-family: var(--mono); font-size: 18px; font-weight: 700; letter-spacing: -.01em; margin-top: -1px; }
+.mp-cartbar-go { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; padding-right: 12px; }
+
+/* empty cart bar state */
+.mp-cartbar-empty {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  height: 56px; border-radius: 16px;
+  background: var(--surface-2); color: var(--ink-3);
+  font-size: 14px; font-weight: 600;
+}
+
+/* ============================ checkout screen ============================ */
+.mp-co-body { padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 14px; }
+.mp-sec-label {
+  font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-3); margin: 2px 2px 0;
+}
+.mp-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); box-shadow: var(--sh-1);
+}
+
+/* customer row */
+.mp-cust {
+  display: flex; align-items: center; gap: 13px; padding: 14px;
+  width: 100%; text-align: left;
+}
+.mp-cust-av {
+  width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 16px; font-weight: 800; color: #fff;
+}
+.mp-cust-av.empty { background: var(--surface-2); color: var(--ink-3); border: 1.5px dashed var(--line-strong); }
+.mp-cust-mid { flex: 1; min-width: 0; }
+.mp-cust-name { font-size: 15px; font-weight: 700; }
+.mp-cust-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; font-variant-numeric: tabular-nums; }
+.mp-cust-act { font-size: 13.5px; font-weight: 700; color: var(--blue); flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
+.mp-cust-clear { color: var(--ink-3); padding: 6px; flex-shrink: 0; }
+
+/* item lines in checkout */
+.mp-items { display: flex; flex-direction: column; }
+.mp-item { padding: 13px 14px; border-bottom: 1px solid var(--line-soft); }
+.mp-item:last-child { border-bottom: 0; }
+.mp-item-top { display: flex; align-items: center; gap: 12px; }
+.mp-item-sw {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 800;
+}
+.mp-item-mid { flex: 1; min-width: 0; }
+.mp-item-name { font-size: 14.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-item-unit { font-size: 12px; color: var(--ink-3); font-family: var(--mono); margin-top: 1px; }
+.mp-item-unit .flag { margin-left: 6px; color: var(--blue); font-weight: 700; }
+.mp-item-tot { font-family: var(--mono); font-size: 15px; font-weight: 700; flex-shrink: 0; white-space: nowrap; }
+.mp-item-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 11px; }
+.mp-stepper { display: flex; align-items: center; gap: 0; height: 38px; border-radius: 11px; border: 1.5px solid var(--line); overflow: hidden; }
+.mp-stepper button { width: 40px; height: 100%; display: grid; place-items: center; color: var(--blue); background: var(--surface); transition: background .12s; }
+.mp-stepper button:active { background: var(--blue-tint); }
+.mp-stepper button:disabled { color: var(--ink-4); }
+.mp-stepper .n { min-width: 30px; text-align: center; font-family: var(--mono); font-size: 15px; font-weight: 700; border-left: 1px solid var(--line); border-right: 1px solid var(--line); height: 100%; display: grid; place-items: center; }
+.mp-item-edit {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 700; color: var(--blue);
+  padding: 8px 10px; border-radius: 9px;
+}
+.mp-item-edit:active { background: var(--blue-tint); }
+.mp-item-del { color: var(--ink-4); padding: 8px; }
+.mp-item-del:active { color: var(--loss); }
+
+/* inline price edit (expand) */
+.mp-priceedit { margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: var(--r-md); border: 1px solid var(--line); }
+.mp-priceedit-lbl { font-size: 11.5px; font-weight: 700; color: var(--ink-2); margin-bottom: 7px; }
+.mp-pricefield { display: flex; align-items: center; height: 48px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 11px; overflow: hidden; }
+.mp-pricefield:focus-within { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-tint); }
+.mp-pricefield .cur { align-self: stretch; display: grid; place-items: center; padding: 0 12px; font-size: 12px; font-weight: 700; color: var(--ink-3); background: var(--surface-2); border-right: 1px solid var(--line); }
+.mp-pricefield input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; padding: 0 12px; font-family: var(--mono); font-size: 17px; font-weight: 700; }
+.mp-pricefield .reset { width: 38px; flex-shrink: 0; display: grid; place-items: center; color: var(--ink-3); }
+
+/* add more items link */
+.mp-addmore {
+  display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
+  height: 48px; border-radius: var(--r-md);
+  background: var(--surface); border: 1.5px dashed var(--line-strong);
+  color: var(--blue); font-size: 14px; font-weight: 700;
+}
+.mp-addmore:active { background: var(--blue-tint); }
+
+/* payment method chips */
+.mp-pays { display: flex; gap: 9px; padding: 4px; }
+.mp-pay {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 13px 6px; border-radius: var(--r-md);
+  background: var(--surface); border: 1.5px solid var(--line);
+  transition: border-color .12s, background .12s;
+}
+.mp-pay svg { color: var(--ink-2); }
+.mp-pay span { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.mp-pay.on { border-color: var(--blue); background: var(--blue-tint); }
+.mp-pay.on svg, .mp-pay.on span { color: var(--blue); }
+
+/* tender + quick cash */
+.mp-tender-wrap { padding: 12px 14px; }
+.mp-tenderfield { display: flex; align-items: center; height: 56px; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+.mp-tenderfield:focus-within { border-color: var(--blue); background: var(--surface); box-shadow: 0 0 0 4px var(--blue-tint); }
+.mp-tenderfield .cur { align-self: stretch; display: grid; place-items: center; padding: 0 15px; font-size: 13px; font-weight: 800; color: var(--ink-3); border-right: 1px solid var(--line); }
+.mp-tenderfield input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; padding: 0 14px; font-family: var(--mono); font-size: 20px; font-weight: 700; }
+.mp-quickcash { display: flex; gap: 8px; margin-top: 10px; }
+.mp-quickcash button {
+  flex: 1; height: 40px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--line);
+  font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--ink-2);
+  transition: background .12s, border-color .12s;
+}
+.mp-quickcash button:active, .mp-quickcash button.on { background: var(--blue-tint); border-color: var(--blue); color: var(--blue); }
+
+/* totals summary */
+.mp-totals { padding: 14px; }
+.mp-total-row { display: flex; align-items: baseline; justify-content: space-between; padding: 4px 0; }
+.mp-total-row .k { font-size: 13.5px; color: var(--ink-2); }
+.mp-total-row .v { font-family: var(--mono); font-size: 14.5px; font-weight: 600; }
+.mp-total-grand { padding-top: 11px; margin-top: 7px; border-top: 1px dashed var(--line-strong); }
+.mp-total-grand .k { font-size: 15px; font-weight: 700; color: var(--ink-1); }
+.mp-total-grand .v { font-size: 24px; font-weight: 700; color: var(--ink-1); }
+.mp-total-row.change .k, .mp-total-row.change .v { color: var(--gain-ink); font-weight: 700; }
+.mp-total-row.due .k, .mp-total-row.due .v { color: var(--loss-ink); font-weight: 700; }
+
+/* checkout footer */
+.mp-co-foot {
+  flex-shrink: 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface); border-top: 1px solid var(--line);
+  display: flex; gap: 11px;
+}
+.mp-btn-ghost {
+  flex: 0 0 auto; min-width: 110px; height: 56px; border-radius: 15px;
+  display: grid; place-items: center;
+  background: var(--surface-2); border: 1.5px solid var(--line);
+  font-size: 14.5px; font-weight: 700; color: var(--ink-2);
+}
+.mp-btn-pay {
+  flex: 1; height: 56px; border-radius: 15px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  background: var(--grad-btn); color: #fff; box-shadow: var(--sh-blue);
+  font-size: 16px; font-weight: 700;
+  transition: transform .12s, opacity .2s;
+}
+.mp-btn-pay.ready { background: linear-gradient(180deg,#1FB36B 0%,#16A34A 100%); box-shadow: 0 12px 28px -8px rgba(22,163,74,.45); }
+.mp-btn-pay:active { transform: scale(.985); }
+.mp-btn-pay:disabled { opacity: .45; box-shadow: none; cursor: default; }
+
+/* ============================ customer picker sheet ============================ */
+.mp-overlay {
+  position: absolute; inset: 0; z-index: 30;
+  background: rgba(11,18,32,.42);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  animation: mpFade .2s ease;
+}
+@keyframes mpFade { from { opacity: 0; } to { opacity: 1; } }
+.mp-sheet {
+  background: var(--surface);
+  border-radius: 26px 26px 0 0;
+  max-height: 88%;
+  display: flex; flex-direction: column;
+  animation: mpUp .32s cubic-bezier(.22,.9,.3,1);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@keyframes mpUp { from { transform: translateY(100%); } to { transform: none; } }
+.mp-sheet-handle { width: 40px; height: 4px; border-radius: 999px; background: var(--line-strong); margin: 10px auto 4px; }
+.mp-sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 18px 12px; }
+.mp-sheet-title { font-size: 18px; font-weight: 700; }
+.mp-sheet-close { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); }
+.mp-sheet-body { overflow-y: auto; padding: 0 18px 18px; }
+.mp-sheet-body::-webkit-scrollbar { width: 0; }
+
+.mp-custsearch { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 14px; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: var(--r-md); margin-bottom: 8px; }
+.mp-custsearch:focus-within { border-color: var(--blue); background: var(--surface); box-shadow: 0 0 0 4px var(--blue-tint); }
+.mp-custsearch svg { color: var(--ink-3); }
+.mp-custsearch input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 15.5px; font-weight: 500; }
+
+.mp-walkin {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 13px 14px; margin: 4px 0 10px;
+  border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--line);
+}
+.mp-walkin .ic { width: 40px; height: 40px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink-2); }
+.mp-walkin-t { flex: 1; text-align: left; }
+.mp-walkin-t .a { font-size: 14.5px; font-weight: 700; }
+.mp-walkin-t .b { font-size: 12px; color: var(--ink-3); }
+
+.mp-custrow {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 12px 6px; border-bottom: 1px solid var(--line-soft); text-align: left;
+}
+.mp-custrow:active { background: var(--surface-2); }
+.mp-custrow .av { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: grid; place-items: center; font-size: 15px; font-weight: 800; color: #fff; }
+.mp-custrow .mid { flex: 1; min-width: 0; }
+.mp-custrow .nm { font-size: 14.5px; font-weight: 700; }
+.mp-custrow .ph { font-size: 12.5px; color: var(--ink-3); font-family: var(--mono); margin-top: 1px; display: flex; align-items: center; gap: 5px; }
+.mp-custrow .chev { color: var(--ink-4); }
+.mp-custadd { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 50px; margin-top: 12px; border-radius: var(--r-md); border: 1.5px dashed var(--line-strong); color: var(--blue); font-size: 14.5px; font-weight: 700; }
+
+/* inline confirmation toast (replaces blocking success modal) */
+.mp-toast {
+  position: absolute; left: 16px; right: 16px; bottom: 92px; z-index: 40;
+  display: flex; align-items: center; gap: 11px;
+  padding: 13px 15px; border-radius: var(--r-md);
+  background: #0B1220; color: #fff;
+  box-shadow: var(--sh-3);
+  animation: mpToast .3s cubic-bezier(.22,.9,.3,1);
+}
+@keyframes mpToast { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+.mp-toast .ic { width: 26px; height: 26px; border-radius: 50%; background: var(--gain); display: grid; place-items: center; flex-shrink: 0; }
+.mp-toast .tx { flex: 1; font-size: 13.5px; font-weight: 600; }
+
+/* ============================ success screen ============================ */
+.mp-done {
+  position: relative; height: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  background: radial-gradient(130% 75% at 50% 0%, #1FB36B 0%, #16A34A 44%, #0F7A38 100%);
+  color: #fff; text-align: center; overflow: hidden;
+}
+.mp-done-scroll { flex: 1; width: 100%; overflow-y: auto; padding: 0 26px; display: flex; flex-direction: column; align-items: center; }
+.mp-done-check {
+  width: 104px; height: 104px; border-radius: 32px; margin-top: 56px;
+  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28);
+  display: grid; place-items: center;
+  animation: mpPop .5s cubic-bezier(.2,1.4,.4,1) both;
+}
+@keyframes mpPop { from { transform: scale(0); } to { transform: scale(1); } }
+.mp-done-h { font-size: 28px; font-weight: 800; letter-spacing: -.02em; margin-top: 24px; }
+.mp-done-sub { font-size: 14.5px; color: #DDF3E6; margin-top: 6px; }
+.mp-receipt {
+  width: 100%; margin-top: 26px; padding: 18px;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+  border-radius: var(--r-lg); backdrop-filter: blur(8px);
+  animation: scrIn .5s .2s both;
+}
+.mp-receipt-row { display: flex; align-items: baseline; justify-content: space-between; padding: 5px 0; }
+.mp-receipt-row .k { font-size: 13px; color: #DDF3E6; }
+.mp-receipt-row .v { font-family: var(--mono); font-size: 14px; font-weight: 700; }
+.mp-receipt-div { height: 1px; background: rgba(255,255,255,.18); margin: 10px 0; }
+.mp-receipt-row.big .k { font-size: 15px; font-weight: 700; color: #fff; }
+.mp-receipt-row.big .v { font-size: 22px; }
+.mp-done-foot { flex-shrink: 0; width: 100%; padding: 14px 26px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; }
+.mp-done-btn { height: 54px; border-radius: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15.5px; font-weight: 700; }
+.mp-done-btn.solid { background: #fff; color: var(--gain-ink); }
+.mp-done-btn.ghost { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.3); }

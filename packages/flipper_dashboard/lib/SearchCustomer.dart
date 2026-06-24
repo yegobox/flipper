@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:demo_ui_components/demo_ui_components.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -8,14 +9,24 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
+import 'package:flipper_dashboard/providers/business_agents_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_dashboard/features/sale_agent/sale_agent_assignment_sheet.dart';
+import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
+import 'package:flipper_dashboard/utils/sale_agent_commission.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class CustomDropdownButton extends StatefulWidget {
   final List<String> items;
@@ -25,6 +36,13 @@ class CustomDropdownButton extends StatefulWidget {
   final IconData? icon;
   final bool compact;
 
+  /// When true, renders a compact [IconButton] that opens the same sheet as
+  /// the full chip (used inside the customer search [suffixIcon] row).
+  final bool iconOnly;
+
+  /// Icon tint when [iconOnly] is true (e.g. match customer add [Colors.blue]).
+  final Color? iconOnlyIconColor;
+
   const CustomDropdownButton({
     Key? key,
     required this.items,
@@ -33,6 +51,8 @@ class CustomDropdownButton extends StatefulWidget {
     required this.label,
     this.icon,
     this.compact = false,
+    this.iconOnly = false,
+    this.iconOnlyIconColor,
   }) : super(key: key);
 
   @override
@@ -40,32 +60,34 @@ class CustomDropdownButton extends StatefulWidget {
 }
 
 class _CustomDropdownButtonState extends State<CustomDropdownButton> {
-  final GlobalKey _dropdownKey = GlobalKey();
-
   void _showDropdown() {
-    final RenderBox renderBox =
-        _dropdownKey.currentContext?.findRenderObject() as RenderBox;
-    final size = renderBox.size;
-
-    showDialog(
+    WoltModalSheet.show(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          contentPadding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          content: Container(
-            width: size.width,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
+      pageListBuilder: (context) => [
+        WoltModalSheetPage(
+          isTopBarLayerAlwaysVisible: true,
+          topBarTitle: ModalSheetTopBarTitle(widget.label),
+          pageTitle: ModalSheetTitle(widget.label),
+          trailingNavBarWidget: const WoltModalSheetCloseButton(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: widget.items.map((String value) {
+                final isSelected = value == widget.selectedItem;
                 return ListTile(
-                  title: Text(value),
+                  title: Text(
+                    value,
+                    style: TextStyle(
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      color: isSelected ? Colors.blue : Colors.black,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? const Icon(Icons.check, color: Colors.blue)
+                      : null,
                   onTap: () {
                     widget.onChanged(value);
                     Navigator.of(context).pop();
@@ -74,16 +96,28 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
               }).toList(),
             ),
           ),
-        );
-      },
-      barrierDismissible: true,
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.iconOnly) {
+      return IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
+        tooltip: '${widget.label}: ${widget.selectedItem}',
+        icon: Icon(
+          widget.icon ?? Icons.arrow_drop_down_circle_outlined,
+          size: 20,
+          color: widget.iconOnlyIconColor ?? Colors.black54,
+        ),
+        onPressed: _showDropdown,
+      );
+    }
+
     return GestureDetector(
-      key: _dropdownKey,
       onTap: _showDropdown,
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -124,7 +158,14 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
 }
 
 class SearchInputWithDropdown extends ConsumerStatefulWidget {
-  const SearchInputWithDropdown({Key? key}) : super(key: key);
+  /// When true, removes outer padding so the parent (e.g. checkout cart pane)
+  /// controls horizontal alignment; matches desktop POS mock.
+  final bool embeddedInCheckoutPane;
+
+  const SearchInputWithDropdown({
+    Key? key,
+    this.embeddedInCheckoutPane = false,
+  }) : super(key: key);
 
   @override
   ConsumerState<SearchInputWithDropdown> createState() =>
@@ -134,73 +175,115 @@ class SearchInputWithDropdown extends ConsumerStatefulWidget {
 class _SearchInputWithDropdownState
     extends ConsumerState<SearchInputWithDropdown> {
   final TextEditingController _searchController = TextEditingController();
+  final _dialogService = locator<DialogService>();
+
+  // Layer link used to anchor the floating results below the search field
+  final LayerLink _layerLink = LayerLink();
 
   String _selectedCustomerType = 'Walk-in';
   String _selectedSaleType = 'Outgoing- Sale';
   List<Customer> _searchResults = [];
   Timer? _debounceTimer;
+  String? _selectedCustomerId;
+
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
     super.initState();
-    _initializeSearchBox();
-    // Initialize with default values
     _selectedCustomerType = 'Walk-in';
     _selectedSaleType = 'Outgoing- Sale';
+    // Riverpod [ref] is not available until after [initState] completes.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_initializeSearchBox());
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          unawaited(_saveTransactionMetadata());
+        }
+      });
+    });
   }
 
   @override
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.dispose();
+    _removeOverlay();
     super.dispose();
   }
+
+  // ─── Overlay management ────────────────────────────────────────────────────
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _showOverlay(ITransaction? transaction) {
+    _removeOverlay();
+    if (_searchResults.isEmpty) return;
+
+    final overlay = Overlay.of(context);
+    _overlayEntry = OverlayEntry(
+      builder: (ctx) => Stack(
+        children: [
+          // Transparent barrier – tapping outside dismisses the dropdown
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _removeOverlay,
+              child: const SizedBox.expand(),
+            ),
+          ),
+          _FloatingResults(
+            layerLink: _layerLink,
+            results: _searchResults,
+            selectedId: _selectedCustomerId,
+            onSelect: (customer) {
+              if (transaction == null) return;
+              setState(() => _selectedCustomerId = customer.id);
+              _addCustomerToTransaction(customer, transaction);
+              _removeOverlay();
+            },
+          ),
+        ],
+      ),
+    );
+    overlay.insert(_overlayEntry!);
+  }
+
+  // ─── Initialisation ────────────────────────────────────────────────────────
 
   Future<void> _initializeSearchBox() async {
     final transaction = ref.read(
       pendingTransactionStreamProvider(isExpense: false),
     );
 
-    // Only initialize from database customer if there's no manually entered customer name
-    final existingCustomerName = ProxyService.box.customerName();
+    if (transaction.value != null) {
+      final customer = await TransactionInitializationHelper.initializeCustomer(
+        ref,
+        transaction.value!,
+      );
 
-    if (transaction.value?.customerId != null && existingCustomerName == null) {
-      final customer = await ProxyService.getStrategy(Strategy.capella)
-          .customers(
-            id: transaction.value!.customerId,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-      if (customer.isNotEmpty) {
-        ProxyService.box.writeString(
-          key: 'currentSaleCustomerPhoneNumber',
-          value: customer.first.telNo!,
-        );
-        ProxyService.box.writeString(
-          key: 'customerName',
-          value: customer.first.custNm!,
-        );
-        ProxyService.box.writeString(
-          key: 'customerTin',
-          value: customer.first.custTin!,
-        );
-        _searchController.text = customer.first.custNm!;
-        // Update the Riverpod provider for customer phone number
-        Future(() {
-          ref.read(customerPhoneNumberProvider.notifier).state =
-              customer.first.telNo!;
-        });
+      if (customer != null) {
+        _searchController.text = customer.custNm ?? '';
+        return;
       }
-    } else if (existingCustomerName != null) {
-      // Use the manually entered customer name
+    }
+
+    final existingCustomerName = ProxyService.box.customerName();
+    if (existingCustomerName != null) {
       _searchController.text = existingCustomerName;
     } else {
       _searchController.clear();
-      // Clear the Riverpod provider when no customer is found
-      Future(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(customerPhoneNumberProvider.notifier).state = null;
       });
     }
   }
+
+  // ─── Customer actions ──────────────────────────────────────────────────────
 
   Future<void> _removeCustomer() async {
     final transaction = ref.read(
@@ -208,33 +291,32 @@ class _SearchInputWithDropdownState
     );
     ProxyService.box.remove(key: 'customerTin');
     if (transaction.value?.id != null) {
-      await ProxyService.strategy.removeCustomerFromTransaction(
-        transaction: transaction.value!,
+      final oldCustomerId = transaction.value!.customerId;
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).removeCustomerFromTransaction(transaction: transaction.value!);
+      if (oldCustomerId != null) {
+        ref.invalidate(attachedCustomerProvider(oldCustomerId));
+      }
+      ref.invalidate(
+        transactionByIdProvider(transaction.value!.id),
       );
-
-      ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-
-      setState(() {
-        _searchController.clear();
-      });
-      // Clear the Riverpod provider for customer phone number
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      setState(() => _searchController.clear());
       ref.read(customerPhoneNumberProvider.notifier).state = null;
+      await ProxyService.box.remove(key: 'customerName');
+      await ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber');
     }
   }
 
   void _performSearch(String searchKey) {
-    // Cancel any existing timer
     _debounceTimer?.cancel();
-
-    // Set a new timer
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () async {
       if (searchKey.isEmpty) {
-        setState(() {
-          _searchResults = [];
-        });
+        setState(() => _searchResults = []);
+        _removeOverlay();
         return;
       }
-
       try {
         List<Customer> customers = [];
         String? branchId = ProxyService.box.getBranchId();
@@ -243,17 +325,42 @@ class _SearchInputWithDropdownState
             Strategy.capella,
           ).customers(key: searchKey, branchId: branchId);
         }
-
-        setState(() {
-          _searchResults = customers;
-        });
+        setState(() => _searchResults = customers);
+        final pending = ref.read(
+          pendingTransactionStreamProvider(isExpense: false),
+        );
+        final transaction = pending.hasValue ? pending.requireValue : null;
+        _showOverlay(transaction);
       } catch (e) {
         talker.warning('Error searching customers: $e');
-        setState(() {
-          _searchResults = [];
-        });
+        setState(() => _searchResults = []);
+        _removeOverlay();
       }
     });
+  }
+
+  Future<void> _saveTransactionMetadata() async {
+    final transaction = ref.read(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
+    if (transaction.value?.id != null) {
+      try {
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+          transactionId: transaction.value!.id,
+          customerType: _selectedCustomerType,
+        );
+        final stockInOutType = _selectedSaleType == 'Agent Sale' ? '11' : '11';
+        await ProxyService.box.writeString(
+          key: 'stockInOutType',
+          value: stockInOutType,
+        );
+        talker.info(
+          'Transaction metadata updated: customerType=$_selectedCustomerType, saleType=$_selectedSaleType',
+        );
+      } catch (e) {
+        talker.warning('Error saving transaction metadata: $e');
+      }
+    }
   }
 
   void _addCustomerToTransaction(
@@ -263,12 +370,12 @@ class _SearchInputWithDropdownState
     final customerNameController = ref.read(customerNameControllerProvider);
     try {
       customerNameController.text = customer.custNm!;
-      await ProxyService.strategy.assignCustomerToTransaction(
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).assignCustomerToTransaction(
         customer: customer,
         transaction: transaction,
       );
-
-      // Save customer information to ProxyService.box for receipt generation
       await ProxyService.box.writeString(
         key: 'customerName',
         value: customer.custNm!,
@@ -277,8 +384,6 @@ class _SearchInputWithDropdownState
         key: 'currentSaleCustomerPhoneNumber',
         value: customer.telNo ?? '',
       );
-
-      // Save customer's TIN for future use
       if (customer.custTin != null && customer.custTin!.isNotEmpty) {
         unawaited(
           ProxyService.box.writeString(
@@ -287,186 +392,482 @@ class _SearchInputWithDropdownState
           ),
         );
       }
-
-      // Update the Riverpod provider for customer phone number
       ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
-
-      // Show success alert
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Success'),
-          content: Text('Customer ${customer.custNm} added to the sale!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Refresh the transaction
-                ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+      ref.invalidate(attachedCustomerProvider(customer.id));
+      await _dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Success',
+        description: 'Customer ${customer.custNm} added to the sale!',
+        data: {'status': InfoDialogStatus.success},
       );
-
-      // Clear search results
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
       setState(() {
         _searchResults = [];
         _searchController.clear();
+        _selectedCustomerId = null;
       });
     } catch (e, s) {
       talker.warning('Error adding customer to transaction: $s');
-      // show
-      // Show error dialog
       showToast(context, '$e', color: Colors.red);
     }
   }
 
+  // ─── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final transaction = ref.watch(
-      pendingTransactionStreamProvider(isExpense: false),
+    final customerId = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false).select(
+        (a) => a.asData?.value.customerId,
+      ),
     );
-
     final attachedCustomerAsync = ref.watch(
-      attachedCustomerProvider(transaction.value?.customerId),
+      attachedCustomerProvider(customerId),
     );
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobileWidth = screenWidth < 600;
-
-    // Set mobile-specific defaults if on mobile
-    if (isMobileWidth) {
-      if (_selectedCustomerType == 'Walk-in') {
-        _selectedCustomerType = 'Shop';
-      }
-      if (_selectedSaleType == 'Outgoing- Sale') {
-        _selectedSaleType = 'Agent Sale';
-        // Update the stockInOutType value for Agent Sale
-        ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-      }
-    } else {
-      ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-    }
-
-    // Extract the customer value, defaulting to null if loading or error
     final attachedCustomer = attachedCustomerAsync.maybeWhen(
       data: (customer) => customer,
       orElse: () => null,
     );
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          isMobileWidth
-              ? _buildMobileLayout(attachedCustomer)
-              : _buildDesktopLayout(attachedCustomer),
-          const SizedBox(height: 16.0),
-          if (_searchResults.isNotEmpty)
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: _searchResults.length,
-              itemBuilder: (context, index) {
-                final customer = _searchResults[index];
-                return GestureDetector(
-                  onTap: () =>
-                      _addCustomerToTransaction(customer, transaction.value!),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+    return Padding(
+      padding: widget.embeddedInCheckoutPane
+          ? EdgeInsets.zero
+          : const EdgeInsets.fromLTRB(8, 6, 8, 2),
+      child: _buildSearchField(attachedCustomer),
+    );
+  }
+
+  /// The search text field wrapped in a [CompositedTransformTarget] so the
+  /// floating results overlay can be anchored directly below it at any
+  /// screen resolution.
+  Widget _buildSearchField(Customer? attachedCustomer) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: TextFormField(
+        readOnly: attachedCustomer != null,
+        controller: _searchController,
+        onChanged: _performSearch,
+        onTap: () {
+          if (_searchResults.isNotEmpty) {
+            final pending = ref.read(
+              pendingTransactionStreamProvider(isExpense: false),
+            );
+            final transaction =
+                pending.hasValue ? pending.requireValue : null;
+            _showOverlay(transaction);
+          }
+        },
+        decoration: InputDecoration(
+          hintText: 'Search Customer',
+          prefixIcon: Icon(
+            Icons.search,
+            color: PosLayoutBreakpoints.posAccentBlue,
+          ),
+          suffixIcon: Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomDropdownButton(
+                  iconOnly: true,
+                  iconOnlyIconColor: PosLayoutBreakpoints.posAccentBlue,
+                  items: const ['Walk-in', 'Shop'],
+                  selectedItem: _selectedCustomerType,
+                  onChanged: (value) {
+                    setState(() => _selectedCustomerType = value);
+                    _saveTransactionMetadata();
+                  },
+                  label: 'Customer Type',
+                  icon: Icons.directions_walk,
+                ),
+                CustomDropdownButton(
+                  iconOnly: true,
+                  iconOnlyIconColor: PosLayoutBreakpoints.posAccentBlue,
+                  items: const ['Outgoing- Sale', 'Agent Sale'],
+                  selectedItem: _selectedSaleType,
+                  onChanged: (value) {
+                    setState(() => _selectedSaleType = value);
+                    _saveTransactionMetadata();
+                  },
+                  label: 'Sale Type',
+                  icon: FluentIcons.call_outbound_20_regular,
+                ),
+                const _SearchCustomerAgentSuffix(),
+                if (attachedCustomer != null)
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 40,
                     ),
-                    child: ListTile(
-                      title: Text(customer.custNm ?? 'Unknown'),
-                      subtitle: Text(customer.custTin ?? 'No TIN'),
-                      trailing: const Icon(Icons.add_circle_outline),
+                    icon: const Icon(
+                      FluentIcons.person_delete_20_regular,
+                      color: Colors.red,
+                    ),
+                    onPressed: _removeCustomer,
+                  )
+                else
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 40,
+                    ),
+                    onPressed: () {
+                      locator<RouterService>().navigateTo(CustomersRoute());
+                    },
+                    icon: Icon(
+                      FluentIcons.person_add_16_regular,
+                      color: PosLayoutBreakpoints.posAccentBlue,
                     ),
                   ),
-                );
-              },
+              ],
             ),
-        ],
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(
+              widget.embeddedInCheckoutPane
+                  ? PosTokens.radiusMd
+                  : 12.0,
+            ),
+            borderSide: const BorderSide(color: PosTokens.line, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(
+              widget.embeddedInCheckoutPane
+                  ? PosTokens.radiusMd
+                  : 12.0,
+            ),
+            borderSide: const BorderSide(
+              color: PosTokens.blue,
+              width: 1.5,
+            ),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(
+              widget.embeddedInCheckoutPane
+                  ? PosTokens.radiusMd
+                  : 12.0,
+            ),
+            borderSide: const BorderSide(color: PosTokens.line, width: 1.5),
+          ),
+          filled: true,
+          fillColor: PosTokens.surface,
+          contentPadding: widget.embeddedInCheckoutPane
+              ? const EdgeInsets.symmetric(vertical: 14)
+              : null,
+        ),
       ),
     );
   }
+}
 
-  Widget _buildMobileLayout(Customer? attachedCustomer) {
-    return Column(
-      children: [
-        TextFormField(
-          readOnly: attachedCustomer != null,
-          controller: _searchController,
-          onChanged: _performSearch,
-          decoration: InputDecoration(
-            hintText: 'Search Customer',
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: attachedCustomer != null
-                ? IconButton(
-                    icon: const Icon(
-                      FluentIcons.person_delete_20_regular,
-                      color: Colors.red,
-                    ),
-                    onPressed: _removeCustomer,
-                  )
-                : IconButton(
-                    onPressed: () {
-                      locator<RouterService>().navigateTo(CustomersRoute());
-                    },
-                    icon: const Icon(
-                      FluentIcons.person_add_16_regular,
-                      color: Colors.blue,
-                    ),
+class _SearchCustomerAgentSuffix extends ConsumerWidget {
+  const _SearchCustomerAgentSuffix();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final agentFields = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false).select((a) {
+        final t = a.asData?.value;
+        if (t == null) return null;
+        return (
+          transaction: t,
+          uid: t.attributedAgentUserId,
+          commissionType: t.agentCommissionType,
+          commissionValue: t.agentCommissionValue,
+          commissionAmount: t.agentCommissionAmount,
+        );
+      }),
+    );
+
+    if (agentFields == null) {
+      return IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
+        tooltip: 'Assign agent',
+        onPressed: null,
+        icon: Icon(
+          Icons.support_agent,
+          color: PosLayoutBreakpoints.posAccentBlue,
+        ),
+      );
+    }
+
+    final uid = agentFields.uid;
+    final hasAgent = uid != null && uid.isNotEmpty;
+    final transaction = agentFields.transaction;
+
+    if (!hasAgent) {
+      return IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
+        tooltip: 'Assign agent',
+        onPressed: () => showSaleAgentAssignmentSheet(
+          context: context,
+          ref: ref,
+          transaction: transaction,
+        ),
+        icon: Icon(
+          Icons.support_agent,
+          color: PosLayoutBreakpoints.posAccentBlue,
+        ),
+      );
+    }
+
+    final nameAsync = ref.watch(attributedAgentNameProvider(uid));
+    final label = nameAsync.maybeWhen(
+      data: (n) => n ?? 'Agent',
+      orElse: () => 'Agent',
+    );
+    final commissionLabel = formatSaleAgentCommissionLabel(
+      commissionType: agentFields.commissionType,
+      commissionValue: agentFields.commissionValue,
+      resolvedAmount: agentFields.commissionAmount,
+    );
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 2),
+      child: Material(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => showSaleAgentAssignmentSheet(
+            context: context,
+            ref: ref,
+            transaction: transaction,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.support_agent,
+                  size: 18,
+                  color: PosLayoutBreakpoints.posAccentBlue,
+                ),
+                const SizedBox(width: 4),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1E40AF),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (commissionLabel.isNotEmpty)
+                        Text(
+                          commissionLabel,
+                          style: GoogleFonts.outfit(
+                            fontSize: 10,
+                            color: const Color(0xFF3B82F6),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
                   ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
-              borderSide: BorderSide.none,
+                ),
+                const SizedBox(width: 2),
+                GestureDetector(
+                  onTap: () async {
+                    await persistSaleAgentAttribution(
+                      ref,
+                      transaction,
+                      clear: true,
+                    );
+                  },
+                  child: const Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
             ),
-            filled: true,
-            fillColor: Colors.grey[200],
           ),
         ),
-      ],
+      ),
     );
   }
+}
 
-  Widget _buildDesktopLayout(Customer? attachedCustomer) {
-    return TextFormField(
-      readOnly: attachedCustomer != null,
-      controller: _searchController,
-      onChanged: _performSearch,
-      decoration: InputDecoration(
-        hintText: 'Search Customer',
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            attachedCustomer != null
-                ? IconButton(
-                    icon: const Icon(
-                      FluentIcons.person_delete_20_regular,
-                      color: Colors.red,
+// ─── Floating results overlay ──────────────────────────────────────────────
+
+/// Renders a floating card directly below the search field using
+/// [CompositedTransformFollower], regardless of where the widget sits
+/// inside the widget tree or what screen size/resolution is in use.
+class _FloatingResults extends StatelessWidget {
+  final LayerLink layerLink;
+  final List<Customer> results;
+  final String? selectedId;
+  final ValueChanged<Customer> onSelect;
+
+  const _FloatingResults({
+    required this.layerLink,
+    required this.results,
+    required this.selectedId,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Measure available height so the list never overflows the screen.
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxListHeight = screenHeight * 0.4;
+
+    return Positioned(
+      // Required for OverlayEntry – actual position is driven by the follower.
+      top: 0,
+      left: 0,
+      child: CompositedTransformFollower(
+        link: layerLink,
+        showWhenUnlinked: false,
+        // Place the top-left of the follower at the bottom-left of the target.
+        targetAnchor: Alignment.bottomLeft,
+        followerAnchor: Alignment.topLeft,
+        offset: const Offset(0, 4),
+        child: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: 280,
+              maxWidth: 480,
+              maxHeight: maxListHeight,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shrinkWrap: true,
+                itemCount: results.length,
+                separatorBuilder: (_, __) =>
+                    Divider(height: 1, color: Colors.grey.shade100),
+                itemBuilder: (context, index) {
+                  final customer = results[index];
+                  final isSelected = selectedId == customer.id;
+                  return InkWell(
+                    onTap: () => onSelect(customer),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          // Avatar circle
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: kcPrimaryColor.withAlpha(20),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Text(
+                                customer.custNm?.isNotEmpty == true
+                                    ? customer.custNm![0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                  color: kcPrimaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  customer.custNm ?? 'Unknown',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                if ((customer.custTin?.isNotEmpty ?? false) ||
+                                    (customer.telNo?.isNotEmpty ?? false)) ...[
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      if (customer.custTin?.isNotEmpty ??
+                                          false) ...[
+                                        Icon(
+                                          FluentIcons.document_text_16_regular,
+                                          size: 12,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          customer.custTin!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ],
+                                      if (customer.telNo?.isNotEmpty ??
+                                          false) ...[
+                                        Icon(
+                                          FluentIcons.phone_16_regular,
+                                          size: 12,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          customer.telNo!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: isSelected
+                                ? const Icon(
+                                    FluentIcons.checkmark_circle_24_filled,
+                                    key: ValueKey('checked'),
+                                    color: kcPrimaryColor,
+                                  )
+                                : Icon(
+                                    FluentIcons.add_circle_24_regular,
+                                    key: const ValueKey('add'),
+                                    color: kcPrimaryColor.withAlpha(80),
+                                  ),
+                          ),
+                        ],
+                      ),
                     ),
-                    onPressed: _removeCustomer,
-                  )
-                : IconButton(
-                    onPressed: () {
-                      locator<RouterService>().navigateTo(CustomersRoute());
-                    },
-                    icon: const Icon(
-                      FluentIcons.person_add_16_regular,
-                      color: Colors.blue,
-                    ),
-                  ),
-          ],
+                  );
+                },
+              ),
+            ),
+          ),
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: Colors.grey[200],
       ),
     );
   }

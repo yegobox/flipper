@@ -1,4 +1,5 @@
 // @ts-nocheck
+// @ts-nocheck
 
 import { createClient } from '@supabase/supabase-js';
 

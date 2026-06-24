@@ -65,7 +65,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
       );
       return; // Return void to match the expected return type
     }
-    await ProxyService.strategy.createStockRequest(
+    await ProxyService.getStrategy(Strategy.capella).createStockRequest(
       items,
       mainBranchId: supplier.id,
       subBranchId: ProxyService.box.getBranchId()!,
@@ -89,7 +89,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     ITransaction transaction,
   ) async {
     return await ProxyService.getStrategy(Strategy.capella).transactionItems(
-      branchId: (await ProxyService.strategy.activeBranch(
+      branchId: (await ProxyService.getStrategy(Strategy.capella).activeBranch(
         branchId: ProxyService.box.getBranchId()!,
       )).id,
       transactionId: transaction.id,
@@ -102,7 +102,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     List<TransactionItem> items,
     dynamic pendingTransaction,
   ) async {
-    ProxyService.strategy.markItemAsDoneWithTransaction(
+    await ProxyService.getStrategy(Strategy.capella).markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       ignoreForReport: false,
@@ -113,7 +113,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
   Future<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.strategy.updateTransaction(
+    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
       transaction: transaction,
       status: ORDERING,
     );

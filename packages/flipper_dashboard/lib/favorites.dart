@@ -68,7 +68,7 @@ class _FavoritesState extends State<Favorites> {
                               ),
                               SizedBox(height: 10),
                               Text("Arrange your favorites",
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 16.0,
                                     fontWeight: FontWeight.bold,
                                   )),
@@ -272,7 +272,7 @@ class _FavoritesState extends State<Favorites> {
                             ? favProd.name.substring(0, 2)
                             : favProd.name.toUpperCase(),
                     style:
-                        GoogleFonts.poppins(fontSize: 36, color: Colors.white),
+                        GoogleFonts.outfit(fontSize: 36, color: Colors.white),
                   ),
                 ),
                 if (widget.hasBeenPressed)

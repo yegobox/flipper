@@ -14,34 +14,22 @@ class _OrdersAppState extends ConsumerState<OrdersApp> {
   Widget build(BuildContext context) {
     // final selectedStatus =
     //     ref.watch(oldImplementationOfRiverpod.orderStatusProvider);
-    return Padding(
-      padding: const EdgeInsets.only(top: 30.0),
-      child: Column(
-        children: [
-          // OrderStatusSelector(
-          //   selectedStatus: selectedStatus,
-          //   onStatusChanged: (newStatus) {
-          //     ref
-          //         .read(
-          //             oldImplementationOfRiverpod.orderStatusProvider.notifier)
-          //         .state = newStatus;
-          //     ref
-          //             .read(oldImplementationOfRiverpod
-          //                 .requestStatusProvider.notifier)
-          //             .state =
-          //         newStatus == OrderStatus.approved
-          //             ? RequestStatus.approved
-          //             : RequestStatus.pending;
-          //   },
-          // ),
-          const SizedBox(height: 20),
-          Flexible(
-            child: SingleChildScrollView(
-              child: const IncomingOrders(),
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Handle case when constraints are not yet available
+        if (constraints.maxHeight == 0 || constraints.maxWidth == 0) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.only(top: 30.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              Expanded(child: const IncomingOrders()),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

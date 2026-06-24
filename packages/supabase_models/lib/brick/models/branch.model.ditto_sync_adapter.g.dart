@@ -22,8 +22,8 @@ part of 'branch.model.dart';
 // - import 'package:supabase_models/brick/repository.dart';
 // **************************************************************************
 //
-// Sync Direction: bidirectional
-// This adapter supports full bidirectional sync (send and receive).
+// Sync Direction: sendOnly
+// This adapter sends data to Ditto but does NOT receive remote updates.
 // **************************************************************************
 
 class BranchDittoAdapter extends DittoSyncAdapter<Branch> {
@@ -66,7 +66,7 @@ class BranchDittoAdapter extends DittoSyncAdapter<Branch> {
   String get collectionName => "branches";
 
   @override
-  SyncDirection get syncDirection => SyncDirection.bidirectional;
+  SyncDirection get syncDirection => SyncDirection.sendOnly;
 
   @override
   bool get shouldHydrateOnStartup => false;
@@ -76,30 +76,8 @@ class BranchDittoAdapter extends DittoSyncAdapter<Branch> {
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    // Cleanup any existing observer before creating new one
-    await _cleanupActiveObserver();
-    return _buildQuery(waitForBranchId: false);
-  }
-
-  /// Cleanup active observer to prevent live query buildup
-  Future<void> _cleanupActiveObserver() async {
-    if (_activeObserver != null) {
-      await _activeObserver?.cancel();
-      _activeObserver = null;
-    }
-    if (_activeSubscription != null) {
-      await _activeSubscription?.cancel();
-      _activeSubscription = null;
-    }
-  }
-
-  Future<DittoSyncQuery?> _buildQuery({required bool waitForBranchId}) async {
-    return const DittoSyncQuery(query: "SELECT * FROM branches");
-  }
-
-  @override
-  Future<DittoSyncQuery?> buildHydrationQuery() async {
-    return _buildQuery(waitForBranchId: true);
+    // Send-only mode: no remote observation
+    return null;
   }
 
   @override

@@ -2,8 +2,10 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
+import 'package:supabase_models/brick/models/transaction_payment_record.model.dart';
 import 'package:uuid/uuid.dart';
 import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
 import 'package:flipper_services/proxy.dart';
@@ -18,7 +20,7 @@ part 'transaction.model.ditto_sync_adapter.g.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transactions'),
 )
-@DittoAdapter('transactions', syncDirection: SyncDirection.bidirectional)
+@DittoAdapter('transactions', syncDirection: SyncDirection.sendOnly)
 class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -74,6 +76,19 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   bool? isExpense;
   @Supabase(defaultValue: "false")
   bool? isRefunded;
+
+  @Sqlite(name: 'refunded_amount')
+  @Supabase(name: 'refunded_amount')
+  double? refundedAmount;
+
+  @Sqlite(name: 'refund_reason')
+  @Supabase(name: 'refund_reason')
+  String? refundReason;
+
+  @Sqlite(name: 'refund_method')
+  @Supabase(name: 'refund_method')
+  String? refundMethod;
+
   String? customerName;
   String? customerTin;
   String? remark;
@@ -138,8 +153,45 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   @OfflineFirst(where: {'transactionId': 'id'})
   List<TransactionItem>? items;
 
+  @Supabase(ignore: true)
+  @OfflineFirst(where: {'transactionId': 'id'})
+  List<TransactionPaymentRecord>? payments;
+
   String? customerPhone;
   String? agentId;
+
+  /// Agent tenant user credited for commission (not the cashier session user).
+  @Sqlite(name: 'attributed_agent_user_id')
+  @Supabase(name: 'attributed_agent_user_id')
+  String? attributedAgentUserId;
+
+  /// `fixed` or `percent`.
+  @Sqlite(name: 'agent_commission_type')
+  @Supabase(name: 'agent_commission_type')
+  String? agentCommissionType;
+
+  @Sqlite(name: 'agent_commission_value')
+  @Supabase(name: 'agent_commission_value')
+  num? agentCommissionValue;
+
+  @Sqlite(name: 'agent_commission_amount')
+  @Supabase(name: 'agent_commission_amount')
+  num? agentCommissionAmount;
+
+  @Sqlite(name: 'cashier_name')
+  @Supabase(name: 'cashier_name')
+  String? cashierName;
+
+  /// Ditto / install scope for pending carts so multiple devices under one login do not share state.
+  @Sqlite(name: 'device_id')
+  @Supabase(name: 'device_id')
+  String? deviceId;
+
+  /// Tracks which strategy/database this transaction was loaded from
+  /// This ensures we delete from the correct database (Capella/Ditto or CloudSync/SQLite)
+  @Supabase(ignore: true)
+  @Sqlite(ignore: true)
+  Strategy? dataSource;
 
   ITransaction({
     this.ticketName,
@@ -167,6 +219,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     required this.isIncome,
     required this.isExpense,
     this.isRefunded,
+    this.refundedAmount,
+    this.refundReason,
+    this.refundMethod,
     this.customerName,
     this.customerTin,
     this.remark,
@@ -201,8 +256,16 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.numberOfItems,
     num? discountAmount,
     this.items,
+    this.payments,
     this.customerPhone,
     required this.agentId,
+    this.attributedAgentUserId,
+    this.agentCommissionType,
+    this.agentCommissionValue,
+    this.agentCommissionAmount,
+    this.cashierName,
+    this.deviceId,
+    this.dataSource,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,
@@ -252,6 +315,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     bool? isIncome,
     bool? isExpense,
     bool? isRefunded,
+    double? refundedAmount,
+    String? refundReason,
+    String? refundMethod,
     String? customerName,
     String? customerTin,
     String? remark,
@@ -286,7 +352,16 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     int? numberOfItems,
     num? discountAmount,
     List<TransactionItem>? items,
+    List<TransactionPaymentRecord>? payments,
     String? customerPhone,
+    String? agentId,
+    String? attributedAgentUserId,
+    String? agentCommissionType,
+    num? agentCommissionValue,
+    num? agentCommissionAmount,
+    String? cashierName,
+    String? deviceId,
+    Strategy? dataSource,
   }) {
     return ITransaction(
       id: id ?? this.id,
@@ -312,6 +387,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       isIncome: isIncome ?? this.isIncome,
       isExpense: isExpense ?? this.isExpense,
       isRefunded: isRefunded ?? this.isRefunded,
+      refundedAmount: refundedAmount ?? this.refundedAmount,
+      refundReason: refundReason ?? this.refundReason,
+      refundMethod: refundMethod ?? this.refundMethod,
       customerName: customerName ?? this.customerName,
       customerTin: customerTin ?? this.customerTin,
       remark: remark ?? this.remark,
@@ -352,7 +430,18 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       items: items ?? this.items,
       customerPhone: customerPhone ?? this.customerPhone,
       ticketName: ticketName ?? this.ticketName,
-      agentId: agentId,
+      agentId: agentId ?? this.agentId,
+      attributedAgentUserId:
+          attributedAgentUserId ?? this.attributedAgentUserId,
+      agentCommissionType:
+          agentCommissionType ?? this.agentCommissionType,
+      agentCommissionValue:
+          agentCommissionValue ?? this.agentCommissionValue,
+      agentCommissionAmount:
+          agentCommissionAmount ?? this.agentCommissionAmount,
+      cashierName: cashierName ?? this.cashierName,
+      deviceId: deviceId ?? this.deviceId,
+      dataSource: dataSource ?? this.dataSource,
     );
   }
 }

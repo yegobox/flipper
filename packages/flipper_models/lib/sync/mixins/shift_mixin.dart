@@ -103,7 +103,9 @@ mixin ShiftMixin implements ShiftApi {
     final String businessId = ProxyService.box.getBusinessId()!;
     talker.debug('getCurrentShift: businessId: $businessId');
     final shifts = await repository.get<models.Shift>(
-      policy: OfflineFirstGetPolicy.localOnly,
+      // Prefer local; when none match, hydrate from remote so logout and other
+      // gates still see an open shift that exists only on the server yet.
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       query: brick.Query(where: [
         brick.Where('userId').isExactly(userId),
         brick.Where('businessId').isExactly(businessId),
@@ -111,7 +113,9 @@ mixin ShiftMixin implements ShiftApi {
       ]),
     );
     talker.debug('getCurrentShift: found ${shifts.length} shifts');
-    return shifts.lastOrNull;
+    if (shifts.isEmpty) return null;
+    shifts.sort((a, b) => b.startAt.compareTo(a.startAt));
+    return shifts.first;
   }
 
   @override

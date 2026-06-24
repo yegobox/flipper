@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'interfaces/notification_interface.dart';
@@ -108,6 +108,11 @@ class NotificationManager implements NotificationInterface {
   @override
   Future<void> snoozeTask(Conversation task) async {
     await _platformNotifications.snoozeTask(task);
+  }
+
+  @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    await _platformNotifications.showOrderNotification(order);
   }
 
   @override

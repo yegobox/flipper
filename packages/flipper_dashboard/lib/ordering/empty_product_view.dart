@@ -18,13 +18,13 @@ class EmptyProductView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.inventory_2_outlined,
                 size: 64,
-                color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
               ),
             ),
             const SizedBox(height: 24),

@@ -76,6 +76,15 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       build_number=$((build_number + 1))
     fi
     
+    # Increment base version (patch part)
+    if [[ "$base_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+      major="${BASH_REMATCH[1]}"
+      minor="${BASH_REMATCH[2]}"
+      patch="${BASH_REMATCH[3]}"
+      new_patch=$((patch + 1))
+      base_version="$major.$minor.$new_patch"
+    fi
+    
     new_version="$base_version+$build_number"
   else
     echo "Invalid version format in $APP_DIR/pubspec.yaml: $version"
@@ -94,15 +103,13 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       major="${BASH_REMATCH[1]}"
       minor="${BASH_REMATCH[2]}"
       build="${BASH_REMATCH[3]}"
-      revision="${BASH_REMATCH[4]}"
-
-      revision=$((revision + 1))
-      new_msix_version="$major.$minor.$build.$revision"
+      new_build=$((build + 1))
+      # Increment the build number and keep the revision pinned to 0 for now.
+      new_msix_version="$major.$minor.$new_build.0"
 
       SED_INPLACE "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
       if [[ "$msix_version" != "$new_msix_version" ]]; then
         git add pubspec.yaml
-        git commit -m "Increment MSIX version to $new_msix_version"
       fi
     else
       echo "Invalid msix_version format in $APP_DIR/pubspec.yaml: $msix_version"

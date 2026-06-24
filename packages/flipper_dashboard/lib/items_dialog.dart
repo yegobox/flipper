@@ -1,30 +1,36 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:excel/excel.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 
-final stockProvider =
-    FutureProvider.family<Stock, String>((ref, stockId) async {
-  return await ProxyService.getStrategy(Strategy.capella)
-      .getStockById(id: stockId);
+final stockProvider = FutureProvider.family<Stock, String>((
+  ref,
+  stockId,
+) async {
+  return await ProxyService.getStrategy(
+    Strategy.capella,
+  ).getStockById(id: stockId);
 });
 
 class ItemsDialog extends StatefulHookConsumerWidget {
   final DialogRequest request;
   final Function(DialogResponse) completer;
 
-  const ItemsDialog({
-    Key? key,
-    required this.request,
-    required this.completer,
-  }) : super(key: key);
+  const ItemsDialog({Key? key, required this.request, required this.completer})
+    : super(key: key);
 
   @override
   _ItemsDialogState createState() => _ItemsDialogState();
@@ -34,6 +40,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String? _copiedVariantId;
+  bool _isExporting = false;
 
   @override
   void initState() {
@@ -49,6 +56,177 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// Loads current stock docs from Ditto for export (fresh read, no Riverpod cache).
+  /// Optionally waits briefly if mesh replication has not landed rows yet.
+  Future<({Map<String, Stock> byId, bool incompleteSync})>
+      _resolveStocksForExport(List<Variant> variants) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) {
+      return (byId: <String, Stock>{}, incompleteSync: false);
+    }
+
+    final ditto = DittoService.instance.dittoInstance;
+    if (ditto != null) {
+      await ensureBranchCatalogCloudSubscriptions(
+        ditto: ditto,
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId(),
+      );
+    }
+
+    final stockIds = variants
+        .map((v) => v.stockId)
+        .where((id) => id != null && id.isNotEmpty)
+        .cast<String>()
+        .toSet()
+        .toList();
+
+    if (stockIds.isEmpty) {
+      return (byId: <String, Stock>{}, incompleteSync: false);
+    }
+
+    final capella = ProxyService.getStrategy(Strategy.capella);
+
+    Future<Map<String, Stock>> runBatch() =>
+        capella.batchGetStocksByIds(stockIds);
+
+    var stocksById = await runBatch();
+
+    bool missingIds() =>
+        stockIds.any((id) => !stocksById.containsKey(id));
+
+    var incompleteSync = false;
+
+    if (missingIds()) {
+      incompleteSync = true;
+      const meshDelays = <Duration>[
+        Duration(milliseconds: 2000),
+        Duration(milliseconds: 3500),
+        Duration(milliseconds: 5000),
+      ];
+      for (final delay in meshDelays) {
+        await Future.delayed(delay);
+        final next = await runBatch();
+        for (final entry in next.entries) {
+          stocksById[entry.key] = entry.value;
+        }
+        if (!missingIds()) {
+          incompleteSync = false;
+          break;
+        }
+      }
+    }
+
+    for (final sid in stockIds) {
+      if (!stocksById.containsKey(sid)) {
+        try {
+          stocksById[sid] = await capella.getStockById(id: sid);
+        } catch (_) {
+          incompleteSync = true;
+        }
+      }
+    }
+
+    if (stockIds.any((id) => !stocksById.containsKey(id))) {
+      incompleteSync = true;
+    }
+
+    return (byId: stocksById, incompleteSync: incompleteSync);
+  }
+
+  /// Export items to Excel file
+  Future<void> _exportItemsToExcel(List<Variant> variants) async {
+    if (variants.isEmpty) {
+      toast('No items to export');
+      return;
+    }
+
+    setState(() {
+      _isExporting = true;
+    });
+
+    try {
+      // Pick file save location
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Excel file',
+        fileName: 'items_export_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+      );
+
+      if (result == null) {
+        // User cancelled
+        setState(() {
+          _isExporting = false;
+        });
+        return;
+      }
+
+      final resolved = await _resolveStocksForExport(variants);
+      final stocksById = resolved.byId;
+
+      // Create Excel file (default sheet is Sheet1; rename to sheet1 for a single data sheet)
+      final excel = Excel.createExcel();
+      excel.rename('Sheet1', 'sheet1');
+      final sheet = excel['sheet1'];
+
+      // Add headers
+      sheet.appendRow([
+        TextCellValue('Product Name'),
+        TextCellValue('Variant Name'),
+        TextCellValue('Item Code'),
+        TextCellValue('SKU'),
+        TextCellValue('Quantity'),
+        TextCellValue('Retail Price'),
+        TextCellValue('Supply Price'),
+        TextCellValue('Category'),
+        TextCellValue('Unit'),
+      ]);
+
+      // Add data rows — quantities from one Ditto batch read (not cached stockProvider).
+      for (final variant in variants) {
+        final sid = variant.stockId;
+        final qty = (sid != null && sid.isNotEmpty)
+            ? (stocksById[sid]?.currentStock ?? 0)
+            : 0;
+
+        sheet.appendRow([
+          TextCellValue(variant.productName ?? ''),
+          TextCellValue(variant.name),
+          TextCellValue(variant.itemCd ?? ''),
+          TextCellValue(variant.sku ?? ''),
+          IntCellValue(qty.toInt()),
+          DoubleCellValue(variant.retailPrice ?? 0.0),
+          DoubleCellValue(variant.supplyPrice ?? 0.0),
+          TextCellValue(variant.categoryName ?? ''),
+          TextCellValue(variant.unit ?? ''),
+        ]);
+      }
+
+      // Save file
+      final file = File(result);
+      await file.writeAsBytes(excel.encode()!);
+
+      setState(() {
+        _isExporting = false;
+      });
+
+      toast('Successfully exported ${variants.length} items');
+      if (resolved.incompleteSync && mounted) {
+        toast(
+          'Some quantities may still be catching up from sync; '
+          're-export later if totals look wrong.',
+        );
+      }
+    } catch (e) {
+      talker.error('Error exporting items: $e');
+      setState(() {
+        _isExporting = false;
+      });
+      toast('Failed to export items: $e');
+    }
   }
 
   String _getItemTypeName(String? itemTyCd) {
@@ -77,11 +255,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
   Widget build(BuildContext context) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
-      return const Dialog(
-        child: Center(
-          child: Text("No branch selected"),
-        ),
-      );
+      return const Dialog(child: Center(child: Text("No branch selected")));
     }
     final variantsAsyncValue = ref.watch(outerVariantsProvider(branchId));
 
@@ -101,11 +275,36 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Items', style: Theme.of(context).textTheme.headlineSmall),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () =>
-                      widget.completer(DialogResponse(confirmed: false)),
-                )
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: _isExporting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.file_download_outlined),
+                      onPressed: _isExporting
+                          ? null
+                          : () async {
+                              final notifier = ref.read(
+                                outerVariantsProvider(branchId).notifier,
+                              );
+                              final variants =
+                                  await notifier.futureFetchAllVariants();
+                              await _exportItemsToExcel(variants);
+                            },
+                      tooltip: 'Export to Excel',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () =>
+                          widget.completer(DialogResponse(confirmed: false)),
+                    ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -127,33 +326,40 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
               child: _hasReceiptNumbers(_searchQuery)
                   ? FutureBuilder(
                       future: ProxyService.strategy.transactions(
-                          receiptNumber: _extractReceiptNumbers(_searchQuery),
-                          fetchRemote: true),
+                        receiptNumber: _extractReceiptNumbers(_searchQuery),
+                        fetchRemote: true,
+                      ),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
-                              child: CircularProgressIndicator());
+                            child: CircularProgressIndicator(),
+                          );
                         }
                         if (snapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${snapshot.error}'));
+                            child: Text('Error: ${snapshot.error}'),
+                          );
                         }
                         final transactions = snapshot.data ?? [];
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           toast(
-                              'Found ${transactions.length} transactions synced');
+                            'Found ${transactions.length} transactions synced',
+                          );
                         });
                         return const Center(
-                            child: Text('Transactions synced successfully'));
+                          child: Text('Transactions synced successfully'),
+                        );
                       },
                     )
                   : variantsAsyncValue.when(
                       data: (variants) {
                         final filteredVariants = variants
-                            .where((v) => v.name
-                                .toLowerCase()
-                                .contains(_searchQuery.toLowerCase()))
+                            .where(
+                              (v) => v.name.toLowerCase().contains(
+                                _searchQuery.toLowerCase(),
+                              ),
+                            )
                             .toList();
 
                         if (filteredVariants.isEmpty) {
@@ -173,25 +379,35 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 side: BorderSide(
-                                    color: Theme.of(context).dividerColor),
+                                  color: Theme.of(context).dividerColor,
+                                ),
                               ),
                               margin: const EdgeInsets.symmetric(vertical: 4),
-                              child: ListTile(
-                                title: Text(variant.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold)),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: ListTile(
+                                title: Text(
+                                  variant.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 subtitle: Text(
-                                    '${_getItemTypeName(variant.itemTyCd)} - ${variant.itemCd ?? 'N/A'}'),
+                                  '${_getItemTypeName(variant.itemTyCd)} - ${variant.itemCd ?? 'N/A'}',
+                                ),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    if (variant.stock != null)
+                                    if (variant.stockId != null &&
+                                        variant.stockId!.isNotEmpty)
                                       ref
                                           .watch(
-                                              stockProvider(variant.stock!.id))
+                                            stockProvider(variant.stockId!),
+                                          )
                                           .when(
                                             data: (stock) => Text(
-                                                'Stock: ${stock.currentStock ?? 0}'),
+                                              'Stock: ${stock.currentStock ?? 0}',
+                                            ),
                                             loading: () =>
                                                 const Text('Stock: loading...'),
                                             error: (err, stack) =>
@@ -203,8 +419,11 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                       icon: const Icon(Icons.copy),
                                       onPressed: () {
                                         if (variant.itemCd != null) {
-                                          Clipboard.setData(ClipboardData(
-                                              text: variant.itemCd!));
+                                          Clipboard.setData(
+                                            ClipboardData(
+                                              text: variant.itemCd!,
+                                            ),
+                                          );
                                           setState(() {
                                             _copiedVariantId = variant.id;
                                           });
@@ -220,6 +439,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                     ),
                                   ],
                                 ),
+                              ),
                               ),
                             );
                           },

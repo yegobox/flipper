@@ -13,6 +13,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
 import '../providers/incoming_orders_provider.dart';
+import 'package:flipper_dashboard/features/production_output/widgets/work_order_bottom_sheet.dart';
+import 'package:flipper_dashboard/features/production_output/services/production_output_service.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
+import 'package:flipper_ui/dialogs/ProduceSelectionDialog.dart';
+import 'package:flipper_dashboard/features/production_output/widgets/work_order_form.dart';
 
 class ActionRow extends ConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
@@ -20,9 +25,11 @@ class ActionRow extends ConsumerWidget
 
   const ActionRow({Key? key, required this.request}) : super(key: key);
 
-  @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
+    final itemsAsync =
+        request.transactionItems != null && request.transactionItems!.isNotEmpty
+        ? AsyncValue.data(request.transactionItems!)
+        : ref.watch(transactionItemsProvider(request.id));
 
     return itemsAsync.when(
       loading: () => Row(
@@ -51,28 +58,39 @@ class ActionRow extends ConsumerWidget
           (item) => (item.quantityApproved ?? 0) > 0,
         );
         final bool isFullyApproved = request.status == RequestStatus.approved;
+        final bool isProcessing = request.status == RequestStatus.processing;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             _buildActionButton(
-              onPressed: isFullyApproved
-                  ? null
-                  : () => _handleApproveRequest(context, ref, request),
-              icon: Icons.check_circle_outline,
-              label: 'Approve',
-              color: Colors.green[600]!,
-              isDisabled: isFullyApproved,
+              onPressed: isProcessing
+                  ? () => _handleFinishProduction(context, ref)
+                  : () => _handleProduce(context, ref, items),
+              icon: isProcessing ? Icons.check : Icons.factory,
+              label: isProcessing ? 'Finish Production' : 'Produce',
+              color: isProcessing ? Colors.orange[600]! : Colors.blue[600]!,
+              isDisabled: false,
             ),
             SizedBox(width: 12),
             _buildActionButton(
-              onPressed: hasApprovedItems
+              onPressed: (isFullyApproved || isProcessing)
+                  ? null
+                  : () => _handleApproveRequest(context, ref, request),
+              icon: Icons.check_circle_outline,
+              label: isProcessing ? 'In Production' : 'Approve',
+              color: Colors.green[600]!,
+              isDisabled: (isFullyApproved || isProcessing),
+            ),
+            SizedBox(width: 12),
+            _buildActionButton(
+              onPressed: (hasApprovedItems || isProcessing)
                   ? null
                   : () => _voidRequest(context, ref),
               icon: Icons.cancel_outlined,
               label: 'Void',
               color: Colors.red[600]!,
-              isDisabled: hasApprovedItems,
+              isDisabled: (hasApprovedItems || isProcessing),
             ),
           ],
         );
@@ -189,7 +207,7 @@ class ActionRow extends ConsumerWidget
     if (confirmApprove == true) {
       try {
         await approveRequest(request: request, context: context);
-        final stringValue = ref.watch(stringProvider);
+        final stringValue = ref.read(stringProvider);
         ref.refresh(
           stockRequestsProvider(
             status: RequestStatus.pending,
@@ -292,7 +310,7 @@ class ActionRow extends ConsumerWidget
                     // Don't show error to user as the main operation succeeded
                   }
 
-                  final stringValue = ref.watch(stringProvider);
+                  final stringValue = ref.read(stringProvider);
                   ref.refresh(
                     stockRequestsProvider(
                       status: RequestStatus.voided,
@@ -333,6 +351,146 @@ class ActionRow extends ConsumerWidget
           ],
         );
       },
+    );
+  }
+
+  Future<void> _handleFinishProduction(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    try {
+      await ProxyService.strategy.updateStockRequest(
+        stockRequestId: request.id,
+        status: RequestStatus.pending,
+      );
+
+      final stringValue = ref.read(stringProvider);
+      ref.refresh(
+        stockRequestsProvider(
+          status: RequestStatus.processing,
+          search: stringValue?.isNotEmpty == true ? stringValue : null,
+        ),
+      );
+      ref.refresh(
+        stockRequestsProvider(
+          status: RequestStatus.pending,
+          search: stringValue?.isNotEmpty == true ? stringValue : null,
+        ),
+      );
+
+      showCustomSnackBar(
+        context,
+        'Production marked as finished. Ready for approval.',
+        type: NotificationType.success,
+      );
+    } catch (e) {
+      talker.error('Error finishing production: $e');
+      showCustomSnackBar(
+        context,
+        'Failed to finish production',
+        type: NotificationType.error,
+      );
+    }
+  }
+
+  Future<void> _handleProduce(
+    BuildContext context,
+    WidgetRef ref,
+    List<models.TransactionItem> items,
+  ) async {
+    if (items.isEmpty) return;
+
+    // For single item, go directly to bottom sheet
+    if (items.length == 1) {
+      final item = items.first;
+      if (!context.mounted) return;
+
+      WorkOrderBottomSheet.show(
+        context: context,
+        ref: ref,
+        workOrderId: null,
+        initialVariantId: item.variantId,
+        initialVariantName: item.name,
+        initialPlannedQuantity: item.qty.toDouble(),
+        onSubmit: (data) async {
+          await ProductionOutputService().createWorkOrder(
+            variantId: data['variantId'] as String,
+            variantName: data['variantName'] as String?,
+            plannedQuantity: data['plannedQuantity'] as double,
+            targetDate: data['targetDate'] as DateTime,
+            shiftId: data['shiftId'] as String?,
+            notes: data['notes'] as String?,
+          );
+
+          // Set status to processing
+          await ProxyService.strategy.updateStockRequest(
+            stockRequestId: request.id,
+            status: RequestStatus.processing,
+          );
+
+          final stringValue = ref.read(stringProvider);
+          ref.refresh(
+            stockRequestsProvider(
+              status: RequestStatus.pending,
+              search: stringValue?.isNotEmpty == true ? stringValue : null,
+            ),
+          );
+        },
+      );
+      return;
+    }
+
+    // For multiple items, use master-detail dialog with inline form
+    bool isFirstSubmission = true;
+
+    await showProduceSelectionDialog(
+      context: context,
+      items: items,
+      onProduce: (item, formData) async {
+        // Create work order for this item
+        await ProductionOutputService().createWorkOrder(
+          variantId: formData['variantId'] as String,
+          variantName: formData['variantName'] as String?,
+          plannedQuantity: formData['plannedQuantity'] as double,
+          targetDate: formData['targetDate'] as DateTime,
+          shiftId: formData['shiftId'] as String?,
+          notes: formData['notes'] as String?,
+        );
+
+        // Set status to processing on first submission
+        if (isFirstSubmission) {
+          await ProxyService.strategy.updateStockRequest(
+            stockRequestId: request.id,
+            status: RequestStatus.processing,
+          );
+          isFirstSubmission = false;
+        }
+      },
+      formBuilder:
+          ({
+            String? initialVariantId,
+            String? initialVariantName,
+            double? initialPlannedQuantity,
+            Future<void> Function(Map<String, dynamic>)? onSubmit,
+            VoidCallback? onCancel,
+          }) {
+            return WorkOrderForm(
+              initialVariantId: initialVariantId,
+              initialVariantName: initialVariantName,
+              initialPlannedQuantity: initialPlannedQuantity,
+              onSubmit: onSubmit,
+              onCancel: onCancel,
+            );
+          },
+    );
+
+    // Refresh after dialog closes
+    final stringValue = ref.read(stringProvider);
+    ref.refresh(
+      stockRequestsProvider(
+        status: RequestStatus.pending,
+        search: stringValue?.isNotEmpty == true ? stringValue : null,
+      ),
     );
   }
 }

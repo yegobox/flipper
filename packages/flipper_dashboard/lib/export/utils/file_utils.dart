@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
@@ -37,8 +39,9 @@ class FileUtils {
       if (bytes.length > chunkSize) {
         final fileStream = file.openWrite(mode: FileMode.writeOnly);
         for (int i = 0; i < bytes.length; i += chunkSize) {
-          final end =
-              (i + chunkSize < bytes.length) ? i + chunkSize : bytes.length;
+          final end = (i + chunkSize < bytes.length)
+              ? i + chunkSize
+              : bytes.length;
           final chunk = bytes.sublist(i, end);
           fileStream.add(chunk);
         }
@@ -56,14 +59,17 @@ class FileUtils {
   }
 
   /// Saves a PDF document to a file and returns the file path
-  static Future<String> savePdfFile(PdfDocument document) async {
+  static Future<String> savePdfFile(
+    PdfDocument document, {
+    String? fileName,
+  }) async {
     final List<int> bytes = await document.save();
     final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final fileName = '${formattedDate}-Report.pdf';
+    final resolvedFileName = fileName ?? '${formattedDate}-Report.pdf';
 
     try {
       final tempDir = await getApplicationDocumentsDirectory();
-      final filePath = path.join(tempDir.path, fileName);
+      final filePath = path.join(tempDir.path, resolvedFileName);
       final file = File(filePath);
 
       await file.create(recursive: true);
@@ -76,8 +82,44 @@ class FileUtils {
     }
   }
 
+  /// Saves/downloads a PDF through the platform picker when available.
+  static Future<String?> downloadPdfFile(
+    PdfDocument document, {
+    String? fileName,
+  }) async {
+    final bytes = Uint8List.fromList(await document.save());
+    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    final resolvedFileName = fileName ?? '${formattedDate}-Report.pdf';
+
+    final savedPath = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save PDF file',
+      fileName: resolvedFileName,
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      bytes: bytes,
+    );
+
+    if (savedPath == null) {
+      return null;
+    }
+
+    if (!kIsWeb && savedPath.isNotEmpty) {
+      final file = File(savedPath);
+      if (!await file.exists() || await file.length() != bytes.length) {
+        await file.create(recursive: true);
+        await file.writeAsBytes(bytes, flush: true);
+      }
+    }
+
+    return savedPath;
+  }
+
   /// Opens or shares a file based on the platform
   static Future<void> openOrShareFile(String filePath) async {
+    if (kIsWeb || filePath.isEmpty) {
+      return;
+    }
+
     if (Platform.isWindows || Platform.isMacOS) {
       try {
         final response = await OpenFilex.open(filePath);
@@ -92,6 +134,10 @@ class FileUtils {
 
   /// Shares a file as an attachment
   static Future<void> shareFileAsAttachment(String filePath) async {
+    if (kIsWeb || filePath.isEmpty) {
+      return;
+    }
+
     final now = DateTime.now();
     final formattedDate = DateFormat('yyyy-MM-dd').format(now);
     final file = File(filePath);
@@ -100,15 +146,13 @@ class FileUtils {
     if (Platform.isWindows || Platform.isLinux) {
       final bytes = await file.readAsBytes();
       final mimeType = lookupMimeType(filePath);
-      await Share.shareXFiles(
-        [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
-        subject: 'Report Download - $formattedDate',
-      );
+      await Share.shareXFiles([
+        XFile.fromData(bytes, mimeType: mimeType, name: fileName),
+      ], subject: 'Report Download - $formattedDate');
     } else {
-      await Share.shareXFiles(
-        [XFile(filePath)],
-        subject: 'Report Download - $formattedDate',
-      );
+      await Share.shareXFiles([
+        XFile(filePath),
+      ], subject: 'Report Download - $formattedDate');
     }
   }
 
@@ -120,10 +164,16 @@ class FileUtils {
 
   /// Requests necessary permissions for file operations
   static Future<void> requestPermissions() async {
-    await [
-      permission.Permission.storage,
-      permission.Permission.manageExternalStorage,
-    ].request();
+    if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
+      return;
+    }
+
+    if (Platform.isAndroid) {
+      await [
+        permission.Permission.storage,
+        permission.Permission.manageExternalStorage,
+      ].request();
+    }
 
     if (await permission.Permission.notification.isDenied) {
       await permission.Permission.notification.request();

@@ -1,9 +1,11 @@
-import 'package:flipper_dashboard/layout.dart';
+import 'package:flipper_dashboard/books_module_navigation.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
-import 'dart:ui';
+import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 
 class AppChoiceDialog extends StatefulHookConsumerWidget {
   final DialogRequest request;
@@ -20,246 +22,236 @@ class AppChoiceDialog extends StatefulHookConsumerWidget {
 }
 
 class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController _scaleController;
-  late AnimationController _fadeController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
+
+  late final List<_AppChoiceItem> _apps = [
+    _AppChoiceItem(
+      id: 'POS',
+      title: 'POS',
+      subtitle: 'Point of Sale',
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherPosIcon(),
+      iconBg: const Color.fromRGBO(24, 95, 165, 0.10),
+      onSelect: () => _handleAppSelection('POS', DashboardPage.inventory),
+    ),
+    _AppChoiceItem(
+      id: 'Reports',
+      title: 'Reports',
+      subtitle: 'Analytics',
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherReportsIcon(),
+      iconBg: const Color.fromRGBO(83, 74, 183, 0.10),
+      onSelect: () => _handleAppSelection('Reports', DashboardPage.reports),
+    ),
+    _AppChoiceItem(
+      id: 'Orders',
+      title: 'Orders',
+      subtitle: 'Management',
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherOrdersIcon(),
+      iconBg: const Color.fromRGBO(133, 79, 11, 0.10),
+      onSelect: () => _handleAppSelection('Orders', DashboardPage.orders),
+    ),
+    _AppChoiceItem(
+      id: 'Inventory',
+      title: 'Inventory',
+      subtitle: 'Stock tracking',
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherInventoryIcon(),
+      iconBg: const Color.fromRGBO(59, 109, 17, 0.10),
+      onSelect: () => _handleAppSelection('Inventory', DashboardPage.inventory),
+    ),
+    _AppChoiceItem(
+      id: 'Books',
+      title: 'Books',
+      subtitle: 'Accounting',
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherBooksIcon(),
+      iconBg: const Color.fromRGBO(37, 99, 235, 0.10),
+      onSelect: () async {
+        final navigator = Navigator.of(context, rootNavigator: true);
+        widget.completer(
+          DialogResponse(confirmed: true, data: {'defaultApp': 'Books'}),
+        );
+        await navigateToBooksModule(context, ref, navigator: navigator);
+      },
+    ),
+    _AppChoiceItem(
+      id: 'Customers',
+      title: 'Customers',
+      subtitle: 'CRM',
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherCustomersIcon(),
+      iconBg: const Color.fromRGBO(153, 53, 86, 0.10),
+      onSelect: () => _handleAppSelection('Customers', null),
+    ),
+    _AppChoiceItem(
+      id: 'Settings',
+      title: 'Settings',
+      subtitle: 'Configuration',
+      iconSvg: DashboardQuickAccessSvgs.appSwitcherSettingsIcon(),
+      iconBg: const Color.fromRGBO(95, 94, 90, 0.10),
+      onSelect: () => _handleAppSelection('Settings', null),
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
     _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    _fadeController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-
     _scaleAnimation = CurvedAnimation(
       parent: _scaleController,
-      curve: Curves.elasticOut,
+      curve: Curves.easeOutBack,
     );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    );
-
-    _fadeController.forward();
     _scaleController.forward();
   }
 
   @override
   void dispose() {
     _scaleController.dispose();
-    _fadeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Container(
-              width: 520,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colors.white.withValues(alpha: 0.95),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1.5,
+    final currentDefaultApp = ProxyService.box.getDefaultApp() ?? 'POS';
+    final activeItem = _apps
+        .where((a) => a.id == currentDefaultApp)
+        .cast<_AppChoiceItem?>()
+        .firstWhere((a) => a != null, orElse: () => null);
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 18),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 40,
-                    offset: const Offset(0, 20),
-                    spreadRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header Section
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(32, 32, 32, 24),
+                    Expanded(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Color(0xFF007AFF),
-                                  Color(0xFF5AC8FA),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF007AFF)
-                                      .withValues(alpha: .3),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.apps_rounded,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
                           Text(
-                            widget.request.title ?? 'Choose Default App',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1D1D1F),
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Select your preferred application to launch',
+                            'WORKSPACE',
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.w400,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                              color: Colors.black.withValues(alpha: 0.55),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Switch app',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black.withValues(alpha: 0.90),
                             ),
                           ),
                         ],
                       ),
                     ),
-
-                    // Apps Grid Section
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 8, 32, 32),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildAppTile(
-                                  context: context,
-                                  title: 'POS',
-                                  subtitle: 'Point of Sale',
-                                  description: 'Process transactions',
-                                  icon: Icons.point_of_sale_rounded,
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFF007AFF),
-                                      Color(0xFF5AC8FA)
-                                    ],
-                                  ),
-                                  onTap: () => _handleAppSelection(
-                                      'POS', DashboardPage.inventory),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildAppTile(
-                                  context: context,
-                                  title: 'Reports',
-                                  subtitle: 'Analytics',
-                                  description: 'Business insights',
-                                  icon: Icons.analytics_rounded,
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFFAF52DE),
-                                      Color(0xFFFF2D92)
-                                    ],
-                                  ),
-                                  onTap: () => _handleAppSelection(
-                                      'Reports', DashboardPage.reports),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildAppTile(
-                                  context: context,
-                                  title: 'Orders',
-                                  subtitle: 'Management',
-                                  description: 'Handle orders',
-                                  icon: Icons.shopping_cart_rounded,
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFFFF9500),
-                                      Color(0xFFFF6B35)
-                                    ],
-                                  ),
-                                  onTap: () => _handleAppSelection(
-                                      'Orders', DashboardPage.orders),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                  child:
-                                      Container()), // Empty space for symmetry
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Footer Section
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(32, 20, 32, 32),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(
-                            color: Colors.grey.shade200,
-                            width: 0.5,
+                    InkWell(
+                      onTap: () =>
+                          widget.completer(DialogResponse(confirmed: false)),
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: const Color(0xFFE5E7EB),
+                            width: 1,
                           ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildFooterButton(
-                            text: 'Cancel',
-                            isPrimary: false,
-                            onPressed: () => widget
-                                .completer(DialogResponse(confirmed: false)),
-                          ),
-                        ],
+                        child: const Icon(
+                          Icons.close_rounded,
+                          size: 20,
+                          color: Color(0xFF111827),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 18),
+
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final w = constraints.maxWidth;
+                    final crossAxisCount = w >= 560 ? 3 : 2;
+
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        // Use a fixed height to avoid pixel-overflow across
+                        // platforms/fonts (some tiles have an extra "Active" row).
+                        mainAxisExtent: 160,
+                      ),
+                      itemCount: _apps.length,
+                      itemBuilder: (context, idx) {
+                        final item = _apps[idx];
+                        final isActive = item.id == currentDefaultApp;
+                        return _AppChoiceTile(
+                          item: item,
+                          isActive: isActive,
+                        );
+                      },
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 18),
+                const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF16A34A),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Currently in: ${activeItem?.title ?? currentDefaultApp}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black.withValues(alpha: 0.70),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -267,133 +259,134 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
     );
   }
 
-  Widget _buildAppTile({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required String description,
-    required IconData icon,
-    required LinearGradient gradient,
-    required Future<void> Function() onTap,
-  }) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 600),
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: 0.8 + (0.2 * value),
-          child: Opacity(
-            opacity: value,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: BorderRadius.circular(16),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  height: 120,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.grey.shade200,
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          gradient: gradient,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  gradient.colors.first.withValues(alpha: 0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          icon,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1D1D1F),
-                          letterSpacing: -0.1,
-                        ),
-                      ),
-                    ],
+  Future<void> _handleAppSelection(String appName, DashboardPage? page) async {
+    try {
+      await ProxyService.box.writeString(key: 'defaultApp', value: appName);
+      if (page != null) {
+        ref.read(selectedPageProvider.notifier).state = page;
+      }
+
+      widget.completer(
+        DialogResponse(confirmed: true, data: {'defaultApp': appName}),
+      );
+    } catch (e) {
+      debugPrint('Error saving app selection: $e');
+    }
+  }
+}
+
+class _AppChoiceItem {
+  final String id;
+  final String title;
+  final String subtitle;
+  final String iconSvg;
+  final Color iconBg;
+  final Future<void> Function() onSelect;
+
+  const _AppChoiceItem({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.iconSvg,
+    required this.iconBg,
+    required this.onSelect,
+  });
+}
+
+class _AppChoiceTile extends StatelessWidget {
+  final _AppChoiceItem item;
+  final bool isActive;
+
+  const _AppChoiceTile({
+    required this.item,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor =
+        isActive ? const Color(0xFF16A34A) : const Color(0xFFE5E7EB);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: item.onSelect,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor, width: isActive ? 2 : 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: item.iconBg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: SvgPicture.string(
+                    item.iconSvg,
+                    width: 20,
+                    height: 20,
                   ),
                 ),
               ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFooterButton({
-    required String text,
-    required bool isPrimary,
-    required VoidCallback onPressed,
-  }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      child: TextButton(
-        onPressed: onPressed,
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          backgroundColor:
-              isPrimary ? const Color(0xFF007AFF) : Colors.grey.shade100,
-          foregroundColor: isPrimary ? Colors.white : Colors.grey.shade700,
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: isPrimary ? FontWeight.w600 : FontWeight.w500,
+              const SizedBox(height: 12),
+              Text(
+                item.title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black.withValues(alpha: 0.88),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                item.subtitle,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black.withValues(alpha: 0.55),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (isActive) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF16A34A),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Active',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF16A34A),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
         ),
       ),
     );
-  }
-
-  Future<void> _handleAppSelection(String appName, DashboardPage page) async {
-    try {
-      await ProxyService.box.writeString(key: 'defaultApp', value: appName);
-      ref.read(selectedPageProvider.notifier).state = page;
-
-      widget.completer(DialogResponse(
-        confirmed: true,
-        data: {'defaultApp': appName},
-      ));
-    } catch (e) {
-      // Handle error if needed
-      debugPrint('Error saving app selection: $e');
-    }
   }
 }

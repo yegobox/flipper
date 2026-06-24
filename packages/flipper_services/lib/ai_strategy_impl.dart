@@ -13,15 +13,31 @@ class AiStrategyImpl implements AiStrategy {
     try {
       return repository
           .subscribe<Conversation>(
-        query: brick.Query(
-          where: [brick.Where('branchId').isExactly(branchId)],
-        ),
-      )
+            query: brick.Query(
+              where: [brick.Where('branchId').isExactly(branchId)],
+            ),
+          )
           .map((conversations) {
-        conversations
-            .sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
-        return conversations;
-      });
+            talker.warning(
+              'conversationsStream ON MAP: ${conversations.length} records found.',
+            );
+            try {
+              conversations.sort(
+                (a, b) => b.lastMessageAt.compareTo(a.lastMessageAt),
+              );
+            } catch (e, s) {
+              talker.error(
+                'Error sorting conversations inside stream map: $e\n$s',
+              );
+              // Return them unsorted in case of error instead of bombing the stream
+            }
+            return conversations;
+          })
+          .handleError((error) {
+            talker.error(
+              'Error from repository.subscribe<Conversation> in ai_strategy: $error',
+            );
+          });
     } catch (e, s) {
       talker.error('Error subscribing to conversations: $e\n$s');
       rethrow;
@@ -56,11 +72,13 @@ class AiStrategyImpl implements AiStrategy {
   Future<Conversation> createConversation({
     required String title,
     required String branchId,
+    String useCase = 'business',
   }) async {
     try {
       final conversation = Conversation(
         title: title,
         branchId: branchId,
+        useCase: useCase,
         createdAt: DateTime.now().toUtc(),
         lastMessageAt: DateTime.now().toUtc(),
       );
@@ -68,6 +86,16 @@ class AiStrategyImpl implements AiStrategy {
       return await repository.upsert<Conversation>(conversation);
     } catch (e, s) {
       talker.error('Error creating conversation: $e\n$s');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Conversation> updateConversation(Conversation conversation) async {
+    try {
+      return await repository.upsert<Conversation>(conversation);
+    } catch (e, s) {
+      talker.error('Error updating conversation: $e\n$s');
       rethrow;
     }
   }
@@ -83,7 +111,13 @@ class AiStrategyImpl implements AiStrategy {
       );
 
       for (final message in messages) {
-        await repository.delete<Message>(message);
+        try {
+          if (message.primaryKey != null) {
+            await repository.delete<Message>(message);
+          }
+        } catch (e) {
+          talker.warning('Could not delete message ${message.id}: $e');
+        }
       }
 
       // Then delete the conversation
@@ -91,8 +125,7 @@ class AiStrategyImpl implements AiStrategy {
         query: brick.Query(
           where: [brick.Where('id').isExactly(conversationId)],
         ),
-      ))
-          .firstOrNull;
+      )).firstOrNull;
 
       if (conversation != null) {
         await repository.delete<Conversation>(conversation);
@@ -136,19 +169,21 @@ class AiStrategyImpl implements AiStrategy {
     try {
       return repository
           .subscribe<Message>(
-        query: brick.Query(
-          where: [brick.Where('conversationId').isExactly(conversationId)],
-        ),
-      )
+            query: brick.Query(
+              where: [brick.Where('conversationId').isExactly(conversationId)],
+            ),
+          )
           .map((messages) {
-        // Sort by timestamp ascending (oldest first) to show last message at the bottom
-        messages.sort((a, b) {
-          final timeA = a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
-          final timeB = b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
-          return timeA.compareTo(timeB);
-        });
-        return messages;
-      });
+            // Sort by timestamp ascending (oldest first) to show last message at the bottom
+            messages.sort((a, b) {
+              final timeA =
+                  a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+              final timeB =
+                  b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+              return timeA.compareTo(timeB);
+            });
+            return messages;
+          });
     } catch (e, s) {
       talker.error('Error subscribing to messages: $e\n$s');
       rethrow;
@@ -172,8 +207,7 @@ class AiStrategyImpl implements AiStrategy {
         query: brick.Query(
           where: [brick.Where('id').isExactly(conversationId)],
         ),
-      ))
-          .firstOrNull;
+      )).firstOrNull;
 
       if (conversation != null) {
         conversation.lastMessageAt = DateTime.now();

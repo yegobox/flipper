@@ -1,6 +1,8 @@
 export 'exceptions.dart';
+export 'models/daily_report_file.dart';
 export 'helperModels/extensions.dart';
 export 'package:supabase_models/supabase_models.dart';
+export 'models/subscription_plan.dart';
 export 'package:flipper_models/view_models/login_viewmodel.dart';
 
 export 'package:flipper_models/view_models/coreViewModel.dart';
@@ -19,3 +21,8 @@ export 'package:flipper_models/view_models/ScannViewModel.dart';
 
 export 'models/user_mfa_secret.dart';
 export 'repositories/user_mfa_secret_repository.dart';
+export 'helperModels/business_feature.dart';
+export 'helpers/transaction_item_plu_metrics.dart';
+export 'models/personal_goal.dart';
+export 'helperModels/transaction_payment_sums.dart';
+export 'helperModels/transaction_report_snapshot.dart';

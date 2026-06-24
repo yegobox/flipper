@@ -25,6 +25,7 @@ abstract class TaxApi implements NoticeInterface {
     required String URI,
     required String bhfId,
     String rcptTyCd = "S",
+    String regTyCd = "A",
     required List<Variant> variants,
     required Business business,
     required String pchsSttsCd,
@@ -76,7 +77,19 @@ abstract class TaxApi implements NoticeInterface {
       String? custMblNo,
       required String customerName,
       Customer? customer,
-      required DateTime timeToUser});
+      required DateTime timeToUser,
+      List<TransactionItem>? preloadedItems,
+      bool deferStockSync = false});
+
+  /// RRA stock I/O + master after [generateReceiptSignature] / local stock deduction.
+  /// Call only after [applyDeferredSaleStockDeduction] (or equivalent) so master qty is post-sale.
+  Future<void> syncStockAfterSuccessfulSaveSales({
+    required String receiptType,
+    required List<TransactionItem> items,
+    required ITransaction transaction,
+    required int highestInvcNo,
+    String? sarTyCd,
+  });
   Future<RwApiResponse> saveItem(
       {required Variant variation, required String URI});
 

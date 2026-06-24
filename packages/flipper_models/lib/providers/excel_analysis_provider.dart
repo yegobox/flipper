@@ -1,10 +1,10 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/utils/excel_utility.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
+import 'package:flipper_models/repositories/ai_model_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:flipper_models/models/ai_model.dart';
-import 'package:flipper_models/repositories/ai_model_repository.dart';
 import 'package:flipper_models/providers/unified_ai_input.dart';
 
 part 'excel_analysis_provider.g.dart';
@@ -93,8 +93,10 @@ class ExcelAnalysis extends _$ExcelAnalysis {
     return '❌ Analysis Failed\n\nSomething went wrong while analyzing your data. Please try again or contact support if the issue persists.';
   }
 
-  Future<void> initWithFile(String filePath,
-      {AIModel? preSelectedModel}) async {
+  Future<void> initWithFile(
+    String filePath, {
+    AIModel? preSelectedModel,
+  }) async {
     talker.info('ExcelAnalysis: Initializing with file: $filePath');
     state = state.copyWith(isLoading: true, filePath: filePath);
     try {
@@ -102,13 +104,18 @@ class ExcelAnalysis extends _$ExcelAnalysis {
       talker.info('ExcelAnalysis: Extracted ${data.length} sheets');
 
       final markdown = await ExcelUtility.excelToMarkdown(filePath);
-      talker
-          .info('ExcelAnalysis: Generated markdown (${markdown.length} chars)');
+      talker.info(
+        'ExcelAnalysis: Generated markdown (${markdown.length} chars)',
+      );
 
-      final repository = AIModelRepository();
-      // Use Business ID 1 for now (or fetch actual business ID)
-      final models = await repository.getAvailableModels();
-      final defaultModel = await repository.getDefaultModel();
+      final models = await AIModelRepository().getAvailableModels();
+
+      final defaultModel = models.firstWhere(
+        (m) => m.isDefault,
+        orElse: () => models.isNotEmpty
+            ? models.first
+            : throw Exception('No models available'),
+      );
 
       // Use preSelectedModel if provided, otherwise fallback to default
       final modelToUse = preSelectedModel ?? defaultModel;
@@ -125,14 +132,12 @@ class ExcelAnalysis extends _$ExcelAnalysis {
       // Trigger initial AI response with context
       // We send a clean message to the UI, but the provider will inject the markdown data
       await analyzeMessage(
-          "Please analyze this data and provide: 1) A visualization showing key trends or metrics, and 2) A brief summary of the main insights.");
+        "Please analyze this data and provide: 1) A visualization showing key trends or metrics, and 2) A brief summary of the main insights.",
+      );
     } catch (e, stack) {
       talker.error('ExcelAnalysis: Init failed: $e');
       talker.error(stack);
-      state = state.copyWith(
-        isLoading: false,
-        error: _parseFriendlyError(e),
-      );
+      state = state.copyWith(isLoading: false, error: _parseFriendlyError(e));
     }
   }
 
@@ -149,18 +154,11 @@ class ExcelAnalysis extends _$ExcelAnalysis {
 
     talker.info('ExcelAnalysis: Analyzing message: $userPrompt');
 
-    final userMessage = Content(
-      role: "user",
-      parts: [Part.text(userPrompt)],
-    );
+    final userMessage = Content(role: "user", parts: [Part.text(userPrompt)]);
 
     final newHistory = [...state.history, userMessage];
 
-    state = state.copyWith(
-      history: newHistory,
-      isLoading: true,
-      error: null,
-    );
+    state = state.copyWith(history: newHistory, isLoading: true, error: null);
 
     try {
       // Prepare contents for AI, injecting markdown data if needed
@@ -169,13 +167,14 @@ class ExcelAnalysis extends _$ExcelAnalysis {
       // 1. Inject Excel Data into the first message (Context)
       if (state.markdownData != null && apiContents.isNotEmpty) {
         if (apiContents[0].role == 'user') {
-          final originalText = apiContents[0]
-              .parts
-              .firstWhere(
-                (p) => p.toJson().containsKey('text'),
-                orElse: () => Part.text(''),
-              )
-              .toJson()['text'] as String;
+          final originalText =
+              apiContents[0].parts
+                      .firstWhere(
+                        (p) => p.toJson().containsKey('text'),
+                        orElse: () => Part.text(''),
+                      )
+                      .toJson()['text']
+                  as String;
 
           final dataContext =
               "Here is the Excel data to analyze:\n\n${state.markdownData}\n\n$originalText";
@@ -192,13 +191,14 @@ class ExcelAnalysis extends _$ExcelAnalysis {
       if (apiContents.isNotEmpty) {
         final lastIdx = apiContents.length - 1;
         if (apiContents[lastIdx].role == 'user') {
-          final currentText = apiContents[lastIdx]
-              .parts
-              .firstWhere(
-                (p) => p.toJson().containsKey('text'),
-                orElse: () => Part.text(''),
-              )
-              .toJson()['text'] as String;
+          final currentText =
+              apiContents[lastIdx].parts
+                      .firstWhere(
+                        (p) => p.toJson().containsKey('text'),
+                        orElse: () => Part.text(''),
+                      )
+                      .toJson()['text']
+                  as String;
 
           const visualizationInstructions = """
 
@@ -256,15 +256,17 @@ Now analyze the provided Excel data and create your visualization following this
       );
 
       talker.info(
-          'ExcelAnalysis: Calling AI API with model: ${state.selectedModel?.name}...');
+        'ExcelAnalysis: Calling AI API with model: ${state.selectedModel?.name}...',
+      );
 
       // Use dynamic model URL and Key
       final model = state.selectedModel;
       if (model == null) throw Exception('No AI model selected');
 
       // Use the generic AI provider
-      final response =
-          await ref.read(geminiResponseProvider(inputData, model).future);
+      final response = await ref.read(
+        geminiResponseProvider(inputData, model).future,
+      );
 
       if (!ref.mounted) {
         talker.warning('ExcelAnalysis: Provider unmounted, aborting');
@@ -294,14 +296,17 @@ Now analyze the provided Excel data and create your visualization following this
               vizData.contains('"type": "bar_chart"') ||
               vizData.contains('"type": "pie_chart"')) {
             vizData = vizData.replaceAll(
-                RegExp(r'"type":\s*"(line|bar|pie)_chart"'),
-                '"type": "financial_report"');
+              RegExp(r'"type":\s*"(line|bar|pie)_chart"'),
+              '"type": "financial_report"',
+            );
             talker.warning(
-                'ExcelAnalysis: Corrected visualization type to financial_report');
+              'ExcelAnalysis: Corrected visualization type to financial_report',
+            );
           }
 
-          talker
-              .info('ExcelAnalysis: Extracted visualization data with markers');
+          talker.info(
+            'ExcelAnalysis: Extracted visualization data with markers',
+          );
 
           // Remove the visualization block from the response shown in chat
           cleanedResponse = response
@@ -328,7 +333,8 @@ Now analyze the provided Excel data and create your visualization following this
       );
 
       talker.info(
-          'ExcelAnalysis: State updated, history length: ${state.history.length}');
+        'ExcelAnalysis: State updated, history length: ${state.history.length}',
+      );
     } catch (e, stack) {
       if (e.toString().contains('Provider disposed')) {
         talker.info('ExcelAnalysis: Operation cancelled (provider disposed)');
@@ -337,10 +343,7 @@ Now analyze the provided Excel data and create your visualization following this
       talker.error('ExcelAnalysis: Analysis failed: $e');
       talker.error(stack);
       if (!ref.mounted) return;
-      state = state.copyWith(
-        isLoading: false,
-        error: _parseFriendlyError(e),
-      );
+      state = state.copyWith(isLoading: false, error: _parseFriendlyError(e));
     }
   }
 }

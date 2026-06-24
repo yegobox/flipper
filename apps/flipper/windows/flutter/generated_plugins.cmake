@@ -7,10 +7,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   connectivity_plus
   desktop_drop
-  desktop_webview_auth
   file_selector_windows
   firebase_auth
   firebase_core
+  flutter_gemma
   flutter_localization
   geolocator_windows
   local_auth_windows
@@ -29,7 +29,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   ditto_live
   flutter_local_notifications_windows
-  flutter_soloud
   jni
 )
 

@@ -12,11 +12,11 @@ class BulkAddProduct extends StatefulHookConsumerWidget {
 class BulkAddProductState extends ConsumerState<BulkAddProduct> {
   @override
   Widget build(BuildContext context) {
-    return const SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: BulkProductForm(),
-      ),
+    final height = MediaQuery.sizeOf(context).height * 0.85;
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: const BulkProductForm(),
     );
   }
 }

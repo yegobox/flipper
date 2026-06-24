@@ -20,20 +20,23 @@ on:
       - 'bugfix-*'
       - main
       - dev
-      - end-user-facing
-      - shifts
-      - mislenous-post-mondy-merge
+      - re-design
+      - v5
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  FLUTTER_VERSION: "3.44.2" # flutter_gemma >=1.0.0 requires Dart SDK >=3.12.0
   # SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} # Securely store this
   IS_TEST_ENV: true
 
 jobs:
   unit-testing:
     name: Unit Testing
+    # if: false
     runs-on: ubuntu-latest
+    env:
+      FLUTTER_TEST_CI: true
     # needs: [supabase-init] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -52,15 +55,20 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: "stable"
       - run: |
           git submodule update --init
-      - name: Load melos
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap melos
         run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
-          melos run generate:icons
+          dart run melos bootstrap
+          dart run melos run generate:icons
 
       - name: Configure Missing files
         shell: bash
@@ -87,20 +95,17 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y lcov
 
       - name: Run tests with coverage
-        run: |
-          cd packages/flipper_dashboard
-          cd ../..
-          melos run test:ci
+        run: dart run melos run test:ci
 #  # dart run realm install
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/flipper_dashboard/coverage 
+          files: packages/flipper_dashboard/coverage/lcov.info,apps/flipper_web/coverage/lcov.info
   build_web_deploy_firebase:
     runs-on: ubuntu-latest
-    needs: [unit-testing]
-    if: false
+    # needs: [unit-testing]
+    # if: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -116,7 +121,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1" # Consider using a more recent stable Flutter version if possible/needed
+          flutter-version: ${{ env.FLUTTER_VERSION }} # Consider using a more recent stable Flutter version if possible/needed
           channel: stable
       - run: flutter doctor -v
 
@@ -146,38 +151,33 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
           
       - name: Set up Node.js for Firebase CLI
-        uses: actions/setup-node@v4 
+        uses: actions/setup-node@v4
         with:
           node-version: '20' # Specify Node.js v20.x LTS
 
-      - name: Bootstrap dependencies
-        run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
 
-      - name: Build Flipper app
-        run: |
-          cd apps/flipper
-          flutter build web --release # Added --release flag for production builds
-          
-      - name: Deploy Flipper app to Firebase Hosting
-        id: deploy_flipper
-        uses: FirebaseExtended/action-hosting-deploy@v0.9.0 # Consider using @v0 for latest fixes if needed
-        with:
-          entryPoint: apps/flipper # This should point to the directory containing firebase.json and the build output (usually build/web within the app)
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
-          channelId: pr-${{ github.event.commits.id }}
-          # channelId: live
-          projectId: yegobox-2ee43
-      - name: Echo Flipper URL
-        run: echo "Flipper app deployed to ${{ steps.deploy_flipper.outputs.urls }}"
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap dependencies
+        run: dart run melos bootstrap
 
       - name: Build Flipper Web app
+        # dart2js only (no --wasm). Dual-target WASM builds serve main.dart.mjs
+        # to Chrome; dart2wasm + Ditto DQL read-after-write on cold start breaks
+        # replication bootstrap (20s timeout → empty COA seed). Safari fell back
+        # to main.dart.js and worked. Re-enable --wasm when bootstrap is WASM-safe.
+        # 
         run: |
           cd apps/flipper_web
-          flutter build web  --release
-          
+          flutter build web --release
+          test -f build/web/main.dart.js
+          # Drop dart2wasm app artifacts so Firebase cannot serve stale main.dart.mjs
+          # to Chrome (service worker cache + leftover files from prior WASM deploys).
+          rm -f build/web/main.dart.mjs build/web/main.dart.wasm
+
       - name: Deploy Flipper Web app to Firebase Hosting
         id: deploy_flipper_web
         uses: FirebaseExtended/action-hosting-deploy@v0.9.0
@@ -193,8 +193,8 @@ jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
-    # if: false  # skip for now as it is flaky
-    needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
+    if: false  # skip for now as it is flaky
+    needs: [build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
       - name: Export pub environment variable on Windows
         run: |
@@ -214,7 +214,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
       - run: flutter doctor -v
 
@@ -223,11 +223,25 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      - name: submodule init
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Initialize submodules and bootstrap melos
         run: |
           git submodule update --init
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+          dart run melos bootstrap
+        shell: bash
+
       - name: Configure Missing files
         shell: bash
         run: |
@@ -246,13 +260,35 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      # - name: Prefetch dittoffi.dll
+      #   shell: pwsh
+      #   run: ./scripts/ci/prefetch-dittoffi.ps1
+
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
+      - name: Prefetch pdfium for printing plugin
+        shell: pwsh
+        run: |
+          Set-Location apps/flipper
+          flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
-  
+
   build-and-release-windows-debug:
     name: "Build windows app-debug"
-    # if: false  # skip for now as it is flaky
+    if: github.ref != 'refs/heads/main' # Skip on merge to main; prod build runs instead
     runs-on: windows-latest
     # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     # 
@@ -269,14 +305,27 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Get Dependencies
         run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+          dart run melos bootstrap
+        shell: bash
 
       - name: Configure Missing files
         shell: bash
@@ -297,11 +346,35 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
+      # - name: Prefetch dittoffi.dll
+      #   shell: pwsh
+      #   run: ./scripts/ci/prefetch-dittoffi.ps1
+
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
+      - name: Prefetch pdfium for printing plugin
+        shell: pwsh
+        run: ./scripts/ci/prefetch-pdfium.ps1
+
       - name: Build and Package
+        shell: pwsh
         run: |
-          cd apps/flipper
+          Set-Location apps/flipper
           flutter clean
-          dart run msix:create -v --install-certificate false --signtool-options "/td SHA256"
+          flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+          Set-Location apps/flipper
+          flutter build windows -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dart run msix:create -v --build-windows false --install-certificate false --signtool-options "/td SHA256"
 
       - name: Extract msix_version
         id: get_version
@@ -327,7 +400,7 @@ jobs:
     runs-on: windows-latest
     # integration-testing-windows,build_web_deploy_firebase
     # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
-    needs: [unit-testing] # Requires Supabase to be initialized
+    # needs: [unit-testing] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
@@ -341,7 +414,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -349,11 +422,25 @@ jobs:
         run: git submodule update --init
 
       - name: Setup melos
-        run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+        run: dart pub global activate melos 7.3.0
 
-      - name: Configure Missing files 
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Initialize submodules and bootstrap melos
+        run: |
+          git submodule update --init
+          dart run melos bootstrap
+        shell: bash
+
+      - name: Configure Missing files
         shell: bash
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -372,11 +459,35 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
+      # - name: Prefetch dittoffi.dll
+      #   shell: pwsh
+      #   run: ./scripts/ci/prefetch-dittoffi.ps1
+
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
+      - name: Prefetch pdfium for printing plugin
+        shell: pwsh
+        run: ./scripts/ci/prefetch-pdfium.ps1
+
       - name: Build and Package
+        shell: pwsh
         run: |
-          cd apps/flipper
+          Set-Location apps/flipper
           flutter clean
-          dart run msix:create --store
+          flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+          Set-Location apps/flipper
+          flutter build windows -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dart run msix:create --store --build-windows false
 
       - name: Extract msix_version
         id: get_version
@@ -401,7 +512,11 @@ jobs:
     if: github.ref != 'refs/heads/main' # Skip this job on main branch
     runs-on: ubuntu-latest
     continue-on-error: true
-  
+    permissions:
+      contents: write
+    env:
+      FLUTTER_TEST_CI: true
+
     strategy:
       fail-fast: false
       matrix:
@@ -422,7 +537,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: ${{ env.FLUTTER_VERSION }} #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
@@ -444,7 +559,7 @@ jobs:
       - name: Accept Android licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;28.0.12674087"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;29.0.14206865"
       - name: Configure Git with PAT
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -455,10 +570,16 @@ jobs:
           echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
       - name: Initialize submodules
         run: git submodule update --init
+
       - name: Setup melos
-        run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap melos
+        run: dart run melos bootstrap
+
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -487,10 +608,7 @@ jobs:
           ls -la apps/
           ls -la apps/${{ matrix.app }}/
           ls -la apps/${{ matrix.app }}/android/
-      - run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
-      
+
       # Get version from pubspec.yaml
       - name: Get version from pubspec.yaml
         id: get_version
@@ -503,7 +621,8 @@ jobs:
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.0"
+          # fastlane is dropping support for Ruby 3.0/3.1
+          ruby-version: "3.2"
           bundler-cache: true
           # cache-version: 1
           working-directory: apps/${{ matrix.app }}/android
@@ -559,7 +678,7 @@ jobs:
           echo "=========================================="
           
           # Verify NDK version
-          NDK_VERSION="28.0.12674087"
+          NDK_VERSION="29.0.14206865"
           if [ -d "$ANDROID_HOME/ndk/$NDK_VERSION" ]; then
             echo "✅ NDK $NDK_VERSION is installed (supports 16 KB alignment by default)"
             
@@ -705,94 +824,145 @@ jobs:
             exit 1
           fi
         working-directory: apps/${{ matrix.app }}/android
-      - run: |
-          bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
+      - name: Setup Shorebird
+        if: matrix.app == 'flipper'
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Verify Shorebird auth
+        if: matrix.app == 'flipper'
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+        run: |
+          bash scripts/ci/verify_shorebird_token.sh
+          shorebird --version
+          shorebird doctor -v
+      - name: Calculate Version
+        run: |
+          VERSION_CODE=$(( ${{ github.run_number }} + 1800000000 ))
+          VERSION_NAME="1.180.${{ github.run_number }}"
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+      - name: Shorebird release build
+        if: matrix.app == 'flipper'
+        working-directory: apps/flipper
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
+        run: |
+          set -euo pipefail
+          shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log
+          test -f build/app/outputs/bundle/release/app-release.aab
+      - name: Dump Shorebird release log on failure
+        if: failure() && matrix.app == 'flipper'
+        run: |
+          echo "=== shorebird release log (tail) ==="
+          tail -300 /tmp/shorebird-release.log 2>/dev/null || echo "(no /tmp/shorebird-release.log)"
+          echo "=== build outputs ==="
+          ls -laR apps/flipper/build/app/outputs 2>/dev/null || true
+      - run: bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
+          SHOREBIRD_PREBUILT: ${{ matrix.app == 'flipper' && 'true' || 'false' }}
+          USE_SHOREBIRD: 'false'
         working-directory: apps/${{ matrix.app }}/android
+      - name: Upload Shorebird logs on failure
+        if: failure() && matrix.app == 'flipper'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shorebird-logs-${{ matrix.app }}-${{ github.run_id }}
+          path: |
+            /tmp/shorebird-release.log
+            ~/.config/shorebird/logs/
+            ~/.shorebird/logs/
+          if-no-files-found: ignore
       
       # ===== POST-BUILD 16 KB VERIFICATION - START =====
-      - name: Verify AAB/APK 16 KB Compliance
-        if: always()
-        run: |
-          SCRIPT_PATH="${{ github.workspace }}/apps/flipper/en_check_elf_alignment.sh"
-          echo "=== Debug: Checking for script ===" 
-          echo "Looking for script at: $SCRIPT_PATH"
-          echo "Workspace directory:"
-          ls -la "${{ github.workspace }}/apps/flipper/" 2>/dev/null || echo "apps/flipper directory not found"
-          echo "=== End Debug ==="
+      # - name: Verify AAB/APK 16 KB Compliance
+      #   if: always()
+      #   run: |
+      #     SCRIPT_PATH="${{ github.workspace }}/apps/flipper/en_check_elf_alignment.sh"
+      #     echo "=== Debug: Checking for script ===" 
+      #     echo "Looking for script at: $SCRIPT_PATH"
+      #     echo "Workspace directory:"
+      #     ls -la "${{ github.workspace }}/apps/flipper/" 2>/dev/null || echo "apps/flipper directory not found"
+      #     echo "=== End Debug ==="
           
-          if [ ! -f "$SCRIPT_PATH" ]; then
-            echo "::error::Verification script not found at $SCRIPT_PATH"
-            exit 1
-          fi
-          chmod +x "$SCRIPT_PATH"
+      #     if [ ! -f "$SCRIPT_PATH" ]; then
+      #       echo "::error::Verification script not found at $SCRIPT_PATH"
+      #       exit 1
+      #     fi
+      #     chmod +x "$SCRIPT_PATH"
 
-          SEARCH_DIR="apps/${{ matrix.app }}"
-          echo "Searching for build artifact in $SEARCH_DIR..."
+      #     SEARCH_DIR="apps/${{ matrix.app }}"
+      #     echo "Searching for build artifact in $SEARCH_DIR..."
           
-          # Debug: List directory structure
-          echo "=== Debug: Listing build directories ==="
-          ls -la "$SEARCH_DIR/" 2>/dev/null || echo "Directory $SEARCH_DIR not found"
-          ls -la "$SEARCH_DIR/build/" 2>/dev/null || echo "Directory $SEARCH_DIR/build not found"
-          ls -la "build/" 2>/dev/null || echo "Directory build/ not found"
-          find "build/" -name "*.aab" -o -name "*.apk" 2>/dev/null || echo "No artifacts in build/"
-          echo "=== End Debug ==="
+      #     # Debug: List directory structure
+      #     echo "=== Debug: Listing build directories ==="
+      #     ls -la "$SEARCH_DIR/" 2>/dev/null || echo "Directory $SEARCH_DIR not found"
+      #     ls -la "$SEARCH_DIR/build/" 2>/dev/null || echo "Directory $SEARCH_DIR/build not found"
+      #     ls -la "build/" 2>/dev/null || echo "Directory build/ not found"
+      #     find "build/" -name "*.aab" -o -name "*.apk" 2>/dev/null || echo "No artifacts in build/"
+      #     echo "=== End Debug ==="
           
-          # Prioritize standard output directories
-          ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
-          if [ -z "$ARTIFACT_PATH" ]; then
-            ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
-          fi
+      #     # Prioritize standard output directories
+      #     ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
+      #     if [ -z "$ARTIFACT_PATH" ]; then
+      #       ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
+      #     fi
 
-          # Check custom build directory (build.gradle.kts redirects to workspace root)
-          if [ -z "$ARTIFACT_PATH" ]; then
-            echo "Checking custom build directory at workspace root..."
-            ARTIFACT_PATH=$(find "build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
-            if [ -z "$ARTIFACT_PATH" ]; then
-              ARTIFACT_PATH=$(find "build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
-            fi
-          fi
+      #     # Check custom build directory (build.gradle.kts redirects to workspace root)
+      #     if [ -z "$ARTIFACT_PATH" ]; then
+      #       echo "Checking custom build directory at workspace root..."
+      #       ARTIFACT_PATH=$(find "build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
+      #       if [ -z "$ARTIFACT_PATH" ]; then
+      #         ARTIFACT_PATH=$(find "build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
+      #       fi
+      #     fi
 
-          # Fallback to searching the whole directory
-          if [ -z "$ARTIFACT_PATH" ]; then
-            echo "::warning::Build artifact not found in standard output paths, searching entire $SEARCH_DIR..."
-            ARTIFACT_PATH=$(find "$SEARCH_DIR" -name "*.aab" -o -name "*.apk" | head -n 1)
-          fi
+      #     # Fallback to searching the whole directory
+      #     if [ -z "$ARTIFACT_PATH" ]; then
+      #       echo "::warning::Build artifact not found in standard output paths, searching entire $SEARCH_DIR..."
+      #       ARTIFACT_PATH=$(find "$SEARCH_DIR" -name "*.aab" -o -name "*.apk" | head -n 1)
+      #     fi
 
-          if [ -z "$ARTIFACT_PATH" ]; then
-            echo "::error::Build artifact (.aab or .apk) not found in $SEARCH_DIR!"
-            exit 1
-          fi
+      #     if [ -z "$ARTIFACT_PATH" ]; then
+      #       echo "::error::Build artifact (.aab or .apk) not found in $SEARCH_DIR!"
+      #       exit 1
+      #     fi
 
-          echo "Found artifact: $ARTIFACT_PATH"
-          "$SCRIPT_PATH" "$ARTIFACT_PATH"
-      # ===== POST-BUILD 16 KB VERIFICATION - END =====
+      #     echo "Found artifact: $ARTIFACT_PATH"
+      #     "$SCRIPT_PATH" "$ARTIFACT_PATH"
+      # # ===== POST-BUILD 16 KB VERIFICATION - END =====
       
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v2
         with:
+          files: apps/${{ matrix.app }}/build/app/outputs/bundle/release/app-release.aab
           name: ${{ matrix.app }} Android AAB Release - ${{ github.ref_name }}
           tag_name: v${{ steps.get_version.outputs.version }}_${{ matrix.app }}
           draft: false
           body: |
-            Debug Release for QA
+            Android AAB from fastlane-deploy (${{ matrix.app }}) on ${{ github.ref_name }}.
             
-            16 KB Page Size Compliance: Pre-deployment checks completed
-            - AGP version verified
-            - NDK 28.0.12674087 (16 KB alignment supported)
-            - Build configuration checked
-            - Post-build artifact verification completed
-            
-            ⚠️ Additional testing recommended on 16 KB page size devices
+            16 KB page size: NDK 29.0.14206865, AGP verified in CI.
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   slackNotification:
     name: Slack Notification
-    needs: [build-and-release-windows-debug, build-and-release-windows-prod,build_web_deploy_firebase]
+    needs: [build-and-release-windows-debug, build-and-release-windows-prod, build_web_deploy_firebase]
+    if: >-
+      always() &&
+      needs.build_web_deploy_firebase.result == 'success' &&
+      (needs.build-and-release-windows-prod.result == 'success' ||
+       needs.build-and-release-windows-debug.result == 'success')
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3

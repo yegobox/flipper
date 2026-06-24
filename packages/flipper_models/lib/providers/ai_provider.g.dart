@@ -12,19 +12,24 @@ part of 'ai_provider.dart';
 @ProviderFor(availableModels)
 const availableModelsProvider = AvailableModelsProvider._();
 
-final class AvailableModelsProvider extends $FunctionalProvider<
-        AsyncValue<List<AIModel>>, List<AIModel>, FutureOr<List<AIModel>>>
+final class AvailableModelsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AIModel>>,
+          List<AIModel>,
+          FutureOr<List<AIModel>>
+        >
     with $FutureModifier<List<AIModel>>, $FutureProvider<List<AIModel>> {
   const AvailableModelsProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'availableModelsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'availableModelsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$availableModelsHash();
@@ -32,8 +37,8 @@ final class AvailableModelsProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<AIModel>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<AIModel>> create(Ref ref) {
@@ -41,7 +46,7 @@ final class AvailableModelsProvider extends $FunctionalProvider<
   }
 }
 
-String _$availableModelsHash() => r'b0bcf36e9f71093151ad6446448c7a88a2206c5a';
+String _$availableModelsHash() => r'2b70b51b1251cf90be53ed3408e3d0f499cc368f';
 
 /// Providers
 
@@ -52,20 +57,16 @@ const geminiResponseProvider = GeminiResponseFamily._();
 final class GeminiResponseProvider
     extends $AsyncNotifierProvider<GeminiResponse, String> {
   /// Providers
-  const GeminiResponseProvider._(
-      {required GeminiResponseFamily super.from,
-      required (
-        UnifiedAIInput,
-        AIModel?,
-      )
-          super.argument})
-      : super(
-          retry: null,
-          name: r'geminiResponseProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const GeminiResponseProvider._({
+    required GeminiResponseFamily super.from,
+    required (UnifiedAIInput, AIModel?) super.argument,
+  }) : super(
+         retry: null,
+         name: r'geminiResponseProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$geminiResponseHash();
@@ -92,40 +93,32 @@ final class GeminiResponseProvider
   }
 }
 
-String _$geminiResponseHash() => r'09bf77145db165e2fa41cbe79d94ea3c933c0c9e';
+String _$geminiResponseHash() => r'84e0ffa3cc39534cc92c1e4b3ffead3af166feb7';
 
 /// Providers
 
 final class GeminiResponseFamily extends $Family
     with
         $ClassFamilyOverride<
-            GeminiResponse,
-            AsyncValue<String>,
-            String,
-            FutureOr<String>,
-            (
-              UnifiedAIInput,
-              AIModel?,
-            )> {
+          GeminiResponse,
+          AsyncValue<String>,
+          String,
+          FutureOr<String>,
+          (UnifiedAIInput, AIModel?)
+        > {
   const GeminiResponseFamily._()
-      : super(
-          retry: null,
-          name: r'geminiResponseProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'geminiResponseProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   /// Providers
 
-  GeminiResponseProvider call(
-    UnifiedAIInput input,
-    AIModel? aiModel,
-  ) =>
-      GeminiResponseProvider._(argument: (
-        input,
-        aiModel,
-      ), from: this);
+  GeminiResponseProvider call(UnifiedAIInput input, AIModel? aiModel) =>
+      GeminiResponseProvider._(argument: (input, aiModel), from: this);
 
   @override
   String toString() => r'geminiResponseProvider';
@@ -134,30 +127,24 @@ final class GeminiResponseFamily extends $Family
 /// Providers
 
 abstract class _$GeminiResponse extends $AsyncNotifier<String> {
-  late final _$args = ref.$arg as (
-    UnifiedAIInput,
-    AIModel?,
-  );
+  late final _$args = ref.$arg as (UnifiedAIInput, AIModel?);
   UnifiedAIInput get input => _$args.$1;
   AIModel? get aiModel => _$args.$2;
 
-  FutureOr<String> build(
-    UnifiedAIInput input,
-    AIModel? aiModel,
-  );
+  FutureOr<String> build(UnifiedAIInput input, AIModel? aiModel);
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(
-      _$args.$1,
-      _$args.$2,
-    );
+    final created = build(_$args.$1, _$args.$2);
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<String>, String>,
-        AsyncValue<String>,
-        Object?,
-        Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<String>, String>,
+              AsyncValue<String>,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }
@@ -167,23 +154,25 @@ const geminiBusinessAnalyticsProvider = GeminiBusinessAnalyticsFamily._();
 
 final class GeminiBusinessAnalyticsProvider
     extends $AsyncNotifierProvider<GeminiBusinessAnalytics, String> {
-  const GeminiBusinessAnalyticsProvider._(
-      {required GeminiBusinessAnalyticsFamily super.from,
-      required (
-        String,
-        String, {
-        String? filePath,
-        List<Content>? history,
-        AIModel? aiModel,
-      })
-          super.argument})
-      : super(
-          retry: null,
-          name: r'geminiBusinessAnalyticsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const GeminiBusinessAnalyticsProvider._({
+    required GeminiBusinessAnalyticsFamily super.from,
+    required (
+      String,
+      String, {
+      String? filePath,
+      List<Content>? history,
+      AIModel? aiModel,
+      String useCase,
+      String? connectedExternalDataContext,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'geminiBusinessAnalyticsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$geminiBusinessAnalyticsHash();
@@ -212,30 +201,33 @@ final class GeminiBusinessAnalyticsProvider
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'ef0e8b4d99442c624fb6ec4632083175077d3652';
+    r'c2128c783c3956fc5261bb9198e1890fbfb13b19';
 
 final class GeminiBusinessAnalyticsFamily extends $Family
     with
         $ClassFamilyOverride<
-            GeminiBusinessAnalytics,
-            AsyncValue<String>,
+          GeminiBusinessAnalytics,
+          AsyncValue<String>,
+          String,
+          FutureOr<String>,
+          (
             String,
-            FutureOr<String>,
-            (
-              String,
-              String, {
-              String? filePath,
-              List<Content>? history,
-              AIModel? aiModel,
-            })> {
+            String, {
+            String? filePath,
+            List<Content>? history,
+            AIModel? aiModel,
+            String useCase,
+            String? connectedExternalDataContext,
+          })
+        > {
   const GeminiBusinessAnalyticsFamily._()
-      : super(
-          retry: null,
-          name: r'geminiBusinessAnalyticsProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'geminiBusinessAnalyticsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   GeminiBusinessAnalyticsProvider call(
     String branchId,
@@ -243,32 +235,47 @@ final class GeminiBusinessAnalyticsFamily extends $Family
     String? filePath,
     List<Content>? history,
     AIModel? aiModel,
-  }) =>
-      GeminiBusinessAnalyticsProvider._(argument: (
-        branchId,
-        userPrompt,
-        filePath: filePath,
-        history: history,
-        aiModel: aiModel,
-      ), from: this);
+    String useCase = 'business',
+    String? connectedExternalDataContext,
+  }) => GeminiBusinessAnalyticsProvider._(
+    argument: (
+      branchId,
+      userPrompt,
+      filePath: filePath,
+      history: history,
+      aiModel: aiModel,
+      useCase: useCase,
+      connectedExternalDataContext: connectedExternalDataContext,
+    ),
+    from: this,
+  );
 
   @override
   String toString() => r'geminiBusinessAnalyticsProvider';
 }
 
 abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
-  late final _$args = ref.$arg as (
-    String,
-    String, {
-    String? filePath,
-    List<Content>? history,
-    AIModel? aiModel,
-  });
+  late final _$args =
+      ref.$arg
+          as (
+            String,
+            String, {
+            String? filePath,
+            List<Content>? history,
+            AIModel? aiModel,
+            String useCase,
+            String? connectedExternalDataContext,
+          });
   String get branchId => _$args.$1;
   String get userPrompt => _$args.$2;
   String? get filePath => _$args.filePath;
   List<Content>? get history => _$args.history;
   AIModel? get aiModel => _$args.aiModel;
+  String get useCase => _$args.useCase;
+
+  /// Schema/samples from user-connected databases (e.g. Supabase), built in the app layer.
+  String? get connectedExternalDataContext =>
+      _$args.connectedExternalDataContext;
 
   FutureOr<String> build(
     String branchId,
@@ -276,6 +283,8 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
     String? filePath,
     List<Content>? history,
     AIModel? aiModel,
+    String useCase = 'business',
+    String? connectedExternalDataContext,
   });
   @$mustCallSuper
   @override
@@ -286,13 +295,18 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
       filePath: _$args.filePath,
       history: _$args.history,
       aiModel: _$args.aiModel,
+      useCase: _$args.useCase,
+      connectedExternalDataContext: _$args.connectedExternalDataContext,
     );
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<String>, String>,
-        AsyncValue<String>,
-        Object?,
-        Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<String>, String>,
+              AsyncValue<String>,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }
@@ -303,15 +317,16 @@ const geminiSummaryProvider = GeminiSummaryFamily._();
 final class GeminiSummaryProvider
     extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
     with $FutureModifier<String>, $FutureProvider<String> {
-  const GeminiSummaryProvider._(
-      {required GeminiSummaryFamily super.from, required String super.argument})
-      : super(
-          retry: null,
-          name: r'geminiSummaryProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const GeminiSummaryProvider._({
+    required GeminiSummaryFamily super.from,
+    required (String, {AIModel? aiModel}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'geminiSummaryProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$geminiSummaryHash();
@@ -320,7 +335,7 @@ final class GeminiSummaryProvider
   String toString() {
     return r'geminiSummaryProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -330,11 +345,8 @@ final class GeminiSummaryProvider
 
   @override
   FutureOr<String> create(Ref ref) {
-    final argument = this.argument as String;
-    return geminiSummary(
-      ref,
-      argument,
-    );
+    final argument = this.argument as (String, {AIModel? aiModel});
+    return geminiSummary(ref, argument.$1, aiModel: argument.aiModel);
   }
 
   @override
@@ -348,23 +360,25 @@ final class GeminiSummaryProvider
   }
 }
 
-String _$geminiSummaryHash() => r'2a5ea7c9b7721717b6b56bd58d713c646a3fc534';
+String _$geminiSummaryHash() => r'b7a55d141811bb2dd07a499ba7fa38c25ecc3ff2';
 
 final class GeminiSummaryFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<String>, String> {
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<String>,
+          (String, {AIModel? aiModel})
+        > {
   const GeminiSummaryFamily._()
-      : super(
-          retry: null,
-          name: r'geminiSummaryProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'geminiSummaryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  GeminiSummaryProvider call(
-    String prompt,
-  ) =>
-      GeminiSummaryProvider._(argument: prompt, from: this);
+  GeminiSummaryProvider call(String prompt, {AIModel? aiModel}) =>
+      GeminiSummaryProvider._(argument: (prompt, aiModel: aiModel), from: this);
 
   @override
   String toString() => r'geminiSummaryProvider';
@@ -373,23 +387,26 @@ final class GeminiSummaryFamily extends $Family
 @ProviderFor(streamedBusinessAnalytics)
 const streamedBusinessAnalyticsProvider = StreamedBusinessAnalyticsFamily._();
 
-final class StreamedBusinessAnalyticsProvider extends $FunctionalProvider<
-        AsyncValue<List<BusinessAnalytic>>,
-        List<BusinessAnalytic>,
-        Stream<List<BusinessAnalytic>>>
+final class StreamedBusinessAnalyticsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<models.BusinessAnalytic>>,
+          List<models.BusinessAnalytic>,
+          Stream<List<models.BusinessAnalytic>>
+        >
     with
-        $FutureModifier<List<BusinessAnalytic>>,
-        $StreamProvider<List<BusinessAnalytic>> {
-  const StreamedBusinessAnalyticsProvider._(
-      {required StreamedBusinessAnalyticsFamily super.from,
-      required String super.argument})
-      : super(
-          retry: null,
-          name: r'streamedBusinessAnalyticsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+        $FutureModifier<List<models.BusinessAnalytic>>,
+        $StreamProvider<List<models.BusinessAnalytic>> {
+  const StreamedBusinessAnalyticsProvider._({
+    required StreamedBusinessAnalyticsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'streamedBusinessAnalyticsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$streamedBusinessAnalyticsHash();
@@ -403,17 +420,14 @@ final class StreamedBusinessAnalyticsProvider extends $FunctionalProvider<
 
   @$internal
   @override
-  $StreamProviderElement<List<BusinessAnalytic>> $createElement(
-          $ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+  $StreamProviderElement<List<models.BusinessAnalytic>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
 
   @override
-  Stream<List<BusinessAnalytic>> create(Ref ref) {
+  Stream<List<models.BusinessAnalytic>> create(Ref ref) {
     final argument = this.argument as String;
-    return streamedBusinessAnalytics(
-      ref,
-      argument,
-    );
+    return streamedBusinessAnalytics(ref, argument);
   }
 
   @override
@@ -429,22 +443,24 @@ final class StreamedBusinessAnalyticsProvider extends $FunctionalProvider<
 }
 
 String _$streamedBusinessAnalyticsHash() =>
-    r'087c0b987e5d3f7d085c717d3a13b92d9613dc5e';
+    r'23f52d512a0ec93827732f1c44766bbd0f2708cd';
 
 final class StreamedBusinessAnalyticsFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<BusinessAnalytic>>, String> {
+    with
+        $FunctionalFamilyOverride<
+          Stream<List<models.BusinessAnalytic>>,
+          String
+        > {
   const StreamedBusinessAnalyticsFamily._()
-      : super(
-          retry: null,
-          name: r'streamedBusinessAnalyticsProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'streamedBusinessAnalyticsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  StreamedBusinessAnalyticsProvider call(
-    String branchId,
-  ) =>
+  StreamedBusinessAnalyticsProvider call(String branchId) =>
       StreamedBusinessAnalyticsProvider._(argument: branchId, from: this);
 
   @override

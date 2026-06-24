@@ -2,8 +2,9 @@
 import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'ditto_mixins/ditto_core_mixin.dart';
 import 'ditto_mixins/user_profile_mixin.dart';
 import 'ditto_mixins/business_mixin.dart';
@@ -15,6 +16,10 @@ import 'ditto_mixins/claim_mixin.dart';
 import 'ditto_mixins/sync_mixin.dart';
 import 'ditto_mixins/observation_mixin.dart';
 import 'ditto_mixins/user_access_mixin.dart';
+import 'ditto_mixins/feature_mixin.dart';
+import 'ditto_mixins/plan_mixin.dart';
+import 'ditto_mixins/accounting_mixin.dart';
+import 'package:flipper_accounting/accounting_ditto_store.dart';
 
 // Global singleton instance of DittoService
 final DittoService _dittoServiceInstance = DittoService._internal();
@@ -23,6 +28,11 @@ final DittoService _dittoServiceInstance = DittoService._internal();
 final dittoServiceProvider = Provider<DittoService>((ref) {
   return _dittoServiceInstance;
 });
+
+/// Reactive Ditto readiness — updated by [DittoBootstrap] when init completes
+/// or on sign-out. Do not read [DittoService.isReady] via [dittoServiceProvider]
+/// alone; that provider never invalidates when the singleton becomes ready.
+final dittoReadyProvider = StateProvider<bool>((ref) => false);
 
 /// Provider for Ditto sync control
 final dittoSyncProvider = Provider<DittoSyncController>((ref) {
@@ -59,7 +69,11 @@ class DittoService extends DittoCore
         ClaimMixin,
         SyncMixin,
         ObservationMixin,
-        UserAccessMixin {
+        UserAccessMixin,
+        FeatureMixin,
+        PlanMixin,
+        AccountingMixin
+    implements AccountingDittoStore {
   // Private constructor for singleton implementation
   DittoService._internal();
 

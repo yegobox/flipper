@@ -7,15 +7,15 @@ part of 'Email.dart';
 // **************************************************************************
 
 Mail _$MailFromJson(Map<String, dynamic> json) => Mail(
-      to: json['to'] as String,
-      subject: json['subject'] as String,
-      messageBody: json['messageBody'] as String,
-      bcc: json['bcc'] as String?,
-    );
+  to: json['to'] as String,
+  subject: json['subject'] as String,
+  messageBody: json['messageBody'] as String,
+  bcc: json['bcc'] as String?,
+);
 
 Map<String, dynamic> _$MailToJson(Mail instance) => <String, dynamic>{
-      'to': instance.to,
-      'subject': instance.subject,
-      'messageBody': instance.messageBody,
-      'bcc': instance.bcc,
-    };
+  'to': instance.to,
+  'subject': instance.subject,
+  'messageBody': instance.messageBody,
+  'bcc': instance.bcc,
+};

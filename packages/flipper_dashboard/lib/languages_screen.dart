@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:stacked/stacked.dart';
@@ -19,30 +20,31 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
-        viewModelBuilder: () => SettingViewModel(),
-        onViewModelReady: (model) {
-          model.getSetting();
-        },
-        builder: (context, model, child) {
-          return Scaffold(
-            appBar: CustomAppBar(
-              onPop: () {
-                _routerService.pop();
-              },
-              title: 'Languages',
-              showActionButton: false,
-              onActionButtonClicked: () async {
-                _routerService.pop();
-              },
-              icon: Icons.close,
-              multi: 3,
-              bottomSpacer: 55,
-            ),
-            body: SettingsList(
-              sections: [
-                SettingsSection(tiles: [
+      viewModelBuilder: () => SettingViewModel(),
+      onViewModelReady: (model) {
+        model.getSetting();
+      },
+      builder: (context, model, child) {
+        return Scaffold(
+          appBar: CustomAppBar(
+            onPop: () {
+              _routerService.pop();
+            },
+            title: FLocalization.of(context).languagesTitle,
+            showActionButton: false,
+            onActionButtonClicked: () async {
+              _routerService.pop();
+            },
+            icon: Icons.close,
+            multi: 3,
+            bottomSpacer: 55,
+          ),
+          body: SettingsList(
+            sections: [
+              SettingsSection(
+                tiles: [
                   SettingsTile(
-                    title: Text("English"),
+                    title: Text(FLocalization.of(context).english),
                     trailing: trailingWidget(model.defaultLanguage == 'en'),
                     onPressed: (BuildContext context) {
                       model.setLanguage('en');
@@ -50,26 +52,28 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                     },
                   ),
                   SettingsTile(
-                    title: Text("Ikinyarwanda"),
-                    trailing: trailingWidget(model.defaultLanguage == 'fr'),
+                    title: Text(FLocalization.of(context).kinyarwanda),
+                    trailing: trailingWidget(model.defaultLanguage == 'rw'),
                     onPressed: (BuildContext context) {
-                      model.setLanguage('fr');
-                      model.updateSettings(map: {'defaultLanguage': 'fr'});
+                      model.setLanguage('rw');
+                      model.updateSettings(map: {'defaultLanguage': 'rw'});
                     },
                   ),
                   SettingsTile(
-                    title: Text("Swahili"),
+                    title: Text(FLocalization.of(context).swahili),
                     trailing: trailingWidget(model.defaultLanguage == 'sw'),
                     onPressed: (BuildContext context) {
                       model.setLanguage('sw');
                       model.updateSettings(map: {'defaultLanguage': 'sw'});
                     },
                   ),
-                ]),
-              ],
-            ),
-          );
-        });
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget trailingWidget(bool checked) {

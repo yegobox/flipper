@@ -25,18 +25,18 @@ class IBranch extends IJsonSerializable {
     this.accesses,
   });
   IBranch.copy(IBranch other, {bool? active, String? name})
-      : isDefault = other.isDefault,
-        name = name ?? other.name,
-        id = other.id,
-        location = other.location,
-        branchDefault = other.branchDefault,
-        accesses = other.accesses,
-        businessId = other.businessId,
-        createdAt = other.createdAt,
-        description = other.description,
-        latitude = other.latitude,
-        longitude = other.longitude,
-        updatedAt = other.updatedAt;
+    : isDefault = other.isDefault,
+      name = name ?? other.name,
+      id = other.id,
+      location = other.location,
+      branchDefault = other.branchDefault,
+      accesses = other.accesses,
+      businessId = other.businessId,
+      createdAt = other.createdAt,
+      description = other.description,
+      latitude = other.latitude,
+      longitude = other.longitude,
+      updatedAt = other.updatedAt;
   String? id;
   int? serverId;
   String? description;
@@ -46,9 +46,7 @@ class IBranch extends IJsonSerializable {
   num? latitude;
   DateTime? createdAt;
   dynamic updatedAt;
-  @JsonKey(
-    fromJson: _parseStringField,
-  )
+  @JsonKey(fromJson: _parseStringField)
   dynamic location;
   bool? isDefault;
   bool? branchDefault;
@@ -76,15 +74,29 @@ class IBranch extends IJsonSerializable {
       json['updatedAt'] = json['updated_at'];
     }
 
-    json['lastTouched'] = (json['lastTouched'] == null ||
-            json['lastTouched'].toString().isEmpty)
+    json['lastTouched'] =
+        (json['lastTouched'] == null || json['lastTouched'].toString().isEmpty)
         ? DateTime.now().toIso8601String()
         : (json['lastTouched'] is String
-            ? json['lastTouched']
-            : DateTime.parse(json['lastTouched'].toString()).toIso8601String());
+              ? json['lastTouched']
+              : DateTime.parse(
+                  json['lastTouched'].toString(),
+                ).toIso8601String());
 
     // this line ony added in both business and branch as they are not part of sync schemd
     json['action'] = AppActions.created;
+
+    // Handle latitude/longitude/serverId that might come as strings from API
+    if (json['latitude'] is String) {
+      json['latitude'] = num.tryParse(json['latitude']);
+    }
+    if (json['longitude'] is String) {
+      json['longitude'] = num.tryParse(json['longitude']);
+    }
+    if (json['serverId'] is String) {
+      json['serverId'] = int.tryParse(json['serverId']);
+    }
+
     return _$IBranchFromJson(json);
   }
 

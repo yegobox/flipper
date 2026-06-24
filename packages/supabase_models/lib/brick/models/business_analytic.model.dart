@@ -17,7 +17,7 @@ part 'business_analytic.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'business_analytics',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

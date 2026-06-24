@@ -39,7 +39,7 @@ class Customer extends IJsonSerializable {
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
 
-  String action;
+  String? action;
 
   DateTime? deletedAt;
 

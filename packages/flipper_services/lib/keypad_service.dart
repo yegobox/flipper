@@ -67,32 +67,36 @@ class KeyPadService with ListenableServiceMixin {
   /// transaction can not be more than 1 lenght i.e at one instance
   /// we have one transaction but an transaction can have more than 1 transactionitem(s)
   /// it is in this recard in application anywhere else it's okay to access transactions[0]
-  Future<ITransaction?> getPendingTransaction(
-      {required String branchId}) async {
+  Future<ITransaction?> getPendingTransaction({
+    required String branchId,
+  }) async {
     final String? userId = ProxyService.box.getUserId();
     String? shiftId;
     if (userId != null) {
-      final currentShift =
-          await ProxyService.strategy.getCurrentShift(userId: userId);
+      final currentShift = await ProxyService.strategy.getCurrentShift(
+        userId: userId,
+      );
       shiftId = currentShift?.id;
     }
 
-    ITransaction? transaction = await ProxyService.strategy.manageTransaction(
-      branchId: ProxyService.box.getBranchId()!,
-      transactionType: TransactionType.sale,
-      isExpense: false,
-      includeSubTotalCheck: false,
-      shiftId: shiftId,
-    );
+    ITransaction? transaction = await ProxyService.getStrategy(Strategy.capella)
+        .manageTransaction(
+          branchId: ProxyService.box.getBranchId()!,
+          transactionType: TransactionType.sale,
+          isExpense: false,
+          status: PENDING,
+          includeSubTotalCheck: false,
+          shiftId: shiftId,
+        );
 
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch(
-          branchId: ProxyService.box.getBranchId()!,
-        ))
-            .id,
-        transactionId: transaction?.id,
-        doneWithTransaction: false,
-        active: true);
+      branchId: (await ProxyService.strategy.activeBranch(
+        branchId: ProxyService.box.getBranchId()!,
+      )).id,
+      transactionId: transaction?.id,
+      doneWithTransaction: false,
+      active: true,
+    );
     _countTransactionItems.value = items.length;
 
     _transaction.value = transaction;
@@ -102,15 +106,16 @@ class KeyPadService with ListenableServiceMixin {
   /// this function update _transactions.value the same as getTransactions but this takes id of the transaction we want
   /// it is very important to not fonfuse these functions. later on.
   Future<ITransaction?> getTransactionById({required String id}) async {
-    ITransaction? transaction =
-        (await ProxyService.strategy.transactions(id: id)).firstOrNull;
+    ITransaction? transaction = (await ProxyService.strategy.transactions(
+      id: id,
+    )).firstOrNull;
     List<TransactionItem> transactionItems =
         await ProxyService.getStrategy(Strategy.capella).transactionItems(
-            transactionId: transaction?.id,
-            branchId: (await ProxyService.strategy.activeBranch(
-              branchId: ProxyService.box.getBranchId()!,
-            ))
-                .id);
+          transactionId: transaction?.id,
+          branchId: (await ProxyService.strategy.activeBranch(
+            branchId: ProxyService.box.getBranchId()!,
+          )).id,
+        );
     _countTransactionItems.value = transactionItems.length;
 
     _transaction.value = transaction;
@@ -154,7 +159,7 @@ class KeyPadService with ListenableServiceMixin {
       _check,
       _cashReceived,
       _totalPayable,
-      _totalDiscount
+      _totalDiscount,
     ]);
   }
 }

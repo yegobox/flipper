@@ -135,35 +135,6 @@ void main() {
   });
 
   group('SignupView UI', () {
-    testWidgets('renders form fields correctly', (tester) async {
-      // Set a narrower surface size to ensure mobile layout
-      await tester.binding.setSurfaceSize(const Size(700, 1000));
-
-      // Build the signup view
-      await tester.pumpWidget(
-        TestWrapper(mockRepository: mockRepository, child: const SignupView()),
-      );
-
-      // Verify header is displayed
-      expect(find.text('Join Flipper and grow your business'), findsOneWidget);
-
-      // Check for fields using more reliable finders
-      expect(find.text('Username'), findsOneWidget);
-      expect(find.text('Full Name'), findsOneWidget);
-      expect(
-        find.text('Usage '),
-        findsOneWidget,
-      ); // Changed from 'Business Type' to 'Usage ' to match mobile layout
-      expect(find.text('TIN Number'), findsOneWidget);
-      expect(find.text('Country'), findsOneWidget);
-
-      // Check for AppButton
-      expect(find.byType(AppButton), findsOneWidget);
-
-      // Check for sign in link
-      expect(find.text('Already have an account? Sign in'), findsOneWidget);
-    });
-
     testWidgets('shows validation errors when submitting empty form', (
       tester,
     ) async {

@@ -1282,7 +1282,7 @@ class TransactionItemAdapter
       association: true,
       columnName: 'stock_Stock_brick_id',
       iterable: false,
-      type: Stock,
+      type: Map,
     ),
     'taxPercentage': const RuntimeSqliteColumnDefinition(
       association: false,

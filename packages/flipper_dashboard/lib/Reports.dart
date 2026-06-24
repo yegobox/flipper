@@ -118,10 +118,14 @@ class ReportsDashboard extends HookConsumerWidget {
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     ).then((dateRange) {
-      if (dateRange != null) {
-        ref.read(dateRangeProvider.notifier).setStartDate(dateRange.start);
-        ref.read(dateRangeProvider.notifier).setEndDate(dateRange.end);
-      }
+      if (dateRange == null) return;
+      // Let route dismiss paint before triggering heavy downstream rebuilds.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(dateRangeProvider.notifier).setRange(
+              start: dateRange.start,
+              end: dateRange.end,
+            );
+      });
     });
   }
 
@@ -476,62 +480,6 @@ class ReportsDashboard extends HookConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-void preloadReportsData(WidgetRef ref) {
-  final branchId = ProxyService.box.getBranchId()!;
-  ref.read(fetchStockPerformanceProvider(branchId));
-  ref.read(fetchMetricsProvider(branchId));
-}
-
-class FastReportsDialog extends StatefulWidget {
-  const FastReportsDialog({Key? key}) : super(key: key);
-
-  @override
-  State<FastReportsDialog> createState() => _FastReportsDialogState();
-}
-
-class _FastReportsDialogState extends State<FastReportsDialog> {
-  bool _showContent = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Show content after a minimal delay to ensure dialog appears first
-    Future.microtask(() {
-      if (mounted) {
-        setState(() {
-          _showContent = true;
-        });
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 700, maxWidth: 800),
-        child: _showContent
-            ? const ReportsDashboard(isInDialog: true)
-            : Container(
-                height: 400,
-                padding: const EdgeInsets.all(20),
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading Reports...'),
-                    ],
-                  ),
-                ),
-              ),
       ),
     );
   }

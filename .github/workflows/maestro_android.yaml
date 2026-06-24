@@ -1,0 +1,105 @@
+name: Maestro Android E2E
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/maestro_android.yaml"
+      - ".maestro/**"
+      - "apps/flipper/**"
+      - "packages/flipper_dashboard/**"
+      - "packages/flipper_login/**"
+      - "packages/flipper_models/**"
+      - "packages/flipper_services/**"
+      
+permissions:
+   contents: read
+
+env:
+  FLUTTER_VERSION: "3.44.2" # flutter_gemma >=1.0.0 requires Dart SDK >=3.12.0
+  APP_ID: rw.flipper
+
+jobs:
+  maestro-android:
+    name: Maestro Android smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN || github.token }}
+          persist-credentials: true
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Set up Melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Bootstrap workspace
+        run: |
+          git submodule update --init --force --recursive
+          dart run melos bootstrap
+          dart run melos run generate:icons
+
+      - name: Configure app secrets
+        shell: bash
+        run: |
+          echo "$CONFIGDART" > packages/flipper_login/lib/config.dart
+          echo "$SECRETS" > packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" > apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" > packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" > apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" > apps/flipper/amplify/team-provider-info.json
+          echo "$GOOGLE_SERVICE_JSON" > apps/flipper/android/app/google-services.json
+        env:
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Install Maestro CLI
+        run: curl -fsSL "https://get.maestro.mobile.dev" | bash
+
+      - name: Add Maestro to PATH
+        run: echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # Required for hardware-accelerated emulators on ubuntu-latest runners.
+      # Without KVM the emulator falls back to software rendering and often hits
+      # the boot timeout (see android-emulator-runner README).
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Maestro flows
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          FLOW_PATH: .maestro/00_landing_to_pin_smoke.yaml
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          target: google_apis
+          cores: 4
+          emulator-boot-timeout: 900
+          script: ./scripts/maestro/ci_android.sh

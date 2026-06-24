@@ -1,7 +1,7 @@
 // // This file performs setup of the PowerSync database
 
 // import 'package:flipper_services/proxy.dart';
-// import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart' hide Category;
 // import 'package:logging/logging.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';

@@ -22,7 +22,7 @@ void main() {
     when(() => mockBox.getBranchId()).thenReturn(null);
     when(() => mockBox.tin()).thenReturn(9999);
 
-    ProxyService.box = mockBox;
+    // ProxyService.box = mockBox;
   });
 
   test('returns tin from Business model', () async {

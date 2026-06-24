@@ -1,56 +1,26 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260107143027.migration.dart';
-part '20251206093643.migration.dart';
-part '20251212042542.migration.dart';
-part '20251212052427.migration.dart';
-part '20251223113831.migration.dart';
-part '20251227183153.migration.dart';
-part '20251227184119.migration.dart';
-part '20251227184758.migration.dart';
-part '20251227184946.migration.dart';
-part '20251227185249.migration.dart';
-part '20251227195512.migration.dart';
-part '20251227200851.migration.dart';
-part '20251227202731.migration.dart';
-part '20251227205309.migration.dart';
-part '20251228163424.migration.dart';
-part '20251228164607.migration.dart';
-part '20251228185846.migration.dart';
-part '20251231090733.migration.dart';
-part '20251231094858.migration.dart';
-part '20260101131413.migration.dart';
-part '20260106104847.migration.dart';
+part '20260522081221.migration.dart';
+part '20260527030019.migration.dart';
+part '20260603185233.migration.dart';
+part '20260610091903.migration.dart';
+part '20260611094026.migration.dart';
+part '20260617083057.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260107143027(),
-  const Migration20251206093643(),
-  const Migration20251212042542(),
-  const Migration20251212052427(),
-  const Migration20251223113831(),
-  const Migration20251227183153(),
-  const Migration20251227184119(),
-  const Migration20251227184758(),
-  const Migration20251227184946(),
-  const Migration20251227185249(),
-  const Migration20251227195512(),
-  const Migration20251227200851(),
-  const Migration20251227202731(),
-  const Migration20251227205309(),
-  const Migration20251228163424(),
-  const Migration20251228164607(),
-  const Migration20251228185846(),
-  const Migration20251231090733(),
-  const Migration20251231094858(),
-  const Migration20260101131413(),
-  const Migration20260106104847(),
+  const Migration20260522081221(),
+  const Migration20260527030019(),
+  const Migration20260603185233(),
+  const Migration20260610091903(),
+  const Migration20260611094026(),
+  const Migration20260617083057(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260106104847,
+  20260617083057,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -98,6 +68,37 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      'ActualOutput',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('work_order_id', Column.varchar),
+        SchemaColumn('branch_id', Column.varchar),
+        SchemaColumn('actual_quantity', Column.Double),
+        SchemaColumn('recorded_at', Column.datetime),
+        SchemaColumn('user_id', Column.varchar),
+        SchemaColumn('user_name', Column.varchar),
+        SchemaColumn('variance_reason', Column.varchar),
+        SchemaColumn('notes', Column.varchar),
+        SchemaColumn('shift_id', Column.varchar),
+        SchemaColumn('quality_status', Column.varchar),
+        SchemaColumn('rework_quantity', Column.num),
+        SchemaColumn('scrap_quantity', Column.num),
+        SchemaColumn('last_touched', Column.datetime),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['work_order_id'], unique: false),
+        SchemaIndex(columns: ['branch_id'], unique: false),
+      },
+    ),
+    SchemaTable(
       'AppNotification',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -132,8 +133,10 @@ final schema = Schema(
         SchemaColumn('business_id', Column.varchar),
         SchemaColumn('asset_name', Column.varchar),
         SchemaColumn('product_id', Column.varchar),
+        SchemaColumn('variant_id', Column.varchar),
         SchemaColumn('is_uploaded', Column.boolean),
         SchemaColumn('local_path', Column.varchar),
+        SchemaColumn('sub_path', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -234,7 +237,7 @@ final schema = Schema(
         SchemaColumn('tax_enabled', Column.boolean),
         SchemaColumn('tax_server_url', Column.varchar),
         SchemaColumn('is_default', Column.boolean),
-        SchemaColumn('business_type_id', Column.varchar),
+        SchemaColumn('business_type_id', Column.integer),
         SchemaColumn('referred_by', Column.varchar),
         SchemaColumn('encryption_key', Column.varchar),
         SchemaColumn('phone_number', Column.varchar),
@@ -295,6 +298,7 @@ final schema = Schema(
         SchemaColumn('name', Column.varchar),
         SchemaColumn('description', Column.varchar),
         SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('features', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -435,6 +439,7 @@ final schema = Schema(
         SchemaColumn('created_at', Column.datetime),
         SchemaColumn('last_message_at', Column.datetime),
         SchemaColumn('whatsapp_wa_id', Column.varchar),
+        SchemaColumn('use_case', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -653,6 +658,8 @@ final schema = Schema(
         SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('vat_enabled', Column.boolean),
         SchemaColumn('mrc', Column.varchar),
+        SchemaColumn('remote_server_url', Column.varchar),
+        SchemaColumn('data_connector_url', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -731,6 +738,26 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      'FlipperSaleCompaign',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('compaign_id', Column.integer),
+        SchemaColumn('discount_rate', Column.integer),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('coupon_code', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
       'ImportPurchaseDates',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -747,6 +774,32 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'IntegrationConfig',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('business_id', Column.varchar),
+        SchemaColumn('provider', Column.varchar),
+        SchemaColumn('token', Column.varchar),
+        SchemaColumn('refresh_token', Column.varchar),
+        SchemaColumn('expires_at', Column.datetime),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('config', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['business_id'], unique: false),
+        SchemaIndex(columns: ['provider'], unique: false),
       },
     ),
     SchemaTable(
@@ -918,25 +971,6 @@ final schema = Schema(
       },
     ),
     SchemaTable(
-      'PlanAddon',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('plan_id', Column.varchar),
-        SchemaColumn('addon_name', Column.varchar),
-        SchemaColumn('created_at', Column.datetime),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
       'PlanDiscount',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -958,76 +992,6 @@ final schema = Schema(
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
         SchemaIndex(columns: ['plan_id'], unique: false),
-      },
-    ),
-    SchemaTable(
-      '_brick_Plan_addons',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn(
-          'l_Plan_brick_id',
-          Column.integer,
-          isForeignKey: true,
-          foreignTableName: 'Plan',
-          onDeleteCascade: true,
-          onDeleteSetDefault: false,
-        ),
-        SchemaColumn(
-          'f_PlanAddon_brick_id',
-          Column.integer,
-          isForeignKey: true,
-          foreignTableName: 'PlanAddon',
-          onDeleteCascade: true,
-          onDeleteSetDefault: false,
-        ),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(
-          columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'],
-          unique: true,
-        ),
-      },
-    ),
-    SchemaTable(
-      'Plan',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('business_id', Column.varchar),
-        SchemaColumn('branch_id', Column.varchar),
-        SchemaColumn('selected_plan', Column.varchar),
-        SchemaColumn('additional_devices', Column.integer),
-        SchemaColumn('is_yearly_plan', Column.boolean),
-        SchemaColumn('total_price', Column.integer),
-        SchemaColumn('created_at', Column.datetime),
-        SchemaColumn('payment_completed_by_user', Column.boolean),
-        SchemaColumn('rule', Column.varchar),
-        SchemaColumn('payment_method', Column.varchar),
-        SchemaColumn('next_billing_date', Column.datetime),
-        SchemaColumn('number_of_payments', Column.integer),
-        SchemaColumn('phone_number', Column.varchar),
-        SchemaColumn('external_id', Column.varchar),
-        SchemaColumn('payment_status', Column.varchar),
-        SchemaColumn('last_processed_at', Column.datetime),
-        SchemaColumn('last_error', Column.varchar),
-        SchemaColumn('updated_at', Column.datetime),
-        SchemaColumn('last_updated', Column.datetime),
-        SchemaColumn('processing_status', Column.varchar),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
       },
     ),
     SchemaTable(
@@ -1176,6 +1140,7 @@ final schema = Schema(
         SchemaColumn('approved', Column.integer),
         SchemaColumn('rejected', Column.integer),
         SchemaColumn('pending', Column.integer),
+        SchemaColumn('reg_ty_cd', Column.varchar),
         SchemaColumn('created_at', Column.datetime),
       },
       indices: <SchemaIndex>{
@@ -1308,8 +1273,13 @@ final schema = Schema(
         SchemaColumn('auto_respond', Column.boolean),
         SchemaColumn('token', Column.varchar),
         SchemaColumn('has_pin', Column.boolean),
+        SchemaColumn('admin_pin', Column.varchar),
+        SchemaColumn('is_admin_pin_enabled', Column.boolean),
         SchemaColumn('business_id', Column.varchar),
         SchemaColumn('created_at', Column.varchar),
+        SchemaColumn('enable_price_quantity_adjustment', Column.boolean),
+        SchemaColumn('is_currency_decimal', Column.boolean),
+        SchemaColumn('allow_selling_below_stock', Column.boolean),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('deleted_at', Column.datetime),
       },
@@ -1451,7 +1421,7 @@ final schema = Schema(
       },
     ),
     SchemaTable(
-      'Tenant',
+      'Supplier',
       columns: <SchemaColumn>{
         SchemaColumn(
           '_brick_id',
@@ -1461,19 +1431,22 @@ final schema = Schema(
           isPrimaryKey: true,
         ),
         SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('name', Column.varchar),
-        SchemaColumn('phone_number', Column.varchar),
+        SchemaColumn('cust_nm', Column.varchar),
         SchemaColumn('email', Column.varchar),
-        SchemaColumn('nfc_enabled', Column.boolean),
-        SchemaColumn('business_id', Column.varchar),
-        SchemaColumn('user_id', Column.varchar),
-        SchemaColumn('image_url', Column.varchar),
-        SchemaColumn('last_touched', Column.datetime),
-        SchemaColumn('deleted_at', Column.datetime),
-        SchemaColumn('pin', Column.integer),
-        SchemaColumn('is_default', Column.boolean),
-        SchemaColumn('session_active', Column.boolean),
-        SchemaColumn('type', Column.varchar),
+        SchemaColumn('tel_no', Column.varchar),
+        SchemaColumn('adrs', Column.varchar),
+        SchemaColumn('branch_id', Column.varchar),
+        SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('cust_no', Column.varchar),
+        SchemaColumn('cust_tin', Column.varchar),
+        SchemaColumn('regr_nm', Column.varchar),
+        SchemaColumn('regr_id', Column.varchar),
+        SchemaColumn('modr_nm', Column.varchar),
+        SchemaColumn('modr_id', Column.varchar),
+        SchemaColumn('ebm_synced', Column.boolean),
+        SchemaColumn('bhf_id', Column.varchar),
+        SchemaColumn('use_yn', Column.varchar),
+        SchemaColumn('customer_type', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1537,6 +1510,43 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      '_brick_ITransaction_payments',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn(
+          'l_ITransaction_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'ITransaction',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+        SchemaColumn(
+          'f_TransactionPaymentRecord_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'TransactionPaymentRecord',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(
+          columns: [
+            'l_ITransaction_brick_id',
+            'f_TransactionPaymentRecord_brick_id',
+          ],
+          unique: true,
+        ),
+      },
+    ),
+    SchemaTable(
       'ITransaction',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -1570,6 +1580,9 @@ final schema = Schema(
         SchemaColumn('is_income', Column.boolean),
         SchemaColumn('is_expense', Column.boolean),
         SchemaColumn('is_refunded', Column.boolean),
+        SchemaColumn('refunded_amount', Column.Double),
+        SchemaColumn('refund_reason', Column.varchar),
+        SchemaColumn('refund_method', Column.varchar),
         SchemaColumn('customer_name', Column.varchar),
         SchemaColumn('customer_tin', Column.varchar),
         SchemaColumn('remark', Column.varchar),
@@ -1605,6 +1618,12 @@ final schema = Schema(
         SchemaColumn('discount_amount', Column.num),
         SchemaColumn('customer_phone', Column.varchar),
         SchemaColumn('agent_id', Column.varchar),
+        SchemaColumn('attributed_agent_user_id', Column.varchar),
+        SchemaColumn('agent_commission_type', Column.varchar),
+        SchemaColumn('agent_commission_value', Column.num),
+        SchemaColumn('agent_commission_amount', Column.num),
+        SchemaColumn('cashier_name', Column.varchar),
+        SchemaColumn('device_id', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1907,6 +1926,7 @@ final schema = Schema(
         SchemaColumn('bhf_id', Column.varchar),
         SchemaColumn('dft_prc', Column.Double),
         SchemaColumn('add_info', Column.varchar),
+        SchemaColumn('image_url', Column.varchar),
         SchemaColumn('isrc_aplcb_yn', Column.varchar),
         SchemaColumn('use_yn', Column.varchar),
         SchemaColumn('regr_id', Column.varchar),
@@ -1942,6 +1962,9 @@ final schema = Schema(
         SchemaColumn('property_ty_cd', Column.varchar),
         SchemaColumn('room_type_cd', Column.varchar),
         SchemaColumn('tt_cat_cd', Column.varchar),
+        SchemaColumn('is_fuel_managed', Column.boolean),
+        SchemaColumn('rrp', Column.Double),
+        SchemaColumn('rrp_effective_dt', Column.datetime),
         SchemaColumn('is_shared', Column.boolean),
         SchemaColumn('assigned', Column.boolean),
         SchemaColumn('stock_synchronized', Column.boolean),
@@ -1968,6 +1991,41 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'WorkOrder',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('branch_id', Column.varchar),
+        SchemaColumn('business_id', Column.varchar),
+        SchemaColumn('variant_id', Column.varchar),
+        SchemaColumn('variant_name', Column.varchar),
+        SchemaColumn('planned_quantity', Column.Double),
+        SchemaColumn('actual_quantity', Column.num),
+        SchemaColumn('target_date', Column.datetime),
+        SchemaColumn('shift_id', Column.varchar),
+        SchemaColumn('status', Column.varchar),
+        SchemaColumn('unit_of_measure', Column.varchar),
+        SchemaColumn('notes', Column.varchar),
+        SchemaColumn('created_by', Column.varchar),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('started_at', Column.datetime),
+        SchemaColumn('completed_at', Column.datetime),
+        SchemaColumn('last_touched', Column.datetime),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['branch_id'], unique: false),
+        SchemaIndex(columns: ['business_id'], unique: false),
+        SchemaIndex(columns: ['variant_id'], unique: false),
       },
     ),
   },

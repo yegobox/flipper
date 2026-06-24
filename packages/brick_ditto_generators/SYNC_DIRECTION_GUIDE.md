@@ -13,7 +13,7 @@ The `@DittoAdapter` annotation now supports specifying the synchronization direc
 ```dart
 @DittoAdapter('counters')
 // or explicitly:
-@DittoAdapter('counters', syncDirection: SyncDirection.bidirectional)
+@DittoAdapter('counters', syncDirection: SyncDirection.sendOnly)
 class Counter extends OfflineFirstWithSupabaseModel {
   // ...
 }

@@ -1,0 +1,35 @@
+# Miscellaneous
+*.swp
+*.swo
+.DS_Store
+.flutter-plugins-dependencies
+.dart_tool/
+.packages
+build/
+pubspec.lock
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# Android
+**/android/**/generated/**
+**/android/**/.gradle/
+**/android/**/build/
+**/android/**/.settings/
+**/android/**/bin/
+**/android/**/.classpath
+**/android/**/.project
+
+# iOS
+**/ios/**/Pods/
+**/ios/**/.symlinks/
+**/ios/**/build/
+**/ios/**/xcuserdata/
+**/ios/**/DerivedData/
+
+# Web
+**/web/**/build/
+**/web/**/.dart_tool/

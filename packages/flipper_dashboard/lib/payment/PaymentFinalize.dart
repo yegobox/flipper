@@ -3,14 +3,14 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_services/PaymentHandler.dart';
-import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/models/subscription_plan.dart';
 
 class PaymentFinalize extends StatefulWidget {
   @override
@@ -22,7 +22,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   bool useCustomPhoneNumber = false;
   TextEditingController phoneNumberController = TextEditingController();
 
-  StreamSubscription<List<models.Plan>>? _subscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _subscription;
   bool _mounted = true;
 
   // Discount code state
@@ -31,7 +31,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   double _originalPrice = 0;
   bool _isValidatingCode = false;
   String? _discountError;
-  models.Plan? _plan;
+  Plan? _plan;
 
   @override
   void initState() {
@@ -63,26 +63,23 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
         });
       }
 
-      // Set up real-time subscription
-      _subscription = Repository()
-          .subscribeToRealtime<models.Plan>(
-            query: Query(
-              where: [const Where('businessId').isExactly(businessId)],
-            ),
-          )
-          .listen((updatedPlans) {
-            if (updatedPlans.isNotEmpty) {
-              final updatedPlan = updatedPlans.first;
-              if (!_mounted) return;
+      _subscription = Supabase.instance.client
+          .from('plans')
+          .stream(primaryKey: ['id'])
+          .eq('business_id', businessId)
+          .listen((rows) {
+            if (rows.isEmpty) return;
+            final updatedPlan = Plan.fromSupabaseJson(
+              Map<String, dynamic>.from(rows.first),
+            );
+            if (!_mounted) return;
 
-              setState(() {
-                _plan = updatedPlan;
-              });
+            setState(() {
+              _plan = updatedPlan;
+            });
 
-              // Check if payment was completed
-              if (updatedPlan.paymentCompletedByUser == true) {
-                locator<RouterService>().navigateTo(FlipperAppRoute());
-              }
+            if (updatedPlan.paymentCompletedByUser == true) {
+              locator<RouterService>().navigateTo(FlipperAppRoute());
             }
           });
     } catch (e) {
@@ -358,11 +355,10 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                           ),
                         ],
                         const SizedBox(height: 24),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                        Material(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          clipBehavior: Clip.antiAlias,
                           child: SwitchListTile(
                             title: const Text(
                               'Use different phone number',
@@ -534,7 +530,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       isLoading = true;
     });
     try {
-      models.Plan? paymentPlan = await ProxyService.strategy.getPaymentPlan(
+      Plan? paymentPlan = await ProxyService.strategy.getPaymentPlan(
         businessId: (await ProxyService.strategy.activeBusiness())!.id,
       );
 

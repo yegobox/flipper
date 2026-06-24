@@ -5,7 +5,11 @@ import 'package:flipper_models/flipper_http_client.dart';
 abstract class GetterInterface {
   FutureOr<Branch?> branch({required int serverId});
   Stream<List<Variant>> geVariantStreamByProductId({required String productId});
-  FutureOr<Assets?> getAsset({String? assetName, String? productId});
+  FutureOr<Assets?> getAsset({
+    String? assetName,
+    String? productId,
+    String? variantId,
+  });
   FutureOr<Business?> getBusiness({String? businessId});
   FutureOr<Business?> getBusinessById({required String businessId});
   Future<Business?> getBusinessFromOnlineGivenId({

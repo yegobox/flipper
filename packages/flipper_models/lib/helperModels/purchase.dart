@@ -24,7 +24,7 @@ class Purchase extends IJsonSerializable {
   DateTime? lastTouched;
   DateTime createdAt;
 
-  String action;
+  String? action;
 
   String? tin;
   String? bhfId;

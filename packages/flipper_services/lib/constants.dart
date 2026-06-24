@@ -10,6 +10,10 @@ const String PAYMENT_REACTIVATION_REQUIRED =
 
 const int dbVersion = 45;
 
+/// Written when a launcher shortcut opens the app before the dashboard shell is ready;
+/// cleared after navigation from quick access / shortcuts.
+const String kPendingLauncherShortcutPageKey = 'pending_launcher_shortcut_page';
+
 // Enums
 enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS, CR, CP, PR, TR }
 
@@ -63,18 +67,18 @@ class RequestStatus {
   static const voided = 'voided';
 }
 
+/// Modules shown in User Management permission matrix (no "Custom Amount" — legacy product only).
 final features = [
   AppFeature.Inventory,
   AppFeature.Settings,
   AppFeature.Reports,
   AppFeature.Tickets,
   AppFeature.Orders,
+  AppFeature.Leads,
   AppFeature.AddProduct,
-  AppFeature.CustomAmount,
   AppFeature.Sales,
   AppFeature.Driver,
   AppFeature.Stock,
-  AppFeature.Tickets,
   AppFeature.ShiftHistory,
 ];
 
@@ -85,11 +89,14 @@ class AppFeature {
   static const String Settings = "Settings";
   static const String ShiftHistory = "ShiftHistory";
   static const String Tickets = "Tickets";
+  static const String Leads = "Leads";
   static const String AddProduct = "Add Product";
   static const String Orders = "Orders";
   static const String CustomAmount = "Custom Amount";
   static const String Driver = "Driver";
   static const String Stock = "Stock";
+  /// Agent commission-only login; not shown in User Management permission matrix.
+  static const String Commission = "Commission";
 }
 
 class AccessLevel {
@@ -144,6 +151,8 @@ const List<String> paymentTypes = [
   'BANK CHECK',
   'DEBIT&CREDIT CARD',
   'MOBILE MONEY',
+  'MTN MOMO',
+  'AIRTEL MONEY',
   'OTHER'
 ];
 
@@ -178,6 +187,7 @@ const String PARKED = 'parked';
 const String WAITING = 'waiting';
 const String PENDING = 'pending';
 const String PROCESSING = 'processing';
+const String WAITING_MOMO_COMPLETE = 'waitingMomoComplete';
 const String BARCODE = 'BARCODE';
 const String CUSTOM_PRODUCT = "Custom Amount";
 const String TEMP_PRODUCT = "temp";

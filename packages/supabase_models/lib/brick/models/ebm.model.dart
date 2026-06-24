@@ -18,7 +18,7 @@ part 'ebm.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'ebms',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Ebm extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -41,6 +41,10 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   bool? vatEnabled;
   @Supabase(name: "mrc")
   String mrc;
+  @Supabase(name: "remote_server_url")
+  final String? remoteServerUrl;
+  @Supabase(name: "data_connector_url")
+  String? dataConnectorUrl;
 
   Ebm({
     String? id,
@@ -53,5 +57,7 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.branchId,
     this.vatEnabled = false,
     required this.mrc,
+    this.remoteServerUrl,
+    this.dataConnectorUrl,
   }) : id = id ?? const Uuid().v4();
 }

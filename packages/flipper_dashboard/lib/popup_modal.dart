@@ -20,6 +20,7 @@ class OptionModal extends StatefulWidget {
 class _OptionModalState extends State<OptionModal> {
   @override
   Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.85;
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(left: 20.0, right: 20),
@@ -30,9 +31,14 @@ class _OptionModalState extends State<OptionModal> {
           },
           child: Material(
             elevation: 2,
+            clipBehavior: Clip.antiAlias,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: maxHeight,
+                maxWidth: 1100,
+              ),
               child: widget.child,
             ),
           ),

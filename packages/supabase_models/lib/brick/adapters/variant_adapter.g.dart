@@ -38,7 +38,7 @@ Future<Variant> _$VariantFromSupabase(
     categoryName: data['category_name'] == null
         ? null
         : data['category_name'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+    branchId: data['branch_id'] == null ? '' : data['branch_id'].toString(),
     taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
     itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
     isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
@@ -72,6 +72,7 @@ Future<Variant> _$VariantFromSupabase(
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
     addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
+    imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
     isrcAplcbYn: data['isrc_aplcb_yn'] == null
         ? null
         : data['isrc_aplcb_yn'] as String?,
@@ -143,6 +144,15 @@ Future<Variant> _$VariantFromSupabase(
         ? null
         : data['room_type_cd'] as String?,
     ttCatCd: data['tt_cat_cd'] == null ? null : data['tt_cat_cd'] as String?,
+    isFuelManaged: data['is_fuel_managed'] == null
+        ? null
+        : data['is_fuel_managed'] as bool? ?? false,
+    rrp: data['rrp'] == null ? null : data['rrp'] as double?,
+    rrpEffectiveDt: data['rrp_effective_dt'] == null
+        ? null
+        : data['rrp_effective_dt'] == null
+        ? null
+        : DateTime.tryParse(data['rrp_effective_dt'] as String),
     isShared: data['is_shared'] == null
         ? null
         : data['is_shared'] as bool? ?? false,
@@ -204,6 +214,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'bhf_id': instance.bhfId,
     'dft_prc': instance.dftPrc,
     'add_info': instance.addInfo,
+    'image_url': instance.imageUrl,
     'isrc_aplcb_yn': instance.isrcAplcbYn,
     'use_yn': instance.useYn,
     'regr_id': instance.regrId,
@@ -239,6 +250,9 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'property_ty_cd': instance.propertyTyCd,
     'room_type_cd': instance.roomTypeCd,
     'tt_cat_cd': instance.ttCatCd,
+    'is_fuel_managed': instance.isFuelManaged,
+    'rrp': instance.rrp,
+    'rrp_effective_dt': instance.rrpEffectiveDt?.toIso8601String(),
     'is_shared': instance.isShared,
     'assigned': instance.assigned,
     'stock_synchronized': instance.stockSynchronized,
@@ -286,7 +300,7 @@ Future<Variant> _$VariantFromSqlite(
     categoryName: data['category_name'] == null
         ? null
         : data['category_name'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+    branchId: data['branch_id'] == null ? '' : data['branch_id'].toString(),
     taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
     itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
     isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
@@ -320,6 +334,7 @@ Future<Variant> _$VariantFromSqlite(
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
     addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
+    imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
     isrcAplcbYn: data['isrc_aplcb_yn'] == null
         ? null
         : data['isrc_aplcb_yn'] as String?,
@@ -391,6 +406,15 @@ Future<Variant> _$VariantFromSqlite(
         ? null
         : data['room_type_cd'] as String?,
     ttCatCd: data['tt_cat_cd'] == null ? null : data['tt_cat_cd'] as String?,
+    isFuelManaged: data['is_fuel_managed'] == null
+        ? null
+        : data['is_fuel_managed'] == 1,
+    rrp: data['rrp'] == null ? null : data['rrp'] as double?,
+    rrpEffectiveDt: data['rrp_effective_dt'] == null
+        ? null
+        : data['rrp_effective_dt'] == null
+        ? null
+        : DateTime.tryParse(data['rrp_effective_dt'] as String),
     isShared: data['is_shared'] == null ? null : data['is_shared'] == 1,
     assigned: data['assigned'] == null ? null : data['assigned'] == 1,
     stockSynchronized: data['stock_synchronized'] == null
@@ -448,6 +472,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'bhf_id': instance.bhfId,
     'dft_prc': instance.dftPrc,
     'add_info': instance.addInfo,
+    'image_url': instance.imageUrl,
     'isrc_aplcb_yn': instance.isrcAplcbYn,
     'use_yn': instance.useYn,
     'regr_id': instance.regrId,
@@ -485,6 +510,11 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'property_ty_cd': instance.propertyTyCd,
     'room_type_cd': instance.roomTypeCd,
     'tt_cat_cd': instance.ttCatCd,
+    'is_fuel_managed': instance.isFuelManaged == null
+        ? null
+        : (instance.isFuelManaged! ? 1 : 0),
+    'rrp': instance.rrp,
+    'rrp_effective_dt': instance.rrpEffectiveDt?.toIso8601String(),
     'is_shared': instance.isShared == null
         ? null
         : (instance.isShared! ? 1 : 0),
@@ -656,6 +686,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'add_info',
     ),
+    'imageUrl': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'image_url',
+    ),
     'isrcAplcbYn': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'isrc_aplcb_yn',
@@ -796,6 +830,18 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'tt_cat_cd',
     ),
+    'isFuelManaged': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_fuel_managed',
+    ),
+    'rrp': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'rrp',
+    ),
+    'rrpEffectiveDt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'rrp_effective_dt',
+    ),
     'isShared': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_shared',
@@ -837,7 +883,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: true,
       columnName: 'stock_Stock_brick_id',
       iterable: false,
-      type: Stock,
+      type: Map,
     ),
     'stockId': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1040,6 +1086,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'addInfo': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'add_info',
+      iterable: false,
+      type: String,
+    ),
+    'imageUrl': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'image_url',
       iterable: false,
       type: String,
     ),
@@ -1252,6 +1304,24 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'tt_cat_cd',
       iterable: false,
       type: String,
+    ),
+    'isFuelManaged': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_fuel_managed',
+      iterable: false,
+      type: bool,
+    ),
+    'rrp': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'rrp',
+      iterable: false,
+      type: double,
+    ),
+    'rrpEffectiveDt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'rrp_effective_dt',
+      iterable: false,
+      type: DateTime,
     ),
     'isShared': const RuntimeSqliteColumnDefinition(
       association: false,

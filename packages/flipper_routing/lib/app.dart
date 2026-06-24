@@ -19,8 +19,8 @@ import 'all_routes.dart';
     CustomRoute(page: AiScreen),
     CustomRoute(page: PhoneInputScreen),
     CustomRoute(page: InventoryRequestMobileView),
-    //End of login routes
 
+    //End of login routes
     CustomRoute(page: AddProductView),
     CustomRoute(page: AddToFavorites),
     CustomRoute(page: AddDiscount),
@@ -47,6 +47,7 @@ import 'all_routes.dart';
     CustomRoute(page: BackUp),
     CustomRoute(page: LoginChoices),
     CustomRoute(page: TenantManagement),
+    CustomRoute(page: AgentCommissionScreen),
     CustomRoute(page: DrawerScreen),
     CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),
@@ -73,7 +74,7 @@ import 'all_routes.dart';
   dependencies: [
     LazySingleton(classType: BottomSheetService),
     LazySingleton(classType: DialogService),
-    LazySingleton(classType: RouterService)
+    LazySingleton(classType: RouterService),
   ],
   bottomsheets: [
     StackedBottomsheet(classType: NoticeSheet),
@@ -145,7 +146,8 @@ class App {}
 /// rm -rf open-sources/generator
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 /// rm -rf path/to/submodule
-/// git submodule add https://github.com/yegobox/brick.git open-sources/brick
+/// git submodule add https://github.com/yegobox/data-connector.git
+/// git submodule  add https://github.com/yegobox/data-connector.git open-sources/data-connector
 /// find ./ -name pubspec.lock -type f -delete && find ./ -name pubspec_overrides.yaml -type f -delete && find ./ -name dependencies.txt -type f -delete
 /// find ./ -name pubspec_overrides.yaml -type f -delete
 /// find ./ -name dependencies.txt -type f -delete
@@ -387,7 +389,7 @@ class App {}
 //             "lastSaleRcptNo": null,
 //             "lastInvcNo": null,
 //             "lastSaleInvcNo": 7885983517,
-//             "lastTrainInvcNo": null,
+//             "lastTrainInvcNo": null,x
 //             "lastProfrmInvcNo": null,
 //             "lastCopyInvcNo": null,
 //             "vatTyCd": null
@@ -402,6 +404,7 @@ class App {}
 // fix nuget issue : winget install Microsoft.NuGet
 //Show things on second screen: https://pub.dev/packages/presentation_displays
 //  /usr/local/apache-tomcat-9.0.89/bin/startup.sh
+// online: /opt/tomcat9/bin
 // https://pub.dev/packages/requests_inspector
 
 // Now need to heavily use sizer: ^2.0.15 for managing the scalability
@@ -679,8 +682,6 @@ class App {}
 
 //  archive: ^3.3.5
 //   bloc: ^8.1.0
-//  cbl_flutter_ce: ^3.1.3
-//   cbl_flutter: ^3.1.3
 //
 //   collection: ^1.16.0
 //   cupertino_icons: ^1.0.5
@@ -883,3 +884,93 @@ class App {}
 // adb shell settings put global package_verifier_enable 0
 // adb shell settings put global verifier_verify_adb_installs 0
 
+// AI Research on what to add in near future
+// https://www.sap.com/asset/dynamic/2024/07/5cca3259-c97e-0010-bca6-c68f7e60039b.html
+
+// Running ngrok forever on local machine.
+// screen -S ngrok
+// ngrok http 8080
+
+// Detach with:
+
+// Ctrl + A, then D2wewsxfrda XZ  Q`
+// 
+// Reattach later:
+
+// screen -r ngrok
+// https://chatgpt.com/c/697322f1-113c-8331-a26e-3a41e12a6b58
+// https://one.google.com/ai?sc=EgIIAQ&hl=en-RW&g1_landing_page=75
+// flutter build macos --config-only --release 
+// flutter build ios --config-only --release 
+// https://pub.dev/packages/flutter_face_liveness
+// Ctrl+Shift+T (Windows/Linux)
+// Cmd+Shift+T (macOS)
+// ./scripts/add-nginx-site.sh rows.yegobox.com 8087
+// DRY_RUN=1 ./scripts/add-nginx-site.sh rows.yegobox.com 8087
+// git merge -X ours origin/main
+
+// 20260519150000_repair_orphan_users_with_pins.sql
+
+
+
+// rm -rf ~/develop/flutter/bin/cache/artifacts/engine/darwin-x64
+// rm -f ~/develop/flutter/bin/cache/macos-sdk.stamp
+// flutter precache --macos
+// 1.185.4252223235305
+// The following plugins do not support Swift Package Manager for ios:
+// - patrol
+//   - permission_handler_apple
+//   - location
+//   - printing
+//   - open_filex
+//   - amplify_secure_storage
+//   - amplify_auth_cognito
+//   - ditto_live
+//   - sign_in_with_apple
+//   - pasteboard
+//   - flutter_keyboard_visibility
+//   - desktop_webview_auth
+//   - flutter_localization
+// This will become an error in a future version of Flutter. Please contact the plugin maintainers to request Swift Package Manager adoption.
+// The following plugins do not support Swift Package Manager for macos:
+//   - patrol
+//   - tray_manager
+//   - window_manager
+//   - screen_retriever_macos
+//   - location
+//   - printing
+//   - amplify_secure_storage
+//   - amplify_auth_cognito
+//   - ditto_live
+//   - sign_in_with_apple
+//   - pasteboard
+//   - desktop_webview_auth
+//   - flutter_localization
+// tail data-connector logs: so we understand why a given report were not sent.
+// ssh root@yegobox.com 'journalctl -u container-data-connector -f'
+
+// I verified with flutter pub get. Remaining latest packages still do not include Package.swift, so they cannot be fixed just by upgrading today: patrol, location, printing, open_filex, amplify_secure_storage, amplify_auth_cognito, ditto_live, flutter_keyboard_visibility, desktop_webview_auth, plus macOS tray_manager and screen_retriever_maco
+// attempt to automatically print on windows on sale complete Printing.layoutPdf(
+
+// Error to fix:
+// Error retrieving user access data from Ditto: DittoException(This ditto instance is closed, so all operations are invalid)
+// flutter: ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// flutter: │ [error] | 15:26:06 873ms | Error checking for new events: DittoException(This ditto instance is closed, so all operations are invalid)
+// flutter: └──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+// git bisect start
+// git bisect bad HEAD
+// git bisect good 978af768e   # before this session's commits
+
+// When you have the prod RRA URL, change only the prod nginx header:
+
+
+// proxy_set_header x-rra-base-url https://your-prod-rra.example/rra/;
+// in /etc/nginx/sites-available/prod.api.yegobox.com, then nginx -t && systemctl reload nginx. UAT can keep its own header in uat.api.yegobox.com when that URL is ready.
+
+// # Quit the app, then:
+// touch macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png
+// flutter clean && flutter run -d macos
+// dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+// Delete this if no longer needed:
+//  /Users/richard/Library/Containers/rw.flipper/Data/Library/Application Support/rw.flipper/flutter_gemma/Gemma3-1B-IT_multi-prefill-seq_q8_ekv1280.litertlm
