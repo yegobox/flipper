@@ -122,16 +122,31 @@ CI gets for free:
     rustup default stable
     ```
 
-3.  **Avoid antivirus PDB-lock build failures**. On-access scanners (e.g.
-    Bitdefender) lock freshly written `.pdb`/`.ilk`/`.tlog` files mid-link,
-    producing scattered `C1041` / `LNK1104` / `MSB6003 "used by another process"`
-    errors. Build each source to its own PDB to sidestep the contention:
+3.  **Run via the helper script**, which bundles every local workaround (Rust on
+    PATH, per-source PDBs, and turso DLL recovery) so you don't have to remember
+    them:
     ```powershell
-    $env:UseMultiToolTask = "true"
-    flutter run -d windows
+    pwsh scripts/run-windows.ps1
     ```
-    If errors persist, ask IT to add an on-access scanning exclusion for the
-    repo's `build\` folder. (At IPA, request this via `support@poverty-action.org`.)
+    It runs `flutter run -d windows`; extra args are forwarded.
+
+#### Why the workarounds are needed (and the real fix)
+
+On-access antivirus (e.g. **Bitdefender**, IPA's managed endpoint AV) interferes
+with the build directory in two ways:
+
+- It locks freshly written `.pdb`/`.ilk`/`.tlog` files mid-link → scattered
+  `C1041` / `LNK1104` / `MSB6003 "used by another process"` errors. The script
+  sets `UseMultiToolTask=true` (one PDB per source) to sidestep this.
+- It grabs `turso_dart_native.dll` as cargo links it from `release\deps\` to the
+  `release\` root, so Flutter's `install_code_assets` can't find it. The script
+  restores the DLL and retries.
+
+**The durable fix is an antivirus exclusion** for the repo's `build\` and
+`.dart_tool\` folders, after which the script's workarounds become unnecessary.
+On a managed device you usually can't set this yourself — request it from IT.
+At IPA: email `support@poverty-action.org` asking for an on-access scanning
+exclusion for your local clone path (e.g. `C:\...\flipper\`).
 
 Note: don't run two Windows builds against the same checkout at once — concurrent
 builds write the same PDBs and fail with `C1041`.
