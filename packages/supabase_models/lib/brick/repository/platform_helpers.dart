@@ -121,11 +121,15 @@ class PlatformHelpers {
         );
         TursoReplicaPaths.removeOrphanedSyncMetadata(localPath);
       }
-      final bootstrapIfEmpty =
+      final localIsEmpty =
           !localFile.existsSync() || localFile.lengthSync() == 0;
+      // Do not block startup on Turso Cloud bootstrap (new installs and
+      // upgrades with a missing flipper.sqlite). Repository.initialize()
+      // runs a non-fatal pull() after connect; Supabase/Ditto hydrate the rest.
+      const bootstrapIfEmpty = false;
       _logger.info(
         'Using Turso Cloud sync for main Brick database at $localPath '
-        '(bootstrapIfEmpty: $bootstrapIfEmpty)',
+        '(localIsEmpty: $localIsEmpty, bootstrapIfEmpty: $bootstrapIfEmpty)',
       );
       _logger.warning(
         'While Flipper is running, do not open $localPath with sqlite3 or '

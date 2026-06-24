@@ -26,6 +26,7 @@ export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 import 'repository/database_manager.dart';
+import 'repository/legacy_database_migration.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
@@ -238,6 +239,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
       // Ensure the database directory exists
       await databaseManager.initializeDatabaseDirectory(directory);
+
+      await migrateLegacyMainDatabaseIfNeeded(
+        directory: directory,
+        targetFileName: dbFileName,
+      );
 
       print('🚀 [Repository] Constructing database and queue paths...');
       // Construct the full database path
@@ -481,6 +487,43 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return;
     }
     _logger.fine('configureDatabase skipped — main DB uses Turso');
+  }
+
+  /// Startup path: run local migrations immediately; Turso Cloud pull/push runs
+  /// in the background so network latency cannot block the 60s app init budget.
+  @override
+  Future<void> initialize() async {
+    print('🚀 [Repository] initialize() started');
+    await migrate();
+    offlineRequestQueue.start();
+    unawaited(_backgroundTursoSync());
+    print('✅ [Repository] initialize() completed (Turso sync in background)');
+  }
+
+  static const _backgroundTursoSyncTimeout = Duration(seconds: 45);
+
+  Future<void> _backgroundTursoSync() async {
+    try {
+      _logger.info('Background Turso sync starting');
+      await sync().timeout(
+        _backgroundTursoSyncTimeout,
+        onTimeout: () {
+          throw TimeoutException(
+            'Background Turso sync timed out after '
+            '${_backgroundTursoSyncTimeout.inSeconds}s',
+            _backgroundTursoSyncTimeout,
+          );
+        },
+      );
+      _logger.info('Background Turso sync completed');
+    } catch (e, stackTrace) {
+      _logger.warning(
+        'Background Turso sync failed; local DB and Supabase hydrate remain available. '
+        'Error: $e',
+        e,
+        stackTrace,
+      );
+    }
   }
 
   /// Fixed tax calculation
