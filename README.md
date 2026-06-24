@@ -126,8 +126,9 @@ CI gets for free:
     PATH, per-source PDBs, and turso DLL recovery) so you don't have to remember
     them:
     ```powershell
-    pwsh scripts/run-windows.ps1
+    powershell -ExecutionPolicy Bypass -File scripts\run-windows.ps1
     ```
+    (works on stock Windows PowerShell 5.1; `pwsh` works too if you have it).
     It runs `flutter run -d windows`; extra args are forwarded.
 
 #### Why the workarounds are needed (and the real fix)

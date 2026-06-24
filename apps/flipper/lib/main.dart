@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:logging/logging.dart';
@@ -90,6 +92,23 @@ Future<void> _initializeSupabase() async {
 }
 
 // Function to initialize Transaction Delegation (Real-time Ditto-based)
+
+/// Writes a startup failure to `init_error.log` in the app-support directory.
+/// In MSIX this lands under the package's virtualized LocalCache, which is
+/// writable inside the sandbox — unlike stdout, which has no console attached.
+Future<void> _dumpInitErrorToFile(String errorText) async {
+  try {
+    final dir = await getApplicationSupportDirectory();
+    final file = File('${dir.path}/init_error.log');
+    await file.writeAsString(
+      '=== init failure ===\n$errorText\n',
+      flush: true,
+    );
+    debugPrint('📝 [main] Wrote init error to ${file.path}');
+  } catch (e) {
+    debugPrint('Failed to write init error log: $e');
+  }
+}
 
 bool skipDependencyInitialization = false;
 // net info: billers
@@ -223,29 +242,37 @@ Future<void> main() async {
               debugPrint('Failed to report error to telemetry: $e');
             }
 
-            // Show user-friendly error screen
-            return const MaterialApp(
+            // Persist the full error to a log file so packaged (MSIX) builds,
+            // which have no attached console, can still surface the cause.
+            final errorText =
+                '${snapshot.error}\n\n${snapshot.stackTrace ?? StackTrace.current}';
+            unawaited(_dumpInitErrorToFile(errorText));
+
+            // Show error screen. In non-release builds, reveal the actual error
+            // (and stack) so the failing step is visible without Sentry access.
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
               home: Scaffold(
                 backgroundColor: Colors.white,
                 body: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.error_outline,
                         color: Colors.red,
                         size: 64,
                       ),
-                      SizedBox(height: 16),
-                      Text(
+                      const SizedBox(height: 16),
+                      const Text(
                         'Initialization Failed',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Padding(
+                      const SizedBox(height: 8),
+                      const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 32),
                         child: Text(
                           'Something went wrong while starting the app. Please try again.',
@@ -253,6 +280,27 @@ Future<void> main() async {
                           style: TextStyle(fontSize: 14),
                         ),
                       ),
+                      // Reveal the raw error/stack only in non-release builds.
+                      // Production users see the friendly message above; the
+                      // full detail is still written to init_error.log.
+                      if (!kReleaseMode) ...[
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 320),
+                            child: SingleChildScrollView(
+                              child: SelectableText(
+                                errorText,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

@@ -140,7 +140,8 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
                 ),
               ],
             ),
-            child: Column(
+            child: SingleChildScrollView(
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -252,6 +253,7 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog>
                   ],
                 ),
               ],
+              ),
             ),
           ),
         ),

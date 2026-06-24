@@ -13,9 +13,10 @@
 #      from release\deps\ to the release\ root (antivirus grabs it mid-build),
 #      which makes Flutter's install_code_assets step fail. Restore it and retry.
 #
-# Usage:
-#   pwsh scripts/run-windows.ps1            # flutter run -d windows
-#   pwsh scripts/run-windows.ps1 --release  # extra args are forwarded to flutter
+# Usage (Windows PowerShell 5.1 or PowerShell 7):
+#   powershell -ExecutionPolicy Bypass -File scripts\run-windows.ps1
+#   powershell -ExecutionPolicy Bypass -File scripts\run-windows.ps1 --release
+#   (extra args after the script path are forwarded to `flutter run`)
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
