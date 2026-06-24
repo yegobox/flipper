@@ -92,6 +92,40 @@ Additional implementation guides:
 
 - [Flipper Sync Framework](docs/ditto_sync.md)
 
+### 🪟 Running on Windows (local)
+
+CI builds the Windows app on GitHub's `windows-latest` runners, which come
+pre-provisioned and run elevated. A local machine needs a few extra steps that
+CI gets for free:
+
+1.  **Sync submodules to their pinned commits**. Stale submodule checkouts cause
+    misleading dependency-resolution failures during `melos bootstrap`:
+    ```bash
+    git submodule update --init --force --recursive
+    ```
+
+2.  **Install the Rust toolchain**. `turso_dart` builds a Rust native library via
+    a `hook/build.dart` and requires `rustup`/`cargo` on `PATH` (GitHub runners
+    ship with Rust pre-installed). After installing, open a fresh terminal:
+    ```powershell
+    winget install Rustlang.Rustup
+    rustup default stable
+    ```
+
+3.  **Avoid antivirus PDB-lock build failures**. On-access scanners (e.g.
+    Bitdefender) lock freshly written `.pdb`/`.ilk`/`.tlog` files mid-link,
+    producing scattered `C1041` / `LNK1104` / `MSB6003 "used by another process"`
+    errors. Build each source to its own PDB to sidestep the contention:
+    ```powershell
+    $env:UseMultiToolTask = "true"
+    flutter run -d windows
+    ```
+    If errors persist, ask IT to add an on-access scanning exclusion for the
+    repo's `build\` folder. (At IPA, request this via `support@poverty-action.org`.)
+
+Note: don't run two Windows builds against the same checkout at once — concurrent
+builds write the same PDBs and fail with `C1041`.
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! If you're interested in helping improve Flipper, please follow these steps:
