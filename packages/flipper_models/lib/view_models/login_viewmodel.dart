@@ -60,7 +60,8 @@ class LoginViewModel extends FlipperBaseModel
 
   Future<void> completeLoginProcess(Pin userPin, {IUser? user}) async {
     talker.info(
-        '[completeLoginProcess] Starting with pin: ${userPin.userId}, user: ${user?.uid}');
+      '[completeLoginProcess] Starting with pin: ${userPin.userId}, user: ${user?.uid}',
+    );
     try {
       // Do not write pin.userId here — it can be stale. login() calls /v2/api/user
       // and persists the canonical API `id` via sendLoginRequest.
@@ -80,7 +81,8 @@ class LoginViewModel extends FlipperBaseModel
       // Always call completeLogin to navigate
       await completeLogin(userPin);
       talker.info(
-          '[completeLoginProcess] completeLogin called, navigation should occur');
+        '[completeLoginProcess] completeLogin called, navigation should occur',
+      );
     } catch (e, s) {
       talker.error('[completeLoginProcess] Login process failed', e, s);
       rethrow;
@@ -93,7 +95,8 @@ class LoginViewModel extends FlipperBaseModel
       await ProxyService.strategy.savePin(pin: thePin);
       await appService.appInit();
       talker.info(
-          '[completeLogin] Pin saved, appInit done, navigating to StartUpViewRoute');
+        '[completeLogin] Pin saved, appInit done, navigating to StartUpViewRoute',
+      );
       locator<RouterService>().navigateTo(StartUpViewRoute());
     } catch (e, s) {
       talker.error('[completeLogin] Error during navigation', e, s);
@@ -102,28 +105,36 @@ class LoginViewModel extends FlipperBaseModel
   }
 
   /// Process user login and retrieve PIN information
-  Future<Map<String, dynamic>> processUserLogin(
-      {required firebase.User user}) async {
+  Future<Map<String, dynamic>> processUserLogin({
+    required firebase.User user,
+  }) async {
     print('🔵 processUserLogin START with user: ${user.uid}');
     talker.info('[processUserLogin] Starting with user: ${user.uid}');
     try {
       // Step 1: Get user from database
       print(
-          '🔵 STEP 1: Calling ProxyService.strategy.authUser with uuid: ${user.uid}');
+        '🔵 STEP 1: Calling ProxyService.strategy.authUser with uuid: ${user.uid}',
+      );
       talker.info('[processUserLogin] Calling authUser with uuid: ${user.uid}');
       final User? myuser = await ProxyService.strategy
           .authUser(uuid: user.uid)
-          .timeout(Duration(seconds: 10), onTimeout: () {
-        print('🔴 TIMEOUT: authUser call timed out after 10 seconds');
-        talker.error(
-            '[processUserLogin] authUser call timed out after 10 seconds');
-        throw TimeoutException('authUser call timed out');
-      });
+          .timeout(
+            Duration(seconds: 10),
+            onTimeout: () {
+              print('🔴 TIMEOUT: authUser call timed out after 10 seconds');
+              talker.error(
+                '[processUserLogin] authUser call timed out after 10 seconds',
+              );
+              throw TimeoutException('authUser call timed out');
+            },
+          );
 
       print(
-          '🔵 STEP 1 COMPLETE: authUser result: ${myuser != null ? "User found with key: ${myuser.key}" : "User not found"}');
+        '🔵 STEP 1 COMPLETE: authUser result: ${myuser != null ? "User found with key: ${myuser.key}" : "User not found"}',
+      );
       talker.info(
-          '[processUserLogin] authUser result: ${myuser != null ? "User found" : "User not found"}');
+        '[processUserLogin] authUser result: ${myuser != null ? "User found" : "User not found"}',
+      );
 
       // Step 2: Determine key for login request
       String key = '';
@@ -143,12 +154,16 @@ class LoginViewModel extends FlipperBaseModel
       talker.info('[processUserLogin] Sending login request with key: $key');
       final response = await ProxyService.strategy
           .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd)
-          .timeout(Duration(seconds: 15), onTimeout: () {
-        print('🔴 TIMEOUT: sendLoginRequest timed out after 15 seconds');
-        talker.error(
-            '[processUserLogin] sendLoginRequest timed out after 15 seconds');
-        throw TimeoutException('sendLoginRequest timed out');
-      });
+          .timeout(
+            Duration(seconds: 15),
+            onTimeout: () {
+              print('🔴 TIMEOUT: sendLoginRequest timed out after 15 seconds');
+              talker.error(
+                '[processUserLogin] sendLoginRequest timed out after 15 seconds',
+              );
+              throw TimeoutException('sendLoginRequest timed out');
+            },
+          );
 
       print('🔵 STEP 3 COMPLETE: Login request response received');
       talker.info('[processUserLogin] Login request response received');
@@ -168,27 +183,36 @@ class LoginViewModel extends FlipperBaseModel
       if (tenant != null) {
         try {
           // Add timeout to prevent blocking the flow indefinitely
-          await ensureAdminAccessIfNeeded(tenant: tenant, talker: talker)
-              .timeout(Duration(seconds: 5), onTimeout: () {
-            print(
-                '🟠 WARNING: ensureAdminAccessIfNeeded timed out after 5 seconds');
-            talker.warning(
-                '[processUserLogin] ensureAdminAccessIfNeeded timed out after 5 seconds');
-            // Return null or appropriate value to continue the flow
-            return null;
-          });
+          await ensureAdminAccessIfNeeded(
+            tenant: tenant,
+            talker: talker,
+          ).timeout(
+            Duration(seconds: 5),
+            onTimeout: () {
+              print(
+                '🟠 WARNING: ensureAdminAccessIfNeeded timed out after 5 seconds',
+              );
+              talker.warning(
+                '[processUserLogin] ensureAdminAccessIfNeeded timed out after 5 seconds',
+              );
+              // Return null or appropriate value to continue the flow
+              return null;
+            },
+          );
           print('🔵 STEP 5 COMPLETE: Admin access check completed');
           talker.info('[processUserLogin] Admin access check completed');
         } catch (e) {
           // Log error but continue the flow
           print('🟠 WARNING: Error in ensureAdminAccessIfNeeded: $e');
           talker.error(
-              '[processUserLogin] Error in ensureAdminAccessIfNeeded: $e');
+            '[processUserLogin] Error in ensureAdminAccessIfNeeded: $e',
+          );
         }
       } else {
         print('🟠 WARNING: No tenants found for user during login');
-        talker
-            .info('[processUserLogin] No tenants found for user during login');
+        talker.info(
+          '[processUserLogin] No tenants found for user during login',
+        );
       }
 
       // Step 6: Create user object
@@ -201,17 +225,23 @@ class LoginViewModel extends FlipperBaseModel
       // Step 7: Get PIN information
       print('🔵 STEP 7: Getting PIN information for user id: ${iUser.id}');
       talker.info(
-          '[processUserLogin] Getting PIN information for user id: ${iUser.id}');
+        '[processUserLogin] Getting PIN information for user id: ${iUser.id}',
+      );
       final pin = await ProxyService.strategy
           .getPin(
-              pinString: iUser.id.toString(),
-              flipperHttpClient: ProxyService.http)
-          .timeout(Duration(seconds: 10), onTimeout: () {
-        print('🔴 TIMEOUT: getPin call timed out after 10 seconds');
-        talker
-            .error('[processUserLogin] getPin call timed out after 10 seconds');
-        throw TimeoutException('getPin call timed out');
-      });
+            pinString: iUser.id.toString(),
+            flipperHttpClient: ProxyService.http,
+          )
+          .timeout(
+            Duration(seconds: 10),
+            onTimeout: () {
+              print('🔴 TIMEOUT: getPin call timed out after 10 seconds');
+              talker.error(
+                '[processUserLogin] getPin call timed out after 10 seconds',
+              );
+              throw TimeoutException('getPin call timed out');
+            },
+          );
 
       if (pin == null) {
         print('🔴 ERROR: PIN is null');
@@ -227,15 +257,16 @@ class LoginViewModel extends FlipperBaseModel
       talker.info('[processUserLogin] Returning final result');
       final result = {
         'pin': Pin(
-            userId: iUser.id,
-            pin: pin.pin,
-            branchId: pin.branchId,
-            businessId: pin.businessId,
-            ownerName: pin.ownerName,
-            tokenUid: iUser.uid,
-            uid: user.uid,
-            phoneNumber: iUser.phoneNumber),
-        'user': iUser
+          userId: iUser.id,
+          pin: pin.pin,
+          branchId: pin.branchId,
+          businessId: pin.businessId,
+          ownerName: pin.ownerName,
+          tokenUid: iUser.uid,
+          uid: user.uid,
+          phoneNumber: iUser.phoneNumber,
+        ),
+        'user': iUser,
       };
       print('🔵 processUserLogin COMPLETED SUCCESSFULLY');
       talker.info('[processUserLogin] Completed successfully');
@@ -253,19 +284,21 @@ class LoginViewModel extends FlipperBaseModel
     required dynamic tenant,
     required dynamic talker,
   }) async {
-    final List permissions =
-        tenant != null ? (tenant['permissions'] ?? []) : [];
-    final bool isAdmin = permissions
-        .any((perm) => (perm['name']?.toLowerCase() ?? '') == 'admin');
+    final List permissions = tenant != null
+        ? (tenant['permissions'] ?? [])
+        : [];
+    final bool isAdmin = permissions.any(
+      (perm) => (perm['name']?.toLowerCase() ?? '') == 'admin',
+    );
     final _internetConnectionService = InternetConnectionService();
-    final bool isOnline =
-        await _internetConnectionService.checkInternetConnectionRequirement();
+    final bool isOnline = await _internetConnectionService
+        .checkInternetConnectionRequirement();
     if (isAdmin && isOnline) {
       final userId = tenant['userId'].toString();
       final branchId =
           tenant['branches'] != null && tenant['branches'].isNotEmpty
-              ? tenant['branches'][0]['id'].toString()
-              : null;
+          ? tenant['branches'][0]['id'].toString()
+          : null;
       final businessId = tenant['businessId'].toString();
       if (branchId != null) {
         await StartupViewModel.ensureAdminAccessForUser(
