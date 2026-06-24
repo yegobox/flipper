@@ -489,6 +489,43 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _logger.fine('configureDatabase skipped — main DB uses Turso');
   }
 
+  /// Startup path: run local migrations immediately; Turso Cloud pull/push runs
+  /// in the background so network latency cannot block the 60s app init budget.
+  @override
+  Future<void> initialize() async {
+    print('🚀 [Repository] initialize() started');
+    await migrate();
+    offlineRequestQueue.start();
+    unawaited(_backgroundTursoSync());
+    print('✅ [Repository] initialize() completed (Turso sync in background)');
+  }
+
+  static const _backgroundTursoSyncTimeout = Duration(seconds: 45);
+
+  Future<void> _backgroundTursoSync() async {
+    try {
+      _logger.info('Background Turso sync starting');
+      await sync().timeout(
+        _backgroundTursoSyncTimeout,
+        onTimeout: () {
+          throw TimeoutException(
+            'Background Turso sync timed out after '
+            '${_backgroundTursoSyncTimeout.inSeconds}s',
+            _backgroundTursoSyncTimeout,
+          );
+        },
+      );
+      _logger.info('Background Turso sync completed');
+    } catch (e, stackTrace) {
+      _logger.warning(
+        'Background Turso sync failed; local DB and Supabase hydrate remain available. '
+        'Error: $e',
+        e,
+        stackTrace,
+      );
+    }
+  }
+
   /// Fixed tax calculation
   static double calculateTotalTax(double tax, Configurations config) {
     final percentage = config.taxPercentage ?? 0;
