@@ -14,6 +14,9 @@ class FakeAccountingDittoStore implements AccountingDittoStore {
   bool isReady() => ready;
 
   @override
+  bool isCloudReady() => ready;
+
+  @override
   Future<void> upsertAccountingAuditLog(
     String businessId,
     Map<String, dynamic> data,
@@ -80,6 +83,16 @@ class FakeAccountingDittoStore implements AccountingDittoStore {
     String docId,
     Map<String, dynamic> data,
   ) async {}
+
+  @override
+  Future<bool> executeUpdateWhere(
+    String collection,
+    String docId,
+    Map<String, dynamic> data, {
+    required String extraWhere,
+    Map<String, dynamic> extraArgs = const {},
+  }) async =>
+      true;
 
   @override
   Future<void> upsertAccountingDocument(

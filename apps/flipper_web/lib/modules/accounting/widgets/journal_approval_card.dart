@@ -13,13 +13,15 @@ class JournalApprovalCard extends StatelessWidget {
     required this.accountMap,
     required this.onApprove,
     required this.onReject,
+    this.isApproving = false,
   });
 
   final JournalEntry entry;
   final ApprovalAction? action;
   final Map<String, Account> accountMap;
-  final VoidCallback onApprove;
+  final Future<void> Function() onApprove;
   final VoidCallback onReject;
+  final bool isApproving;
 
   static const _cardShadow = [
     BoxShadow(
@@ -52,6 +54,7 @@ class JournalApprovalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = jeTotals(entry);
     final done = action != null;
+    final busy = isApproving && !done;
 
     return Opacity(
       opacity: done ? 0.55 : 1,
@@ -177,7 +180,7 @@ class JournalApprovalCard extends StatelessWidget {
                       child: _ActionButton(
                         label: 'Reject',
                         icon: Icons.close,
-                        onPressed: onReject,
+                        onPressed: busy ? null : onReject,
                         filled: false,
                       ),
                     ),
@@ -186,8 +189,9 @@ class JournalApprovalCard extends StatelessWidget {
                       child: _ActionButton(
                         label: 'Approve',
                         icon: Icons.check,
-                        onPressed: onApprove,
+                        onPressed: busy ? null : () => onApprove(),
                         filled: true,
+                        isLoading: busy,
                       ),
                     ),
                   ],
@@ -352,30 +356,41 @@ class _ActionButton extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     required this.filled,
+    this.isLoading = false,
   });
 
   final String label;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool filled;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    final child = Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: filled ? 17 : 16, color: filled ? Colors.white : AccountingTokens.ink2),
-        const SizedBox(width: 7),
-        Text(
-          label,
-          style: AccountingTokens.sans(
-            fontSize: 14.5,
-            fontWeight: FontWeight.w700,
-            color: filled ? Colors.white : AccountingTokens.ink2,
-          ),
-        ),
-      ],
-    );
+    final child = isLoading
+        ? SizedBox(
+            width: filled ? 20 : 18,
+            height: filled ? 20 : 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: filled ? Colors.white : AccountingTokens.accent,
+            ),
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: filled ? 17 : 16, color: filled ? Colors.white : AccountingTokens.ink2),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: AccountingTokens.sans(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  color: filled ? Colors.white : AccountingTokens.ink2,
+                ),
+              ),
+            ],
+          );
 
     if (filled) {
       return Material(

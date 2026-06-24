@@ -141,8 +141,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       );
     } catch (e, stackTrace) {
       debugPrint('❌ [StartupViewModel] ERROR during runStartupLogic: $e');
-      talker.info("StartupViewModel ${e}");
-      talker.error("StartupViewModel ${stackTrace}");
+      talker.error(e, stackTrace);
       await _handleStartupError(e, stackTrace);
     }
   }
@@ -167,9 +166,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     try {
       final response = await _paymentVerificationService.verifyPaymentStatus();
       _handlePaymentStatusChange(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
       // If payment verification itself throws an exception, create a response and handle it
-      talker.error("Exception during initial payment verification: $e");
+      talker.error(e, stackTrace);
       await PaymentVerificationNavigator.handle(
         PaymentVerificationResponse(
           result: PaymentVerificationResult.error,
@@ -229,7 +228,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         }
       }
     } catch (e, stack) {
-      talker.error("Error ensuring admin access: $e\n$stack");
+      talker.error(e, stack);
     }
   }
 
@@ -329,8 +328,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
           "requirements failed for having branches saved locally",
         );
       }
-    } catch (e) {
-      talker.error("StartupViewModel _allRequirementsMeets ${e}");
+    } catch (e, stackTrace) {
+      talker.error(e, stackTrace);
       rethrow;
     }
   }

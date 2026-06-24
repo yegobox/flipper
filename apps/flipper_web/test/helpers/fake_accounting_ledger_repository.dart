@@ -22,12 +22,26 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
   /// transactionId -> created entry uuid (read-only view for assertions).
   Map<String, String> get txnToEntryId => Map.unmodifiable(_txnToEntryId);
 
+  Account? lastCreatedAccount;
+
   @override
   Future<void> ensureSeeded({required String businessId}) async {}
 
   @override
+  Future<void> createChartOfAccount({
+    required String businessId,
+    required Account account,
+  }) async {
+    if (_coa.any((a) => a.code == account.code)) {
+      throw StateError('Account code ${account.code} already exists');
+    }
+    _coa.add(account);
+    lastCreatedAccount = account;
+  }
+
+  @override
   Stream<List<Account>> watchChartOfAccounts({required String businessId}) {
-    return Stream.value(List<Account>.from(_coa));
+    return Stream.value(List<Account>.from(_coa)).asBroadcastStream();
   }
 
   @override
@@ -36,7 +50,7 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) {
-    return Stream.value(List<JournalEntry>.from(_entries));
+    return Stream.value(List<JournalEntry>.from(_entries)).asBroadcastStream();
   }
 
   @override
@@ -88,10 +102,29 @@ class FakeAccountingLedgerRepository implements AccountingLedgerRepository {
   }) async {}
 
   @override
-  Future<void> postJournalEntry({
+  Future<bool> postJournalEntry({
     required String businessId,
     required String entryId,
-  }) async {}
+    bool onlyIfPending = false,
+  }) async {
+    final idx = _entries.indexWhere((e) => e.uuid == entryId);
+    if (idx < 0) return false;
+    final current = _entries[idx];
+    if (onlyIfPending && current.status != JournalStatus.pending) {
+      return false;
+    }
+    _entries[idx] = JournalEntry(
+      id: current.id,
+      date: current.date,
+      memo: current.memo,
+      ref: current.ref,
+      status: JournalStatus.posted,
+      src: current.src,
+      lines: current.lines,
+      uuid: current.uuid,
+    );
+    return true;
+  }
 
   @override
   Stream<List<BankLine>> watchBankLines({

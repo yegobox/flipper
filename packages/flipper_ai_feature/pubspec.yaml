@@ -71,6 +71,11 @@ dev_dependencies:
   visibility_detector: any
 
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   sqlite3: ^3.3.1
   # Align with workspace / receipt; sentry_flutter pins jni 0.14.x without this.
   jni: ^0.14.2

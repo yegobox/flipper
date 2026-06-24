@@ -20,6 +20,11 @@ dependencies:
   flipper_ui: any
   flipper_routing: any
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   image: ^4.1.0  # match flipper_services image version
   archive: ^4.0.9  # unify archive across packages
   mime: ^2.0.0  # satisfy supabase_flutter's mime requirement

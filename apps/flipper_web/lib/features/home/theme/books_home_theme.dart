@@ -123,6 +123,7 @@ abstract final class AppSpace {
   static const rLg = 22.0;
   static const rXl = 30.0;
   static const maxW = 1200.0;
+  static const heroSubMaxW = 620.0;
   static const gutter = 28.0;
   static const gutterMobile = 18.0;
   static const sectionY = 100.0;

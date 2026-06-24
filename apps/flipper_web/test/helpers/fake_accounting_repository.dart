@@ -29,5 +29,6 @@ class FakeAccountingRepository implements AccountingRepository {
     required String branchId,
     DateTime? startDate,
     DateTime? endDate,
-  }) => Stream.value(_transactions);
+  }) =>
+      Stream.value(_transactions).asBroadcastStream();
 }

@@ -1,10 +1,10 @@
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_session_actions.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/shell/mobile/accounting_mobile_header.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
-import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/books_brand_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,8 +22,6 @@ class AccountingSidebar extends ConsumerWidget {
     final entityName = business?.name ?? 'Business';
     final fiscalYear = ref.watch(accountingFiscalYearLabelProvider);
     final currency = ref.watch(accountingCurrencyProvider);
-    final userName = ref.watch(accountingUserNameProvider);
-    final userRole = ref.watch(accountingUserRoleProvider);
 
     return Container(
       width: AccountingTokens.sidebarWidth,
@@ -134,31 +132,94 @@ class AccountingSidebar extends ConsumerWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => showAccountingToast(
-                  context,
-                  'Preferences',
-                  icon: Icons.settings_outlined,
-                ),
-                borderRadius: BorderRadius.circular(10),
-                hoverColor: AccountingTokens.surface2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        alignment: Alignment.center,
-                        decoration: const BoxDecoration(
-                          gradient: AccountingTokens.brandGradient,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
+          const AccountingAccountFooter(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bottom account row — opens sync / sign-out menu.
+class AccountingAccountFooter extends ConsumerStatefulWidget {
+  const AccountingAccountFooter({super.key});
+
+  @override
+  ConsumerState<AccountingAccountFooter> createState() =>
+      _AccountingAccountFooterState();
+}
+
+class _AccountingAccountFooterState extends ConsumerState<AccountingAccountFooter> {
+  bool _busy = false;
+
+  Future<void> _onTap(TapDownDetails details) async {
+    if (_busy) return;
+    final action = await showAccountingAccountMenu(
+      context,
+      position: details.globalPosition,
+    );
+    if (action == null || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      switch (action) {
+        case AccountingAccountMenuAction.refresh:
+          await refreshAccountingFromCloud(ref);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Books data refreshed from cloud')),
+            );
+          }
+        case AccountingAccountMenuAction.signOut:
+          await signOutFromBooks(context, ref);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Action failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final business = ref.watch(selectedBusinessProvider);
+    final entityName = business?.name ?? 'Business';
+    final userName = ref.watch(accountingUserNameProvider);
+    final userRole = ref.watch(accountingUserRoleProvider);
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTapDown: _onTap,
+          borderRadius: BorderRadius.circular(10),
+          hoverColor: AccountingTokens.surface2,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    gradient: AccountingTokens.brandGradient,
+                    shape: BoxShape.circle,
+                  ),
+                  child: _busy
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
                           accountingEntityInitials(
                             userName.isNotEmpty ? userName : entityName,
                           ),
@@ -168,45 +229,42 @@ class AccountingSidebar extends ConsumerWidget {
                             color: Colors.white,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userName.isNotEmpty ? userName : '—',
-                              style: AccountingTokens.sans(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
-                                color: AccountingTokens.ink1,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (userRole.isNotEmpty)
-                              Text(
-                                userRole,
-                                style: AccountingTokens.sans(
-                                  fontSize: 11.5,
-                                  color: AccountingTokens.ink3,
-                                ),
-                              ),
-                          ],
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName.isNotEmpty ? userName : '—',
+                        style: AccountingTokens.sans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: AccountingTokens.ink1,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const Icon(
-                        Icons.settings_outlined,
-                        color: AccountingTokens.ink3,
-                        size: 18,
-                      ),
+                      if (userRole.isNotEmpty)
+                        Text(
+                          userRole,
+                          style: AccountingTokens.sans(
+                            fontSize: 11.5,
+                            color: AccountingTokens.ink3,
+                          ),
+                        ),
                     ],
                   ),
                 ),
-              ),
+                const Icon(
+                  Icons.settings_outlined,
+                  color: AccountingTokens.ink3,
+                  size: 18,
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -6,6 +6,12 @@ import 'package:flutter/foundation.dart';
 
 final Set<String> _accountingSubscriptionKeys = {};
 
+/// Clears dedupe cache so the next bootstrap re-registers cloud subscriptions.
+void resetAccountingCloudSubscriptionKeys() {
+  _accountingSubscriptionKeys.clear();
+  debugPrint('[Accounting] cloud subscription keys cleared');
+}
+
 /// Cloud pull subscriptions for GL + POS collections (mirrors
 /// [ensureBranchCatalogCloudSubscriptions] for catalog data).
 Future<void> ensureAccountingCloudSubscriptions({
@@ -106,6 +112,69 @@ Future<void> ensureAccountingCloudSubscriptions({
       );
     }
   }
+}
+
+/// Waits for cloud replication to deliver GL/POS rows (or times out).
+///
+/// Returns `true` when at least one subscribed row is visible via DQL.
+///
+/// Books registers subscriptions then must not seed/read until the first
+/// replication cycle completes — otherwise local seed races empty cloud state.
+Future<bool> waitForAccountingReplication({
+  required Ditto ditto,
+  required String businessId,
+  String? branchId,
+  Duration? timeout,
+}) async {
+  if (businessId.isEmpty) return false;
+
+  final effectiveTimeout = timeout ?? const Duration(seconds: 90);
+
+  const pollInterval = Duration(milliseconds: 500);
+  final deadline = DateTime.now().add(effectiveTimeout);
+  debugPrint(
+    '[Accounting] waiting for replication businessId=$businessId '
+    'branchId=${branchId ?? "(none)"} timeout=${effectiveTimeout.inSeconds}s',
+  );
+
+  while (DateTime.now().isBefore(deadline)) {
+    try {
+      final coa = await ditto.store.execute(
+        'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId LIMIT 1',
+        arguments: {'businessId': businessId},
+      );
+      if (coa.items.isNotEmpty) {
+        debugPrint('[Accounting] replication: chart_of_accounts present');
+        return true;
+      }
+
+      final journal = await ditto.store.execute(
+        'SELECT _id FROM journal_entries WHERE businessId = :businessId LIMIT 1',
+        arguments: {'businessId': businessId},
+      );
+      if (journal.items.isNotEmpty) {
+        debugPrint('[Accounting] replication: journal_entries present');
+        return true;
+      }
+
+      if (branchId != null && branchId.isNotEmpty) {
+        final txns = await ditto.store.execute(
+          'SELECT _id FROM transactions WHERE branchId = :branchId LIMIT 1',
+          arguments: {'branchId': branchId},
+        );
+        if (txns.items.isNotEmpty) {
+          debugPrint('[Accounting] replication: transactions present');
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('[Accounting] waitForAccountingReplication poll: $e');
+    }
+    await Future.delayed(pollInterval);
+  }
+
+  debugPrint('[Accounting] replication wait timed out');
+  return false;
 }
 
 /// Poll until at least one journal entry exists (post-restart / post-sync).

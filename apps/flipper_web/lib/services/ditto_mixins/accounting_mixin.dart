@@ -203,13 +203,14 @@ mixin AccountingMixin on DittoCore {
     Map<String, dynamic> args,
   ) {
     final ditto = dittoInstance;
-    if (ditto == null) return const Stream.empty();
+    if (ditto == null) return Stream.value(const <Map<String, dynamic>>[]);
 
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     dynamic observer;
+    var observerCancelled = false;
 
     void emitRows(dynamic queryResult) {
-      if (controller.isClosed) return;
+      if (observerCancelled || controller.isClosed) return;
       controller.add(dittoQueryRows(queryResult));
     }
 
@@ -221,6 +222,7 @@ mixin AccountingMixin on DittoCore {
         debugPrint('watchCollection($collection) initial execute: $e');
       }
 
+      if (observerCancelled) return;
       observer = ditto.store.registerObserver(
         query,
         arguments: args,
@@ -231,6 +233,7 @@ mixin AccountingMixin on DittoCore {
     unawaited(start());
 
     controller.onCancel = () async {
+      observerCancelled = true;
       await cancelDittoStoreObserver(observer);
       if (!controller.isClosed) await controller.close();
     };

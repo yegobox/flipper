@@ -22,10 +22,15 @@ command:
 # Global dependency overrides for consistent versions across packages
 dependency_overrides:
   archive: ^4.0.9
+  xml: ^7.0.1
   excel:
-    git:
-      url: https://github.com/justkawal/excel.git
-      ref: 751dfc597c893a0b34eccfe6921f126e03a5c683
+    path: open-sources/excel
+  otp:
+    path: open-sources/otp
+  smithy:
+    path: open-sources/smithy
+  smithy_aws:
+    path: open-sources/smithy_aws
   flutter_native_splash: ^2.3.2
   analyzer: ^9.0.0
   source_gen: ">=3.1.0 <5.0.0"  # Override to allow compatibility with json_serializable
@@ -52,6 +57,12 @@ scripts:
     packageFilters:
       scope: "flipper_ai"
     description: Generate app icons for flipper_ai
+
+  generate:icons:web:
+    exec: dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+    packageFilters:
+      scope: "flipper_web"
+    description: Generate app icons for flipper_web (Books)
   
   test:ai:
     exec: flutter test --coverage  --dart-define=FLUTTER_TEST_ENV=true

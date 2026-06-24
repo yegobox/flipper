@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:supabase_models/brick/models/log.model.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 /// A service for logging exceptions and errors to the database
 ///
@@ -46,6 +48,7 @@ $formattedStack
         message: message,
         type: type ?? 'exception',
         businessId: logBusinessId,
+        createdAt: DateTime.now().toUtc(),
         tags: tags != null ? _safeEncode(_sanitize(tags)) : null,
         extra: extra != null ? _safeEncode(_sanitize(extra)) : null,
       );
@@ -83,6 +86,7 @@ $formattedStack
         message: message,
         type: type ?? 'message',
         businessId: logBusinessId,
+        createdAt: DateTime.now().toUtc(),
         tags: tags != null ? _safeEncode(_sanitize(tags)) : null,
         extra: extra != null ? _safeEncode(_sanitize(extra)) : null,
       );
@@ -98,11 +102,11 @@ $formattedStack
   /// Internal method to save a log to the database
   Future<void> _saveLog(Log log) async {
     try {
-      // Use the strategy to save the log
-
-      // Merge provided tags with default tags (provided tags take precedence)
-
-      await ProxyService.strategy.saveLog(log);
+      if (!Repository.isReady) {
+        talker.warning('LogService: Repository not ready, skipping DB save');
+        return;
+      }
+      await Repository().insertLog(log);
     } catch (e, st) {
       talker.error('LogService failed to save log: $e', st);
     }
@@ -119,10 +123,25 @@ $formattedStack
     int limit = 100,
   }) async {
     try {
-      return await ProxyService.strategy.getLogs(
-        type: type,
-        businessId: businessId,
-        limit: limit,
+      if (!Repository.isReady) {
+        return [];
+      }
+
+      final whereConditions = <Where>[];
+      if (type != null) {
+        whereConditions.add(Where('type').isExactly(type));
+      }
+      if (businessId != null) {
+        whereConditions.add(Where('businessId').isExactly(businessId));
+      }
+
+      return await Repository().get<Log>(
+        query: Query(
+          where: whereConditions,
+          limit: limit,
+          orderBy: [OrderBy.desc('createdAt')],
+        ),
+        policy: OfflineFirstGetPolicy.localOnly,
       );
     } catch (e, st) {
       talker.error('LogService failed to get logs: $e', st);

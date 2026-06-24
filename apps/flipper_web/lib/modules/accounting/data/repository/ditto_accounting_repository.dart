@@ -111,9 +111,10 @@ class DittoAccountingRepository implements AccountingRepository {
 
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     dynamic observer;
+    var observerCancelled = false;
 
     void emitRows(dynamic queryResult) {
-      if (controller.isClosed) return;
+      if (observerCancelled || controller.isClosed) return;
       controller.add(dittoQueryRows(queryResult));
     }
 
@@ -125,6 +126,7 @@ class DittoAccountingRepository implements AccountingRepository {
         debugPrint('watchTransactions initial execute: $e');
       }
 
+      if (observerCancelled) return;
       observer = ditto.store.registerObserver(
         query,
         arguments: args,
@@ -135,6 +137,7 @@ class DittoAccountingRepository implements AccountingRepository {
     unawaited(start());
 
     controller.onCancel = () async {
+      observerCancelled = true;
       await cancelDittoStoreObserver(observer);
       if (!controller.isClosed) await controller.close();
     };

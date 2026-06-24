@@ -15,8 +15,8 @@ mixin LogMixin implements LogInterface {
   @override
   Future<void> saveLog(Log log) async {
     try {
-      await repository.upsert<Log>(log);
-      talker.info('Log saved: ${log.id} - Type: ${log.type}');
+      final saved = await repository.insertLog(log);
+      talker.info('Log inserted: ${saved.id} - Type: ${saved.type}');
     } catch (e, stackTrace) {
       talker.error('Failed to save log: $e', stackTrace);
       // Don't rethrow to avoid cascading errors in logging system
@@ -44,9 +44,13 @@ mixin LogMixin implements LogInterface {
       final query = brick.Query(
         where: whereConditions,
         limit: limit,
+        orderBy: [OrderBy.desc('createdAt')],
       );
 
-      final logs = await repository.get<Log>(query: query);
+      final logs = await repository.get<Log>(
+        query: query,
+        policy: brick.OfflineFirstGetPolicy.localOnly,
+      );
       return logs;
     } catch (e, stackTrace) {
       talker.error('Failed to get logs: $e', stackTrace);

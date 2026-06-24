@@ -4,6 +4,7 @@ import 'package:flipper_web/modules/accounting/data/mapper/transaction_to_accoun
 import 'package:flipper_web/modules/accounting/data/repository/accounting_repository.dart';
 import '../../../helpers/fake_accounting_ledger_repository.dart';
 import '../../../helpers/fake_accounting_repository.dart';
+import '../../../helpers/accounting_unit_test_overrides.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,6 +19,7 @@ ProviderContainer _container({
 }) {
   final container = ProviderContainer(
     overrides: [
+      ...accountingUnitTestOverrides(),
       accountingRepositoryProvider.overrideWithValue(
         repo ?? FakeAccountingRepository(transactions: transactions, items: items),
       ),

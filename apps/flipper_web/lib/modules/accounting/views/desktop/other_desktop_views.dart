@@ -13,6 +13,7 @@ import 'package:flipper_web/modules/accounting/widgets/accounting_kpi_card.dart'
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_tag.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
+import 'package:flipper_web/modules/accounting/widgets/create_account_modal.dart';
 import 'package:flipper_web/modules/accounting/widgets/status_pill.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1284,12 +1285,10 @@ class AccountingChartOfAccountsView extends ConsumerWidget {
                 icon: Icons.add,
                 primary: true,
                 small: true,
-                onPressed: () => showAccountingToast(
-                  context,
-                  'Add account',
-                  subtitle: 'Opening account setup…',
-                  icon: Icons.add,
-                ),
+                onPressed: () {
+                  ref.read(createAccountModalProvider.notifier).state =
+                      const CreateAccountModalRequest();
+                },
               ),
             ],
           ),

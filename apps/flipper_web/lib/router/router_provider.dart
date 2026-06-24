@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flipper_web/core/routing/app_entry_route.dart';
 import 'package:flipper_web/features/login/auth_providers.dart' as login_auth;
 import 'package:flipper_web/features/login/auth_wrapper.dart';
 import 'package:flipper_web/modules/accounting/accounting_module.dart';
@@ -25,6 +26,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     refreshListenable: authRefresh,
+    initialLocation: unauthenticatedEntryLocation,
     routes: [
       // Root shows AuthWrapper which will choose appropriate screen
       GoRoute(path: '/', builder: (context, state) => const AuthWrapper()),
@@ -76,6 +78,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return null;
         }
       } else {
+        // Native iOS/macOS: skip marketing home and land on PIN login.
+        if (goingToRoot && opensOnLoginScreen) {
+          return '/login';
+        }
+
         // If not authenticated and trying to access protected routes
         if (goingToBusinessSelection || goingToDashboard || goingToAccounting) {
           return '/login';

@@ -7,6 +7,12 @@ abstract class AccountingLedgerRepository {
 
   Stream<List<Account>> watchChartOfAccounts({required String businessId});
 
+  /// Adds a new chart-of-accounts row. Throws if [account.code] already exists.
+  Future<void> createChartOfAccount({
+    required String businessId,
+    required Account account,
+  });
+
   Stream<List<JournalEntry>> watchJournalEntries({
     required String businessId,
     DateTime? startDate,
@@ -43,9 +49,15 @@ abstract class AccountingLedgerRepository {
     required JournalEntry entry,
   });
 
-  Future<void> postJournalEntry({
+  /// Transitions a journal entry to `posted`.
+  ///
+  /// When [onlyIfPending] is true, only updates rows still in `pending` status
+  /// (first-write-wins for concurrent approval). Returns whether this call
+  /// applied the transition.
+  Future<bool> postJournalEntry({
     required String businessId,
     required String entryId,
+    bool onlyIfPending = false,
   });
 
   Stream<List<BankLine>> watchBankLines({

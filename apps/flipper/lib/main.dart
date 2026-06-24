@@ -35,6 +35,7 @@ import 'package:device_preview_plus/device_preview_plus.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
+import 'package:flipper_services/FirebaseCrashlyticService.dart';
 // Flag to control dependency initialization in tests
 // import 'package:flipper_web/core/utils/initialization.dart';
 //
@@ -71,8 +72,8 @@ Future<void> _initializeFirebase() async {
       throw TimeoutException('Firebase.initializeApp timed out');
     });
     // talker.info('Firebase initialized successfully');
-  } catch (e) {
-    // talker.info('Firebase initialization error: $e');
+  } catch (e, stackTrace) {
+    GlobalErrorHandler.report(e, stackTrace, type: 'firebase_init_error');
   }
 }
 
@@ -82,8 +83,8 @@ Future<void> _initializeSupabase() async {
     await loadSupabase();
 
     // await initializeDitto(); // Initialization moved to AppService
-  } catch (e) {
-    // talker.info('Supabase initialization error: $e');
+  } catch (e, stackTrace) {
+    GlobalErrorHandler.report(e, stackTrace, type: 'supabase_init_error');
   }
 }
 
@@ -203,12 +204,17 @@ Future<void> main() async {
                 }),
               );
 
-              GlobalErrorHandler.logError(
-                snapshot.error!,
-                stackTrace: stackTrace,
-                type: 'initialization_error',
-                context: {'error_type': snapshot.error.runtimeType.toString()},
-              );
+              // initDependencies (step 6) registers Crash; step 5 can fail first.
+              if (getIt.isRegistered<Crash>()) {
+                GlobalErrorHandler.logError(
+                  snapshot.error!,
+                  stackTrace: stackTrace,
+                  type: 'initialization_error',
+                  context: {
+                    'error_type': snapshot.error.runtimeType.toString(),
+                  },
+                );
+              }
             } catch (e) {
               debugPrint('Failed to report error to telemetry: $e');
             }

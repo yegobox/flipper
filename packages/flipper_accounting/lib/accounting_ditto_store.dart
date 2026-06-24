@@ -9,6 +9,9 @@ import 'package:flipper_accounting/accounting_models.dart';
 abstract class AccountingDittoStore {
   bool isReady();
 
+  /// Authenticated + syncing — writes replicate to Ditto Cloud.
+  bool isCloudReady();
+
   Future<List<Map<String, dynamic>>> queryCollection(
     String collection,
     String query,
@@ -63,6 +66,16 @@ abstract class AccountingDittoStore {
     String docId,
     Map<String, dynamic> data,
   );
+
+  /// Like [executeUpdate] but only when [extraWhere] matches (without `WHERE`).
+  /// Returns true when at least one document was updated.
+  Future<bool> executeUpdateWhere(
+    String collection,
+    String docId,
+    Map<String, dynamic> data, {
+    required String extraWhere,
+    Map<String, dynamic> extraArgs = const {},
+  });
 
   Future<void> upsertAccountingDocument(
     String businessId,

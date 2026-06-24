@@ -4,6 +4,7 @@ import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
@@ -24,6 +25,7 @@ import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_ledger_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_repository.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
+import 'package:flipper_web/modules/accounting/data/services/journal_approval_service.dart';
 import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_web/modules/accounting/data/transaction_journal_poster.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
@@ -75,6 +77,10 @@ final bankStatementServiceProvider = Provider<BankStatementService>(
   (ref) => BankStatementService(),
 );
 
+final journalApprovalServiceProvider = Provider<JournalApprovalService>(
+  (ref) => JournalApprovalService(),
+);
+
 final coaTypeFilterProvider = StateProvider<AccountType?>((ref) => null);
 
 final journalSourceFilterProvider = StateProvider<String?>((ref) => null);
@@ -89,17 +95,19 @@ final accountingBackendStrategyProvider = Provider<AccountingBackendStrategy>(
 );
 
 final accountingUseDittoForTransactionsProvider = Provider<bool>((ref) {
+  ref.watch(dittoReadyProvider);
   return AccountingBackendConfig.useDitto(
     strategy: ref.watch(accountingBackendStrategyProvider),
-    dittoReady: ref.watch(dittoServiceProvider).isReady(),
+    dittoReady: ref.watch(dittoReadyProvider),
     layer: AccountingDataLayer.transactions,
   );
 });
 
 final accountingUseDittoForLedgerProvider = Provider<bool>((ref) {
+  ref.watch(dittoReadyProvider);
   return AccountingBackendConfig.useDitto(
     strategy: ref.watch(accountingBackendStrategyProvider),
-    dittoReady: ref.watch(dittoServiceProvider).isReady(),
+    dittoReady: ref.watch(dittoReadyProvider),
     layer: AccountingDataLayer.ledger,
   );
 });
@@ -145,35 +153,206 @@ final accountingLedgerRepositoryProvider =
   return SupabaseAccountingLedgerRepository(ref.watch(supabaseProvider));
 });
 
-/// Registers Ditto cloud pull subscriptions for GL + POS (like catalog sync).
-final accountingDittoSyncProvider = Provider<void>((ref) {
-  final ditto = ref.watch(dittoServiceProvider);
-  if (!ditto.isReady()) return;
-  if (ref.watch(accountingBackendStrategyProvider) !=
+Completer<void>? _accountingBootstrapInFlight;
+String _accountingBootstrapScopeKey = '';
+
+String _accountingBootstrapScope(String businessId, String branchId) =>
+    '$businessId|$branchId';
+
+void _ensureAccountingBootstrapScope(String businessId, String branchId) {
+  final scope = _accountingBootstrapScope(businessId, branchId);
+  if (scope == _accountingBootstrapScopeKey) return;
+  _accountingBootstrapScopeKey = scope;
+  resetAccountingCloudSubscriptionKeys();
+  debugPrint(
+    '[Accounting] bootstrap scope changed → businessId=$businessId branchId=$branchId',
+  );
+}
+
+/// Re-invalidates Books streams after slow web replication (dart2wasm DQL lag).
+void _scheduleAccountingReplicationRefresh(Ref ref) {
+  for (final delay in const [15, 45, 90]) {
+    unawaited(
+      Future<void>.delayed(Duration(seconds: delay), () {
+        if (!ref.mounted) return;
+        debugPrint(
+          '[Accounting] delayed stream refresh after replication wait (+${delay}s)',
+        );
+        invalidateAccountingDataStreams(ref);
+      }),
+    );
+  }
+}
+
+/// Blocks until [dittoReadyProvider] is true (or times out).
+Future<bool> waitForAccountingDittoReady(
+  Ref ref, {
+  Duration timeout = const Duration(seconds: 90),
+}) async {
+  if (ref.read(dittoReadyProvider)) return true;
+  final deadline = DateTime.now().add(timeout);
+  while (!ref.read(dittoReadyProvider)) {
+    if (!ref.mounted || DateTime.now().isAfter(deadline)) {
+      return false;
+    }
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+  return true;
+}
+
+/// Ditto replication + COA seed. Uses [ref.read] only — safe to call from
+/// providers without triggering same-frame rebuild loops.
+Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
+  if (ref.read(accountingBackendStrategyProvider) !=
       AccountingBackendStrategy.ditto) {
     return;
   }
 
-  final businessId = ref.watch(accountingBusinessIdProvider);
-  if (businessId.isEmpty) return;
+  if (_accountingBootstrapInFlight != null) {
+    return _accountingBootstrapInFlight!.future;
+  }
 
-  final branchId = ref.watch(accountingBranchIdProvider);
-  final instance = ditto.dittoInstance;
-  if (instance == null) return;
+  final completer = Completer<void>();
+  _accountingBootstrapInFlight = completer;
 
-  unawaited(
-    ensureAccountingCloudSubscriptions(
+  try {
+    final businessId = ref.read(accountingBusinessIdProvider);
+    if (businessId.isEmpty) return;
+
+    final branchId = ref.read(accountingBranchIdProvider);
+    _ensureAccountingBootstrapScope(businessId, branchId);
+    final instance = ref.read(dittoServiceProvider).dittoInstance;
+    if (instance == null) return;
+
+    await ensureAccountingCloudSubscriptions(
       ditto: instance,
       businessId: businessId,
       branchId: branchId.isEmpty ? null : branchId,
-    ),
+    );
+
+    final replicated = await waitForAccountingReplication(
+      ditto: instance,
+      businessId: businessId,
+      branchId: branchId.isEmpty ? null : branchId,
+    );
+
+    // COA can replicate before journal_entries on native — wait for GL rows.
+    if (replicated) {
+      final journalReady = await waitForJournalEntriesInDitto(
+        ditto: instance,
+        businessId: businessId,
+        timeout: kIsWeb
+            ? const Duration(seconds: 15)
+            : const Duration(seconds: 45),
+      );
+      if (!journalReady) {
+        debugPrint(
+          '[Accounting] journal_entries not visible yet after replication — '
+          'scheduling delayed stream refresh',
+        );
+        _scheduleAccountingReplicationRefresh(ref);
+      }
+    }
+
+    final cloudSyncUp =
+        instance.sync.isActive && instance.auth.status.isAuthenticated;
+    if (!replicated && kIsWeb && cloudSyncUp) {
+      debugPrint(
+        '[Accounting] web replication slow — skipping COA seed while cloud sync '
+        'is active (avoids empty defaults on dart2wasm / slow DQL)',
+      );
+      _scheduleAccountingReplicationRefresh(ref);
+    } else {
+      await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
+            businessId: businessId,
+          );
+    }
+
+    invalidateAccountingDataStreams(ref);
+    debugPrint('[Accounting] post-sync bootstrap complete');
+  } catch (e, st) {
+    if (!completer.isCompleted) completer.completeError(e, st);
+    rethrow;
+  } finally {
+    if (!completer.isCompleted) completer.complete();
+    if (identical(_accountingBootstrapInFlight, completer)) {
+      _accountingBootstrapInFlight = null;
+    }
+  }
+}
+
+/// Registers Ditto subscriptions, waits for replication, seeds COA if empty,
+/// logs diagnostics, then refreshes data streams.
+final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
+  // One-shot wait for restore — read (not watch) avoids circular dependency
+  // when Ditto bootstrap invalidates this provider during restore.
+  await ref.read(selectedBusinessRestoreProvider.future);
+
+  ref.watch(dittoReadyProvider);
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  final branchId = ref.watch(accountingBranchIdProvider);
+  if (businessId.isEmpty) return;
+
+  debugPrint(
+    '[Accounting] post-sync bootstrap scheduled '
+    'businessId=$businessId branchId=${branchId.isEmpty ? "(none)" : branchId} '
+    'branch=${ref.read(selectedBranchProvider)?.name ?? "(none)"}',
   );
+
+  final strategy = ref.read(accountingBackendStrategyProvider);
+  if (strategy == AccountingBackendStrategy.ditto) {
+    if (!ref.read(dittoReadyProvider)) {
+      if (!await waitForAccountingDittoReady(ref)) {
+        debugPrint('[Accounting] post-sync bootstrap aborted — Ditto not ready');
+        return;
+      }
+    }
+    try {
+      await runAccountingPostSyncBootstrap(ref);
+      debugPrint(
+        '[Accounting] post-sync bootstrap OK (businessId=$businessId)',
+      );
+    } catch (e, st) {
+      debugPrint('[Accounting] post-sync bootstrap FAILED: $e\n$st');
+      rethrow;
+    }
+  } else {
+    try {
+      await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
+            businessId: businessId,
+          );
+      debugPrint(
+        '[Accounting] ensureSeeded OK (businessId=$businessId via supabase)',
+      );
+    } catch (e, st) {
+      debugPrint('[Accounting] ensureSeeded FAILED: $e\n$st');
+      rethrow;
+    }
+  }
+
+  // Yield so stream invalidations from bootstrap can settle before we read them.
+  await Future<void>.delayed(Duration.zero);
+  if (!ref.mounted) return;
+
+  await logAccountingStartupDiagnostics(ref);
+});
+
+/// @deprecated Use [accountingPostSyncBootstrapProvider].
+final accountingDittoSyncProvider = Provider<void>((ref) {
+  ref.watch(accountingPostSyncBootstrapProvider);
 });
 
 // ─── Raw data streams ────────────────────────────────────────────────────────
 
+Stream<List<T>> _accountingEmptyStream<T>() => Stream.value(<T>[]);
+
 final rawTransactionStreamProvider =
     StreamProvider<List<Map<String, dynamic>>>((ref) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return _accountingEmptyStream<Map<String, dynamic>>();
+  }
   final repo = ref.watch(accountingRepositoryProvider);
   final branchId = ref.watch(accountingBranchIdProvider);
   final (start, end) = ref.watch(accountingDateRangeProvider);
@@ -201,16 +380,26 @@ final rawTransactionItemsProvider =
 // ─── Ledger streams ──────────────────────────────────────────────────────────
 
 final chartOfAccountsStreamProvider = StreamProvider<List<Account>>((ref) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return _accountingEmptyStream<Account>();
+  }
   final businessId = ref.watch(accountingBusinessIdProvider);
-  if (businessId.isEmpty) return const Stream.empty();
-  final ledger = ref.watch(accountingLedgerRepositoryProvider);
-  ledger.ensureSeeded(businessId: businessId);
-  return ledger.watchChartOfAccounts(businessId: businessId);
+  if (businessId.isEmpty) return _accountingEmptyStream<Account>();
+  return ref
+      .watch(accountingLedgerRepositoryProvider)
+      .watchChartOfAccounts(businessId: businessId);
 });
 
 final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return _accountingEmptyStream<JournalEntry>();
+  }
   final businessId = ref.watch(accountingBusinessIdProvider);
-  if (businessId.isEmpty) return const Stream.empty();
+  if (businessId.isEmpty) return _accountingEmptyStream<JournalEntry>();
   final (start, end) = ref.watch(accountingDateRangeProvider);
   return ref.watch(accountingLedgerRepositoryProvider).watchJournalEntries(
         businessId: businessId,
@@ -221,7 +410,7 @@ final journalEntriesStreamProvider = StreamProvider<List<JournalEntry>>((ref) {
 
 final bankLinesStreamProvider = StreamProvider<List<BankLine>>((ref) {
   final businessId = ref.watch(accountingBusinessIdProvider);
-  if (businessId.isEmpty) return const Stream.empty();
+  if (businessId.isEmpty) return _accountingEmptyStream<BankLine>();
   return ref.watch(accountingLedgerRepositoryProvider).watchBankLines(
         businessId: businessId,
       );
@@ -292,6 +481,11 @@ final accountingCashBankTotalProvider = Provider<int>((ref) {
 });
 
 final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return 0;
+  }
   final branchId = ref.watch(accountingBranchIdProvider);
   if (branchId.isEmpty) return 0;
   return ref.watch(accountingLedgerRepositoryProvider).fetchInventoryValue(
@@ -304,6 +498,11 @@ final accountingInventoryValueProvider = FutureProvider<int>((ref) async {
 /// transactions for the branch, ignoring the selected accounting period.
 final rawAllTransactionsStreamProvider =
     StreamProvider<List<Map<String, dynamic>>>((ref) {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return const Stream.empty();
+  }
   final repo = ref.watch(accountingRepositoryProvider);
   final branchId = ref.watch(accountingBranchIdProvider);
   return repo.watchTransactions(branchId: branchId);
@@ -364,6 +563,11 @@ final accountingBankLinesProvider = Provider<List<BankLine>>((ref) {
 
 final accountingSettingsProvider =
     FutureProvider<Map<String, dynamic>?>((ref) async {
+  if (ref.watch(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto &&
+      !ref.watch(dittoReadyProvider)) {
+    return null;
+  }
   final businessId = ref.watch(accountingBusinessIdProvider);
   if (businessId.isEmpty) return null;
   return ref.watch(accountingLedgerRepositoryProvider).fetchSettings(
@@ -415,7 +619,8 @@ final pendingCountProvider = Provider<int>((ref) {
 
 final accountingLoadingProvider = Provider<bool>((ref) {
   return ref.watch(rawTransactionStreamProvider).isLoading ||
-      ref.watch(chartOfAccountsStreamProvider).isLoading;
+      ref.watch(chartOfAccountsStreamProvider).isLoading ||
+      ref.watch(journalEntriesStreamProvider).isLoading;
 });
 
 int _rawInt(dynamic v) {
@@ -423,3 +628,103 @@ int _rawInt(dynamic v) {
   if (v is num) return v.round();
   return int.tryParse(v.toString()) ?? 0;
 }
+
+/// Refreshes Ditto-backed accounting streams after replication / COA seed.
+void invalidateAccountingDataStreams(Ref ref) {
+  ref.invalidate(rawTransactionStreamProvider);
+  ref.invalidate(rawTransactionItemsProvider);
+  ref.invalidate(rawAllTransactionsStreamProvider);
+  ref.invalidate(chartOfAccountsStreamProvider);
+  ref.invalidate(journalEntriesStreamProvider);
+  ref.invalidate(bankLinesStreamProvider);
+  ref.invalidate(accountingSettingsProvider);
+  ref.invalidate(accountingInventoryValueProvider);
+}
+
+/// Logs GL/POS counts after bootstrap — plain function, not a FutureProvider.
+Future<void> logAccountingStartupDiagnostics(Ref ref) async {
+  final backend = ref.read(accountingBackendLabelProvider);
+  final dittoReady = ref.read(dittoReadyProvider);
+  final businessId = ref.read(accountingBusinessIdProvider);
+  final branchId = ref.read(accountingBranchIdProvider);
+  final period = ref.read(accountingPeriodLabelProvider);
+
+  final branch = ref.read(selectedBranchProvider);
+  final txDitto = ref.read(accountingUseDittoForTransactionsProvider);
+  final branchKeyKind = txDitto ? 'dittoUuid' : 'supabaseServerId';
+  debugPrint(
+    '[Accounting] ── startup ── $backend dittoReady=$dittoReady '
+    'businessId=${businessId.isEmpty ? "(none)" : businessId} '
+    'branchId=${branchId.isEmpty ? "(none)" : branchId} ($branchKeyKind'
+    '${branch != null ? ', branch=${branch.name}' : ''}) period=$period',
+  );
+
+  if (businessId.isEmpty) {
+    debugPrint('[Accounting] waiting for business selection — no seed yet');
+    return;
+  }
+
+  // One-shot DQL only — do not subscribe to StreamProviders here; bootstrap
+  // invalidations during startup can dispose Ditto FFI observers on macOS.
+  try {
+    if (ref.read(accountingBackendStrategyProvider) ==
+            AccountingBackendStrategy.ditto &&
+        ref.read(dittoReadyProvider)) {
+      final ditto = ref.read(dittoServiceProvider);
+      final coaRows = await ditto.queryCollection(
+        'chart_of_accounts',
+        'SELECT * FROM chart_of_accounts WHERE businessId = :businessId',
+        {'businessId': businessId},
+      );
+      debugPrint(
+        '[Accounting] chart_of_accounts (DQL): ${coaRows.length} rows',
+      );
+      if (coaRows.isNotEmpty) {
+        final codes = coaRows
+            .take(5)
+            .map((r) => r['code'] ?? r['accountCode'] ?? '?')
+            .join(', ');
+        debugPrint('[Accounting]   sample codes: $codes');
+      }
+
+      final journalRows = await ditto.queryCollection(
+        'journal_entries',
+        'SELECT status FROM journal_entries WHERE businessId = :businessId',
+        {'businessId': businessId},
+      );
+      final pending =
+          journalRows.where((r) => r['status'] == 'pending').length;
+      final posted =
+          journalRows.where((r) => r['status'] == 'posted').length;
+      debugPrint(
+        '[Accounting] journal_entries: ${journalRows.length} total '
+        '($posted posted, $pending pending)',
+      );
+
+      final branchId = ref.read(accountingBranchIdProvider);
+      if (branchId.isNotEmpty) {
+        final txRows = await ditto.queryCollection(
+          'transactions',
+          'SELECT _id FROM transactions WHERE branchId = :branchId',
+          {'branchId': branchId},
+        );
+        debugPrint(
+          '[Accounting] transactions (branch): ${txRows.length} rows',
+        );
+      }
+    }
+  } catch (e) {
+    debugPrint('[Accounting] startup DQL diagnostics error: $e');
+  }
+
+  debugPrint('[Accounting] ── startup complete ──');
+}
+
+/// Debug label for startup logs ([logAccountingStartupDiagnostics]).
+final accountingBackendLabelProvider = Provider<String>((ref) {
+  final strategy = ref.read(accountingBackendStrategyProvider);
+  final txDitto = ref.read(accountingUseDittoForTransactionsProvider);
+  final glDitto = ref.read(accountingUseDittoForLedgerProvider);
+  return 'strategy=${strategy.name} tx=${txDitto ? "ditto" : "supabase"} '
+      'ledger=${glDitto ? "ditto" : "supabase"}';
+});

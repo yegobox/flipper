@@ -1,7 +1,7 @@
 name: flipper_ai
 description: "Standalone AI feature app for Flipper - AI assistant and tools"
 publish_to: 'none'
-version: 1.0.638+639
+version: 1.0.676+677
 
 
 environment:
@@ -64,6 +64,11 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
 
 dependency_overrides:
+  xml: ^7.0.1
+  smithy:
+    path: ../../open-sources/smithy
+  smithy_aws:
+    path: ../../open-sources/smithy_aws
   sqlite3: ^3.3.1
   jni: ^0.14.2
   path_provider_android: ">=2.2.5 <2.3.0"

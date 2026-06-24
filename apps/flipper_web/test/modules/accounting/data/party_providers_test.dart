@@ -9,6 +9,7 @@ import '../../../helpers/fake_accounting_documents_repository.dart';
 import '../../../helpers/fake_accounting_ledger_repository.dart';
 import '../../../helpers/fake_accounting_repository.dart';
 import '../../../helpers/fake_party_repository.dart';
+import '../../../helpers/accounting_unit_test_overrides.dart';
 
 const _branchId = 'branch-1';
 
@@ -56,6 +57,7 @@ ProviderContainer _container({
 }) {
   final container = ProviderContainer(
     overrides: [
+      ...accountingUnitTestOverrides(),
       partyRepositoryProvider.overrideWithValue(
         FakePartyRepository(parties: List.of(parties)),
       ),

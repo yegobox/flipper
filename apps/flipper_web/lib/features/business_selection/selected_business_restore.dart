@@ -1,10 +1,11 @@
+import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
+import 'package:flipper_web/features/business_selection/session_business_selection.dart';
 import 'package:flipper_web/models/user_profile.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_diagnostics.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,20 +13,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Restores [selectedBusinessProvider] / [selectedBranchProvider] after reload
 /// or navigation before Books reads [accountingBusinessIdProvider].
 final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
-  // Keep selection alive while restore runs.
-  ref.watch(selectedBusinessProvider);
-  ref.watch(selectedBranchProvider);
+  // Read (not watch) — watching would re-run this provider when restore sets
+  // selectedBusinessProvider / selectedBranchProvider (circular dependency).
+  ref.read(selectedBusinessProvider);
+  ref.read(selectedBranchProvider);
+
+  // Native Flipper shell seeds selection from ProxyService.box before Books opens.
+  if (ref.read(selectedBusinessProvider) != null &&
+      ref.read(selectedBranchProvider) != null) {
+    await DittoBootstrap.kickoffIfNeeded(ref);
+    return;
+  }
 
   final cached = ref.read(userProfileCacheProvider);
   if (cached != null && cached.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, cached);
+    await DittoBootstrap.kickoffIfNeeded(ref);
     return;
   }
 
-  final profile = await ref.watch(currentUserProfileProvider.future);
+  final profile = await ref.read(currentUserProfileProvider.future);
   if (profile != null && profile.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, profile);
   }
+  await DittoBootstrap.kickoffIfNeeded(ref);
 });
 
 /// Applies persisted or default business/branch from [profile] when selection
@@ -36,9 +47,23 @@ Future<void> restoreSelectedBusinessFromProfile(
 ) async {
   if (!profile.hasBusinesses) return;
 
+  if (ref.read(sessionBranchChoiceLockedProvider)) {
+    debugPrint(
+      '[Business] restore skipped — branch locked by login choices '
+      '(branch=${ref.read(selectedBranchProvider)?.name})',
+    );
+    return;
+  }
+
   final currentBusiness = ref.read(selectedBusinessProvider);
   final currentBranch = ref.read(selectedBranchProvider);
-  if (currentBusiness != null && currentBranch != null) return;
+  if (currentBusiness != null && currentBranch != null) {
+    debugPrint(
+      '[Business] restore skipped — already selected '
+      'business=${currentBusiness.name} branch=${currentBranch.name}',
+    );
+    return;
+  }
 
   final tenant = _primaryTenant(profile);
   final businesses = tenant.businesses;
@@ -73,8 +98,19 @@ Future<void> restoreSelectedBusinessFromProfile(
     branch = _defaultBranch(branches);
   }
 
+  // Re-read after async persistence lookup — login choices may have run meanwhile.
+  final liveBusiness = ref.read(selectedBusinessProvider);
+  final liveBranch = ref.read(selectedBranchProvider);
+  if (liveBusiness != null && liveBranch != null) {
+    debugPrint(
+      '[Business] restore aborted — selection set during restore '
+      '(branch=${liveBranch.name} id=${liveBranch.id})',
+    );
+    return;
+  }
+
   var restored = false;
-  if (currentBusiness == null) {
+  if (liveBusiness == null) {
     ref.read(selectedBusinessProvider.notifier).set(resolvedBusiness);
     restored = true;
     debugPrint(
@@ -82,7 +118,7 @@ Future<void> restoreSelectedBusinessFromProfile(
     );
   }
 
-  if (currentBranch == null && branch != null) {
+  if (liveBranch == null && branch != null) {
     ref.read(selectedBranchProvider.notifier).set(branch);
     restored = true;
     debugPrint(
@@ -99,12 +135,7 @@ Future<void> restoreSelectedBusinessFromProfile(
     );
     ref.read(bankRecLocalLinesProvider.notifier).state = null;
     ref.read(bankRecFinishedProvider.notifier).state = false;
-    ref.invalidate(chartOfAccountsStreamProvider);
-    ref.invalidate(journalEntriesStreamProvider);
-    ref.invalidate(bankLinesStreamProvider);
-    ref.invalidate(rawTransactionStreamProvider);
-    ref.invalidate(rawTransactionItemsProvider);
-    ref.invalidate(accountingStartupDiagnosticsProvider);
+    // Streams rebuild via accountingBusinessIdProvider when selection is set.
   }
 }
 

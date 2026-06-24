@@ -24,6 +24,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/notifications/notification_handler.dart';
@@ -68,7 +69,9 @@ Future<void> _initializeCriticalDependencies() async {
     }
   }
 
-  // Platform-specific database initialization
+  // Platform-specific database initialization.
+  // Global sqflite factory is for the offline HTTP queue and legacy call sites only.
+  // Main Brick models use Turso via PlatformHelpers.getMainDatabaseFactory().
   if (!foundation.kIsWeb && Platform.isWindows) {
     databaseFactoryOrNull = databaseFactoryFfi;
   } else if (foundation.kIsWeb) {
@@ -171,6 +174,11 @@ Future<void> initializeDependencies() async {
   } catch (e, stackTrace) {
     debugPrint('Error during dependency initialization: $e');
     debugPrint(stackTrace.toString());
+    GlobalErrorHandler.report(
+      e,
+      stackTrace,
+      type: 'dependency_init_error',
+    );
     try {
       if (Firebase.apps.isNotEmpty) {
         FirebaseCrashlytics.instance.recordError(e, stackTrace);

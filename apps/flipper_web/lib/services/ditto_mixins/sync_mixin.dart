@@ -60,7 +60,7 @@ mixin SyncMixin on DittoCore {
     // Only set if we don't already have the same instance
     if (_lastSetupDitto == ditto) {
       debugPrint('Same Ditto instance already set up, skipping');
-      if (!isLoginDitto) {
+      if (!isLoginDitto && !kIsWeb) {
         startSync();
       }
       return;
@@ -93,7 +93,7 @@ mixin SyncMixin on DittoCore {
       );
     }
 
-    if (!isLoginDitto) {
+    if (!isLoginDitto && !kIsWeb) {
       startSync();
     }
     _setupObservation();
@@ -269,8 +269,12 @@ mixin SyncMixin on DittoCore {
         await _loadAndUpdateUserProfiles();
       });
       if (kIsWeb) {
+        // Ditto Flutter install guide: web uses an in-memory store (not retained
+        // across reloads) and cloud-only sync (no P2P).
+        // https://docs.ditto.live/sdk/latest/install-guides/flutter
         debugPrint(
-          'Warning: On web platform, Ditto data is in-memory only and will not persist across page reloads.',
+          'ℹ️  Ditto web: in-memory local store (cleared on reload); '
+          'cloud sync only — see Ditto Flutter web considerations.',
         );
       }
     } catch (e) {

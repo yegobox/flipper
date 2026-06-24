@@ -2,6 +2,8 @@ import 'package:flipper_web/features/business_selection/business_branch_selector
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
+import 'package:flipper_web/modules/accounting/data/services/journal_approval_service.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_session_actions.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
@@ -257,16 +259,155 @@ class _MiniKpi extends StatelessWidget {
   }
 }
 
-class AccountingApprovalsTab extends ConsumerWidget {
+class AccountingApprovalsTab extends ConsumerStatefulWidget {
   const AccountingApprovalsTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AccountingApprovalsTab> createState() =>
+      _AccountingApprovalsTabState();
+}
+
+class _AccountingApprovalsTabState extends ConsumerState<AccountingApprovalsTab> {
+  String? _approvingEntryId;
+
+  Future<void> _approveEntry(JournalEntry entry) async {
+    if (_approvingEntryId != null) return;
+    final businessId = ref.read(accountingBusinessIdProvider);
+    final uuid = entry.uuid;
+    if (businessId.isEmpty || uuid == null) return;
+    if (entry.status != JournalStatus.pending) return;
+
+    setState(() => _approvingEntryId = entry.id);
+    try {
+      final result = await ref
+          .read(journalApprovalServiceProvider)
+          .approve(entryId: uuid, businessId: businessId);
+      if (!mounted) return;
+      if (result.posted) {
+        _markApproved(entry, offline: false);
+      } else if (result.alreadyPosted) {
+        _showAlreadyApproved(entry);
+      } else {
+        showAccountingToast(
+          context,
+          'Cannot approve',
+          subtitle: '${entry.id} is ${result.status} (no longer pending)',
+          icon: Icons.info_outline,
+          tone: AccountingToastTone.warn,
+        );
+      }
+    } on JournalApprovalException catch (err) {
+      if (!mounted) return;
+      if (!err.isOffline) {
+        showAccountingToast(
+          context,
+          'Approval failed',
+          subtitle: err.message,
+          icon: Icons.error_outline,
+          tone: AccountingToastTone.warn,
+        );
+        return;
+      }
+      await _approveEntryOffline(entry, businessId: businessId, entryId: uuid);
+    } catch (err) {
+      if (!mounted) return;
+      showAccountingToast(
+        context,
+        'Approval failed',
+        subtitle: err.toString(),
+        icon: Icons.error_outline,
+        tone: AccountingToastTone.warn,
+      );
+    } finally {
+      if (mounted) setState(() => _approvingEntryId = null);
+    }
+  }
+
+  Future<void> _approveEntryOffline(
+    JournalEntry entry, {
+    required String businessId,
+    required String entryId,
+  }) async {
+    try {
+      final posted = await ref
+          .read(accountingLedgerRepositoryProvider)
+          .postJournalEntry(
+            businessId: businessId,
+            entryId: entryId,
+            onlyIfPending: true,
+          );
+      if (!mounted) return;
+      if (posted) {
+        _markApproved(entry, offline: true);
+      } else {
+        _showAlreadyApproved(entry);
+      }
+    } catch (err) {
+      if (!mounted) return;
+      showAccountingToast(
+        context,
+        'Offline approval failed',
+        subtitle: err.toString(),
+        icon: Icons.error_outline,
+        tone: AccountingToastTone.warn,
+      );
+    }
+  }
+
+  void _markApproved(JournalEntry entry, {required bool offline}) {
+    ref.read(approvalActionsProvider.notifier).update(
+          (m) => {...m, entry.id: ApprovalAction.approve},
+        );
+    showAccountingToast(
+      context,
+      offline ? 'Approved offline' : 'Approved & posted',
+      subtitle: offline
+          ? '${entry.id} posted on this device. Reconnect to confirm — '
+              'another device may have approved while you were offline.'
+          : '${entry.id} is now on the ledger',
+      icon: offline ? Icons.cloud_off : Icons.check,
+      tone: offline ? AccountingToastTone.warn : AccountingToastTone.success,
+    );
+  }
+
+  void _showAlreadyApproved(JournalEntry entry) {
+    showAccountingToast(
+      context,
+      'Already approved',
+      subtitle:
+          '${entry.id} was posted on another device while you were reviewing',
+      icon: Icons.info_outline,
+      tone: AccountingToastTone.info,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final journalAsync = ref.watch(journalEntriesStreamProvider);
     final actions = ref.watch(approvalActionsProvider);
-    final pending = ref.watch(accountingJournalProvider).where((e) => e.status == JournalStatus.pending).toList();
+    final journal = journalAsync.value ?? [];
+    final pending =
+        journal.where((e) => e.status == JournalStatus.pending).toList();
     final accountMap = {
       for (final a in ref.watch(accountingAccountsProvider)) a.code: a,
     };
+
+    if (journalAsync.isLoading && journal.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (journalAsync.hasError && journal.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Could not load journal entries: ${journalAsync.error}',
+            style: AccountingTokens.sans(color: AccountingTokens.ink3),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -290,19 +431,8 @@ class AccountingApprovalsTab extends ConsumerWidget {
             entry: e,
             action: actions[e.id],
             accountMap: accountMap,
-            onApprove: () async {
-              final businessId = ref.read(accountingBusinessIdProvider);
-              final uuid = e.uuid;
-              if (businessId.isNotEmpty && uuid != null) {
-                await ref.read(accountingLedgerRepositoryProvider).postJournalEntry(
-                      businessId: businessId,
-                      entryId: uuid,
-                    );
-              }
-              ref.read(approvalActionsProvider.notifier).update(
-                    (m) => {...m, e.id: ApprovalAction.approve},
-                  );
-            },
+            isApproving: _approvingEntryId == e.id,
+            onApprove: () => _approveEntry(e),
             onReject: () => ref.read(approvalActionsProvider.notifier).update(
                   (m) => {...m, e.id: ApprovalAction.reject},
                 ),
@@ -312,8 +442,14 @@ class AccountingApprovalsTab extends ConsumerWidget {
             padding: const EdgeInsets.all(30),
             child: Center(
               child: Text(
-                "Nothing waiting — you're all caught up.",
+                journalAsync.isLoading
+                    ? 'Loading journal entries…'
+                    : journal.isEmpty
+                        ? 'Journal entries are still syncing from the cloud. '
+                            'Pull down to refresh in a moment.'
+                        : "Nothing waiting — you're all caught up.",
                 style: AccountingTokens.sans(color: AccountingTokens.ink3),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -476,11 +612,39 @@ class _SRow extends StatelessWidget {
   }
 }
 
-class AccountingMoreTab extends ConsumerWidget {
+class AccountingMoreTab extends ConsumerStatefulWidget {
   const AccountingMoreTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AccountingMoreTab> createState() => _AccountingMoreTabState();
+}
+
+class _AccountingMoreTabState extends ConsumerState<AccountingMoreTab> {
+  bool _refreshing = false;
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    try {
+      await refreshAccountingFromCloud(ref);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Books data refreshed from cloud')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Refresh failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -502,6 +666,30 @@ class AccountingMoreTab extends ConsumerWidget {
                 );
               },
             ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: _refreshing ? null : _refresh,
+          icon: _refreshing
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.cloud_sync_outlined),
+          label: const Text('Refresh from cloud'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () => signOutFromBooks(context, ref),
+          icon: const Icon(Icons.logout),
+          label: const Text('Sign out'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+        ),
         const SizedBox(height: 16),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: AccountingTokens.ink1, minimumSize: const Size.fromHeight(48)),

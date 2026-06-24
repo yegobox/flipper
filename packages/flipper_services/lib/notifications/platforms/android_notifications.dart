@@ -41,7 +41,7 @@ class AndroidNotifications extends BaseNotifications {
       // Initialize with a timeout to prevent blocking the main thread too long
       await notificationsPlugin
           .initialize(
-        initSettings,
+        settings: initSettings,
         onDidReceiveBackgroundNotificationResponse:
             notificationBackgroundCallback,
         onDidReceiveNotificationResponse: notificationCallback,
@@ -172,11 +172,11 @@ class AndroidNotifications extends BaseNotifications {
 
         await notificationsPlugin
             .zonedSchedule(
-          id,
-          title,
-          body,
-          tz.TZDateTime.from(scheduledDate, tz.local),
-          notificationDetails,
+          id: id,
+          title: title,
+          body: body,
+          scheduledDate: tz.TZDateTime.from(scheduledDate, tz.local),
+          notificationDetails: notificationDetails,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           payload: payload,
         )
@@ -220,10 +220,10 @@ class AndroidNotifications extends BaseNotifications {
 
         await notificationsPlugin
             .show(
-          notificationId,
-          title,
-          body,
-          notificationDetails,
+          id: notificationId,
+          title: title,
+          body: body,
+          notificationDetails: notificationDetails,
           payload: payload,
         )
             .timeout(

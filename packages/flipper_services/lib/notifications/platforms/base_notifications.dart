@@ -28,7 +28,7 @@ abstract class BaseNotifications implements NotificationInterface {
 
   @override
   Future<void> cancelNotification(int id) async {
-    await notificationsPlugin.cancel(id);
+    await notificationsPlugin.cancel(id: id);
   }
 
   @override

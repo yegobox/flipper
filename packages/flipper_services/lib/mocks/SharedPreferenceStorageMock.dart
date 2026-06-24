@@ -355,7 +355,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   String getDatabaseFilename() {
-    return 'flipper_v17.sqlite'; // Default database filename
+    return 'flipper.sqlite'; // Default database filename
   }
 
   @override

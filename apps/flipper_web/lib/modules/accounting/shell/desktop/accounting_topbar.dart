@@ -1,22 +1,11 @@
-import 'package:flipper_web/features/module_launcher/all_apps_sheet.dart';
-import 'package:flipper_web/features/module_launcher/app_launcher_host.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
-void _openAppLauncher(BuildContext context) {
-  if (kIsWeb) {
-    AllAppsSheet.show(context);
-    return;
-  }
-  AppLauncherHost.maybeOf(context)?.onOpenLauncher();
-}
 
 class AccountingTopbar extends ConsumerWidget {
   const AccountingTopbar({super.key});
@@ -72,21 +61,6 @@ class AccountingTopbar extends ConsumerWidget {
                   ref.read(journalFilterProvider.notifier).state =
                       JournalFilter.pending;
                 },
-              ),
-              _TopIconButton(
-                accIcon: AccIcon.grid,
-                tooltip: 'All apps',
-                onPressed: () => _openAppLauncher(context),
-              ),
-              _TopIconButton(
-                accIcon: AccIcon.phone,
-                tooltip: 'Mobile companion',
-                onPressed: () => showAccountingToast(
-                  context,
-                  'Mobile companion',
-                  subtitle: 'Resize the window below 768px for the phone layout',
-                  accIcon: AccIcon.phone,
-                ),
               ),
             ],
           );
@@ -421,42 +395,6 @@ class _NotificationsButton extends StatelessWidget {
                     ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TopIconButton extends StatelessWidget {
-  const _TopIconButton({
-    required this.accIcon,
-    required this.onPressed,
-    this.tooltip,
-  });
-
-  final AccIcon accIcon;
-  final VoidCallback onPressed;
-  final String? tooltip;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip ?? '',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(10),
-          hoverColor: AccountingTokens.surface2,
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: AccountingIcon(
-              icon: accIcon,
-              size: 19,
-              color: AccountingTokens.ink2,
             ),
           ),
         ),

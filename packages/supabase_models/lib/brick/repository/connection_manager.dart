@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
 
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // ignore: depend_on_referenced_packages
@@ -31,6 +30,8 @@ class ConnectionManager {
     if (_connections.containsKey(path)) {
       return _connections[path]!;
     }
+
+    PlatformHelpers.assertFactoryAllowedForPath(path, _databaseFactory);
 
     _logger.info('Opening new database connection: $path');
     final db = await _databaseFactory.openDatabase(

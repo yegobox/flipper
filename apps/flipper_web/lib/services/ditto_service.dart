@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'ditto_mixins/ditto_core_mixin.dart';
 import 'ditto_mixins/user_profile_mixin.dart';
 import 'ditto_mixins/business_mixin.dart';
@@ -27,6 +28,11 @@ final DittoService _dittoServiceInstance = DittoService._internal();
 final dittoServiceProvider = Provider<DittoService>((ref) {
   return _dittoServiceInstance;
 });
+
+/// Reactive Ditto readiness — updated by [DittoBootstrap] when init completes
+/// or on sign-out. Do not read [DittoService.isReady] via [dittoServiceProvider]
+/// alone; that provider never invalidates when the singleton becomes ready.
+final dittoReadyProvider = StateProvider<bool>((ref) => false);
 
 /// Provider for Ditto sync control
 final dittoSyncProvider = Provider<DittoSyncController>((ref) {

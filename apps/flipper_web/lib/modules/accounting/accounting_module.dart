@@ -1,6 +1,6 @@
+import 'package:flipper_web/core/utils/error_logging.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
-import 'package:flipper_web/modules/accounting/data/accounting_diagnostics.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/shell/desktop/accounting_desktop_shell.dart';
 import 'package:flipper_web/modules/accounting/shell/mobile/accounting_mobile_shell.dart';
@@ -14,27 +14,64 @@ class AccountingModuleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final restore = ref.watch(selectedBusinessRestoreProvider);
-    ref.watch(accountingDittoSyncProvider);
-    ref.watch(accountingAutoPosterProvider);
-    ref.watch(accountingStartupDiagnosticsProvider);
 
     return restore.when(
       loading: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Scaffold(
-        body: Center(
-          child: Text('Could not restore business context: $error'),
-        ),
+      error: (error, stackTrace) {
+        logCaughtError(
+          error,
+          stackTrace,
+          type: 'business_context_restore',
+        );
+        return Scaffold(
+          body: Center(
+            child: Text('Could not restore business context: $error'),
+          ),
+        );
+      },
+      // Bootstrap + Ditto observers only after restore — avoids tearing down
+      // FFI callbacks while replication is still notifying (macOS crash).
+      data: (_) => const _AccountingBootstrappedShell(),
+    );
+  }
+}
+
+class _AccountingBootstrappedShell extends ConsumerWidget {
+  const _AccountingBootstrappedShell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bootstrap = ref.watch(accountingPostSyncBootstrapProvider);
+
+    return bootstrap.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       ),
-      data: (_) => LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth >= SITokens.desktopBreakpoint) {
-            return const AccountingDesktopShell();
-          }
-          return const AccountingMobileShell();
-        },
-      ),
+      error: (error, stackTrace) {
+        logCaughtError(
+          error,
+          stackTrace,
+          type: 'accounting_bootstrap',
+        );
+        return Scaffold(
+          body: Center(
+            child: Text('Could not start accounting: $error'),
+          ),
+        );
+      },
+      data: (_) {
+        ref.watch(accountingAutoPosterProvider);
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= SITokens.desktopBreakpoint) {
+              return const AccountingDesktopShell();
+            }
+            return const AccountingMobileShell();
+          },
+        );
+      },
     );
   }
 }

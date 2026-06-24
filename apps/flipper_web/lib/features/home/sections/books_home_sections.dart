@@ -279,24 +279,31 @@ class BooksHomeHero extends StatelessWidget {
                         children: [
                           const HeroTopBadge(),
                           const SizedBox(height: 26),
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            crossAxisAlignment: WrapCrossAlignment.center,
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'Accounting that ',
+                                'Accounting',
                                 style: AppText.h1(h1),
                                 textAlign: TextAlign.center,
                               ),
-                              GradientText(
-                                'does itself.',
-                                style: AppText.h1(h1),
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text('that ', style: AppText.h1(h1)),
+                                  GradientText(
+                                    'does itself.',
+                                    style: AppText.h1(h1),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                           const SizedBox(height: 26),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 620),
+                          SizedBox(
+                            width: AppSpace.heroSubMaxW.clamp(0, w - gutter * 2),
                             child: Text(
                               'Flipper Books is modern accounting for growing businesses. '
                               'Every sale from Flipper POS posts straight to your ledger — and '
