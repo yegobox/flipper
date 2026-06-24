@@ -66,8 +66,13 @@ include(flutter/generated_plugins.cmake)
 set(BUILD_BUNDLE_DIR "$<TARGET_FILE_DIR:${BINARY_NAME}>")
 # Make the "install" step default, as it's required to run.
 set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD 1)
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "..." FORCE)
+# A plugin included above (e.g. firebase/sentry/curl) pulls in GNUInstallDirs,
+# which clears CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT and leaves the prefix
+# at the system default (C:/Program Files/<project>). Installing there needs
+# admin; CI runs elevated so it never trips, but a local `flutter run` does.
+# Force the in-tree bundle dir when the prefix is unset or stuck at the default.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files/${PROJECT_NAME}")
+  set(CMAKE_INSTALL_PREFIX "${BUILD_BUNDLE_DIR}" CACHE PATH "Flutter install prefix" FORCE)
 endif()
 
 set(INSTALL_BUNDLE_DATA_DIR "${CMAKE_INSTALL_PREFIX}/data")
