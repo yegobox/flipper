@@ -85,6 +85,7 @@ Future<void> _initializeSupabase() async {
     // await initializeDitto(); // Initialization moved to AppService
   } catch (e, stackTrace) {
     GlobalErrorHandler.report(e, stackTrace, type: 'supabase_init_error');
+    rethrow;
   }
 }
 
@@ -132,9 +133,12 @@ Future<void> main() async {
       await initDependencies();
 
       debugPrint('🚀 [main] Step 7: Amplify configuration...');
-      final isSimulator = UniversalPlatform.isIOS && !UniversalPlatform.isWeb;
-      final shouldBlock =
-          !kDebugMode && !isSimulator && !AppSecrets.isTestEnvironment();
+      // Amplify Keychain/Cognito is mobile-only; desktop release should not
+      // block startup when configuration fails (e.g. Windows POS builds).
+      final shouldBlock = !kDebugMode &&
+          !AppSecrets.isTestEnvironment() &&
+          (UniversalPlatform.isAndroid ||
+              (UniversalPlatform.isIOS && !UniversalPlatform.isWeb));
       await AmplifyConfigHelper.configureAmplify(block: shouldBlock);
 
       debugPrint('🚀 [main] Step 8: DittoSyncRegistry.registerDefaults...');

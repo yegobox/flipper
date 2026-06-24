@@ -73,6 +73,7 @@ Future<void> _initializeCriticalDependencies() async {
   // Global sqflite factory is for the offline HTTP queue and legacy call sites only.
   // Main Brick models use Turso via PlatformHelpers.getMainDatabaseFactory().
   if (!foundation.kIsWeb && Platform.isWindows) {
+    sqfliteFfiInit();
     databaseFactoryOrNull = databaseFactoryFfi;
   } else if (foundation.kIsWeb) {
     databaseFactoryOrNull = databaseFactoryFfiWeb;

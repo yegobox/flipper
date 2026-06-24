@@ -26,6 +26,7 @@ export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 import 'repository/database_manager.dart';
+import 'repository/legacy_database_migration.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
@@ -238,6 +239,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
       // Ensure the database directory exists
       await databaseManager.initializeDatabaseDirectory(directory);
+
+      await migrateLegacyMainDatabaseIfNeeded(
+        directory: directory,
+        targetFileName: dbFileName,
+      );
 
       print('🚀 [Repository] Constructing database and queue paths...');
       // Construct the full database path
