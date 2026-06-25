@@ -266,20 +266,22 @@ class _SearchInputWithDropdownState
         transaction.value!,
       );
 
+      if (!mounted) return;
+
       if (customer != null) {
         _searchController.text = customer.custNm ?? '';
         return;
       }
     }
 
+    if (!mounted) return;
+
     final existingCustomerName = ProxyService.box.customerName();
     if (existingCustomerName != null) {
       _searchController.text = existingCustomerName;
     } else {
       _searchController.clear();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(customerPhoneNumberProvider.notifier).state = null;
-      });
+      ref.read(customerPhoneNumberProvider.notifier).state = null;
     }
   }
 
