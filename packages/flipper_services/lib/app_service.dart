@@ -501,14 +501,20 @@ class AppService with ListenableServiceMixin {
     bool dittoAvailable = false;
     try {
       final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
-      await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-      // Startup may have opened Ditto with deferSyncStart; start replication here
-      // after Brick is initialized, not during LoginChoices.
-      await DittoSingleton.instance.ensureAuthenticatedAndSyncing(appId: appID);
-      await DittoSyncCoordinator.instance.setDitto(
-        DittoSingleton.instance.ditto,
-        skipInitialFetch: true,
-      );
+      // Hard cap the Ditto init/auth/sync sequence so no single network call can
+      // consume the whole startup budget. On timeout this throws and the catch
+      // below lets the app continue offline with locally cached data.
+      await Future(() async {
+        await DittoSingleton.instance.initialize(appId: appID, userId: userId);
+        // Startup may have opened Ditto with deferSyncStart; start replication
+        // here after Brick is initialized, not during LoginChoices.
+        await DittoSingleton.instance
+            .ensureAuthenticatedAndSyncing(appId: appID);
+        await DittoSyncCoordinator.instance.setDitto(
+          DittoSingleton.instance.ditto,
+          skipInitialFetch: true,
+        );
+      }).timeout(const Duration(seconds: 15));
       dittoAvailable = DittoSingleton.instance.isReady;
       print("User id set to $userId and Ditto initialized: $dittoAvailable");
 
