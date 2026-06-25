@@ -14,7 +14,7 @@ import 'package:flipper_dashboard/features/stock_value/stock_value_report_deskto
 import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
-import 'package:flipper_dashboard/tax_configuration.dart';
+import 'package:flipper_dashboard/features/config/widgets/system_config_modal.dart';
 import 'package:flipper_dashboard/features/transaction_reports/transaction_reports_desktop_screen.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show buttonIndexProvider, selectedBranchProvider;
@@ -375,25 +375,6 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
   }
 
   void _showTaxDialog(BuildContext context) {
-    showDialog(
-      barrierDismissible: true,
-      context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-            minWidth: 400,
-          ),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SystemConfig(showheader: false),
-            ),
-          ),
-        ),
-      ),
-    );
+    showSystemConfigModal(context);
   }
 }

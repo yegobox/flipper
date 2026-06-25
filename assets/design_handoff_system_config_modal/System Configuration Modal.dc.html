@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    *{ box-sizing:border-box; }
+    body{ margin:0; }
+    ::-webkit-scrollbar{ width:10px; height:10px; }
+    ::-webkit-scrollbar-thumb{ background:rgba(11,42,32,.18); border-radius:99px; border:3px solid transparent; background-clip:padding-box; }
+    .sc-input::placeholder{ color:#9DB0A6; }
+    .sc-input:focus{ outline:none; border-color:#12B76A !important; box-shadow:0 0 0 3px rgba(18,183,106,.14) !important; background:#fff !important; }
+    .sc-select:focus{ outline:none; border-color:#12B76A !important; box-shadow:0 0 0 3px rgba(18,183,106,.14) !important; }
+    @keyframes scIn{ from{ opacity:0; transform:translateY(14px) scale(.985); } to{ opacity:1; transform:none; } }
+  </style>
+</helmet>
+
+<div ref="{{ rootRef }}" style="position:relative; min-height:100vh; width:100%; font-family:'Plus Jakarta Sans',sans-serif; -webkit-font-smoothing:antialiased; overflow:hidden; background:#EEF1EE;">
+
+  <!-- ===== dimmed POS backdrop (context only) ===== -->
+  <div aria-hidden="true" style="position:absolute; inset:0; filter:saturate(.6); opacity:.5;">
+    <!-- left rail -->
+    <div style="position:absolute; top:0; left:0; bottom:0; width:62px; background:#fff; border-right:1px solid #E6EAE6; display:flex; flex-direction:column; align-items:center; gap:22px; padding:18px 0;">
+      <div style="width:24px; height:24px; border-radius:6px; background:#0B2A20; opacity:.85;"></div>
+      <div style="height:10px;"></div>
+      <div style="width:22px; height:22px; border-radius:6px; background:#CDD6D0;"></div>
+      <div style="width:22px; height:22px; border-radius:6px; background:#CDD6D0;"></div>
+      <div style="width:22px; height:22px; border-radius:6px; background:#CDD6D0;"></div>
+      <div style="width:22px; height:22px; border-radius:6px; background:#CDD6D0;"></div>
+      <div style="width:22px; height:22px; border-radius:6px; background:#CDD6D0;"></div>
+      <div style="width:22px; height:22px; border-radius:6px; background:#CDD6D0;"></div>
+    </div>
+    <!-- top bar -->
+    <div style="position:absolute; top:0; left:62px; right:0; height:80px; background:#fff; border-bottom:1px solid #E6EAE6; display:flex; align-items:center; gap:14px; padding:0 24px;">
+      <div style="flex:1; max-width:560px; height:42px; border-radius:11px; background:#F2F5F2; border:1px solid #E6EAE6; display:flex; align-items:center; padding:0 16px; color:#9DB0A6; font-size:14px;">Search products&hellip;</div>
+      <div style="width:42px; height:42px; border-radius:10px; border:1px solid #E6EAE6;"></div>
+      <div style="width:42px; height:42px; border-radius:10px; border:1px solid #E6EAE6;"></div>
+      <div style="margin-left:auto; display:flex; gap:26px; align-items:center;">
+        <div><div style="font-size:9px; letter-spacing:.14em; color:#9DB0A6; font-weight:700;">INVOICE</div><div style="font-size:15px; font-weight:800; color:#0B2A20;">No. 10264</div></div>
+        <div><div style="font-size:9px; letter-spacing:.14em; color:#9DB0A6; font-weight:700;">TXN ID</div><div style="font-size:15px; font-weight:800; color:#0B2A20;">97E4D</div></div>
+      </div>
+    </div>
+    <!-- product grid hint -->
+    <div style="position:absolute; top:104px; left:86px; right:24px; bottom:24px; display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px; align-content:start;">
+      <div style="height:120px; border-radius:12px; background:#fff; border:1px solid #E6EAE6;"></div>
+      <div style="height:120px; border-radius:12px; background:#fff; border:1px solid #E6EAE6;"></div>
+      <div style="height:120px; border-radius:12px; background:#fff; border:1px solid #E6EAE6;"></div>
+      <div style="height:120px; border-radius:12px; background:#fff; border:1px solid #E6EAE6;"></div>
+      <div style="height:120px; border-radius:12px; background:#fff; border:1px solid #E6EAE6;"></div>
+      <div style="height:120px; border-radius:12px; background:#fff; border:1px solid #E6EAE6;"></div>
+    </div>
+  </div>
+
+  <!-- scrim -->
+  <div style="position:absolute; inset:0; background:rgba(8,32,26,.46); backdrop-filter:blur(2px);"></div>
+
+  <!-- ===== reopen affordance when closed ===== -->
+  <sc-if value="{{ closed }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+      <button onClick="{{ reopen }}" style="font-family:inherit; font-size:14px; font-weight:700; color:#0B2A20; background:#fff; border:1px solid #E6EAE6; border-radius:12px; padding:13px 22px; cursor:pointer; box-shadow:0 10px 30px rgba(8,32,26,.2);">Open System Configuration</button>
+    </div>
+  </sc-if>
+
+  <!-- ===== MODAL ===== -->
+  <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+  <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:32px;">
+    <div style="width:100%; max-width:740px; max-height:88vh; display:flex; flex-direction:column; background:#fff; border-radius:20px; box-shadow:0 28px 80px rgba(8,32,26,.34), 0 2px 8px rgba(8,32,26,.16); overflow:hidden;">
+
+      <!-- header -->
+      <div style="flex:none; display:flex; align-items:center; gap:13px; padding:22px 26px; border-bottom:1px solid #EEF1EE;">
+        <div style="width:38px; height:38px; border-radius:10px; background:rgba(18,183,106,.12); display:flex; align-items:center; justify-content:center; flex:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12B76A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-family:'Spectral',Georgia,serif; font-size:21px; font-weight:600; letter-spacing:-0.01em; color:#0B2A20; line-height:1.1;">System Configuration</div>
+          <div style="font-size:12.5px; color:#5E6F66; margin-top:2px;">Manage POS behaviour, currency and tax integration.</div>
+        </div>
+        <button onClick="{{ close }}" aria-label="Close" style="width:34px; height:34px; border-radius:9px; border:1px solid #EEF1EE; background:#fff; color:#5E6F66; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;" style-hover="background:#F4F8F5; color:#0B2A20;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- scrollable body -->
+      <div style="flex:1; overflow-y:auto; padding:22px 26px 8px;">
+
+        <!-- GENERAL -->
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <span style="font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#12B76A;">General</span>
+          <span style="flex:1; height:1px; background:#EEF1EE;"></span>
+        </div>
+
+        <div style="border:1px solid #EEF1EE; border-radius:14px; overflow:hidden; background:#fff;">
+          <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="4">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:{{ rowPad }}; border-top:1px solid #F1F4F1;">
+              <div style="font-size:14.5px; font-weight:600; color:#0B2A20;">{{ t.label }}</div>
+              <div onClick="{{ t.onToggle }}" role="switch" style="width:46px; height:27px; border-radius:999px; padding:3px; cursor:pointer; flex:none; transition:background .18s ease; display:flex; align-items:center; background:{{ t.track }};">
+                <div style="width:21px; height:21px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(8,32,26,.3); transition:transform .18s ease; transform:{{ t.knob }};"></div>
+              </div>
+            </div>
+          </sc-for>
+
+          <!-- currency -->
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:{{ rowPad }}; border-top:1px solid #F1F4F1;">
+            <div style="font-size:14.5px; font-weight:600; color:#0B2A20;">System Currency</div>
+            <div style="position:relative; width:230px;">
+              <select class="sc-select" value="{{ currency }}" onChange="{{ onCurrency }}" style="width:100%; appearance:none; -webkit-appearance:none; font-family:inherit; font-size:14px; font-weight:600; color:#0B2A20; background:#F4F8F5; border:1px solid #E6EAE6; border-radius:10px; padding:11px 38px 11px 14px; cursor:pointer; transition:border-color .15s, box-shadow .15s;">
+                <option>RWF (Rwandan Franc)</option>
+                <option>USD (US Dollar)</option>
+                <option>EUR (Euro)</option>
+                <option>KES (Kenyan Shilling)</option>
+                <option>UGX (Ugandan Shilling)</option>
+                <option>TZS (Tanzanian Shilling)</option>
+              </select>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5E6F66" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:none;"><path d="m6 9 6 6 6-6"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAX CONFIGURATION -->
+        <div style="display:flex; align-items:center; gap:10px; margin:24px 0 6px;">
+          <span style="font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#12B76A;">Tax Configuration</span>
+          <span style="flex:1; height:1px; background:#EEF1EE;"></span>
+        </div>
+        <div style="font-size:12.5px; color:#5E6F66; margin-bottom:14px;">Save applies to EBM / tax URL, data connector URL, branch code, and MRC.</div>
+
+        <!-- VAT locked row -->
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 16px; border:1px solid #EEF1EE; border-radius:12px; background:#F7FAF8; margin-bottom:16px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:7px;">
+              <span style="font-size:14px; font-weight:600; color:#5E6F66;">VAT Enabled</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9DB0A6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div style="font-size:12px; color:#9DB0A6; margin-top:2px;">Controlled by EBM configuration</div>
+          </div>
+          <div style="width:46px; height:27px; border-radius:999px; padding:3px; flex:none; display:flex; align-items:center; background:rgba(18,183,106,.4); cursor:not-allowed;">
+            <div style="width:21px; height:21px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(8,32,26,.25); transform:translateX(19px);"></div>
+          </div>
+        </div>
+
+        <!-- inputs -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#5E6F66; margin-bottom:6px;">EBM / Tax server URL</label>
+            <input class="sc-input" value="{{ ebmUrl }}" onChange="{{ onEbm }}" style="width:100%; font-family:inherit; font-size:14px; color:#0B2A20; background:#F4F8F5; border:1px solid #E6EAE6; border-radius:10px; padding:12px 14px; transition:border-color .15s, box-shadow .15s, background .15s;">
+          </div>
+          <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#5E6F66; margin-bottom:6px;">Data connector URL</label>
+            <input class="sc-input" value="{{ dataUrl }}" onChange="{{ onData }}" style="width:100%; font-family:inherit; font-size:14px; color:#0B2A20; background:#F4F8F5; border:1px solid #E6EAE6; border-radius:10px; padding:12px 14px; transition:border-color .15s, box-shadow .15s, background .15s;">
+            <div style="font-size:11.5px; color:#9DB0A6; margin-top:6px;">Bulk product RRA uses this service; RRA tax URL is configured on data-connector.</div>
+          </div>
+          <div style="display:flex; gap:14px;">
+            <div style="flex:1;">
+              <label style="display:block; font-size:12px; font-weight:600; color:#5E6F66; margin-bottom:6px;">Branch code (bhfId)</label>
+              <input class="sc-input" value="{{ branch }}" onChange="{{ onBranch }}" style="width:100%; font-family:inherit; font-size:14px; color:#0B2A20; background:#F4F8F5; border:1px solid #E6EAE6; border-radius:10px; padding:12px 14px; transition:border-color .15s, box-shadow .15s, background .15s;">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block; font-size:12px; font-weight:600; color:#5E6F66; margin-bottom:6px;">MRC</label>
+              <input class="sc-input" value="{{ mrc }}" onChange="{{ onMrc }}" style="width:100%; font-family:inherit; font-size:14px; color:#0B2A20; background:#F4F8F5; border:1px solid #E6EAE6; border-radius:10px; padding:12px 14px; transition:border-color .15s, box-shadow .15s, background .15s;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- footer -->
+      <div style="flex:none; padding:16px 26px 20px; border-top:1px solid #EEF1EE; background:#fff;">
+        <button onClick="{{ save }}" style="width:100%; font-family:inherit; font-size:15px; font-weight:700; color:#fff; background:{{ saveBg }}; border:none; border-radius:12px; padding:14px; cursor:pointer; transition:background .15s, transform .1s; display:flex; align-items:center; justify-content:center; gap:9px;" style-hover="filter:brightness(.95);" style-active="transform:scale(.992);">
+          <sc-if value="{{ saved }}" hint-placeholder-val="{{ false }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+          </sc-if>
+          {{ saveLabel }}
+        </button>
+        <div style="text-align:center; font-size:11px; color:#9DB0A6; margin-top:12px;">Version 1.185.4252223235606+1756529611</div>
+      </div>
+
+    </div>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 1280, &quot;height&quot;: 860 },
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Money green&quot;, &quot;Deep emerald&quot;, &quot;Bright&quot;], &quot;default&quot;: &quot;Money green&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;density&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Comfortable&quot;, &quot;Compact&quot;], &quot;default&quot;: &quot;Comfortable&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  state = {
+    open: true,
+    closed: false,
+    training: false,
+    proforma: false,
+    printA4: false,
+    exportPdf: false,
+    currency: 'RWF (Rwandan Franc)',
+    ebmUrl: 'http://localhost:8080/fuel/',
+    dataUrl: 'http://localhost:8084/',
+    branch: '00',
+    mrc: 'YEGO2015122',
+    saved: false,
+  };
+
+  accents = { 'Money green': '#12B76A', 'Deep emerald': '#0A7A4D', 'Bright': '#21D07B' };
+
+  get accent() { return this.accents[this.props.accent] || this.accents['Money green']; }
+
+  toggle(key) { this.setState(s => ({ [key]: !s[key], saved: false })); }
+  setField(key, e) { const v = e.target.value; this.setState({ [key]: v, saved: false }); }
+
+  save = () => {
+    this.setState({ saved: true });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ saved: false }), 2200);
+  };
+
+  renderVals() {
+    const accent = this.accent;
+    const off = '#D7DDD8';
+    const compact = this.props.density === 'Compact';
+    const rowPad = compact ? '12px 16px' : '16px 18px';
+
+    const mk = (key, label) => {
+      const on = this.state[key];
+      return {
+        key, label,
+        track: on ? accent : off,
+        knob: on ? 'translateX(19px)' : 'translateX(0)',
+        onToggle: () => this.toggle(key),
+      };
+    };
+
+    return {
+      rootRef: this.rootRef,
+      open: this.state.open,
+      closed: this.state.closed,
+      rowPad,
+      toggles: [
+        mk('training', 'Training Mode'),
+        mk('proforma', 'Proforma Mode'),
+        mk('printA4', 'Print A4'),
+        mk('exportPdf', 'Export as PDF'),
+      ],
+      currency: this.state.currency,
+      ebmUrl: this.state.ebmUrl,
+      dataUrl: this.state.dataUrl,
+      branch: this.state.branch,
+      mrc: this.state.mrc,
+      saved: this.state.saved,
+      saveLabel: this.state.saved ? 'Saved' : 'Save configuration',
+      saveBg: this.state.saved ? '#0A7A4D' : accent,
+      onCurrency: (e) => this.setField('currency', e),
+      onEbm: (e) => this.setField('ebmUrl', e),
+      onData: (e) => this.setField('dataUrl', e),
+      onBranch: (e) => this.setField('branch', e),
+      onMrc: (e) => this.setField('mrc', e),
+      close: () => this.setState({ open: false, closed: true }),
+      reopen: () => this.setState({ open: true, closed: false }),
+      save: this.save,
+    };
+  }
+}
+</script>
+</body>
+</html>
