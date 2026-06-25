@@ -202,6 +202,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             productName: syncedProductName,
             selectedProductType: selectedProductType,
             newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
+            newSupplyPrice: double.tryParse(supplyPriceController.text),
             rates: _rates,
             dates: _dates,
             onCompleteCallback: (List<Variant> variants) async {
@@ -765,6 +766,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             mono: true,
                             placeholder: '0',
                             keyboardType: TextInputType.number,
+                            onChanged: (value) =>
+                                model.setRetailPrice(price: value),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Price is required';
@@ -901,6 +904,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             mono: true,
                             placeholder: '0',
                             keyboardType: TextInputType.number,
+                            onChanged: (value) =>
+                                model.setRetailPrice(price: value),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Price is required';
@@ -924,6 +929,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             mono: true,
                             placeholder: '0',
                             keyboardType: TextInputType.number,
+                            onChanged: (value) =>
+                                model.setSupplyPrice(price: value),
                           ),
                         ),
                       ),

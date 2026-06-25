@@ -535,10 +535,10 @@ mixin VariantMixin implements VariantInterface {
             ? null
             : DateTime.tryParse(dates![updatables[i].id]!);
 
-        if (retailPrice != null) {
+        if (retailPrice != null && newRetailPrice == null) {
           updatables[i].retailPrice = retailPrice;
         }
-        if (supplyPrice != 0 && supplyPrice != null) {
+        if (supplyPrice != null) {
           updatables[i].supplyPrice = supplyPrice;
         }
 

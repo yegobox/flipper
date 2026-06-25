@@ -19,7 +19,10 @@ class LocalFloService {
   static const String _systemPreamble =
       'You are Flo, a concise on-device assistant for a small shop. '
       'Answer briefly and helpfully in plain language. '
-      'If you do not have enough data, say so plainly rather than guessing.';
+      'Use ONLY the figures and items listed in the data below, which is for '
+      'the period stated with it. Never invent product names, quantities, or '
+      'amounts, and never guess. If the data does not contain what was asked, '
+      'say you do not have that information on-device.';
 
   Stream<FloChatEvent> streamChat({
     required String branchId,
@@ -27,6 +30,10 @@ class LocalFloService {
     List<Map<String, String>> history = const [],
     Map<String, dynamic>? deviceSales,
     String? shopName,
+    /// ISO/short currency code for the shop (e.g. "RWF"). Injected into the
+    /// prompt so the model formats amounts in the right currency instead of
+    /// defaulting to "$".
+    String? currency,
     /// Optional RAG context (Phase 2): compact rows retrieved from the
     /// on-device Qdrant store, injected verbatim into the prompt.
     String? ragContext,
@@ -78,6 +85,7 @@ class LocalFloService {
       history: history,
       deviceSales: deviceSales,
       shopName: shopName,
+      currency: currency,
       ragContext: rag,
     );
 
@@ -116,11 +124,21 @@ class LocalFloService {
     required List<Map<String, String>> history,
     Map<String, dynamic>? deviceSales,
     String? shopName,
+    String? currency,
     String? ragContext,
   }) {
+    final cur = currency?.trim() ?? '';
     final b = StringBuffer()
       ..writeln(_systemPreamble)
       ..writeln('Shop: ${shopName?.trim().isNotEmpty == true ? shopName : 'your shop'}');
+    if (cur.isNotEmpty) {
+      b.writeln(
+        'Currency is $cur. Write every money amount as "$cur" followed by the '
+        'actual number taken from the data (for example $cur 2500). Never use '
+        '"\$", "USD", another currency symbol, or any placeholder text — always '
+        'state the real figure.',
+      );
+    }
 
     if (ragContext != null && ragContext.trim().isNotEmpty) {
       b
@@ -130,10 +148,7 @@ class LocalFloService {
     }
 
     if (deviceSales != null && deviceSales.isNotEmpty) {
-      b
-        ..writeln()
-        ..writeln("Today's sales snapshot (from this device):")
-        ..writeln(jsonEncode(deviceSales));
+      _writeDeviceSales(b, deviceSales, cur);
     }
 
     if (history.isNotEmpty) {
@@ -153,5 +168,63 @@ class LocalFloService {
       ..writeln('User question: $message')
       ..write('Answer:');
     return b.toString();
+  }
+
+  /// Renders the on-device sales snapshot as compact, model-friendly text
+  /// (small models follow plain key/value + bullet lists better than raw JSON),
+  /// including a per-item breakdown so item questions are grounded in real data.
+  void _writeDeviceSales(
+    StringBuffer b,
+    Map<String, dynamic> sales,
+    String currency,
+  ) {
+    String money(Object? v) {
+      final s = v?.toString() ?? '';
+      if (s.isEmpty) return s;
+      return currency.isNotEmpty ? '$currency $s' : s;
+    }
+
+    final periodLabel = (sales['period_label'] as String?)?.trim();
+    final period = (periodLabel == null || periodLabel.isEmpty)
+        ? 'this period'
+        : periodLabel;
+    final txCount = (sales['transaction_count'] as num?) ?? 0;
+
+    b
+      ..writeln()
+      ..writeln('Sales for $period (from this device):');
+
+    if (txCount == 0) {
+      b.writeln(
+        '- No sales recorded for $period. If asked, say there were no sales '
+        '$period (do not invent figures or items).',
+      );
+      return;
+    }
+
+    if (sales['total_revenue'] != null) {
+      b.writeln('- Revenue: ${money(sales['total_revenue'])}');
+    }
+    if (sales['units_sold'] != null) {
+      b.writeln('- Units sold: ${sales['units_sold']}');
+    }
+    b.writeln('- Transactions: $txCount');
+
+    final items = sales['top_items'];
+    if (items is List && items.isNotEmpty) {
+      b.writeln('Items sold $period (name — quantity, revenue):');
+      for (final raw in items) {
+        if (raw is! Map) continue;
+        final name = raw['name'] ?? 'Unnamed item';
+        final qty = raw['qty'] ?? '?';
+        final rev = money(raw['revenue']);
+        b.writeln('- $name — $qty units, $rev');
+      }
+    } else {
+      b.writeln(
+        'No item-level breakdown is available for $period — if asked which '
+        'items sold, say you do not have that detail on-device.',
+      );
+    }
   }
 }
