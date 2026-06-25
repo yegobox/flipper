@@ -616,6 +616,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     required String selectedProductType,
     Map<String, TextEditingController>? rates,
     required double newRetailPrice,
+    double? newSupplyPrice,
     Map<String, TextEditingController>? dates,
     required String productName,
     Function(List<Variant>)? onCompleteCallback,
@@ -708,6 +709,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
           variant.itemNm = _coerceItemNm(variant, productTitle: productName);
 
+          variant.retailPrice = newRetailPrice;
+          variant.prc = newRetailPrice;
+          variant.dftPrc = newRetailPrice;
+          if (newSupplyPrice != null) {
+            variant.supplyPrice = newSupplyPrice;
+          }
+
           await ProxyService.strategy.updateVariant(
             updatables: [variant],
             color: color,
@@ -720,8 +728,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             newRetailPrice: newRetailPrice,
             rates: rates?.map((key, value) => MapEntry(key, value.text)),
             dates: dates?.map((key, value) => MapEntry(key, value.text)),
-            supplyPrice: supplyPrice != 0 ? supplyPrice : null,
-            retailPrice: retailPrice != 0 ? retailPrice : null,
+            supplyPrice: newSupplyPrice,
             updateIo: false,
           );
           await ProxyService.strategy.addVariant(
