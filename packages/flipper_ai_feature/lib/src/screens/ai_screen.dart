@@ -66,6 +66,7 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
   int? _thinkingActiveIndex;
   String? _attachedFilePath;
   String _shopName = 'your shop';
+  String _currency = '';
   FloDailyBriefing? _briefing;
   FloDailyBriefing? _remoteBriefing;
   bool _briefingLoading = true;
@@ -160,8 +161,12 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
       final business =
           await ProxyService.strategy.getBusiness(businessId: businessId);
       final name = business?.name?.trim();
-      if (name != null && name.isNotEmpty && mounted) {
-        setState(() => _shopName = name);
+      final currency = business?.currency?.trim();
+      if (mounted) {
+        setState(() {
+          if (name != null && name.isNotEmpty) _shopName = name;
+          if (currency != null && currency.isNotEmpty) _currency = currency;
+        });
       }
     } catch (_) {}
   }
@@ -304,8 +309,11 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
       }
 
       final history = _buildHistory();
+      // Resolve the period the question is about (today/yesterday/this week/…)
+      // so on-device answers are grounded in the RIGHT window, not just today.
+      final period = SalesPeriod.resolve(text);
       final deviceSales =
-          await FloLocalBriefingService.todayDeviceSalesContext(branchId);
+          await FloLocalBriefingService.deviceSalesContext(branchId, period);
       FloChatResponse? response;
       final steps = <String>[];
 
@@ -319,6 +327,7 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
               history: history,
               deviceSales: deviceSales,
               shopName: _shopName,
+              currency: _currency,
             )
           : _chatService.streamChat(
               branchId: branchId,

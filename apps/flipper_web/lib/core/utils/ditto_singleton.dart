@@ -619,11 +619,18 @@ class YBAuthIdentity {
       '${AppSecrets.apihubProdDomain}/v2/api/auth/ditto/login',
     );
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'userId': userID, 'appId': appId}),
-    );
+    final response = await http
+        .post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({'userId': userID, 'appId': appId}),
+        )
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => throw TimeoutException(
+            'Ditto JWT auth request to $url timed out',
+          ),
+        );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

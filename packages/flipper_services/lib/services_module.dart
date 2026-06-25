@@ -367,7 +367,8 @@ abstract class ServicesModule {
     late LNotification notificationService;
     if (UniversalPlatform.isAndroid ||
         UniversalPlatform.isMacOS ||
-        UniversalPlatform.isIOS) {
+        UniversalPlatform.isIOS ||
+        UniversalPlatform.isWindows) {
       notificationService = LocalNotificationService();
     } else {
       notificationService = UnSupportedLocalNotification();
