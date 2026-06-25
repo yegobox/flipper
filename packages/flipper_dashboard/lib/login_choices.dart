@@ -139,6 +139,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   String? _selectedBranchId;
   Timer? _navigationTimer;
 
+  /// Grace window for the post-Ditto-migration race: [businessesProvider] is a
+  /// one-shot FutureProvider that can resolve with an empty list before Ditto
+  /// has synced `user_access.businesses` from the cloud (businesses arrive
+  /// ~1-3s after login). We re-fetch a bounded number of times before treating
+  /// "empty" as "this user genuinely has no business" and logging out.
+  static const int _maxEmptyBusinessRetries = 8;
+  int _emptyBusinessRetries = 0;
+  Timer? _businessRetryTimer;
+
   /// Branches fetched imperatively in [_handleBusinessSelection] (via
   /// `ProxyService.ditto.getBranches`). This is the authoritative list that
   /// decides whether to show the picker, so it must also seed the picker —
@@ -249,6 +258,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   @override
   void dispose() {
     _navigationTimer?.cancel();
+    _businessRetryTimer?.cancel();
     super.dispose();
   }
 
@@ -291,8 +301,42 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           branchesProvider(businessId: selectedBusinessId),
         );
 
+        final hasBusinesses = businesses.value?.isNotEmpty ?? false;
+
+        // Businesses resolved with a non-empty list — clear any pending grace
+        // retry so a later transient empty can restart the window cleanly.
+        if (businesses.hasValue && hasBusinesses) {
+          _emptyBusinessRetries = 0;
+          _businessRetryTimer?.cancel();
+        }
+
+        // While a grace retry is in flight (re-fetch triggered, provider loading
+        // with a still-empty value), keep showing the spinner instead of briefly
+        // flashing the empty business-selection screen.
+        if (!_isSigningOut &&
+            !hasBusinesses &&
+            _emptyBusinessRetries > 0 &&
+            businesses.isLoading) {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading your businesses...',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         // If the provider has resolved (not loading, no error) but returned zero
-        // businesses, this userId has no associated business — log out immediately.
+        // businesses, this userId has no associated business — log out.
         if (businesses.hasValue &&
             !businesses.isLoading &&
             (businesses.value?.isEmpty ?? false)) {
@@ -316,8 +360,44 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             );
           }
 
+          // Race guard: an early empty result usually means Ditto hasn't synced
+          // the user's businesses yet (they arrive ~1-3s after login). Re-fetch
+          // a bounded number of times before concluding the user has none.
+          if (_emptyBusinessRetries < _maxEmptyBusinessRetries) {
+            if (_businessRetryTimer == null || !_businessRetryTimer!.isActive) {
+              _emptyBusinessRetries++;
+              talker.debug(
+                'LoginChoices: businesses empty, waiting for Ditto sync '
+                '(retry $_emptyBusinessRetries/$_maxEmptyBusinessRetries)',
+              );
+              _businessRetryTimer =
+                  Timer(const Duration(milliseconds: 1200), () {
+                if (mounted) {
+                  ref.invalidate(businessesProvider);
+                }
+              });
+            }
+            return Scaffold(
+              backgroundColor: Colors.white,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Loading your businesses...',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           talker.warning(
-            'LoginChoices: no businesses found for current user. Logging out.',
+            'LoginChoices: no businesses found for current user after '
+            '$_maxEmptyBusinessRetries retries. Logging out.',
           );
           _isSigningOut = true;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
