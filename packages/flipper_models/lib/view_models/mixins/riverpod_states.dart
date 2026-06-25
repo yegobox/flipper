@@ -39,8 +39,7 @@ final connectivityStreamProvider = StreamProvider<bool>((ref) async* {
     // HTTP probe only after network interface comes back (not every 5s).
     try {
       final url =
-          await ProxyService.box.getServerUrl() ??
-          'https://turbo.yegobox.com/';
+          await ProxyService.box.getServerUrl() ?? 'https://turbo.yegobox.com/';
       final response = await http.get(Uri.parse(url));
       yield response.statusCode == 200;
     } catch (e) {
@@ -56,10 +55,9 @@ bool _connectivityListHasNetwork(List<ConnectivityResult> results) {
 final customersStreamProvider = StreamProvider.autoDispose
     .family<List<Customer>, ({String? branchId, String? id})>((ref, params) {
       final (:branchId, :id) = params;
-      return ProxyService.getStrategy(Strategy.capella).customersStream(
-        branchId: branchId ?? "",
-        id: id,
-      );
+      return ProxyService.getStrategy(
+        Strategy.capella,
+      ).customersStream(branchId: branchId ?? "", id: id);
     });
 
 final customerProvider = FutureProvider.autoDispose

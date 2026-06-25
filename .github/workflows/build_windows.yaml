@@ -81,6 +81,9 @@ jobs:
           Set-Location apps/flipper
           flutter build windows -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Set-Location ../..
+          ./scripts/ci/bundle-native-assets.ps1
+          Set-Location apps/flipper
           dart run msix:create -v --build-windows false --install-certificate false
 
       - name: Extract msix_version
