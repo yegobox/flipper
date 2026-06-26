@@ -35,12 +35,14 @@ class UnifiedTopBar extends ConsumerWidget {
     final isInventoryShell = selectedPage == DashboardPage.inventory;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (isInventoryShell) const PosDesktopTopLeading(),
-          const Spacer(),
+          if (isInventoryShell)
+            const Expanded(child: PosDesktopTopLeading())
+          else
+            const Spacer(),
           const IconRow(),
           _posNoticeBell(context, ref),
           const ConnectedPeersWidget(handoffTopBarStyle: true),
