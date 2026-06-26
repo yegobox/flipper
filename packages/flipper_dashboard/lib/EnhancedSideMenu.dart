@@ -344,8 +344,12 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
     return Column(
       children: [
         Expanded(
-          child: Column(
-            children: menuItems.map((item) => Expanded(child: item)).toList(),
+          child: SingleChildScrollView(
+            child: Column(
+              children: menuItems
+                  .map((item) => SizedBox(height: 56, child: item))
+                  .toList(),
+            ),
           ),
         ),
         Column(

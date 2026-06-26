@@ -7,10 +7,12 @@ import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class InventoryApp extends HookConsumerWidget {
@@ -130,14 +132,77 @@ class InventoryApp extends HookConsumerWidget {
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
+          floatingActionButton: _CartFab(
             onPressed: () => scaffoldKey.currentState?.openEndDrawer(),
-            icon: const Icon(Icons.shopping_cart_outlined),
-            label: const Text('Cart'),
+            isNarrow: constraints.maxWidth < 360,
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         );
       },
+    );
+  }
+}
+
+class _CartFab extends ConsumerWidget {
+  const _CartFab({required this.onPressed, required this.isNarrow});
+
+  final VoidCallback onPressed;
+  final bool isNarrow;
+
+  static const _blue = Color(0xFF1D4ED8); // blue[700]
+  static const _radius = BorderRadius.all(Radius.circular(4));
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count =
+        ref.watch(posCartSummaryProvider.select((s) => s.unitQtyTotal));
+
+    final icon = Badge(
+      isLabelVisible: count > 0,
+      label: Text('$count'),
+      child: const Icon(Icons.shopping_cart_outlined,
+          color: Colors.white, size: 22),
+    );
+
+    if (isNarrow) {
+      return Material(
+        color: _blue,
+        borderRadius: _radius,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: _radius,
+          splashColor: Colors.blue.withValues(alpha: 0.3),
+          child: SizedBox(width: 56, height: 56, child: Center(child: icon)),
+        ),
+      );
+    }
+
+    return Material(
+      color: _blue,
+      borderRadius: _radius,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: _radius,
+        splashColor: Colors.blue.withValues(alpha: 0.3),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              icon,
+              const SizedBox(width: 10),
+              Text(
+                count > 0 ? 'Cart ($count)' : 'Cart',
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

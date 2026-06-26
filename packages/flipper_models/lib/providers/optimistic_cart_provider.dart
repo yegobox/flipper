@@ -531,8 +531,10 @@ TransactionItem _ghostTransactionItem({
 List<TransactionItem> _sortNewestFirst(List<TransactionItem> items) {
   final sorted = List<TransactionItem>.from(items)
     ..sort((a, b) {
-      final aDate = a.createdAt ?? DateTime(2000);
-      final bDate = b.createdAt ?? DateTime(2000);
+      // Use updatedAt so re-tapping an existing item bumps it to the top.
+      // Falls back to createdAt for items that pre-date the updatedAt field.
+      final aDate = a.updatedAt ?? a.createdAt ?? DateTime(2000);
+      final bDate = b.updatedAt ?? b.createdAt ?? DateTime(2000);
       return bDate.compareTo(aDate);
     });
   return sorted;
