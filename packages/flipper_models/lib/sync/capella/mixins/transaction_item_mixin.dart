@@ -705,8 +705,6 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
 
       if (updates.isEmpty) return;
 
-      updates['updatedAt'] = DateTime.now().toIso8601String();
-
       final setClause = updates.keys
           .map(
             (key) => key == 'qty' && incrementQty == true

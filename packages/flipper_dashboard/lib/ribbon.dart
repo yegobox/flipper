@@ -179,7 +179,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 4,
+      spacing: 2,
       children: [
         _buildMainTab(
           context,
