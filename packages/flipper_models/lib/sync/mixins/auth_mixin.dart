@@ -662,8 +662,9 @@ mixin AuthMixin implements AuthInterface {
               user.id,
               pin.businessId!,
             );
-            final branches =
-                branchesJson.map((j) => Branch.fromMap(j)).toList();
+            final branches = branchesJson
+                .map((j) => Branch.fromMap(j))
+                .toList();
             for (final branch in branches) {
               if (branch.id.toString() == pin.branchId.toString()) {
                 selectedBranch = branch;
@@ -1181,10 +1182,7 @@ mixin AuthMixin implements AuthInterface {
     final ditto = DittoSingleton.instance.ditto;
     if (ditto == null) return;
 
-    await DittoSyncCoordinator.instance.setDitto(
-      ditto,
-      skipInitialFetch: true,
-    );
+    await DittoSyncCoordinator.instance.setDitto(ditto, skipInitialFetch: true);
     final box = ProxyService.box;
     if (box is SharedPreferenceStorage) {
       await box.attachDittoPersistence();
@@ -1201,9 +1199,7 @@ mixin AuthMixin implements AuthInterface {
         ? AppSecrets.appIdDebug
         : AppSecrets.appId;
     try {
-      await DittoSingleton.instance.ensureAuthenticatedAndSyncing(
-        appId: appID,
-      );
+      await DittoSingleton.instance.ensureAuthenticatedAndSyncing(appId: appID);
       await _attachDittoCoordinatorAndStorage();
       _dittoLoginSetupComplete = true;
     } catch (e, s) {

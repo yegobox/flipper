@@ -8,7 +8,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 class TaxConfigForm extends ConsumerStatefulWidget {
   const TaxConfigForm({Key? key}) : super(key: key);
@@ -102,56 +102,19 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
 
   void _feedbackSuccess() {
     if (!mounted) return;
-    const msg = 'Tax configuration saved';
-    showSimpleNotification(
-      const Text(msg),
-      background: Colors.green.shade700,
-      position: NotificationPosition.bottom,
-      duration: const Duration(seconds: 4),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(msg),
-        backgroundColor: Colors.green.shade700,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    showSuccessNotification(context, 'Tax configuration saved');
   }
 
   void _feedbackError(String message) {
     if (!mounted) return;
-    final text = message.length > 200 ? '${message.substring(0, 200)}…' : message;
-    showSimpleNotification(
-      Text(text),
-      background: Colors.red.shade800,
-      position: NotificationPosition.bottom,
-      duration: const Duration(seconds: 5),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        backgroundColor: Colors.red.shade800,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    final text =
+        message.length > 200 ? '${message.substring(0, 200)}…' : message;
+    showErrorNotification(context, text);
   }
 
   void _feedbackNoChanges() {
     if (!mounted) return;
-    const msg = 'No changes to save';
-    showSimpleNotification(
-      const Text(msg),
-      background: Colors.amber.shade800,
-      position: NotificationPosition.bottom,
-      duration: const Duration(seconds: 3),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(msg),
-        backgroundColor: Colors.amber.shade800,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    showWarningNotification(context, 'No changes to save');
   }
 
   Future<void> _scrollToFirstError() async {
