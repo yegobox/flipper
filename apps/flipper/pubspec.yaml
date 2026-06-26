@@ -5,7 +5,11 @@ publish_to: "none"
 # macos : 1.181
 
 
+<<<<<<< HEAD
 version: 1.185.4252223235613+1756529618
+=======
+version: 1.185.4252223235612+1756529617
+>>>>>>> 6b8e74861f9adc10dc91ed288ee43cfa35439dee
 
 
 environment:
@@ -204,7 +208,11 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
+<<<<<<< HEAD
   msix_version: 1.170.5506.0
+=======
+  msix_version: 1.170.5505.0
+>>>>>>> 6b8e74861f9adc10dc91ed288ee43cfa35439dee
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
