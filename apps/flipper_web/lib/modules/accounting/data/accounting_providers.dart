@@ -26,8 +26,6 @@ import 'package:flipper_web/modules/accounting/data/repository/supabase_accounti
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_repository.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
 import 'package:flipper_web/modules/accounting/data/services/journal_approval_service.dart';
-import 'package:flipper_accounting/audit_trail_recorder.dart';
-import 'package:flipper_web/modules/accounting/data/transaction_journal_poster.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
@@ -129,7 +127,15 @@ final accountingBusinessIdProvider = Provider<String>((ref) {
 final accountingDateRangeProvider =
     StateProvider<(DateTime, DateTime)>((ref) {
   final now = DateTime.now();
-  return (DateTime(now.year, now.month, 1), now);
+  // End at the LAST day of the current month, not `now`. `now` is captured once
+  // at provider init, so on a long-running session it goes stale and silently
+  // filters out entries dated after the app was opened (e.g. a sale made today
+  // when the app was opened days ago). Month-end matches the period picker
+  // (accounting_topbar.dart) and always includes the rest of the current month.
+  return (
+    DateTime(now.year, now.month, 1),
+    DateTime(now.year, now.month + 1, 0),
+  );
 });
 
 final accountingRepositoryProvider = Provider<AccountingRepository>((ref) {
@@ -418,28 +424,12 @@ final bankLinesStreamProvider = StreamProvider<List<BankLine>>((ref) {
 
 // ─── Auto-poster (transaction → journal) ─────────────────────────────────────
 
-final accountingAutoPosterProvider = Provider<void>((ref) {
-  final businessId = ref.watch(accountingBusinessIdProvider);
-  if (businessId.isEmpty) return;
-
-  Future<void> sync() async {
-    final txns = ref.read(rawTransactionStreamProvider).value ?? [];
-    if (txns.isEmpty) return;
-    final items = await ref.read(rawTransactionItemsProvider.future);
-    final ditto = ref.read(dittoServiceProvider);
-    await TransactionJournalPoster(
-      ref.read(accountingLedgerRepositoryProvider),
-      audit: AuditTrailRecorder(ditto),
-    ).syncTransactions(
-      businessId: businessId,
-      transactions: txns,
-      items: items,
-    );
-  }
-
-  ref.listen(rawTransactionStreamProvider, (_, __) => sync());
-  ref.listen(rawTransactionItemsProvider, (_, __) => sync());
-});
+// Journal posting now happens server-side in data-connector (it listens on
+// completed transactions and posts the full balanced entry — revenue, VAT,
+// cash/AR, COGS — plus loan repayments). The client no longer posts entries, so
+// this provider is a no-op kept for compatibility with existing watchers.
+// `TransactionJournalPoster` (flipper_accounting) is retained for tests only.
+final accountingAutoPosterProvider = Provider<void>((ref) {});
 
 // ─── Derived accounting data ─────────────────────────────────────────────────
 
@@ -689,7 +679,8 @@ Future<void> logAccountingStartupDiagnostics(Ref ref) async {
 
       final journalRows = await ditto.queryCollection(
         'journal_entries',
-        'SELECT status FROM journal_entries WHERE businessId = :businessId',
+        'SELECT status FROM journal_entries '
+        'WHERE businessId = :businessId OR business_id = :businessId',
         {'businessId': businessId},
       );
       final pending =
@@ -705,7 +696,8 @@ Future<void> logAccountingStartupDiagnostics(Ref ref) async {
       if (branchId.isNotEmpty) {
         final txRows = await ditto.queryCollection(
           'transactions',
-          'SELECT _id FROM transactions WHERE branchId = :branchId',
+          'SELECT _id FROM transactions '
+          'WHERE branchId = :branchId OR branch_id = :branchId',
           {'branchId': branchId},
         );
         debugPrint(
