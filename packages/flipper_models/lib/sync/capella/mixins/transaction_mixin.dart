@@ -1059,20 +1059,52 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required Customer customer,
     required ITransaction transaction,
   }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for assignCustomerToTransaction');
+      return;
+    }
+
+    // Keep the in-memory model in sync for callers that read it after await.
     transaction.customerId = customer.id;
     transaction.customerName = customer.custNm;
     transaction.customerTin = customer.custTin;
     transaction.customerPhone = customer.telNo;
     transaction.currentSaleCustomerPhoneNumber = customer.telNo;
 
-    await updateTransaction(
-      transactionId: transaction.id,
-      customerId: customer.id,
-      customerName: customer.custNm,
-      customerTin: customer.custTin,
-      customerPhone: customer.telNo,
-      updatedAt: DateTime.now(),
-      lastTouched: DateTime.now(),
+    final now = DateTime.now();
+    final arguments = <String, dynamic>{
+      'id': transaction.id,
+      'updatedAt': now.toIso8601String(),
+      'lastTouched': now.toIso8601String(),
+    };
+    final updates = <String>['updatedAt = :updatedAt', 'lastTouched = :lastTouched'];
+
+    // Preserve the previous non-null write semantics exactly (the old path
+    // routed through updateTransaction, which only wrote non-null fields).
+    void setIfPresent(String field, dynamic value) {
+      if (value != null) {
+        updates.add('$field = :$field');
+        arguments[field] = value;
+      }
+    }
+
+    setIfPresent('customerId', customer.id);
+    setIfPresent('customerName', customer.custNm);
+    setIfPresent('customerTin', customer.custTin);
+    setIfPresent('customerPhone', customer.telNo);
+
+    // Target the document by its primary key only. `_id == id` is an invariant
+    // for every transaction (both inserts set them equal — see
+    // _transactionToMap and delegation_mixin), so the legacy `OR id = :id`
+    // fallback is unnecessary and only defeated the primary-key index, turning
+    // an O(1) lookup into a full-collection scan.
+    final query =
+        'UPDATE transactions SET ${updates.join(', ')} WHERE _id = :id';
+
+    await ditto.store.execute(query, arguments: arguments);
+    talker.info(
+      'Assigned customer ${customer.id} to transaction ${transaction.id} (Capella)',
     );
   }
 
