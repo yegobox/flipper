@@ -178,6 +178,18 @@ jobs:
           # to Chrome (service worker cache + leftover files from prior WASM deploys).
           rm -f build/web/main.dart.mjs build/web/main.dart.wasm
 
+      - name: Target production hosting site on main
+        if: github.ref == 'refs/heads/main'
+        working-directory: apps/flipper_web
+        run: |
+          # Live (production) deploys must hit the default `yegobox-2ee43` site,
+          # which owns yegobox-2ee43.web.app AND the connected custom domain
+          # flipper.yegobox.com. Non-main builds leave firebase.json untouched
+          # and keep deploying preview channels to the `flipper-uat` site.
+          tmp=$(mktemp)
+          jq '.hosting.site = "yegobox-2ee43"' firebase.json > "$tmp" && mv "$tmp" firebase.json
+          echo "Hosting site set to: $(jq -r '.hosting.site' firebase.json)"
+
       - name: Deploy Flipper Web app to Firebase Hosting
         id: deploy_flipper_web
         uses: FirebaseExtended/action-hosting-deploy@v0.9.0
@@ -185,8 +197,10 @@ jobs:
           entryPoint: apps/flipper_web
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
-          channelId: pr-${{ github.event.commits.id }}
-          # channelId: live
+          # On main -> deploy to the live channel (serves yegobox-2ee43.web.app
+          # AND the connected custom domain flipper.yegobox.com). Other branches
+          # get an ephemeral preview channel for QA.
+          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || format('pr-{0}', github.event.commits.id) }}
           projectId: yegobox-2ee43
       - name: Echo Flipper Web URL
         run: echo "Flipper Web app deployed to ${{ steps.deploy_flipper_web.outputs.urls }}"

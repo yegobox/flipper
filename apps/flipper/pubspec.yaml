@@ -4,7 +4,7 @@ publish_to: "none"
 #  ios : 1.184
 # macos : 1.181
 
-version: 1.185.4252223235611+1756529616
+version: 1.185.4252223235616+1756529621
 
 
 
@@ -62,7 +62,7 @@ dependencies:
   fluentui_system_icons: ^1.1.273
   easy_sidemenu: ^0.6.0
   flipper_localize: ^1.0.0-dev
-  tray_manager: ^0.2.3
+  tray_manager: ^0.5.3
   pinput: ^6.0.0
   local_auth: ^3.0.0
   flutter_riverpod: ^3.0.3
@@ -205,7 +205,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5504.0
+  msix_version: 1.170.5509.0
 
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE

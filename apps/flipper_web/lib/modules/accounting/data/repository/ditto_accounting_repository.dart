@@ -34,22 +34,22 @@ class DittoAccountingRepository implements AccountingRepository {
 
     var query =
         'SELECT * FROM transactions '
-        'WHERE branchId = :branchId '
+        'WHERE (branchId = :branchId OR branch_id = :branchId) '
         'AND (status = :completed OR status = :parked) '
         'AND subTotal > 0';
 
     if (startDate != null) {
-      query += ' AND createdAt >= :start';
+      query += ' AND (createdAt >= :start OR created_at >= :start)';
       args['start'] = startDate.toIso8601String();
     }
     if (endDate != null) {
-      query += ' AND createdAt <= :end';
+      query += ' AND (createdAt <= :end OR created_at <= :end)';
       args['end'] =
           DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
               .toIso8601String();
     }
 
-    query += ' ORDER BY createdAt DESC';
+query += ' ORDER BY createdAt DESC';
 
     final result = await ditto.store.execute(query, arguments: args);
     return dittoQueryRows(result);
@@ -94,15 +94,15 @@ class DittoAccountingRepository implements AccountingRepository {
     };
     var query =
         'SELECT * FROM transactions '
-        'WHERE branchId = :branchId '
+        'WHERE (branchId = :branchId OR branch_id = :branchId) '
         'AND (status = :completed OR status = :parked) '
         'AND subTotal > 0';
     if (startDate != null) {
-      query += ' AND createdAt >= :start';
+      query += ' AND (createdAt >= :start OR created_at >= :start)';
       args['start'] = startDate.toIso8601String();
     }
     if (endDate != null) {
-      query += ' AND createdAt <= :end';
+      query += ' AND (createdAt <= :end OR created_at <= :end)';
       args['end'] =
           DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
               .toIso8601String();

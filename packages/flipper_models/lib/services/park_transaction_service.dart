@@ -4,7 +4,6 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/services/loan_customer_linker.dart';
-import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -29,11 +28,12 @@ class ParkTransactionService {
       customerId: customerId,
     );
 
-    // Parking with "Mark as loan" is a credit sale: record it in accounting
-    // immediately and link the debtor to a customer record — fire-and-forget,
-    // adds no latency. A park merged into another customer ticket never
-    // reaches PARKED on this object (parkSaleTicketFast returns before the
-    // status mutation), so merged carts are skipped here.
+    // Parking with "Mark as loan" is a credit sale: link the debtor to a
+    // customer record — fire-and-forget, adds no latency. The accounting
+    // journal entry is now posted server-side in data-connector (it listens on
+    // parked-loan transactions). A park merged into another customer ticket
+    // never reaches PARKED on this object (parkSaleTicketFast returns before
+    // the status mutation), so merged carts are skipped here.
     if (transaction.isLoan == true && transaction.status == PARKED) {
       if ((transaction.customerId == null ||
               transaction.customerId!.isEmpty) &&
@@ -41,7 +41,6 @@ class ParkTransactionService {
           customerId.isNotEmpty) {
         transaction.customerId = customerId;
       }
-      unawaited(_postLoanToAccounting(transaction));
       final branchId =
           transaction.branchId ?? ProxyService.box.getBranchId() ?? '';
       if (branchId.isNotEmpty) {
@@ -52,24 +51,6 @@ class ParkTransactionService {
           ),
         );
       }
-    }
-  }
-
-  static Future<void> _postLoanToAccounting(ITransaction transaction) async {
-    try {
-      final items = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).transactionItems(transactionId: transaction.id);
-      await PosJournalPoster.onTransactionFinalized(
-        transaction: transaction,
-        items: items,
-        eventCashReceived: 0,
-        completionStatus: PARKED,
-        isProformaMode: ProxyService.box.isProformaMode(),
-        isTrainingMode: ProxyService.box.isTrainingMode(),
-      );
-    } catch (e) {
-      talker.warning('park: loan accounting post failed: $e');
     }
   }
 }

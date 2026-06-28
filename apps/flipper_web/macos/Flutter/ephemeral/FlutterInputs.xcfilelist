@@ -1293,6 +1293,7 @@
 /Users/richard/.pub-cache/hosted/pub.dev/flutter_local_notifications_windows-3.1.1/lib/src/plugin/ffi.dart
 /Users/richard/.pub-cache/hosted/pub.dev/flutter_localization-0.4.0/LICENSE
 /Users/richard/.pub-cache/hosted/pub.dev/flutter_native_splash-2.4.7/LICENSE
+/Users/richard/.pub-cache/hosted/pub.dev/flutter_native_splash-2.4.7/lib/flutter_native_splash.dart
 /Users/richard/.pub-cache/hosted/pub.dev/flutter_parsed_text-2.2.1/LICENSE
 /Users/richard/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.34/LICENSE
 /Users/richard/.pub-cache/hosted/pub.dev/flutter_riverpod-3.0.3/LICENSE
@@ -2898,7 +2899,7 @@
 /Users/richard/.pub-cache/hosted/pub.dev/timezone-0.11.0/lib/timezone.dart
 /Users/richard/.pub-cache/hosted/pub.dev/toml-0.18.0/LICENSE
 /Users/richard/.pub-cache/hosted/pub.dev/totp_authenticator-1.0.1/LICENSE
-/Users/richard/.pub-cache/hosted/pub.dev/tray_manager-0.2.4/LICENSE
+/Users/richard/.pub-cache/hosted/pub.dev/tray_manager-0.5.3/LICENSE
 /Users/richard/.pub-cache/hosted/pub.dev/tuple-2.0.2/LICENSE
 /Users/richard/.pub-cache/hosted/pub.dev/turso_dart-0.1.0/LICENSE
 /Users/richard/.pub-cache/hosted/pub.dev/turso_dart-0.1.0/rust/build.rs
@@ -3589,7 +3590,8 @@
 /Users/richard/Developer/yego-project/flipper/apps/flipper/google_fonts/Simple-Line-Icons.woff
 /Users/richard/Developer/yego-project/flipper/apps/flipper/google_fonts/Simple-Line-Icons.woff2
 /Users/richard/Developer/yego-project/flipper/apps/flipper/shorebird.yaml
-/Users/richard/Developer/yego-project/flipper/apps/flipper_web/DOES_NOT_EXIST_RERUN_FOR_WILDCARD241818529
+/Users/richard/Developer/yego-project/flipper/apps/flipper_web/DOES_NOT_EXIST_RERUN_FOR_WILDCARD100752445
+/Users/richard/Developer/yego-project/flipper/apps/flipper_web/assets/.DS_Store
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/assets/Screenshot 2025-09-13 at 7.51.18 PM.png
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/assets/Screenshot 2025-09-13 at 8.17.58 PM.png
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/assets/Screenshot 2025-09-17 at 9.36.36 PM.png
@@ -3734,7 +3736,7 @@
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/modules/accounting/data/repository/supabase_accounting_repository.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/modules/accounting/data/repository/supabase_party_repository.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/modules/accounting/data/services/bank_statement_service.dart
-/Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/modules/accounting/data/transaction_journal_poster.dart
+/Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/modules/accounting/data/services/journal_approval_service.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/modules/accounting/routing/accounting_route.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/modules/accounting/shell/desktop/accounting_desktop_shell.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/modules/accounting/shell/desktop/accounting_sidebar.dart
@@ -3790,6 +3792,7 @@
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/services/ditto_mixins/user_access_mixin.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/services/ditto_mixins/user_profile_mixin.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/services/ditto_service.dart
+/Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/widgets/books_startup_splash.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/lib/widgets/flipper_logo.dart
 /Users/richard/Developer/yego-project/flipper/apps/flipper_web/pubspec.yaml
 /Users/richard/Developer/yego-project/flipper/open-sources/brick/packages/brick_build/LICENSE
@@ -3824,7 +3827,6 @@
 /Users/richard/Developer/yego-project/flipper/packages/flipper_accounting/lib/default_chart_of_accounts_seed.dart
 /Users/richard/Developer/yego-project/flipper/packages/flipper_accounting/lib/ditto_accounting_ledger_repository.dart
 /Users/richard/Developer/yego-project/flipper/packages/flipper_accounting/lib/ledger_row_mapper.dart
-/Users/richard/Developer/yego-project/flipper/packages/flipper_accounting/lib/transaction_journal_poster.dart
 /Users/richard/Developer/yego-project/flipper/packages/flipper_accounting/lib/transaction_to_accounts.dart
 /Users/richard/Developer/yego-project/flipper/packages/flipper_actionable/LICENSE
 /Users/richard/Developer/yego-project/flipper/packages/flipper_dashboard/LICENSE
@@ -3990,6 +3992,8 @@
 /Users/richard/Developer/yego-project/flipper/packages/flipper_socials/google_fonts/Poppins-ThinItalic.ttf
 /Users/richard/Developer/yego-project/flipper/packages/flipper_ui/LICENSE
 /Users/richard/Developer/yego-project/flipper/packages/supabase_models/LICENSE
+/Users/richard/Library/Caches/flutter_gemma/native/macos_arm64
+/Users/richard/Library/Caches/flutter_gemma/native/qdrant_edge/macos_arm64
 /Users/richard/develop/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf
 /Users/richard/develop/flutter/bin/cache/dart-sdk/version
 /Users/richard/develop/flutter/bin/cache/engine.stamp

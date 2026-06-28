@@ -25,7 +25,6 @@ import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/services/loan_customer_linker.dart';
-import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
@@ -583,6 +582,17 @@ class CapellaSync extends AiStrategyImpl
       transaction.isExpense = !isIncome;
       transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
 
+      // Attach (match-by-phone or create) the customer to the in-memory
+      // transaction BEFORE persisting completed status, so the data-connector
+      // never posts a journal for a sale with no customer linked yet.
+      // updateTransaction persists customerId via its `transaction.customerId`
+      // fallback. Best-effort: the fire-and-forget linker below backfills if
+      // this is skipped/times out.
+      await LoanCustomerLinker.attachBeforeCompletion(
+        transaction: transaction,
+        branchId: branchId,
+      );
+
       // Write transaction to Ditto (optional: caller persists once on completion).
       if (!skipTransactionPersist) {
         await updateTransaction(
@@ -686,18 +696,9 @@ class CapellaSync extends AiStrategyImpl
         }
       });
 
-      // Record the event in the accounting ledger so Books finds the journal
-      // entry already posted, whether or not the accounting app is running.
-      unawaited(
-        PosJournalPoster.onTransactionFinalized(
-          transaction: transaction,
-          items: items,
-          eventCashReceived: cashReceived,
-          completionStatus: completionStatus,
-          isProformaMode: isProformaMode,
-          isTrainingMode: isTrainingMode,
-        ),
-      );
+      // Accounting journal posting now happens server-side in data-connector
+      // (listens on completed transactions and posts the balanced entry,
+      // including COGS). The POS no longer posts journal entries.
 
       // Link (or auto-create) the canonical customer record for loans so
       // accounting tracks debtors by customer id — runs in the background,

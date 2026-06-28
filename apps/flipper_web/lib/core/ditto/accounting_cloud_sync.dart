@@ -24,12 +24,16 @@ Future<void> ensureAccountingCloudSubscriptions({
   final entries = <({String key, String sql, Map<String, dynamic> args})>[
     (
       key: 'chart_of_accounts|$businessId',
-      sql: 'SELECT * FROM chart_of_accounts WHERE businessId = :businessId',
+      sql:
+          'SELECT * FROM chart_of_accounts '
+          'WHERE businessId = :businessId OR business_id = :businessId',
       args: {'businessId': businessId},
     ),
     (
       key: 'journal_entries|$businessId',
-      sql: 'SELECT * FROM journal_entries WHERE businessId = :businessId',
+      sql:
+          'SELECT * FROM journal_entries '
+          'WHERE businessId = :businessId OR business_id = :businessId',
       args: {'businessId': businessId},
     ),
     // Lines lack businessId in Supabase; replicate all and join via entry id.
@@ -140,7 +144,8 @@ Future<bool> waitForAccountingReplication({
   while (DateTime.now().isBefore(deadline)) {
     try {
       final coa = await ditto.store.execute(
-        'SELECT _id FROM chart_of_accounts WHERE businessId = :businessId LIMIT 1',
+        'SELECT _id FROM chart_of_accounts '
+        'WHERE businessId = :businessId OR business_id = :businessId LIMIT 1',
         arguments: {'businessId': businessId},
       );
       if (coa.items.isNotEmpty) {
@@ -149,7 +154,8 @@ Future<bool> waitForAccountingReplication({
       }
 
       final journal = await ditto.store.execute(
-        'SELECT _id FROM journal_entries WHERE businessId = :businessId LIMIT 1',
+        'SELECT _id FROM journal_entries '
+        'WHERE businessId = :businessId OR business_id = :businessId LIMIT 1',
         arguments: {'businessId': businessId},
       );
       if (journal.items.isNotEmpty) {
@@ -191,7 +197,8 @@ Future<bool> waitForJournalEntriesInDitto({
   while (DateTime.now().isBefore(deadline)) {
     try {
       final result = await ditto.store.execute(
-        'SELECT id FROM journal_entries WHERE businessId = :businessId LIMIT 1',
+        'SELECT id FROM journal_entries '
+        'WHERE businessId = :businessId OR business_id = :businessId LIMIT 1',
         arguments: {'businessId': businessId},
       );
       if (result.items.isNotEmpty) return true;
