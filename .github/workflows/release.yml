@@ -204,6 +204,35 @@ jobs:
           projectId: yegobox-2ee43
       - name: Echo Flipper Web URL
         run: echo "Flipper Web app deployed to ${{ steps.deploy_flipper_web.outputs.urls }}"
+
+      - name: Target useflipper.com hosting site on main
+        if: github.ref == 'refs/heads/main'
+        working-directory: apps/flipper_web
+        run: |
+          # Re-point firebase.json at the standalone `useflipper` Hosting site and
+          # publish the SAME build/web there (no rebuild). useflipper.com is
+          # attached to this site in the Firebase Console (+ DNS) and serves its
+          # live channel automatically.
+          # NOTE: "useflipper" must match the Hosting site id you create in the
+          # yegobox-2ee43 project (it yields useflipper.web.app). Update if different.
+          tmp=$(mktemp)
+          jq '.hosting.site = "useflipper"' firebase.json > "$tmp" && mv "$tmp" firebase.json
+          echo "Hosting site set to: $(jq -r '.hosting.site' firebase.json)"
+
+      - name: Deploy Flipper Web app to useflipper.com (Firebase Hosting)
+        id: deploy_useflipper
+        if: github.ref == 'refs/heads/main'
+        uses: FirebaseExtended/action-hosting-deploy@v0.9.0
+        with:
+          entryPoint: apps/flipper_web
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
+          channelId: live
+          projectId: yegobox-2ee43
+
+      - name: Echo useflipper.com URL
+        if: github.ref == 'refs/heads/main'
+        run: echo "useflipper.com site deployed to ${{ steps.deploy_useflipper.outputs.urls }}"
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
