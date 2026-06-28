@@ -974,3 +974,6 @@ class App {}
 // dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
 // Delete this if no longer needed:
 //  /Users/richard/Library/Containers/rw.flipper/Data/Library/Application Support/rw.flipper/flutter_gemma/Gemma3-1B-IT_multi-prefill-seq_q8_ekv1280.litertlm
+
+
+// POST /accounting/cogs/reconcile {"branchId":"…","fullBackfill":true}

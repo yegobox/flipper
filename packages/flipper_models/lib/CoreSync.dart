@@ -53,7 +53,6 @@ import 'package:supabase_models/brick/models/credit.model.dart';
 import 'dart:async';
 
 import 'package:flipper_models/services/loan_customer_linker.dart';
-import 'package:flipper_models/services/pos_journal_poster.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flipper_models/exceptions.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -2306,25 +2305,24 @@ class CoreSync extends AiStrategyImpl
         if (completionStatus != null) {
           transaction.status = completionStatus;
         }
+        // Attach (match-by-phone or create) the customer to the in-memory
+        // transaction BEFORE persisting completed status, so the data-connector
+        // never posts a journal for a sale with no customer linked yet. The
+        // upsert below persists customerId + status together. Best-effort: the
+        // fire-and-forget linker still backfills if this is skipped/times out.
+        await LoanCustomerLinker.attachBeforeCompletion(
+          transaction: transaction,
+          branchId: branchId,
+        );
         if (!skipTransactionPersist) {
           talker.info("collectPayment: Upserting transaction");
           await repository.upsert<ITransaction>(transaction);
           talker.info("collectPayment: Transaction upserted successfully");
         }
 
-        // Record the event in the accounting ledger so Books finds the
-        // journal entry already posted, whether or not the accounting app
-        // is running.
-        unawaited(
-          PosJournalPoster.onTransactionFinalized(
-            transaction: transaction,
-            items: items,
-            eventCashReceived: cashReceived,
-            completionStatus: completionStatus,
-            isProformaMode: isProformaMode,
-            isTrainingMode: isTrainingMode,
-          ),
-        );
+        // Accounting journal posting now happens server-side in data-connector
+        // (listens on completed transactions and posts the balanced entry,
+        // including COGS). The POS no longer posts journal entries.
 
         // Link (or auto-create) the canonical customer record for loans so
         // accounting tracks debtors by customer id — runs in the background,
