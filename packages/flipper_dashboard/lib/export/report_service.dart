@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,18 +33,18 @@ class ReportService {
       endDate = DateTime.now().toLocal();
     }
 
-    final business = await ProxyService.strategy
+    final business = await ProxyService.getStrategy(Strategy.capella)
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-    final transactionsWithItems =
-        await ProxyService.strategy.transactionsAndItems(
+    final transactionsWithItems = await loadTransactionsWithItemsForReport(
       startDate: startDate,
       endDate: endDate,
-      skipOriginalTransactionCheck: true,
+      branchId: ProxyService.box.getBranchId()!,
+      forceRealData: !(ProxyService.box.enableDebug() ?? false),
     );
 
-    talker.info(startDate!.toIso8601String(), endDate.toIso8601String());
-    final ebm = await ProxyService.strategy.ebm(
+    talker.info(startDate.toIso8601String(), endDate.toIso8601String());
+    final ebm = await ProxyService.getStrategy(Strategy.capella).ebm(
       branchId: ProxyService.box.getBranchId()!,
     );
     transactionsWithItems.map((t) => print(t.transaction.receiptType)).toList();
@@ -174,7 +176,7 @@ class ReportService {
       numRefundReceipts,
       netSalesReceipts,
       salesByPaymentMethod,
-      salesByPaymentMethod,
+      refundsByPaymentMethod,
       tsByMethod: tsByMethod,
       psByMethod: psByMethod,
       trByMethod: trByMethod,

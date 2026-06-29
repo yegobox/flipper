@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,7 +34,7 @@ class ExportService {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
       String filePath;
-      final business = await ProxyService.strategy
+      final business = await ProxyService.getStrategy(Strategy.capella)
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
       if (ProxyService.box.exportAsPdf()) {

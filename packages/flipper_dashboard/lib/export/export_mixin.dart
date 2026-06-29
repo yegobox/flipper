@@ -4,6 +4,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
@@ -32,9 +33,8 @@ mixin ExportMixin on ConsumerState {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
       String filePath;
-      final business = await ProxyService.strategy.getBusiness(
-        businessId: ProxyService.box.getBusinessId()!,
-      );
+      final business = await ProxyService.getStrategy(Strategy.capella)
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
       if (ProxyService.box.exportAsPdf()) {
         // Export to PDF using the SfDataGrid's built-in functionality

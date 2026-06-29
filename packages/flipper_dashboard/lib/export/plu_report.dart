@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -272,17 +274,18 @@ class PLUReport {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final business = await ProxyService.strategy.getBusiness(
+    final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
       businessId: ProxyService.box.getBusinessId()!,
     );
 
-    // Fetch transactions with their items
-    final transactionsWithItems = await ProxyService.strategy
-        .transactionsAndItems(
-          startDate: startDate,
-          endDate: endDate,
-          status: COMPLETE,
-        );
+    // Fetch transactions with their items (Capella-backed; see helper docs).
+    final transactionsWithItems = await loadTransactionsWithItemsForReport(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: ProxyService.box.getBranchId()!,
+      forceRealData: !(ProxyService.box.enableDebug() ?? false),
+      status: COMPLETE,
+    );
 
     // Extract all transaction items
     final List<TransactionItem> allItems = transactionsWithItems
@@ -310,7 +313,7 @@ class PLUReport {
       if (items.isEmpty) continue;
 
       // Get variant details from database
-      final variant = await ProxyService.strategy.getVariant(id: variantId);
+      final variant = await ProxyService.getStrategy(Strategy.capella).getVariant(id: variantId);
 
       if (variant == null) continue;
       talker.info(variant.id, "${variant.lastTouched}:${variant.name}");

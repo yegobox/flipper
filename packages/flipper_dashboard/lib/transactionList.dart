@@ -16,6 +16,9 @@ import 'package:intl/intl.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/widgets/sales_by_cashier_chart.dart';
 import 'package:flipper_dashboard/widgets/transaction_report_kpi_strip.dart';
+import 'package:flipper_dashboard/export/report_service.dart';
+import 'package:flipper_dashboard/export/sale_report.dart';
+import 'package:flipper_dashboard/export/plu_report.dart';
 
 class TransactionList extends StatefulHookConsumerWidget {
   TransactionList({
@@ -58,6 +61,10 @@ class TransactionListState extends ConsumerState<TransactionList>
   late GlobalKey<DataViewState> dataViewKey;
   final TextEditingController _searchController = TextEditingController();
   bool _isExporting = false;
+  bool _isZReportLoading = false;
+  bool _isXReportLoading = false;
+  bool _isSaleReportLoading = false;
+  bool _isPluReportLoading = false;
 
   @override
   void initState() {
@@ -151,6 +158,29 @@ class TransactionListState extends ConsumerState<TransactionList>
           duration: const Duration(seconds: 5),
         );
       }
+    }
+  }
+
+  /// Shared wrapper for the Z / X / Sale / PLU report actions: toggles the
+  /// given loading flag, runs the generator, and surfaces any failure.
+  /// Mirrors the wiring DataView's ReportActionsRow used before the redesign.
+  Future<void> _runReport({
+    required void Function(bool) setLoading,
+    required Future<void> Function() run,
+  }) async {
+    setLoading(true);
+    try {
+      await run();
+    } catch (e) {
+      if (mounted) {
+        showErrorNotification(
+          context,
+          'Report failed: ${e.toString()}',
+          duration: const Duration(seconds: 5),
+        );
+      }
+    } finally {
+      if (mounted) setLoading(false);
     }
   }
 
@@ -457,6 +487,10 @@ class TransactionListState extends ConsumerState<TransactionList>
           },
         ),
         const SizedBox(width: 12),
+        Container(width: 1, height: 28, color: const Color(0xFFE5E7EB)),
+        const SizedBox(width: 12),
+        ..._buildReportButtons(startDate, endDate),
+        const SizedBox(width: 12),
         FilledButton.icon(
           onPressed: handleDateTimePicker,
           icon: const Icon(Icons.date_range_outlined, size: 18),
@@ -472,6 +506,87 @@ class TransactionListState extends ConsumerState<TransactionList>
         ),
       ],
     );
+  }
+
+  /// Z / X / Sale / PLU report actions, reusing the same generators the old
+  /// DataView ReportActionsRow wired up. X covers from the last Z reading to
+  /// now (no date range needed); the others use the selected range.
+  List<Widget> _buildReportButtons(DateTime? startDate, DateTime? endDate) {
+    void warnNoRange() {
+      if (mounted) {
+        showWarningNotification(context, 'Please select a date range first');
+      }
+    }
+
+    return [
+      _buildActionButton(
+        icon: Icons.assessment_outlined,
+        tooltip: 'Z Report',
+        isLoading: _isZReportLoading,
+        onTap: () => _runReport(
+          setLoading: (v) => setState(() => _isZReportLoading = v),
+          run: () async {
+            if (endDate == null) {
+              warnNoRange();
+              return;
+            }
+            await ReportService().generateReport(
+              reportType: 'Z',
+              startDate: startDate,
+              endDate: endDate,
+            );
+          },
+        ),
+      ),
+      const SizedBox(width: 8),
+      _buildActionButton(
+        icon: Icons.receipt_long_outlined,
+        tooltip: 'X Report',
+        isLoading: _isXReportLoading,
+        onTap: () => _runReport(
+          setLoading: (v) => setState(() => _isXReportLoading = v),
+          run: () => ReportService().generateReport(reportType: 'X'),
+        ),
+      ),
+      const SizedBox(width: 8),
+      _buildActionButton(
+        icon: Icons.analytics_outlined,
+        tooltip: 'Sale Report',
+        isLoading: _isSaleReportLoading,
+        onTap: () => _runReport(
+          setLoading: (v) => setState(() => _isSaleReportLoading = v),
+          run: () async {
+            if (startDate == null || endDate == null) {
+              warnNoRange();
+              return;
+            }
+            await SaleReport().generateSaleReport(
+              startDate: startDate,
+              endDate: endDate,
+            );
+          },
+        ),
+      ),
+      const SizedBox(width: 8),
+      _buildActionButton(
+        icon: Icons.list_alt_rounded,
+        tooltip: 'PLU Report',
+        isLoading: _isPluReportLoading,
+        onTap: () => _runReport(
+          setLoading: (v) => setState(() => _isPluReportLoading = v),
+          run: () async {
+            if (startDate == null || endDate == null) {
+              warnNoRange();
+              return;
+            }
+            await PLUReport().generatePLUReport(
+              startDate: startDate,
+              endDate: endDate,
+            );
+          },
+        ),
+      ),
+    ];
   }
 
   Widget _buildFiltersRow(

@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,14 +30,14 @@ class SaleReport {
 
   Future<void> generateSaleReport(
       {required DateTime startDate, required DateTime endDate}) async {
-    final business = await ProxyService.strategy
+    final business = await ProxyService.getStrategy(Strategy.capella)
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-    final transactionsWithItems =
-        await ProxyService.strategy.transactionsAndItems(
+    final transactionsWithItems = await loadTransactionsWithItemsForReport(
       startDate: startDate,
       endDate: endDate,
+      branchId: ProxyService.box.getBranchId()!,
+      forceRealData: !(ProxyService.box.enableDebug() ?? false),
       status: COMPLETE,
-      skipOriginalTransactionCheck: true,
     );
 
     final transactions =
@@ -68,7 +70,7 @@ class SaleReport {
 
     _createFooter(footerTemplate, pageSize);
     document.template.bottom = footerTemplate;
-    final ebm = await ProxyService.strategy.ebm(
+    final ebm = await ProxyService.getStrategy(Strategy.capella).ebm(
       branchId: ProxyService.box.getBranchId()!,
     );
 
