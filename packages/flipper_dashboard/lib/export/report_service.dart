@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
+import 'package:flipper_dashboard/export/utils/report_theme.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,10 +13,11 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
 
 class ReportService {
-  Future<void> generateReport(
-      {required String reportType,
-      DateTime? endDate,
-      DateTime? startDate}) async {
+  Future<void> generateReport({
+    required String reportType,
+    DateTime? endDate,
+    DateTime? startDate,
+  }) async {
     if (reportType == 'Z' && endDate == null) {
       throw ArgumentError('endDate is required for Z-Reports');
     }
@@ -24,7 +26,9 @@ class ReportService {
       // AS Z cover just one day this is why we override start date here.
       startDate = DateTime(endDate.year, endDate.month, endDate.day);
       await ProxyService.box.writeString(
-          key: 'lastZReportDate', value: endDate.toIso8601String());
+        key: 'lastZReportDate',
+        value: endDate.toIso8601String(),
+      );
     } else {
       final lastZReportDateString = ProxyService.box.lastZReportDate();
       startDate = lastZReportDateString != null
@@ -33,8 +37,9 @@ class ReportService {
       endDate = DateTime.now().toLocal();
     }
 
-    final business = await ProxyService.getStrategy(Strategy.capella)
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     final transactionsWithItems = await loadTransactionsWithItemsForReport(
       startDate: startDate,
@@ -44,9 +49,9 @@ class ReportService {
     );
 
     talker.info(startDate.toIso8601String(), endDate.toIso8601String());
-    final ebm = await ProxyService.getStrategy(Strategy.capella).ebm(
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    final ebm = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).ebm(branchId: ProxyService.box.getBranchId()!);
     transactionsWithItems.map((t) => print(t.transaction.receiptType)).toList();
     // Data processing - exclude refunded transactions
     final salesTransactions = transactionsWithItems
@@ -69,9 +74,13 @@ class ReportService {
         .toList();
 
     final totalSales = salesTransactions.fold(
-        0.0, (sum, t) => sum + (t.transaction.subTotal ?? 0.0));
+      0.0,
+      (sum, t) => sum + (t.transaction.subTotal ?? 0.0),
+    );
     final totalRefunds = refundTransactions.fold(
-        0.0, (sum, t) => sum + (t.transaction.subTotal ?? 0.0));
+      0.0,
+      (sum, t) => sum + (t.transaction.subTotal ?? 0.0),
+    );
     final numSalesReceipts = salesTransactions.length;
     final numRefundReceipts = refundTransactions.length;
     final netSalesReceipts = numSalesReceipts - numRefundReceipts;
@@ -82,7 +91,7 @@ class ReportService {
       final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
       salesByPaymentMethod[paymentType] =
           (salesByPaymentMethod[paymentType] ?? 0) +
-              (t.transaction.subTotal ?? 0.0);
+          (t.transaction.subTotal ?? 0.0);
     }
 
     final Map<String, double> refundsByPaymentMethod = {};
@@ -90,7 +99,7 @@ class ReportService {
       final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
       refundsByPaymentMethod[paymentType] =
           (refundsByPaymentMethod[paymentType] ?? 0) +
-              (t.transaction.subTotal ?? 0.0);
+          (t.transaction.subTotal ?? 0.0);
     }
     final Map<String, double> tsByMethod = {};
     for (var t in tsTransactions) {
@@ -121,9 +130,13 @@ class ReportService {
 
     // Calculate tax amounts (assuming 18% VAT)
     final taxRateSales = salesTransactions.fold(
-        0.0, (sum, t) => sum + ((t.transaction.subTotal ?? 0.0) * 0.18));
+      0.0,
+      (sum, t) => sum + ((t.transaction.subTotal ?? 0.0) * 0.18),
+    );
     final taxRateRefunds = refundTransactions.fold(
-        0.0, (sum, t) => sum + ((t.transaction.subTotal ?? 0.0) * 0.18));
+      0.0,
+      (sum, t) => sum + ((t.transaction.subTotal ?? 0.0) * 0.18),
+    );
 
     // Calculate item counts
     int totalItemsSold = 0;
@@ -134,39 +147,53 @@ class ReportService {
     }
     final totalDiscount = (netSalesReceipts > 0)
         ? salesTransactions.fold(
-            0.0, (sum, t) => sum + (t.transaction.discountAmount ?? 0.0))
+            0.0,
+            (sum, t) => sum + (t.transaction.discountAmount ?? 0.0),
+          )
         : 0.0;
 
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
     final Size pageSize = page.getClientSize();
 
-    // Footer template for logo
-    final PdfPageTemplateElement footerTemplate =
-        PdfPageTemplateElement(Rect.fromLTWH(0, 0, pageSize.width, 50));
-    try {
-      final ByteData imageData =
-          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
-      final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
-      const double logoWidth = 25;
-      const double logoHeight = 25;
-      final double xLogoPosition = (pageSize.width - logoWidth) / 2;
-      footerTemplate.graphics.drawImage(
-          logoImage, Rect.fromLTWH(xLogoPosition, 0, logoWidth, logoHeight));
-    } catch (e) {
-      print('Error loading logo for footer: $e');
-    }
-    document.template.bottom = footerTemplate;
+    // Branded footer (logo, "Powered by Flipper", timestamp, page numbers).
+    document.template.bottom = await ReportTheme.buildFooter(pageSize);
 
-    _drawHeader(
+    final String periodText = reportType == 'Z'
+        ? 'Date: ${DateFormat('MMMM dd, yyyy').format(endDate)}'
+        : 'From ${DateFormat('MMMM dd, yyyy').format(startDate)} to ${DateFormat('MMMM dd, yyyy').format(endDate)}';
+
+    double contentTop = ReportTheme.drawHeader(
       page,
       pageSize,
-      business,
+      reportTitle: '$reportType Report',
+      business: business,
       ebm: ebm,
-      reportType: reportType,
-      startDate: startDate,
-      endDate: endDate,
+      periodText: periodText,
     );
+    contentTop = ReportTheme.drawSummaryCards(page, pageSize, contentTop, [
+      ReportKpiCard(
+        value: ReportTheme.formatRwf(totalSales, trimZeros: true),
+        label: 'Total Sales (NS)',
+        color: ReportTheme.primaryBlue,
+      ),
+      ReportKpiCard(
+        value: ReportTheme.formatRwf(totalRefunds, trimZeros: true),
+        label: 'Refunds (NR)',
+        color: ReportTheme.accentRed,
+      ),
+      ReportKpiCard(
+        value: totalItemsSold.toString(),
+        label: 'Items Sold',
+        color: ReportTheme.accentPurple,
+      ),
+      ReportKpiCard(
+        value: ReportTheme.formatRwf(taxRateSales, trimZeros: true),
+        label: 'Tax (NS)',
+        color: ReportTheme.accentGreen,
+      ),
+    ]);
+
     _drawContent(
       page,
       pageSize,
@@ -185,96 +212,17 @@ class ReportService {
       taxRateRefunds,
       totalItemsSold,
       totalDiscount,
+      startY: contentTop,
       transactions: transactionsWithItems.map((e) => e.transaction).toList(),
     );
 
     final List<int> bytes = await document.save();
     document.dispose();
 
-    final String formattedDate =
-        DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
+    final String formattedDate = DateFormat(
+      'yyyy-MM-dd_HH-mm',
+    ).format(DateTime.now());
     await _saveAndLaunchFile(bytes, '${reportType}Report_$formattedDate.pdf');
-  }
-
-  void _drawHeader(PdfPage page, Size pageSize, Business? business,
-      {Ebm? ebm,
-      required String reportType,
-      required DateTime startDate,
-      required DateTime endDate}) {
-    final PdfGraphics graphics = page.graphics;
-    final PdfFont businessDetailsFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
-    final PdfFont labelFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
-    final PdfFont titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 22, style: PdfFontStyle.bold);
-    final PdfFont subtitleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 12, style: PdfFontStyle.bold);
-    final PdfBrush blueBrush = PdfSolidBrush(PdfColor(173, 216, 230));
-    final PdfBrush whiteBrush = PdfBrushes.white;
-    final PdfBrush blackBrush = PdfBrushes.black;
-
-    final businessName = business?.name ?? 'Demo';
-    final tin = business?.tinNumber?.toString() ?? '933000005';
-    final mrc = ebm?.mrc ?? '';
-
-    // Draw blue rectangle for the header background
-    const double headerHeight = 60;
-    graphics.drawRectangle(
-      brush: blueBrush,
-      bounds: Rect.fromLTWH(0, 0, pageSize.width, headerHeight),
-    );
-
-    // Draw "Z Report" title centered in the blue header
-    graphics.drawString('$reportType Report', titleFont,
-        brush: whiteBrush,
-        bounds: Rect.fromLTWH(0, 10, pageSize.width, 40),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center));
-
-    // Draw business details below the blue header, left aligned
-    double detailsY = headerHeight + 10;
-    graphics.drawString('Trade Name: ', labelFont,
-        brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    graphics.drawString(businessName, businessDetailsFont,
-        brush: blackBrush,
-        bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
-    detailsY += 18;
-    graphics.drawString('TIN: ', labelFont,
-        brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    graphics.drawString(tin.toString(), businessDetailsFont,
-        brush: blackBrush,
-        bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
-    detailsY += 18;
-    graphics.drawString('MRC: ', labelFont,
-        brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    graphics.drawString(mrc, businessDetailsFont,
-        brush: blackBrush,
-        bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
-    detailsY += 18;
-    graphics.drawString('Date: ', labelFont,
-        brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    if (reportType == "Z") {
-      // as it just cover one date
-      graphics.drawString('Date: ${DateFormat('yyyy-MM-dd').format(endDate)}',
-          businessDetailsFont,
-          brush: blackBrush,
-          bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
-    } else {
-      // this is X report it covers from previous Z report up to another date.
-      graphics.drawString(
-          'From: ${DateFormat('yyyy-MM-dd').format(startDate)} To: ${DateFormat('yyyy-MM-dd').format(endDate)}',
-          businessDetailsFont,
-          brush: blackBrush,
-          bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
-    }
-    detailsY += 25;
-
-    // Draw "All Transactions" subtitle centered and with blue color
-    graphics.drawString('All Transactions', subtitleFont,
-        brush:
-            PdfSolidBrush(PdfColor(173, 90, 48)), // brownish as in screenshot
-        bounds: Rect.fromLTWH(0, detailsY, pageSize.width, 20),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center));
   }
 
   void _drawContent(
@@ -291,6 +239,7 @@ class ReportService {
     double taxRateRefunds,
     int totalItemsSold,
     double totalDiscount, {
+    required double startY,
     required List<ITransaction> transactions,
     required Map<String, double> tsByMethod,
     required Map<String, double> psByMethod,
@@ -304,20 +253,17 @@ class ReportService {
     final PdfGridRow header = grid.headers.add(1)[0];
     header.cells[0].value = 'Description';
     header.cells[1].value = 'Amount (RWF)';
-    header.style.backgroundBrush =
-        PdfSolidBrush(PdfColor(173, 216, 230)); // Light Blue
-    header.style.textBrush = PdfBrushes.black;
-    header.style.font =
-        PdfStandardFont(PdfFontFamily.helvetica, 12, style: PdfFontStyle.bold);
+    ReportTheme.styleTableHeader(header);
 
-    // Helper function to add a title row
+    // Helper function to add a title row. Section rows keep their tinted band,
+    // so we record their indices to skip the alternating-row shading below.
+    final Set<int> sectionRowIndices = {};
     void addTitleRow(String title) {
       final PdfGridRow row = grid.rows.add();
       row.cells[0].value = title;
-      row.cells[0].style.font = PdfStandardFont(PdfFontFamily.helvetica, 10,
-          style: PdfFontStyle.bold);
-      row.cells[1].value = ''; // No value for title row
-      // row.isSpan = true; // Span across both columns
+      row.cells[1].value = '';
+      ReportTheme.styleSectionRow(row);
+      sectionRowIndices.add(grid.rows.count - 1);
     }
 
     // Helper function to add regular data rows
@@ -349,23 +295,21 @@ class ReportService {
     // Tax Amounts section
     addTitleRow('Tax Amounts');
     salesByPaymentMethod.forEach((method, amount) {
-      addRow('  ${method.toUpperCase()} (NS)',
-          (amount * 0.18).toCurrencyFormatted());
+      addRow(
+        '  ${method.toUpperCase()} (NS)',
+        (amount * 0.18).toCurrencyFormatted(),
+      );
     });
     refundsByPaymentMethod.forEach((method, amount) {
-      addRow('  ${method.toUpperCase()} (NR)',
-          (amount * 0.18).toCurrencyFormatted());
+      addRow(
+        '  ${method.toUpperCase()} (NR)',
+        (amount * 0.18).toCurrencyFormatted(),
+      );
     });
 
     // Count different receipt types
     final receiptTypeCounts = transactions.fold<Map<String, int>>(
-      {
-        'CS': 0,
-        'CR': 0,
-        'TS': 0,
-        'TR': 0,
-        'PS': 0,
-      },
+      {'CS': 0, 'CR': 0, 'TS': 0, 'TR': 0, 'PS': 0},
       (counts, t) {
         final type = t.receiptType;
         if (type != null && counts.containsKey(type)) {
@@ -390,7 +334,8 @@ class ReportService {
 
     // Payment split section
     addTitleRow(
-        'Total Sales divided according to means of payment for sales (NS) and refund (NR) receipts');
+      'Total Sales divided according to means of payment for sales (NS) and refund (NR) receipts',
+    );
     salesByPaymentMethod.forEach((method, amount) {
       addRow('  ${method.toUpperCase()} (NS)', amount.toCurrencyFormatted());
     });
@@ -413,12 +358,14 @@ class ReportService {
     addRow('All discounts', totalDiscount.toCurrencyFormatted());
     addRow('Number of incomplete sales', '0');
     addRow(
-        'Other registrations that have reduced the day sales and their amount',
-        'None');
+      'Other registrations that have reduced the day sales and their amount',
+      'None',
+    );
 
     // Grid styling
-    grid.columns[0].width = 300;
-    grid.columns[1].width = 200;
+    final double contentWidth = pageSize.width - ReportTheme.margin * 2;
+    grid.columns[0].width = contentWidth * 0.64;
+    grid.columns[1].width = contentWidth * 0.36;
     grid.style.cellPadding = PdfPaddings(left: 5, right: 5, top: 5, bottom: 5);
     grid.style.font = PdfStandardFont(PdfFontFamily.helvetica, 10);
 
@@ -447,21 +394,24 @@ class ReportService {
       }
     }
 
-    // Add alternating row colors for better readability
+    // Add alternating row colors for better readability (skip section bands).
     for (int i = 0; i < grid.rows.count; i++) {
+      if (sectionRowIndices.contains(i)) continue;
       if (i % 2 == 0) {
-        grid.rows[i].style.backgroundBrush =
-            PdfSolidBrush(PdfColor(245, 245, 245));
+        grid.rows[i].style.backgroundBrush = PdfSolidBrush(
+          PdfColor(245, 245, 245),
+        );
       }
     }
 
-    // Increase vertical space between subtitle and table
-    final double estimatedHeaderHeight =
-        197; // header (60) + details (4*18+3*0) + subtitle (20) + padding (10+25+10)
     grid.draw(
       page: page,
-      bounds: Rect.fromLTWH(0, estimatedHeaderHeight, pageSize.width,
-          pageSize.height - estimatedHeaderHeight - 50),
+      bounds: Rect.fromLTWH(
+        ReportTheme.margin,
+        startY,
+        pageSize.width - ReportTheme.margin * 2,
+        pageSize.height - startY - 60,
+      ),
     );
   }
 
