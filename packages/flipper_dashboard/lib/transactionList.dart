@@ -478,14 +478,6 @@ class TransactionListState extends ConsumerState<TransactionList>
           },
           isLoading: _isExporting,
         ),
-        const SizedBox(width: 8),
-        _buildActionButton(
-          icon: Icons.print_outlined,
-          tooltip: 'Print',
-          onTap: () {
-            // TODO: Implement
-          },
-        ),
         const SizedBox(width: 12),
         Container(width: 1, height: 28, color: const Color(0xFFE5E7EB)),
         const SizedBox(width: 12),
