@@ -1,11 +1,12 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
+import 'package:flipper_dashboard/export/utils/report_theme.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -87,7 +88,7 @@ class PdfHelper {
 
     // Create pen for borders
     final borderPen = PdfPen(PdfColor(100, 100, 100), width: 0.5);
-    final headerBrush = PdfSolidBrush(PdfColor(220, 220, 220));
+    final headerBrush = PdfSolidBrush(ReportTheme.primaryBlue);
 
     // Draw table header
     double x = margin;
@@ -118,6 +119,7 @@ class PdfHelper {
       page.graphics.drawString(
         headers[i],
         boldFont,
+        brush: PdfSolidBrush(ReportTheme.white),
         bounds: ui.Rect.fromLTWH(
           currentX + cellPadding,
           y + (headerHeight - boldFont.height) / 2,
@@ -178,6 +180,7 @@ class PdfHelper {
           page.graphics.drawString(
             headers[i],
             boldFont,
+            brush: PdfSolidBrush(ReportTheme.white),
             bounds: ui.Rect.fromLTWH(
               currentX + cellPadding,
               y + (headerHeight - boldFont.height) / 2,
@@ -272,17 +275,18 @@ class PLUReport {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final business = await ProxyService.strategy.getBusiness(
+    final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
       businessId: ProxyService.box.getBusinessId()!,
     );
 
-    // Fetch transactions with their items
-    final transactionsWithItems = await ProxyService.strategy
-        .transactionsAndItems(
-          startDate: startDate,
-          endDate: endDate,
-          status: COMPLETE,
-        );
+    // Fetch transactions with their items (Capella-backed; see helper docs).
+    final transactionsWithItems = await loadTransactionsWithItemsForReport(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: ProxyService.box.getBranchId()!,
+      forceRealData: !(ProxyService.box.enableDebug() ?? false),
+      status: COMPLETE,
+    );
 
     // Extract all transaction items
     final List<TransactionItem> allItems = transactionsWithItems
@@ -303,6 +307,8 @@ class PLUReport {
     // Prepare report data
     final List<Map<String, dynamic>> reportData = [];
     int i = 1;
+    double totalSoldQty = 0;
+    double totalRemaining = 0;
 
     for (final entry in groupedItems.entries) {
       final variantId = entry.key;
@@ -310,12 +316,14 @@ class PLUReport {
       if (items.isEmpty) continue;
 
       // Get variant details from database
-      final variant = await ProxyService.strategy.getVariant(id: variantId);
+      final variant = await ProxyService.getStrategy(Strategy.capella).getVariant(id: variantId);
 
       if (variant == null) continue;
       talker.info(variant.id, "${variant.lastTouched}:${variant.name}");
       // Calculate totals
       final soldQty = items.fold<double>(0, (sum, item) => sum + item.qty);
+      totalSoldQty += soldQty;
+      totalRemaining += variant.stock?.currentStock ?? 0;
 
       // Use tax percentage from the first item
       reportData.add({
@@ -332,82 +340,50 @@ class PLUReport {
 
     // Create a new PDF document
     final document = PdfDocument();
-    var page = document.pages.add();
+    final page = document.pages.add();
     final pageSize = page.getClientSize();
 
-    // Set font
-    final headerFont = PdfStandardFont(
-      PdfFontFamily.helvetica,
-      20,
-      style: PdfFontStyle.bold,
-    );
-    final titleFont = PdfStandardFont(
-      PdfFontFamily.helvetica,
-      12,
-      style: PdfFontStyle.bold,
-    );
+    // Branded footer (logo, "Powered by Flipper", timestamp, page numbers).
+    document.template.bottom = await ReportTheme.buildFooter(pageSize);
+
     final normalFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
-    final boldFont = PdfStandardFont(
-      PdfFontFamily.helvetica,
-      9,
-      style: PdfFontStyle.bold,
+    final boldFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 9, style: PdfFontStyle.bold);
+    const double margin = ReportTheme.margin;
+
+    final ebm = await ProxyService.getStrategy(Strategy.capella)
+        .ebm(branchId: ProxyService.box.getBranchId()!);
+
+    final DateFormat periodFmt = DateFormat('MMMM dd, yyyy');
+    double yPosition = ReportTheme.drawHeader(
+      page,
+      pageSize,
+      reportTitle: 'PLU Report',
+      business: business,
+      ebm: ebm,
+      periodText:
+          'Report Period: ${periodFmt.format(startDate)} - ${periodFmt.format(endDate)}',
     );
-
-    // Draw header
-    double yPosition = 30; // Start below top margin
-    final double margin = 30;
-
-    // Report title - centered
-    page.graphics.drawString(
-      'PLU REPORT',
-      headerFont,
-      bounds: ui.Rect.fromLTWH(0, yPosition, pageSize.width, headerFont.height),
-      format: PdfStringFormat(alignment: PdfTextAlignment.center),
-    );
-    yPosition += 35;
-
-    // Business info
-    page.graphics.drawString(
-      business?.name ?? 'N/A',
-      titleFont,
-      bounds: ui.Rect.fromLTWH(
-        margin,
-        yPosition,
-        pageSize.width - (2 * margin),
-        titleFont.height,
+    yPosition = ReportTheme.drawSummaryCards(page, pageSize, yPosition, [
+      ReportKpiCard(
+        value: reportData.length.toString(),
+        label: 'PLU Items',
+        color: ReportTheme.primaryBlue,
       ),
-      format: PdfStringFormat(alignment: PdfTextAlignment.left),
-    );
-    yPosition += 20;
-
-    page.graphics.drawString(
-      'TIN: ${business?.tinNumber ?? 'N/A'}',
-      normalFont,
-      bounds: ui.Rect.fromLTWH(
-        margin,
-        yPosition,
-        pageSize.width - (2 * margin),
-        normalFont.height,
+      ReportKpiCard(
+        value: totalSoldQty.toStringAsFixed(2),
+        label: 'Units Sold',
+        color: ReportTheme.accentPurple,
       ),
-      format: PdfStringFormat(alignment: PdfTextAlignment.left),
-    );
-    yPosition += 15;
-
-    page.graphics.drawString(
-      'Date: ${DateFormat('yyyy-MM-dd').format(startDate)} - ${DateFormat('yyyy-MM-dd').format(endDate)}',
-      normalFont,
-      bounds: ui.Rect.fromLTWH(
-        margin,
-        yPosition,
-        pageSize.width - (2 * margin),
-        normalFont.height,
+      ReportKpiCard(
+        value: totalRemaining.toStringAsFixed(2),
+        label: 'Units In Stock',
+        color: ReportTheme.accentGreen,
       ),
-      format: PdfStringFormat(alignment: PdfTextAlignment.left),
-    );
-    yPosition += 25;
+    ]);
 
     // Draw table
-    yPosition = await PdfHelper.drawTable(
+    await PdfHelper.drawTable(
       document: document,
       page: page,
       data: reportData,
@@ -417,72 +393,6 @@ class PLUReport {
       normalFont: normalFont,
       boldFont: boldFont,
     );
-
-    // Add footer with logo and generation info
-    yPosition = max(
-      yPosition,
-      page.getClientSize().height - 120,
-    ); // Ensure footer is at least 120 from bottom
-
-    // Ensure we have enough space for footer
-    if (yPosition > page.getClientSize().height - 150) {
-      page = document.pages.add();
-      yPosition = 40;
-    }
-
-    // Draw generation info
-    page.graphics.drawString(
-      'Generated on: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())}',
-      PdfStandardFont(PdfFontFamily.helvetica, 8),
-      bounds: ui.Rect.fromLTWH(
-        margin,
-        yPosition,
-        pageSize.width - (2 * margin),
-        10,
-      ),
-      format: PdfStringFormat(alignment: PdfTextAlignment.center),
-    );
-    yPosition += 15;
-
-    // Draw Flipper logo and footer text
-    try {
-      final ByteData imageData = await rootBundle.load(
-        'packages/receipt/assets/flipper_logo.png',
-      );
-      final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
-      const double logoWidth = 25;
-      const double logoHeight = 25;
-      final double xLogoPosition = (pageSize.width - logoWidth) / 2;
-
-      // Draw logo
-      page.graphics.drawImage(
-        logoImage,
-        ui.Rect.fromLTWH(xLogoPosition, yPosition, logoWidth, logoHeight),
-      );
-
-      // Add powered by text below logo
-      final PdfFont footerFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
-      page.graphics.drawString(
-        'Powered by flipper',
-        footerFont,
-        bounds: ui.Rect.fromLTWH(
-          0,
-          yPosition + logoHeight + 5,
-          pageSize.width,
-          15,
-        ),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center),
-      );
-    } catch (e) {
-      // If logo loading fails, just add text fallback
-      debugPrint('Failed to load logo: $e');
-      page.graphics.drawString(
-        'Powered by Flipper POS',
-        PdfStandardFont(PdfFontFamily.helvetica, 9),
-        bounds: ui.Rect.fromLTWH(0, yPosition, pageSize.width, 15),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center),
-      );
-    }
 
     try {
       // Save the document

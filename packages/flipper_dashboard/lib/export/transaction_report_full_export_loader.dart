@@ -7,6 +7,7 @@ import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// Full-range Transaction Reports snapshot for export — batched reads (still materializes outputs).
@@ -53,6 +54,75 @@ Future<TransactionReportSnapshot> loadTransactionReportSnapshotFullForExport({
     paymentSumsByTransactionId: sums,
     totalRowCount: total,
   );
+}
+
+/// Transactions + their line items for the legacy Z / X / Sale / PLU report
+/// builders, sourced from Capella (Ditto) like the rest of Transaction Reports.
+///
+/// The strategy-default `transactionsAndItems` is **unimplemented** on Capella,
+/// and `ProxyService.strategy` resolves to the legacy SQLite store off-web — so
+/// these builders previously read an empty/stale store and reported zeros even
+/// though the on-screen report (Capella) had data. This reuses the same paging
+/// window + `transactionItemsForIds` path the UI/export use, so reports match
+/// the grid on every platform.
+///
+/// Item-less transactions are kept so money totals (subTotal/tax) line up with
+/// the on-screen report; per-item logic tolerates an empty list. Pass [status]
+/// to restrict to a single transaction status (e.g. COMPLETE).
+Future<List<TransactionWithItems>> loadTransactionsWithItemsForReport({
+  required DateTime startDate,
+  required DateTime endDate,
+  required String branchId,
+  required bool forceRealData,
+  String? status,
+}) async {
+  final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
+
+  // 1) All report-scoped transactions in range (batched paging window).
+  const batchSize = 2000;
+  var offset = 0;
+  final all = <ITransaction>[];
+  while (true) {
+    final batch = await capella.pageTransactionsReportPagingWindow(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+      forceRealData: forceRealData,
+      limit: batchSize,
+      offset: offset,
+    );
+    if (batch.isEmpty) break;
+    final scoped = transactionReportScopeFilter(batch);
+    all.addAll(
+      status == null ? scoped : scoped.where((t) => t.status == status),
+    );
+    offset += batch.length;
+  }
+  if (all.isEmpty) return const [];
+
+  // 2) Their line items, grouped by transactionId.
+  final itemsByTx = <String, List<TransactionItem>>{};
+  final ids = all
+      .map((t) => t.id.toString())
+      .where((s) => s.isNotEmpty)
+      .toList();
+  const chunk = 200;
+  for (var i = 0; i < ids.length; i += chunk) {
+    final end = min(i + chunk, ids.length);
+    final grouped = await capella.transactionItemsForIds(ids.sublist(i, end));
+    grouped.forEach(
+      (k, v) => itemsByTx.putIfAbsent(k, () => <TransactionItem>[]).addAll(v),
+    );
+  }
+
+  // 3) Assemble in the order returned by the paging window.
+  return [
+    for (final t in all)
+      TransactionWithItems(
+        transaction: t,
+        items: itemsByTx[t.id.toString()] ?? const <TransactionItem>[],
+      ),
+  ];
 }
 
 /// PLU rows for already-filtered **sales** transactions (same scope as export).

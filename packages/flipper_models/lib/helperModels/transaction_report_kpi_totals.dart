@@ -6,6 +6,8 @@ class TransactionReportKpiTotals {
     this.pluLineTax = 0,
     this.periodByHand = 0,
     this.periodCredit = 0,
+    this.periodOwed = 0,
+    this.periodSubtotal = 0,
   });
 
   /// Sum of PLU line revenue (price × qty) for non-expense sales in scope.
@@ -22,4 +24,14 @@ class TransactionReportKpiTotals {
 
   /// Non-expense period totals from CREDIT splits.
   final double periodCredit;
+
+  /// Sum of unpaid balances (`remainingBalance`, clamped to subTotal) for
+  /// non-expense sales in scope — i.e. money owed / "Balance Due".
+  final double periodOwed;
+
+  /// Sum of `subTotal` for non-expense sales in scope. Used as the headline
+  /// "Total Sales" so the money cards partition cleanly:
+  /// `periodSubtotal == collected + periodOwed`, where collected =
+  /// `periodSubtotal - periodOwed`.
+  final double periodSubtotal;
 }
