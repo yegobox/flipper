@@ -439,14 +439,22 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
   var pluGrossProfit = 0.0;
   var pluLineTax = 0.0;
   for (final item in periodLines) {
-    if (transactionReportCashMovementPluLine(item)) continue;
-    pluLineSales += item.price.toDouble() * item.qty.toDouble();
-    pluGrossProfit += TransactionItemPluMetrics.profitMade(item);
-    pluLineTax += TransactionItemPluMetrics.taxPayable(item);
+    // A single malformed line (e.g. null price/qty arriving from Ditto into a
+    // non-nullable field) must not crash the whole KPI computation.
+    try {
+      if (transactionReportCashMovementPluLine(item)) continue;
+      pluLineSales += item.price.toDouble() * item.qty.toDouble();
+      pluGrossProfit += TransactionItemPluMetrics.profitMade(item);
+      pluLineTax += TransactionItemPluMetrics.taxPayable(item);
+    } catch (e) {
+      talker.warning('Skipping malformed PLU line in KPI totals: $e');
+    }
   }
 
   var periodByHand = 0.0;
   var periodCredit = 0.0;
+  var periodOwed = 0.0;
+  var periodSubtotal = 0.0;
 
   const batchTx = 500;
   var offset = 0;
@@ -473,6 +481,12 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
       final s = sums[tx.id.toString()];
       periodByHand += transactionReportByHandForTotals(tx, s);
       periodCredit += transactionReportCreditForTotals(tx, s);
+      // Clean partition: Total Sales (subTotal) = Collected + Owed, where
+      // Owed is the unpaid balance clamped to the sale amount.
+      final sub = tx.subTotal ?? 0.0;
+      periodSubtotal += sub;
+      final rb = (tx.remainingBalance ?? 0).toDouble();
+      periodOwed += rb <= 0.01 ? 0.0 : (rb > sub ? sub : rb);
     }
 
     offset += batch.length;
@@ -484,6 +498,8 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
     pluLineTax: pluLineTax,
     periodByHand: periodByHand,
     periodCredit: periodCredit,
+    periodOwed: periodOwed,
+    periodSubtotal: periodSubtotal,
   );
 }
 

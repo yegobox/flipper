@@ -67,25 +67,19 @@ class TransactionReportKpiStrip extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  isLoading
-                      ? SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: color,
-                          ),
-                        )
-                      : Text(
-                          displayTotal.toCurrencyFormatted(
+                  Text(
+                    // Placeholder dash while the period totals are still loading.
+                    isLoading
+                        ? '—'
+                        : displayTotal.toCurrencyFormatted(
                             symbol: ProxyService.box.defaultCurrency(),
                           ),
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: color,
-                          ),
-                        ),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -105,7 +99,9 @@ class TransactionReportKpiStrip extends ConsumerWidget {
       return _summaryCard('Net Profit', 0.0, true, Colors.purple);
     }
 
-    final kpi = kpiAsync.value ?? const TransactionReportKpiTotals();
+    // asData?.value (not .value) so an AsyncError degrades to zeros instead of
+    // rethrowing synchronously and crashing the whole KPI strip.
+    final kpi = kpiAsync.asData?.value ?? const TransactionReportKpiTotals();
     final gross = kpi.pluGrossProfit;
     final tax = kpi.pluLineTax;
     final kpiLoading = kpiAsync.isLoading;
@@ -153,7 +149,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         Expanded(
           child: _summaryCard(
             'Total Sales',
-            kpi?.pluLineSales,
+            kpi?.periodSubtotal,
             loading,
             Colors.green,
           ),
@@ -171,6 +167,9 @@ class TransactionReportKpiStrip extends ConsumerWidget {
   ) {
     final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
     final kpi = kpiAsync.asData?.value;
+    // Collected = Total Sales (subTotal) − Owed, so the cards partition exactly.
+    final collected =
+        kpi == null ? null : (kpi.periodSubtotal - kpi.periodOwed);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,7 +178,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         Expanded(
           child: _summaryCard(
             'Total Sales',
-            kpi?.pluLineSales,
+            kpi?.periodSubtotal,
             loading,
             Colors.green,
           ),
@@ -189,8 +188,8 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _summaryCard(
-            'Period \u2014 By Hand',
-            kpi?.periodByHand,
+            'Collected',
+            collected,
             loading,
             Colors.teal,
           ),
@@ -198,10 +197,10 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _summaryCard(
-            'Period \u2014 Credit',
-            kpi?.periodCredit,
+            'Owed',
+            kpi?.periodOwed,
             loading,
-            Colors.deepOrange,
+            Colors.brown,
           ),
         ),
         const SizedBox(width: 12),

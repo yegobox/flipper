@@ -2501,20 +2501,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   /// WHERE clause matching [transactionsStream] Transaction Reports semantics:
-  /// current [agentId], [createdAt] window, adjustment filter, COMPLETE+PARKED
-  /// (drops WAITING_MOMO for stable paging aligned with UI scope).
+  /// branch-wide (all cashiers), [createdAt] window, adjustment filter,
+  /// COMPLETE+PARKED (drops WAITING_MOMO for stable paging aligned with UI
+  /// scope). Intentionally NOT agent-scoped so the report and its KPIs cover
+  /// every cashier in the branch, matching the branch-wide line-item totals.
   ({String clause, Map<String, dynamic> arguments})
   _transactionsReportPagingWhere({
     required DateTime startDate,
     required DateTime endDate,
     required String branchId,
   }) {
-    final agentId = ProxyService.box.getUserId();
-    if (agentId == null || agentId.isEmpty) {
-      throw StateError(
-        'Agent id is required for report-scoped transaction paging',
-      );
-    }
     final localStartDate = DateTime(
       startDate.year,
       startDate.month,
@@ -2530,7 +2526,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       999,
     );
     final whereClauses = <String>[
-      'agentId = :agentId',
       '(status = :statusComplete OR status = :statusParked)',
       'subTotal > 0',
       'branchId = :branchId',
@@ -2538,7 +2533,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'createdAt >= :startDate AND createdAt <= :endDate',
     ];
     final arguments = <String, dynamic>{
-      'agentId': agentId,
       'statusComplete': COMPLETE,
       'statusParked': PARKED,
       'branchId': branchId,
