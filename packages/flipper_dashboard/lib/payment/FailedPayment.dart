@@ -4,6 +4,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
@@ -472,7 +473,13 @@ class _FailedPaymentState extends State<FailedPayment>
                   locator<RouterService>().navigateTo(FlipperAppRoute());
                 }
               }
-            });
+            },
+            onError: (error, stackTrace) => logSupabaseRealtimeError(
+              error,
+              source: 'plans failed payment',
+              stackTrace: stackTrace,
+            ),
+          );
       } catch (_) {
         // Subscription fails when offline; initial plan came from Ditto / getPaymentPlan
       }

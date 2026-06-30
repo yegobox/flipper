@@ -1,5 +1,7 @@
 // ignore_for_file: unused_result
 
+import 'dart:async';
+
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
@@ -8,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
 
 class AddBranch extends StatefulHookConsumerWidget {
   @override
@@ -23,11 +26,33 @@ class _AddBranchState extends ConsumerState<AddBranch> {
   String? _nameError;
   String? _locationError;
 
+  bool _isDefaultBranch(Branch branch) => branch.isDefault == true;
+
+  bool _canDeleteBranch(Branch branch, List<Branch> branches) {
+    if (_isDefaultBranch(branch)) return false;
+    if (branches.length <= 1) return false;
+    return true;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshBranchesFromSupabase());
+  }
+
+  Future<void> _refreshBranchesFromSupabase() async {
+    if (!mounted) return;
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null) return;
+    await hydrateBusinessBranchesFromRemote(businessId: businessId);
+    if (!mounted) return;
+    ref.invalidate(branchesProvider(businessId: businessId));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final branches = ref.watch(
-      branchesProvider(businessId: ProxyService.box.getBusinessId()),
-    );
+    final businessId = ProxyService.box.getBusinessId();
+    final branches = ref.watch(branchesProvider(businessId: businessId));
     final isProcessing = ref.watch(isProcessingProvider);
 
     return Scaffold(
@@ -216,7 +241,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     );
   }
 
-  Widget _buildBranchesList(List<dynamic> branches) {
+  Widget _buildBranchesList(List<Branch> branches) {
     if (branches.isEmpty) {
       return Center(
         child: Text('No branches found', style: TextStyle(color: Colors.grey)),
@@ -227,6 +252,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       separatorBuilder: (context, index) => Divider(height: 1),
       itemBuilder: (context, index) {
         final branch = branches[index];
+        final canDelete = _canDeleteBranch(branch, branches);
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Row(
@@ -304,14 +330,14 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                   ),
                 ),
               SizedBox(width: 8),
-              if (branch.isDefault != true)
+              if (canDelete)
                 IconButton(
                   icon: Icon(
                     Icons.delete_outline,
                     color: Colors.red.shade400,
                     size: 20,
                   ),
-                  onPressed: () => _showDeleteDialog(branch),
+                  onPressed: () => _showDeleteDialog(branch, branches: branches),
                   splashRadius: 20,
                   tooltip: 'Delete Branch',
                 ),
@@ -322,7 +348,21 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     );
   }
 
-  Future<void> _showDeleteDialog(dynamic branch) async {
+  Future<void> _showDeleteDialog(
+    Branch branch, {
+    required List<Branch> branches,
+  }) async {
+    if (!_canDeleteBranch(branch, branches)) {
+      if (!mounted) return;
+      final message = _isDefaultBranch(branch)
+          ? 'The default branch cannot be deleted'
+          : 'You must keep at least one branch';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      return;
+    }
+
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -343,13 +383,26 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       },
     ).then((confirmed) async {
       if (confirmed ?? false) {
-        await ProxyService.strategy.deleteBranch(
-          branchId: branch.id!,
-          flipperHttpClient: ProxyService.http,
-        );
-        ref.refresh(
-          branchesProvider(businessId: ProxyService.box.getBusinessId()),
-        );
+        if (!_canDeleteBranch(branch, branches)) return;
+        try {
+          await ProxyService.strategy.deleteBranch(
+            branchId: branch.id,
+            flipperHttpClient: ProxyService.http,
+          );
+          await _refreshBranchesFromSupabase();
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                e.toString().contains('Default branch')
+                    ? 'The default branch cannot be deleted'
+                    : 'Could not delete branch',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     });
   }
@@ -367,9 +420,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
           userOwnerPhoneNumber: ProxyService.box.getUserPhone()!,
           flipperHttpClient: ProxyService.http,
         );
-        ref.refresh(
-          branchesProvider(businessId: ProxyService.box.getBusinessId()),
-        );
+        await _refreshBranchesFromSupabase();
         _nameController.clear();
         _locationController.clear();
         setState(() {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 
@@ -22,7 +23,14 @@ class CreditData extends ChangeNotifier {
           .stream(primaryKey: ['id'])
           .eq('branch_id', branchId)
           .limit(1)
-          .listen(_updateCreditData);
+          .listen(
+            _updateCreditData,
+            onError: (error, stackTrace) => logSupabaseRealtimeError(
+              error,
+              source: 'credits',
+              stackTrace: stackTrace,
+            ),
+          );
     }
   }
 

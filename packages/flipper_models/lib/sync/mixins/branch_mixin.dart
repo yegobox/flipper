@@ -66,6 +66,7 @@ mixin BranchMixin implements BranchInterface {
           longitude: longitude,
           latitude: latitude,
           isDefault: isDefault,
+          active: active,
         ),
         policy: OfflineFirstUpsertPolicy.localOnly,
       );
@@ -112,6 +113,7 @@ mixin BranchMixin implements BranchInterface {
       throw Exception('Branch not found');
     }
     branchs.isDefault = isDefault ?? branchs.isDefault;
+    branchs.active = active ?? branchs.active;
 
     await saveBranch(branchs);
   }

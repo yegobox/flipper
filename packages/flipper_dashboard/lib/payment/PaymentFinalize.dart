@@ -7,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_services/PaymentHandler.dart';
+import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
@@ -81,7 +82,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
             if (updatedPlan.paymentCompletedByUser == true) {
               locator<RouterService>().navigateTo(FlipperAppRoute());
             }
-          });
+          },
+          onError: (error, stackTrace) => logSupabaseRealtimeError(
+            error,
+            source: 'plans finalize',
+            stackTrace: stackTrace,
+          ),
+        );
     } catch (e) {
       if (!_mounted || !context.mounted) return;
       ScaffoldMessenger.of(

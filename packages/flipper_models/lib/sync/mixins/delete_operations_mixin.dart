@@ -4,10 +4,42 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 mixin DeleteOperationsMixin implements DeleteOperationsInterface {
   Repository get repository;
   String get apihub;
+
+  Future<Branch?> _findBranchForDelete(String branchId) async {
+    final byId = await repository.get<Branch>(
+      query: Query(where: [Where('id').isExactly(branchId)]),
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+    if (byId.isNotEmpty) return byId.first;
+
+    final byServerId = await repository.get<Branch>(
+      query: Query(where: [Where('serverId').isExactly(branchId)]),
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+    return byServerId.firstOrNull;
+  }
+
+  Future<void> _assertBranchCanBeDeleted(Branch branch) async {
+    if (branch.isDefault == true) {
+      throw Exception('Default branch cannot be deleted');
+    }
+
+    final businessId = branch.businessId;
+    if (businessId == null) return;
+
+    final siblings = await repository.get<Branch>(
+      query: Query(where: [Where('businessId').isExactly(businessId)]),
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+    if (siblings.length <= 1) {
+      throw Exception('Cannot delete the only branch');
+    }
+  }
 
   @override
   Future<void> deleteBranch({
@@ -15,16 +47,17 @@ mixin DeleteOperationsMixin implements DeleteOperationsInterface {
     required HttpClientInterface flipperHttpClient,
   }) async {
     try {
+      final branch = await _findBranchForDelete(branchId);
+      if (branch != null) {
+        await _assertBranchCanBeDeleted(branch);
+      }
+
       await flipperHttpClient
           .delete(Uri.parse('$apihub/v2/api/branch/$branchId'));
 
-      Branch? branch = (await repository.get<Branch>(
-        query: Query(where: [Where('serverId').isExactly(branchId)]),
-      ))
-          .firstOrNull;
-
-      if (branch != null) {
-        await repository.delete<Branch>(branch);
+      final branchToRemove = branch ?? await _findBranchForDelete(branchId);
+      if (branchToRemove != null) {
+        await repository.delete<Branch>(branchToRemove);
       }
     } catch (e, s) {
       talker.error(e);

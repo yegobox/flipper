@@ -1,4 +1,5 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -123,9 +124,11 @@ mixin PaymentHandler {
               locator<RouterService>().navigateTo(FlipperAppRoute());
             }
           },
-          onError: (error) {
-            talker.warning(error);
-          },
+          onError: (error, stackTrace) => logSupabaseRealtimeError(
+            error,
+            source: 'plans payment',
+            stackTrace: stackTrace,
+          ),
         );
     return paymentReference;
   }
