@@ -4,6 +4,7 @@ import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -895,6 +896,13 @@ mixin AuthMixin implements AuthInterface {
 
       await _initializeDitto(userId, loginFastPath: true);
       await ProxyService.ditto.saveUserAccess(responseBody);
+
+      for (final business in businessesData) {
+        if (business is! Map) continue;
+        final businessId = business['id']?.toString();
+        if (businessId == null || businessId.isEmpty) continue;
+        unawaited(hydrateBusinessBranchesFromRemote(businessId: businessId));
+      }
 
       return http.Response(
         jsonEncode(responseBody),

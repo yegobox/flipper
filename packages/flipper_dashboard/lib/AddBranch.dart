@@ -413,7 +413,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
         ref.read(isProcessingProvider.notifier).startProcessing();
         await ProxyService.strategy.addBranch(
           isDefault: false,
-          active: false,
+          active: true,
           name: _nameController.text,
           businessId: ProxyService.box.getBusinessId()!,
           location: _locationController.text,
