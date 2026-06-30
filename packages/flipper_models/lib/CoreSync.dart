@@ -1840,26 +1840,26 @@ class CoreSync extends AiStrategyImpl
         throw Exception('Business userId is null');
       }
 
-      // Step 4: Save PIN locally
+      // Step 4: Cache PIN locally only — POST /business already created it on the server.
+      // A remote upsert here previously inserted a second pins row (id = userId).
       Pin? savedPin;
       try {
-        talker.info('Signup: Saving PIN locally');
-        savedPin = await savePin(
-          pin: Pin(
-            userId: bus.userId,
-            id: bus.userId.toString(),
-            branchId: bus.id,
-            businessId: bus.id,
-            ownerName: business['name'] ?? '',
-            phoneNumber: business['phoneNumber'] ?? '',
-          ),
+        talker.info('Signup: Caching PIN locally (server already provisioned)');
+        final pinToCache = Pin(
+          userId: bus.userId,
+          id: bus.userId.toString(),
+          branchId: bus.id,
+          businessId: bus.id,
+          ownerName: business['name'] ?? '',
+          phoneNumber: business['phoneNumber'] ?? '',
         );
-
-        if (savedPin == null) {
-          talker.error('Signup: Failed to save PIN');
-          throw Exception('Failed to save PIN');
-        }
-        talker.info('Signup: PIN saved successfully');
+        final query = brick.Query.where('userId', pinToCache.userId, limit1: true);
+        savedPin = await repository.upsert(
+          pinToCache,
+          query: query,
+          policy: OfflineFirstUpsertPolicy.localOnly,
+        );
+        talker.info('Signup: PIN cached locally');
       } catch (e, s) {
         talker.error('Signup: Error in saving PIN: $e', s);
         throw e;
