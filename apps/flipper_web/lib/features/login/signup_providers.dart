@@ -386,41 +386,13 @@ class SignupForm extends _$SignupForm {
           userId: userIdStr,
         );
 
-        Map<String, dynamic> created = Map<String, dynamic>.from(result);
-        if (created.containsKey('statusCode') && created.containsKey('body')) {
-          final body = created['body'];
-          if (body is String) {
-            try {
-              created = jsonDecode(body) as Map<String, dynamic>;
-            } catch (_) {}
-          } else if (body is Map<String, dynamic>) {
-            created = body;
-          }
+        if (result.containsKey('error')) {
+          throw Exception(result['error']?.toString() ?? 'Registration failed');
         }
 
-        final pinPayload = jsonEncode({
-          'userId': userIdStr,
-          'phoneNumber': phoneNumber,
-          'pin': userIdStr,
-          'branchId': created['server_id'],
-          'businessId': created['server_id'],
-          'defaultApp': 1,
-        });
-        if (kDebugMode) print('pinPayload: $pinPayload');
-        final pinResponse = await httpClient.post(
-          Uri.parse(
-            '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/pin',
-          ),
-          headers: {'Content-Type': 'application/json'},
-          body: pinPayload,
-        );
-
-        if (pinResponse.statusCode == 200 || pinResponse.statusCode == 201) {
-          state = state.copyWith(isSubmitting: false);
-          return true;
-        } else {
-          throw Exception('Failed to set up PIN: ${pinResponse.body}');
-        }
+        // POST /v2/api/business already provisions the PIN and sends SMS — do not POST /pin again.
+        state = state.copyWith(isSubmitting: false);
+        return true;
       }
 
       state = state.copyWith(isSubmitting: false);
