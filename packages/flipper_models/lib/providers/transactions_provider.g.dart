@@ -607,7 +607,7 @@ final class TransactionReportKpiTotalsProvider
 }
 
 String _$transactionReportKpiTotalsHash() =>
-    r'62b56a2c7b1b05e533dd53c97aee3b748e411177';
+    r'aea2b58196013229f995d84f56aaf27811b48721';
 
 @ProviderFor(expensesStream)
 const expensesStreamProvider = ExpensesStreamFamily._();

@@ -64,7 +64,7 @@ final class FetchMetricsProvider
   }
 }
 
-String _$fetchMetricsHash() => r'86d3fda28b0d29c8662a037ed56c49c6c27a89fb';
+String _$fetchMetricsHash() => r'c97ec630cef0f8b1ab4d4f3918b7c572a5b316a2';
 
 final class FetchMetricsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Metric>>, String> {
