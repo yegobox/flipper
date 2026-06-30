@@ -33,6 +33,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
   num? longitude;
   bool? isDefault;
   bool? isOnline;
+  bool? active;
   DateTime? deletedAt;
   DateTime? updatedAt;
 
@@ -47,6 +48,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
     this.longitude,
     this.isDefault = false,
     this.isOnline = false,
+    this.active = false,
     this.deletedAt,
     this.updatedAt,
   }) : id = id ?? const Uuid().v4();
@@ -78,6 +80,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
         longitude: longitude ?? this.longitude,
         isDefault: isDefault ?? this.isDefault,
         isOnline: isOnline ?? this.isOnline,
+        active: active ?? this.active,
         deletedAt: deletedAt ?? this.deletedAt,
         updatedAt: updatedAt ?? this.updatedAt);
   }
@@ -94,6 +97,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
       'longitude': longitude,
       'isDefault': isDefault,
       'isOnline': isOnline,
+      'active': active,
       'deletedAt': deletedAt,
       'updatedAt': updatedAt
     };
@@ -111,6 +115,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
       longitude: map['longitude'],
       isDefault: (map['isDefault'] ?? map['is_default']) as bool? ?? false,
       isOnline: (map['isOnline'] ?? map['is_online']) as bool? ?? false,
+      active: (map['active']) as bool? ?? false,
       deletedAt: (map['deletedAt'] ?? map['deleted_at']) != null
           ? DateTime.tryParse((map['deletedAt'] ?? map['deleted_at']) as String)
           : null,

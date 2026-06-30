@@ -12,7 +12,9 @@ Future<Ebm> _$EbmFromSupabase(
     tinNumber: data['tin_number'] as int,
     dvcSrlNo: data['dvc_srl_no'] as String,
     userId: data['user_id'] == null ? null : data['user_id'] as String?,
-    taxServerUrl: data['tax_server_url'] as String,
+    taxServerUrl: data['tax_server_url'] == null
+        ? null
+        : data['tax_server_url'] as String?,
     businessId: data['business_id'] as String,
     branchId: data['branch_id'] as String,
     vatEnabled: data['vat_enabled'] == null
@@ -60,7 +62,9 @@ Future<Ebm> _$EbmFromSqlite(
     tinNumber: data['tin_number'] as int,
     dvcSrlNo: data['dvc_srl_no'] as String,
     userId: data['user_id'] == null ? null : data['user_id'] as String?,
-    taxServerUrl: data['tax_server_url'] as String,
+    taxServerUrl: data['tax_server_url'] == null
+        ? null
+        : data['tax_server_url'] as String?,
     businessId: data['business_id'] as String,
     branchId: data['branch_id'] as String,
     vatEnabled: data['vat_enabled'] == null ? null : data['vat_enabled'] == 1,

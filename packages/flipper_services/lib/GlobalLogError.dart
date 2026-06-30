@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'package:flipper_services/log_service.dart';
+import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 
@@ -32,6 +33,10 @@ class GlobalErrorHandler {
 
     // Catch errors outside of Flutter framework (async errors, etc.)
     PlatformDispatcher.instance.onError = (error, stack) {
+      if (isBenignSupabaseRealtimeError(error)) {
+        logSupabaseRealtimeError(error, stackTrace: stack);
+        return true;
+      }
       _logService.logException(
         error,
         stackTrace: stack,
@@ -133,6 +138,10 @@ class GlobalErrorHandler {
         runApp(app);
       },
       (error, stackTrace) {
+        if (isBenignSupabaseRealtimeError(error)) {
+          logSupabaseRealtimeError(error, stackTrace: stackTrace);
+          return;
+        }
         // This catches any errors not caught by Flutter
         GlobalErrorHandler.logError(
           error,

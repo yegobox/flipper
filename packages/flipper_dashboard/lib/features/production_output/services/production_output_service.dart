@@ -375,7 +375,9 @@ class ProductionOutputService {
 
       // 3. Prepare RRA items if EBM is enabled
       final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-      final isEbmEnabled = ebm != null && (ebm.vatEnabled ?? false);
+      final taxUrl = ebm?.taxServerUrl;
+      final isEbmEnabled =
+          ebm != null && (ebm.vatEnabled ?? false) && taxUrl != null && taxUrl.isNotEmpty;
       final rraItems = <models.TransactionItem>[];
 
       // 4. If no composites, treat the variant itself as the raw material
@@ -443,7 +445,7 @@ class ProductionOutputService {
               totalAmount: supplyPrice * plannedQty,
               remark: 'Manufacturing Usage: ${workOrder.variantName}',
               ocrnDt: DateTime.now().toUtc(),
-              URI: ebm.taxServerUrl,
+              URI: taxUrl!,
             );
 
             // Save stock master for the raw material variant
@@ -451,7 +453,7 @@ class ProductionOutputService {
                 variant.stock?.currentStock ?? variant.qty ?? 0.0;
             await ProxyService.tax.saveStockMaster(
               variant: variant,
-              URI: ebm.taxServerUrl,
+              URI: taxUrl!,
               stockMasterQty: currentStock,
             );
           }
@@ -544,7 +546,7 @@ class ProductionOutputService {
           ),
           remark: 'Manufacturing Usage: ${workOrder.variantName}',
           ocrnDt: DateTime.now().toUtc(),
-          URI: ebm.taxServerUrl,
+          URI: taxUrl!,
         );
 
         // Save stock master for each ingredient (skip services - itemTyCd: "3")
@@ -561,7 +563,7 @@ class ProductionOutputService {
 
             await ProxyService.tax.saveStockMaster(
               variant: ingredientVariant,
-              URI: ebm.taxServerUrl,
+              URI: taxUrl!,
               stockMasterQty: currentStock,
             );
           }

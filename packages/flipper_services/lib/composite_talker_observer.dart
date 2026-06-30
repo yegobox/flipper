@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
@@ -59,6 +60,9 @@ class CompositeTalkerObserver extends TalkerObserver {
     if (error == null) {
       return;
     }
+    if (isBenignSupabaseRealtimeError(error)) {
+      return;
+    }
     if (!Repository.isReady) {
       return;
     }
@@ -84,6 +88,8 @@ class CompositeTalkerObserver extends TalkerObserver {
       'Failed to get logs',
       'Failed to clear old logs',
       'Ditto not initialized',
+      'RealtimeSubscribeException',
+      'Supabase realtime paused',
     ];
     return skipFragments.any(combined.contains);
   }

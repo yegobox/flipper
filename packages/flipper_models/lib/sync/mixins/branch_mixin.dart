@@ -19,6 +19,27 @@ mixin BranchMixin implements BranchInterface {
   @override
   Future<bool> logOut();
 
+  /// Re-fetch `/v2/api/user` and rewrite Ditto `user_access` so new branches appear
+  /// on login choices without requiring a full sign-out.
+  Future<void> _refreshDittoUserAccessAfterBranchChange(
+    HttpClientInterface flipperHttpClient,
+  ) async {
+    final loginKey =
+        ProxyService.box.getUserPhone() ?? ProxyService.box.getUserId();
+    if (loginKey == null || loginKey.isEmpty) return;
+    try {
+      await ProxyService.strategy.sendLoginRequest(
+        loginKey,
+        flipperHttpClient,
+        apihub,
+      );
+    } catch (e, s) {
+      talker.warning(
+        'user_access refresh after branch change failed: $e\n$s',
+      );
+    }
+  }
+
   @override
   FutureOr<Branch> addBranch({
     required String name,
@@ -55,7 +76,7 @@ mixin BranchMixin implements BranchInterface {
     );
     if (response.statusCode == 201) {
       IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
-      return await repository.upsert<Branch>(
+      final created = await repository.upsert<Branch>(
         Branch(
           id: remoteBranch.id,
           serverId: remoteBranch.serverId,
@@ -66,9 +87,12 @@ mixin BranchMixin implements BranchInterface {
           longitude: longitude,
           latitude: latitude,
           isDefault: isDefault,
+          active: active,
         ),
         policy: OfflineFirstUpsertPolicy.localOnly,
       );
+      unawaited(_refreshDittoUserAccessAfterBranchChange(flipperHttpClient));
+      return created;
     }
     throw Exception('Failed to create branch');
   }
@@ -112,6 +136,7 @@ mixin BranchMixin implements BranchInterface {
       throw Exception('Branch not found');
     }
     branchs.isDefault = isDefault ?? branchs.isDefault;
+    branchs.active = active ?? branchs.active;
 
     await saveBranch(branchs);
   }

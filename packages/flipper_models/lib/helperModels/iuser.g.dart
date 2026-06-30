@@ -18,7 +18,7 @@ IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
   editId: json['edit_id'] as bool?,
   isExternal: json['is_external'] as bool?,
   ownership: json['ownership'] as String?,
-  groupId: json['group_id'] as String?,
+  groupId: _parseIntField(json['group_id']),
   external: json['external'] as bool?,
   createdAt: json['created_at'] as String?,
   updatedAt: json['updated_at'] as String?,

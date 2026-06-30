@@ -21,6 +21,7 @@ Future<Branch> _$BranchFromSupabase(
     longitude: data['longitude'] == null ? null : data['longitude'] as num?,
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
     isOnline: data['is_online'] == null ? null : data['is_online'] as bool?,
+    active: data['active'] == null ? null : data['active'] as bool?,
     deletedAt: data['deleted_at'] == null
         ? null
         : data['deleted_at'] == null
@@ -50,6 +51,7 @@ Future<Map<String, dynamic>> _$BranchToSupabase(
     'longitude': instance.longitude,
     'is_default': instance.isDefault,
     'is_online': instance.isOnline,
+    'active': instance.active,
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'updated_at': instance.updatedAt?.toIso8601String(),
   };
@@ -75,6 +77,7 @@ Future<Branch> _$BranchFromSqlite(
     longitude: data['longitude'] == null ? null : data['longitude'] as num?,
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
     isOnline: data['is_online'] == null ? null : data['is_online'] == 1,
+    active: data['active'] == null ? null : data['active'] == 1,
     deletedAt: data['deleted_at'] == null
         ? null
         : data['deleted_at'] == null
@@ -108,6 +111,7 @@ Future<Map<String, dynamic>> _$BranchToSqlite(
     'is_online': instance.isOnline == null
         ? null
         : (instance.isOnline! ? 1 : 0),
+    'active': instance.active == null ? null : (instance.active! ? 1 : 0),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'updated_at': instance.updatedAt?.toIso8601String(),
   };
@@ -162,6 +166,10 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
     'isOnline': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_online',
+    ),
+    'active': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'active',
     ),
     'deletedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -241,6 +249,12 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
     'isOnline': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'is_online',
+      iterable: false,
+      type: bool,
+    ),
+    'active': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'active',
       iterable: false,
       type: bool,
     ),

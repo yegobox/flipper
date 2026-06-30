@@ -207,10 +207,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     if (ebm == null) {
       throw Exception("Ebm not found for branch $branchId");
     }
+    final taxUrl = ebm.taxServerUrl;
+    if (taxUrl == null || taxUrl.isEmpty) {
+      throw Exception("Ebm tax server URL not configured for branch $branchId");
+    }
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
       'POST',
-      Uri.parse(ebm.taxServerUrl + 'initializer/selectInitInfo'),
+      Uri.parse(taxUrl + 'initializer/selectInitInfo'),
     );
     request.body = json.encode({
       "tin": tinNumber,
@@ -725,6 +729,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     var capRra = false;
 
     try {
+      final taxUrl = ebm.taxServerUrl;
+      if (taxUrl == null || taxUrl.isEmpty) {
+        talker.warning('Skipping RRA stock IO: EBM tax server URL not configured');
+        return;
+      }
+
       if (receiptType != 'NR' && receiptType != 'CR' && receiptType != 'TR') {
         final bizId = ProxyService.box.getBusinessId();
         Setting? bizSetting;
@@ -797,7 +807,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           totalAmount: stockIoTotals.total,
           remark: stockIoRemark,
           ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
-          URI: ebm.taxServerUrl,
+          URI: taxUrl,
         );
         if (stockIoResp.resultCd != '000') {
           talker.warning(
@@ -841,7 +851,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
           final masterResp = await ProxyService.tax.saveStockMaster(
             variant: variant,
-            URI: ebm.taxServerUrl,
+            URI: taxUrl,
             stockMasterQty: remainingQty,
           );
           if (masterResp.resultCd != '000') {
@@ -876,7 +886,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           totalAmount: transaction.subTotal!,
           remark: transaction.remark ?? "",
           ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
-          URI: ebm.taxServerUrl,
+          URI: taxUrl,
         );
       }
     } catch (e, s) {

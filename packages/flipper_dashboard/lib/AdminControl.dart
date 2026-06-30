@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -382,23 +383,43 @@ class _AdminControlState extends State<AdminControl> {
     }
   }
 
+  String? _resolvedProfileName(User? u) {
+    final name = u?.name?.trim();
+    if (name != null && name.isNotEmpty && !_looksLikeUuid(name)) {
+      return name;
+    }
+    return null;
+  }
+
   String _profileDisplayName(User? u) {
+    final resolved = _resolvedProfileName(u);
+    if (resolved != null) return resolved;
     if (u != null) {
-      final name = u.name?.trim();
-      if (name != null && name.isNotEmpty) return name;
       final key = u.key?.trim() ?? '';
       if (key.contains('@')) {
         final local = key.split('@').first;
         if (local.isNotEmpty) {
           return local.replaceAll('.', ' ').replaceAll('_', ' ');
         }
-      } else if (key.isNotEmpty) {
+      } else if (key.isNotEmpty && !_looksLikeUuid(key)) {
         return key;
       }
     }
-    final uid = ProxyService.box.getUserId()?.trim();
-    if (uid != null && uid.isNotEmpty) return uid;
+    final email = _profileEmailFromUser(u)?.trim();
+    if (email != null && email.isNotEmpty) {
+      final local = email.split('@').first;
+      if (local.isNotEmpty) {
+        return local.replaceAll('.', ' ').replaceAll('_', ' ');
+      }
+    }
     return 'User';
+  }
+
+  bool _looksLikeUuid(String value) {
+    return RegExp(
+      r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+      caseSensitive: false,
+    ).hasMatch(value.trim());
   }
 
   String? _profileEmailFromUser(User? u) {
@@ -478,19 +499,142 @@ class _AdminControlState extends State<AdminControl> {
     }
   }
 
+  /// Persists profile fields. Name uses Supabase RPC (login-key check) first, then
+  /// flipper-turbo PATCH. Direct client UPDATE often affects 0 rows under RLS.
   Future<void> _patchUsersTableProfileFields(Map<String, dynamic> patch) async {
     final userId = ProxyService.box.getUserId()?.trim();
     if (userId == null || userId.isEmpty) {
       throw StateError('Not signed in');
     }
-    final body = <String, dynamic>{};
+    final loginKey =
+        ProxyService.box.getUserPhone()?.trim() ??
+        _profileEmailFromUser(_profileUser)?.trim();
+    if (loginKey == null || loginKey.isEmpty) {
+      throw StateError('Missing login key for profile update');
+    }
+
+    final filteredPatch = <String, dynamic>{};
     for (final e in patch.entries) {
       if (_kUsersTableProfilePatchKeys.contains(e.key)) {
-        body[e.key] = e.value;
+        filteredPatch[e.key] = e.value;
       }
     }
-    if (body.isEmpty) return;
-    await Supabase.instance.client.from('users').update(body).eq('id', userId);
+    if (filteredPatch.isEmpty) return;
+
+    final name = filteredPatch['name'];
+    if (name is String && name.trim().isNotEmpty) {
+      final savedViaRpc = await _trySaveProfileNameViaRpc(
+        userId: userId,
+        loginKey: loginKey,
+        name: name.trim(),
+      );
+      if (savedViaRpc) {
+        filteredPatch.remove('name');
+      }
+    }
+
+    if (filteredPatch.isEmpty) return;
+
+    final body = <String, dynamic>{
+      'id': userId,
+      'user_id': userId,
+      ...filteredPatch,
+    };
+
+    final response = await ProxyService.http.patch(
+      Uri.parse('${AppSecrets.apihubProd}/v2/api/user'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Profile update failed (${response.statusCode}): ${response.body}',
+      );
+    }
+  }
+
+  Future<bool> _trySaveProfileNameViaRpc({
+    required String userId,
+    required String loginKey,
+    required String name,
+  }) async {
+    final keys = <String>{
+      loginKey,
+      if (loginKey.startsWith('+')) loginKey.substring(1),
+    };
+    final email = _profileEmailFromUser(_profileUser)?.trim();
+    if (email != null && email.isNotEmpty) {
+      keys.add(email);
+    }
+    final phone = _profileUser?.phoneNumber?.trim();
+    if (phone != null && phone.isNotEmpty) {
+      keys.add(phone);
+      if (phone.startsWith('+')) keys.add(phone.substring(1));
+    }
+
+    for (final key in keys) {
+      if (key.isEmpty) continue;
+      try {
+        final result = await Supabase.instance.client.rpc(
+          'update_user_profile_name',
+          params: {
+            'p_user_id': userId,
+            'p_name': name,
+            'p_login_key': key,
+          },
+        );
+        if (result == true) return true;
+      } catch (_) {
+        // Try next key shape (RPC may not be deployed yet).
+      }
+    }
+    return false;
+  }
+
+  Future<void> _trySaveProfileNameViaUserPost({
+    required String loginKey,
+    required String name,
+  }) async {
+    final apiPhone = loginKey.startsWith('+') || loginKey.contains('@')
+        ? loginKey
+        : '+$loginKey';
+    final response = await ProxyService.http.post(
+      Uri.parse('${AppSecrets.apihubProd}/v2/api/user'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode({'phoneNumber': apiPhone, 'name': name}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Profile update failed (${response.statusCode}): ${response.body}',
+      );
+    }
+  }
+
+  Future<void> _verifyProfileNameSaved(String expectedName) async {
+    await _loadProfileUserFromSupabase();
+    final actual = _resolvedProfileName(_profileUser);
+    if (actual != expectedName.trim()) {
+      throw Exception(
+        'Name did not persist (still showing ${actual ?? 'empty'}). '
+        'Apply the latest Supabase migration and redeploy flipper-turbo.',
+      );
+    }
+  }
+
+  Future<void> _refreshDittoUserAccessAfterProfileChange() async {
+    final loginKey =
+        ProxyService.box.getUserPhone()?.trim() ??
+        ProxyService.box.getUserId()?.trim();
+    if (loginKey == null || loginKey.isEmpty) return;
+    try {
+      await ProxyService.strategy.sendLoginRequest(
+        loginKey,
+        ProxyService.http,
+        AppSecrets.apihubProd,
+      );
+    } catch (_) {
+      // Best-effort; Admin profile reloads from Supabase regardless.
+    }
   }
 
   void _startInlineEmailEdit({String? initial}) {
@@ -513,7 +657,8 @@ class _AdminControlState extends State<AdminControl> {
     setState(() {
       _clearOtherProfileEditors(keepName: true);
       _inlineEditingName = true;
-      _profileNameEditController.text = (initial ?? '').trim();
+      final resolved = _resolvedProfileName(_profileUser);
+      _profileNameEditController.text = (initial ?? resolved ?? '').trim();
     });
   }
 
@@ -542,25 +687,63 @@ class _AdminControlState extends State<AdminControl> {
 
   Future<void> _saveInlineName() async {
     final name = _profileNameEditController.text.trim();
+    if (name.isEmpty) {
+      showErrorNotification(context, 'Enter a display name.');
+      return;
+    }
     final userId = ProxyService.box.getUserId()?.trim();
     if (userId == null || userId.isEmpty) {
       showErrorNotification(context, 'Not signed in.');
       return;
     }
+    final loginKey =
+        ProxyService.box.getUserPhone()?.trim() ??
+        _profileEmailFromUser(_profileUser)?.trim();
+    if (loginKey == null || loginKey.isEmpty) {
+      showErrorNotification(context, 'Missing account login key.');
+      return;
+    }
     setState(() => _savingProfileName = true);
     try {
-      await _patchUsersTableProfileFields({'name': name.isEmpty ? null : name});
+      var saved = await _trySaveProfileNameViaRpc(
+        userId: userId,
+        loginKey: loginKey,
+        name: name,
+      );
+      if (!saved) {
+        await _patchUsersTableProfileFields({'name': name});
+      }
       if (!mounted) return;
       setState(() {
         _savingProfileName = false;
         _inlineEditingName = false;
         _profileNameEditController.clear();
+        _profileUser = _profileUser?.copyWith(name: name);
       });
-      await _loadProfileUserFromSupabase();
+      await _verifyProfileNameSaved(name);
+      await _refreshDittoUserAccessAfterProfileChange();
       if (mounted) {
         showSuccessNotification(context, 'Name updated.');
       }
     } catch (e) {
+      try {
+        await _trySaveProfileNameViaUserPost(loginKey: loginKey, name: name);
+        if (!mounted) return;
+        setState(() {
+          _savingProfileName = false;
+          _inlineEditingName = false;
+          _profileNameEditController.clear();
+          _profileUser = _profileUser?.copyWith(name: name);
+        });
+        await _verifyProfileNameSaved(name);
+        await _refreshDittoUserAccessAfterProfileChange();
+        if (mounted) {
+          showSuccessNotification(context, 'Name updated.');
+        }
+        return;
+      } catch (_) {
+        // Fall through to primary error.
+      }
       if (!mounted) return;
       setState(() => _savingProfileName = false);
       showErrorNotification(context, 'Could not save name: $e');
@@ -599,6 +782,7 @@ class _AdminControlState extends State<AdminControl> {
         _profilePhoneEditController.clear();
       });
       await _loadProfileUserFromSupabase();
+      await _refreshDittoUserAccessAfterProfileChange();
       if (mounted) {
         showSuccessNotification(context, 'Phone number saved.');
       }
@@ -646,6 +830,7 @@ class _AdminControlState extends State<AdminControl> {
         _profileEmailEditController.clear();
       });
       await _loadProfileUserFromSupabase();
+      await _refreshDittoUserAccessAfterProfileChange();
       if (mounted) {
         showSuccessNotification(context, 'Email updated.');
       }
@@ -1372,7 +1557,7 @@ class _AdminControlState extends State<AdminControl> {
               ),
               IconButton(
                 tooltip: 'Edit name',
-                onPressed: () => _startInlineNameEdit(initial: u?.name?.trim()),
+                onPressed: () => _startInlineNameEdit(),
                 icon: Icon(
                   Icons.edit_outlined,
                   size: 20,

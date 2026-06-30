@@ -352,7 +352,12 @@ mixin VariantMixin implements VariantInterface {
             return;
           }
 
-          String serverUrl = ebm!.taxServerUrl;
+          final taxUrl = ebm!.taxServerUrl;
+          if (taxUrl == null || taxUrl.isEmpty) {
+            return;
+          }
+
+          String serverUrl = taxUrl;
 
           if (isMobileDevice) {
             serverUrl = ebm.remoteServerUrl ?? serverUrl;

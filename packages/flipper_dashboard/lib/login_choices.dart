@@ -789,6 +789,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
     setState(() => _isRefetchingBranches = true);
     try {
+      await hydrateBusinessBranchesFromRemote(businessId: businessId);
       ref.invalidate(branchesProvider(businessId: businessId));
       final fromProvider = await ref.read(
         branchesProvider(businessId: businessId).future,

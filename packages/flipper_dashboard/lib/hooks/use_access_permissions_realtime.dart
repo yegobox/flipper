@@ -5,6 +5,7 @@ import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -67,7 +68,7 @@ void useAccessPermissionsRealtimeSync(WidgetRef ref) {
             scheduleRefresh();
           },
         )
-        .subscribe();
+        .subscribe(onSupabaseChannelSubscribeStatus);
 
     if (kDebugMode) {
       debugPrint(
