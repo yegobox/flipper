@@ -33,7 +33,7 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   @Supabase(name: "user_id")
   final String? userId;
   @Supabase(name: "tax_server_url")
-  String taxServerUrl;
+  String? taxServerUrl;
   final String businessId;
   @Supabase(name: "branch_id")
   final String branchId;
@@ -52,7 +52,7 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.tinNumber,
     required this.dvcSrlNo,
     this.userId,
-    required this.taxServerUrl,
+    this.taxServerUrl,
     required this.businessId,
     required this.branchId,
     this.vatEnabled = false,

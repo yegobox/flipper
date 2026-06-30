@@ -20,9 +20,18 @@ class StockIOUtil {
     final ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);
 
+    if (ebm == null) {
+      throw StateError('EBM not found for branch');
+    }
+
     final qty = approvedQty.toDouble();
     final supplyUnit = variant.supplyPrice ?? 0;
     final retailUnit = variant.retailPrice ?? 0;
+
+    final taxUrl = ebm.taxServerUrl;
+    if (taxUrl == null || taxUrl.isEmpty) {
+      throw StateError('EBM tax server URL is not configured');
+    }
 
     await ProxyService.tax.saveStockItems(
       updateMaster: false,
@@ -30,7 +39,7 @@ class StockIOUtil {
         TransactionItemUtil.fromVariant(variant,
             itemSeq: 1, approvedQty: qty)
       ],
-      tinNumber: ebm!.tinNumber.toString(),
+      tinNumber: ebm.tinNumber.toString(),
       bhFId: ebm.bhfId,
       totalSupplyPrice: supplyUnit * qty,
       totalvat: 0,
@@ -40,7 +49,7 @@ class StockIOUtil {
       invoiceNumber: sar.sarNo,
       remark: remark,
       ocrnDt: DateTime.now().toUtc(),
-      URI: ebm.taxServerUrl,
+      URI: taxUrl,
     );
   }
 
@@ -50,10 +59,15 @@ class StockIOUtil {
   }) async {
     final ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);
-    
+
+    final taxUrl = ebm?.taxServerUrl;
+    if (taxUrl == null || taxUrl.isEmpty) {
+      throw StateError('EBM tax server URL is not configured');
+    }
+
     await ProxyService.tax.saveStockMaster(
       variant: variant,
-      URI: ebm!.taxServerUrl,
+      URI: taxUrl,
       stockMasterQty: stockMasterQty.toDouble(),
     );
   }

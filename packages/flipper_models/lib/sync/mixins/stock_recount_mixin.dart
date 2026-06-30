@@ -291,6 +291,11 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
       final sar = await syncHost.getSar(branchId: recount.branchId);
 
       if (ebm != null && sar != null) {
+        final taxUrl = ebm.taxServerUrl;
+        if (taxUrl == null || taxUrl.isEmpty) {
+          throw Exception('EBM tax server URL is not configured');
+        }
+
         sar.sarNo = sar.sarNo + 1;
         await repository.upsert<Sar>(sar);
 
@@ -312,7 +317,7 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
           invoiceNumber: sar.sarNo,
           remark: "Stock recount adjustment",
           ocrnDt: DateTime.now().toUtc(),
-          URI: ebm.taxServerUrl,
+          URI: taxUrl,
           updateMaster: false,
         );
         if (rwSave.resultCd != "000") {
@@ -325,7 +330,7 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
         // save master stock
         await ProxyService.tax.saveStockMaster(
           variant: variant,
-          URI: ebm.taxServerUrl,
+          URI: taxUrl,
           // approvedQty: approvedQty,
           stockMasterQty: item.countedQuantity,
         );

@@ -96,7 +96,7 @@ mixin TransactionMixinOld {
           isFullyPaid) {
         ProxyService.box.writeString(
           key: "getServerUrl",
-          value: ebm!.taxServerUrl,
+          value: ebm!.taxServerUrl!,
         );
         ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId);
 

@@ -464,6 +464,11 @@ LIMIT 1
       final sar = await syncHost.getSar(branchId: recount.branchId);
 
       if (ebm != null && sar != null) {
+        final taxUrl = ebm.taxServerUrl;
+        if (taxUrl == null || taxUrl.isEmpty) {
+          throw Exception('EBM tax server URL is not configured');
+        }
+
         sar.sarNo = sar.sarNo + 1;
         await repository.upsert<Sar>(sar);
 
@@ -485,7 +490,7 @@ LIMIT 1
           invoiceNumber: sar.sarNo,
           remark: 'Stock recount adjustment',
           ocrnDt: DateTime.now().toUtc(),
-          URI: ebm.taxServerUrl,
+          URI: taxUrl,
           updateMaster: false,
         );
         if (rwSave.resultCd != '000') {
@@ -497,7 +502,7 @@ LIMIT 1
         }
         await ProxyService.tax.saveStockMaster(
           variant: variant,
-          URI: ebm.taxServerUrl,
+          URI: taxUrl,
           stockMasterQty: item.countedQuantity,
         );
       }
