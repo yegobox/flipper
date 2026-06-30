@@ -24,6 +24,7 @@ import 'modals/_isBranchEnableForPayment.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_dashboard/features/daily_report_recipients/daily_report_recipients_settings.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -1490,6 +1491,10 @@ class _AdminControlState extends State<AdminControl> {
                   ],
                 ),
         ),
+        const SizedBox(height: 20),
+        const Divider(height: 1, color: _kAdminCardBorder),
+        const SizedBox(height: 16),
+        const DailyReportRecipientsSettings(),
       ],
     );
 
