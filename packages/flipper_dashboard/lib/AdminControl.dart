@@ -631,6 +631,8 @@ class _AdminControlState extends State<AdminControl> {
         loginKey,
         ProxyService.http,
         AppSecrets.apihubProd,
+        expectedPinUserId: ProxyService.box.getUserId(),
+        refreshUserAccessOnly: true,
       );
     } catch (_) {
       // Best-effort; Admin profile reloads from Supabase regardless.

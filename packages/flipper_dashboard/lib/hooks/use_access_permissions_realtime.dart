@@ -39,6 +39,8 @@ void useAccessPermissionsRealtimeSync(WidgetRef ref) {
             loginKey,
             ProxyService.http,
             AppSecrets.apihubProd,
+            expectedPinUserId: userId,
+            refreshUserAccessOnly: true,
           );
           ref.invalidate(allAccessesProvider(userId));
           for (final f in features) {

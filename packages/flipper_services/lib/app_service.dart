@@ -264,7 +264,9 @@ class AppService with ListenableServiceMixin {
   /// Mirrors business/branch active flags into Brick/SQLite after login choices.
   /// Login selection uses Ditto + Hive only; call once the dashboard is mounted.
   Future<void> persistBusinessBranchSelectionToSqlite() async {
-    final businessId = ProxyService.box.getBusinessId();
+    final businessId =
+        ProxyService.box.getBusinessId() ??
+        ProxyService.box.readString(key: 'currentBusinessId');
     final branchId = ProxyService.box.getBranchId();
     if (businessId == null || branchId == null) return;
 
@@ -283,6 +285,36 @@ class AppService with ListenableServiceMixin {
       );
     } catch (e) {
       print('⚠️ persistBusinessBranchSelectionToSqlite failed: $e');
+    }
+  }
+
+  /// Finishes Ditto auth + replication after [LoginChoices] when PIN login used
+  /// the fast path (`deferSyncStart`) and threw before [appInit] could run.
+  Future<void> completeDittoAfterLoginChoices() async {
+    final userId = ProxyService.box.getUserId();
+    if (userId == null || userId.isEmpty) return;
+
+    final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+    try {
+      await Future(() async {
+        await DittoSingleton.instance.ensureAuthenticatedAndSyncing(
+          appId: appID,
+        );
+        final ditto = DittoSingleton.instance.ditto;
+        if (ditto != null) {
+          await DittoSyncCoordinator.instance.setDitto(
+            ditto,
+            skipInitialFetch: true,
+          );
+          if (!ProxyService.ditto.isReady()) {
+            ProxyService.ditto.setDitto(ditto);
+          }
+        }
+      }).timeout(const Duration(seconds: 15));
+      await _attachLocalStorageDittoIfReady();
+      print('✅ Ditto ready after login choices');
+    } catch (e) {
+      print('⚠️ completeDittoAfterLoginChoices failed: $e');
     }
   }
 

@@ -8,6 +8,7 @@ import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -359,6 +360,10 @@ mixin AuthMixin implements AuthInterface {
   Future<void> _persistApiUserId(String apiUserId) async {
     final id = apiUserId.trim();
     if (id.isEmpty) return;
+    final previous = ProxyService.box.getUserId();
+    if (previous != null && previous != id) {
+      await resetSaleDeviceIdCache();
+    }
     await ProxyService.box.writeString(key: 'userIdString', value: id);
     await ProxyService.box.writeString(key: 'userId', value: id);
   }
@@ -786,6 +791,7 @@ mixin AuthMixin implements AuthInterface {
     String? uid,
     String? expectedPinUserId,
     String? pinLookupPhone,
+    bool refreshUserAccessOnly = false,
   }) async {
     uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
 
@@ -800,7 +806,12 @@ mixin AuthMixin implements AuthInterface {
       alwaysHydrate: false,
     );
     uid ??= savedLocalPinForThis?.uid;
-    final pinUserId = expectedPinUserId ?? savedLocalPinForThis?.userId;
+    final sessionUserId = expectedPinUserId ??
+        (ProxyService.box.readBool(key: 'authComplete') == true
+            ? ProxyService.box.getUserId()
+            : null) ??
+        savedLocalPinForThis?.userId;
+    final pinUserId = sessionUserId;
 
     // If local data is not sufficient, proceed with the actual API call
     try {
@@ -842,20 +853,46 @@ mixin AuthMixin implements AuthInterface {
         jsonDecode(response.body) as Map,
       );
 
+      final apiUserId = responseBody['id']?.toString();
+      final apiBusinesses = responseBody['businesses'] as List? ?? [];
+      final phoneApiLogin = _isPhoneApiLoginKey(lookupPhone);
+
       // Duplicate public.users rows (e.g. murag.richard+agent2 vs murag.richardagent2):
-      // trust pins.user_id when API returns a different id.
+      // for email/Ditto keys, trust pins.user_id when API returns a different id.
+      // For E.164 phone login, POST /v2/api/user is authoritative when it returns
+      // tenant data — stale pins.user_id must not overwrite the API payload.
       if (pinUserId != null &&
           pinUserId.isNotEmpty &&
-          responseBody['id']?.toString() != pinUserId) {
-        talker.warning(
-          'POST /v2/api/user returned id=${responseBody['id']} but '
-          'pins.user_id=$pinUserId — using PIN user for session',
-        );
-        final corrected = await _fetchUserWithNestedData(pinUserId);
-        if (corrected != null) {
-          responseBody = corrected;
+          apiUserId != null &&
+          apiUserId != pinUserId) {
+        if (phoneApiLogin && apiBusinesses.isNotEmpty) {
+          talker.warning(
+            'POST /v2/api/user returned id=$apiUserId but '
+            'pins.user_id=$pinUserId — using API user for phone login',
+          );
         } else {
-          responseBody['id'] = pinUserId;
+          talker.warning(
+            'POST /v2/api/user returned id=$apiUserId but '
+            'pins.user_id=$pinUserId — using PIN user for session',
+          );
+          final corrected = await _fetchUserWithNestedData(pinUserId);
+          if (corrected != null) {
+            responseBody = corrected;
+          } else {
+            responseBody['id'] = pinUserId;
+          }
+        }
+      } else if (phoneApiLogin &&
+          apiBusinesses.isEmpty &&
+          pinUserId != null &&
+          pinUserId.isNotEmpty) {
+        final corrected = await _fetchUserWithNestedData(pinUserId);
+        if (corrected != null &&
+            (corrected['businesses'] as List?)?.isNotEmpty == true) {
+          talker.warning(
+            'Phone login API returned no businesses; using pins.user_id=$pinUserId',
+          );
+          responseBody = corrected;
         }
       }
 
@@ -873,12 +910,7 @@ mixin AuthMixin implements AuthInterface {
       talker.warning("sendLoginRequest:token:${responseBody['token']}");
 
       talker.warning("$responseBody");
-      // Handle userId which could now be a string or int
-      if (responseBody['id'] is String) {
-        await _persistApiUserId(responseBody['id'] as String);
-      } else if (responseBody['id'] != null) {
-        await _persistApiUserId(responseBody['id'].toString());
-      } else {
+      if (responseBody['id'] == null) {
         talker.error("Missing ID in response: ${responseBody}");
         throw Exception("Missing user ID in server response");
       }
@@ -887,6 +919,30 @@ mixin AuthMixin implements AuthInterface {
       final List<dynamic> businessesData = responseBody['businesses'] ?? [];
       final userId = responseBody['id'].toString();
 
+      if (refreshUserAccessOnly) {
+        if (ProxyService.ditto.isReady()) {
+          await _persistUserAccessFromLogin(responseBody, localOnly: false);
+        }
+        for (final business in businessesData) {
+          if (business is! Map) continue;
+          final businessId = business['id']?.toString();
+          if (businessId == null || businessId.isEmpty) continue;
+          unawaited(hydrateBusinessBranchesFromRemote(businessId: businessId));
+        }
+        return http.Response(
+          jsonEncode(responseBody),
+          response.statusCode,
+          headers: response.headers,
+        );
+      }
+
+      // Handle userId which could now be a string or int
+      if (responseBody['id'] is String) {
+        await _persistApiUserId(responseBody['id'] as String);
+      } else {
+        await _persistApiUserId(responseBody['id'].toString());
+      }
+
       ProxyService.box.writeString(key: 'userPhone', value: lookupPhone);
       final apiName = responseBody['name']?.toString().trim();
       if (apiName != null && apiName.isNotEmpty) {
@@ -894,8 +950,21 @@ mixin AuthMixin implements AuthInterface {
       }
       _applyLoginBoxDefaultsFromApi(businessesData);
 
-      await _initializeDitto(userId, loginFastPath: true);
-      await ProxyService.ditto.saveUserAccess(responseBody);
+      final dittoReadyForSession =
+          DittoSingleton.persistenceUserId == userId &&
+          DittoSingleton.instance.ditto != null;
+      if (!dittoReadyForSession) {
+        await _initializeDitto(userId, loginFastPath: true);
+      }
+      _bridgeDittoServiceIfNeeded();
+      await _persistUserAccessFromLogin(responseBody, localOnly: true);
+
+      for (final business in businessesData) {
+        if (business is! Map) continue;
+        final businessId = business['id']?.toString();
+        if (businessId == null || businessId.isEmpty) continue;
+        unawaited(hydrateBusinessBranchesFromRemote(businessId: businessId));
+      }
 
       for (final business in businessesData) {
         if (business is! Map) continue;
@@ -1228,6 +1297,43 @@ mixin AuthMixin implements AuthInterface {
     _isDittoInitialized = false;
     _dittoCoordinatorAttached = false;
     _dittoLoginSetupComplete = false;
+    unawaited(resetSaleDeviceIdCache());
+  }
+
+  /// E.164 or national phone sent to POST `/v2/api/user` (not email / `@flipper.rw`).
+  bool _isPhoneApiLoginKey(String lookupPhone) {
+    final trimmed = lookupPhone.trim();
+    if (trimmed.isEmpty) return false;
+    if (trimmed.contains('@')) return false;
+    return true;
+  }
+
+  /// Persists `/v2/api/user` into Ditto `user_access` and notifies Login Choices.
+  Future<void> _persistUserAccessFromLogin(
+    Map<String, dynamic> responseBody, {
+    required bool localOnly,
+  }) async {
+    if (!ProxyService.ditto.isReady()) return;
+
+    final saved = await ProxyService.ditto.saveUserAccess(
+      responseBody,
+      localOnly: localOnly,
+    );
+    if (saved) {
+      talker.debug('user_access saved for Login Choices (localOnly=$localOnly)');
+    } else {
+      talker.warning(
+        'saveUserAccess failed during login '
+        '(localOnly=$localOnly, userId=${responseBody['id']})',
+      );
+    }
+  }
+
+  void _bridgeDittoServiceIfNeeded() {
+    if (ProxyService.ditto.isReady()) return;
+    final ditto = DittoSingleton.instance.ditto;
+    if (ditto == null) return;
+    ProxyService.ditto.setDitto(ditto);
   }
 
   /// Helper function to safely decode JSON responses

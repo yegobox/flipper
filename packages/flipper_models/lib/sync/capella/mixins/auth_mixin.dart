@@ -56,6 +56,9 @@ mixin CapellaAuthMixin implements AuthInterface {
     HttpClientInterface flipperHttpClient,
     String apihub, {
     String? uid,
+    String? expectedPinUserId,
+    String? pinLookupPhone,
+    bool refreshUserAccessOnly = false,
   }) async {
     throw UnimplementedError(
         'sendLoginRequest needs to be implemented for Capella');

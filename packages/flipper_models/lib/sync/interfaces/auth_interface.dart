@@ -38,6 +38,11 @@ abstract class AuthInterface {
     HttpClientInterface flipperHttpClient,
     String apihub, {
     String? uid,
+    String? expectedPinUserId,
+    String? pinLookupPhone,
+    /// When true, only refresh Ditto `user_access` — do not re-open Ditto or
+    /// overwrite the signed-in session user id (realtime permission sync).
+    bool refreshUserAccessOnly = false,
   });
 
   // Required methods that should be provided by other mixins

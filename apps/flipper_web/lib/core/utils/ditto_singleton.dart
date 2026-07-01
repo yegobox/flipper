@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/platform.dart';
 import 'package:flipper_web/core/utils/platform_utils.dart';
@@ -94,6 +95,7 @@ class DittoSingleton {
       print(
         '⚠️ [INIT] User mismatch detected ($userId != $_userId). Forcing logout and re-initialization.',
       );
+      await resetSaleDeviceIdCache();
       await _abortInFlightInit();
       await logout();
       await dispose();
@@ -223,10 +225,12 @@ class DittoSingleton {
       // to detect login peers; default host names wrongly enable AWDL/BLE + sync.
       final userName = platformUserName;
       final platform = getPlatformName();
-      // Per-browser install suffix so two browsers/tabs under the same login do not
-      // share the same Ditto peer name (and pending carts scoped by deviceId).
-      final installSuffix = _webPerBrowserInstallSuffix();
+      // Per-browser install suffix (web) or stable native suffix — see
+      // [resolveDittoInstallSuffix]. deviceName embeds userId so sale device id
+      // changes when the logged-in user changes on this install.
+      final installSuffix = await resolveDittoInstallSuffix();
       _ditto!.deviceName = '$userName-$platform-$userId-$installSuffix';
+      await resetSaleDeviceIdCache();
 
       try {
         print('🔧 [INIT] Configuring transports...');
@@ -603,10 +607,6 @@ class DittoSingleton {
       return false;
     }
   }
-}
-
-String _webPerBrowserInstallSuffix() {
-  return DateTime.now().microsecondsSinceEpoch.toRadixString(36);
 }
 
 class YBAuthIdentity {

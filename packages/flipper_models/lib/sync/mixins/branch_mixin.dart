@@ -32,6 +32,8 @@ mixin BranchMixin implements BranchInterface {
         loginKey,
         flipperHttpClient,
         apihub,
+        expectedPinUserId: ProxyService.box.getUserId(),
+        refreshUserAccessOnly: true,
       );
     } catch (e, s) {
       talker.warning(
