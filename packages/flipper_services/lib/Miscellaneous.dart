@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -130,6 +131,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     final isTestEnvironment =
         const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
     try {
+      await resetSaleDeviceIdCache();
       await setCommissionOnlySession(false);
       // set authComplete to false
       ProxyService.box.writeBool(key: 'authComplete', value: false);

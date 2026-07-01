@@ -373,6 +373,8 @@ class TenantOperationsMixin {
               loginKey,
               ProxyService.http,
               AppSecrets.apihubProd,
+              expectedPinUserId: selfId,
+              refreshUserAccessOnly: true,
             );
           } catch (e, s) {
             talker.warning('sendLoginRequest after permission edit: $e\n$s');

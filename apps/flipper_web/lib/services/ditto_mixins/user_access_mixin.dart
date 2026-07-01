@@ -4,24 +4,41 @@ import 'ditto_core_mixin.dart';
 mixin UserAccessMixin on DittoCore {
   /// Save the nested user access object to Ditto.
   /// This includes businesses, branches, and their respective accesses.
-  Future<void> saveUserAccess(Map<String, dynamic> userJson) async {
-    if (dittoInstance == null) return handleNotInitialized('saveUserAccess');
+  ///
+  /// When [localOnly] is true (PIN login fast path), writes to the local store
+  /// without waiting for cloud auth/sync so Login Choices can read immediately.
+  Future<bool> saveUserAccess(
+    Map<String, dynamic> userJson, {
+    bool localOnly = false,
+  }) async {
+    if (dittoInstance == null) {
+      handleNotInitialized('saveUserAccess');
+      return false;
+    }
 
     final userId = userJson['id'] ?? userJson['userId'];
     if (userId == null) {
       debugPrint('❌ Cannot save user access: userId is null');
-      return;
+      return false;
     }
 
     try {
       // We save the entire nested structure under the 'user_access' collection
       // using the userId as the document ID to ensure easy retrieval and one-doc-per-user.
-      await executeUpsert('user_access', userId.toString(), userJson);
+      if (localOnly) {
+        await executeUpsertLocal('user_access', userId.toString(), userJson);
+      } else if (isCloudReady()) {
+        await executeUpsert('user_access', userId.toString(), userJson);
+      } else {
+        await executeUpsertLocal('user_access', userId.toString(), userJson);
+      }
       debugPrint(
         '✅ Successfully saved user access data to Ditto for user: $userId',
       );
+      return true;
     } catch (e) {
       debugPrint('❌ Error saving user access data to Ditto: $e');
+      return false;
     }
   }
 

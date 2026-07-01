@@ -49,6 +49,51 @@ class DittoCore {
     return defaultValue;
   }
 
+  /// Upsert into the local Ditto store without requiring cloud auth/sync.
+  ///
+  /// Used for `user_access` during PIN login ([loginFastPath]) so Login Choices
+  /// can read fresh `/v2/api/user` data before replication starts.
+  Future<void> executeUpsertLocal(
+    String collection,
+    String docId,
+    Map<String, dynamic> data,
+  ) async {
+    final ditto = dittoInstance;
+    if (ditto == null) {
+      handleNotInitialized('executeUpsertLocal');
+      throw StateError('Ditto not initialized');
+    }
+
+    try {
+      await ditto.store.execute(
+        'INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',
+        arguments: {
+          'data': {'_id': docId, ...data},
+        },
+      );
+    } catch (e, st) {
+      debugPrint(
+        'Error executing local upsert ($collection/$docId): $e\n$st',
+      );
+      rethrow;
+    }
+
+    if (kIsWeb) {
+      final visible = await waitForDittoDocumentLocal(
+        ditto: ditto,
+        collection: collection,
+        docId: docId,
+        timeout: const Duration(seconds: 15),
+      );
+      if (!visible) {
+        debugPrint(
+          '[Ditto] local upsert($collection/$docId) — DQL read-back not yet visible '
+          '(WASM eventual consistency; write was not rejected)',
+        );
+      }
+    }
+  }
+
   /// Upsert a document and replicate to Ditto Cloud when connected.
   Future<void> executeUpsert(
     String collection,

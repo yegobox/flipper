@@ -160,6 +160,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   final _routerService = locator<RouterService>();
 
+  void _refreshBusinessProviders() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.invalidate(businessesProvider);
+      ref.read(selectedBusinessIdProvider.notifier).state = null;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -167,15 +176,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     _validateUserId();
     // Request Ditto sync permissions on Android
     _requestDittoPermissions();
-    // Invalidate providers to ensure fresh data is loaded for the current user
-    // This is especially important when logging in with a different user
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.invalidate(businessesProvider);
-        // Reset selected business to ensure no stale selection from previous user
-        ref.read(selectedBusinessIdProvider.notifier).state = null;
-      }
-    });
+    // Defer provider refresh until after mount — Ditto user_access was written
+    // locally during sendLoginRequest before this route opens.
+    _refreshBusinessProviders();
     unawaited(_hydrateStoredUserName());
   }
 
@@ -899,6 +902,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await _routerService.clearStackAndShow(FlipperAppRoute());
     }
 
+    // PIN login often defers Ditto sync until after business/branch selection.
+    unawaited(locator<AppService>().completeDittoAfterLoginChoices());
     // Start Ditto catalog sync after leaving login — avoids memory spikes and
     // main-isolate contention while the branch picker is still mounted.
     locator<AppService>().ensureBranchDittoSubscriptionsForCurrentBranch();

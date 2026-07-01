@@ -406,6 +406,10 @@ class _PinLoginState extends State<PinLogin>
         }
       }
     } catch (e, s) {
+      if (e is LoginChoicesException) {
+        await ProxyService.strategy.handleLoginError(e, s);
+        return;
+      }
       await _handleLoginError(e, s);
     } finally {
       if (mounted && !_isDone) {
@@ -422,6 +426,11 @@ class _PinLoginState extends State<PinLogin>
   }
 
   Future<void> _handleLoginError(dynamic e, StackTrace s) async {
+    if (e is LoginChoicesException) {
+      await ProxyService.strategy.handleLoginError(e, s);
+      return;
+    }
+
     String errorMessage;
     if (e is TimeoutException) {
       errorMessage = e.message?.isNotEmpty == true
