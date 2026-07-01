@@ -146,20 +146,19 @@ class CheckOutState extends ConsumerState<CheckOut>
       );
     }
 
+    // [_warmPendingCartAfterOpen] may resolve the pending cart before the Ditto
+    // stream emits; watching the cache avoids a stuck "Preparing checkout…" footer.
+    listenCachedPendingCartTransactionSyncWidget(ref, isExpense: false);
+
+    final cachedTransaction = ref.watch(cachedPendingSaleTransactionProvider);
     final transactionAsyncValue = ref.watch(
       pendingTransactionStreamProvider(isExpense: false),
     );
+    final transaction = transactionAsyncValue.value ?? cachedTransaction;
 
-    return transactionAsyncValue.when(
-      // Keep last transaction visible when the stream reloads (e.g. dependency
-      // change); only the initial load uses loading: below.
-      skipLoadingOnReload: true,
-      data: (transaction) => _buildDataWidget(transaction),
-      // Show product grid / POS shell immediately; QuickSellingView and
-      // PosDefaultView handle their own loading; footer waits for transaction id.
-      loading: () => _buildDataWidget(null),
-      error: (error, stackTrace) => CheckoutErrorRecoveryScreen(
-        error: error,
+    if (transactionAsyncValue.hasError && transaction == null) {
+      return CheckoutErrorRecoveryScreen(
+        error: transactionAsyncValue.error!,
         isExpense: false,
         onRecovered: () async {
           ref.refresh(
@@ -174,8 +173,10 @@ class CheckOutState extends ConsumerState<CheckOut>
             message: 'Do you want to go home?',
           );
         },
-      ),
-    );
+      );
+    }
+
+    return _buildDataWidget(transaction);
   }
 
   Widget _buildMobileOpeningFrame() {
