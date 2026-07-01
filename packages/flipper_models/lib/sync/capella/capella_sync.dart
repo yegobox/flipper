@@ -23,6 +23,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
+import 'package:flipper_models/models/subscription_plan_template.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/services/loan_customer_linker.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
@@ -1446,6 +1447,7 @@ class CapellaSync extends AiStrategyImpl
     required String businessId,
     List<String>? addons,
     required String selectedPlan,
+    String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
@@ -1457,6 +1459,11 @@ class CapellaSync extends AiStrategyImpl
   }) {
     // TODO: implement saveOrUpdatePaymentPlan
     throw UnimplementedError();
+  }
+
+  @override
+  Future<SubscriptionPlanCatalog> getSubscriptionPlanCatalog() {
+    return SubscriptionPlanCatalog.fetchFromSupabase();
   }
 
   @override

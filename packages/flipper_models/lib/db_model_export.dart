@@ -3,6 +3,7 @@ export 'models/daily_report_file.dart';
 export 'helperModels/extensions.dart';
 export 'package:supabase_models/supabase_models.dart';
 export 'models/subscription_plan.dart';
+export 'models/subscription_plan_template.dart';
 export 'package:flipper_models/view_models/login_viewmodel.dart';
 
 export 'package:flipper_models/view_models/coreViewModel.dart';

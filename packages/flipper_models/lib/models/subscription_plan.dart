@@ -36,6 +36,7 @@ class Plan {
   String? businessId;
   String? branchId;
   String? selectedPlan;
+  String? planTemplateId;
   int? additionalDevices;
   bool? isYearlyPlan;
   int? totalPrice;
@@ -69,6 +70,7 @@ class Plan {
     this.businessId,
     this.branchId,
     this.selectedPlan,
+    this.planTemplateId,
     this.additionalDevices,
     this.isYearlyPlan,
     this.totalPrice,
@@ -100,6 +102,7 @@ class Plan {
       businessId: row['business_id']?.toString(),
       branchId: row['branch_id']?.toString(),
       selectedPlan: row['selected_plan']?.toString(),
+      planTemplateId: row['plan_template_id']?.toString(),
       additionalDevices: (row['additional_devices'] as num?)?.toInt(),
       isYearlyPlan: row['is_yearly_plan'] as bool?,
       totalPrice: (row['total_price'] as num?)?.toInt(),

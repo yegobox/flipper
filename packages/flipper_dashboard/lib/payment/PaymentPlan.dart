@@ -1,8 +1,10 @@
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/exceptions.dart' show FailedPaymentException;
+import 'package:flipper_models/models/subscription_plan_template.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -10,46 +12,69 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
 
 class PaymentPlanUI extends StatefulWidget {
-  const PaymentPlanUI({Key? key}) : super(key: key);
+  const PaymentPlanUI({Key? key, this.skipPaymentStatusCheck = false})
+      : super(key: key);
+
+  /// Debug-only: skip auto-redirect when previewing this screen manually.
+  final bool skipPaymentStatusCheck;
 
   @override
   _PaymentPlanUIState createState() => _PaymentPlanUIState();
 }
 
 class _PaymentPlanUIState extends State<PaymentPlanUI> {
-  String _selectedPlan = 'Mobile';
+  SubscriptionPlanCatalog? _catalog;
+  String? _selectedTemplateId;
+  final Set<String> _selectedAddonSlugs = {};
   int _additionalDevices = 0;
   bool _isYearlyPlan = false;
-  double _totalPrice = 5000;
-  List<String> _additionalServices = [];
-  bool _isCheckingPayment = false;
-
-  // Add toggles for additional services
-  bool _extraSupport = false;
-  bool _taxReporting = false;
-  bool _unlimitedBranches = false;
+  double _totalPrice = 0;
+  bool _isLoadingCatalog = true;
+  String? _catalogError;
   final paymentController = TextEditingController();
+
+  SubscriptionPlanTemplate? get _selectedTemplate =>
+      _catalog?.byId(_selectedTemplateId);
 
   @override
   void initState() {
     super.initState();
-    // Always check for active payment when this screen is opened
-    // This ensures we return to the app if payment is already active
-    _checkForActivePayment();
+    _loadCatalog();
+    if (!widget.skipPaymentStatusCheck) {
+      _checkForActivePayment();
+    }
+  }
+
+  Future<void> _loadCatalog() async {
+    try {
+      final catalog = await ProxyService.strategy.getSubscriptionPlanCatalog();
+      if (!mounted) return;
+      setState(() {
+        _catalog = catalog;
+        _selectedTemplateId = catalog.firstOrNull?.id;
+        _isLoadingCatalog = false;
+        _catalogError = catalog.templates.isEmpty
+            ? 'No subscription plans are available.'
+            : null;
+        _calculatePrice();
+      });
+    } catch (e) {
+      talker.error('Failed to load subscription plan catalog: $e');
+      if (!mounted) return;
+      setState(() {
+        _isLoadingCatalog = false;
+        _catalogError = 'Could not load subscription plans. Please try again.';
+      });
+    }
   }
 
   /// Checks if there's an active payment plan and navigates to the appropriate screen
   Future<void> _checkForActivePayment() async {
-    if (_isCheckingPayment) return;
-
-    setState(() {
-      _isCheckingPayment = true;
-    });
+    if (widget.skipPaymentStatusCheck) return;
 
     try {
       final businessId = (await ProxyService.strategy.activeBusiness())?.id;
       if (businessId != null) {
-        // First check if a payment plan exists at all
         final plan = await ProxyService.strategy.getPaymentPlan(
           businessId: businessId,
           fetchOnline: true,
@@ -57,7 +82,6 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         );
 
         if (plan != null) {
-          // A plan exists, now check if it's active
           try {
             await ProxyService.strategy.hasActiveSubscription(
               businessId: businessId,
@@ -65,68 +89,52 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               fetchRemote: true,
             );
 
-            // If we get here without an exception, there's an active plan
             talker.info('Active payment plan found, returning to app');
             locator<RouterService>().navigateTo(FlipperAppRoute());
             return;
           } catch (subscriptionError) {
-            // Plan exists but is not active, go to FailedPayment
             talker.warning(
               'Payment plan exists but is not active: $subscriptionError',
             );
-            locator<RouterService>().navigateTo(FailedPaymentRoute());
+            if (!kDebugMode) {
+              locator<RouterService>().navigateTo(FailedPaymentRoute());
+            }
             return;
           }
         }
-        // If no plan exists, stay on this screen to create one
         talker.warning('No payment plan found, staying on payment plan screen');
       }
     } catch (e) {
-      // General error, stay on this screen
       talker.error('Error checking payment status: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isCheckingPayment = false;
-        });
-      }
     }
   }
 
   void _calculatePrice() {
+    final template = _selectedTemplate;
+    if (template == null) {
+      setState(() => _totalPrice = 0);
+      return;
+    }
     setState(() {
-      double basePrice;
-      switch (_selectedPlan) {
-        case 'Mobile':
-          basePrice = 5000;
-          if (_taxReporting) basePrice += 30000;
-          break;
-        case 'Mobile + Desktop':
-          basePrice = 120000;
-          if (_taxReporting) basePrice += 30000;
-          break;
-
-        case 'Entreprise':
-          basePrice = 1500000;
-          // Add costs for premium additional services
-          if (_extraSupport) basePrice += 800000;
-          if (_taxReporting)
-            basePrice += 400000; // Premium tax consulting for enterprise
-          if (_unlimitedBranches) basePrice += 600000;
-          break;
-        default:
-          basePrice = 5000;
-      }
-
-      if (_isYearlyPlan) {
-        _totalPrice = basePrice * 12 * 0.8; // 20% discount for yearly plan
-      } else {
-        _totalPrice = basePrice;
-      }
+      _totalPrice = template.calculateTotal(
+        isYearly: _isYearlyPlan,
+        selectedAddonSlugs: _selectedAddonSlugs,
+      );
     });
   }
 
+  List<String> get _selectedAddonNames {
+    final template = _selectedTemplate;
+    if (template == null) return const [];
+    return _selectedAddonSlugs
+        .map((slug) => template.addonBySlug(slug)?.name)
+        .whereType<String>()
+        .toList();
+  }
+
   Widget _buildDurationToggle() {
+    final yearlyDiscount =
+        _selectedTemplate?.yearlyDiscountPercent.round() ?? 20;
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
@@ -174,7 +182,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Yearly (20% off)',
+                  'Yearly ($yearlyDiscount% off)',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: _isYearlyPlan ? Colors.white : Colors.blue,
@@ -190,48 +198,25 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   }
 
   Widget _buildPlanCards() {
+    final templates = _catalog?.templates ?? const [];
     return Column(
       children: [
-        _buildPlanCard(
-          'Mobile',
-          'Mobile only',
-          _isYearlyPlan ? '48,000 RWF/year' : '5,000 RWF/month',
-          Icons.phone_iphone,
-        ),
-        SizedBox(height: 8),
-        _buildPlanCard(
-          'Mobile + Desktop',
-          'Mobile + Desktop',
-          _isYearlyPlan ? '1,152,000 RWF/year' : '120,000 RWF/month',
-          Icons.devices,
-        ),
-        SizedBox(height: 8),
-        _buildPlanCard(
-          'Entreprise',
-          'Entreprise',
-          _isYearlyPlan ? '14,400,000+ RWF/year' : '1,500,000+ RWF/month',
-          Icons.devices,
-        ),
+        for (var i = 0; i < templates.length; i++) ...[
+          if (i > 0) SizedBox(height: 8),
+          _buildPlanCard(templates[i]),
+        ],
       ],
     );
   }
 
-  Widget _buildPlanCard(
-    String value,
-    String title,
-    String price,
-    IconData icon,
-  ) {
-    bool isSelected = _selectedPlan == value;
+  Widget _buildPlanCard(SubscriptionPlanTemplate template) {
+    final isSelected = _selectedTemplateId == template.id;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedPlan = value;
+          _selectedTemplateId = template.id;
           _additionalDevices = 0;
-          // Reset additional services when changing plans
-          _extraSupport = false;
-          _taxReporting = false;
-          _unlimitedBranches = false;
+          _selectedAddonSlugs.clear();
           _calculatePrice();
         });
       },
@@ -248,7 +233,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           child: Row(
             children: [
               Icon(
-                icon,
+                template.resolveIcon(),
                 size: 24,
                 color: isSelected ? Colors.white : Colors.blue,
               ),
@@ -258,7 +243,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      template.name,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -267,7 +252,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      price,
+                      template.formatListPrice(isYearly: _isYearlyPlan),
                       style: TextStyle(
                         fontSize: 14,
                         color: isSelected ? Colors.white70 : Colors.black,
@@ -344,99 +329,30 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   }
 
   Widget _buildAdditionalServices() {
-    if (_selectedPlan == 'Entreprise') {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Enterprise Services',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          _buildServiceToggle(
-            'Extra Support',
-            '800,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
-            _extraSupport,
-            (value) {
-              if (value && !_additionalServices.contains("Extra Support")) {
-                _additionalServices.add("Extra Support");
-              }
-
-              setState(() {
-                _extraSupport = value;
-                _calculatePrice();
-              });
-            },
-          ),
-          SizedBox(height: 8),
-          _buildServiceToggle(
-            'Premium Tax Reporting Consulting',
-            '400,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
-            _taxReporting,
-            (value) {
-              if (value &&
-                  !_additionalServices.contains(
-                    "Premium Tax Reporting Consulting",
-                  )) {
-                _additionalServices.add("Premium Tax Reporting Consulting");
-              }
-              setState(() {
-                _taxReporting = value;
-                _calculatePrice();
-              });
-            },
-          ),
-          SizedBox(height: 8),
-          _buildServiceToggle(
-            'Unlimited Branches & Agents',
-            '600,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
-            _unlimitedBranches,
-            (value) {
-              if (value &&
-                  !_additionalServices.contains(
-                    "Unlimited Branches & Agents",
-                  )) {
-                _additionalServices.add("Unlimited Branches & Agents");
-              }
-              setState(() {
-                _unlimitedBranches = value;
-                _calculatePrice();
-              });
-            },
-          ),
-        ],
-      );
-    } else {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Additional Services',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          _buildServiceToggle(
-            'Tax Reporting Consulting',
-            '30,000 RWF${_isYearlyPlan ? '/year' : '/month'}',
-            _taxReporting,
-            (value) {
-              setState(() {
-                _taxReporting = value;
-                _calculatePrice();
-              });
-            },
-          ),
-        ],
-      );
+    final template = _selectedTemplate;
+    if (template == null || template.addons.isEmpty) {
+      return SizedBox.shrink();
     }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          template.isEnterprise ? 'Enterprise Services' : 'Additional Services',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8),
+        for (var i = 0; i < template.addons.length; i++) ...[
+          if (i > 0) SizedBox(height: 8),
+          _buildServiceToggle(template.addons[i]),
+        ],
+      ],
+    );
   }
 
-  Widget _buildServiceToggle(
-    String title,
-    String price,
-    bool value,
-    Function(bool) onChanged,
-  ) {
+  Widget _buildServiceToggle(SubscriptionPlanAddonTemplate addon) {
+    final template = _selectedTemplate!;
+    final isSelected = _selectedAddonSlugs.contains(addon.slug);
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
@@ -451,19 +367,28 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  addon.name,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  price,
+                  template.formatAddonPrice(addon, isYearly: _isYearlyPlan),
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                 ),
               ],
             ),
           ),
           Switch(
-            value: value,
-            onChanged: onChanged,
+            value: isSelected,
+            onChanged: (value) {
+              setState(() {
+                if (value) {
+                  _selectedAddonSlugs.add(addon.slug);
+                } else {
+                  _selectedAddonSlugs.remove(addon.slug);
+                }
+                _calculatePrice();
+              });
+            },
             activeThumbColor: Colors.blue,
             inactiveThumbColor: Colors.grey,
             inactiveTrackColor: Colors.grey.shade300,
@@ -522,53 +447,53 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   }
 
   Widget _buildProceedButton() {
+    final template = _selectedTemplate;
+    final canProceed = template != null && !_isLoadingCatalog;
+
     return ElevatedButton(
-      onPressed: () async {
-        String selectedPlan = _selectedPlan;
-        int additionalDevices = _selectedPlan == 'More than 3 Devices'
-            ? _additionalDevices
-            : 0;
-        bool isYearlyPlan = _isYearlyPlan;
-        double totalPrice = _totalPrice;
+      onPressed: !canProceed
+          ? null
+          : () async {
+              final selectedTemplate = _selectedTemplate;
+              if (selectedTemplate == null) return;
 
-        try {
-          await ProxyService.strategy.saveOrUpdatePaymentPlan(
-            businessId: (await ProxyService.strategy.activeBusiness())!.id,
-            selectedPlan: selectedPlan,
-            addons: _additionalServices,
-            paymentMethod: "Card",
-            numberOfPayments: int.tryParse(paymentController.text) ?? 1,
-            flipperHttpClient: ProxyService.http,
-            additionalDevices: additionalDevices,
-            isYearlyPlan: isYearlyPlan,
-            // payStackUserId: customer.data.id,
-            // payStackUserId: "1",
-            totalPrice:
-                totalPrice * (int.tryParse(paymentController.text) ?? 1),
-          );
+              final numberOfPayments =
+                  int.tryParse(paymentController.text) ?? 1;
+              final totalPrice = _totalPrice * numberOfPayments;
 
-          // Navigate to finalize route only if save was successful
-          locator<RouterService>().navigateTo(PaymentFinalizeRoute());
-        } on FailedPaymentException catch (e) {
-          // Handle failed payment specifically
-          talker.warning('Payment failed: ${e.message}');
-          if (mounted) {
-            ErrorHandler.showErrorSnackBar(context, e);
-            // Optionally navigate to failed payment screen
-            locator<RouterService>().navigateTo(FailedPaymentRoute());
-          }
-        } catch (e, s) {
-          // Handle other errors
-          talker.error('Error processing payment: $e');
-          talker.error(s.toString());
-          if (mounted) {
-            ErrorHandler.showErrorSnackBar(
-              context,
-              'An error occurred. Please try again.',
-            );
-          }
-        }
-      },
+              try {
+                await ProxyService.strategy.saveOrUpdatePaymentPlan(
+                  businessId:
+                      (await ProxyService.strategy.activeBusiness())!.id,
+                  selectedPlan: selectedTemplate.name,
+                  planTemplateId: selectedTemplate.id,
+                  addons: _selectedAddonNames,
+                  paymentMethod: 'Card',
+                  numberOfPayments: numberOfPayments,
+                  flipperHttpClient: ProxyService.http,
+                  additionalDevices: _additionalDevices,
+                  isYearlyPlan: _isYearlyPlan,
+                  totalPrice: totalPrice,
+                );
+
+                locator<RouterService>().navigateTo(PaymentFinalizeRoute());
+              } on FailedPaymentException catch (e) {
+                talker.warning('Payment failed: ${e.message}');
+                if (mounted) {
+                  ErrorHandler.showErrorSnackBar(context, e);
+                  locator<RouterService>().navigateTo(FailedPaymentRoute());
+                }
+              } catch (e, s) {
+                talker.error('Error processing payment: $e');
+                talker.error(s.toString());
+                if (mounted) {
+                  ErrorHandler.showErrorSnackBar(
+                    context,
+                    'An error occurred. Please try again.',
+                  );
+                }
+              }
+            },
       child: Text(
         'Proceed to Payment',
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -586,10 +511,6 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isCheckingPayment) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -598,34 +519,70 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Select the plan that works for you',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              _buildDurationToggle(),
-              SizedBox(height: 16),
-              _buildPlanCards(),
-              SizedBox(height: 16),
-              if (_selectedPlan == 'More than 3 Devices')
-                _buildAdditionalDevicesInput(),
-              SizedBox(height: 16),
-              _buildAdditionalServices(),
-              SizedBox(height: 16),
-              _buildPriceSummary(),
-              NumberOfPaymentsToggle(paymentController: paymentController),
-              SizedBox(height: 16),
-              _buildProceedButton(),
-            ],
-          ),
-        ),
-      ),
+      body: _isLoadingCatalog
+          ? Center(child: CircularProgressIndicator())
+          : _catalogError != null
+              ? Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _catalogError!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _isLoadingCatalog = true;
+                              _catalogError = null;
+                            });
+                            _loadCatalog();
+                          },
+                          child: Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Select the plan that works for you',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        _buildDurationToggle(),
+                        SizedBox(height: 16),
+                        _buildPlanCards(),
+                        SizedBox(height: 16),
+                        if (_selectedPlanSupportsExtraDevices)
+                          _buildAdditionalDevicesInput(),
+                        SizedBox(height: 16),
+                        _buildAdditionalServices(),
+                        SizedBox(height: 16),
+                        _buildPriceSummary(),
+                        NumberOfPaymentsToggle(
+                          paymentController: paymentController,
+                        ),
+                        SizedBox(height: 16),
+                        _buildProceedButton(),
+                      ],
+                    ),
+                  ),
+                ),
     );
   }
+
+  bool get _selectedPlanSupportsExtraDevices => false;
 }

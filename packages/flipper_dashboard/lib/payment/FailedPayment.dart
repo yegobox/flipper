@@ -5,11 +5,13 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
+import 'package:flipper_models/models/subscription_plan_template.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -73,12 +75,10 @@ class _FailedPaymentState extends State<FailedPayment>
 
   // Plan switching state - allows user to switch/upgrade plan before retry
   bool _showSwitchPlan = false;
-  String _switchPlanSelected = 'Mobile';
+  SubscriptionPlanCatalog? _catalog;
+  String? _switchPlanTemplateId;
   bool _switchPlanIsYearly = false;
-  bool _switchPlanExtraSupport = false;
-  bool _switchPlanTaxReporting = false;
-  bool _switchPlanUnlimitedBranches = false;
-  List<String> _switchPlanAdditionalServices = [];
+  final Set<String> _switchPlanAddonSlugs = {};
   bool _planWasActive = false;
 
   /// Matches backend [calculateAccumulatedDueAmount] / MTN validation; null until loaded.
@@ -116,6 +116,7 @@ class _FailedPaymentState extends State<FailedPayment>
     );
 
     // Keep original setup logic intact
+    _loadPlanCatalog();
     _setupPlanSubscription();
     _loadSkipCount();
     _fadeController.forward();
@@ -199,17 +200,65 @@ class _FailedPaymentState extends State<FailedPayment>
         (_skipSettings?.skipCount ?? 0);
   }
 
+  SubscriptionPlanTemplate? get _selectedSwitchTemplate =>
+      _catalog?.byId(_switchPlanTemplateId);
+
+  List<String> get _switchPlanAdditionalServices {
+    final template = _selectedSwitchTemplate;
+    if (template == null) return const [];
+    return _switchPlanAddonSlugs
+        .map((slug) => template.addonBySlug(slug)?.name)
+        .whereType<String>()
+        .toList();
+  }
+
+  Future<void> _loadPlanCatalog() async {
+    try {
+      final catalog = await ProxyService.strategy.getSubscriptionPlanCatalog();
+      if (!mounted) return;
+      setState(() {
+        _catalog = catalog;
+        if (_switchPlanTemplateId == null) {
+          _switchPlanTemplateId = catalog.firstOrNull?.id;
+        }
+        if (_plan != null) {
+          _initSwitchPlanFromPlan(_plan);
+        }
+      });
+    } catch (e) {
+      talker.error('Failed to load subscription plan catalog: $e');
+    }
+  }
+
+  SubscriptionPlanTemplate? _switchTemplateForPlan(Plan? plan) {
+    if (_catalog == null) return null;
+    if (plan == null) return _catalog!.firstOrNull;
+    return _catalog!.byId(plan.planTemplateId) ??
+        _catalog!.byName(plan.selectedPlan) ??
+        _catalog!.firstOrNull;
+  }
+
+  Set<String> _savedAddonSlugsForPlan(Plan plan) {
+    final template = _switchTemplateForPlan(plan);
+    if (template == null) return const {};
+    final savedNames =
+        plan.addons?.map((a) => a.addonName).whereType<String>().toSet() ??
+            const {};
+    return template.addons
+        .where((addon) => savedNames.contains(addon.name))
+        .map((addon) => addon.slug)
+        .toSet();
+  }
+
   /// Initialize plan switch state from current plan
   void _initSwitchPlanFromPlan(Plan? plan) {
     if (plan == null) return;
-    final name = plan.selectedPlan ?? 'Mobile';
-    final validPlans = ['Mobile', 'Mobile + Desktop', 'Entreprise'];
-    _switchPlanSelected = validPlans.contains(name) ? name : 'Mobile';
+    final template = _switchTemplateForPlan(plan);
+    _switchPlanTemplateId = template?.id ?? _catalog?.firstOrNull?.id;
     _switchPlanIsYearly = plan.isYearlyPlan ?? false;
-    _switchPlanExtraSupport = false;
-    _switchPlanTaxReporting = false;
-    _switchPlanUnlimitedBranches = false;
-    _switchPlanAdditionalServices = [];
+    _switchPlanAddonSlugs
+      ..clear()
+      ..addAll(_savedAddonSlugsForPlan(plan));
     _planWasActive = _isPlanStillActive(plan);
   }
 
@@ -261,40 +310,26 @@ class _FailedPaymentState extends State<FailedPayment>
     }
   }
 
-  /// Calculate price for switched plan (matches PaymentPlan pricing)
+  /// Calculate price for switched plan from Supabase catalogue.
   double _calculateSwitchPlanPrice() {
-    double basePrice;
-    switch (_switchPlanSelected) {
-      case 'Mobile':
-        basePrice = 5000;
-        if (_switchPlanTaxReporting) basePrice += 30000;
-        break;
-      case 'Mobile + Desktop':
-        basePrice = 120000;
-        if (_switchPlanTaxReporting) basePrice += 30000;
-        break;
-      case 'Entreprise':
-        basePrice = 1500000;
-        if (_switchPlanExtraSupport) basePrice += 800000;
-        if (_switchPlanTaxReporting) basePrice += 400000;
-        if (_switchPlanUnlimitedBranches) basePrice += 600000;
-        break;
-      default:
-        basePrice = 5000;
-    }
-    return _switchPlanIsYearly ? basePrice * 12 * 0.8 : basePrice;
+    final template = _selectedSwitchTemplate;
+    if (template == null) return 0;
+    return template.calculateTotal(
+      isYearly: _switchPlanIsYearly,
+      selectedAddonSlugs: _switchPlanAddonSlugs,
+    );
   }
 
   /// True when the switch-plan UI does not match the saved plan (user changed tier, billing cycle, or add-ons).
   bool _switchUiDiffersFromPlan(Plan p) {
-    if (_switchPlanSelected != (p.selectedPlan ?? '')) return true;
+    final savedTemplate = _switchTemplateForPlan(p);
+    if (_switchPlanTemplateId != savedTemplate?.id) return true;
     if (_switchPlanIsYearly != (p.isYearlyPlan ?? false)) return true;
-    if (_switchPlanExtraSupport ||
-        _switchPlanTaxReporting ||
-        _switchPlanUnlimitedBranches) {
-      return true;
+    final savedSlugs = _savedAddonSlugsForPlan(p);
+    if (savedSlugs.length != _switchPlanAddonSlugs.length) return true;
+    for (final slug in _switchPlanAddonSlugs) {
+      if (!savedSlugs.contains(slug)) return true;
     }
-    if (_switchPlanAdditionalServices.isNotEmpty) return true;
     return false;
   }
 
@@ -305,12 +340,14 @@ class _FailedPaymentState extends State<FailedPayment>
     if (!_switchUiDiffersFromPlan(base)) {
       return base;
     }
+    final template = _selectedSwitchTemplate;
     final price = _calculateSwitchPlanPrice();
     return Plan(
       id: base.id,
       businessId: base.businessId,
       branchId: base.branchId,
-      selectedPlan: _switchPlanSelected,
+      selectedPlan: template?.name ?? base.selectedPlan,
+      planTemplateId: template?.id ?? base.planTemplateId,
       additionalDevices: base.additionalDevices ?? 0,
       isYearlyPlan: _switchPlanIsYearly,
       totalPrice: price.toInt(),
@@ -606,6 +643,22 @@ class _FailedPaymentState extends State<FailedPayment>
           ),
         ),
         centerTitle: true,
+        actions: kDebugMode
+            ? [
+                TextButton(
+                  onPressed: () => locator<RouterService>().replaceWith(
+                    PaymentPlanUIRoute(skipPaymentStatusCheck: true),
+                  ),
+                  child: Text(
+                    'Payment Plan',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ]
+            : null,
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
@@ -1019,13 +1072,13 @@ class _FailedPaymentState extends State<FailedPayment>
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _buildSwitchPlanCards(theme),
             ),
-            if (_switchPlanSelected == 'Entreprise') ...[
+            if (_selectedSwitchTemplate?.isEnterprise == true) ...[
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildSwitchPlanEnterpriseServices(theme),
+                child: _buildSwitchPlanAddonServices(theme),
               ),
-            ] else ...[
+            ] else if ((_selectedSwitchTemplate?.addons ?? const []).isNotEmpty) ...[
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1063,6 +1116,8 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildSwitchPlanDurationToggle(ThemeData theme) {
+    final yearlyDiscount =
+        _selectedSwitchTemplate?.yearlyDiscountPercent.round() ?? 20;
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -1114,7 +1169,7 @@ class _FailedPaymentState extends State<FailedPayment>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Yearly (20% off)',
+                  'Yearly ($yearlyDiscount% off)',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: _switchPlanIsYearly
@@ -1132,54 +1187,27 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildSwitchPlanCards(ThemeData theme) {
+    final templates = _catalog?.templates ?? const [];
     return Column(
       children: [
-        _buildSwitchPlanCard(
-          theme,
-          'Mobile',
-          'Mobile only',
-          _switchPlanIsYearly ? '48,000 RWF/year' : '5,000 RWF/month',
-          Icons.phone_iphone,
-        ),
-        const SizedBox(height: 8),
-        _buildSwitchPlanCard(
-          theme,
-          'Mobile + Desktop',
-          'Mobile + Desktop',
-          _switchPlanIsYearly ? '1,152,000 RWF/year' : '120,000 RWF/month',
-          Icons.devices,
-        ),
-        const SizedBox(height: 8),
-        _buildSwitchPlanCard(
-          theme,
-          'Entreprise',
-          'Entreprise',
-          _switchPlanIsYearly ? '14,400,000+ RWF/year' : '1,500,000+ RWF/month',
-          Icons.business_rounded,
-        ),
+        for (var i = 0; i < templates.length; i++) ...[
+          if (i > 0) const SizedBox(height: 8),
+          _buildSwitchPlanCard(theme, templates[i]),
+        ],
       ],
     );
   }
 
   Widget _buildSwitchPlanCard(
     ThemeData theme,
-    String value,
-    String title,
-    String price,
-    IconData icon,
+    SubscriptionPlanTemplate template,
   ) {
-    final isSelected = _switchPlanSelected == value;
+    final isSelected = _switchPlanTemplateId == template.id;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _switchPlanSelected = value;
-          if (value != 'Entreprise') {
-            _switchPlanExtraSupport = false;
-            _switchPlanTaxReporting = false;
-            _switchPlanUnlimitedBranches = false;
-            _switchPlanAdditionalServices = [];
-          }
-          // Clear discount when plan changes - it was validated for previous plan
+          _switchPlanTemplateId = template.id;
+          _switchPlanAddonSlugs.clear();
           _discountCode = null;
           _discountAmount = 0;
         });
@@ -1202,7 +1230,7 @@ class _FailedPaymentState extends State<FailedPayment>
         child: Row(
           children: [
             Icon(
-              icon,
+              template.resolveIcon(),
               size: 24,
               color: isSelected
                   ? theme.colorScheme.onPrimary
@@ -1214,7 +1242,7 @@ class _FailedPaymentState extends State<FailedPayment>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    template.name,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -1225,7 +1253,7 @@ class _FailedPaymentState extends State<FailedPayment>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    price,
+                    template.formatListPrice(isYearly: _switchPlanIsYearly),
                     style: TextStyle(
                       fontSize: 14,
                       color: isSelected
@@ -1242,92 +1270,72 @@ class _FailedPaymentState extends State<FailedPayment>
     );
   }
 
-  Widget _buildSwitchPlanEnterpriseServices(ThemeData theme) {
+  Widget _buildSwitchPlanAddonServices(ThemeData theme) {
+    final template = _selectedSwitchTemplate;
+    if (template == null || template.addons.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Enterprise Services',
+          template.isEnterprise ? 'Enterprise Services' : 'Additional Services',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
             color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
-        _buildSwitchPlanServiceToggle(
-          theme,
-          'Extra Support',
-          '800,000 RWF${_switchPlanIsYearly ? '/year' : '/month'}',
-          _switchPlanExtraSupport,
-          (v) {
-            setState(() {
-              _switchPlanExtraSupport = v;
-              if (v &&
-                  !_switchPlanAdditionalServices.contains('Extra Support')) {
-                _switchPlanAdditionalServices.add('Extra Support');
-              } else {
-                _switchPlanAdditionalServices.remove('Extra Support');
-              }
-            });
-          },
-        ),
-        const SizedBox(height: 8),
-        _buildSwitchPlanServiceToggle(
-          theme,
-          'Premium Tax Reporting Consulting',
-          '400,000 RWF${_switchPlanIsYearly ? '/year' : '/month'}',
-          _switchPlanTaxReporting,
-          (v) {
-            setState(() {
-              _switchPlanTaxReporting = v;
-              const name = 'Premium Tax Reporting Consulting';
-              if (v && !_switchPlanAdditionalServices.contains(name)) {
-                _switchPlanAdditionalServices.add(name);
-              } else {
-                _switchPlanAdditionalServices.remove(name);
-              }
-            });
-          },
-        ),
-        const SizedBox(height: 8),
-        _buildSwitchPlanServiceToggle(
-          theme,
-          'Unlimited Branches & Agents',
-          '600,000 RWF${_switchPlanIsYearly ? '/year' : '/month'}',
-          _switchPlanUnlimitedBranches,
-          (v) {
-            setState(() {
-              _switchPlanUnlimitedBranches = v;
-              const name = 'Unlimited Branches & Agents';
-              if (v && !_switchPlanAdditionalServices.contains(name)) {
-                _switchPlanAdditionalServices.add(name);
-              } else {
-                _switchPlanAdditionalServices.remove(name);
-              }
-            });
-          },
-        ),
+        for (var i = 0; i < template.addons.length; i++) ...[
+          if (i > 0) const SizedBox(height: 8),
+          _buildSwitchPlanServiceToggle(
+            theme,
+            template.addons[i],
+            _switchPlanAddonSlugs.contains(template.addons[i].slug),
+            (selected) {
+              setState(() {
+                if (selected) {
+                  _switchPlanAddonSlugs.add(template.addons[i].slug);
+                } else {
+                  _switchPlanAddonSlugs.remove(template.addons[i].slug);
+                }
+              });
+            },
+          ),
+        ],
       ],
     );
   }
 
   Widget _buildSwitchPlanTaxReporting(ThemeData theme) {
+    final template = _selectedSwitchTemplate;
+    final addon = template?.addonBySlug('tax_reporting');
+    if (template == null || addon == null) return const SizedBox.shrink();
+
     return _buildSwitchPlanServiceToggle(
       theme,
-      'Tax Reporting Consulting',
-      '30,000 RWF${_switchPlanIsYearly ? '/year' : '/month'}',
-      _switchPlanTaxReporting,
-      (v) => setState(() => _switchPlanTaxReporting = v),
+      addon,
+      _switchPlanAddonSlugs.contains(addon.slug),
+      (selected) {
+        setState(() {
+          if (selected) {
+            _switchPlanAddonSlugs.add(addon.slug);
+          } else {
+            _switchPlanAddonSlugs.remove(addon.slug);
+          }
+        });
+      },
     );
   }
 
   Widget _buildSwitchPlanServiceToggle(
     ThemeData theme,
-    String title,
-    String price,
+    SubscriptionPlanAddonTemplate addon,
     bool value,
     void Function(bool) onChanged,
   ) {
+    final template = _selectedSwitchTemplate!;
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -1342,13 +1350,13 @@ class _FailedPaymentState extends State<FailedPayment>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  addon.name,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
-                  price,
+                  template.formatAddonPrice(addon, isYearly: _switchPlanIsYearly),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
@@ -1841,7 +1849,10 @@ class _FailedPaymentState extends State<FailedPayment>
             ],
           ),
           const SizedBox(height: 16),
-          _buildDetailRow('Plan', plan.selectedPlan ?? 'N/A'),
+          _buildDetailRow(
+            'Plan',
+            _switchTemplateForPlan(plan)?.name ?? plan.selectedPlan ?? 'N/A',
+          ),
           if (_discountAmount > 0) ...[
             _buildDetailRow(
               'Subtotal',
@@ -2082,7 +2093,8 @@ class _FailedPaymentState extends State<FailedPayment>
     if (_switchUiDiffersFromPlan(plan)) {
       await ProxyService.strategy.saveOrUpdatePaymentPlan(
         businessId: (await ProxyService.strategy.activeBusiness())!.id,
-        selectedPlan: _switchPlanSelected,
+        selectedPlan: _selectedSwitchTemplate?.name ?? effectivePlan.selectedPlan ?? 'Mobile',
+        planTemplateId: _selectedSwitchTemplate?.id,
         additionalDevices: effectivePlan.additionalDevices ?? 0,
         isYearlyPlan: _switchPlanIsYearly,
         totalPrice: _calculateSwitchPlanPrice(),

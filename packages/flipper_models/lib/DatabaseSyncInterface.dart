@@ -459,6 +459,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String businessId,
     List<String>? addons,
     required String selectedPlan,
+    String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
@@ -474,6 +475,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool? fetchOnline,
     bool? preferFresh,
   });
+  Future<SubscriptionPlanCatalog> getSubscriptionPlanCatalog();
   Future<void> upsertPlan({
     required String businessId,
     required Plan selectedPlan,
