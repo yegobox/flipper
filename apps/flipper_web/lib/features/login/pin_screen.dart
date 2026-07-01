@@ -150,6 +150,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
         if (mounted) {
           if (success) {
             setState(() => _isDone = true);
+            context.go('/business-selection');
           } else {
             setState(() {
               _hasError = true;

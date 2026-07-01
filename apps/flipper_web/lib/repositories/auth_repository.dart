@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_web/core/api_login_key.dart';
+import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
@@ -14,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
+import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -136,10 +139,6 @@ class AuthRepository {
     }
 
     final pinUserId = responseData['userId']?.toString().trim();
-    if (pinUserId != null && pinUserId.isNotEmpty) {
-      _ref.read(sessionApiUserIdProvider.notifier).state = pinUserId;
-      await SessionPersistence.save(apiUserId: pinUserId);
-    }
 
     final rawLoginKey = responseData['phoneNumber']?.toString().trim();
     final loginKey = rawLoginKey == null || rawLoginKey.isEmpty
@@ -173,19 +172,32 @@ class AuthRepository {
       }
 
       clearSessionBusinessSelection(_ref);
+      await BusinessSelectionPersistence.clear();
 
       final resolvedLoginKey =
           loginKey ?? _ref.read(sessionLoginKeyProvider);
       final resolvedPinUserId =
           pinUserId ?? _ref.read(sessionApiUserIdProvider);
+      final previousApiUserId =
+          _ref.read(sessionApiUserIdProvider) ??
+          await SessionPersistence.readApiUserId();
+
       final profile = await _userRepository.fetchAndSaveUserProfile(
         session,
         loginKey: resolvedLoginKey,
         pinUserId: resolvedPinUserId,
       );
 
+      final canonicalUserId = profile.id.trim();
+      if (previousApiUserId != null &&
+          previousApiUserId.isNotEmpty &&
+          previousApiUserId != canonicalUserId) {
+        await resetSaleDeviceIdCache();
+      }
+
+      _ref.read(sessionApiUserIdProvider.notifier).state = canonicalUserId;
       await SessionPersistence.save(
-        apiUserId: resolvedPinUserId ?? profile.id,
+        apiUserId: canonicalUserId,
         loginKey: _ref.read(sessionLoginKeyProvider),
       );
 
@@ -196,25 +208,53 @@ class AuthRepository {
         await SessionPersistence.save(loginKey: normalizedPhone);
       }
 
-      // Cache only complete profiles so business selection is not blocked.
+      final rawPayload = _userRepository.lastFetchedApiPayload;
       if (profile.hasBusinesses) {
         _ref.read(userProfileCacheProvider.notifier).state = profile;
+        if (rawPayload != null) {
+          _ref.read(userProfileApiPayloadCacheProvider.notifier).state =
+              rawPayload;
+        }
       } else {
         _ref.read(userProfileCacheProvider.notifier).state = null;
+        _ref.read(userProfileApiPayloadCacheProvider.notifier).state = null;
       }
 
       _ref.invalidate(currentUserProfileProvider);
 
-      final dittoUserId = (resolvedPinUserId ?? profile.id).trim();
-      if (dittoUserId.isNotEmpty) {
-        // Non-blocking — accounting providers refresh when Ditto becomes ready.
-        unawaited(DittoBootstrap.ensureInitialized(_ref, userId: dittoUserId));
+      if (canonicalUserId.isNotEmpty) {
+        // Ditto init can take minutes on web/WASM — do not block Login Choices.
+        unawaited(
+          _kickoffDittoAfterLogin(
+            userId: canonicalUserId,
+            rawPayload: rawPayload,
+            profile: profile,
+          ),
+        );
       }
 
       debugPrint('User profile fetched and cached successfully');
     } catch (e) {
       debugPrint('Error fetching user profile: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _kickoffDittoAfterLogin({
+    required String userId,
+    required Map<String, dynamic>? rawPayload,
+    required UserProfile profile,
+  }) async {
+    try {
+      await DittoBootstrap.ensureInitialized(_ref, userId: userId);
+      if (rawPayload != null) {
+        await _userRepository.persistProfileToDitto(
+          apiPayload: rawPayload,
+          profile: profile,
+        );
+      }
+    } catch (e, st) {
+      debugPrint('Background Ditto login setup failed: $e\n$st');
     }
   }
 }

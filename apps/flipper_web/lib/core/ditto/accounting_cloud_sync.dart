@@ -118,6 +118,47 @@ Future<void> ensureAccountingCloudSubscriptions({
   }
 }
 
+/// Waits until chart of accounts rows replicate for [businessId] (or times out).
+///
+/// Books gates the shell on COA presence — journals and transactions can stream
+/// in after the shell is visible.
+Future<bool> waitForChartOfAccountsReplication({
+  required Ditto ditto,
+  required String businessId,
+  Duration? timeout,
+}) async {
+  if (businessId.isEmpty) return false;
+
+  final effectiveTimeout = timeout ?? const Duration(seconds: 15);
+
+  const pollInterval = Duration(milliseconds: 500);
+  final deadline = DateTime.now().add(effectiveTimeout);
+  debugPrint(
+    '[Accounting] waiting for COA replication businessId=$businessId '
+    'timeout=${effectiveTimeout.inSeconds}s',
+  );
+
+  while (DateTime.now().isBefore(deadline)) {
+    try {
+      final coa = await ditto.store.execute(
+        'SELECT _id FROM chart_of_accounts '
+        'WHERE businessId = :businessId OR business_id = :businessId LIMIT 1',
+        arguments: {'businessId': businessId},
+      );
+      if (coa.items.isNotEmpty) {
+        debugPrint('[Accounting] replication: chart_of_accounts present');
+        return true;
+      }
+    } catch (e) {
+      debugPrint('[Accounting] waitForChartOfAccountsReplication poll: $e');
+    }
+    await Future.delayed(pollInterval);
+  }
+
+  debugPrint('[Accounting] COA replication wait timed out');
+  return false;
+}
+
 /// Waits for cloud replication to deliver GL/POS rows (or times out).
 ///
 /// Returns `true` when at least one subscribed row is visible via DQL.
@@ -132,7 +173,7 @@ Future<bool> waitForAccountingReplication({
 }) async {
   if (businessId.isEmpty) return false;
 
-  final effectiveTimeout = timeout ?? const Duration(seconds: 90);
+  final effectiveTimeout = timeout ?? const Duration(seconds: 15);
 
   const pollInterval = Duration(milliseconds: 500);
   final deadline = DateTime.now().add(effectiveTimeout);

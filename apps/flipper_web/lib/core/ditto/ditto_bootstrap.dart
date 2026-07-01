@@ -133,6 +133,21 @@ abstract final class DittoBootstrap {
   static Future<void> _hydrateCachedProfileToDittoCloud(Ref ref) async {
     final profile = ref.read(userProfileCacheProvider);
     if (profile == null) return;
+
+    final rawPayload = ref.read(userProfileApiPayloadCacheProvider);
+    if (rawPayload != null) {
+      try {
+        await ref.read(userRepositoryProvider).persistProfileToDitto(
+          apiPayload: rawPayload,
+          profile: profile,
+        );
+        debugPrint('[DittoBootstrap] profile hydrated to Ditto (user_access + cloud)');
+        return;
+      } catch (e, st) {
+        debugPrint('[DittoBootstrap] profile hydration failed: $e\n$st');
+      }
+    }
+
     if (!DittoService.instance.isCloudReady()) {
       debugPrint('[DittoBootstrap] profile cloud hydration skipped — not cloud-ready');
       return;

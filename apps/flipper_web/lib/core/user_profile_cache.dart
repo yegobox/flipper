@@ -13,3 +13,7 @@ final sessionLoginKeyProvider = StateProvider<String?>((ref) => null);
 /// Canonical `public.users.id` from `pins.user_id` (verify-otp / verify-totp).
 /// Used with `get_user_with_nested_data` — same as desktop [sendLoginRequest].
 final sessionApiUserIdProvider = StateProvider<String?>((ref) => null);
+
+/// Raw POST `/v2/api/user` payload for Ditto `user_access` replay after init.
+final userProfileApiPayloadCacheProvider =
+    StateProvider<Map<String, dynamic>?>((ref) => null);

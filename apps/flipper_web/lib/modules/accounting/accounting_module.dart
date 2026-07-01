@@ -43,7 +43,9 @@ class _AccountingBootstrappedShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bootstrap = ref.watch(accountingPostSyncBootstrapProvider);
+    final bootstrap = ref.watch(accountingCoaBootstrapProvider);
+    // Journal rows can arrive after the shell opens.
+    ref.watch(accountingJournalReplicationProvider);
 
     return bootstrap.when(
       loading: () => const Scaffold(

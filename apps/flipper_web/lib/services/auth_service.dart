@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/session_persistence.dart';
@@ -76,9 +77,11 @@ class AuthService {
   /// Signs out the current user
   Future<void> signOut() async {
     try {
+      await resetSaleDeviceIdCache();
       await DittoBootstrap.disposeOnSignOut(_ref);
       clearSessionBusinessSelection(_ref);
       _ref.read(userProfileCacheProvider.notifier).state = null;
+      _ref.read(userProfileApiPayloadCacheProvider.notifier).state = null;
       _ref.read(sessionLoginKeyProvider.notifier).state = null;
       _ref.read(sessionApiUserIdProvider.notifier).state = null;
       await SessionPersistence.clear();

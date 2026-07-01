@@ -118,6 +118,15 @@ void main() {
       mockDittoService,
       httpClient: mockHttpClient,
     );
+
+    when(() => mockDittoService.isReady()).thenReturn(false);
+    when(() => mockDittoService.isCloudReady()).thenReturn(false);
+    when(
+      () => mockDittoService.saveUserAccess(
+        any(),
+        localOnly: any(named: 'localOnly'),
+      ),
+    ).thenAnswer((_) async => true);
   });
 
   group('UserRepository', () {
@@ -235,6 +244,61 @@ void main() {
       expect(result.tenants.first.branches.first.businessId,
           '6330e99b-39c3-4e95-9186-9322974bd95e');
     });
+
+    test(
+      'phone login trusts API user id when pins.user_id differs',
+      () async {
+        const stalePinUserId = '841ae19b-stale-pin-user-id';
+        const apiUserId = 'cfc6e161-ed45-4402-a4c0-a31ab92b2d8f';
+        final apiResponse = {
+          'id': apiUserId,
+          'phone_number': '+250783054874',
+          'businesses': [
+            {
+              'id': '6330e99b-39c3-4e95-9186-9322974bd95e',
+              'name': 'Demo Shop',
+              'country': 'Rwanda',
+              'currency': 'RWF',
+              'latitude': 1,
+              'longitude': 1,
+              'active': true,
+              'user_id': apiUserId,
+              'branches': [
+                {
+                  'id': 'branch-1',
+                  'name': 'Main',
+                  'description': '',
+                  'latitude': 1,
+                  'longitude': 1,
+                  'business_id': '6330e99b-39c3-4e95-9186-9322974bd95e',
+                  'active': true,
+                },
+              ],
+            },
+          ],
+        };
+
+        final mockResponse = MockResponse();
+        when(() => mockResponse.statusCode).thenReturn(200);
+        when(() => mockResponse.body).thenReturn(jsonEncode(apiResponse));
+        when(
+          () => mockHttpClient.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer((_) async => mockResponse);
+
+        final result = await userRepository.fetchAndSaveUserProfile(
+          mockSession,
+          loginKey: '+250783054874',
+          pinUserId: stalePinUserId,
+        );
+
+        expect(result.id, apiUserId);
+        expect(result.tenants.first.businesses.first.name, 'Demo Shop');
+      },
+    );
 
     test('getCurrentUserProfile calls DittoService.getUserProfile', () async {
       // Arrange

@@ -22,6 +22,8 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
   if (ref.read(selectedBusinessProvider) != null &&
       ref.read(selectedBranchProvider) != null) {
     await DittoBootstrap.kickoffIfNeeded(ref);
+    final businessId = ref.read(selectedBusinessProvider)!.id;
+    kickoffAccountingBootstrapFromRef(ref, businessId);
     return;
   }
 
@@ -39,8 +41,8 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
   await DittoBootstrap.kickoffIfNeeded(ref);
 });
 
-/// Applies persisted or default business/branch from [profile] when selection
-/// is missing.
+/// Applies persisted business/branch from [profile] when selection is missing.
+/// Does not pick defaults — fresh logins must use Login Choices.
 Future<void> restoreSelectedBusinessFromProfile(
   Ref ref,
   UserProfile profile,
@@ -88,15 +90,15 @@ Future<void> restoreSelectedBusinessFromProfile(
     }
   }
 
-  final resolvedBusiness = business ?? _defaultBusiness(businesses);
-  if (resolvedBusiness == null) return;
-
-  if (branch == null) {
-    final branches = tenant.branches
-        .where((b) => b.businessId == resolvedBusiness.id)
-        .toList();
-    branch = _defaultBranch(branches);
+  if (business == null || branch == null) {
+    debugPrint(
+      '[Business] restore skipped — no persisted selection '
+      '(login choices required)',
+    );
+    return;
   }
+
+  final resolvedBusiness = business;
 
   // Re-read after async persistence lookup — login choices may have run meanwhile.
   final liveBusiness = ref.read(selectedBusinessProvider);
@@ -135,6 +137,7 @@ Future<void> restoreSelectedBusinessFromProfile(
     );
     ref.read(bankRecLocalLinesProvider.notifier).state = null;
     ref.read(bankRecFinishedProvider.notifier).state = false;
+    kickoffAccountingBootstrapFromRef(ref, resolvedBusiness.id);
     // Streams rebuild via accountingBusinessIdProvider when selection is set.
   }
 }
@@ -158,19 +161,4 @@ Branch? _findBranch(List<Branch> branches, String id) {
     if (b.id == id) return b;
   }
   return null;
-}
-
-Business? _defaultBusiness(List<Business> businesses) {
-  for (final b in businesses) {
-    if (b.isDefault) return b;
-  }
-  return businesses.first;
-}
-
-Branch? _defaultBranch(List<Branch> branches) {
-  if (branches.isEmpty) return null;
-  for (final b in branches) {
-    if (b.isDefault) return b;
-  }
-  return branches.first;
 }
