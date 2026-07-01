@@ -966,6 +966,13 @@ mixin AuthMixin implements AuthInterface {
         unawaited(hydrateBusinessBranchesFromRemote(businessId: businessId));
       }
 
+      for (final business in businessesData) {
+        if (business is! Map) continue;
+        final businessId = business['id']?.toString();
+        if (businessId == null || businessId.isEmpty) continue;
+        unawaited(hydrateBusinessBranchesFromRemote(businessId: businessId));
+      }
+
       return http.Response(
         jsonEncode(responseBody),
         response.statusCode,
