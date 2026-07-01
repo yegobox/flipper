@@ -2732,12 +2732,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
 
     try {
-      final ditto = dittoService.dittoInstance;
-      if (ditto == null) {
-        talker.error('Ditto not initialized for pendingTransaction');
-        return Stream.empty();
-      }
-
       final controller = StreamController<ITransaction>.broadcast();
       final observerSlot = <dynamic>[null];
 
@@ -2750,6 +2744,24 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       unawaited(() async {
         try {
+          var ditto = dittoService.dittoInstance;
+          var dittoWaitAttempts = 0;
+          while (ditto == null &&
+              dittoWaitAttempts < 150 &&
+              !controller.isClosed) {
+            await Future.delayed(const Duration(milliseconds: 100));
+            ditto = dittoService.dittoInstance;
+            dittoWaitAttempts++;
+          }
+          if (ditto == null) {
+            talker.error(
+              'Ditto not initialized for pendingTransaction after wait',
+            );
+            if (!controller.isClosed) await controller.close();
+            return;
+          }
+          final activeDitto = ditto;
+
           final saleDeviceId = await resolveSaleDeviceId();
           final agentId = ProxyService.box.getUserId();
           final Map<String, dynamic> arguments = {
@@ -2771,7 +2783,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           query += " ORDER BY lastTouched DESC";
 
           final preparedPending = prepareDqlSyncSubscription(query, arguments);
-          ditto.sync.registerSubscription(
+          activeDitto.sync.registerSubscription(
             preparedPending.dql,
             arguments: preparedPending.arguments,
           );
@@ -2782,7 +2794,53 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           /// [updateTransaction]) so the next observer callback emits it.
           ITransaction? lastEmitted;
 
-          observerSlot[0] = ditto.store.registerObserver(
+          void emitPendingFromRow(Map<String, dynamic> data) {
+            if (controller.isClosed || !_dittoRowStatusIsPending(data)) return;
+            final tx = _convertFromDittoDocument(data);
+            lastEmitted = tx;
+            controller.add(tx);
+          }
+
+          Future<void> ensureInitialPendingEmit() async {
+            if (controller.isClosed ||
+                branchId == null ||
+                branchId.isEmpty) {
+              return;
+            }
+            final snapshot = await activeDitto.store.execute(
+              query,
+              arguments: arguments,
+            );
+            if (snapshot.items.isNotEmpty) {
+              final data = Map<String, dynamic>.from(
+                snapshot.items.first.value,
+              );
+              if (_dittoRowStatusIsPending(data)) {
+                emitPendingFromRow(data);
+                return;
+              }
+              talker.warning(
+                'pendingTransaction: initial snapshot not pending '
+                '(status=${data['status']}); ensuring next cart',
+              );
+            }
+            await _ensureNextPendingCartIfNeeded(
+              branchId: branchId,
+              transactionType: transactionType,
+              isExpense: isExpense,
+            );
+            final after = await activeDitto.store.execute(
+              query,
+              arguments: arguments,
+            );
+            if (after.items.isNotEmpty) {
+              emitPendingFromRow(
+                Map<String, dynamic>.from(after.items.first.value),
+              );
+            }
+          }
+
+          observerSlot[0] = activeDitto.store.registerObserver(
             query,
             arguments: arguments,
             onChange: (queryResult) {
@@ -2833,43 +2891,17 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
           if (branchId != null && branchId.isNotEmpty) {
             try {
-              final snapshot = await ditto.store.execute(
-                query,
-                arguments: arguments,
-              );
-              if (snapshot.items.isNotEmpty && !controller.isClosed) {
-                final data = Map<String, dynamic>.from(
-                  snapshot.items.first.value,
-                );
-                if (!_dittoRowStatusIsPending(data)) {
-                  talker.warning(
-                    'pendingTransaction: initial snapshot not pending '
-                    '(status=${data['status']}); skipping emit',
-                  );
-                } else {
-                  final tx = _convertFromDittoDocument(data);
-                  lastEmitted = tx;
-                  controller.add(tx);
-                }
-              } else if (snapshot.items.isEmpty && !controller.isClosed) {
-                await _ensureNextPendingCartIfNeeded(
-                  branchId: branchId,
+              await ensureInitialPendingEmit();
+              if (lastEmitted == null && !controller.isClosed) {
+                final txn = await manageTransaction(
                   transactionType: transactionType,
                   isExpense: isExpense,
+                  branchId: branchId,
+                  status: PENDING,
                 );
-                final after = await ditto.store.execute(
-                  query,
-                  arguments: arguments,
-                );
-                if (after.items.isNotEmpty && !controller.isClosed) {
-                  final data = Map<String, dynamic>.from(
-                    after.items.first.value,
-                  );
-                  if (_dittoRowStatusIsPending(data)) {
-                    final tx = _convertFromDittoDocument(data);
-                    lastEmitted = tx;
-                    controller.add(tx);
-                  }
+                if (txn != null && !controller.isClosed) {
+                  lastEmitted = txn;
+                  controller.add(txn);
                 }
               }
             } catch (e, s) {
