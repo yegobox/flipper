@@ -43,36 +43,27 @@ class _AccountingBootstrappedShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bootstrap = ref.watch(accountingCoaBootstrapProvider);
-    // Journal rows can arrive after the shell opens.
-    ref.watch(accountingJournalReplicationProvider);
-
-    return bootstrap.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stackTrace) {
-        logCaughtError(
+    ref.listen(accountingCoaBootstrapProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, stackTrace) => logCaughtError(
           error,
           stackTrace,
           type: 'accounting_bootstrap',
-        );
-        return Scaffold(
-          body: Center(
-            child: Text('Could not start accounting: $error'),
-          ),
-        );
-      },
-      data: (_) {
-        ref.watch(accountingAutoPosterProvider);
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth >= SITokens.desktopBreakpoint) {
-              return const AccountingDesktopShell();
-            }
-            return const AccountingMobileShell();
-          },
-        );
+        ),
+      );
+    });
+    // COA bootstrap + journal replication run in background; views use
+    // accountingLoadingProvider for per-section spinners.
+    ref.watch(accountingCoaBootstrapProvider);
+    ref.watch(accountingJournalReplicationProvider);
+    ref.watch(accountingAutoPosterProvider);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= SITokens.desktopBreakpoint) {
+          return const AccountingDesktopShell();
+        }
+        return const AccountingMobileShell();
       },
     );
   }

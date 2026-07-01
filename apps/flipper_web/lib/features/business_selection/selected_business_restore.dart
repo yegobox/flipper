@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/session_persistence.dart';
@@ -21,16 +23,41 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
   // Native Flipper shell seeds selection from ProxyService.box before Books opens.
   if (ref.read(selectedBusinessProvider) != null &&
       ref.read(selectedBranchProvider) != null) {
-    await DittoBootstrap.kickoffIfNeeded(ref);
     final businessId = ref.read(selectedBusinessProvider)!.id;
     kickoffAccountingBootstrapFromRef(ref, businessId);
+    unawaited(DittoBootstrap.kickoffIfNeeded(ref));
     return;
+  }
+
+  // Page reload: restore ids from SharedPreferences before profile/API (instant shell).
+  if (!ref.read(sessionBranchChoiceLockedProvider)) {
+    final apiUserId = await SessionPersistence.readApiUserId();
+    final cachedId = ref.read(userProfileCacheProvider)?.id;
+    final persisted = await BusinessSelectionPersistence.readForUserIds([
+      if (cachedId != null) cachedId,
+      if (apiUserId != null) apiUserId,
+    ]);
+    if (persisted != null) {
+      ref.read(selectedBusinessProvider.notifier).set(
+            _placeholderBusiness(persisted.businessId),
+          );
+      ref.read(selectedBranchProvider.notifier).set(
+            _placeholderBranch(
+              id: persisted.branchId,
+              businessId: persisted.businessId,
+            ),
+          );
+      kickoffAccountingBootstrapFromRef(ref, persisted.businessId);
+      unawaited(DittoBootstrap.kickoffIfNeeded(ref));
+      unawaited(_enrichSelectionFromProfile(ref));
+      return;
+    }
   }
 
   final cached = ref.read(userProfileCacheProvider);
   if (cached != null && cached.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, cached);
-    await DittoBootstrap.kickoffIfNeeded(ref);
+    unawaited(DittoBootstrap.kickoffIfNeeded(ref));
     return;
   }
 
@@ -38,7 +65,7 @@ final selectedBusinessRestoreProvider = FutureProvider<void>((ref) async {
   if (profile != null && profile.hasBusinesses) {
     await restoreSelectedBusinessFromProfile(ref, profile);
   }
-  await DittoBootstrap.kickoffIfNeeded(ref);
+  unawaited(DittoBootstrap.kickoffIfNeeded(ref));
 });
 
 /// Applies persisted business/branch from [profile] when selection is missing.
@@ -59,7 +86,10 @@ Future<void> restoreSelectedBusinessFromProfile(
 
   final currentBusiness = ref.read(selectedBusinessProvider);
   final currentBranch = ref.read(selectedBranchProvider);
-  if (currentBusiness != null && currentBranch != null) {
+  if (currentBusiness != null &&
+      currentBranch != null &&
+      currentBusiness.name.isNotEmpty &&
+      currentBranch.name.isNotEmpty) {
     debugPrint(
       '[Business] restore skipped — already selected '
       'business=${currentBusiness.name} branch=${currentBranch.name}',
@@ -161,4 +191,51 @@ Branch? _findBranch(List<Branch> branches, String id) {
     if (b.id == id) return b;
   }
   return null;
+}
+
+/// Minimal business/branch for instant reload before profile/API returns.
+Business _placeholderBusiness(String id) => Business(
+      id: id,
+      name: '',
+      country: '',
+      currency: '',
+      latitude: '',
+      longitude: '',
+      active: true,
+      userId: '',
+      phoneNumber: '',
+      lastSeen: 0,
+      backUpEnabled: false,
+      fullName: '',
+      tinNumber: 0,
+      taxEnabled: false,
+      businessTypeId: 0,
+      serverId: 0,
+      isDefault: false,
+      lastSubscriptionPaymentSucceeded: false,
+    );
+
+Branch _placeholderBranch({
+  required String id,
+  required String businessId,
+}) =>
+    Branch(
+      id: id,
+      description: '',
+      name: '',
+      longitude: '',
+      latitude: '',
+      businessId: businessId,
+      serverId: 0,
+    );
+
+Future<void> _enrichSelectionFromProfile(Ref ref) async {
+  try {
+    final profile = await ref.read(currentUserProfileProvider.future);
+    if (profile != null && profile.hasBusinesses) {
+      await restoreSelectedBusinessFromProfile(ref, profile);
+    }
+  } catch (e) {
+    debugPrint('[Business] profile enrich failed: $e');
+  }
 }
