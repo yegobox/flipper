@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/interfaces/DelegationInterface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -48,8 +49,14 @@ mixin CapellaDelegationMixin implements DelegationInterface {
         'selectedDelegationDeviceId': selectedDelegationDeviceId,
       };
 
+      final ditto = dittoService.dittoInstance!;
+      await ensureBranchDelegationCloudSubscription(
+        ditto: ditto,
+        branchId: branchId,
+      );
+
       // Use DQL INSERT with conflict resolution (upsert)
-      await dittoService.dittoInstance!.store.execute(
+      await ditto.store.execute(
         "INSERT INTO $_collectionName DOCUMENTS (:delegation) ON ID CONFLICT DO UPDATE",
         arguments: {
           "delegation": delegationData,
@@ -59,7 +66,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       debugPrint(
           '✅ Delegation created in Ditto: $transactionId (status: delegated)');
       debugPrint(
-          '   Branch: $branchId, Receipt: $receiptType, Device: $deviceId');
+          '   Branch: $branchId, Receipt: $receiptType, From: $deviceId, Target deviceId: $selectedDelegationDeviceId');
     } catch (e) {
       debugPrint('❌ Error creating delegation: $e');
       rethrow;
@@ -74,8 +81,11 @@ mixin CapellaDelegationMixin implements DelegationInterface {
   }) {
     try {
       final ditto = dittoService.dittoInstance;
-      if (ditto == null) {
-        debugPrint('❌ Ditto not initialized:1');
+      if (ditto == null || !dittoService.isReady()) {
+        debugPrint(
+          '❌ Ditto not ready for delegation monitoring '
+          '(instance=${ditto != null})',
+        );
         return Stream.value([]);
       }
 

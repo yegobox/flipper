@@ -312,6 +312,9 @@ class _TransactionDelegationSettingsState
                 },
                 child: Column(
                   children: targetDevices.map((device) {
+                    final idSuffix = device.id.length > 6
+                        ? device.id.substring(device.id.length - 6)
+                        : device.id;
                     return RadioListTile<String>(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
@@ -319,9 +322,12 @@ class _TransactionDelegationSettingsState
                         device.deviceName ?? 'Unknown Device',
                         style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
-                      subtitle: device.phone != null
-                          ? Text('Phone: ${device.phone}')
-                          : null,
+                      subtitle: Text(
+                        [
+                          if (device.phone != null) 'Phone: ${device.phone}',
+                          'ID: …$idSuffix',
+                        ].join(' · '),
+                      ),
                       value: device.id,
                       activeColor: const Color(0xFF0078D4),
                     );

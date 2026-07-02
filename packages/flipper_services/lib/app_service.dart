@@ -341,6 +341,7 @@ class AppService with ListenableServiceMixin {
     }
 
     await _saveDesktopDeviceRecordIfNeeded();
+    unawaited(ProxyService.cron.setupDelegationMonitoringIfNeeded());
   }
 
   Future<void> _saveDesktopDeviceRecordIfNeeded() async {
@@ -451,6 +452,9 @@ class AppService with ListenableServiceMixin {
     );
     unawaited(
       ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId),
+    );
+    unawaited(
+      ensureBranchDelegationCloudSubscription(ditto: ditto, branchId: branchId),
     );
     unawaited(
       ensureDailyReportFilesCloudSubscription(ditto: ditto, branchId: branchId),
@@ -577,6 +581,11 @@ class AppService with ListenableServiceMixin {
     }
 
     await _attachLocalStorageDittoIfReady();
+
+    if (dittoAvailable && !Platform.isAndroid && !Platform.isIOS) {
+      await _saveDesktopDeviceRecordIfNeeded();
+      await ProxyService.cron.setupDelegationMonitoringIfNeeded();
+    }
 
     // Try to get user access from Ditto if available
     Map<String, dynamic>? userAccess;
