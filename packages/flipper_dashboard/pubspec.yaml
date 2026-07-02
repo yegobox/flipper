@@ -156,6 +156,27 @@ flutter:
     - ./assets/fonts/
     - ./assets/pos_handoff/icons/
     - ./assets/animations/empty_box.json
+  fonts:
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist-400.ttf
+          weight: 400
+        - asset: assets/fonts/Geist-500.ttf
+          weight: 500
+        - asset: assets/fonts/Geist-600.ttf
+          weight: 600
+        - asset: assets/fonts/Geist-700.ttf
+          weight: 700
+        - asset: assets/fonts/Geist-800.ttf
+          weight: 800
+    - family: Geist Mono
+      fonts:
+        - asset: assets/fonts/GeistMono-500.ttf
+          weight: 500
+        - asset: assets/fonts/GeistMono-600.ttf
+          weight: 600
+        - asset: assets/fonts/GeistMono-700.ttf
+          weight: 700
 generate: true
 dev_dependencies:
   flutter_test:

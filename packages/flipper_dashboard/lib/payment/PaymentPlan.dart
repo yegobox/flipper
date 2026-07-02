@@ -1,15 +1,17 @@
-import 'package:flipper_models/helperModels/extensions.dart';
-import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_dashboard/payment/payment_format.dart';
+import 'package:flipper_dashboard/payment/payment_tokens.dart';
+import 'package:flipper_dashboard/payment/payment_typography.dart';
+import 'package:flipper_dashboard/payment/widgets/payment_widgets.dart';
+import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/exceptions.dart' show FailedPaymentException;
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_dashboard/utils/error_handler.dart';
 
 class PaymentPlanUI extends StatefulWidget {
   const PaymentPlanUI({Key? key, this.skipPaymentStatusCheck = false})
@@ -31,7 +33,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   double _totalPrice = 0;
   bool _isLoadingCatalog = true;
   String? _catalogError;
-  final paymentController = TextEditingController();
+  bool _splitEnabled = false;
+  int _installmentCount = 1;
+  bool _isProceeding = false;
 
   SubscriptionPlanTemplate? get _selectedTemplate =>
       _catalog?.byId(_selectedTemplateId);
@@ -68,7 +72,6 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     }
   }
 
-  /// Checks if there's an active payment plan and navigates to the appropriate screen
   Future<void> _checkForActivePayment() async {
     if (widget.skipPaymentStatusCheck) return;
 
@@ -132,457 +135,222 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         .toList();
   }
 
-  Widget _buildDurationToggle() {
-    final yearlyDiscount =
-        _selectedTemplate?.yearlyDiscountPercent.round() ?? 20;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isYearlyPlan = false;
-                  _calculatePrice();
-                });
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: !_isYearlyPlan ? Colors.blue : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Monthly',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: !_isYearlyPlan ? Colors.white : Colors.blue,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isYearlyPlan = true;
-                  _calculatePrice();
-                });
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: _isYearlyPlan ? Colors.blue : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Yearly ($yearlyDiscount% off)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _isYearlyPlan ? Colors.white : Colors.blue,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  void _onInstallmentChanged(int count) {
+    setState(() => _installmentCount = count);
+    ProxyService.box.writeInt(key: 'numberOfPayments', value: count);
   }
 
-  Widget _buildPlanCards() {
-    final templates = _catalog?.templates ?? const [];
-    return Column(
-      children: [
-        for (var i = 0; i < templates.length; i++) ...[
-          if (i > 0) SizedBox(height: 8),
-          _buildPlanCard(templates[i]),
-        ],
-      ],
-    );
-  }
+  Future<void> _proceed() async {
+    final selectedTemplate = _selectedTemplate;
+    if (selectedTemplate == null || _isProceeding) return;
 
-  Widget _buildPlanCard(SubscriptionPlanTemplate template) {
-    final isSelected = _selectedTemplateId == template.id;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedTemplateId = template.id;
-          _additionalDevices = 0;
-          _selectedAddonSlugs.clear();
-          _calculatePrice();
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? Colors.transparent : Colors.grey.shade300,
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(
-                template.resolveIcon(),
-                size: 24,
-                color: isSelected ? Colors.white : Colors.blue,
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      template.name,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      template.formatListPrice(isYearly: _isYearlyPlan),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isSelected ? Colors.white70 : Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+    final numberOfPayments = _splitEnabled ? _installmentCount : 1;
+    final totalPrice = _totalPrice * numberOfPayments;
 
-  Widget _buildAdditionalDevicesInput() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Additional devices',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-          Row(
-            children: [
-              _buildCircularButton(
-                Icons.remove,
-                _additionalDevices > 0
-                    ? () {
-                        setState(() {
-                          _additionalDevices--;
-                          _calculatePrice();
-                        });
-                      }
-                    : null,
-              ),
-              SizedBox(width: 16),
-              Text(
-                _additionalDevices.toString(),
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(width: 16),
-              _buildCircularButton(Icons.add, () {
-                setState(() {
-                  _additionalDevices++;
-                  _calculatePrice();
-                });
-              }),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+    setState(() => _isProceeding = true);
 
-  Widget _buildCircularButton(IconData icon, VoidCallback? onPressed) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: onPressed != null ? Colors.blue : Colors.grey.shade300,
-        ),
-        child: Icon(icon, color: Colors.white, size: 16),
-      ),
-    );
-  }
+    try {
+      await ProxyService.strategy.saveOrUpdatePaymentPlan(
+        businessId: (await ProxyService.strategy.activeBusiness())!.id,
+        selectedPlan: selectedTemplate.name,
+        planTemplateId: selectedTemplate.id,
+        addons: _selectedAddonNames,
+        paymentMethod: 'Card',
+        numberOfPayments: numberOfPayments,
+        flipperHttpClient: ProxyService.http,
+        additionalDevices: _additionalDevices,
+        isYearlyPlan: _isYearlyPlan,
+        totalPrice: totalPrice,
+      );
 
-  Widget _buildAdditionalServices() {
-    final template = _selectedTemplate;
-    if (template == null || template.addons.isEmpty) {
-      return SizedBox.shrink();
+      if (!mounted) return;
+      locator<RouterService>().navigateTo(PaymentFinalizeRoute());
+    } on FailedPaymentException catch (e) {
+      talker.warning('Payment failed: ${e.message}');
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(context, e);
+        locator<RouterService>().navigateTo(FailedPaymentRoute());
+      }
+    } catch (e, s) {
+      talker.error('Error processing payment: $e');
+      talker.error(s.toString());
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'An error occurred. Please try again.',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProceeding = false);
+      }
     }
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          template.isEnterprise ? 'Enterprise Services' : 'Additional Services',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  Widget _buildCatalogError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _catalogError!,
+              textAlign: TextAlign.center,
+              style: PaymentTypography.body(),
+            ),
+            const SizedBox(height: 16),
+            PaymentPrimaryButton(
+              label: 'Retry',
+              icon: null,
+              onPressed: () {
+                setState(() {
+                  _isLoadingCatalog = true;
+                  _catalogError = null;
+                });
+                _loadCatalog();
+              },
+            ),
+          ],
         ),
-        SizedBox(height: 8),
-        for (var i = 0; i < template.addons.length; i++) ...[
-          if (i > 0) SizedBox(height: 8),
-          _buildServiceToggle(template.addons[i]),
-        ],
-      ],
+      ),
     );
   }
 
-  Widget _buildServiceToggle(SubscriptionPlanAddonTemplate addon) {
-    final template = _selectedTemplate!;
-    final isSelected = _selectedAddonSlugs.contains(addon.slug);
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+  List<Widget> _buildContentChildren() {
+    final template = _selectedTemplate;
+    final yearlyDiscount = template?.yearlyDiscountPercent ?? 20;
+    final templates = _catalog?.templates ?? const [];
+
+    return [
+      PaymentIntroBlock(
+        title: 'Select the plan that works for you',
+        subtitle:
+            'Switch between plans anytime. Yearly billing saves you ${yearlyDiscount.round()}%.',
       ),
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      PaymentSegment2(
+        isYearly: _isYearlyPlan,
+        yearlyDiscountPercent: yearlyDiscount,
+        onChanged: (yearly) {
+          setState(() {
+            _isYearlyPlan = yearly;
+            _calculatePrice();
+          });
+        },
+      ),
+      Column(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  addon.name,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  template.formatAddonPrice(addon, isYearly: _isYearlyPlan),
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                ),
-              ],
+          for (var i = 0; i < templates.length; i++) ...[
+            if (i > 0) const SizedBox(height: 8),
+            PaymentPlanTile(
+              name: templates[i].name,
+              priceLine: formatPaymentTilePrice(
+                templates[i],
+                isYearly: _isYearlyPlan,
+              ),
+              icon: templates[i].resolveIcon(),
+              selected: _selectedTemplateId == templates[i].id,
+              onTap: () {
+                setState(() {
+                  _selectedTemplateId = templates[i].id;
+                  _additionalDevices = 0;
+                  _selectedAddonSlugs.clear();
+                  _calculatePrice();
+                });
+              },
             ),
-          ),
-          Switch(
-            value: isSelected,
+          ],
+        ],
+      ),
+      if (template != null && template.addons.isNotEmpty) ...[
+        PaymentSectionLabel(
+          template.isEnterprise ? 'Enterprise Services' : 'Additional Services',
+        ),
+        for (var i = 0; i < template.addons.length; i++) ...[
+          if (i > 0) const SizedBox(height: 8),
+          PaymentAddonRow(
+            name: template.addons[i].name,
+            priceLine: formatPaymentAddonPrice(
+              template,
+              template.addons[i],
+              isYearly: _isYearlyPlan,
+            ),
+            enabled: _selectedAddonSlugs.contains(template.addons[i].slug),
             onChanged: (value) {
               setState(() {
                 if (value) {
-                  _selectedAddonSlugs.add(addon.slug);
+                  _selectedAddonSlugs.add(template.addons[i].slug);
                 } else {
-                  _selectedAddonSlugs.remove(addon.slug);
+                  _selectedAddonSlugs.remove(template.addons[i].slug);
                 }
                 _calculatePrice();
               });
             },
-            activeThumbColor: Colors.blue,
-            inactiveThumbColor: Colors.grey,
-            inactiveTrackColor: Colors.grey.shade300,
-            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((
-              Set<WidgetState> states,
-            ) {
-              if (states.contains(WidgetState.selected)) {
-                return Colors.blue;
-              }
-              return Colors.grey;
-            }),
           ),
         ],
+      ],
+      if (template != null)
+        PaymentTotalCard(
+          total: _totalPrice,
+          subtitle: paymentSelectionSubtitle(
+            planName: template.name,
+            addonNames: _selectedAddonNames,
+          ),
+          isYearly: _isYearlyPlan,
+        ),
+      PaymentSplitSection(
+        splitEnabled: _splitEnabled,
+        onSplitChanged: (enabled) {
+          setState(() {
+            _splitEnabled = enabled;
+            if (!enabled) {
+              _installmentCount = 1;
+              ProxyService.box.writeInt(key: 'numberOfPayments', value: 1);
+            }
+          });
+        },
+        installmentCount: _installmentCount,
+        onInstallmentChanged: _onInstallmentChanged,
+        total: _totalPrice,
       ),
-    );
-  }
-
-  Widget _buildPriceSummary() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
+      Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              Flexible(
-                child: Text(
-                  '${_totalPrice.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())} ${_isYearlyPlan ? '/year' : '/month'}',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  textAlign: TextAlign.end,
-                ),
-              ),
-            ],
+          PaymentPrimaryButton(
+            label: 'Proceed to Payment',
+            loading: _isProceeding,
+            loadingLabel: 'Setting up your plan…',
+            onPressed: template != null && !_isLoadingCatalog ? _proceed : null,
           ),
+          const SizedBox(height: 10),
+          const PaymentCtaNote(),
         ],
       ),
-    );
-  }
-
-  Widget _buildProceedButton() {
-    final template = _selectedTemplate;
-    final canProceed = template != null && !_isLoadingCatalog;
-
-    return ElevatedButton(
-      onPressed: !canProceed
-          ? null
-          : () async {
-              final selectedTemplate = _selectedTemplate;
-              if (selectedTemplate == null) return;
-
-              final numberOfPayments =
-                  int.tryParse(paymentController.text) ?? 1;
-              final totalPrice = _totalPrice * numberOfPayments;
-
-              try {
-                await ProxyService.strategy.saveOrUpdatePaymentPlan(
-                  businessId:
-                      (await ProxyService.strategy.activeBusiness())!.id,
-                  selectedPlan: selectedTemplate.name,
-                  planTemplateId: selectedTemplate.id,
-                  addons: _selectedAddonNames,
-                  paymentMethod: 'Card',
-                  numberOfPayments: numberOfPayments,
-                  flipperHttpClient: ProxyService.http,
-                  additionalDevices: _additionalDevices,
-                  isYearlyPlan: _isYearlyPlan,
-                  totalPrice: totalPrice,
-                );
-
-                locator<RouterService>().navigateTo(PaymentFinalizeRoute());
-              } on FailedPaymentException catch (e) {
-                talker.warning('Payment failed: ${e.message}');
-                if (mounted) {
-                  ErrorHandler.showErrorSnackBar(context, e);
-                  locator<RouterService>().navigateTo(FailedPaymentRoute());
-                }
-              } catch (e, s) {
-                talker.error('Error processing payment: $e');
-                talker.error(s.toString());
-                if (mounted) {
-                  ErrorHandler.showErrorSnackBar(
-                    context,
-                    'An error occurred. Please try again.',
-                  );
-                }
-              }
-            },
-      child: Text(
-        'Proceed to Payment',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      style: ElevatedButton.styleFrom(
-        splashFactory: InkSparkle.splashFactory,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        padding: EdgeInsets.symmetric(vertical: 16),
-        minimumSize: Size(double.infinity, 50),
-      ),
-    );
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Payment Plan'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
-      body: _isLoadingCatalog
-          ? Center(child: CircularProgressIndicator())
-          : _catalogError != null
-              ? Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _catalogError!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _isLoadingCatalog = true;
-                              _catalogError = null;
-                            });
-                            _loadCatalog();
-                          },
-                          child: Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Select the plan that works for you',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        _buildDurationToggle(),
-                        SizedBox(height: 16),
-                        _buildPlanCards(),
-                        SizedBox(height: 16),
-                        if (_selectedPlanSupportsExtraDevices)
-                          _buildAdditionalDevicesInput(),
-                        SizedBox(height: 16),
-                        _buildAdditionalServices(),
-                        SizedBox(height: 16),
-                        _buildPriceSummary(),
-                        NumberOfPaymentsToggle(
-                          paymentController: paymentController,
-                        ),
-                        SizedBox(height: 16),
-                        _buildProceedButton(),
-                      ],
-                    ),
-                  ),
-                ),
+    if (_isLoadingCatalog) {
+      return const Scaffold(
+        backgroundColor: PaymentTokens.app,
+        body: PaymentCenterLoading(message: 'Loading plans…'),
+      );
+    }
+
+    if (_catalogError != null) {
+      return Scaffold(
+        backgroundColor: PaymentTokens.app,
+        body: _buildCatalogError(),
+      );
+    }
+
+    return PaymentScreenShell(
+      title: 'Payment Plan',
+      showBack: false,
+      overlay: _isProceeding
+          ? const PaymentLoadingOverlay(message: 'Setting up your plan…')
+          : null,
+      children: _buildContentChildren(),
     );
   }
-
-  bool get _selectedPlanSupportsExtraDevices => false;
 }

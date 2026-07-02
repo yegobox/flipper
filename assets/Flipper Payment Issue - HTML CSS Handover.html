@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flipper · Payment Issue — HTML/CSS Handover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#EEF2F9; --app:#F5F8FD; --surface:#FFFFFF; --surface-2:#F7F9FE;
+    --ink-1:#0B1220; --ink-2:#4A5567; --ink-3:#7E8AA0; --ink-4:#AEB8CA;
+    --line:#E6ECF5; --line-strong:#D6DEEA;
+    --blue:#2563EB; --blue-700:#1D4ED8; --blue-tint:#EAF1FE; --blue-tint2:#DEEAFD;
+    --loss:#DC2626; --warnamber:#B45309; --gain:#16A34A;
+    --grad-brand:linear-gradient(135deg,#22D3EE,#2563EB 52%,#4F46E5);
+    --grad-btn:linear-gradient(180deg,#2C6BF0,#1D4ED8);
+    --sans:'Geist',ui-sans-serif,system-ui,sans-serif;
+    --mono:'Geist Mono',ui-monospace,Menlo,monospace;
+    --sh-1:0 1px 2px rgba(16,32,64,.05),0 1px 1px rgba(16,32,64,.04);
+    --sh-2:0 6px 18px -6px rgba(16,32,64,.14),0 2px 6px rgba(16,32,64,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    font-family:var(--sans); color:var(--ink-1); background:var(--bg);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:1180px; margin:0 auto; padding:0 30px; display:grid; grid-template-columns:232px 1fr; gap:44px; align-items:start;}
+  nav.toc{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; padding:40px 0 40px; border-right:1px solid var(--line);}
+  nav.toc::-webkit-scrollbar{width:0;}
+  main{padding:46px 0 120px; min-width:0;}
+
+  /* ---------- toc ---------- */
+  .brand{display:flex; align-items:center; gap:11px; margin-bottom:26px;}
+  .brand .mk{width:38px; height:38px; border-radius:12px; background:var(--grad-brand); display:grid; place-items:center; box-shadow:var(--sh-2);}
+  .brand .mk svg{width:22px; height:22px;}
+  .brand b{font-size:15px; font-weight:700; letter-spacing:-.01em;}
+  .brand span{display:block; font-size:11.5px; color:var(--ink-3); font-weight:500;}
+  .toc a{display:block; padding:6px 14px 6px 12px; font-size:13px; color:var(--ink-2); text-decoration:none; border-left:2px solid transparent; border-radius:0 6px 6px 0;}
+  .toc a:hover{color:var(--ink-1); background:var(--surface); }
+  .toc a.grp{margin-top:16px; font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-4); padding-left:12px; pointer-events:none;}
+
+  /* ---------- hero ---------- */
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--blue); }
+  .eyebrow .dot{width:7px; height:7px; border-radius:50%; background:var(--grad-brand);}
+  h1{font-size:40px; font-weight:800; letter-spacing:-.03em; margin:16px 0 0; line-height:1.05;}
+  .lede{font-size:16.5px; color:var(--ink-2); max-width:60ch; margin:16px 0 0; text-wrap:pretty;}
+  .meta{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px;}
+  .chip{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; color:var(--ink-2); background:var(--surface); border:1px solid var(--line); padding:7px 13px; border-radius:999px; box-shadow:var(--sh-1);}
+  .chip b{color:var(--ink-1);}
+
+  /* ---------- sections ---------- */
+  section{scroll-margin-top:24px; padding-top:52px;}
+  h2{font-size:13px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--blue); margin:0 0 4px;}
+  .h2sub{font-size:25px; font-weight:800; letter-spacing:-.02em; margin:0 0 20px;}
+  h3{font-size:17px; font-weight:700; letter-spacing:-.01em; margin:34px 0 12px;}
+  p{margin:0 0 14px; color:var(--ink-2); font-size:15px; max-width:70ch; text-wrap:pretty;}
+  p strong,li strong{color:var(--ink-1); font-weight:700;}
+  code{font-family:var(--mono); font-size:.88em; background:var(--blue-tint); color:var(--blue-700); padding:1px 6px; border-radius:6px;}
+  ul{margin:0 0 14px; padding-left:20px; color:var(--ink-2); font-size:15px;}
+  li{margin:5px 0;}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--sh-1); padding:22px 24px; margin:0 0 16px;}
+  .note{border-left:3px solid var(--blue); background:var(--blue-tint); border-radius:0 12px 12px 0; padding:14px 18px; margin:16px 0; font-size:14px; color:var(--ink-2);}
+  .note.warn{border-color:var(--warnamber); background:#FEF3E2;}
+  .note b{color:var(--ink-1);}
+
+  /* ---------- tables ---------- */
+  table{width:100%; border-collapse:collapse; margin:8px 0 18px; font-size:13.5px;}
+  th{text-align:left; font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3); padding:0 12px 9px; border-bottom:1px solid var(--line);}
+  td{padding:10px 12px; border-bottom:1px solid var(--line); color:var(--ink-2); vertical-align:top;}
+  td:first-child{color:var(--ink-1); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  .sw{display:inline-block; width:13px; height:13px; border-radius:4px; vertical-align:-2px; margin-right:7px; border:1px solid rgba(0,0,0,.08);}
+  td .mono,.tmono{font-family:var(--mono); font-size:12.5px;}
+
+  /* ---------- code blocks ---------- */
+  pre{background:#0B1220; color:#E9EEF6; border-radius:14px; padding:20px 22px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.65; margin:6px 0 20px; box-shadow:var(--sh-2); white-space:pre;}
+  pre .k{color:#7DB4FF;} pre .s{color:#9DE1A4;} pre .c{color:#5E6B82; font-style:italic;} pre .t{color:#7BE0F2;} pre .n{color:#F2C88B;} pre .p{color:#C9B6F5;}
+  .filetag{display:inline-block; font-family:var(--mono); font-size:11px; color:var(--ink-3); background:var(--surface-2); border:1px solid var(--line); padding:3px 9px; border-radius:7px; margin:0 0 -6px;}
+
+  /* two-col spec grid */
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:900px){ .wrap{grid-template-columns:1fr;} nav.toc{display:none;} .grid2{grid-template-columns:1fr;} }
+
+  .anat{display:flex; align-items:baseline; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;}
+  .anat b{min-width:150px; color:var(--ink-1);}
+  .anat span{color:var(--ink-2);}
+  .kbd{font-family:var(--mono); font-size:12px; color:var(--blue-700); background:var(--blue-tint); padding:1px 6px; border-radius:5px;}
+
+  @media print{
+    body{background:#fff;} nav.toc{display:none;} .wrap{grid-template-columns:1fr; max-width:none; padding:0 8mm;}
+    pre{box-shadow:none;} section{padding-top:26px;} h1{font-size:30px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc">
+    <div class="brand">
+      <span class="mk"><svg viewBox="0 0 48 48" fill="none"><path d="M24 7.5a16.5 16.5 0 1 1-11.6 4.8" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M24 16.5a7.5 7.5 0 1 0 5.3 2.2" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".6"/></svg></span>
+      <span><b>Flipper</b><span>Payment Issue · Handover</span></span>
+    </div>
+    <a class="grp">Foundations</a>
+    <a href="#overview">Overview</a>
+    <a href="#anatomy">Screen anatomy</a>
+    <a href="#tokens">Design tokens (CSS)</a>
+    <a href="#type">Typography</a>
+    <a href="#fonts">Fonts &amp; base</a>
+    <a class="grp">Components</a>
+    <a href="#header">Header</a>
+    <a href="#hero">Hero / status</a>
+    <a href="#summary">Payment summary</a>
+    <a href="#accordion">Plan switcher</a>
+    <a href="#segment">Cycle segment</a>
+    <a href="#plans">Plan tiles</a>
+    <a href="#switch">Toggle switch</a>
+    <a href="#discount">Discount field</a>
+    <a href="#momo">Mobile money</a>
+    <a href="#actions">Actions</a>
+    <a href="#help">Help card</a>
+    <a class="grp">Behaviour</a>
+    <a href="#states">States</a>
+    <a href="#logic">Data &amp; logic</a>
+    <a href="#layout">Scroll &amp; layout</a>
+    <a href="#icons">Icons</a>
+    <a href="#copy">Copy deck</a>
+  </nav>
+
+  <main>
+    <div class="eyebrow"><span class="dot"></span>Developer handover · HTML + CSS</div>
+    <h1>Payment Issue &amp; Recovery</h1>
+    <p class="lede">Everything needed to build the payment-recovery screen in HTML + CSS: the token stylesheet, per-component markup &amp; rules, states, business logic, and the one layout gotcha to avoid. Every value is pulled directly from the approved prototype — <code>Flipper Payment Issue.html</code>.</p>
+    <div class="meta">
+      <span class="chip">Stack <b>HTML + CSS</b></span>
+      <span class="chip">Design width <b>390px</b></span>
+      <span class="chip">Currency <b>RWF</b> · en-RW</span>
+      <span class="chip">Provider <b>MTN Mobile Money</b></span>
+      <span class="chip">Font <b>Geist</b></span>
+      <span class="chip">Source <b>payment.css</b></span>
+    </div>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section id="overview">
+      <h2>01 — Overview</h2>
+      <div class="h2sub">What this screen does</div>
+      <p>A recoverable error state shown when a subscription charge fails. Rather than a dead-end, it lets the user fix the cause in place: switch or upgrade the plan, apply a discount, retry with a different MTN number, or defer. The whole screen scrolls as one column inside a phone frame with a fixed header.</p>
+      <ul>
+        <li><strong>Primary goal</strong> — recover the payment (Try Again).</li>
+        <li><strong>Secondary</strong> — adjust the plan / cycle / add-on so the charge succeeds.</li>
+        <li><strong>Escape hatches</strong> — Skip for Now, and Need Help (chat with support).</li>
+      </ul>
+      <div class="note"><b>Files.</b> Styles live in <code>payment_issue/payment.css</code> (depends on the base tokens in <code>onboarding/styles.css</code>). Markup + behaviour reference is <code>payment_issue/payment-app.jsx</code> — but this handover gives you the same UI as framework-free HTML/CSS.</div>
+    </section>
+
+    <!-- ============ ANATOMY ============ -->
+    <section id="anatomy">
+      <h2>02 — Screen anatomy</h2>
+      <div class="h2sub">Top → bottom order</div>
+      <div class="card">
+        <div class="anat"><b>1 · Header</b><span>Back chevron (left) + centered title "Payment Issue". Fixed, does not scroll.</span></div>
+        <div class="anat"><b>2 · Hero</b><span>Rounded status badge (card icon on tinted square) + headline + reassurance line.</span></div>
+        <div class="anat"><b>3 · Payment summary</b><span>Brand-tinted card: Plan / Price / Billing key-value rows.</span></div>
+        <div class="anat"><b>4 · Plan switcher</b><span>Collapsible card (open by default): cycle segment → 3 plan tiles → add-on → new total.</span></div>
+        <div class="anat"><b>5 · Discount</b><span>Inline label + toggle; reveals a code input when on.</span></div>
+        <div class="anat"><b>6 · Mobile money</b><span>Provider card + "use different number" toggle that reveals a phone input.</span></div>
+        <div class="anat"><b>7 · Actions</b><span>Try Again (primary) + skips-left note + Skip for Now (secondary).</span></div>
+        <div class="anat"><b>8 · Help</b><span>Brand-tinted "Need Help?" row → support chat.</span></div>
+      </div>
+      <p>The screen is a <strong>flex column</strong>: fixed header, then a <code>flex:1</code> scroll region. Vertical gap between every block is <span class="kbd">16px</span>. Scroll padding: <span class="kbd">4px</span> top, <span class="kbd">20px</span> sides, <span class="kbd">26px</span> bottom.</p>
+<pre><span class="t">.pi</span> { <span class="p">position</span>:relative; <span class="p">height</span>:<span class="n">100%</span>; <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column;
+      <span class="p">background</span>:radial-gradient(<span class="n">120% 58%</span> at <span class="n">50% -6%</span>, #FFF <span class="n">0%</span>, <span class="k">var</span>(--app) <span class="n">46%</span>, <span class="k">var</span>(--app-2) <span class="n">100%</span>);
+      <span class="p">overflow</span>:hidden; }
+<span class="t">.pi-scroll</span> { <span class="p">flex</span>:<span class="n">1</span>; <span class="p">min-height</span>:<span class="n">0</span>; <span class="p">overflow-y</span>:auto; <span class="p">padding</span>:<span class="n">4px 20px 26px</span>;
+             <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column; <span class="p">gap</span>:<span class="n">16px</span>; }
+<span class="c">/* CRITICAL — see §17. Stops clipping cards from collapsing. */</span>
+<span class="t">.pi-scroll &gt; *</span> { <span class="p">flex-shrink</span>:<span class="n">0</span>; }</pre>
+    </section>
+
+    <!-- ============ TOKENS ============ -->
+    <section id="tokens">
+      <h2>03 — Design tokens</h2>
+      <div class="h2sub">The CSS custom properties</div>
+      <p>Drop this <code>:root</code> block in once; every component below references it. Base surfaces, ink, lines, brand and radii come from <code>onboarding/styles.css</code>; the semantic tones (error / warning / success) are defined at the top of <code>payment.css</code>.</p>
+      <div class="filetag">payment_issue/payment.css — tokens</div>
+<pre><span class="t">:root</span> {
+  <span class="c">/* surfaces */</span>
+  --app:<span class="n">#F5F8FD</span>; --app-2:<span class="n">#EDF2FB</span>; --surface:<span class="n">#FFFFFF</span>; --surface-2:<span class="n">#F7F9FE</span>;
+  <span class="c">/* ink */</span>
+  --ink-1:<span class="n">#0B1220</span>; --ink-2:<span class="n">#4A5567</span>; --ink-3:<span class="n">#7E8AA0</span>; --ink-4:<span class="n">#AEB8CA</span>;
+  <span class="c">/* lines */</span>
+  --line:<span class="n">#E6ECF5</span>; --line-strong:<span class="n">#D6DEEA</span>;
+  <span class="c">/* brand */</span>
+  --blue:<span class="n">#2563EB</span>; --blue-700:<span class="n">#1D4ED8</span>; --blue-tint:<span class="n">#EAF1FE</span>; --blue-tint2:<span class="n">#DEEAFD</span>;
+  --grad-btn:linear-gradient(<span class="n">180deg</span>, #2C6BF0 <span class="n">0%</span>, #1D4ED8 <span class="n">100%</span>);
+  --grad-brand-soft:linear-gradient(<span class="n">135deg</span>, #E7FBFE <span class="n">0%</span>, #EAF1FE <span class="n">60%</span>, #EEECFE <span class="n">100%</span>);
+  <span class="c">/* semantic tones */</span>
+  --loss:<span class="n">#DC2626</span>; --loss-tint:<span class="n">#FCECEC</span>;
+  --warnamber:<span class="n">#B45309</span>; --warn-tint:<span class="n">#FEF3E2</span>;
+  --gain:<span class="n">#16A34A</span>; --gain-ink:<span class="n">#15803D</span>; --gain-tint:<span class="n">#E7F6EE</span>;
+  <span class="c">/* radii */</span>
+  --r-sm:<span class="n">10px</span>; --r-md:<span class="n">14px</span>; --r-lg:<span class="n">20px</span>; --r-xl:<span class="n">26px</span>; --r-pill:<span class="n">999px</span>;
+  <span class="c">/* shadow */</span>
+  --sh-1:<span class="n">0 1px 2px</span> rgba(16,32,64,.05), <span class="n">0 1px 1px</span> rgba(16,32,64,.04);
+  --sh-blue:<span class="n">0 12px 28px -8px</span> rgba(37,99,235,.45), <span class="n">0 3px 8px</span> rgba(37,99,235,.25);
+  <span class="c">/* type */</span>
+  --sans:<span class="s">'Geist'</span>, ui-sans-serif, system-ui, sans-serif;
+  --mono:<span class="s">'Geist Mono'</span>, ui-monospace, Menlo, monospace;
+}</pre>
+
+      <h3>Color reference</h3>
+      <table>
+        <thead><tr><th>Token</th><th>Hex</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sw" style="background:#F5F8FD"></span>--app</td><td class="mono">#F5F8FD</td><td>Screen base (top of gradient)</td></tr>
+          <tr><td><span class="sw" style="background:#FFFFFF"></span>--surface</td><td class="mono">#FFFFFF</td><td>Cards, inputs</td></tr>
+          <tr><td><span class="sw" style="background:#F7F9FE"></span>--surface-2</td><td class="mono">#F7F9FE</td><td>Recessed rows (segment, add-on, momo sub)</td></tr>
+          <tr><td><span class="sw" style="background:#0B1220"></span>--ink-1</td><td class="mono">#0B1220</td><td>Primary text</td></tr>
+          <tr><td><span class="sw" style="background:#4A5567"></span>--ink-2</td><td class="mono">#4A5567</td><td>Body / secondary text</td></tr>
+          <tr><td><span class="sw" style="background:#7E8AA0"></span>--ink-3</td><td class="mono">#7E8AA0</td><td>Captions, hints</td></tr>
+          <tr><td><span class="sw" style="background:#AEB8CA"></span>--ink-4</td><td class="mono">#AEB8CA</td><td>Placeholders</td></tr>
+          <tr><td><span class="sw" style="background:#E6ECF5"></span>--line</td><td class="mono">#E6ECF5</td><td>Default borders</td></tr>
+          <tr><td><span class="sw" style="background:#D6DEEA"></span>--line-strong</td><td class="mono">#D6DEEA</td><td>Radio ring, secondary btn border, switch off</td></tr>
+          <tr><td><span class="sw" style="background:#2563EB"></span>--blue</td><td class="mono">#2563EB</td><td>Primary accent, total, switch on</td></tr>
+          <tr><td><span class="sw" style="background:#1D4ED8"></span>--blue-700</td><td class="mono">#1D4ED8</td><td>Card titles on tint</td></tr>
+          <tr><td><span class="sw" style="background:#EAF1FE"></span>--blue-tint</td><td class="mono">#EAF1FE</td><td>Icon tiles, focus ring</td></tr>
+          <tr><td><span class="sw" style="background:#DEEAFD"></span>--blue-tint2</td><td class="mono">#DEEAFD</td><td>Brand card borders</td></tr>
+          <tr><td><span class="sw" style="background:#DC2626"></span>--loss</td><td class="mono">#DC2626</td><td>Error badge icon</td></tr>
+          <tr><td><span class="sw" style="background:#FCECEC"></span>--loss-tint</td><td class="mono">#FCECEC</td><td>Error badge fill</td></tr>
+          <tr><td><span class="sw" style="background:#B45309"></span>--warnamber</td><td class="mono">#B45309</td><td>Warning tone, toast icon</td></tr>
+          <tr><td><span class="sw" style="background:#16A34A"></span>--gain</td><td class="mono">#16A34A</td><td>Success icon</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Gradients, radii &amp; shadows</h3>
+      <ul>
+        <li><strong>--grad-btn</strong> — <span class="tmono">180deg, #2C6BF0 → #1D4ED8</span>. Primary buttons, selected plan tile, segment thumb.</li>
+        <li><strong>--grad-brand-soft</strong> — <span class="tmono">135deg, #E7FBFE → #EAF1FE (60%) → #EEECFE</span>. Summary &amp; help card backgrounds.</li>
+        <li><strong>Screen bg</strong> — radial from top-center, <span class="tmono">#FFF → --app (46%) → --app-2</span>.</li>
+      </ul>
+      <div class="grid2">
+        <table>
+          <thead><tr><th>Radius</th><th>px</th></tr></thead>
+          <tbody>
+            <tr><td>--r-sm</td><td class="mono">10</td></tr>
+            <tr><td>--r-md</td><td class="mono">14</td></tr>
+            <tr><td>--r-lg</td><td class="mono">20</td></tr>
+            <tr><td>--r-xl</td><td class="mono">26</td></tr>
+            <tr><td>--r-pill</td><td class="mono">999</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <thead><tr><th>Shadow</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>--sh-1</td><td class="mono">0 1 2 rgba(16,32,64,.05)</td></tr>
+            <tr><td>--sh-blue</td><td class="mono">0 12 28 -8 rgba(37,99,235,.45)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Spacing rhythm is a loose 4-scale: <span class="kbd">4</span> <span class="kbd">9</span> <span class="kbd">12</span> <span class="kbd">14</span> <span class="kbd">16</span> <span class="kbd">18</span> <span class="kbd">20</span> px. Card inner padding <span class="kbd">18</span>; input height <span class="kbd">56</span>; primary button <span class="kbd">58</span>; secondary <span class="kbd">54</span>.</p>
+    </section>
+
+    <!-- ============ TYPOGRAPHY ============ -->
+    <section id="type">
+      <h2>04 — Typography</h2>
+      <div class="h2sub">Type scale</div>
+      <p>Sans is <strong>Geist</strong>; all currency / numeric values use <strong>Geist Mono</strong> (<code>font-family: var(--mono)</code>). Tracking tightens as size grows.</p>
+      <table>
+        <thead><tr><th>Role</th><th>size / weight</th><th>letter-spacing</th><th>color</th></tr></thead>
+        <tbody>
+          <tr><td>Hero headline</td><td class="mono">25px / 700</td><td class="mono">-.03em</td><td>--ink-1</td></tr>
+          <tr><td>Header title</td><td class="mono">18px / 700</td><td class="mono">-.02em</td><td>--ink-1</td></tr>
+          <tr><td>Card title</td><td class="mono">16px / 700</td><td class="mono">-.01em</td><td>--blue-700 / --ink-1</td></tr>
+          <tr><td>Plan / row name</td><td class="mono">15.5px / 700</td><td class="mono">-.01em</td><td>--ink-1</td></tr>
+          <tr><td>Body</td><td class="mono">15px / 400–500</td><td class="mono">0</td><td>--ink-2</td></tr>
+          <tr><td>Summary value</td><td class="mono">14.5px / 700</td><td class="mono">0</td><td>--ink-1</td></tr>
+          <tr><td>Total value <em>(mono)</em></td><td class="mono">18px / 800</td><td class="mono">-.02em</td><td>--blue</td></tr>
+          <tr><td>Caption / hint</td><td class="mono">12.5px / 500</td><td class="mono">0</td><td>--ink-3</td></tr>
+          <tr><td>Price (mono)</td><td class="mono">13px / 600</td><td class="mono">0</td><td>--ink-2 / --ink-3</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ FONTS ============ -->
+    <section id="fonts">
+      <h2>05 — Fonts &amp; base</h2>
+      <div class="h2sub">Load once in &lt;head&gt;</div>
+<pre><span class="k">&lt;link</span> rel=<span class="s">"preconnect"</span> href=<span class="s">"https://fonts.googleapis.com"</span><span class="k">&gt;</span>
+<span class="k">&lt;link</span> rel=<span class="s">"preconnect"</span> href=<span class="s">"https://fonts.gstatic.com"</span> crossorigin<span class="k">&gt;</span>
+<span class="k">&lt;link</span> href=<span class="s">"https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600;700&amp;display=swap"</span> rel=<span class="s">"stylesheet"</span><span class="k">&gt;</span></pre>
+<pre><span class="t">*</span> { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+<span class="t">body</span> { font-family:<span class="k">var</span>(--sans); color:<span class="k">var</span>(--ink-1); margin:<span class="n">0</span>; }
+<span class="c">/* mount the screen in a 390px-wide frame; .pi fills it 100% */</span></pre>
+      <div class="note"><b>Reduced motion.</b> All entrance animations sit behind <code>@media (prefers-reduced-motion: no-preference)</code>, and animate <em>scale only</em> — never opacity to/from 0 — so the resting state is always visible even if the animation never runs.</div>
+    </section>
+
+    <!-- ============ HEADER ============ -->
+    <section id="header">
+      <h2>06 — Header</h2>
+      <div class="h2sub">Fixed top bar</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pi-top"</span><span class="k">&gt;</span>
+  <span class="k">&lt;button</span> class=<span class="s">"icon-circle"</span> aria-label=<span class="s">"Back"</span><span class="k">&gt;</span>&lt;svg …chevron-left/&gt;<span class="k">&lt;/button&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pi-title"</span><span class="k">&gt;</span>Payment Issue<span class="k">&lt;/div&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+<pre><span class="t">.pi-top</span> { <span class="p">display</span>:grid; <span class="p">grid-template-columns</span>:<span class="n">44px 1fr 44px</span>; <span class="p">align-items</span>:center;
+          <span class="p">padding</span>:<span class="n">4px 16px 12px</span>; <span class="p">flex-shrink</span>:<span class="n">0</span>; }
+<span class="t">.pi-title</span> { <span class="p">grid-column</span>:<span class="n">2</span>; <span class="p">text-align</span>:center; <span class="p">font-size</span>:<span class="n">18px</span>;
+            <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">letter-spacing</span>:-<span class="n">.02em</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-1); }</pre>
+      <p>Back button: <span class="kbd">40×40</span> white circle, <code>--line</code> border, <code>--sh-1</code>, chevron 20px <code>--ink-1</code>. Sits <em>outside</em> the scroll region so it stays fixed.</p>
+    </section>
+
+    <!-- ============ HERO ============ -->
+    <section id="hero">
+      <h2>07 — Hero / status badge</h2>
+      <div class="h2sub">Tone-driven</div>
+      <p>The tone (error / warning) is set with three CSS vars on the <code>.pi</code> root, so the same markup re-themes:</p>
+<pre><span class="c">/* error (default) */</span>
+<span class="t">.pi</span> { --tone-tint:<span class="k">var</span>(--loss-tint); --tone-ink:<span class="k">var</span>(--loss); --tone-ring:rgba(220,38,38,.24); }
+<span class="c">/* warning */</span>
+<span class="t">.pi.warn</span> { --tone-tint:<span class="k">var</span>(--warn-tint); --tone-ink:<span class="k">var</span>(--warnamber); --tone-ring:rgba(180,83,9,.24); }
+
+<span class="t">.pi-badge</span> { <span class="p">width</span>:<span class="n">84px</span>; <span class="p">height</span>:<span class="n">84px</span>; <span class="p">border-radius</span>:<span class="n">24px</span>; <span class="p">display</span>:grid; <span class="p">place-items</span>:center;
+            <span class="p">background</span>:<span class="k">var</span>(--tone-tint); <span class="p">color</span>:<span class="k">var</span>(--tone-ink);
+            <span class="p">box-shadow</span>:inset <span class="n">0 0 0 1px</span> <span class="k">var</span>(--tone-ring);
+            <span class="p">animation</span>:piPop <span class="n">.5s</span> cubic-bezier(.2,1.4,.4,1) both; }
+<span class="t">.pi-badge::after</span> { <span class="p">content</span>:<span class="s">''</span>; <span class="p">position</span>:absolute; <span class="p">inset</span>:-<span class="n">9px</span>; <span class="p">border-radius</span>:<span class="n">30px</span>;
+                   <span class="p">border</span>:<span class="n">1.5px</span> dashed <span class="k">var</span>(--tone-ring); <span class="p">opacity</span>:.7; }
+<span class="k">@keyframes</span> piPop { from{transform:scale(.5)} to{transform:scale(1)} }</pre>
+      <ul>
+        <li>Icon inside badge: credit-card, <span class="kbd">38px</span>.</li>
+        <li>Headline <code>.pi-h</code> 25/700, then body <code>.pi-p</code> 15/1.5 <code>--ink-2</code>, max ~30ch, centered.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SUMMARY ============ -->
+    <section id="summary">
+      <h2>08 — Payment summary</h2>
+      <div class="h2sub">Brand-tinted key/value card</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pi-summary"</span><span class="k">&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pi-summary-head"</span><span class="k">&gt;</span>&lt;span class="pi-ic"&gt;…receipt&lt;/span&gt;
+    <span class="k">&lt;span</span> class=<span class="s">"pi-summary-title"</span><span class="k">&gt;</span>Payment Summary<span class="k">&lt;/span&gt;&lt;/div&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pi-summary-row"</span><span class="k">&gt;</span>&lt;span class="pi-summary-k"&gt;Plan&lt;/span&gt;
+    <span class="k">&lt;span</span> class=<span class="s">"pi-summary-v"</span><span class="k">&gt;</span>Mobile<span class="k">&lt;/span&gt;&lt;/div&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pi-summary-row"</span><span class="k">&gt;</span>&lt;span class="pi-summary-k"&gt;Price&lt;/span&gt;
+    <span class="k">&lt;span</span> class=<span class="s">"pi-summary-v mono"</span><span class="k">&gt;</span>RWF 100.00<span class="k">&lt;/span&gt;&lt;/div&gt;</span>
+  <span class="c">&lt;!-- Billing row … --&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+<pre><span class="t">.pi-summary</span> { <span class="p">padding</span>:<span class="n">18px</span>; <span class="p">border-radius</span>:<span class="k">var</span>(--r-lg);
+              <span class="p">background</span>:<span class="k">var</span>(--grad-brand-soft); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--blue-tint2); }
+<span class="t">.pi-summary-row</span> { <span class="p">display</span>:flex; <span class="p">justify-content</span>:space-between; <span class="p">padding</span>:<span class="n">9px 0</span>; }
+<span class="t">.pi-summary-row + .pi-summary-row</span> { <span class="p">border-top</span>:<span class="n">1px</span> solid rgba(37,99,235,.10); }
+<span class="t">.pi-summary-k</span> { <span class="p">font-size</span>:<span class="n">14px</span>; <span class="p">font-weight</span>:<span class="n">600</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-2); }
+<span class="t">.pi-summary-v</span> { <span class="p">font-size</span>:<span class="n">14.5px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-1); }
+<span class="t">.pi-summary-v.mono</span> { <span class="p">font-family</span>:<span class="k">var</span>(--mono); }
+<span class="t">.pi-ic</span> { <span class="p">width</span>:<span class="n">40px</span>; <span class="p">height</span>:<span class="n">40px</span>; <span class="p">border-radius</span>:<span class="n">12px</span>; <span class="p">display</span>:grid; <span class="p">place-items</span>:center;
+        <span class="p">background</span>:<span class="k">var</span>(--blue-tint); <span class="p">color</span>:<span class="k">var</span>(--blue); }</pre>
+      <div class="note"><b>Variant.</b> A "plain" style swaps <code>.pi-summary</code> for the generic white <code>.pi-card</code> (no brand tint). Default is the brand version.</div>
+    </section>
+
+    <!-- ============ ACCORDION ============ -->
+    <section id="accordion">
+      <h2>09 — Plan switcher (accordion)</h2>
+      <div class="h2sub">Collapsible, open by default</div>
+      <p>White <code>.pi-card</code> with <code>overflow:hidden</code>. Toggle the <code>.open</code> class on tap; the chevron rotates and the body reveals.</p>
+<pre><span class="t">.pi-accordion</span> { <span class="p">padding</span>:<span class="n">0</span>; <span class="p">overflow</span>:hidden; }
+<span class="t">.pi-acc-head</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">gap</span>:<span class="n">13px</span>; <span class="p">width</span>:<span class="n">100%</span>; <span class="p">padding</span>:<span class="n">16px</span>; }
+<span class="t">.pi-acc-chev</span> { <span class="p">color</span>:<span class="k">var</span>(--ink-3); <span class="p">transition</span>:transform <span class="n">.28s</span> cubic-bezier(.22,.9,.3,1); }
+<span class="t">.pi-accordion.open .pi-acc-chev</span> { <span class="p">transform</span>:rotate(<span class="n">180deg</span>); }
+<span class="t">.pi-acc-body</span> { <span class="p">padding</span>:<span class="n">0 16px 18px</span>; <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column; <span class="p">gap</span>:<span class="n">12px</span>;
+              <span class="p">animation</span>:piReveal <span class="n">.3s</span> ease; }
+<span class="k">@keyframes</span> piReveal { from{opacity:0; transform:translateY(-6px)} to{opacity:1; transform:none} }</pre>
+      <p>Header: swap icon tile + title <em>"Switch or upgrade plan"</em> (15.5/700) + subtitle 12.5 <code>--ink-3</code> (<em>"Tap to collapse"</em> / <em>"Choose a different plan before retrying"</em>) + chevron-down. Body order: cycle segment → 3 plan tiles → add-on → new total.</p>
+      <div class="note warn"><b>No-JS option.</b> This can be built as a <code>&lt;details&gt;/&lt;summary&gt;</code> pair with <code>open</code> by default — no script needed. Style <code>summary</code> as <code>.pi-acc-head</code> and use <code>details[open] .pi-acc-chev</code> for the rotation.</div>
+    </section>
+
+    <!-- ============ SEGMENT ============ -->
+    <section id="segment">
+      <h2>10 — Cycle segment</h2>
+      <div class="h2sub">Monthly / Yearly</div>
+<pre><span class="t">.pi-seg</span> { <span class="p">position</span>:relative; <span class="p">display</span>:grid; <span class="p">grid-template-columns</span>:<span class="n">1fr 1fr</span>; <span class="p">padding</span>:<span class="n">4px</span>;
+          <span class="p">background</span>:<span class="k">var</span>(--surface-2); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--line); <span class="p">border-radius</span>:<span class="k">var</span>(--r-md); }
+<span class="t">.pi-seg-thumb</span> { <span class="p">position</span>:absolute; <span class="p">top</span>:<span class="n">4px</span>; <span class="p">bottom</span>:<span class="n">4px</span>; <span class="p">left</span>:<span class="n">4px</span>; <span class="p">width</span>:calc(<span class="n">50% - 4px</span>);
+                <span class="p">border-radius</span>:<span class="n">10px</span>; <span class="p">background</span>:<span class="k">var</span>(--grad-btn); <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-blue);
+                <span class="p">transition</span>:transform <span class="n">.26s</span> cubic-bezier(.22,.9,.3,1); }
+<span class="t">.pi-seg.yr .pi-seg-thumb</span> { <span class="p">transform</span>:translateX(<span class="n">100%</span>); }
+<span class="t">.pi-seg button</span> { <span class="p">height</span>:<span class="n">40px</span>; <span class="p">font-size</span>:<span class="n">14px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-2); <span class="p">z-index</span>:<span class="n">1</span>; }
+<span class="t">.pi-seg button.on</span> { <span class="p">color</span>:#fff; }</pre>
+      <p>Add class <code>.yr</code> to <code>.pi-seg</code> to slide the thumb. "Yearly" carries a <em>"(20% off)"</em> tag (<code>.save</code>) — <code>--blue</code> when inactive, white@85% when active. Selecting Yearly recomputes all prices (see logic).</p>
+    </section>
+
+    <!-- ============ PLANS ============ -->
+    <section id="plans">
+      <h2>11 — Plan tiles</h2>
+      <div class="h2sub">Single-select list</div>
+<pre><span class="t">.pi-plan</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">gap</span>:<span class="n">13px</span>; <span class="p">padding</span>:<span class="n">14px 15px</span>;
+           <span class="p">border</span>:<span class="n">1.5px</span> solid <span class="k">var</span>(--line); <span class="p">border-radius</span>:<span class="k">var</span>(--r-md);
+           <span class="p">background</span>:<span class="k">var</span>(--surface); <span class="p">transition</span>:border-color <span class="n">.15s</span>, box-shadow <span class="n">.2s</span>, background <span class="n">.2s</span>; }
+<span class="t">.pi-plan.on</span> { <span class="p">background</span>:<span class="k">var</span>(--grad-btn); <span class="p">border-color</span>:transparent; <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-blue); }
+<span class="t">.pi-plan.on .pi-plan-name</span> { <span class="p">color</span>:#fff; }
+<span class="t">.pi-plan-radio</span> { <span class="p">width</span>:<span class="n">22px</span>; <span class="p">height</span>:<span class="n">22px</span>; <span class="p">border-radius</span>:<span class="n">50%</span>; <span class="p">border</span>:<span class="n">2px</span> solid <span class="k">var</span>(--line-strong); }
+<span class="t">.pi-plan-check</span> { <span class="p">width</span>:<span class="n">24px</span>; <span class="p">height</span>:<span class="n">24px</span>; <span class="p">border-radius</span>:<span class="n">50%</span>; <span class="p">background</span>:rgba(255,255,255,.22);
+                 <span class="p">color</span>:#fff; <span class="p">display</span>:grid; <span class="p">place-items</span>:center; <span class="p">animation</span>:pop <span class="n">.3s</span> cubic-bezier(.2,1.5,.4,1); }
+<span class="k">@keyframes</span> pop { from{transform:scale(.4)} to{transform:scale(1)} }</pre>
+      <p>Leading <span class="kbd">40×40</span> icon tile (radius 11). Unselected shows <code>.pi-plan-radio</code>; selected replaces it with <code>.pi-plan-check</code>, flips the tile to white@20%, and text to white / white@82%.</p>
+      <table>
+        <thead><tr><th>Plan</th><th>Icon</th><th>Monthly (RWF)</th><th>Yearly (RWF)</th></tr></thead>
+        <tbody>
+          <tr><td>Mobile only</td><td>Phone</td><td class="mono">5,000</td><td class="mono">48,000</td></tr>
+          <tr><td>Mobile + Desktop</td><td>Monitor</td><td class="mono">12,000</td><td class="mono">115,200</td></tr>
+          <tr><td>Enterprise</td><td>Building</td><td class="mono">150,000+</td><td class="mono">1,440,000</td></tr>
+        </tbody>
+      </table>
+      <p>Price line — monthly: <span class="tmono">"{m} RWF/month"</span>; yearly: <span class="tmono">"{round(y/12)} RWF/mo · billed yearly"</span>.</p>
+    </section>
+
+    <!-- ============ SWITCH ============ -->
+    <section id="switch">
+      <h2>12 — Toggle switch</h2>
+      <div class="h2sub">Shared control</div>
+<pre><span class="k">&lt;button</span> class=<span class="s">"pi-switch"</span> role=<span class="s">"switch"</span> aria-checked=<span class="s">"false"</span><span class="k">&gt;</span>&lt;i&gt;&lt;/i&gt;<span class="k">&lt;/button&gt;</span></pre>
+<pre><span class="t">.pi-switch</span> { <span class="p">position</span>:relative; <span class="p">width</span>:<span class="n">50px</span>; <span class="p">height</span>:<span class="n">30px</span>; <span class="p">border-radius</span>:<span class="n">999px</span>;
+             <span class="p">background</span>:<span class="k">var</span>(--line-strong); <span class="p">transition</span>:background <span class="n">.22s</span>; }
+<span class="t">.pi-switch.on</span> { <span class="p">background</span>:<span class="k">var</span>(--blue); }
+<span class="t">.pi-switch i</span> { <span class="p">position</span>:absolute; <span class="p">top</span>:<span class="n">3px</span>; <span class="p">left</span>:<span class="n">3px</span>; <span class="p">width</span>:<span class="n">24px</span>; <span class="p">height</span>:<span class="n">24px</span>; <span class="p">border-radius</span>:<span class="n">50%</span>;
+               <span class="p">background</span>:#fff; <span class="p">box-shadow</span>:<span class="n">0 2px 5px</span> rgba(11,18,32,.28);
+               <span class="p">transition</span>:transform <span class="n">.22s</span> cubic-bezier(.3,.7,.4,1); }
+<span class="t">.pi-switch.on i</span> { <span class="p">transform</span>:translateX(<span class="n">20px</span>); }</pre>
+      <p>Used by add-on, discount, and "use different number". Toggle the <code>.on</code> class + <code>aria-checked</code> on click.</p>
+    </section>
+
+    <!-- ============ DISCOUNT ============ -->
+    <section id="discount">
+      <h2>13 — Discount field</h2>
+      <div class="h2sub">Inline toggle + reveal</div>
+<pre><span class="t">.pi-inline</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">justify-content</span>:space-between; <span class="p">padding</span>:<span class="n">0 4px</span>; }
+<span class="t">.pi-input</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">gap</span>:<span class="n">11px</span>; <span class="p">height</span>:<span class="n">56px</span>; <span class="p">padding</span>:<span class="n">0 15px</span>;
+            <span class="p">background</span>:<span class="k">var</span>(--surface); <span class="p">border</span>:<span class="n">1.5px</span> solid <span class="k">var</span>(--line); <span class="p">border-radius</span>:<span class="k">var</span>(--r-md);
+            <span class="p">transition</span>:border-color <span class="n">.15s</span>, box-shadow <span class="n">.15s</span>; }
+<span class="t">.pi-input:focus-within</span> { <span class="p">border-color</span>:<span class="k">var</span>(--blue); <span class="p">box-shadow</span>:<span class="n">0 0 0 4px</span> <span class="k">var</span>(--blue-tint); }
+<span class="t">.pi-input input</span> { <span class="p">flex</span>:<span class="n">1</span>; <span class="p">border</span>:<span class="n">0</span>; <span class="p">outline</span>:<span class="n">0</span>; <span class="p">background</span>:transparent; <span class="p">font-size</span>:<span class="n">16px</span>; }</pre>
+      <p>Row label <em>"Apply Discount Code"</em> (15/600) ↔ switch. On → reveal input (leading tag icon 19) + hint (12.5 <code>--ink-3</code>): info icon + <em>"Enter the code exactly as it appears."</em> Keep input font-size ≥16px to avoid mobile zoom.</p>
+    </section>
+
+    <!-- ============ MOMO ============ -->
+    <section id="momo">
+      <h2>14 — Mobile money</h2>
+      <div class="h2sub">Provider + alt number</div>
+<pre><span class="t">.pi-momo-sub</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">gap</span>:<span class="n">12px</span>; <span class="p">margin-top</span>:<span class="n">16px</span>; <span class="p">padding</span>:<span class="n">13px 14px</span>;
+               <span class="p">border-radius</span>:<span class="k">var</span>(--r-md); <span class="p">background</span>:<span class="k">var</span>(--surface-2); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--line);
+               <span class="p">transition</span>:background <span class="n">.2s</span>, border-color <span class="n">.2s</span>; }
+<span class="t">.pi-momo-sub.on</span> { <span class="p">background</span>:<span class="k">var</span>(--blue-tint); <span class="p">border-color</span>:<span class="k">var</span>(--blue-tint2); }</pre>
+      <ul>
+        <li>White card padding 18: phone icon tile + title <em>"Mobile Money Payment"</em> (16/700); body 13.5/1.5: "Payment will be processed using <strong>MTN Mobile Money</strong>."</li>
+        <li>Sub-row title <em>"Use different phone number"</em> (14/700) + subtitle (12) + switch. On tints the row and reveals a <code>type="tel"</code> <code>.pi-input</code> (numeric keyboard) with hint <em>"Must start with 250 78 or 250 79."</em></li>
+      </ul>
+      <div class="note"><b>Validation.</b> Normalize MTN Rwanda numbers to <code>2507[89]XXXXXXX</code>; reject other prefixes before enabling retry.</div>
+    </section>
+
+    <!-- ============ ACTIONS ============ -->
+    <section id="actions">
+      <h2>15 — Actions</h2>
+      <div class="h2sub">Retry / skip</div>
+<pre><span class="t">.pi-retry</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">justify-content</span>:center; <span class="p">gap</span>:<span class="n">10px</span>;
+            <span class="p">width</span>:<span class="n">100%</span>; <span class="p">height</span>:<span class="n">58px</span>; <span class="p">border-radius</span>:<span class="k">var</span>(--r-md); <span class="p">color</span>:#fff;
+            <span class="p">font-size</span>:<span class="n">16.5px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">background</span>:<span class="k">var</span>(--grad-btn); <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-blue); }
+<span class="t">.pi-retry:disabled</span> { <span class="p">opacity</span>:.75; }
+<span class="t">.pi-retry.loading .spin</span> { <span class="p">animation</span>:piSpin <span class="n">.8s</span> linear infinite; }
+<span class="k">@keyframes</span> piSpin { to{transform:rotate(360deg)} }
+<span class="t">.pi-skip</span> { <span class="p">width</span>:<span class="n">100%</span>; <span class="p">height</span>:<span class="n">54px</span>; <span class="p">border-radius</span>:<span class="k">var</span>(--r-md); <span class="p">background</span>:<span class="k">var</span>(--surface);
+           <span class="p">border</span>:<span class="n">1.5px</span> solid <span class="k">var</span>(--line-strong); <span class="p">color</span>:<span class="k">var</span>(--ink-1);
+           <span class="p">font-size</span>:<span class="n">15.5px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-1); }</pre>
+      <p>Loading: add <code>.loading</code>, set <code>disabled</code>, swap label to "Retrying…". Skips note (centered, 12.5 <code>--ink-3</code>): "You can skip <strong>{n}</strong> more times".</p>
+    </section>
+
+    <!-- ============ HELP ============ -->
+    <section id="help">
+      <h2>16 — Help card</h2>
+      <div class="h2sub">Support entry</div>
+<pre><span class="t">.pi-help</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">gap</span>:<span class="n">13px</span>; <span class="p">padding</span>:<span class="n">16px</span>; <span class="p">border-radius</span>:<span class="k">var</span>(--r-lg);
+           <span class="p">background</span>:<span class="k">var</span>(--grad-brand-soft); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--blue-tint2); }</pre>
+      <p>Help icon tile (white@70%) + title <em>"Need Help?"</em> (15/700 <code>--blue-700</code>) + subtitle <em>"Chat with support about this payment"</em> (12.5 <code>--ink-2</code>) + trailing chevron-right in <code>--blue</code>.</p>
+    </section>
+
+    <!-- ============ STATES ============ -->
+    <section id="states">
+      <h2>17 — States &amp; flow</h2>
+      <div class="h2sub">One screen, four states</div>
+      <table>
+        <thead><tr><th>State</th><th>Trigger</th><th>UI</th></tr></thead>
+        <tbody>
+          <tr><td>form</td><td>default</td><td>Full scroll layout described above.</td></tr>
+          <tr><td>retrying</td><td>Tap Try Again</td><td>Button gets <code>.loading</code> + disabled, spinner, ~1200ms.</td></tr>
+          <tr><td>loading</td><td>Retry w/ alt number on</td><td>Full-screen <code>.pi-load</code> overlay: 46px ring spinner + "Processing payment…", ~1500ms → success.</td></tr>
+          <tr><td>toast</td><td>Retry w/o alt number</td><td><code>.pi-toast</code> at bottom (radius 14, #0B1220): amber dot + "Payment failed again. Try a different MTN number or plan." Auto-hides ~2800ms.</td></tr>
+          <tr><td>ok</td><td>after loading</td><td><code>.pi-ok</code> full-screen: gain badge (92, check 44) + "Payment successful" + "Your {plan} plan is active…" + Done.</td></tr>
+        </tbody>
+      </table>
+      <div class="note"><b>Prototype flow</b> is a stand-in: alt-number ON → success; OFF → failure toast. Replace the timers with real MoMo requests; keep the same visual states for pending / success / error. Overlays (<code>.pi-load</code>, <code>.pi-ok</code>) and the toast are <code>position:absolute</code> layers over <code>.pi</code>.</div>
+    </section>
+
+    <!-- ============ LOGIC ============ -->
+    <section id="logic">
+      <h2>18 — Data &amp; logic</h2>
+      <div class="h2sub">Model + total</div>
+<pre><span class="k">const</span> PLANS = [
+  { id:<span class="s">'mobile'</span>,  name:<span class="s">'Mobile only'</span>,      m:<span class="n">5000</span>,   y:<span class="n">48000</span>   },
+  { id:<span class="s">'desktop'</span>, name:<span class="s">'Mobile + Desktop'</span>, m:<span class="n">12000</span>,  y:<span class="n">115200</span>  },
+  { id:<span class="s">'ent'</span>,     name:<span class="s">'Enterprise'</span>,       m:<span class="n">150000</span>, y:<span class="n">1440000</span> },
+];
+<span class="k">const</span> ADDON = { name:<span class="s">'Tax Reporting Consulting'</span>, m:<span class="n">30000</span>, y:<span class="n">288000</span> };
+
+<span class="k">function</span> <span class="t">newTotal</span>(plan, cycle, addon) {
+  <span class="k">const</span> base  = cycle === <span class="s">'yearly'</span> ? plan.y : plan.m;
+  <span class="k">const</span> extra = addon ? (cycle === <span class="s">'yearly'</span> ? ADDON.y : ADDON.m) : <span class="n">0</span>;
+  <span class="k">return</span> base + extra;
+}
+<span class="c">// grouped thousands for RWF</span>
+<span class="k">const</span> fmt = n =&gt; n.toLocaleString(<span class="s">'en-US'</span>);          <span class="c">// 1,440,000</span>
+<span class="c">// display: `RWF ${fmt(newTotal(...))}.00`  → Geist Mono, --blue, 18/800</span></pre>
+      <p>Yearly per-month figure shown on tiles = <code>Math.round(y / 12)</code>.</p>
+    </section>
+
+    <!-- ============ LAYOUT ============ -->
+    <section id="layout">
+      <h2>19 — Scroll &amp; layout gotcha</h2>
+      <div class="h2sub">Read this before you build</div>
+      <p>The screen is a flex column: a fixed <code>.pi-top</code>, then a <code>.pi-scroll</code> region with <code>flex:1; min-height:0; overflow-y:auto</code>. Blocks inside are separated by <code>gap:16px</code>.</p>
+      <div class="note warn"><b>The bug that bit this build.</b> <code>.pi-scroll</code> is itself a flex column, so its children are flex items and can <em>shrink</em> below their content height. The plan-switcher card has <code>overflow:hidden</code> — when it got shrunk, it clipped its own contents to a 2px sliver and vanished. The other cards only stayed visible because they don't clip. <strong>Fix:</strong> <code>.pi-scroll &gt; * { flex-shrink: 0; }</code> — keep every block at its natural height and let the container scroll. Apply this to any scroll-in-flex container, not just this screen.</div>
+    </section>
+
+    <!-- ============ ICONS ============ -->
+    <section id="icons">
+      <h2>20 — Icons</h2>
+      <div class="h2sub">1.5–1.7 stroke, rounded caps</div>
+      <p>Inline SVG line icons, rounded joins, <code>stroke="currentColor"</code> so they inherit the parent color. Sizes noted per use.</p>
+      <table>
+        <thead><tr><th>Icon</th><th>Where</th><th>Size</th></tr></thead>
+        <tbody>
+          <tr><td>chevron-left</td><td>Back button</td><td class="mono">20</td></tr>
+          <tr><td>credit-card</td><td>Hero badge</td><td class="mono">38</td></tr>
+          <tr><td>receipt</td><td>Summary tile</td><td class="mono">20</td></tr>
+          <tr><td>swap (arrows)</td><td>Plan switcher tile</td><td class="mono">20</td></tr>
+          <tr><td>chevron-down</td><td>Accordion (rotates)</td><td class="mono">20</td></tr>
+          <tr><td>phone / monitor / building</td><td>Plan tiles</td><td class="mono">20</td></tr>
+          <tr><td>check</td><td>Selected plan, success</td><td class="mono">15 / 44</td></tr>
+          <tr><td>tag</td><td>Discount input</td><td class="mono">19</td></tr>
+          <tr><td>info</td><td>Field hints</td><td class="mono">14</td></tr>
+          <tr><td>phone</td><td>Mobile money</td><td class="mono">20 / 19</td></tr>
+          <tr><td>refresh</td><td>Try Again (spins)</td><td class="mono">20</td></tr>
+          <tr><td>warning (triangle)</td><td>Toast</td><td class="mono">15</td></tr>
+          <tr><td>help-circle</td><td>Help card</td><td class="mono">20</td></tr>
+          <tr><td>chevron-right</td><td>Help card</td><td class="mono">20</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ COPY ============ -->
+    <section id="copy">
+      <h2>21 — Copy deck</h2>
+      <div class="h2sub">Exact strings</div>
+      <table>
+        <thead><tr><th>Location</th><th>String</th></tr></thead>
+        <tbody>
+          <tr><td>Header</td><td>Payment Issue</td></tr>
+          <tr><td>Hero headline</td><td>Payment Needs Attention <em>(configurable)</em></td></tr>
+          <tr><td>Hero body</td><td>Don't worry, this happens sometimes. Let's get you sorted out quickly.</td></tr>
+          <tr><td>Summary title</td><td>Payment Summary</td></tr>
+          <tr><td>Switcher title</td><td>Switch or upgrade plan</td></tr>
+          <tr><td>Switcher sub (open/closed)</td><td>Tap to collapse / Choose a different plan before retrying</td></tr>
+          <tr><td>Segment</td><td>Monthly · Yearly (20% off)</td></tr>
+          <tr><td>Add-on</td><td>Tax Reporting Consulting</td></tr>
+          <tr><td>Total label</td><td>New plan total</td></tr>
+          <tr><td>Discount</td><td>Apply Discount Code · Enter the code exactly as it appears.</td></tr>
+          <tr><td>Mobile money</td><td>Mobile Money Payment · Payment will be processed using MTN Mobile Money.</td></tr>
+          <tr><td>Alt number</td><td>Use different phone number · Try another MTN number if the current one failed · Must start with 250 78 or 250 79.</td></tr>
+          <tr><td>Primary / loading</td><td>Try Again <em>(configurable)</em> / Retrying…</td></tr>
+          <tr><td>Skips note</td><td>You can skip {n} more times</td></tr>
+          <tr><td>Secondary</td><td>Skip for Now</td></tr>
+          <tr><td>Toast</td><td>Payment failed again. Try a different MTN number or plan.</td></tr>
+          <tr><td>Loading</td><td>Processing payment…</td></tr>
+          <tr><td>Success</td><td>Payment successful · Your {plan} plan is active. A receipt has been sent via SMS.</td></tr>
+          <tr><td>Help</td><td>Need Help? · Chat with support about this payment</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:30px; color:var(--ink-3); font-size:13px;">Live reference: open <strong>Flipper Payment Issue.html</strong> and toggle Tweaks to see tone / summary-style / copy variants. Full styles: <strong>payment_issue/payment.css</strong>. All measurements are pixels at the 390px design width.</p>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>

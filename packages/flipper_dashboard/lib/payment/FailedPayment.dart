@@ -7,15 +7,18 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/helperModels/extensions.dart';
-import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
-import 'package:flutter/services.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_dashboard/payment/payment_format.dart';
+import 'package:flipper_dashboard/payment/payment_tokens.dart';
+import 'package:flipper_dashboard/payment/payment_typography.dart';
+import 'package:flipper_dashboard/payment/widgets/payment_widgets.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -74,7 +77,6 @@ class _FailedPaymentState extends State<FailedPayment>
   bool _isLoadingSkipCount = true;
 
   // Plan switching state - allows user to switch/upgrade plan before retry
-  bool _showSwitchPlan = false;
   SubscriptionPlanCatalog? _catalog;
   String? _switchPlanTemplateId;
   bool _switchPlanIsYearly = false;
@@ -622,264 +624,158 @@ class _FailedPaymentState extends State<FailedPayment>
     }
   }
 
+  /// Debug-only shortcut to preview Payment Plan without active-subscription redirect.
+  Widget _debugPaymentPlanButton() {
+    return TextButton(
+      onPressed: () => locator<RouterService>().replaceWith(
+        PaymentPlanUIRoute(skipPaymentStatusCheck: true),
+      ),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
+      child: Text(
+        'Payment Plan',
+        style: PaymentTypography.inlineLabel(
+          color: PaymentTokens.blue,
+        ).copyWith(fontSize: 13, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    if (_isLoading && _plan == null) {
+      return const Scaffold(
+        backgroundColor: PaymentTokens.app,
+        body: PaymentCenterLoading(message: 'Loading payment details…'),
+      );
+    }
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        title: Text(
-          'Payment Issue',
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.3,
+    if (_waitingForPaymentCompletion) {
+      return PaymentScreenShell(
+        title: 'Payment Issue',
+        showBack: false,
+        actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
+        overlay: const PaymentLoadingOverlay(
+          message: 'Complete payment on your phone…',
+        ),
+        children: [
+          _buildPaymentWaitingContent(),
+        ],
+      );
+    }
+
+    return PaymentScreenShell(
+      title: 'Payment Issue',
+      showBack: false,
+      actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
+      children: [
+        FadeTransition(
+          opacity: _fadeAnimation,
+          child: _buildHeaderSection(),
+        ),
+        if (_plan != null)
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: _buildPlanDetails(_plan!),
+          ),
+        if (_errorMessage != null)
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: _buildErrorMessage(),
+          ),
+        if (_plan != null)
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: _buildSwitchPlanSection(),
+          ),
+        if (_plan != null)
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: PaymentDiscountSection(
+              onCodeChanged: _validateDiscountCode,
+              errorMessage: _discountError,
+              isValidating: _isValidatingCode,
+            ),
+          ),
+        if (_plan != null)
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: _buildPhoneNumberSection(),
+          ),
+        FadeTransition(
+          opacity: _fadeAnimation,
+          child: _buildRetryButton(context),
+        ),
+        FadeTransition(
+          opacity: _fadeAnimation,
+          child: _buildHelpSection(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentWaitingContent() {
+    return Column(
+      children: [
+        AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _pulseAnimation.value,
+              child: Container(
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  color: PaymentTokens.blueTint,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: PaymentTokens.blueTint2),
+                ),
+                child: const Icon(
+                  FluentIcons.phone_24_regular,
+                  size: 38,
+                  color: PaymentTokens.blue,
+                ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Complete Payment on Your Phone',
+          style: PaymentTypography.heroHeadline(),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'A payment request has been sent to your MTN Mobile Money.\n'
+          'Open your phone and approve the transaction.',
+          style: PaymentTypography.body(),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        const SizedBox(
+          width: 46,
+          height: 46,
+          child: CircularProgressIndicator(
+            strokeWidth: 4,
+            color: PaymentTokens.blue,
+            backgroundColor: PaymentTokens.line,
           ),
         ),
-        centerTitle: true,
-        actions: kDebugMode
-            ? [
-                TextButton(
-                  onPressed: () => locator<RouterService>().replaceWith(
-                    PaymentPlanUIRoute(skipPaymentStatusCheck: true),
-                  ),
-                  child: Text(
-                    'Payment Plan',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ]
-            : null,
-      ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 400),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        child: _isLoading
-            ? KeyedSubtree(
-                key: const ValueKey('loading'),
-                child: _buildLoadingState(),
-              )
-            : _waitingForPaymentCompletion
-            ? KeyedSubtree(
-                key: const ValueKey('waiting'),
-                child: _buildPaymentWaitingState(),
-              )
-            : KeyedSubtree(
-                key: const ValueKey('content'),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      children: [
-                        _buildHeaderSection(),
-                        const SizedBox(height: 32),
-                        if (_plan != null) _buildPlanDetails(_plan!),
-                        if (_errorMessage != null) _buildErrorMessage(),
-                        const SizedBox(height: 16),
-                        if (_plan != null) _buildSwitchPlanSection(),
-                        if (_plan != null)
-                          CouponToggle(
-                            onCodeChanged: _validateDiscountCode,
-                            errorMessage: _discountError,
-                            isValidating: _isValidatingCode,
-                          ),
-                        const SizedBox(height: 24),
-                        if (_plan != null) _buildPhoneNumberSection(),
-                        const SizedBox(height: 32),
-                        _buildRetryButton(context),
-                        const SizedBox(height: 24),
-                        _buildHelpSection(),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: primary.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: primary.withValues(alpha: 0.2),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Loading payment details',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Please wait a moment...',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentWaitingState() {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 48),
-          AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _pulseAnimation.value,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        primary.withValues(alpha: 0.15),
-                        primary.withValues(alpha: 0.06),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: primary.withValues(alpha: 0.25),
-                        blurRadius: 24,
-                        spreadRadius: -4,
-                      ),
-                      BoxShadow(
-                        color: primary.withValues(alpha: 0.1),
-                        blurRadius: 40,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                    border: Border.all(
-                      color: primary.withValues(alpha: 0.3),
-                      width: 2,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.phone_android_rounded,
-                    size: 44,
-                    color: primary,
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'Complete Payment on Your Phone',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: theme.colorScheme.onSurface,
-              letterSpacing: -0.3,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'A payment request has been sent to your MTN Mobile Money.\nOpen your phone and approve the transaction.',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 40),
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: CircularProgressIndicator(strokeWidth: 3, color: primary),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildWaitingDot(0),
-              const SizedBox(width: 8),
-              _buildWaitingDot(1),
-              const SizedBox(width: 8),
-              _buildWaitingDot(2),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Checking payment status...',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-              letterSpacing: 0.3,
-            ),
-          ),
-          const SizedBox(height: 48),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWaitingDot(int index) {
-    final opacities = [0.5, 0.75, 1.0];
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.primary.withValues(alpha: opacities[index]),
-        shape: BoxShape.circle,
-      ),
+        const SizedBox(height: 16),
+        Text(
+          'Checking payment status…',
+          style: PaymentTypography.hint(),
+        ),
+      ],
     );
   }
 
   Widget _buildHeaderSection() {
-    final theme = Theme.of(context);
     return AnimatedBuilder(
       animation: _shakeAnimation,
       builder: (context, child) {
@@ -891,56 +787,10 @@ class _FailedPaymentState extends State<FailedPayment>
                 2,
             0,
           ),
-          child: Column(
-            children: [
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [const Color(0xFFFFF5F5), const Color(0xFFFFEBEE)],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFE53E3E).withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: const Color(0xFFE53E3E).withValues(alpha: 0.2),
-                    width: 2,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.payment_rounded,
-                  size: 44,
-                  color: Color(0xFFE53E3E),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Payment Needs Attention',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onSurface,
-                  letterSpacing: -0.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Don\'t worry, this happens sometimes.\nLet\'s get you sorted out quickly.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+          child: const PaymentHeroBlock(
+            headline: 'Payment Needs Attention',
+            body:
+                "Don't worry, this happens sometimes.\nLet's get you sorted out quickly.",
           ),
         );
       },
@@ -948,427 +798,109 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildSwitchPlanSection() {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    final surface = theme.colorScheme.surface;
-    return Container(
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.15),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () {
-              setState(() {
-                _showSwitchPlan = !_showSwitchPlan;
-              });
-            },
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.swap_horiz_rounded,
-                      color: primary,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Switch or upgrade plan',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        Text(
-                          _showSwitchPlan
-                              ? 'Tap to collapse'
-                              : 'Choose a different plan before retrying',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    _showSwitchPlan
-                        ? Icons.keyboard_arrow_up_rounded
-                        : Icons.keyboard_arrow_down_rounded,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_showSwitchPlan) ...[
-            if (_planWasActive)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: primary.withValues(alpha: 0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline_rounded,
-                        color: primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Your plan is still active. You can upgrade or switch plans below. The new plan will apply from your next billing cycle.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.85,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildSwitchPlanDurationToggle(theme),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildSwitchPlanCards(theme),
-            ),
-            if (_selectedSwitchTemplate?.isEnterprise == true) ...[
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildSwitchPlanAddonServices(theme),
-              ),
-            ] else if ((_selectedSwitchTemplate?.addons ?? const []).isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildSwitchPlanTaxReporting(theme),
-              ),
-            ],
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'New plan total',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                  ),
-                  Text(
-                    _calculateSwitchPlanPrice().toCurrencyFormatted(
-                      symbol: ProxyService.box.defaultCurrency(),
-                    ),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSwitchPlanDurationToggle(ThemeData theme) {
-    final yearlyDiscount =
-        _selectedSwitchTemplate?.yearlyDiscountPercent.round() ?? 20;
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _switchPlanIsYearly = false;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: !_switchPlanIsYearly
-                      ? theme.colorScheme.primary
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Monthly',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: !_switchPlanIsYearly
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _switchPlanIsYearly = true;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: _switchPlanIsYearly
-                      ? theme.colorScheme.primary
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Yearly ($yearlyDiscount% off)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _switchPlanIsYearly
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSwitchPlanCards(ThemeData theme) {
+    final template = _selectedSwitchTemplate;
+    final yearlyDiscount = template?.yearlyDiscountPercent ?? 20;
     final templates = _catalog?.templates ?? const [];
-    return Column(
-      children: [
-        for (var i = 0; i < templates.length; i++) ...[
-          if (i > 0) const SizedBox(height: 8),
-          _buildSwitchPlanCard(theme, templates[i]),
-        ],
-      ],
-    );
-  }
 
-  Widget _buildSwitchPlanCard(
-    ThemeData theme,
-    SubscriptionPlanTemplate template,
-  ) {
-    final isSelected = _switchPlanTemplateId == template.id;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _switchPlanTemplateId = template.id;
-          _switchPlanAddonSlugs.clear();
-          _discountCode = null;
-          _discountAmount = 0;
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected
-              ? theme.colorScheme.primary
-              : theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.3,
-                ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? Colors.transparent
-                : theme.colorScheme.outline.withValues(alpha: 0.3),
-          ),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(
-              template.resolveIcon(),
-              size: 24,
-              color: isSelected
-                  ? theme.colorScheme.onPrimary
-                  : theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
+    return PaymentAccordion(
+      title: 'Switch or upgrade plan',
+      subtitleOpen: 'Tap to collapse',
+      subtitleClosed: 'Choose a different plan before retrying',
+      initiallyOpen: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_planWasActive)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: PaymentTokens.blueTint,
+                borderRadius: BorderRadius.circular(PaymentTokens.rMd),
+                border: Border.all(color: PaymentTokens.blueTint2),
+              ),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    template.name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface,
-                    ),
+                  const Icon(
+                    FluentIcons.info_16_regular,
+                    size: 18,
+                    color: PaymentTokens.blue,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    template.formatListPrice(isYearly: _switchPlanIsYearly),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isSelected
-                          ? theme.colorScheme.onPrimary.withValues(alpha: 0.9)
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Your plan is still active. You can upgrade or switch plans below. '
+                      'The new plan will apply from your next billing cycle.',
+                      style: PaymentTypography.hint(),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchPlanAddonServices(ThemeData theme) {
-    final template = _selectedSwitchTemplate;
-    if (template == null || template.addons.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          template.isEnterprise ? 'Enterprise Services' : 'Additional Services',
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 8),
-        for (var i = 0; i < template.addons.length; i++) ...[
-          if (i > 0) const SizedBox(height: 8),
-          _buildSwitchPlanServiceToggle(
-            theme,
-            template.addons[i],
-            _switchPlanAddonSlugs.contains(template.addons[i].slug),
-            (selected) {
-              setState(() {
-                if (selected) {
-                  _switchPlanAddonSlugs.add(template.addons[i].slug);
-                } else {
-                  _switchPlanAddonSlugs.remove(template.addons[i].slug);
-                }
-              });
+          PaymentSegment2(
+            isYearly: _switchPlanIsYearly,
+            yearlyDiscountPercent: yearlyDiscount,
+            onChanged: (yearly) {
+              setState(() => _switchPlanIsYearly = yearly);
             },
           ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSwitchPlanTaxReporting(ThemeData theme) {
-    final template = _selectedSwitchTemplate;
-    final addon = template?.addonBySlug('tax_reporting');
-    if (template == null || addon == null) return const SizedBox.shrink();
-
-    return _buildSwitchPlanServiceToggle(
-      theme,
-      addon,
-      _switchPlanAddonSlugs.contains(addon.slug),
-      (selected) {
-        setState(() {
-          if (selected) {
-            _switchPlanAddonSlugs.add(addon.slug);
-          } else {
-            _switchPlanAddonSlugs.remove(addon.slug);
-          }
-        });
-      },
-    );
-  }
-
-  Widget _buildSwitchPlanServiceToggle(
-    ThemeData theme,
-    SubscriptionPlanAddonTemplate addon,
-    bool value,
-    void Function(bool) onChanged,
-  ) {
-    final template = _selectedSwitchTemplate!;
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  addon.name,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  template.formatAddonPrice(addon, isYearly: _switchPlanIsYearly),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
+          const SizedBox(height: 12),
+          for (var i = 0; i < templates.length; i++) ...[
+            if (i > 0) const SizedBox(height: 8),
+            PaymentPlanTile(
+              name: templates[i].name,
+              priceLine: formatPaymentTilePrice(
+                templates[i],
+                isYearly: _switchPlanIsYearly,
+              ),
+              icon: templates[i].resolveIcon(),
+              selected: _switchPlanTemplateId == templates[i].id,
+              onTap: () {
+                setState(() {
+                  _switchPlanTemplateId = templates[i].id;
+                  _switchPlanAddonSlugs.clear();
+                  _discountCode = null;
+                  _discountAmount = 0;
+                });
+              },
             ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.5),
-            activeThumbColor: theme.colorScheme.primary,
+          ],
+          if (template != null && template.addons.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            PaymentSectionLabel(
+              template.isEnterprise
+                  ? 'Enterprise Services'
+                  : 'Additional Services',
+            ),
+            const SizedBox(height: 8),
+            for (final addon in template.addons) ...[
+              PaymentAddonRow(
+                name: addon.name,
+                priceLine: formatPaymentAddonPrice(
+                  template,
+                  addon,
+                  isYearly: _switchPlanIsYearly,
+                ),
+                enabled: _switchPlanAddonSlugs.contains(addon.slug),
+                onChanged: (selected) {
+                  setState(() {
+                    if (selected) {
+                      _switchPlanAddonSlugs.add(addon.slug);
+                    } else {
+                      _switchPlanAddonSlugs.remove(addon.slug);
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ],
+          PaymentTotalCard(
+            label: 'New plan total',
+            total: _calculateSwitchPlanPrice(),
+            subtitle: template?.name ?? '',
+            isYearly: _switchPlanIsYearly,
           ),
         ],
       ),
@@ -1376,343 +908,167 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildErrorMessage() {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFF5F5),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFE53E3E).withValues(alpha: 0.25),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: PaymentTokens.lossTint,
+        borderRadius: BorderRadius.circular(PaymentTokens.rMd),
+        border: Border.all(
+          color: PaymentTokens.loss.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            FluentIcons.warning_20_regular,
+            color: PaymentTokens.loss,
+            size: 20,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFE53E3E).withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE53E3E).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                color: Colors.red.shade600,
-                size: 22,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: PaymentTypography.body().copyWith(
+                color: PaymentTokens.loss,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                _errorMessage!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.red.shade700,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
+  void _formatPhoneInput(String value) {
+    final digits = value.replaceAll(' ', '');
+    if (digits.length <= 3) {
+      _phoneNumberController.text = digits;
+    } else if (digits.length <= 5) {
+      _phoneNumberController.text =
+          '${digits.substring(0, 3)} ${digits.substring(3)}';
+    } else if (digits.length <= 8) {
+      _phoneNumberController.text =
+          '${digits.substring(0, 3)} ${digits.substring(3, 5)} ${digits.substring(5)}';
+    } else {
+      _phoneNumberController.text =
+          '${digits.substring(0, 3)} ${digits.substring(3, 5)} ${digits.substring(5, 8)} ${digits.substring(8)}';
+    }
+    _phoneNumberController.selection = TextSelection.collapsed(
+      offset: _phoneNumberController.text.length,
+    );
+    setState(() {});
+  }
+
   Widget _buildPhoneNumberSection() {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    final surface = theme.colorScheme.surface;
-    return Container(
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.15),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.phone_android_rounded,
-                  color: primary,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Mobile Money Payment',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Payment will be processed using MTN Mobile Money',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Material(
-            color: Colors.transparent,
-            child: SwitchListTile(
-              title: Text(
-                'Use different phone number',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              subtitle: Text(
-                'Try with another MTN number if the current one failed',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
-                ),
-            ),
-            value: _usePhoneNumber,
-            onChanged: (value) {
-              setState(() {
-                _usePhoneNumber = value;
-                if (!value) {
-                  _phoneNumberController.clear();
-                }
-              });
-            },
-              activeThumbColor: Theme.of(context).colorScheme.primary,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-          if (_usePhoneNumber) ...[
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _phoneNumberController,
-              decoration: InputDecoration(
-                labelText: 'MTN Phone Number',
-                hintText: '250 78 123 4567',
-                prefixIcon: const Icon(Icons.phone_android),
-                suffixIcon: _phoneNumberController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _phoneNumberController.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-                errorText: _getPhoneNumberError(_phoneNumberController.text),
-                helperText: 'Must start with 250 78 or 250 79',
-              ),
-              keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(12),
-              ],
-              onChanged: (value) {
-                // Keep original formatting logic exactly as is
-                if (value.length <= 3) {
-                  _phoneNumberController.text = value;
-                } else if (value.length <= 5) {
-                  _phoneNumberController.text =
-                      '${value.substring(0, 3)} ${value.substring(3)}';
-                } else if (value.length <= 8) {
-                  _phoneNumberController.text =
-                      '${value.substring(0, 3)} ${value.substring(3, 5)} ${value.substring(5)}';
-                } else {
-                  _phoneNumberController.text =
-                      '${value.substring(0, 3)} ${value.substring(3, 5)} ${value.substring(5, 8)} ${value.substring(8)}';
-                }
-                _phoneNumberController.selection = TextSelection.collapsed(
-                  offset: _phoneNumberController.text.length,
-                );
-                setState(() {});
-              },
-            ),
-          ],
-        ],
-      ),
+    return PaymentMobileMoneyCard(
+      useDifferentNumber: _usePhoneNumber,
+      onUseDifferentChanged: (value) {
+        setState(() {
+          _usePhoneNumber = value;
+          if (!value) {
+            _phoneNumberController.clear();
+          }
+        });
+      },
+      phoneController: _phoneNumberController,
+      onPhoneChanged: _formatPhoneInput,
+      phoneError: _usePhoneNumber
+          ? _getPhoneNumberError(_phoneNumberController.text)
+          : null,
     );
   }
 
   Widget _buildRetryButton(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final retrying = _isLoading && !_waitingForPaymentCompletion;
+
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed:
-                _isLoading || _plan == null || _waitingForPaymentCompletion
-                ? null
-                : () async {
-                    setState(() {
-                      _isLoading = true;
-                      _errorMessage = null;
-                    });
+        PaymentPrimaryButton(
+          label: 'Try Again',
+          loading: retrying,
+          loadingLabel: 'Retrying…',
+          icon: FluentIcons.arrow_sync_20_regular,
+          onPressed: _plan == null || _waitingForPaymentCompletion
+              ? null
+              : () async {
+                  setState(() {
+                    _isLoading = true;
+                    _errorMessage = null;
+                  });
 
-                    try {
-                      final paymentRef = await _retryPayment(
-                        context,
-                        plan: _plan!,
-                        isLoading: _isLoading,
-                        phoneNumber: _usePhoneNumber
-                            ? _phoneNumberController.text
-                            : null,
-                      );
-                      // If payment initiation succeeds, show waiting state
-                      if (_mounted) {
-                        setState(() {
-                          _waitingForPaymentCompletion = true;
-                          _isLoading = false;
-                        });
-                        // Start timeout timer (5 minutes)
-                        _paymentTimeoutTimer?.cancel();
-                        _paymentTimeoutTimer = Timer(
-                          const Duration(minutes: 5),
-                          () {
-                            if (_mounted) {
-                              _paymentCompletionPollTimer?.cancel();
-                              setState(() {
-                                _waitingForPaymentCompletion = false;
-                                _errorMessage =
-                                    'Payment timeout. Please try again.';
-                              });
-                              showCustomSnackBarUtil(
-                                context,
-                                'Payment timeout. Please try again.',
-                                backgroundColor: Colors.red,
-                                showCloseButton: true,
-                              );
-                            }
-                          },
-                        );
-                        final businessId = _plan!.businessId;
-                        final planId = _plan!.id;
-                        if (businessId != null && planId != null) {
-                          _startPaymentCompletionPolling(
-                            businessId,
-                            paymentRef,
-                            planId,
-                          );
-                        }
-                      }
-                    } catch (e) {
-                      _paymentTimeoutTimer?.cancel();
-                      if (!_mounted) return;
+                  try {
+                    final paymentRef = await _retryPayment(
+                      context,
+                      plan: _plan!,
+                      isLoading: _isLoading,
+                      phoneNumber: _usePhoneNumber
+                          ? _phoneNumberController.text
+                          : null,
+                    );
+                    if (_mounted) {
                       setState(() {
-                        _errorMessage = 'Payment failed: $e';
-                        _waitingForPaymentCompletion = false;
+                        _waitingForPaymentCompletion = true;
+                        _isLoading = false;
                       });
-
-                      // Add shake animation on error
-                      _shakeController.forward().then((_) {
-                        _shakeController.reset();
-                      });
-
-                      showCustomSnackBarUtil(
-                        context,
-                        'Payment failed try again',
-                        backgroundColor: Colors.red,
-                        showCloseButton: true,
+                      _paymentTimeoutTimer?.cancel();
+                      _paymentTimeoutTimer = Timer(
+                        const Duration(minutes: 5),
+                        () {
+                          if (_mounted) {
+                            _paymentCompletionPollTimer?.cancel();
+                            setState(() {
+                              _waitingForPaymentCompletion = false;
+                              _errorMessage =
+                                  'Payment timeout. Please try again.';
+                            });
+                            showCustomSnackBarUtil(
+                              context,
+                              'Payment timeout. Please try again.',
+                              backgroundColor: PaymentTokens.loss,
+                              showCloseButton: true,
+                            );
+                          }
+                        },
                       );
-                    } finally {
-                      if (_mounted && !_waitingForPaymentCompletion) {
-                        setState(() {
-                          _isLoading = false;
-                        });
+                      final businessId = _plan!.businessId;
+                      final planId = _plan!.id;
+                      if (businessId != null && planId != null) {
+                        _startPaymentCompletionPolling(
+                          businessId,
+                          paymentRef,
+                          planId,
+                        );
                       }
                     }
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primary,
-              foregroundColor: theme.colorScheme.onPrimary,
-              elevation: 2,
-              shadowColor: primary.withValues(alpha: 0.4),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: _isLoading
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            theme.colorScheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Text(
-                        'Processing...',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.refresh_rounded,
-                        size: 22,
-                        color: theme.colorScheme.onPrimary,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Try Again',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
+                  } catch (e) {
+                    _paymentTimeoutTimer?.cancel();
+                    if (!_mounted) return;
+                    setState(() {
+                      _errorMessage = 'Payment failed: $e';
+                      _waitingForPaymentCompletion = false;
+                    });
+
+                    _shakeController.forward().then((_) {
+                      _shakeController.reset();
+                    });
+
+                    showCustomSnackBarUtil(
+                      context,
+                      _usePhoneNumber
+                          ? 'Payment failed. Try again.'
+                          : 'Payment failed again. Try a different MTN number or plan.',
+                      backgroundColor: const Color(0xFF0B1220),
+                      showCloseButton: true,
+                    );
+                  } finally {
+                    if (_mounted && !_waitingForPaymentCompletion) {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
+                  }
+                },
         ),
         const SizedBox(height: 12),
         if (!_isLoadingSkipCount) ...[
@@ -1721,312 +1077,91 @@ class _FailedPaymentState extends State<FailedPayment>
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF5F5),
-                borderRadius: BorderRadius.circular(12),
+                color: PaymentTokens.lossTint,
+                borderRadius: BorderRadius.circular(PaymentTokens.rMd),
                 border: Border.all(
-                  color: const Color(0xFFE53E3E).withValues(alpha: 0.2),
+                  color: PaymentTokens.loss.withValues(alpha: 0.2),
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.block_rounded,
-                    color: Colors.red.shade600,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Maximum skip limit reached. Please complete payment to continue.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.red.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+              child: Text(
+                'Maximum skip limit reached. Please complete payment to continue.',
+                style: PaymentTypography.body().copyWith(
+                  color: PaymentTokens.loss,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             )
           else
             Text(
               'You can skip $_remainingSkips more time${_remainingSkips == 1 ? '' : 's'}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
+              style: PaymentTypography.hint(),
+              textAlign: TextAlign.center,
             ),
           const SizedBox(height: 8),
         ],
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: OutlinedButton(
-            onPressed: _isLoadingSkipCount || !_canSkip
-                ? null
-                : () async {
-                    await _incrementSkipCount();
-                    locator<RouterService>().navigateTo(FlipperAppRoute());
-                  },
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(
-                color: _canSkip
-                    ? theme.colorScheme.outline.withValues(alpha: 0.5)
-                    : theme.colorScheme.outline.withValues(alpha: 0.3),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: Text(
-              _canSkip ? 'Skip for Now' : 'Skip Limit Reached',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: _canSkip
-                    ? theme.colorScheme.onSurface.withValues(alpha: 0.7)
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-            ),
-          ),
+        PaymentSecondaryButton(
+          label: _canSkip ? 'Skip for Now' : 'Skip Limit Reached',
+          onPressed: _isLoadingSkipCount || !_canSkip
+              ? null
+              : () async {
+                  await _incrementSkipCount();
+                  locator<RouterService>().navigateTo(FlipperAppRoute());
+                },
         ),
       ],
     );
   }
 
   Widget _buildPlanDetails(Plan plan) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            primary.withValues(alpha: 0.06),
-            primary.withValues(alpha: 0.02),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: primary.withValues(alpha: 0.12), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: primary.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.receipt_long_rounded,
-                  color: primary,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Payment Summary',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: primary,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildDetailRow(
-            'Plan',
+    final currency = ProxyService.box.defaultCurrency();
+    final priceLabel = _discountAmount > 0 ? 'Total' : 'Price';
+    final rows = <PaymentSummaryRow>[
+      PaymentSummaryRow(
+        label: 'Plan',
+        value:
             _switchTemplateForPlan(plan)?.name ?? plan.selectedPlan ?? 'N/A',
-          ),
-          if (_discountAmount > 0) ...[
-            _buildDetailRow(
-              'Subtotal',
-              _originalPrice.toCurrencyFormatted(
-                symbol: ProxyService.box.defaultCurrency(),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'Discount',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16.0,
-                          color: Colors.green,
-                        ),
-                      ),
-                      if (_discountCode != null) ...[
-                        const SizedBox(width: 4),
-                        Text(
-                          '($_discountCode)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  Text(
-                    '-${_discountAmount.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
-                    style: const TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.green,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          _buildDetailRow(
-            _discountAmount > 0 ? 'Total' : 'Price',
-            _totalDisplayAmount(plan).toCurrencyFormatted(
-              symbol: ProxyService.box.defaultCurrency(),
-            ),
-            isTotal: _discountAmount > 0,
-          ),
-          _buildDetailRow(
-            'Billing',
-            plan.isYearlyPlan == true ? 'Yearly' : 'Monthly',
-          ),
-          if (plan.additionalDevices != null && plan.additionalDevices! > 0)
-            _buildDetailRow(
-              'Additional Devices',
-              plan.additionalDevices.toString(),
-            ),
-        ],
       ),
-    );
-  }
+      if (_discountAmount > 0) ...[
+        PaymentSummaryRow(
+          label: 'Subtotal',
+          value: formatPaymentTotal(
+            _originalPrice > 0 ? _originalPrice : _baseChargeBeforeDiscount(plan),
+          ),
+          mono: true,
+        ),
+        PaymentSummaryRow(
+          label: _discountCode != null
+              ? 'Discount ($_discountCode)'
+              : 'Discount',
+          value: '- ${formatPaymentRwf(_discountAmount)} $currency',
+          mono: true,
+          highlight: true,
+        ),
+      ],
+      PaymentSummaryRow(
+        label: priceLabel,
+        value: formatPaymentTotal(_totalDisplayAmount(plan)),
+        mono: true,
+      ),
+      PaymentSummaryRow(
+        label: 'Billing',
+        value: plan.isYearlyPlan == true ? 'Yearly' : 'Monthly',
+      ),
+      if (plan.additionalDevices != null && plan.additionalDevices! > 0)
+        PaymentSummaryRow(
+          label: 'Additional Devices',
+          value: plan.additionalDevices.toString(),
+        ),
+    ];
 
-  Widget _buildDetailRow(String label, String value, {bool isTotal = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: isTotal ? FontWeight.w900 : FontWeight.bold,
-              fontSize: isTotal ? 18.0 : 16.0,
-              color: isTotal ? Colors.green : Colors.black54,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: isTotal ? 18.0 : 16.0,
-              color: isTotal ? Colors.green : Colors.black87,
-              fontWeight: isTotal ? FontWeight.w900 : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
+    return PaymentSummaryCard(rows: rows);
   }
 
   Widget _buildHelpSection() {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            primary.withValues(alpha: 0.06),
-            primary.withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: primary.withValues(alpha: 0.15)),
-        boxShadow: [
-          BoxShadow(
-            color: primary.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.help_outline_rounded,
-                  color: primary,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Need Help?',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            'Common issues:\n• Insufficient funds\n• Network connectivity\n• Incorrect phone number\n• Payment method restrictions',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 14),
-          TextButton(
-            onPressed: () {
-              // Handle contact support
-            },
-            style: TextButton.styleFrom(foregroundColor: primary),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.support_agent_rounded, size: 18, color: primary),
-                const SizedBox(width: 6),
-                Text(
-                  'Contact Support',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return PaymentHelpCard(
+      onTap: () {
+        // Handle contact support
+      },
     );
   }
 

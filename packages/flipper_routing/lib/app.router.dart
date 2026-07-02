@@ -575,9 +575,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     PaymentPlanUIRoute.name: (routeData) {
+      final args = routeData.argsAs<PaymentPlanUIArgs>(
+          orElse: () => const PaymentPlanUIArgs());
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.PaymentPlanUI(),
+        child: _i1.PaymentPlanUI(
+          key: args.key,
+          skipPaymentStatusCheck: args.skipPaymentStatusCheck,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -2302,14 +2307,36 @@ class QuickSellingViewArgs {
 
 /// generated route for
 /// [_i1.PaymentPlanUI]
-class PaymentPlanUIRoute extends _i4.PageRouteInfo<void> {
-  const PaymentPlanUIRoute()
-      : super(
+class PaymentPlanUIRoute extends _i4.PageRouteInfo<PaymentPlanUIArgs> {
+  PaymentPlanUIRoute({
+    _i5.Key? key,
+    bool skipPaymentStatusCheck = false,
+  }) : super(
           PaymentPlanUIRoute.name,
           path: '/payment-plan-uI',
+          args: PaymentPlanUIArgs(
+            key: key,
+            skipPaymentStatusCheck: skipPaymentStatusCheck,
+          ),
         );
 
   static const String name = 'PaymentPlanUI';
+}
+
+class PaymentPlanUIArgs {
+  const PaymentPlanUIArgs({
+    this.key,
+    this.skipPaymentStatusCheck = false,
+  });
+
+  final _i5.Key? key;
+
+  final bool skipPaymentStatusCheck;
+
+  @override
+  String toString() {
+    return 'PaymentPlanUIArgs{key: $key, skipPaymentStatusCheck: $skipPaymentStatusCheck}';
+  }
 }
 
 /// generated route for
@@ -3032,10 +3059,16 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToPaymentPlanUI(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
+  Future<dynamic> navigateToPaymentPlanUI({
+    _i5.Key? key,
+    bool skipPaymentStatusCheck = false,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
     return navigateTo(
-      const PaymentPlanUIRoute(),
+      PaymentPlanUIRoute(
+        key: key,
+        skipPaymentStatusCheck: skipPaymentStatusCheck,
+      ),
       onFailure: onFailure,
     );
   }
@@ -3722,10 +3755,16 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithPaymentPlanUI(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
+  Future<dynamic> replaceWithPaymentPlanUI({
+    _i5.Key? key,
+    bool skipPaymentStatusCheck = false,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
     return replaceWith(
-      const PaymentPlanUIRoute(),
+      PaymentPlanUIRoute(
+        key: key,
+        skipPaymentStatusCheck: skipPaymentStatusCheck,
+      ),
       onFailure: onFailure,
     );
   }
