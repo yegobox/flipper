@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:brick_core/query.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -42,6 +44,138 @@ class CronService {
 
   /// Stream subscription for delegation monitoring (desktop only)
   StreamSubscription<List<TransactionDelegation>>? _delegationsSubscription;
+
+  /// Prevents concurrent or duplicate processing of the same delegation.
+  final Set<String> _processingDelegationIds = {};
+
+  /// Resolves cart lines for a delegated receipt. The delegation payload must
+  /// carry [itemSnapshots]; Ditto/Supabase are optional fallbacks for legacy jobs.
+  Future<List<TransactionItem>> _resolveDelegationLineItems({
+    required dynamic capella,
+    required String transactionId,
+    required Map<String, dynamic> additionalData,
+  }) async {
+    final rawSnapshots = additionalData['itemSnapshots'];
+    if (rawSnapshots is List && rawSnapshots.isNotEmpty) {
+      final snapshotItems =
+          capella.transactionItemsFromDelegationSnapshots(rawSnapshots);
+      if (snapshotItems.isNotEmpty) {
+        talker.info(
+          'Resolved ${snapshotItems.length} delegation item(s) from embedded '
+          'snapshots for $transactionId',
+        );
+        return snapshotItems;
+      }
+    }
+
+    List<String>? itemIdsFromDelegation;
+    final rawItemIds = additionalData['items'];
+    if (rawItemIds is List && rawItemIds.isNotEmpty) {
+      itemIdsFromDelegation = rawItemIds.map((e) => e.toString()).toList();
+    }
+
+    if (itemIdsFromDelegation != null && itemIdsFromDelegation.isNotEmpty) {
+      final byIds = await capella.transactionItems(
+        itemIds: itemIdsFromDelegation,
+      );
+      if (byIds.isNotEmpty) {
+        talker.info(
+          'Resolved ${byIds.length} delegation item(s) from Ditto by id '
+          'for $transactionId',
+        );
+        return byIds;
+      }
+    }
+
+    final byTransaction = await capella.transactionItems(
+      transactionId: transactionId,
+    );
+    if (byTransaction.isNotEmpty) {
+      talker.info(
+        'Resolved ${byTransaction.length} delegation item(s) from Ditto for '
+        '$transactionId',
+      );
+      return byTransaction;
+    }
+
+    final fromRepository = await _fetchDelegationLineItemsFromRepository(
+      transactionId: transactionId,
+      itemIds: itemIdsFromDelegation,
+    );
+    if (fromRepository.isNotEmpty) {
+      talker.info(
+        'Resolved ${fromRepository.length} delegation item(s) from Supabase '
+        'for $transactionId',
+      );
+      return fromRepository;
+    }
+
+    return [];
+  }
+
+  Future<List<TransactionItem>> _fetchDelegationLineItemsFromRepository({
+    required String transactionId,
+    List<String>? itemIds,
+  }) async {
+    try {
+      if (itemIds != null && itemIds.isNotEmpty) {
+        final byIds = await repository.get<TransactionItem>(
+          query: Query(where: [Where('id').isIn(itemIds)]),
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        );
+        if (byIds.isNotEmpty) return byIds;
+      }
+
+      return await repository.get<TransactionItem>(
+        query: Query(
+          where: [Where('transactionId').isExactly(transactionId)],
+        ),
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+    } catch (e, stackTrace) {
+      talker.warning(
+        'Supabase fallback for delegation items failed: $e',
+        stackTrace,
+      );
+      return [];
+    }
+  }
+
+  void _applyDelegationFieldsToTransaction({
+    required ITransaction transaction,
+    required TransactionDelegation delegation,
+    required Map<String, dynamic> additionalData,
+  }) {
+    if (delegation.customerName != null && delegation.customerName!.isNotEmpty) {
+      transaction.customerName = delegation.customerName;
+    }
+    if (delegation.customerTin != null) {
+      transaction.customerTin = delegation.customerTin;
+    }
+    if (delegation.customerBhfId != null) {
+      transaction.customerBhfId = delegation.customerBhfId;
+    }
+    if (delegation.subTotal > 0) {
+      transaction.subTotal = delegation.subTotal;
+    }
+    transaction.paymentType = delegation.paymentType;
+    transaction.receiptType = delegation.receiptType;
+
+    final rawSnapshot = additionalData['transactionSnapshot'];
+    if (rawSnapshot is Map) {
+      final snap = Map<String, dynamic>.from(rawSnapshot);
+      final phone = snap['customerPhone'] ?? snap['currentSaleCustomerPhoneNumber'];
+      if (phone != null && phone.toString().isNotEmpty) {
+        transaction.customerPhone = phone.toString();
+      }
+      if (snap['sarTyCd'] != null) {
+        transaction.sarTyCd = snap['sarTyCd']?.toString();
+      }
+      if (snap['taxAmount'] != null) {
+        transaction.taxAmount = (snap['taxAmount'] as num?)?.toDouble();
+      }
+    }
+  }
 
   /// Constants for timer durations
   static const int _isolateMessageSeconds = 40;
@@ -216,6 +350,9 @@ class CronService {
                   onDeviceId: deviceId,
                 )
                 .listen((delegations) async {
+                  final capella =
+                      ProxyService.getStrategy(Strategy.capella);
+
                   /// show notification of received delegation
                   if (delegations.isNotEmpty && delegations.length > 0) {
                     ProxyService.notification.sendLocalNotification(
@@ -223,22 +360,40 @@ class CronService {
                     );
                   }
                   for (TransactionDelegation delegation in delegations) {
+                    final delegationId = delegation.transactionId;
+                    if (_processingDelegationIds.contains(delegationId)) {
+                      continue;
+                    }
+                    _processingDelegationIds.add(delegationId);
+
                     try {
                       talker.info(
-                        "📱 Delegation received: ${delegation.transactionId} from ${delegation.delegatedFromDevice}",
+                        "📱 Delegation received: $delegationId from ${delegation.delegatedFromDevice}",
+                      );
+
+                      // Claim the job immediately so the Ditto observer (status=delegated)
+                      // does not re-deliver this record while RRA signing/printing runs.
+                      await capella.updateDelegationStatus(
+                        transactionId: delegationId,
+                        status: 'processing',
                       );
 
                       // Fetch the transaction
-                      final transactions = await ProxyService.getStrategy(
-                        Strategy.capella,
-                      ).transactions(id: delegation.transactionId);
+                      final transactions = await capella.transactions(
+                        id: delegationId,
+                      );
                       final transaction = transactions.isNotEmpty
                           ? transactions.first
                           : null;
 
                       if (transaction == null) {
                         talker.error(
-                          "Transaction not found for delegation: ${delegation.transactionId}",
+                          "Transaction not found for delegation: $delegationId",
+                        );
+                        await capella.updateDelegationStatus(
+                          transactionId: delegationId,
+                          status: 'failed',
+                          errorMessage: 'Transaction not found',
                         );
                         continue;
                       }
@@ -249,15 +404,50 @@ class CronService {
                           additionalData['salesSttsCd'] as String? ?? '02';
                       final purchaseCode =
                           additionalData['purchaseCode'] as String?;
-                      List<Counter> _counters = await ProxyService.getStrategy(
-                        Strategy.capella,
-                      ).getCounters(branchId: branchId, fetchRemote: false);
+                      List<Counter> _counters = await capella.getCounters(
+                        branchId: branchId,
+                        fetchRemote: false,
+                      );
                       final int highestInvcNo = _counters.fold<int>(
                         0,
                         (prev, c) => math.max(prev, c.invcNo ?? 0),
                       );
 
                       final sarTyCd = additionalData['sarTyCd'] as String?;
+
+                      final lineItems = await _resolveDelegationLineItems(
+                        capella: capella,
+                        transactionId: delegationId,
+                        additionalData: additionalData,
+                      );
+                      if (lineItems.isEmpty) {
+                        const errorMessage =
+                            'Missing line items in delegation payload. '
+                            'Re-send the sale from the POS device (delegation '
+                            'must include item snapshots).';
+                        talker.error(
+                          'Delegation $delegationId failed: $errorMessage',
+                        );
+                        await capella.updateDelegationStatus(
+                          transactionId: delegationId,
+                          status: 'failed',
+                          errorMessage: errorMessage,
+                        );
+                        final failedDelegation = delegation.copyWith(
+                          status: 'failed',
+                          updatedAt: DateTime.now().toUtc(),
+                        );
+                        await repository.upsert<TransactionDelegation>(
+                          failedDelegation,
+                        );
+                        continue;
+                      }
+
+                      _applyDelegationFieldsToTransaction(
+                        transaction: transaction,
+                        delegation: delegation,
+                        additionalData: additionalData,
+                      );
 
                       // Create TaxController instance
                       final taxController = TaxController<ITransaction>(
@@ -276,8 +466,10 @@ class CronService {
                         transaction: transaction,
                         purchaseCode: purchaseCode,
                       );
-                      String custMblNo = transaction.customerPhone!;
-                      String customerName = transaction.customerName!;
+                      final custMblNo =
+                          transaction.customerPhone ?? delegation.customerName ?? '';
+                      final customerName =
+                          transaction.customerName ?? delegation.customerName ?? '';
                       // Call printReceipt with delegation parameters
                       final result = await taxController.printReceipt(
                         custMblNo: custMblNo,
@@ -290,14 +482,21 @@ class CronService {
                         originalInvoiceNumber: highestInvcNo,
                         sarTyCd: sarTyCd,
                         skiGenerateRRAReceiptSignature: false,
+                        allowDelegationFallback: false,
+                        transactionItems: lineItems,
                       );
 
                       if (result.response.resultCd == "000") {
                         talker.info(
-                          "✅ Receipt printed successfully for delegation: ${delegation.transactionId}",
+                          "✅ Receipt printed successfully for delegation: $delegationId",
                         );
 
-                        // Update delegation status to completed
+                        await capella.updateDelegationStatus(
+                          transactionId: delegationId,
+                          status: 'completed',
+                        );
+
+                        // Persist for dashboard/history (Ditto is source of truth for status).
                         final updatedDelegation = delegation.copyWith(
                           status: 'completed',
                           updatedAt: DateTime.now().toUtc(),
@@ -310,7 +509,12 @@ class CronService {
                           "❌ Receipt printing failed: ${result.response.resultMsg}",
                         );
 
-                        // Update delegation status to failed
+                        await capella.updateDelegationStatus(
+                          transactionId: delegationId,
+                          status: 'failed',
+                          errorMessage: result.response.resultMsg,
+                        );
+
                         final updatedDelegation = delegation.copyWith(
                           status: 'failed',
                           updatedAt: DateTime.now().toUtc(),
@@ -321,12 +525,16 @@ class CronService {
                       }
                     } catch (e, stackTrace) {
                       talker.error(
-                        "❌ Error processing delegation ${delegation.transactionId}: $e",
+                        "❌ Error processing delegation $delegationId: $e",
                         stackTrace,
                       );
 
-                      // Update delegation status to failed
                       try {
+                        await capella.updateDelegationStatus(
+                          transactionId: delegationId,
+                          status: 'failed',
+                          errorMessage: e.toString(),
+                        );
                         final updatedDelegation = delegation.copyWith(
                           status: 'failed',
                           updatedAt: DateTime.now().toUtc(),
@@ -339,6 +547,8 @@ class CronService {
                           "Failed to update delegation status: $updateError",
                         );
                       }
+                    } finally {
+                      _processingDelegationIds.remove(delegationId);
                     }
                   }
                 });

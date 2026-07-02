@@ -58,7 +58,10 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
       await repository.upsert<TransactionDelegation>(updatedDelegation);
 
       if (mounted) {
-        showCustomSnackBarUtil(context, 'Retrying delegation...');
+        showCustomSnackBarUtil(
+          context,
+          'Retry queued. If it fails again, re-send the sale from the POS device.',
+        );
       }
     } catch (e) {
       if (mounted) {

@@ -39,4 +39,13 @@ mixin DelegationMixin implements DelegationInterface {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> updateDelegationStatus({
+    required String transactionId,
+    required String status,
+    String? errorMessage,
+  }) {
+    throw UnimplementedError();
+  }
 }

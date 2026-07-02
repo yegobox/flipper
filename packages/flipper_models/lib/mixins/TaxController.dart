@@ -9,6 +9,8 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
+import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
@@ -321,8 +323,10 @@ class TaxController<OBJ> {
   /**
    * Prints a receipt for the given transaction.
    * 
-   * On mobile devices, if delegation is enabled and EBM server is not accessible,
-   * the transaction will be delegated to desktop for processing.
+   * On any device, if delegation is enabled and a target printer device is selected,
+   * the transaction can be delegated instead of signing locally. Set
+   * [allowDelegationFallback] to false when processing an incoming delegation on
+   * the target device (e.g. CronService on desktop).
    * 
    * @params items - The list of transaction items. 
    * @params business - The business this transaction is for.
@@ -349,6 +353,8 @@ class TaxController<OBJ> {
     RwApiResponse? signedResponse,
     List<TransactionItem>? transactionItems,
     Receipt? presentationReceiptForPdf,
+    /// When false, always sign/print locally (used when fulfilling a delegated job).
+    bool allowDelegationFallback = true,
   }) async {
     // Use provided items or fetch transaction items
     List<TransactionItem> lineItems = transactionItems ?? items ?? [];
@@ -415,7 +421,8 @@ class TaxController<OBJ> {
           key: 'enableTransactionDelegation',
         );
         try {
-          if (enableTransactionDelegation != null &&
+          if (allowDelegationFallback &&
+              enableTransactionDelegation != null &&
               enableTransactionDelegation &&
               ProxyService.box.selectedDelegationDeviceId() != null) {
             return await _handleDelegationFallback(
@@ -970,13 +977,11 @@ class TaxController<OBJ> {
     return qrCodeParts.join('#');
   }
 
-  /// Handles delegation fallback when normal receipt processing fails on mobile
+  /// Handles delegation when local receipt signing should be skipped.
   ///
-  /// If delegation is enabled and we're on a mobile device, this method will
-  /// attempt to delegate the transaction to a desktop for processing.
-  ///
-  /// Returns a placeholder response if delegation succeeds, or rethrows the
-  /// original error if delegation is not available or fails.
+  /// Mobile or desktop can delegate to another device when delegation is enabled
+  /// and a target device is selected. Not used when fulfilling an incoming job
+  /// ([allowDelegationFallback] is false on [printReceipt]).
   Future<ReceiptHandleResult> _handleDelegationFallback({
     required ITransaction transaction,
     required String receiptType,
@@ -996,6 +1001,21 @@ class TaxController<OBJ> {
         ProxyService.box.selectedDelegationDeviceId() != null &&
         !skiGenerateRRAReceiptSignature) {
       try {
+        if (transactionItems.isEmpty) {
+          throw Exception(
+            'Cannot delegate: cart has no line items to send to the printer device.',
+          );
+        }
+
+        final itemSnapshots = <Map<String, dynamic>>[];
+        for (final item in transactionItems) {
+          itemSnapshots.add(
+            await TransactionItemDittoAdapter.instance.toDittoDocument(item),
+          );
+        }
+        final transactionSnapshot =
+            await ITransactionDittoAdapter.instance.toDittoDocument(transaction);
+
         await ProxyService.getStrategy(Strategy.capella).createDelegation(
           transactionId: transaction.id,
           branchId: transaction.branchId!,
@@ -1015,6 +1035,8 @@ class TaxController<OBJ> {
             'sarTyCd': sarTyCd,
             'businessId': ProxyService.box.getBusinessId(),
             'items': transactionItems.map((item) => item.id).toList(),
+            'itemSnapshots': itemSnapshots,
+            'transactionSnapshot': transactionSnapshot,
           },
         );
 

@@ -26,4 +26,11 @@ abstract class DelegationInterface {
   Future<List<Device>> getDevicesByBranch({
     required String branchId,
   });
+
+  /// Update delegation status in Ditto (delegated → processing → completed/failed).
+  Future<void> updateDelegationStatus({
+    required String transactionId,
+    required String status,
+    String? errorMessage,
+  });
 }

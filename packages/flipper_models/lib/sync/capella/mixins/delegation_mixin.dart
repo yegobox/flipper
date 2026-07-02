@@ -174,6 +174,52 @@ mixin CapellaDelegationMixin implements DelegationInterface {
   }
 
   @override
+  Future<void> updateDelegationStatus({
+    required String transactionId,
+    required String status,
+    String? errorMessage,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        debugPrint('❌ Ditto not initialized: cannot update delegation status');
+        return;
+      }
+
+      final now = DateTime.now().toIso8601String();
+      final updateData = <String, dynamic>{
+        'status': status,
+        'updatedAt': now,
+      };
+      if (errorMessage != null) {
+        updateData['errorMessage'] = errorMessage;
+      }
+      if (status == 'completed') {
+        updateData['completedAt'] = now;
+        updateData['processingDevice'] = ditto.deviceName;
+      }
+      if (status == 'processing') {
+        updateData['processingDevice'] = ditto.deviceName;
+      }
+
+      final setFields =
+          updateData.keys.map((key) => '$key = :$key').join(', ');
+      await ditto.store.execute(
+        'UPDATE $_collectionName SET $setFields WHERE _id = :transactionId',
+        arguments: {
+          'transactionId': transactionId,
+          ...updateData,
+        },
+      );
+
+      debugPrint('✅ Delegation status updated in Ditto: $transactionId → $status');
+    } catch (e) {
+      debugPrint('❌ Error updating delegation status: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<List<Device>> getDevicesByBranch({
     required String branchId,
   }) async {

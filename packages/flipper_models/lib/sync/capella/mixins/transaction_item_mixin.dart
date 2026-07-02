@@ -189,6 +189,14 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         conditions.add('doneWithTransaction = :doneWithTransaction');
         arguments['doneWithTransaction'] = doneWithTransaction;
       }
+      if (itemIds != null && itemIds.isNotEmpty) {
+        final idParts = <String>[];
+        for (var i = 0; i < itemIds.length; i++) {
+          idParts.add('id = :itemId$i');
+          arguments['itemId$i'] = itemIds[i];
+        }
+        conditions.add('(${idParts.join(' OR ')})');
+      }
 
       if (conditions.isNotEmpty) {
         query += ' WHERE ' + conditions.join(' AND ');
@@ -433,6 +441,18 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       if (s != null) return s;
     }
     return null;
+  }
+
+  /// Parses line items embedded in a delegation payload (no branch filter).
+  List<TransactionItem> transactionItemsFromDelegationSnapshots(
+    List<dynamic> rawSnapshots,
+  ) {
+    final items = <TransactionItem>[];
+    for (final entry in rawSnapshots) {
+      if (entry is! Map) continue;
+      items.add(_convertFromDittoDocument(Map<String, dynamic>.from(entry)));
+    }
+    return items;
   }
 
   /// Convert Ditto document to TransactionItem model
