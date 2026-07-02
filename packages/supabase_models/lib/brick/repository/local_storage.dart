@@ -136,6 +136,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'receiptLogoBase64',
     'freshSignup',
     'selectedDelegationDeviceId',
+    'thisDeviceId',
     'enableAutoAddSearch',
     'whatsAppPhoneNumberId',
     'userLoggingEnabled',
@@ -1069,6 +1070,11 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? selectedDelegationDeviceId() {
     return _cache['selectedDelegationDeviceId'] as String?;
+  }
+
+  @override
+  String? getThisDeviceId() {
+    return _cache['thisDeviceId'] as String?;
   }
 
   @override

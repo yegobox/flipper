@@ -191,18 +191,16 @@ class CronService {
         );
       } else {
         try {
-          // Get devices for this branch
-          final devices = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).getDevicesByBranch(branchId: branchId);
+          // Identify this running instance by its own stable Device.id
+          // (set once the device registers itself) rather than an arbitrary
+          // entry from the branch's device list.
+          final deviceId = ProxyService.box.getThisDeviceId();
 
-          // Check if devices list is not empty
-          if (devices.isEmpty) {
+          if (deviceId == null) {
             talker.warning(
-              'Skipping delegation monitoring: No devices found for branch $branchId',
+              'Skipping delegation monitoring: this device is not yet registered for branch $branchId. Will retry once registered.',
             );
           } else {
-            final deviceId = devices.first.id;
             talker.info(
               'Setting up delegation monitoring for device $deviceId on branch $branchId',
             );

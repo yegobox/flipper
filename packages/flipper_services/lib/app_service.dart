@@ -356,7 +356,7 @@ class AppService with ListenableServiceMixin {
       if (userId == null || businessId == null || branchId == null) return;
 
       final deviceVersion = await CoreMiscellaneous.getDeviceVersionStatic();
-      await ProxyService.strategy.create(
+      final device = await ProxyService.strategy.create(
         data: Device(
           pubNubPublished: false,
           branchId: branchId,
@@ -368,6 +368,12 @@ class AppService with ListenableServiceMixin {
           deviceVersion: deviceVersion,
         ),
       );
+      // Persist the stable Device.id locally so this running instance can
+      // identify itself (e.g. when routing incoming transaction delegations)
+      // instead of guessing from an unordered device list.
+      if (device != null) {
+        await ProxyService.box.writeString(key: 'thisDeviceId', value: device.id);
+      }
     } catch (e) {
       print('⚠️ _saveDesktopDeviceRecordIfNeeded failed: $e');
     }

@@ -16,17 +16,17 @@ final delegationsProvider =
     return;
   }
 
-  // Get device ID for filtering
-  final devices = await ProxyService.getStrategy(Strategy.capella)
-      .getDevicesByBranch(branchId: branchId);
-  if (devices.isEmpty) {
+  // Identify this device by its own stable id rather than an arbitrary
+  // entry from the branch's device list.
+  final deviceId = ProxyService.box.getThisDeviceId();
+  if (deviceId == null) {
     yield [];
     return;
   }
 
   yield* ProxyService.getStrategy(Strategy.capella).delegationsStream(
     branchId: branchId,
-    onDeviceId: devices.first.id,
+    onDeviceId: deviceId,
   );
 });
 

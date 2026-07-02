@@ -121,6 +121,10 @@ abstract class LocalStorage {
 
   String? selectedDelegationDeviceId();
 
+  /// Stable id of the Device record representing the currently running app
+  /// instance, used to identify "this device" when routing delegations.
+  String? getThisDeviceId();
+
   String? whatsAppPhoneNumberId();
 
   bool? getUserLoggingEnabled();

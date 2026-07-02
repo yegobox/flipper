@@ -417,7 +417,7 @@ class TaxController<OBJ> {
         try {
           if (enableTransactionDelegation != null &&
               enableTransactionDelegation &&
-              isMobileDevice) {
+              ProxyService.box.selectedDelegationDeviceId() != null) {
             return await _handleDelegationFallback(
               transaction: transaction,
               receiptType: receiptType,
@@ -991,9 +991,9 @@ class TaxController<OBJ> {
     final enableTransactionDelegation = ProxyService.box.readBool(
       key: 'enableTransactionDelegation',
     );
-    if (isMobileDevice &&
-        enableTransactionDelegation != null &&
+    if (enableTransactionDelegation != null &&
         enableTransactionDelegation &&
+        ProxyService.box.selectedDelegationDeviceId() != null &&
         !skiGenerateRRAReceiptSignature) {
       try {
         await ProxyService.getStrategy(Strategy.capella).createDelegation(
