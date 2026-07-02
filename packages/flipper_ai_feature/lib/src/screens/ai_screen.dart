@@ -78,8 +78,9 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(whatsappMessageSyncProvider);
       _loadShopName();
-      _loadBriefing();
       _subscribeLocalBriefing();
+      // After local Ditto briefing has a chance to arrive (~1s), maybe skip remote.
+      Future<void>.delayed(const Duration(milliseconds: 800), _loadBriefing);
       _loadDefaultModel();
     });
   }
@@ -111,10 +112,17 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
       if (mounted) setState(() => _briefingLoading = false);
       return;
     }
+    // Local Ditto briefing is instant and fresher — skip the heavy remote call
+    // when we already have today's numbers (remote was stalling prod for ~60s).
+    if (_briefing != null && !(_briefing!.empty)) {
+      if (mounted) setState(() => _briefingLoading = false);
+      return;
+    }
     if (mounted) setState(() => _briefingLoading = true);
     try {
-      final briefing =
-          await _chatService.fetchDailyBriefing(branchId: branchId);
+      final briefing = await _chatService
+          .fetchDailyBriefing(branchId: branchId)
+          .timeout(const Duration(seconds: 90));
       if (mounted) {
         setState(() {
           _remoteBriefing = briefing;
