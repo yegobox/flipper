@@ -40,7 +40,6 @@ void ensureDittoAdaptersLoaded() {
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements
   category_model.CategoryDittoAdapter.registryToken; // ignore: unnecessary_statements
   customer_model.CustomerDittoAdapter.registryToken; // ignore: unnecessary_statements
-  device_model.DeviceDittoAdapter.registryToken; // ignore: unnecessary_statements
   ebm_model.EbmDittoAdapter.registryToken; // ignore: unnecessary_statements
   import_purchase_dates_model.ImportPurchaseDatesDittoAdapter.registryToken; // ignore: unnecessary_statements
   integration_config_model.IntegrationConfigDittoAdapter.registryToken; // ignore: unnecessary_statements
