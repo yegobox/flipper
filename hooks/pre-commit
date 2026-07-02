@@ -1,38 +1,48 @@
 #!/bin/bash
-# Define a lock file to prevent concurrent runs
+# Bump app pubspec versions only for apps with staged changes in this commit.
+# This avoids version conflicts when multiple people commit on the same branch.
 LOCKFILE=/tmp/pre-commit.lock
 
-# Function to clean up the lock file on exit
 cleanup() {
   rm -f "$LOCKFILE"
 }
 trap cleanup EXIT
 
-# Check if a rebase is in progress
 if [ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ]; then
   echo "Rebase in progress, skipping version increment..."
   exit 0
 fi
 
-# Check if the lock file exists
 if [ -f "$LOCKFILE" ]; then
   echo "Script is already running. Exiting..."
   exit 1
 fi
 
-# Create the lock file
 touch "$LOCKFILE"
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
+STAGED_FILES=$(git diff --cached --name-only)
+
+app_has_staged_changes() {
+  local app_rel="${1#./}"
+  local file
+  while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    [[ "$file" == "$app_rel/"* ]] && return 0
+  done <<< "$STAGED_FILES"
+  return 1
+}
 
 # Configuration: Add folders to exclude (space-separated list)
 EXCLUDE_FOLDERS=("node_modules" "build" "test" "packages" "open-sources")
 
-# Build find exclusion pattern
 EXCLUDE_PATTERN=""
 for folder in "${EXCLUDE_FOLDERS[@]}"; do
   EXCLUDE_PATTERN+=" ! -path \"*/$folder/*\""
 done
 
-# Cross-platform sed wrapper (avoids creating pubspec.yaml'')
 OS=$(uname)
 if [[ "$OS" == "Darwin" ]]; then
   SED_INPLACE() {
@@ -44,18 +54,18 @@ else
   }
 fi
 
-# Find all pubspec.yaml files excluding specified folders
 eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PUBSPEC_PATH; do
-  # Extract directory path
   APP_DIR=$(dirname "$PUBSPEC_PATH")
-  
-  # Navigate to app directory
+
+  if ! app_has_staged_changes "$APP_DIR"; then
+    echo "Skipping $APP_DIR/pubspec.yaml (no staged changes in this app)"
+    continue
+  fi
+
   cd "$APP_DIR" || continue
-  
-  # Process version increment
+
   echo "Processing $APP_DIR/pubspec.yaml"
-  
-  # Get current version
+
   version_line=$(grep "^version: " pubspec.yaml)
   if [[ -z "$version_line" ]]; then
     echo "No version field found in $APP_DIR/pubspec.yaml"
@@ -65,18 +75,16 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
 
   version=$(echo "$version_line" | awk '{print $2}')
 
-  # Split into base and build metadata
   if [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)(\+([0-9]+))?$ ]]; then
     base_version="${BASH_REMATCH[1]}"
     build_number="${BASH_REMATCH[3]}"
-    
+
     if [[ -z "$build_number" ]]; then
       build_number=1
     else
       build_number=$((build_number + 1))
     fi
-    
-    # Increment base version (patch part)
+
     if [[ "$base_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
       major="${BASH_REMATCH[1]}"
       minor="${BASH_REMATCH[2]}"
@@ -84,7 +92,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       new_patch=$((patch + 1))
       base_version="$major.$minor.$new_patch"
     fi
-    
+
     new_version="$base_version+$build_number"
   else
     echo "Invalid version format in $APP_DIR/pubspec.yaml: $version"
@@ -92,11 +100,9 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
     continue
   fi
 
-  # Update pubspec.yaml
   SED_INPLACE "s|$version_line|version: $new_version|" pubspec.yaml
   git add pubspec.yaml
 
-  # Handle MSIX version
   msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
   if [[ -n "$msix_version" ]]; then
     if [[ "$msix_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
@@ -104,7 +110,6 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       minor="${BASH_REMATCH[2]}"
       build="${BASH_REMATCH[3]}"
       new_build=$((build + 1))
-      # Increment the build number and keep the revision pinned to 0 for now.
       new_msix_version="$major.$minor.$new_build.0"
 
       SED_INPLACE "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
@@ -115,8 +120,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       echo "Invalid msix_version format in $APP_DIR/pubspec.yaml: $msix_version"
     fi
   fi
-  
-  # Return to original directory
+
   cd - > /dev/null
 done
 
