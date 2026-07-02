@@ -23,6 +23,7 @@ import 'package:flutter/foundation.dart' hide Category;
 
 import 'package:ditto_live/ditto_live.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -142,6 +143,37 @@ class CronService {
       );
       return [];
     }
+  }
+
+  /// Resolves the sale header for a delegated receipt. Prefer Ditto when the
+  /// transaction already replicated; otherwise rebuild from [transactionSnapshot].
+  Future<ITransaction?> _resolveDelegationTransaction({
+    required dynamic capella,
+    required String transactionId,
+    required Map<String, dynamic> additionalData,
+  }) async {
+    final transactions = await capella.transactions(
+      id: transactionId,
+    );
+    if (transactions.isNotEmpty) {
+      return transactions.first;
+    }
+
+    final rawSnapshot = additionalData['transactionSnapshot'];
+    if (rawSnapshot is! Map) {
+      return null;
+    }
+
+    final transaction = await ITransactionDittoAdapter.instance.fromDittoDocument(
+      Map<String, dynamic>.from(rawSnapshot),
+    );
+    if (transaction != null) {
+      talker.info(
+        'Resolved delegation transaction from embedded snapshot for '
+        '$transactionId',
+      );
+    }
+    return transaction;
   }
 
   void _applyDelegationFieldsToTransaction({
@@ -298,7 +330,15 @@ class CronService {
 
     try {
       talker.info(
-        'Setting up delegation monitoring for device $deviceId on branch $branchId',
+        '[delegation-cron] setupDelegationMonitoringIfNeeded params: '
+        'branchId=$branchId '
+        'thisDeviceId(onDeviceId)=$deviceId '
+        'selectedDelegationDeviceId(setting)=${ProxyService.box.selectedDelegationDeviceId()} '
+        'dittoReady=${ProxyService.ditto.isReady()} '
+        'dittoDeviceName=${ProxyService.ditto.dittoInstance?.deviceName} '
+        'status=delegated '
+        'compare SQL: SELECT * FROM transaction_delegations WHERE branchId = '
+        "'$branchId' AND status = 'delegated' AND selectedDelegationDeviceId = '$deviceId'",
       );
 
       await _delegationsSubscription?.cancel();
@@ -350,11 +390,12 @@ class CronService {
           status: 'processing',
         );
 
-        final transactions = await capella.transactions(
-          id: delegationId,
+        final additionalData = delegation.additionalData ?? {};
+        final transaction = await _resolveDelegationTransaction(
+          capella: capella,
+          transactionId: delegationId,
+          additionalData: additionalData,
         );
-        final transaction =
-            transactions.isNotEmpty ? transactions.first : null;
 
         if (transaction == null) {
           talker.error(
@@ -367,8 +408,6 @@ class CronService {
           );
           continue;
         }
-
-        final additionalData = delegation.additionalData ?? {};
         final salesSttsCd =
             additionalData['salesSttsCd'] as String? ?? '02';
         final purchaseCode = additionalData['purchaseCode'] as String?;

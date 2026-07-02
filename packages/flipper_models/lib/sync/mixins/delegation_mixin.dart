@@ -45,7 +45,8 @@ mixin DelegationMixin implements DelegationInterface {
     );
     return await repository.get<Device>(
       query: query,
-      policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      // Hydrate from Supabase so delegation pickers are not stuck on stale SQLite.
+      policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
     );
   }
 

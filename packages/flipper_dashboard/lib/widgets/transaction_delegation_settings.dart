@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/device_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -221,7 +223,13 @@ class _TransactionDelegationSettingsState
           _buildInfoSection(context),
           if (_isDesktopPlatform() && _isEnabled) ...[
             const SizedBox(height: 16),
+            _buildThisDeviceSection(context),
+            const SizedBox(height: 12),
             _buildDeviceSelectionSection(context),
+          ],
+          if (_isMobilePlatform() && _isEnabled) ...[
+            const SizedBox(height: 16),
+            _buildMobileTargetHintSection(context),
           ],
         ],
       ),
@@ -235,6 +243,113 @@ class _TransactionDelegationSettingsState
       return 'Process receipts delegated from mobile devices, or delegate printing to another desktop';
     }
     return 'Cross-device transaction processing';
+  }
+
+  Widget _buildThisDeviceSection(BuildContext context) {
+    final thisDeviceId = ProxyService.box.getThisDeviceId();
+    final dittoName = ProxyService.ditto.dittoInstance?.deviceName;
+    final branchId = ProxyService.box.getBranchId();
+
+    talker.info(
+      '[delegation-settings] thisDeviceId=$thisDeviceId '
+      'dittoDeviceName=$dittoName branchId=$branchId '
+      'selectedDelegationDeviceId=${ProxyService.box.selectedDelegationDeviceId()}',
+    );
+
+    return Material(
+      color: const Color(0xFFEFF6FF),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.computer_rounded,
+                    color: Color(0xFF0078D4),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'This device (receives delegations here)',
+                    style: GoogleFonts.outfit(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF111827),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Other POS devices must target this ID in their delegation '
+              'settings. This machine does not appear in the list below '
+              'because you cannot delegate printing to yourself.',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                color: const Color(0xFF4B5563),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (thisDeviceId == null)
+              Text(
+                'Device ID not registered yet — restart the app or log in again.',
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  color: Colors.orange[800],
+                  fontStyle: FontStyle.italic,
+                ),
+              )
+            else ...[
+              if (dittoName != null) ...[
+                Text(
+                  'Ditto name: $dittoName',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: const Color(0xFF6B7280),
+                  ),
+                ),
+                const SizedBox(height: 6),
+              ],
+              _DeviceIdRow(deviceId: thisDeviceId),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileTargetHintSection(BuildContext context) {
+    return Material(
+      color: const Color(0xFFF5F5F5),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          'Select the printer desktop below. On that desktop, open '
+          'Management → Transaction Delegation and copy the full '
+          '"This device" ID — it must match your selection here.',
+          style: GoogleFonts.outfit(
+            fontSize: 13,
+            color: const Color(0xFF4B5563),
+            height: 1.4,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildDeviceSelectionSection(BuildContext context) {
@@ -273,7 +388,7 @@ class _TransactionDelegationSettingsState
               ),
               const SizedBox(width: 12),
               const Text(
-                'Delegate printing to',
+                'Delegate printing to another desktop',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ],
@@ -312,9 +427,6 @@ class _TransactionDelegationSettingsState
                 },
                 child: Column(
                   children: targetDevices.map((device) {
-                    final idSuffix = device.id.length > 6
-                        ? device.id.substring(device.id.length - 6)
-                        : device.id;
                     return RadioListTile<String>(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
@@ -322,11 +434,16 @@ class _TransactionDelegationSettingsState
                         device.deviceName ?? 'Unknown Device',
                         style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
-                      subtitle: Text(
-                        [
-                          if (device.phone != null) 'Phone: ${device.phone}',
-                          'ID: …$idSuffix',
-                        ].join(' · '),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (device.phone != null)
+                            Text('Phone: ${device.phone}'),
+                          _DeviceIdRow(
+                            deviceId: device.id,
+                            compact: true,
+                          ),
+                        ],
                       ),
                       value: device.id,
                       activeColor: const Color(0xFF0078D4),
@@ -435,6 +552,55 @@ class _TransactionDelegationSettingsState
           height: 1.4,
         ),
       ),
+    );
+  }
+}
+
+class _DeviceIdRow extends StatelessWidget {
+  final String deviceId;
+  final bool compact;
+
+  const _DeviceIdRow({
+    required this.deviceId,
+    this.compact = false,
+  });
+
+  Future<void> _copy(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: deviceId));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Copied device ID: $deviceId'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final idStyle = GoogleFonts.robotoMono(
+      fontSize: compact ? 11 : 12,
+      color: const Color(0xFF111827),
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: SelectableText(
+            deviceId,
+            style: idStyle,
+          ),
+        ),
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          tooltip: 'Copy device ID',
+          icon: Icon(Icons.copy, size: compact ? 16 : 18, color: Colors.grey[700]),
+          onPressed: () => _copy(context),
+        ),
+      ],
     );
   }
 }

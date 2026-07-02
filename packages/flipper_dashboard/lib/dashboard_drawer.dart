@@ -1743,9 +1743,20 @@ class _MobileTransactionDelegationSettingsState
                           device.deviceName ?? 'Unknown Device',
                           style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
-                        subtitle: device.phone != null
-                            ? Text('Phone: ${device.phone}')
-                            : null,
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (device.phone != null)
+                              Text('Phone: ${device.phone}'),
+                            SelectableText(
+                              device.id,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
                         value: device.id,
                         activeColor: const Color(0xFF0078D4),
                       );

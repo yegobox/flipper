@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/isolateHandelr.dart';
@@ -8,21 +12,58 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart';
 import 'package:intl/intl.dart';
 
+Future<String?> _waitForThisDeviceId({
+  int maxAttempts = 10,
+  Duration retryDelay = const Duration(seconds: 1),
+}) async {
+  for (var attempt = 0; attempt < maxAttempts; attempt++) {
+    final deviceId = ProxyService.box.getThisDeviceId();
+    if (deviceId != null) return deviceId;
+    await Future.delayed(retryDelay);
+  }
+  return ProxyService.box.getThisDeviceId();
+}
+
 final delegationsProvider =
     StreamProvider.autoDispose<List<TransactionDelegation>>((ref) async* {
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) {
+    talker.warning(
+      '[delegation-ui] delegationsProvider: branchId is null — yielding empty',
+    );
     yield [];
     return;
   }
 
   // Identify this device by its own stable id rather than an arbitrary
-  // entry from the branch's device list.
-  final deviceId = ProxyService.box.getThisDeviceId();
+  // entry from the branch's device list. Desktop self-registration can finish
+  // after the first frame, so wait briefly before giving up.
+  var deviceId = ProxyService.box.getThisDeviceId();
+  if (deviceId == null && !Platform.isAndroid && !Platform.isIOS) {
+    deviceId = await _waitForThisDeviceId();
+    if (deviceId != null) {
+      unawaited(ProxyService.cron.setupDelegationMonitoringIfNeeded());
+    }
+  }
   if (deviceId == null) {
+    talker.warning(
+      '[delegation-ui] delegationsProvider: thisDeviceId is null after wait '
+      '(branchId=$branchId) — yielding empty. Desktop device registration may '
+      'not have finished.',
+    );
     yield [];
     return;
   }
+
+  talker.info(
+    '[delegation-ui] delegationsProvider params: '
+    'branchId=$branchId '
+    'thisDeviceId(onDeviceId)=$deviceId '
+    'selectedDelegationDeviceId(setting)=${ProxyService.box.selectedDelegationDeviceId()} '
+    'dittoReady=${ProxyService.ditto.isReady()} '
+    'compare SQL: SELECT * FROM transaction_delegations WHERE branchId = '
+    "'$branchId' AND selectedDelegationDeviceId = '$deviceId'",
+  );
 
   yield* ProxyService.getStrategy(Strategy.capella).delegationsStream(
     branchId: branchId,
@@ -270,6 +311,7 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
                 });
 
                 if (filtered.isEmpty) {
+                  final thisDeviceId = ProxyService.box.getThisDeviceId();
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -300,6 +342,33 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
                           style:
                               TextStyle(color: Colors.grey[600], fontSize: 15),
                         ),
+                        if (thisDeviceId != null) ...[
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: Text(
+                              'This device ID (senders must target this exact value):',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: SelectableText(
+                              thisDeviceId,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   );
