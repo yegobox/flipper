@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/sync/interfaces/DelegationInterface.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 mixin DelegationMixin implements DelegationInterface {
+  Repository get repository;
   DittoService get dittoService => DittoService.instance;
 
   @override
@@ -36,8 +39,14 @@ mixin DelegationMixin implements DelegationInterface {
   @override
   Future<List<Device>> getDevicesByBranch({
     required String branchId,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    final query = brick.Query(
+      where: [brick.Where('branchId').isExactly(branchId)],
+    );
+    return await repository.get<Device>(
+      query: query,
+      policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
   }
 
   @override

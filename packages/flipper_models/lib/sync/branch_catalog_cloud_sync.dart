@@ -14,6 +14,9 @@ final Set<String> _branchCounterSubscriptionKeys = {};
 /// Ditto cloud/P2P pull for stock-activity SAR rows (data-connector / peers).
 final Set<String> _branchSarSubscriptionKeys = {};
 
+/// Ditto cloud/P2P pull for delegated receipt jobs between POS stations.
+final Set<String> _branchDelegationSubscriptionKeys = {};
+
 /// Registers a branch-scoped counter subscription once per branch.
 /// Pulls fresh `counters` rows from Ditto mesh/cloud without pushing SQLite.
 Future<void> ensureBranchCounterCloudSubscription({
@@ -82,6 +85,45 @@ Future<void> ensureBranchSarCloudSubscription({
     _branchSarSubscriptionKeys.remove(key);
     debugPrint(
       'ensureBranchSarCloudSubscription: failed $key: $e\n'
+      '${describeDqlSyncSubscriptionAttempt(sql, args)}\n'
+      '$st',
+    );
+  }
+}
+
+/// Registers a branch-scoped delegation subscription once per branch.
+/// Ensures `transaction_delegations` rows replicate across the Ditto mesh;
+/// each desktop filters locally by [selectedDelegationDeviceId].
+Future<void> ensureBranchDelegationCloudSubscription({
+  required Ditto ditto,
+  required String branchId,
+}) async {
+  if (branchId.isEmpty) return;
+
+  final key = 'transaction_delegations|$branchId';
+  if (!_branchDelegationSubscriptionKeys.add(key)) {
+    return;
+  }
+
+  const sql =
+      'SELECT * FROM transaction_delegations WHERE branchId = :branchId';
+  final args = <String, dynamic>{'branchId': branchId};
+
+  try {
+    final prepared = prepareDqlSyncSubscription(sql, args);
+    await ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+    if (kDebugMode) {
+      debugPrint(
+        'ensureBranchDelegationCloudSubscription: registered $key',
+      );
+    }
+  } catch (e, st) {
+    _branchDelegationSubscriptionKeys.remove(key);
+    debugPrint(
+      'ensureBranchDelegationCloudSubscription: failed $key: $e\n'
       '${describeDqlSyncSubscriptionAttempt(sql, args)}\n'
       '$st',
     );

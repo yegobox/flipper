@@ -45,6 +45,9 @@ class CronService {
   /// Stream subscription for delegation monitoring (desktop only)
   StreamSubscription<List<TransactionDelegation>>? _delegationsSubscription;
 
+  /// Device id currently being monitored; used to skip redundant re-setup.
+  String? _delegationMonitoringDeviceId;
+
   /// Prevents concurrent or duplicate processing of the same delegation.
   final Set<String> _processingDelegationIds = {};
 
@@ -238,6 +241,282 @@ class CronService {
     return Platform.isAndroid || Platform.isIOS;
   }
 
+  /// Polls for this device's own stable id. Desktop self-registration
+  /// (which sets it) runs later in the login flow than this cron setup, so
+  /// give it a bounded window to finish before giving up for this session.
+  Future<String?> _waitForThisDeviceId({
+    int maxAttempts = 10,
+    Duration retryDelay = const Duration(seconds: 3),
+  }) async {
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      final deviceId = ProxyService.box.getThisDeviceId();
+      if (deviceId != null) return deviceId;
+      await Future.delayed(retryDelay);
+    }
+    return ProxyService.box.getThisDeviceId();
+  }
+
+  /// Registers Ditto subscriptions and starts processing delegated receipts.
+  ///
+  /// Safe to call multiple times (e.g. after [AppService.appInit] or desktop
+  /// device self-registration). Idempotent when already monitoring the same
+  /// device on the current branch.
+  Future<void> setupDelegationMonitoringIfNeeded() async {
+    if (isMobileDevice) return;
+
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      talker.warning(
+        'Skipping delegation monitoring: Branch ID is null.',
+      );
+      return;
+    }
+
+    if (!ProxyService.ditto.isReady()) {
+      talker.warning(
+        'Skipping delegation monitoring: Ditto is not ready yet.',
+      );
+      return;
+    }
+
+    final deviceId = await _waitForThisDeviceId(
+      maxAttempts: 5,
+      retryDelay: const Duration(seconds: 1),
+    );
+    if (deviceId == null) {
+      talker.warning(
+        'Skipping delegation monitoring: this device did not finish '
+        'registering for branch $branchId.',
+      );
+      return;
+    }
+
+    if (_delegationMonitoringDeviceId == deviceId &&
+        _delegationsSubscription != null) {
+      return;
+    }
+
+    try {
+      talker.info(
+        'Setting up delegation monitoring for device $deviceId on branch $branchId',
+      );
+
+      await _delegationsSubscription?.cancel();
+
+      _delegationsSubscription = ProxyService.getStrategy(Strategy.capella)
+          .delegationsStream(
+            branchId: branchId,
+            status: 'delegated',
+            onDeviceId: deviceId,
+          )
+          .listen((delegations) async {
+            await _handleIncomingDelegations(
+              delegations: delegations,
+              branchId: branchId,
+            );
+          });
+
+      _delegationMonitoringDeviceId = deviceId;
+    } catch (e, stackTrace) {
+      talker.error('Failed to setup delegation monitoring: $e', stackTrace);
+    }
+  }
+
+  Future<void> _handleIncomingDelegations({
+    required List<TransactionDelegation> delegations,
+    required String branchId,
+  }) async {
+    final capella = ProxyService.getStrategy(Strategy.capella);
+
+    if (delegations.isNotEmpty) {
+      ProxyService.notification.sendLocalNotification(
+        body: 'Received ${delegations.length} delegations',
+      );
+    }
+    for (final delegation in delegations) {
+      final delegationId = delegation.transactionId;
+      if (_processingDelegationIds.contains(delegationId)) {
+        continue;
+      }
+      _processingDelegationIds.add(delegationId);
+
+      try {
+        talker.info(
+          "📱 Delegation received: $delegationId from ${delegation.delegatedFromDevice}",
+        );
+
+        await capella.updateDelegationStatus(
+          transactionId: delegationId,
+          status: 'processing',
+        );
+
+        final transactions = await capella.transactions(
+          id: delegationId,
+        );
+        final transaction =
+            transactions.isNotEmpty ? transactions.first : null;
+
+        if (transaction == null) {
+          talker.error(
+            "Transaction not found for delegation: $delegationId",
+          );
+          await capella.updateDelegationStatus(
+            transactionId: delegationId,
+            status: 'failed',
+            errorMessage: 'Transaction not found',
+          );
+          continue;
+        }
+
+        final additionalData = delegation.additionalData ?? {};
+        final salesSttsCd =
+            additionalData['salesSttsCd'] as String? ?? '02';
+        final purchaseCode = additionalData['purchaseCode'] as String?;
+        final counters = await capella.getCounters(
+          branchId: branchId,
+          fetchRemote: false,
+        );
+        final int highestInvcNo = counters.fold<int>(
+          0,
+          (prev, c) => math.max(prev, c.invcNo ?? 0),
+        );
+
+        final sarTyCd = additionalData['sarTyCd'] as String?;
+
+        final lineItems = await _resolveDelegationLineItems(
+          capella: capella,
+          transactionId: delegationId,
+          additionalData: additionalData,
+        );
+        if (lineItems.isEmpty) {
+          const errorMessage =
+              'Missing line items in delegation payload. '
+              'Re-send the sale from the POS device (delegation '
+              'must include item snapshots).';
+          talker.error(
+            'Delegation $delegationId failed: $errorMessage',
+          );
+          await capella.updateDelegationStatus(
+            transactionId: delegationId,
+            status: 'failed',
+            errorMessage: errorMessage,
+          );
+          final failedDelegation = delegation.copyWith(
+            status: 'failed',
+            updatedAt: DateTime.now().toUtc(),
+          );
+          await repository.upsert<TransactionDelegation>(
+            failedDelegation,
+          );
+          continue;
+        }
+
+        _applyDelegationFieldsToTransaction(
+          transaction: transaction,
+          delegation: delegation,
+          additionalData: additionalData,
+        );
+
+        final taxController = TaxController<ITransaction>(
+          object: transaction,
+        );
+
+        talker.info(
+          "🖨️  Processing receipt for delegation: ${delegation.receiptType}",
+        );
+
+        transaction.invoiceNumber = highestInvcNo;
+        await repository.upsert<ITransaction>(transaction);
+
+        final customer = await resolveCustomerForReceipt(
+          transaction: transaction,
+          purchaseCode: purchaseCode,
+        );
+        final custMblNo =
+            transaction.customerPhone ?? delegation.customerName ?? '';
+        final customerName =
+            transaction.customerName ?? delegation.customerName ?? '';
+        final result = await taxController.printReceipt(
+          custMblNo: custMblNo,
+          customerName: customerName,
+          customer: customer,
+          receiptType: delegation.receiptType,
+          transaction: transaction,
+          salesSttsCd: salesSttsCd,
+          purchaseCode: purchaseCode,
+          originalInvoiceNumber: highestInvcNo,
+          sarTyCd: sarTyCd,
+          skiGenerateRRAReceiptSignature: false,
+          allowDelegationFallback: false,
+          transactionItems: lineItems,
+        );
+
+        if (result.response.resultCd == "000") {
+          talker.info(
+            "✅ Receipt printed successfully for delegation: $delegationId",
+          );
+
+          await capella.updateDelegationStatus(
+            transactionId: delegationId,
+            status: 'completed',
+          );
+
+          final updatedDelegation = delegation.copyWith(
+            status: 'completed',
+            updatedAt: DateTime.now().toUtc(),
+          );
+          await repository.upsert<TransactionDelegation>(
+            updatedDelegation,
+          );
+        } else {
+          talker.error(
+            "❌ Receipt printing failed: ${result.response.resultMsg}",
+          );
+
+          await capella.updateDelegationStatus(
+            transactionId: delegationId,
+            status: 'failed',
+            errorMessage: result.response.resultMsg,
+          );
+
+          final updatedDelegation = delegation.copyWith(
+            status: 'failed',
+            updatedAt: DateTime.now().toUtc(),
+          );
+          await repository.upsert<TransactionDelegation>(
+            updatedDelegation,
+          );
+        }
+      } catch (e, stackTrace) {
+        talker.error(
+          "❌ Error processing delegation $delegationId: $e",
+          stackTrace,
+        );
+
+        try {
+          await capella.updateDelegationStatus(
+            transactionId: delegationId,
+            status: 'failed',
+            errorMessage: e.toString(),
+          );
+          final updatedDelegation = delegation.copyWith(
+            status: 'failed',
+            updatedAt: DateTime.now().toUtc(),
+          );
+          await repository.upsert<TransactionDelegation>(
+            updatedDelegation,
+          );
+        } catch (updateError) {
+          talker.error(
+            "Failed to update delegation status: $updateError",
+          );
+        }
+      } finally {
+        _processingDelegationIds.remove(delegationId);
+      }
+    }
+  }
+
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
     final platform = Ditto.currentPlatform;
@@ -316,248 +595,7 @@ class CronService {
 
     // Listen for delegated transactions from mobile devices
     /// the script should run on desktop apps only
-    if (!isMobileDevice) {
-      // Get branchId and validate it's not null
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) {
-        talker.warning(
-          'Skipping delegation monitoring: Branch ID is null. Will retry when branch is set.',
-        );
-      } else {
-        try {
-          // Identify this running instance by its own stable Device.id
-          // (set once the device registers itself) rather than an arbitrary
-          // entry from the branch's device list.
-          final deviceId = ProxyService.box.getThisDeviceId();
-
-          if (deviceId == null) {
-            talker.warning(
-              'Skipping delegation monitoring: this device is not yet registered for branch $branchId. Will retry once registered.',
-            );
-          } else {
-            talker.info(
-              'Setting up delegation monitoring for device $deviceId on branch $branchId',
-            );
-
-            // Cancel any existing subscription to avoid duplicates
-            await _delegationsSubscription?.cancel();
-
-            // Create and store the stream subscription
-            _delegationsSubscription = ProxyService.getStrategy(Strategy.capella)
-                .delegationsStream(
-                  branchId: branchId,
-                  status: 'delegated',
-                  onDeviceId: deviceId,
-                )
-                .listen((delegations) async {
-                  final capella =
-                      ProxyService.getStrategy(Strategy.capella);
-
-                  /// show notification of received delegation
-                  if (delegations.isNotEmpty && delegations.length > 0) {
-                    ProxyService.notification.sendLocalNotification(
-                      body: 'Received ${delegations.length} delegations',
-                    );
-                  }
-                  for (TransactionDelegation delegation in delegations) {
-                    final delegationId = delegation.transactionId;
-                    if (_processingDelegationIds.contains(delegationId)) {
-                      continue;
-                    }
-                    _processingDelegationIds.add(delegationId);
-
-                    try {
-                      talker.info(
-                        "📱 Delegation received: $delegationId from ${delegation.delegatedFromDevice}",
-                      );
-
-                      // Claim the job immediately so the Ditto observer (status=delegated)
-                      // does not re-deliver this record while RRA signing/printing runs.
-                      await capella.updateDelegationStatus(
-                        transactionId: delegationId,
-                        status: 'processing',
-                      );
-
-                      // Fetch the transaction
-                      final transactions = await capella.transactions(
-                        id: delegationId,
-                      );
-                      final transaction = transactions.isNotEmpty
-                          ? transactions.first
-                          : null;
-
-                      if (transaction == null) {
-                        talker.error(
-                          "Transaction not found for delegation: $delegationId",
-                        );
-                        await capella.updateDelegationStatus(
-                          transactionId: delegationId,
-                          status: 'failed',
-                          errorMessage: 'Transaction not found',
-                        );
-                        continue;
-                      }
-
-                      // Extract parameters from additionalData
-                      final additionalData = delegation.additionalData ?? {};
-                      final salesSttsCd =
-                          additionalData['salesSttsCd'] as String? ?? '02';
-                      final purchaseCode =
-                          additionalData['purchaseCode'] as String?;
-                      List<Counter> _counters = await capella.getCounters(
-                        branchId: branchId,
-                        fetchRemote: false,
-                      );
-                      final int highestInvcNo = _counters.fold<int>(
-                        0,
-                        (prev, c) => math.max(prev, c.invcNo ?? 0),
-                      );
-
-                      final sarTyCd = additionalData['sarTyCd'] as String?;
-
-                      final lineItems = await _resolveDelegationLineItems(
-                        capella: capella,
-                        transactionId: delegationId,
-                        additionalData: additionalData,
-                      );
-                      if (lineItems.isEmpty) {
-                        const errorMessage =
-                            'Missing line items in delegation payload. '
-                            'Re-send the sale from the POS device (delegation '
-                            'must include item snapshots).';
-                        talker.error(
-                          'Delegation $delegationId failed: $errorMessage',
-                        );
-                        await capella.updateDelegationStatus(
-                          transactionId: delegationId,
-                          status: 'failed',
-                          errorMessage: errorMessage,
-                        );
-                        final failedDelegation = delegation.copyWith(
-                          status: 'failed',
-                          updatedAt: DateTime.now().toUtc(),
-                        );
-                        await repository.upsert<TransactionDelegation>(
-                          failedDelegation,
-                        );
-                        continue;
-                      }
-
-                      _applyDelegationFieldsToTransaction(
-                        transaction: transaction,
-                        delegation: delegation,
-                        additionalData: additionalData,
-                      );
-
-                      // Create TaxController instance
-                      final taxController = TaxController<ITransaction>(
-                        object: transaction,
-                      );
-
-                      talker.info(
-                        "🖨️  Processing receipt for delegation: ${delegation.receiptType}",
-                      );
-
-                      // update the transaction with new originalInvoiceNumber
-                      transaction.invoiceNumber = highestInvcNo;
-                      await repository.upsert<ITransaction>(transaction);
-
-                      final customer = await resolveCustomerForReceipt(
-                        transaction: transaction,
-                        purchaseCode: purchaseCode,
-                      );
-                      final custMblNo =
-                          transaction.customerPhone ?? delegation.customerName ?? '';
-                      final customerName =
-                          transaction.customerName ?? delegation.customerName ?? '';
-                      // Call printReceipt with delegation parameters
-                      final result = await taxController.printReceipt(
-                        custMblNo: custMblNo,
-                        customerName: customerName,
-                        customer: customer,
-                        receiptType: delegation.receiptType,
-                        transaction: transaction,
-                        salesSttsCd: salesSttsCd,
-                        purchaseCode: purchaseCode,
-                        originalInvoiceNumber: highestInvcNo,
-                        sarTyCd: sarTyCd,
-                        skiGenerateRRAReceiptSignature: false,
-                        allowDelegationFallback: false,
-                        transactionItems: lineItems,
-                      );
-
-                      if (result.response.resultCd == "000") {
-                        talker.info(
-                          "✅ Receipt printed successfully for delegation: $delegationId",
-                        );
-
-                        await capella.updateDelegationStatus(
-                          transactionId: delegationId,
-                          status: 'completed',
-                        );
-
-                        // Persist for dashboard/history (Ditto is source of truth for status).
-                        final updatedDelegation = delegation.copyWith(
-                          status: 'completed',
-                          updatedAt: DateTime.now().toUtc(),
-                        );
-                        await repository.upsert<TransactionDelegation>(
-                          updatedDelegation,
-                        );
-                      } else {
-                        talker.error(
-                          "❌ Receipt printing failed: ${result.response.resultMsg}",
-                        );
-
-                        await capella.updateDelegationStatus(
-                          transactionId: delegationId,
-                          status: 'failed',
-                          errorMessage: result.response.resultMsg,
-                        );
-
-                        final updatedDelegation = delegation.copyWith(
-                          status: 'failed',
-                          updatedAt: DateTime.now().toUtc(),
-                        );
-                        await repository.upsert<TransactionDelegation>(
-                          updatedDelegation,
-                        );
-                      }
-                    } catch (e, stackTrace) {
-                      talker.error(
-                        "❌ Error processing delegation $delegationId: $e",
-                        stackTrace,
-                      );
-
-                      try {
-                        await capella.updateDelegationStatus(
-                          transactionId: delegationId,
-                          status: 'failed',
-                          errorMessage: e.toString(),
-                        );
-                        final updatedDelegation = delegation.copyWith(
-                          status: 'failed',
-                          updatedAt: DateTime.now().toUtc(),
-                        );
-                        await repository.upsert<TransactionDelegation>(
-                          updatedDelegation,
-                        );
-                      } catch (updateError) {
-                        talker.error(
-                          "Failed to update delegation status: $updateError",
-                        );
-                      }
-                    } finally {
-                      _processingDelegationIds.remove(delegationId);
-                    }
-                  }
-                });
-          }
-        } catch (e, stackTrace) {
-          talker.error('Failed to setup delegation monitoring: $e', stackTrace);
-        }
-      }
-    }
+    await setupDelegationMonitoringIfNeeded();
     // get counters touch them
 
     try {
@@ -817,6 +855,7 @@ class CronService {
     // Cancel delegation stream subscription
     _delegationsSubscription?.cancel();
     _delegationsSubscription = null;
+    _delegationMonitoringDeviceId = null;
 
     talker.info("CronService disposed");
   }
