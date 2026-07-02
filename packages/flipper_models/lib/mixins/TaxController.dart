@@ -709,7 +709,8 @@ class TaxController<OBJ> {
       );
       DateTime now = DateTime.now();
 
-      String? serverUrl = await ProxyService.box.getServerUrl();
+      String? serverUrl =
+          ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
       final enableTransactionDelegation = ProxyService.box.readBool(
         key: 'enableTransactionDelegation',
       );
@@ -718,6 +719,13 @@ class TaxController<OBJ> {
           (enableTransactionDelegation == null ||
               !enableTransactionDelegation)) {
         serverUrl = ebm?.remoteServerUrl ?? serverUrl;
+      }
+
+      if (serverUrl == null || serverUrl.trim().isEmpty) {
+        throw Exception(
+          'Tax server URL not configured for branch $branchId. '
+          'Set EBM tax server URL in branch settings.',
+        );
       }
 
       RwApiResponse receiptSignature = await ProxyService.tax
@@ -729,7 +737,7 @@ class TaxController<OBJ> {
             receiptType: receiptType,
             salesSttsCd: salesSttsCd,
             originalInvoiceNumber: originalInvoiceNumber,
-            URI: serverUrl ?? "",
+            URI: serverUrl,
             purchaseCode: purchaseCode,
             timeToUser: now,
             sarTyCd: sarTyCd,

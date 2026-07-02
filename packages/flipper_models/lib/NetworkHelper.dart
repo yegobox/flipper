@@ -28,14 +28,20 @@ mixin NetworkHelper {
       print('Response received: ${response.statusCode}');
       return response;
     } on DioException catch (e, s) {
-      print('DioException caught: ${e.message}');
+      final detail = [
+        if (e.message != null && e.message!.isNotEmpty) e.message,
+        'type=${e.type.name}',
+        if (e.error != null) 'error=$e.error',
+        'url=$baseUrl',
+      ].join(', ');
+      print('DioException caught: $detail');
 
       if (e.type == DioExceptionType.connectionTimeout) {
-        throw Exception('Connection timeout occurred.');
+        throw Exception('Connection timeout occurred ($detail).');
       } else if (e.type == DioExceptionType.sendTimeout) {
-        throw Exception('Send timeout occurred.');
+        throw Exception('Send timeout occurred ($detail).');
       } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw Exception('Received timeout occurred.From the server');
+        throw Exception('Received timeout occurred from the server ($detail).');
       } else if (e.type == DioExceptionType.badResponse) {
         // This handles server response errors
         final errorMessage = e.response?.data;
@@ -43,7 +49,7 @@ mixin NetworkHelper {
             'Error sending POST request: ${errorMessage ?? 'Bad Request'}');
       } else {
         talkerInstance?.error(s);
-        throw Exception('Unexpected error occurred: ${e.message}');
+        throw Exception('Unexpected error occurred: $detail');
       }
     } catch (e, s) {
       print('General exception caught: $e');
