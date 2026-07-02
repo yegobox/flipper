@@ -1,19 +1,19 @@
 {
     "save": "Okoa",
     "@save": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "The save message"
     },
     "retailPrice": "Retail price",
     "@retailPrice": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "The price"
     },
     "supplyPrice": "Supply Price",
     "@supplyPrice": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "Supplier price"
     },
     "currentSale": "Uujuzi wa sasa",
     "@currentSale": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "Current Sale"
     },
     "currentStock": "Hisa ya sasa",
     "@currentStock": {
@@ -21,59 +21,43 @@
     },
     "addProduct": "Ongeza bidhaa",
     "@addProduct": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "Add Product"
     },
     "tickets": "Tiketi",
     "@tickets": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "The Tickets"
     },
     "charge": "Malipo",
     "@charge": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "Charge the user for the amount"
     },
     "productName": "Jina la bidhaa",
     "@productName": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "The Name of the product"
     },
     "flipperSetting": "Mipangilio",
     "@flipperSetting": {
-        "description": "The conventional newborn programmer greeting"
+        "description": "The Settings"
     },
     "options": "Chaguzi",
     "@options": {
-        "description": "Chaguzi"
+        "description": "The options"
     },
     "saveTicket": "huwezi kuokoa tikiti bila kuongeza dokezo kwa tikiti",
     "@saveTicket": {
-        "description": "huwezi kuokoa tikiti bila kuongeza dokezo kwa tikiti"
+        "description": "can not save the tickets without adding a note to ticket"
     },
     "productNotFound": "Bidhaa haijapatikana",
     "@productNotFound": {
-        "description": "Bidhaa haijapatikana"
+        "description": "Product not found"
     },
     "noPayable": "Hakuna malipo yoyote yanayopatikana",
     "@noPayable": {
-        "description": "Hakuna malipo yoyote yanayopatikana"
+        "description": "No payable"
     },
     "delete": "Futa",
     "@delete": {
-        "description": "Futa"
-    },
-    "addTomenu": "Menu",
-    "@addTomenu": {
-        "description": "Menu"
-    },
-    "edit": "Edit",
-    "@edit": {
-        "description": "Ongeraho kuri menu"
-    },
-    "addWorkSpace": "Add WorkSpace",
-    "@addWorkSpace": {
-        "description": "Add WorkSpace"
-    },
-    "addMembers": "Add Members",
-    "@addMembers": {
-        "description": "Add Members"
+        "description": "Delete"
     },
     "logOut": "Ondoka",
     "@logOut": {
@@ -152,13 +136,6 @@
     "linkADevice": "Unganisha Kifaa",
     "@linkADevice": {
         "description": "Link a device button"
-    },
-    "pinCode": "PIN: {pin}",
-    "@pinCode": {
-        "description": "PIN display for linking a device",
-        "placeholders": {
-            "pin": {}
-        }
     },
     "listOfConnectedDevices": "Orodha ya vifaa vilivyounganishwa",
     "@listOfConnectedDevices": {

@@ -59,13 +59,9 @@
     "@delete": {
         "description": "Delete"
     },
-    "addTomenu": "Menu",
-    "@addTomenu": {
-        "description": "Ongeraho kuri menu"
-    },
     "edit": "Hindura",
     "@edit": {
-        "description": "Edit"
+        "description": "Ongeraho kuri menu"
     },
     "addWorkSpace": "Ongeramo aho gukorera",
     "@addWorkSpace": {
@@ -152,13 +148,6 @@
     "linkADevice": "Huza igikoresho",
     "@linkADevice": {
         "description": "Link a device button"
-    },
-    "pinCode": "PIN: {pin}",
-    "@pinCode": {
-        "description": "PIN display for linking a device",
-        "placeholders": {
-            "pin": {}
-        }
     },
     "listOfConnectedDevices": "Urutonde rw'ibikoresho byahujwe",
     "@listOfConnectedDevices": {
