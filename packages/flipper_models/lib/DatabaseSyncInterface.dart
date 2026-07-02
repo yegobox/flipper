@@ -117,6 +117,12 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<List<PColor>> colors({required String branchId});
   Future<List<IUnit>> units({required String branchId});
   FutureOr<T?> create<T>({required T data});
+
+  /// Upserts [device] keyed strictly by its own id, bypassing the
+  /// userId-based device-linking dedup used by [create]. Needed so distinct
+  /// physical machines that happen to share a login (e.g. multiple desktop
+  /// stations under one account) still get their own Device row.
+  Future<Device> upsertDevice(Device device);
   Future<http.StreamedResponse> send(http.BaseRequest request);
   Future<http.Response> get(Uri url, {Map<String, String>? headers});
   Future<http.Response> post(

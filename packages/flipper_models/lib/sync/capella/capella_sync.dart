@@ -857,6 +857,12 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
+  Future<Device> upsertDevice(Device device) {
+    // TODO: implement upsertDevice
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> createNewStock({
     required Variant variant,
     required TransactionItem item,

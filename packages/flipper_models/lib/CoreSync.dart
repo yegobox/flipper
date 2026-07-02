@@ -1028,6 +1028,12 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
+  Future<Device> upsertDevice(Device device) async {
+    await repository.upsert<Device>(device);
+    return device;
+  }
+
+  @override
   Future<Favorite?> getFavoriteById({required String favId}) async {
     final query = brick.Query(where: [brick.Where('id').isExactly(favId)]);
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(

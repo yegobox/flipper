@@ -356,24 +356,28 @@ class AppService with ListenableServiceMixin {
       if (userId == null || businessId == null || branchId == null) return;
 
       final deviceVersion = await CoreMiscellaneous.getDeviceVersionStatic();
-      final device = await ProxyService.strategy.create(
-        data: Device(
-          pubNubPublished: false,
-          branchId: branchId,
-          businessId: businessId,
-          defaultApp: defaultApp ?? 'POS',
-          phone: phone ?? '',
-          userId: userId,
-          deviceName: Platform.operatingSystem,
-          deviceVersion: deviceVersion,
-        ),
+
+      // Reuse this machine's own previously-persisted id, if any, so repeat
+      // runs update the same Device row instead of creating a new one.
+      // Upserting by id (rather than going through the userId-based lookup
+      // in ProxyService.strategy.create) matters here: several desktop
+      // stations can be logged in under the same userId, and that lookup
+      // would otherwise collapse them into a single shared Device row,
+      // causing a station to receive delegations meant for another one.
+      final existingDeviceId = ProxyService.box.getThisDeviceId();
+      final device = Device(
+        id: existingDeviceId,
+        pubNubPublished: false,
+        branchId: branchId,
+        businessId: businessId,
+        defaultApp: defaultApp ?? 'POS',
+        phone: phone ?? '',
+        userId: userId,
+        deviceName: Platform.operatingSystem,
+        deviceVersion: deviceVersion,
       );
-      // Persist the stable Device.id locally so this running instance can
-      // identify itself (e.g. when routing incoming transaction delegations)
-      // instead of guessing from an unordered device list.
-      if (device != null) {
-        await ProxyService.box.writeString(key: 'thisDeviceId', value: device.id);
-      }
+      await ProxyService.strategy.upsertDevice(device);
+      await ProxyService.box.writeString(key: 'thisDeviceId', value: device.id);
     } catch (e) {
       print('⚠️ _saveDesktopDeviceRecordIfNeeded failed: $e');
     }
