@@ -248,13 +248,12 @@ class _TransactionDelegationSettingsState
       devicesForBranchProvider(branchId: branchId),
     );
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
+    return Material(
+      color: const Color(0xFFF5F5F5),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -345,6 +344,7 @@ class _TransactionDelegationSettingsState
             ),
           ),
         ],
+        ),
       ),
     );
   }

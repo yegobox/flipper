@@ -1681,94 +1681,94 @@ class _MobileTransactionDelegationSettingsState
       devicesForBranchProvider(branchId: branchId),
     );
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
+    return Material(
+      color: const Color(0xFFF5F5F5),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.devices_rounded,
+                    color: Color(0xFF0078D4),
+                    size: 22,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.devices_rounded,
-                  color: Color(0xFF0078D4),
-                  size: 22,
+                const SizedBox(width: 12),
+                const Text(
+                  'Select Device',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Select Device',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          devicesAsync.when(
-            data: (devices) {
-              if (devices.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'No devices available in this branch',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontStyle: FontStyle.italic,
+              ],
+            ),
+            const SizedBox(height: 12),
+            devicesAsync.when(
+              data: (devices) {
+                if (devices.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'No devices available in this branch',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
+                  );
+                }
+
+                return RadioGroup<String>(
+                  groupValue: _selectedDeviceId,
+                  onChanged: (value) {
+                    if (value != null) {
+                      _selectDevice(value);
+                    }
+                  },
+                  child: Column(
+                    children: devices.map((device) {
+                      return RadioListTile<String>(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          device.deviceName ?? 'Unknown Device',
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        subtitle: device.phone != null
+                            ? Text('Phone: ${device.phone}')
+                            : null,
+                        value: device.id,
+                        activeColor: const Color(0xFF0078D4),
+                      );
+                    }).toList(),
                   ),
                 );
-              }
-
-              return RadioGroup<String>(
-                groupValue: _selectedDeviceId,
-                onChanged: (value) {
-                  if (value != null) {
-                    _selectDevice(value);
-                  }
-                },
-                child: Column(
-                  children: devices.map((device) {
-                    return RadioListTile<String>(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        device.deviceName ?? 'Unknown Device',
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      subtitle: device.phone != null
-                          ? Text('Phone: ${device.phone}')
-                          : null,
-                      value: device.id,
-                      activeColor: const Color(0xFF0078D4),
-                    );
-                  }).toList(),
+              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
                 ),
-              );
-            },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
+              ),
+              error: (error, stack) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Error loading devices: ${error.toString()}',
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
             ),
-            error: (error, stack) => Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Error loading devices: ${error.toString()}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
