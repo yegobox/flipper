@@ -2554,6 +2554,7 @@ class CoreSync extends AiStrategyImpl
           final device = existingDevice.first;
           device.linkingCode = data.linkingCode;
           device.deviceName = data.deviceName;
+          device.friendlyName = data.friendlyName ?? device.friendlyName;
           device.deviceVersion = data.deviceVersion;
           device.pubNubPublished = data.pubNubPublished;
           device.phone = data.phone;

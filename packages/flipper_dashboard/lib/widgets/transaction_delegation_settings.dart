@@ -7,8 +7,10 @@ import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/device_provider.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_models/brick/models/device.model.dart';
 import 'dart:io';
 
 const _desktopOperatingSystems = {'windows', 'macos', 'linux'};
@@ -29,11 +31,40 @@ class _TransactionDelegationSettingsState
   bool _isEnabled = false;
   bool _isLoading = true;
   String? _selectedDeviceId;
+  final _friendlyNameController = TextEditingController();
+  bool _isSavingFriendlyName = false;
+  bool _friendlyNameLoaded = false;
+
+  @override
+  void dispose() {
+    _friendlyNameController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    _loadFriendlyName();
+  }
+
+  Future<void> _loadFriendlyName() async {
+    final branchId = ProxyService.box.getBranchId();
+    final thisDeviceId = ProxyService.box.getThisDeviceId();
+    if (branchId == null || thisDeviceId == null) return;
+
+    try {
+      final devices = await ProxyService.getStrategy(
+        Strategy.cloudSync,
+      ).getDevicesByBranch(branchId: branchId);
+      final current =
+          devices.where((device) => device.id == thisDeviceId).firstOrNull;
+      if (!mounted) return;
+      _friendlyNameController.text = current?.friendlyName ?? '';
+      setState(() => _friendlyNameLoaded = true);
+    } catch (_) {
+      if (mounted) setState(() => _friendlyNameLoaded = true);
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -52,6 +83,66 @@ class _TransactionDelegationSettingsState
       _selectedDeviceId = selectedDeviceId;
       _isLoading = false;
     });
+  }
+
+  Future<void> _saveFriendlyName() async {
+    final branchId = ProxyService.box.getBranchId();
+    final thisDeviceId = ProxyService.box.getThisDeviceId();
+    if (branchId == null || thisDeviceId == null) return;
+
+    setState(() => _isSavingFriendlyName = true);
+    try {
+      final branchDevices = await ProxyService.getStrategy(
+        Strategy.cloudSync,
+      ).getDevicesByBranch(branchId: branchId);
+      final existing = branchDevices.where((d) => d.id == thisDeviceId).firstOrNull;
+      if (existing == null) {
+        throw StateError('This device is not registered yet');
+      }
+
+      final trimmed = _friendlyNameController.text.trim();
+      final updated = Device(
+        id: existing.id,
+        linkingCode: existing.linkingCode,
+        deviceName: existing.deviceName,
+        friendlyName: trimmed.isEmpty ? null : trimmed,
+        deviceVersion: existing.deviceVersion,
+        pubNubPublished: existing.pubNubPublished,
+        phone: existing.phone,
+        branchId: existing.branchId,
+        businessId: existing.businessId,
+        userId: existing.userId,
+        defaultApp: existing.defaultApp,
+        deletedAt: existing.deletedAt,
+      );
+      await ProxyService.strategy.upsertDevice(updated);
+      ref.invalidate(devicesForBranchProvider(branchId: branchId));
+      _friendlyNameController.text = trimmed;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Device name saved'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not save device name: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingFriendlyName = false);
+      }
+    }
   }
 
   Future<void> _selectDevice(String deviceId) async {
@@ -324,6 +415,66 @@ class _TransactionDelegationSettingsState
                 ),
                 const SizedBox(height: 6),
               ],
+              Text(
+                'Friendly name (visible to other devices)',
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF374151),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _friendlyNameController,
+                      enabled: !_isSavingFriendlyName && _friendlyNameLoaded,
+                      decoration: InputDecoration(
+                        hintText: 'e.g. Front counter printer',
+                        isDense: true,
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFD1D5DB),
+                          ),
+                        ),
+                      ),
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _saveFriendlyName(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: _isSavingFriendlyName ? null : _saveFriendlyName,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF0078D4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: _isSavingFriendlyName
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Save'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
               _DeviceIdRow(deviceId: thisDeviceId),
             ],
           ],
@@ -431,12 +582,15 @@ class _TransactionDelegationSettingsState
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                       title: Text(
-                        device.deviceName ?? 'Unknown Device',
+                        device.displayLabel,
                         style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (device.friendlyName != null &&
+                              device.friendlyName!.trim().isNotEmpty)
+                            Text('Platform: ${device.deviceName ?? '—'}'),
                           if (device.phone != null)
                             Text('Phone: ${device.phone}'),
                           _DeviceIdRow(

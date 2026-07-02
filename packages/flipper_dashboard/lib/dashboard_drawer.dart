@@ -1740,12 +1740,15 @@ class _MobileTransactionDelegationSettingsState
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                         title: Text(
-                          device.deviceName ?? 'Unknown Device',
+                          device.displayLabel,
                           style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (device.friendlyName != null &&
+                                device.friendlyName!.trim().isNotEmpty)
+                              Text('Platform: ${device.deviceName ?? '—'}'),
                             if (device.phone != null)
                               Text('Phone: ${device.phone}'),
                             SelectableText(

@@ -14,6 +14,9 @@ Future<Device> _$DeviceFromSupabase(
     deviceName: data['device_name'] == null
         ? null
         : data['device_name'] as String?,
+    friendlyName: data['friendly_name'] == null
+        ? null
+        : data['friendly_name'] as String?,
     deviceVersion: data['device_version'] == null
         ? null
         : data['device_version'] as String?,
@@ -46,6 +49,7 @@ Future<Map<String, dynamic>> _$DeviceToSupabase(
     'id': instance.id,
     'linking_code': instance.linkingCode,
     'device_name': instance.deviceName,
+    'friendly_name': instance.friendlyName,
     'device_version': instance.deviceVersion,
     'pub_nub_published': instance.pubNubPublished,
     'phone': instance.phone,
@@ -70,6 +74,9 @@ Future<Device> _$DeviceFromSqlite(
     deviceName: data['device_name'] == null
         ? null
         : data['device_name'] as String?,
+    friendlyName: data['friendly_name'] == null
+        ? null
+        : data['friendly_name'] as String?,
     deviceVersion: data['device_version'] == null
         ? null
         : data['device_version'] as String?,
@@ -102,6 +109,7 @@ Future<Map<String, dynamic>> _$DeviceToSqlite(
     'id': instance.id,
     'linking_code': instance.linkingCode,
     'device_name': instance.deviceName,
+    'friendly_name': instance.friendlyName,
     'device_version': instance.deviceVersion,
     'pub_nub_published': instance.pubNubPublished == null
         ? null
@@ -136,6 +144,10 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
     'deviceName': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'device_name',
+    ),
+    'friendlyName': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'friendly_name',
     ),
     'deviceVersion': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -197,6 +209,12 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
     'deviceName': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'device_name',
+      iterable: false,
+      type: String,
+    ),
+    'friendlyName': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'friendly_name',
       iterable: false,
       type: String,
     ),
