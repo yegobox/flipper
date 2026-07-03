@@ -103,6 +103,7 @@ mixin CapellaBranchMixin implements BranchInterface {
     String? businessId,
     bool? active = false,
     String? excludeId,
+    bool localOnly = false,
   }) async {
     if (dittoService.dittoInstance == null) {
       talker.error('Ditto not initialized for branches query');
