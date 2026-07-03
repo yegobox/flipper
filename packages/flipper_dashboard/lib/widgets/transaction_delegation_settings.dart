@@ -485,7 +485,7 @@ class _TransactionDelegationSettingsState
             else ...[
               if (dittoName != null) ...[
                 Text(
-                  'Ditto name: $dittoName',
+                  'Device name: $dittoName',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF6B7280),
@@ -502,55 +502,50 @@ class _TransactionDelegationSettingsState
                 ),
               ),
               const SizedBox(height: 6),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _friendlyNameController,
-                      enabled: !_isSavingFriendlyName && _friendlyNameLoaded,
-                      decoration: InputDecoration(
-                        hintText: 'e.g. Front counter printer',
-                        isDense: true,
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFD1D5DB),
-                          ),
-                        ),
-                      ),
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _saveFriendlyName(),
-                    ),
+              FlowyTextField(
+                controller: _friendlyNameController,
+                autoFocus: false,
+                readOnly: !_friendlyNameLoaded || _isSavingFriendlyName,
+                hintText: 'e.g. Front counter printer',
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _saveFriendlyName(),
+                enableBorderColor: const Color(0xFFD1D5DB),
+                borderRadius: Corners.s8Border,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
                   ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _isSavingFriendlyName ? null : _saveFriendlyName,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF0078D4),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: _isSavingFriendlyName
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Save'),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: Corners.s8Border,
+                    borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
                   ),
-                ],
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: Corners.s8Border,
+                    borderSide: BorderSide(color: FlipperColors.primary),
+                  ),
+                  hintStyle: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FlipperButton(
+                  text: 'Save',
+                  width: 108,
+                  height: 40,
+                  radius: 10,
+                  isLoading: _isSavingFriendlyName,
+                  onPressed: _friendlyNameLoaded && !_isSavingFriendlyName
+                      ? _saveFriendlyName
+                      : null,
+                ),
               ),
               const SizedBox(height: 12),
               _DeviceIdRow(deviceId: thisDeviceId),
