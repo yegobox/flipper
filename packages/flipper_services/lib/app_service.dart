@@ -520,7 +520,9 @@ class AppService with ListenableServiceMixin {
     final box = ProxyService.box;
     if (box is! SharedPreferenceStorage) return;
     try {
-      await box.attachDittoPersistence();
+      await box.attachDittoPersistence().timeout(const Duration(seconds: 3));
+    } on TimeoutException {
+      print('⚠️ attachDittoPersistence timed out; JSON prefs remain authoritative');
     } catch (e) {
       print('⚠️ attachDittoPersistence failed: $e');
     }
@@ -531,6 +533,45 @@ class AppService with ListenableServiceMixin {
       await getIt<SettingsService>().hydrateToggleStatesFromSettings();
     } catch (e) {
       print('⚠️ hydrateToggleStatesFromSettings failed: $e');
+    }
+  }
+
+  Future<bool> _startDittoReplication(String userId) async {
+    bool dittoAvailable = false;
+    try {
+      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+      await Future(() async {
+        await DittoSingleton.instance.initialize(appId: appID, userId: userId);
+        await DittoSingleton.instance
+            .ensureAuthenticatedAndSyncing(appId: appID);
+        await DittoSyncCoordinator.instance.setDitto(
+          DittoSingleton.instance.ditto,
+          skipInitialFetch: true,
+        );
+      }).timeout(const Duration(seconds: 15));
+      dittoAvailable = DittoSingleton.instance.isReady;
+      print("User id set to $userId and Ditto initialized: $dittoAvailable");
+
+      if (dittoAvailable && !ProxyService.ditto.isReady()) {
+        print("⚠️ Bridging DittoSingleton → DittoService manually");
+        ProxyService.ditto.setDitto(DittoSingleton.instance.ditto!);
+      }
+
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId != null && dittoAvailable) {
+        _registerBranchDittoSubscriptions(branchId: branchId);
+      }
+    } catch (e) {
+      print("⚠️ Ditto initialization failed (app will continue offline): $e");
+    }
+    return dittoAvailable;
+  }
+
+  void _schedulePostDittoSetup({required bool dittoAvailable}) {
+    unawaited(_attachLocalStorageDittoIfReady());
+    if (dittoAvailable && !Platform.isAndroid && !Platform.isIOS) {
+      unawaited(_saveDesktopDeviceRecordIfNeeded());
+      unawaited(ProxyService.cron.setupDelegationMonitoringIfNeeded());
     }
   }
 
@@ -553,51 +594,33 @@ class AppService with ListenableServiceMixin {
       throw Exception('User not logged in. Cannot initialize app.');
     }
 
-    // Initialize Ditto — non-blocking: if it fails (e.g., no internet),
-    // the app continues with locally cached data.
-    bool dittoAvailable = false;
-    try {
-      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
-      // Hard cap the Ditto init/auth/sync sequence so no single network call can
-      // consume the whole startup budget. On timeout this throws and the catch
-      // below lets the app continue offline with locally cached data.
-      await Future(() async {
-        await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-        // Startup may have opened Ditto with deferSyncStart; start replication
-        // here after Brick is initialized, not during LoginChoices.
-        await DittoSingleton.instance
-            .ensureAuthenticatedAndSyncing(appId: appID);
-        await DittoSyncCoordinator.instance.setDitto(
-          DittoSingleton.instance.ditto,
-          skipInitialFetch: true,
-        );
-      }).timeout(const Duration(seconds: 15));
-      dittoAvailable = DittoSingleton.instance.isReady;
-      print("User id set to $userId and Ditto initialized: $dittoAvailable");
+    final cachedBusinessId = ProxyService.box.getBusinessId();
+    final cachedBranchId = ProxyService.box.getBranchId();
+    final hasCachedSession =
+        cachedBusinessId != null && cachedBranchId != null;
 
-      // Safety net: ensure DittoService (used by ProxyService.ditto) has the instance
-      if (dittoAvailable && !ProxyService.ditto.isReady()) {
-        print("⚠️ Bridging DittoSingleton → DittoService manually");
-        ProxyService.ditto.setDitto(DittoSingleton.instance.ditto!);
-      }
-
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId != null && dittoAvailable) {
-        _registerBranchDittoSubscriptions(branchId: branchId);
-        // Journal-entry posting and backfill now happen server-side in
-        // data-connector (live observer + periodic sweep over completed
-        // transactions). The client no longer posts or backfills entries.
-      }
-    } catch (e) {
-      print("⚠️ Ditto initialization failed (app will continue offline): $e");
+    if (hasCachedSession) {
+      print(
+        '✅ Returning session fast path: businessId=$cachedBusinessId, '
+        'branchId=$cachedBranchId',
+      );
+      unawaited(
+        _startDittoReplication(userId).then(
+          (available) => _schedulePostDittoSetup(dittoAvailable: available),
+        ),
+      );
+      unawaited(_hydrateSettingsToggles());
+      Future.delayed(Duration.zero, () async {
+        await checkAndStartShift(userId: userId);
+        if (ProxyService.ditto.isReady()) {
+          loadFeatures();
+        }
+      });
+      return;
     }
 
-    await _attachLocalStorageDittoIfReady();
-
-    if (dittoAvailable && !Platform.isAndroid && !Platform.isIOS) {
-      await _saveDesktopDeviceRecordIfNeeded();
-      await ProxyService.cron.setupDelegationMonitoringIfNeeded();
-    }
+    final dittoAvailable = await _startDittoReplication(userId);
+    _schedulePostDittoSetup(dittoAvailable: dittoAvailable);
 
     // Try to get user access from Ditto if available
     Map<String, dynamic>? userAccess;
@@ -605,8 +628,16 @@ class AppService with ListenableServiceMixin {
       int retries = 0;
       while (retries < 3) {
         try {
-          userAccess = await ProxyService.ditto.getUserAccess(userId);
+          userAccess = await ProxyService.ditto
+              .getUserAccess(userId)
+              .timeout(const Duration(seconds: 5));
           break;
+        } on TimeoutException {
+          print('getUserAccess timed out (attempt ${retries + 1})');
+          retries++;
+          if (retries < 3) {
+            await Future.delayed(const Duration(milliseconds: 500));
+          }
         } catch (e) {
           print("getUserAccess failed (attempt ${retries + 1}): $e");
           retries++;

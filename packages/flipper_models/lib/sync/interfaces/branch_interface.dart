@@ -11,6 +11,7 @@ abstract class BranchInterface {
     String? businessId,
     bool? active,
     String? excludeId,
+    bool localOnly = false,
   });
   FutureOr<Branch> addBranch({
     required String name,

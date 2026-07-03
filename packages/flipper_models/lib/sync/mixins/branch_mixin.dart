@@ -148,24 +148,35 @@ mixin BranchMixin implements BranchInterface {
     String? businessId,
     bool? active = false,
     String? excludeId,
+    bool localOnly = false,
   }) async {
-    return await _getBranches(businessId, excludeId: excludeId);
+    return await _getBranches(
+      businessId,
+      excludeId: excludeId,
+      active: active,
+      localOnly: localOnly,
+    );
   }
 
   Future<List<Branch>> _getBranches(
     String? businessId, {
     String? excludeId,
+    bool? active,
+    bool localOnly = false,
   }) async {
     final filters = <Where>[
       if (businessId != null) Where('businessId').isExactly(businessId),
       if (excludeId != null) Where('id').isNot(excludeId),
+      if (active != null) Where('active').isExactly(active),
     ];
     var query = Query(where: filters);
 
     try {
       // First get local branches
       final localBranches = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: localOnly
+            ? OfflineFirstGetPolicy.localOnly
+            : OfflineFirstGetPolicy.alwaysHydrate,
         query: query,
       );
 

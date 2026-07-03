@@ -42,6 +42,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   DateTime? _lastUserActivity;
   static const Duration _userActivityThreshold = Duration(minutes: 5);
   bool _isInitialStartup = true;
+  bool _hasRetriedAfterTimeout = false;
   double _progress = 0.0;
   double get progress => _progress;
 
@@ -94,7 +95,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       notifyListeners();
 
       debugPrint('🚀 [StartupViewModel] Checking requirements...');
-      await _allRequirementsMeets().timeout(const Duration(seconds: 15));
+      await _requirementsMeetsWithRetry();
       debugPrint('🚀 [StartupViewModel] Requirements met');
       _progress = 0.4;
       notifyListeners();
@@ -259,6 +260,23 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     } else if (e is NoPaymentPlanFound) {
       _routerService.navigateTo(PaymentPlanUIRoute());
       return;
+    } else if (e is TimeoutException) {
+      if (!_hasRetriedAfterTimeout) {
+        _hasRetriedAfterTimeout = true;
+        talker.warning('Startup timed out, retrying once...');
+        await runStartupLogic();
+        return;
+      }
+      talker.error('Startup failed after timeout retry', e, stackTrace);
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+      if (businessId != null && branchId != null) {
+        talker.warning(
+          'Entering app with cached session despite startup timeout',
+        );
+        await _handleInitialPaymentVerification();
+      }
+      return;
     } else {
       try {
         logOut();
@@ -284,6 +302,17 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 
+  Future<void> _requirementsMeetsWithRetry() async {
+    try {
+      await _allRequirementsMeets().timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      talker.warning(
+        'Requirements check timed out, retrying once (local only)...',
+      );
+      await _allRequirementsMeets().timeout(const Duration(seconds: 15));
+    }
+  }
+
   Future<void> _allRequirementsMeets() async {
     try {
       if (isTestEnvironment()) {
@@ -307,9 +336,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         throw LoginChoicesException(term: "Branch ID not set");
       }
 
-      // Check if the specific business exists instead of fetching all businesses
-      final business = await ProxyService.strategy.getBusiness(
+      // Local-only: avoid Turso pull / Supabase hydrate during startup checks.
+      final business = await ProxyService.strategy.getBusinessById(
         businessId: businessId,
+        fetchOnline: false,
       );
       if (business == null) {
         throw Exception("Business not found locally");
@@ -320,6 +350,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       List<Branch> branches = await ProxyService.strategy.branches(
         businessId: businessId,
         active: true,
+        localOnly: true,
       );
       talker.warning("branches: ${branches.length}");
 
