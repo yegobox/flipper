@@ -731,7 +731,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     try {
       final taxUrl = ebm.taxServerUrl;
       if (taxUrl == null || taxUrl.isEmpty) {
-        talker.warning('Skipping RRA stock IO: EBM tax server URL not configured');
+        talker.warning(
+          'Skipping RRA stock IO: EBM tax server URL not configured',
+        );
         return;
       }
 
@@ -1026,6 +1028,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       timeToUse: timeToUser,
       receiptType: receiptType,
     );
+
+    if (URI.trim().isEmpty) {
+      throw Exception(
+        'Tax server URL is empty. Configure EBM tax server URL for branch $branchId.',
+      );
+    }
 
     try {
       // Send request

@@ -5,11 +5,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/device_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_models/brick/models/device.model.dart';
 import 'dart:io';
 
@@ -282,18 +282,18 @@ class _TransactionDelegationSettingsState
                   children: [
                     Text(
                       'Transaction Delegation',
-                      style: GoogleFonts.outfit(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
-                        color: const Color(0xFF111827),
+                        color: Color(0xFF111827),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _getPlatformDescription(),
-                      style: GoogleFonts.outfit(
+                      style: const TextStyle(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280),
+                        color: Color(0xFF6B7280),
                         height: 1.35,
                       ),
                     ),
@@ -374,10 +374,10 @@ class _TransactionDelegationSettingsState
                 Expanded(
                   child: Text(
                     'This device (receives delegations here)',
-                    style: GoogleFonts.outfit(
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF111827),
+                      color: Color(0xFF111827),
                     ),
                   ),
                 ),
@@ -388,9 +388,9 @@ class _TransactionDelegationSettingsState
               'Other POS devices must target this ID in their delegation '
               'settings. This machine does not appear in the list below '
               'because you cannot delegate printing to yourself.',
-              style: GoogleFonts.outfit(
+              style: const TextStyle(
                 fontSize: 12,
-                color: const Color(0xFF4B5563),
+                color: Color(0xFF4B5563),
                 height: 1.4,
               ),
             ),
@@ -398,7 +398,7 @@ class _TransactionDelegationSettingsState
             if (thisDeviceId == null)
               Text(
                 'Device ID not registered yet — restart the app or log in again.',
-                style: GoogleFonts.outfit(
+                style: TextStyle(
                   fontSize: 13,
                   color: Colors.orange[800],
                   fontStyle: FontStyle.italic,
@@ -408,19 +408,19 @@ class _TransactionDelegationSettingsState
               if (dittoName != null) ...[
                 Text(
                   'Ditto name: $dittoName',
-                  style: GoogleFonts.outfit(
+                  style: const TextStyle(
                     fontSize: 12,
-                    color: const Color(0xFF6B7280),
+                    color: Color(0xFF6B7280),
                   ),
                 ),
                 const SizedBox(height: 6),
               ],
               Text(
                 'Friendly name (visible to other devices)',
-                style: GoogleFonts.outfit(
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF374151),
+                  color: Color(0xFF374151),
                 ),
               ),
               const SizedBox(height: 6),
@@ -493,9 +493,9 @@ class _TransactionDelegationSettingsState
           'Select the printer desktop below. On that desktop, open '
           'Management → Transaction Delegation and copy the full '
           '"This device" ID — it must match your selection here.',
-          style: GoogleFonts.outfit(
+          style: const TextStyle(
             fontSize: 13,
-            color: const Color(0xFF4B5563),
+            color: Color(0xFF4B5563),
             height: 1.4,
           ),
         ),
@@ -651,7 +651,7 @@ class _TransactionDelegationSettingsState
               const SizedBox(width: 8),
               Text(
                 'How it works',
-                style: GoogleFonts.outfit(
+                style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                   color: infoBlue,
@@ -700,9 +700,9 @@ class _TransactionDelegationSettingsState
       padding: const EdgeInsets.only(top: 4),
       child: Text(
         text,
-        style: GoogleFonts.outfit(
+        style: const TextStyle(
           fontSize: 13,
-          color: const Color(0xFF1D4ED8),
+          color: Color(0xFF1D4ED8),
           height: 1.4,
         ),
       ),
@@ -732,7 +732,7 @@ class _DeviceIdRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final idStyle = GoogleFonts.robotoMono(
+    final idStyle = FlipperFonts.mono(
       fontSize: compact ? 11 : 12,
       color: const Color(0xFF111827),
     );
