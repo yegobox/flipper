@@ -1,7 +1,7 @@
-# Handoff: Transaction Delegations (HTML + CSS)
+# Handoff: Print Delegations (HTML + CSS)
 
 ## Overview
-A redesigned **Transaction Delegations** screen for the **Flipper Books** POS. It lists transactions that were delegated across tills, with a live search box and a status filter (All / Failed / Delegated / Completed). Each delegation shows a status icon, till name, timestamp, a status badge, and a detail panel (Receipt Type, Payment, Amount). Currency is **RWF** throughout.
+A redesigned **Print Delegations** screen for the **Flipper Books** POS. It lists transactions that were delegated across tills, with a live search box and a status filter (All / Failed / Delegated / Completed). Each delegation shows a status icon, till name, timestamp, a status badge, and a detail panel (Receipt Type, Payment, Amount). Currency is **RWF** throughout.
 
 ## About the Design Files
 The files in this bundle are a **design reference implemented in plain HTML + CSS** (plus a small vanilla-JS render/filter layer). They show the intended look and behavior. They are directly runnable, but the intent is that you **recreate this design in your target codebase's environment** (React/Vue/Flutter/etc.) using its existing patterns, components, and data layer — or, if starting fresh, use these files as-is. The `DELEGATIONS` array in the HTML is placeholder data; wire it to your real API response.
@@ -11,7 +11,7 @@ The files in this bundle are a **design reference implemented in plain HTML + CS
 
 ---
 
-## Screen: Transaction Delegations
+## Screen: Print Delegations
 
 ### Layout
 - Page background `#EEF1EE`. Content centered in a container `max-width: 1080px`, padding `40px 32px 64px`.
@@ -19,7 +19,7 @@ The files in this bundle are a **design reference implemented in plain HTML + CS
 
 ### Header
 - Row: title block (flex:1) on the left, a **40×40** round-`11` info icon-button on the right (border `1px #E6EAE6`, bg white, icon `#5E6F66`; hover → bg `#F4F8F5`, icon/`border` green `#12B76A`/`#CFEBD9`).
-- **Title** "Transaction Delegations" — serif **Spectral** `30px` weight `600`, `letter-spacing:-0.015em`, line-height `1.08`, color `#0B2A20`.
+- **Title** "Print Delegations" — serif **Spectral** `30px` weight `600`, `letter-spacing:-0.015em`, line-height `1.08`, color `#0B2A20`.
 - **Subtitle** `13.5px` `#5E6F66`: "Track and manage transactions delegated across your tills — **N** in view." (N = current visible count, bold `#0B2A20`).
 
 ### Search
@@ -108,4 +108,4 @@ No raster assets. All icons are inline SVG line icons (stroke-based, `stroke-wid
 ## Files
 - `transaction-delegations.html` — standalone screen (markup + placeholder data + vanilla-JS render/search/filter).
 - `styles.css` — all component styles with design tokens as CSS custom properties (`:root`).
-- Original design source in the project: `Transaction Delegations.dc.html`.
+- Original design source in the project: `Print Delegations.dc.html`.

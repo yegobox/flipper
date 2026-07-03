@@ -514,7 +514,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                               const SizedBox(width: 12),
                               const Expanded(
                                 child: Text(
-                                  'Transaction Delegation',
+                                  'Print Delegation',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
@@ -1559,7 +1559,7 @@ class _ModernBaseRow extends StatelessWidget {
   }
 }
 
-/// Mobile-optimized Transaction Delegation Settings
+/// Mobile-optimized Print Delegation Settings
 class _MobileTransactionDelegationSettings extends ConsumerStatefulWidget {
   const _MobileTransactionDelegationSettings();
 
@@ -1619,8 +1619,8 @@ class _MobileTransactionDelegationSettingsState
         showCustomSnackBarUtil(
           context,
           value
-              ? 'Transaction delegation enabled'
-              : 'Transaction delegation disabled',
+              ? 'Print Delegation enabled'
+              : 'Print Delegation disabled',
           type: value ? NotificationType.success : NotificationType.info,
           duration: const Duration(seconds: 2),
         );

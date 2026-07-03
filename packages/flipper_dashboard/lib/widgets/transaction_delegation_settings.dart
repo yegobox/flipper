@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,12 +11,13 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/device_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:supabase_models/brick/models/device.model.dart';
 import 'dart:io';
 
 const _desktopOperatingSystems = {'windows', 'macos', 'linux'};
 
-/// Widget to manage transaction delegation settings
+/// Widget to manage Print Delegation settings
 /// Allows users to enable/disable the feature where mobile devices
 /// delegate transaction completion to desktop machines
 class TransactionDelegationSettings extends ConsumerStatefulWidget {
@@ -120,22 +122,17 @@ class _TransactionDelegationSettingsState
       _friendlyNameController.text = trimmed;
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Device name saved'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        showSuccessNotification(
+          context,
+          'Device name saved',
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not save device name: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        showErrorNotification(
+          context,
+          'Could not save device name: $e',
         );
       }
     } finally {
@@ -157,22 +154,17 @@ class _TransactionDelegationSettingsState
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Delegation device selected'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        showSuccessNotification(
+          context,
+          'Delegation device selected',
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error selecting device: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        showErrorNotification(
+          context,
+          'Error selecting device: ${e.toString()}',
         );
       }
     }
@@ -195,18 +187,11 @@ class _TransactionDelegationSettingsState
         _isLoading = false;
       });
 
-      // Show confirmation
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              value
-                  ? 'Transaction delegation enabled'
-                  : 'Transaction delegation disabled',
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
+        showSuccessNotification(
+          context,
+          value ? 'Print Delegation enabled' : 'Print Delegation disabled',
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
@@ -215,13 +200,7 @@ class _TransactionDelegationSettingsState
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        showErrorNotification(context, 'Error: ${e.toString()}');
       }
     }
   }
@@ -232,6 +211,56 @@ class _TransactionDelegationSettingsState
 
   bool _isMobilePlatform() {
     return Platform.isAndroid || Platform.isIOS;
+  }
+
+  bool _showDebugDeviceActions() {
+    return kDebugMode || (ProxyService.box.enableDebug() ?? false);
+  }
+
+  Future<void> _deleteDevice(Device device) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
+
+    showDeletionConfirmationSnackBar(
+      context,
+      [device],
+      (d) => d.displayLabel,
+      () async {
+        try {
+          final deleted = Device(
+            id: device.id,
+            linkingCode: device.linkingCode,
+            deviceName: device.deviceName,
+            friendlyName: device.friendlyName,
+            deviceVersion: device.deviceVersion,
+            pubNubPublished: device.pubNubPublished,
+            phone: device.phone,
+            branchId: device.branchId,
+            businessId: device.businessId,
+            userId: device.userId,
+            defaultApp: device.defaultApp,
+            deletedAt: DateTime.now().toUtc(),
+          );
+          await ProxyService.strategy.upsertDevice(deleted);
+          ref.invalidate(devicesForBranchProvider(branchId: branchId));
+
+          if (_selectedDeviceId == device.id) {
+            await ProxyService.box.remove(key: 'selectedDelegationDeviceId');
+            setState(() => _selectedDeviceId = null);
+          }
+
+          if (mounted) {
+            showSuccessNotification(context, 'Device deleted');
+          }
+        } catch (e) {
+          if (mounted) {
+            showErrorNotification(context, 'Failed to delete device: $e');
+          }
+        }
+      },
+      customTitle: 'Delete device?',
+      customWarning: 'Removes this device record from the branch (debug only)',
+    );
   }
 
   @override
@@ -281,7 +310,7 @@ class _TransactionDelegationSettingsState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Transaction Delegation',
+                      'Print Delegation',
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -491,7 +520,7 @@ class _TransactionDelegationSettingsState
         padding: const EdgeInsets.all(16),
         child: Text(
           'Select the printer desktop below. On that desktop, open '
-          'Management → Transaction Delegation and copy the full '
+          'Management → Print Delegation and copy the full '
           '"This device" ID — it must match your selection here.',
           style: const TextStyle(
             fontSize: 13,
@@ -551,6 +580,7 @@ class _TransactionDelegationSettingsState
               final targetDevices = devices
                   .where(
                     (device) =>
+                        device.deletedAt == null &&
                         device.id != thisDeviceId &&
                         _desktopOperatingSystems.contains(device.deviceName),
                   )
@@ -581,9 +611,31 @@ class _TransactionDelegationSettingsState
                     return RadioListTile<String>(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        device.displayLabel,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              device.displayLabel,
+                              style: const TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                          if (_showDebugDeviceActions())
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                              tooltip: 'Delete device (debug)',
+                              icon: Icon(
+                                Icons.delete_outline,
+                                size: 18,
+                                color: Colors.red[700],
+                              ),
+                              onPressed: () => _deleteDevice(device),
+                            ),
+                        ],
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -665,7 +717,7 @@ class _TransactionDelegationSettingsState
               '• Mobile completes transaction but delegates receipt generation',
             ),
             _buildInfoItem(
-              '• Desktop picks up the transaction via Ditto sync',
+              '• Desktop picks up the transaction via sync',
             ),
             _buildInfoItem(
               '• Desktop generates receipt and communicates with EBM server',
@@ -687,7 +739,7 @@ class _TransactionDelegationSettingsState
               '• Handles EBM server communication',
             ),
             _buildInfoItem(
-              '• Syncs results back to mobile via Ditto',
+              '• Syncs results back to mobile via sync',
             ),
           ],
         ],
@@ -722,11 +774,10 @@ class _DeviceIdRow extends StatelessWidget {
   Future<void> _copy(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: deviceId));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Copied device ID: $deviceId'),
-        duration: const Duration(seconds: 2),
-      ),
+    showSuccessNotification(
+      context,
+      'Copied device ID: $deviceId',
+      duration: const Duration(seconds: 2),
     );
   }
 

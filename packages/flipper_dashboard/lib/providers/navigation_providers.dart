@@ -69,7 +69,7 @@ final sideMenuShowStockRecountProvider = Provider<bool>((ref) {
   return userHasFeatureWriteAccess(ref, AppFeature.Stock);
 });
 
-/// Local desktop toggle (Admin → Transaction Delegation). Kept in sync when the switch changes.
+/// Local desktop toggle (Admin → Print Delegation). Kept in sync when the switch changes.
 final transactionDelegationEnabledProvider = StateProvider<bool>((ref) {
   return ProxyService.box.readBool(key: 'enableTransactionDelegation') ??
       false;
