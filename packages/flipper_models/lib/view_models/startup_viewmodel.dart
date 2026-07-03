@@ -268,6 +268,14 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         return;
       }
       talker.error('Startup failed after timeout retry', e, stackTrace);
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+      if (businessId != null && branchId != null) {
+        talker.warning(
+          'Entering app with cached session despite startup timeout',
+        );
+        await _handleInitialPaymentVerification();
+      }
       return;
     } else {
       try {
