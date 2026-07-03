@@ -91,7 +91,7 @@ Future<void> _initializeSupabase() async {
   }
 }
 
-// Function to initialize Transaction Delegation (Real-time Ditto-based)
+// Function to initialize Print Delegation (Real-time Ditto-based)
 
 /// Writes a startup failure to `init_error.log` in the app-support directory.
 /// In MSIX this lands under the package's virtualized LocalCache, which is

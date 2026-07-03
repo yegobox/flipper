@@ -8,6 +8,7 @@ part '20260610091903.migration.dart';
 part '20260611094026.migration.dart';
 part '20260617083057.migration.dart';
 part '20260630125158.migration.dart';
+part '20260702191831.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -18,11 +19,12 @@ final migrations = <Migration>{
   const Migration20260611094026(),
   const Migration20260617083057(),
   const Migration20260630125158(),
+  const Migration20260702191831(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260630125158,
+  20260702191831,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -581,6 +583,7 @@ final schema = Schema(
         SchemaColumn('id', Column.varchar, unique: true),
         SchemaColumn('linking_code', Column.varchar),
         SchemaColumn('device_name', Column.varchar),
+        SchemaColumn('friendly_name', Column.varchar),
         SchemaColumn('device_version', Column.varchar),
         SchemaColumn('pub_nub_published', Column.boolean),
         SchemaColumn('phone', Column.varchar),

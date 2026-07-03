@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
 
-/// Service for managing transaction delegation between mobile and desktop devices
+/// Service for managing Print Delegation between mobile and desktop devices
 /// using Ditto for real-time cross-device sync
 class DittoDelegationService {
   static const String _collectionName = 'transaction_delegations';

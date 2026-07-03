@@ -22,6 +22,7 @@ import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/helperModels/business_type.dart' as helper;
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 
 const socialApp = "socials";
@@ -366,6 +367,16 @@ class AppService with ListenableServiceMixin {
       // would otherwise collapse them into a single shared Device row,
       // causing a station to receive delegations meant for another one.
       final existingDeviceId = ProxyService.box.getThisDeviceId();
+      String? existingFriendlyName;
+      if (existingDeviceId != null) {
+        final branchDevices = await ProxyService.getStrategy(
+          Strategy.cloudSync,
+        ).getDevicesByBranch(branchId: branchId);
+        existingFriendlyName = branchDevices
+            .where((d) => d.id == existingDeviceId)
+            .map((d) => d.friendlyName)
+            .firstOrNull;
+      }
       final device = Device(
         id: existingDeviceId,
         pubNubPublished: false,
@@ -376,6 +387,7 @@ class AppService with ListenableServiceMixin {
         userId: userId,
         deviceName: Platform.operatingSystem,
         deviceVersion: deviceVersion,
+        friendlyName: existingFriendlyName,
       );
       await ProxyService.strategy.upsertDevice(device);
       await ProxyService.box.writeString(key: 'thisDeviceId', value: device.id);

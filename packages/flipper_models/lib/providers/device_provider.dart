@@ -23,11 +23,11 @@ Future<List<Device>> devicesForBranch(
   );
 
   talker.info(
-    '[delegation-devices] loaded ${devices.length} device(s) from '
+    '[delegation-devices] loaded ${devices.length} active device(s) from '
     'Brick/cloudSync (not Ditto) branchId=$branchId '
     'thisDeviceId=${ProxyService.box.getThisDeviceId()} '
     'ids=${devices.map((d) => d.id).join(', ')}',
   );
 
-  return devices;
+  return devices.where((device) => device.deletedAt == null).toList();
 }
