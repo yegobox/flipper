@@ -454,13 +454,13 @@ class EventService
       final deviceVersion = await getDeviceVersion();
 
       // Create or update device record
-      final device = await ProxyService.strategy.getDevice(
+      Device? device = await ProxyService.strategy.getDevice(
         phone: loginData.phone,
         linkingCode: loginData.linkingCode,
       );
 
       if (device == null) {
-        await ProxyService.strategy.create(
+        device = await ProxyService.strategy.create(
           data: Device(
             pubNubPublished: false,
             branchId: loginData.branchId,
@@ -472,6 +472,19 @@ class EventService
             deviceName: deviceName,
             deviceVersion: deviceVersion,
           ),
+        );
+      }
+
+      // QR login creates/updates a Device row but used to skip persisting
+      // thisDeviceId locally. Post-login desktop registration then minted a
+      // second UUID for the same physical machine.
+      if (!Platform.isAndroid &&
+          !Platform.isIOS &&
+          device != null &&
+          ProxyService.box.getThisDeviceId() == null) {
+        await ProxyService.box.writeString(
+          key: 'thisDeviceId',
+          value: device.id,
         );
       }
 
