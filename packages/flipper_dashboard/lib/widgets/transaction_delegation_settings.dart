@@ -17,6 +17,38 @@ import 'dart:io';
 
 const _desktopOperatingSystems = {'windows', 'macos', 'linux'};
 
+bool _isDesktopDeviceRecord(Device device) {
+  final platform = device.deviceName?.trim().toLowerCase();
+  if (platform == null || platform.isEmpty) return false;
+  return _desktopOperatingSystems.contains(platform);
+}
+
+String _emptyTargetDevicesMessage({
+  required List<Device> devices,
+  required String? thisDeviceId,
+}) {
+  final active = devices.where((d) => d.deletedAt == null).toList();
+  if (active.isEmpty) {
+    return 'No devices loaded for this branch yet. Check that other desktops '
+        'are logged in and online, then reopen this screen.';
+  }
+
+  final otherActive =
+      active.where((device) => device.id != thisDeviceId).toList();
+  if (otherActive.isEmpty) {
+    return 'Only this desktop is registered in this branch. Log in on another '
+        'Windows, macOS, or Linux POS to delegate printing to it.';
+  }
+
+  final nonDesktop = otherActive.where((d) => !_isDesktopDeviceRecord(d)).length;
+  if (nonDesktop == otherActive.length) {
+    return 'Other devices exist in this branch but none are desktops '
+        '(device_name must be windows, macos, or linux).';
+  }
+
+  return 'No other desktop devices found in this branch';
+}
+
 /// Widget to manage Print Delegation settings
 /// Allows users to enable/disable the feature where mobile devices
 /// delegate transaction completion to desktop machines
@@ -48,6 +80,23 @@ class _TransactionDelegationSettingsState
     super.initState();
     _loadSettings();
     _loadFriendlyName();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) return;
+
+      ref.invalidate(devicesForBranchProvider(branchId: branchId));
+
+      // Desktop self-registration sets thisDeviceId after post-login setup;
+      // wait briefly (same race as delegation cron) then reload the list.
+      for (var attempt = 0; attempt < 10; attempt++) {
+        if (!mounted) return;
+        if (ProxyService.box.getThisDeviceId() != null) break;
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      }
+      if (!mounted) return;
+      ref.invalidate(devicesForBranchProvider(branchId: branchId));
+      setState(() {});
+    });
   }
 
   Future<void> _loadFriendlyName() async {
@@ -582,15 +631,23 @@ class _TransactionDelegationSettingsState
                     (device) =>
                         device.deletedAt == null &&
                         device.id != thisDeviceId &&
-                        _desktopOperatingSystems.contains(device.deviceName),
+                        _isDesktopDeviceRecord(device),
                   )
                   .toList();
+
+              talker.info(
+                '[delegation-settings] branch devices=${devices.length} '
+                'targetDesktops=${targetDevices.length} thisDeviceId=$thisDeviceId',
+              );
 
               if (targetDevices.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    'No other desktop devices found in this branch',
+                    _emptyTargetDevicesMessage(
+                      devices: devices,
+                      thisDeviceId: thisDeviceId,
+                    ),
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontStyle: FontStyle.italic,

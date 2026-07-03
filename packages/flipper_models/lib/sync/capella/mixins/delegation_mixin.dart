@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
@@ -334,11 +335,14 @@ mixin CapellaDelegationMixin implements DelegationInterface {
   @override
   Future<List<Device>> getDevicesByBranch({
     required String branchId,
+    OfflineFirstGetPolicy getPolicy =
+        OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
   }) {
     // Device pickers must use Brick/Supabase — Ditto `devices` is send-only
     // mesh state and often stale vs thisDeviceId after desktop re-registration.
     return ProxyService.getStrategy(Strategy.cloudSync).getDevicesByBranch(
       branchId: branchId,
+      getPolicy: getPolicy,
     );
   }
 }

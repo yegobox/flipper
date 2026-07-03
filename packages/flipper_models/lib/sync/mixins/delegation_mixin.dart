@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
+import 'package:brick_offline_first/brick_offline_first.dart' show OfflineFirstGetPolicy;
 import 'package:flipper_models/sync/interfaces/DelegationInterface.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -39,14 +40,17 @@ mixin DelegationMixin implements DelegationInterface {
   @override
   Future<List<Device>> getDevicesByBranch({
     required String branchId,
+    OfflineFirstGetPolicy getPolicy =
+        OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
   }) async {
+    // devices.branch_id is UUID in Postgres — do not OR with Branch.serverId
+    // (int), that invalidates the PostgREST filter and hydrate returns [].
     final query = brick.Query(
       where: [brick.Where('branchId').isExactly(branchId)],
     );
     return await repository.get<Device>(
       query: query,
-      // Hydrate from Supabase so delegation pickers are not stuck on stale SQLite.
-      policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
+      policy: getPolicy,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
 abstract class DelegationInterface {
@@ -22,9 +23,15 @@ abstract class DelegationInterface {
     required String onDeviceId,
   });
 
-  /// Get list of devices by branchId
+  /// Get list of devices by branchId.
+  ///
+  /// [getPolicy] defaults to [OfflineFirstGetPolicy.awaitRemoteWhenNoneExist].
+  /// Delegation pickers should pass [OfflineFirstGetPolicy.awaitRemote] so the
+  /// list is refreshed from Supabase instead of stale local-only rows.
   Future<List<Device>> getDevicesByBranch({
     required String branchId,
+    OfflineFirstGetPolicy getPolicy =
+        OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
   });
 
   /// Update delegation status in Ditto (delegated → processing → completed/failed).
