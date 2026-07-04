@@ -1889,6 +1889,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                             onPaymentConfirmed:
                                                 onPaymentConfirmed,
                                             onPaymentFailed: onPaymentFailed,
+                                            overrideAlreadyPaid: alreadyPaid,
                                           );
                                         } catch (e) {
                                           await ProxyService.box.writeBool(
@@ -2339,6 +2340,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     transactionItemsHint: transactionItemsHint,
                     paymentMethods: ref.watch(paymentMethodsProvider),
                     attachedCustomerHint: _attachedCustomerHintFor(transaction),
+                    overrideAlreadyPaid: _effectiveAlreadyPaid(
+                      transactionAsyncValue.value,
+                    ),
                   );
                 } catch (e, s) {
                   await ProxyService.box.writeBool(

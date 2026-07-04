@@ -379,6 +379,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     List<TransactionItem>? transactionItemsHint,
     bool immediateCompletion = false,
     Function? onPaymentConfirmed,
+
+    /// Sum of non-credit payments already persisted for this transaction
+    /// (prior installments on a resumed loan/layaway). Pass 0 for a fresh sale.
+    double overrideAlreadyPaid = 0.0,
     Function(String)? onPaymentFailed,
 
     /// Preloaded attached customer (e.g. mobile checkout UI already resolved it).
@@ -721,6 +725,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           isProformaOrTraining: isProformaOrTraining,
           receiptTypeForStock: receiptTypeForStock,
           stockIoSarTyCd: stockIoSarTyCd,
+          overrideAlreadyPaid: overrideAlreadyPaid,
         );
         talker.debug(
           '[sale_completion_timing] flow_total_until_waiting_payment_ms=${flowWatch.elapsedMilliseconds}',
@@ -749,6 +754,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               cashierName: completionCashierName,
               lineItemsForAgentCommission: transactionItems,
               deferPaymentPersist: true,
+              overrideAlreadyPaid: overrideAlreadyPaid,
             );
             transactionWasMarkedCompleted = true;
             schedulePostSaleStockDeduction();
@@ -853,6 +859,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 
   /// Returns loan flag and optional payment lines when [deferPaymentPersist] is true.
+  ///
+  /// [overrideAlreadyPaid] is the sum of non-credit payments already persisted
+  /// for this transaction (prior installments on a resumed loan/layaway). Pass 0
+  /// (the default) for a fresh sale.
   Future<({bool wasLoan, List<PaymentLineForSaleCompletion>? deferredPayments})>
   markTransactionAsCompleted({
     required ITransaction transaction,
@@ -862,6 +872,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     String? cashierName,
     List<TransactionItem>? lineItemsForAgentCommission,
     bool deferPaymentPersist = false,
+    double overrideAlreadyPaid = 0.0,
   }) async {
     final capella = ProxyService.getStrategy(Strategy.capella);
 
@@ -871,6 +882,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       transactionCashReceived: transaction.cashReceived ?? 0,
       finalSubTotal: finalSubTotal,
       paymentMethods: paymentLines,
+      priorAlreadyPaidNonCredit: overrideAlreadyPaid,
     );
 
     final paymentsToPersist = normalizePaymentLinesToSaleTotal(
@@ -1046,6 +1058,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required bool isProformaOrTraining,
     required String receiptTypeForStock,
     required String stockIoSarTyCd,
+    double overrideAlreadyPaid = 0.0,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -1232,6 +1245,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   cashierName: completionCashierName,
                   lineItemsForAgentCommission: transactionItems,
                   deferPaymentPersist: true,
+                  overrideAlreadyPaid: overrideAlreadyPaid,
                 );
 
                 final deferredPayments = mark.deferredPayments;

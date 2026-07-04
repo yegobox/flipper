@@ -93,6 +93,7 @@ class _MobileCheckoutLauncherHostState
     bool immediateCompletion, [
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
+    double overrideAlreadyPaid = 0.0,
   ]) async {
     final controller = CheckoutController(ref: ref, context: context);
 
@@ -115,6 +116,7 @@ class _MobileCheckoutLauncherHostState
       transactionItemsHint: transactionItemsHint,
       onPaymentConfirmed: onPaymentConfirmed,
       onPaymentFailed: onPaymentFailed,
+      overrideAlreadyPaid: overrideAlreadyPaid,
     );
   }
 
@@ -140,12 +142,14 @@ class _MobileCheckoutLauncherHostState
             onPaymentConfirmed,
             onPaymentFailed, [
             bool immediateCompletion = false,
+            double overrideAlreadyPaid = 0.0,
           ]) async {
             return _handleCompleteTransaction(
               txn,
               immediateCompletion,
               onPaymentConfirmed,
               onPaymentFailed,
+              overrideAlreadyPaid,
             );
           },
     );
