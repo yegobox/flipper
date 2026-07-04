@@ -15,8 +15,6 @@ import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
-import 'package:supabase_models/brick/models/transactionItemUtil.dart';
-import 'package:supabase_models/brick/models/sars.model.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
@@ -229,6 +227,8 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
+      // WHERE filters only — barcode path appends its own predicates before ORDER BY.
+      final queryBeforeOrder = query;
       query += orderSuffix;
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -274,7 +274,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       if (searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm)) {
         final barcodeQuery =
-            '$query AND (LOWER(TRIM(COALESCE(bcd, \'\'))) = :bcdExact OR '
+            '$queryBeforeOrder AND (LOWER(TRIM(COALESCE(bcd, \'\'))) = :bcdExact OR '
             "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)$orderSuffix";
         final barcodeArgs = Map<String, dynamic>.from(arguments)
           ..['bcdExact'] = searchTerm;
@@ -282,7 +282,7 @@ mixin CapellaVariantMixin implements VariantInterface {
         items = await runExecute(barcodeQuery, barcodeArgs);
         if (items.isEmpty) {
           final fallbackQuery =
-              '$query AND (LOWER(COALESCE(name, \'\'))) LIKE :searchLike OR '
+              '$queryBeforeOrder AND (LOWER(COALESCE(name, \'\')) LIKE :searchLike OR '
               "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
               "LOWER(COALESCE(productName, '')) LIKE :searchLike)$orderSuffix";
           final fallbackArgs = Map<String, dynamic>.from(arguments)

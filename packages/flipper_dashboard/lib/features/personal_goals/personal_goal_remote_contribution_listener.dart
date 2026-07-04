@@ -12,7 +12,10 @@ import 'package:overlay_support/overlay_support.dart';
 /// Listens to Ditto-backed [personalGoalsStreamProvider] and notifies this device
 /// when another device credits a goal ([lastContributionDeviceKey] differs).
 ///
-/// Wrap high in the tree (e.g. under [MaterialApp.router]) so overlay toasts work.
+/// Wrap high in the tree, **above** [DevicePreview] / [MaterialApp.builder]
+/// [LayoutBuilder]s (those run during [performLayout]). Overlay toasts need
+/// [OverlaySupport] as an ancestor; must not [setState] or insert overlays
+/// during [build]/layout.
 class PersonalGoalRemoteContributionListener extends ConsumerStatefulWidget {
   const PersonalGoalRemoteContributionListener({required this.child, super.key});
 
@@ -31,6 +34,7 @@ class _PersonalGoalRemoteContributionListenerState
   final Map<String, double> _baselineSaved = {};
   bool _primed = false;
   final Map<String, DateTime> _lastNotified = {};
+  bool _syncScheduled = false;
 
   @override
   void initState() {
@@ -47,8 +51,20 @@ class _PersonalGoalRemoteContributionListenerState
   Future<void> _ensureDeviceKey() async {
     final k = await personalGoalContributionDeviceKey();
     if (!mounted) return;
-    setState(() => _localDeviceKey = k);
-    _syncSubscription();
+    // No setState: this host only returns [widget.child]. Rebuilding here can
+    // attach render objects while an ancestor LayoutBuilder is in performLayout.
+    _localDeviceKey = k;
+    _scheduleSyncSubscription();
+  }
+
+  void _scheduleSyncSubscription() {
+    if (_syncScheduled) return;
+    _syncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncScheduled = false;
+      if (!mounted) return;
+      _syncSubscription();
+    });
   }
 
   void _syncSubscription() {
@@ -114,12 +130,16 @@ class _PersonalGoalRemoteContributionListenerState
       ProxyService.notification.sendLocalNotification(body: body),
     );
 
-    showSimpleNotification(
-      Text(body),
-      background: const Color(0xFF059669),
-      position: NotificationPosition.top,
-      duration: const Duration(seconds: 4),
-    );
+    // Overlay insert must not run during layout (stream can emit mid-frame).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showSimpleNotification(
+        Text(body),
+        background: const Color(0xFF059669),
+        position: NotificationPosition.top,
+        duration: const Duration(seconds: 4),
+      );
+    });
   }
 
   void _onGoalsSnapshot(List<PersonalGoal> goals) {
@@ -154,10 +174,7 @@ class _PersonalGoalRemoteContributionListenerState
         _localDeviceKey != null &&
         _localDeviceKey!.isNotEmpty) {
       if (_attachedBranchId != branchId || _subscription == null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _syncSubscription();
-        });
+        _scheduleSyncSubscription();
       }
     }
 
