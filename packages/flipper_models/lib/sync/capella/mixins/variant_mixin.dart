@@ -211,9 +211,12 @@ mixin CapellaVariantMixin implements VariantInterface {
       final String? searchTerm =
           isCatalogTextSearch ? name.trim().toLowerCase() : null;
 
-      // Name / product name / RRA item name search (substring). Barcode uses exact match.
-      if (searchTerm != null &&
-          !isLikelyCatalogBarcodeQuery(searchTerm)) {
+      final bool barcodeLikeSearch =
+          searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm);
+
+      // Name / product name / RRA item name search (substring). Barcode-like
+      // tokens try exact bcd/itemCd first (see execute path below).
+      if (searchTerm != null && !barcodeLikeSearch) {
         query +=
             " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
             "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
@@ -227,8 +230,6 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
-      // WHERE filters only — barcode path appends its own predicates before ORDER BY.
-      final queryBeforeOrder = query;
       query += orderSuffix;
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -272,9 +273,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         return r.items.toList();
       }
 
-      if (searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm)) {
+      if (barcodeLikeSearch) {
         final barcodeQuery =
-            '$queryBeforeOrder AND (LOWER(TRIM(COALESCE(bcd, \'\'))) = :bcdExact OR '
+            '$query AND (LOWER(TRIM(COALESCE(bcd, \'\'))) = :bcdExact OR '
             "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)$orderSuffix";
         final barcodeArgs = Map<String, dynamic>.from(arguments)
           ..['bcdExact'] = searchTerm;
@@ -282,7 +283,7 @@ mixin CapellaVariantMixin implements VariantInterface {
         items = await runExecute(barcodeQuery, barcodeArgs);
         if (items.isEmpty) {
           final fallbackQuery =
-              '$queryBeforeOrder AND (LOWER(COALESCE(name, \'\')) LIKE :searchLike OR '
+              '$query AND (LOWER(COALESCE(name, \'\'))) LIKE :searchLike OR '
               "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
               "LOWER(COALESCE(productName, '')) LIKE :searchLike)$orderSuffix";
           final fallbackArgs = Map<String, dynamic>.from(arguments)

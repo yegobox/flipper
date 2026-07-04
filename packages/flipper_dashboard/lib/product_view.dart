@@ -477,8 +477,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 if (variants.isEmpty) {
                   final hasBranch = branchId.isNotEmpty;
                   return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 180.0),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 24,
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -538,10 +541,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 );
               },
               error: (error, stackTrace) => Center(
-                child: Padding(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
-                    vertical: 180,
+                    vertical: 24,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

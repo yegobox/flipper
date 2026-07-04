@@ -160,16 +160,31 @@ double sumTenderFromPaymentMethods(List<Payment> paymentMethods) {
 /// field is empty or stale (e.g. mobile checkout only updates payment rows, or
 /// QuickSellingView auto-filled the received field to the full total while the
 /// user underpaid on [PaymentMethodsCard]).
+///
+/// Also ignores a stale over-tender in payment methods when the field was
+/// auto-filled back to the sale total (delete/re-add or cart total change).
 double resolveTenderAmountForSaleCompletion({
   required TextEditingController receivedAmountController,
   required List<Payment> paymentMethods,
   required double saleTotal,
 }) {
   final fromPayments = sumTenderFromPaymentMethods(paymentMethods);
-  if (fromPayments > _tenderEpsilon) return fromPayments;
-
   final fromReceived =
       double.tryParse(receivedAmountController.text.trim()) ?? 0.0;
+
+  if (fromPayments > _tenderEpsilon && fromReceived > _tenderEpsilon) {
+    // Field matches sale total but payment methods still hold a prior tender
+    // (e.g. change amount from before the line was deleted and re-added).
+    if ((fromReceived - saleTotal).abs() <= _tenderEpsilon &&
+        fromPayments > fromReceived + _tenderEpsilon) {
+      return fromReceived;
+    }
+    // Prefer payment rows when the user underpaid there while the field still
+    // shows the auto-filled full total.
+    return fromPayments;
+  }
+
+  if (fromPayments > _tenderEpsilon) return fromPayments;
   if (fromReceived > _tenderEpsilon) return fromReceived;
 
   return saleTotal > _tenderEpsilon ? saleTotal : 0.0;
