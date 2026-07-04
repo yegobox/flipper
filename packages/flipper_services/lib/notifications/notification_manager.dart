@@ -116,6 +116,13 @@ class NotificationManager implements NotificationInterface {
   }
 
   @override
+  Future<void> showDelegationNotification(
+    TransactionDelegation delegation,
+  ) async {
+    await _platformNotifications.showDelegationNotification(delegation);
+  }
+
+  @override
   Future<void> initialize() async {
     // Already initialized in the static initialize method
   }

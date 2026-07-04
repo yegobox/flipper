@@ -14,6 +14,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flipper_ai_feature/flipper_ai_feature.dart' show initLocalAi;
+import 'package:flipper_dashboard/features/delegations/delegation_notification_listener.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goal_remote_contribution_listener.dart';
 import 'package:flipper_models/services/personal_goal_notification_service.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -333,7 +334,13 @@ Future<void> main() async {
 }
 
 /// Keep in sync with [DevicePreview.enabled] on [FlipperApp].
-const bool kFlipperDevicePreviewEnabled = kDebugMode;
+///
+/// Desktop (macOS/Windows/Linux): off. DevicePreview's frame [LayoutBuilder]
+/// runs [MaterialApp.builder] during [performLayout]; activating [OverlayPortal]
+/// (Tooltips, overlay_support) in that pass trips Flutter's
+/// "mutated in performLayout" assert. Enable only on mobile/web debug.
+bool get kFlipperDevicePreviewEnabled =>
+    kDebugMode;
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
@@ -384,41 +391,46 @@ class _FlipperAppState extends State<FlipperApp> {
               providerPerfTracingEnabledProvider.overrideWith((ref) => true),
             ]
           : const [],
+      // Hosts that must not rebuild under DevicePreview / MaterialApp.builder
+      // LayoutBuilders (those run during performLayout and cannot attach overlays).
       child: OverlaySupport.global(
-        child: DevicePreview(
-          enabled: kFlipperDevicePreviewEnabled,
-          tools: const [
-            ...DevicePreview.defaultTools,
-          ],
-          builder: (context) => MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            title: 'flipper',
-            theme: _theme,
-            localizationsDelegates: const [
-              FlipperLocalizationsDelegate(),
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              FlipperCountryLocalizationsDelegate(),
-            ],
-            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
-            locale: DevicePreview.locale(context) ?? const Locale('en'),
-            themeMode: ThemeMode.system,
-            routerDelegate: _routerDelegate,
-            routeInformationParser: _routeInformationParser,
-            builder: (context, child) {
-              final app = DevicePreview.appBuilder(context, child);
-              return MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.noScaling,
+        child: PersonalGoalRemoteContributionListener(
+          child: DelegationNotificationListener(
+            child: LauncherShortcutRouterHost(
+              child: DevicePreview(
+                enabled: kFlipperDevicePreviewEnabled,
+                tools: const [
+                  ...DevicePreview.defaultTools,
+                ],
+                builder: (context) => MaterialApp.router(
+                  debugShowCheckedModeBanner: false,
+                  title: 'flipper',
+                  theme: _theme,
+                  localizationsDelegates: const [
+                    FlipperLocalizationsDelegate(),
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    FlipperCountryLocalizationsDelegate(),
+                  ],
+                  supportedLocales:
+                      FlipperLocalizationDelegates.supportedLocales,
+                  locale: DevicePreview.locale(context) ?? const Locale('en'),
+                  themeMode: ThemeMode.system,
+                  routerDelegate: _routerDelegate,
+                  routeInformationParser: _routeInformationParser,
+                  builder: (context, child) {
+                    final app = DevicePreview.appBuilder(context, child);
+                    return MediaQuery(
+                      data: MediaQuery.of(context).copyWith(
+                        textScaler: TextScaler.noScaling,
+                      ),
+                      child: app,
+                    );
+                  },
                 ),
-                child: LauncherShortcutRouterHost(
-                  child: PersonalGoalRemoteContributionListener(
-                    child: app,
-                  ),
-                ),
-              );
-            },
+              ),
+            ),
           ),
         ),
       ),

@@ -17,6 +17,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/firebase_messaging.dart';
+import 'package:flipper_services/notifications/notification_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' hide Category;
 // ignore_for_file: invalid_use_of_visible_for_testing_member
@@ -51,6 +52,9 @@ class CronService {
 
   /// Prevents concurrent or duplicate processing of the same delegation.
   final Set<String> _processingDelegationIds = {};
+
+  /// Delegation IDs we already notified for (avoids duplicate banners).
+  final Set<String> _notifiedDelegationIds = {};
 
   /// Resolves cart lines for a delegated receipt. The delegation payload must
   /// carry [itemSnapshots]; Ditto/Supabase are optional fallbacks for legacy jobs.
@@ -362,23 +366,35 @@ class CronService {
     }
   }
 
+  Future<void> _notifyDelegationReceived(
+    TransactionDelegation delegation,
+  ) async {
+    final id = delegation.transactionId;
+    if (!_notifiedDelegationIds.add(id)) return;
+
+    talker.info('[delegation-notify] notifying for $id');
+    try {
+      await NotificationHandler().showDelegationNotification(delegation);
+    } catch (e, stackTrace) {
+      talker.error('Failed to show delegation notification: $e', stackTrace);
+    }
+  }
+
   Future<void> _handleIncomingDelegations({
     required List<TransactionDelegation> delegations,
     required String branchId,
   }) async {
     final capella = ProxyService.getStrategy(Strategy.capella);
 
-    if (delegations.isNotEmpty) {
-      ProxyService.notification.sendLocalNotification(
-        body: 'Received ${delegations.length} delegations',
-      );
-    }
     for (final delegation in delegations) {
       final delegationId = delegation.transactionId;
       if (_processingDelegationIds.contains(delegationId)) {
         continue;
       }
       _processingDelegationIds.add(delegationId);
+
+      // Notify as soon as we pick up the job (before print work).
+      await _notifyDelegationReceived(delegation);
 
       try {
         talker.info(

@@ -251,6 +251,13 @@ class AndroidNotifications extends BaseNotifications {
   }
 
   @override
+  Future<void> showDelegationNotification(
+    TransactionDelegation delegation,
+  ) async {
+    await super.showDelegationNotification(delegation);
+  }
+
+  @override
   NotificationDetails createPlatformNotificationDetails() {
     return NotificationDetails(
       android: _buildAndroidDetails(''),

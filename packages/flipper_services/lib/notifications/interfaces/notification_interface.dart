@@ -16,6 +16,9 @@ abstract class NotificationInterface {
   /// Show a notification for a new inventory request/order
   Future<void> showOrderNotification(InventoryRequest order);
 
+  /// Show a notification for a new print delegation
+  Future<void> showDelegationNotification(TransactionDelegation delegation);
+
   /// Schedule a notification for a conversation
   Future<void> scheduleNotification(Conversation conversation);
 

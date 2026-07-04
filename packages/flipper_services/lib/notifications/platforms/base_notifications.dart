@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -52,6 +53,37 @@ abstract class BaseNotifications implements NotificationInterface {
       id: order.id.hashCode,
       title: 'New Order Request',
       body: 'You have a new order request from $requesterInfo',
+      payload: payload,
+    );
+  }
+
+  @override
+  Future<void> showDelegationNotification(
+    TransactionDelegation delegation,
+  ) async {
+    final payload = jsonEncode({
+      'type': 'delegation',
+      'transactionId': delegation.transactionId,
+      'branchId': delegation.branchId,
+    });
+
+    final amount = NumberFormat('#,##0', 'en_US').format(delegation.subTotal);
+    final customerName = delegation.customerName?.trim();
+    final fromDevice = delegation.delegatedFromDevice;
+
+    final String body;
+    if (customerName != null && customerName.isNotEmpty) {
+      body =
+          '${delegation.receiptType} receipt for $customerName · RWF $amount · from $fromDevice';
+    } else {
+      body =
+          '${delegation.receiptType} receipt · RWF $amount · from $fromDevice';
+    }
+
+    await showNotification(
+      id: delegation.transactionId.hashCode,
+      title: 'New Print Delegation',
+      body: body,
       payload: payload,
     );
   }

@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/dashboard_pending_page.dart';
 import 'package:flipper_dashboard/global_dashboard_keyboard_scope.dart';
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
@@ -36,6 +37,7 @@ class DashboardLayout extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final searchController = useTextEditingController();
     useAccessPermissionsRealtimeSync(ref);
+    usePendingDashboardPageNavigation(ref);
 
     return GlobalDashboardKeyboardScope(
       child: ViewModelBuilder<CoreViewModel>.nonReactive(

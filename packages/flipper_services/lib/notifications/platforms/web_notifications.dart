@@ -66,4 +66,11 @@ class WebNotifications extends BaseNotifications {
     // Use the base implementation from BaseNotifications
     await super.showOrderNotification(order);
   }
+
+  @override
+  Future<void> showDelegationNotification(
+    TransactionDelegation delegation,
+  ) async {
+    await super.showDelegationNotification(delegation);
+  }
 }

@@ -169,8 +169,6 @@ class DittoDelegationService {
           for (final delegation in delegations) {
             debugPrint(
                 '🔔 Desktop received delegation: ${delegation['transactionId']}');
-            ProxyService.notification.sendLocalNotification(
-                body: "Received new Request for processing");
             onNewDelegation(delegation);
           }
 
