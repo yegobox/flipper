@@ -89,11 +89,11 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
               boxShadow: lift ? PosTokens.shadow2 : PosTokens.shadow1,
             ),
             clipBehavior: Clip.antiAlias,
+            // Thumb flexes so the text body keeps its intrinsic height.
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  height: PosTokens.productThumbHeight,
+                Expanded(
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -119,60 +119,61 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(13, 11, 13, 13),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(13, 11, 13, 13),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.productName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: PosTokens.ink1,
+                          letterSpacing: -0.01,
+                        ),
+                      ),
+                      if (widget.bcdLabel != null) ...[
+                        const SizedBox(height: 2),
                         Text(
-                          widget.productName,
+                          widget.bcdLabel!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: PosTokens.ink1,
-                            letterSpacing: -0.01,
+                          style: PosTokens.posMonoStyle(
+                            Theme.of(context).textTheme,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: PosTokens.ink4,
                           ),
                         ),
-                        if (widget.bcdLabel != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            widget.bcdLabel!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: PosTokens.posMonoStyle(
-                              Theme.of(context).textTheme,
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w500,
-                              color: PosTokens.ink4,
-                            ),
-                          ),
-                        ],
-                        const Spacer(),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            _PosCardPrice(
+                      ],
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Flexible(
+                            child: _PosCardPrice(
                               currencySymbol: widget.currencySymbol,
                               amount: widget.priceAmount,
                             ),
-                            const Spacer(),
-                            Text(
-                              widget.stockLabel,
-                              style: PosTokens.posMonoStyle(
-                                Theme.of(context).textTheme,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                                color: posStockTextColor(widget.stockVisual),
-                              ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.stockLabel,
+                            style: PosTokens.posMonoStyle(
+                              Theme.of(context).textTheme,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: posStockTextColor(widget.stockVisual),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
