@@ -511,6 +511,13 @@ class CronService {
             "✅ Receipt printed successfully for delegation: $delegationId",
           );
 
+          // Mark the underlying transaction as completed so the sending device
+          // sees the status change via sync and clears the pending cart.
+          await capella.updateTransaction(
+            transaction: transaction,
+            status: 'completed',
+          );
+
           await capella.updateDelegationStatus(
             transactionId: delegationId,
             status: 'completed',
