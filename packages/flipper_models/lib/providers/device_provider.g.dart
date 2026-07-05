@@ -8,9 +8,20 @@ part of 'device_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Branch devices for delegation target pickers.
+///
+/// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
+/// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
+/// the source of truth for the picker list.
 
 @ProviderFor(devicesForBranch)
 const devicesForBranchProvider = DevicesForBranchFamily._();
+
+/// Branch devices for delegation target pickers.
+///
+/// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
+/// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
+/// the source of truth for the picker list.
 
 final class DevicesForBranchProvider
     extends
@@ -20,6 +31,11 @@ final class DevicesForBranchProvider
           FutureOr<List<Device>>
         >
     with $FutureModifier<List<Device>>, $FutureProvider<List<Device>> {
+  /// Branch devices for delegation target pickers.
+  ///
+  /// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
+  /// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
+  /// the source of truth for the picker list.
   const DevicesForBranchProvider._({
     required DevicesForBranchFamily super.from,
     required String super.argument,
@@ -64,7 +80,13 @@ final class DevicesForBranchProvider
   }
 }
 
-String _$devicesForBranchHash() => r'bcb6fbb9c9a7f398df7ccc8d7f7561c8c9fed68b';
+String _$devicesForBranchHash() => r'4fcc826894e5ce66a809440d2925f6424306bead';
+
+/// Branch devices for delegation target pickers.
+///
+/// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
+/// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
+/// the source of truth for the picker list.
 
 final class DevicesForBranchFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Device>>, String> {
@@ -76,6 +98,12 @@ final class DevicesForBranchFamily extends $Family
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
+
+  /// Branch devices for delegation target pickers.
+  ///
+  /// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
+  /// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
+  /// the source of truth for the picker list.
 
   DevicesForBranchProvider call({required String branchId}) =>
       DevicesForBranchProvider._(argument: branchId, from: this);

@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_floor_plan_editor.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -131,6 +132,11 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
               _enabled ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 280),
         ),
+        if (_enabled) ...[
+          const SizedBox(height: 22),
+          const BarAdminEyebrow(label: 'Floor & tables'),
+          const BarFloorPlanEditor(),
+        ],
         const SizedBox(height: 22),
         const BarAdminEyebrow(label: 'Staff & PINs', accent: BarTokens.violet),
         if (_staff.isEmpty)

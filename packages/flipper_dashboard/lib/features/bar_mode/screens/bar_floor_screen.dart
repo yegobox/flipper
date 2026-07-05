@@ -5,10 +5,13 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.d
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 
@@ -92,6 +95,10 @@ class BarFloorScreen extends ConsumerWidget {
               color: barColorForTenant(cashier.id, staff),
             ),
           ],
+          if (cashier != null && _isAdminOrOwner(cashier)) ...[
+            const SizedBox(width: 12),
+            _settingsButton(),
+          ],
           const SizedBox(width: 12),
           _dangerLogout(ref),
         ],
@@ -123,6 +130,46 @@ class BarFloorScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  bool _isAdminOrOwner(Tenant tenant) {
+    final type = tenant.type?.toLowerCase() ?? '';
+    return type.contains('admin') || type.contains('owner');
+  }
+
+  Widget _settingsButton() {
+    return Material(
+      color: BarTokens.surface,
+      borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+      child: InkWell(
+        onTap: () =>
+            locator<RouterService>().navigateTo(const AdminControlRoute()),
+        borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+        child: Container(
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+            border: Border.all(color: BarTokens.line, width: 1.5),
+            boxShadow: BarTokens.shadow1,
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.settings_outlined, size: 18, color: BarTokens.ink2),
+              const SizedBox(width: 9),
+              Text(
+                'Settings',
+                style: GoogleFonts.outfit(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  color: BarTokens.ink2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

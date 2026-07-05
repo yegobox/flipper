@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
-import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 

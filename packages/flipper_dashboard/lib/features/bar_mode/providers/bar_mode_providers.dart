@@ -42,7 +42,9 @@ class BarModeState {
   }) {
     return BarModeState(
       screen: screen ?? this.screen,
-      activeCashier: clearCashier ? null : (activeCashier ?? this.activeCashier),
+      activeCashier: clearCashier
+          ? null
+          : (activeCashier ?? this.activeCashier),
       activeTable: clearTable ? null : (activeTable ?? this.activeTable),
       activeTab: clearTab ? null : (activeTab ?? this.activeTab),
       toastMessage: clearToast ? null : (toastMessage ?? this.toastMessage),
@@ -75,10 +77,7 @@ class BarModeNotifier extends Notifier<BarModeState> {
   }
 
   void login(Tenant cashier) {
-    state = state.copyWith(
-      activeCashier: cashier,
-      screen: BarScreen.tables,
-    );
+    state = state.copyWith(activeCashier: cashier, screen: BarScreen.tables);
   }
 
   void logout() {
@@ -147,8 +146,9 @@ class BarModeNotifier extends Notifier<BarModeState> {
   }
 }
 
-final barModeProvider =
-    NotifierProvider<BarModeNotifier, BarModeState>(BarModeNotifier.new);
+final barModeProvider = NotifierProvider<BarModeNotifier, BarModeState>(
+  BarModeNotifier.new,
+);
 
 final barStaffProvider = FutureProvider<List<Tenant>>((ref) async {
   return FlipperBaseModel.fetchBarStaffTenants();
@@ -157,26 +157,28 @@ final barStaffProvider = FutureProvider<List<Tenant>>((ref) async {
 final barTablesProvider = StreamProvider<List<BarTable>>((ref) {
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) return Stream.value([]);
-  return ProxyService.getStrategy(Strategy.capella)
-      .barTablesStream(branchId: branchId);
+  return ProxyService.getStrategy(
+    Strategy.capella,
+  ).barTablesStream(branchId: branchId);
 });
 
 final barTabsProvider = StreamProvider<List<ITransaction>>((ref) {
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) return Stream.value([]);
-  return ProxyService.getStrategy(Strategy.capella)
-      .barTabsStream(branchId: branchId);
+  return ProxyService.getStrategy(
+    Strategy.capella,
+  ).barTabsStream(branchId: branchId);
 });
 
 final barTabLinesProvider =
     StreamProvider.family<List<TransactionItem>, String>((ref, txnId) async* {
-  final sync = ProxyService.getStrategy(Strategy.capella);
-  yield await sync.barTabLines(transactionId: txnId);
-  yield* Stream.periodic(
-    const Duration(seconds: 2),
-    (_) => sync.barTabLines(transactionId: txnId),
-  ).asyncMap((f) => f);
-});
+      final sync = ProxyService.getStrategy(Strategy.capella);
+      yield await sync.barTabLines(transactionId: txnId);
+      yield* Stream.periodic(
+        const Duration(seconds: 2),
+        (_) => sync.barTabLines(transactionId: txnId),
+      ).asyncMap((f) => f);
+    });
 
 bool barTenantIsManager(Tenant tenant) {
   final type = tenant.type?.toLowerCase() ?? '';
