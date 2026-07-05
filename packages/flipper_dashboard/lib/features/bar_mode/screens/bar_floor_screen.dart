@@ -37,7 +37,13 @@ class BarFloorScreen extends ConsumerWidget {
             child: tablesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('$e')),
-              data: (tables) => _zonesBody(context, ref, tables, tabs, staffAsync.value ?? []),
+              data: (tables) => _zonesBody(
+                context,
+                ref,
+                tables,
+                tabs,
+                staffAsync.value ?? [],
+              ),
             ),
           ),
         ],
@@ -45,7 +51,12 @@ class BarFloorScreen extends ConsumerWidget {
     );
   }
 
-  Widget _header(BarModeState bar, int openCount, WidgetRef ref, List<Tenant> staff) {
+  Widget _header(
+    BarModeState bar,
+    int openCount,
+    WidgetRef ref,
+    List<Tenant> staff,
+  ) {
     final cashier = bar.activeCashier;
     return Container(
       height: 76,
@@ -262,8 +273,7 @@ class BarFloorScreen extends ConsumerWidget {
     List<BarTable> zoneTables,
     List<ITransaction> tabs,
   ) {
-    final openInZone =
-        zoneTables.where((t) => _tabFor(t, tabs) != null).length;
+    final openInZone = zoneTables.where((t) => _tabFor(t, tabs) != null).length;
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: Row(
@@ -332,12 +342,7 @@ class _TableCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (tab == null) return _EmptyTableCard(table: table, onTap: onTap);
-    return _OpenTableCard(
-      table: table,
-      tab: tab!,
-      staff: staff,
-      onTap: onTap,
-    );
+    return _OpenTableCard(table: table, tab: tab!, staff: staff, onTap: onTap);
   }
 }
 
@@ -370,8 +375,7 @@ class _EmptyTableCardState extends State<_EmptyTableCard> {
           borderRadius: BorderRadius.circular(BarTokens.radiusMd),
           child: BarDashedCard(
             borderColor: _hovered ? BarTokens.blue : BarTokens.lineStrong,
-            backgroundColor:
-                _hovered ? BarTokens.blueTint : BarTokens.surface,
+            backgroundColor: _hovered ? BarTokens.blueTint : BarTokens.surface,
             child: SizedBox(
               height: 138,
               width: double.infinity,
@@ -396,8 +400,11 @@ class _EmptyTableCardState extends State<_EmptyTableCard> {
                         const Spacer(),
                         Row(
                           children: [
-                            Icon(Icons.person_outline,
-                                size: 13, color: seatColor),
+                            Icon(
+                              Icons.person_outline,
+                              size: 13,
+                              color: seatColor,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '${widget.table.seats}',
@@ -571,8 +578,11 @@ class _OpenTableCardState extends ConsumerState<_OpenTableCard> {
                         ),
                         Row(
                           children: [
-                            Icon(Icons.schedule,
-                                size: 13, color: BarTokens.ink3),
+                            Icon(
+                              Icons.schedule,
+                              size: 13,
+                              color: BarTokens.ink3,
+                            ),
                             const SizedBox(width: 5),
                             Text(
                               duration,
