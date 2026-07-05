@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_add_product_button.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -25,14 +28,7 @@ class PosCatalogSearchRow extends ConsumerWidget {
     return Row(
       children: [
         Expanded(
-          child: _PosSearchField(
-            controller: controller,
-            hintText: hintText,
-            onChanged: (text) {
-              if (ref.read(searchStringProvider) == text) return;
-              ref.read(searchStringProvider.notifier).emitString(value: text);
-            },
-          ),
+          child: _PosSearchField(controller: controller, hintText: hintText),
         ),
         const SizedBox(width: 12),
         _PosScanButton(
@@ -46,38 +42,52 @@ class PosCatalogSearchRow extends ConsumerWidget {
   }
 }
 
-class _PosSearchField extends StatefulWidget {
-  const _PosSearchField({
-    required this.controller,
-    required this.hintText,
-    required this.onChanged,
-  });
+class _PosSearchField extends StatefulHookConsumerWidget {
+  const _PosSearchField({required this.controller, required this.hintText});
 
   final TextEditingController controller;
   final String hintText;
-  final ValueChanged<String> onChanged;
 
   @override
-  State<_PosSearchField> createState() => _PosSearchFieldState();
+  ConsumerState<_PosSearchField> createState() => _PosSearchFieldState();
 }
 
-class _PosSearchFieldState extends State<_PosSearchField> {
-  final _focusNode = FocusNode();
+class _PosSearchFieldState extends ConsumerState<_PosSearchField>
+    with HandleScannWhileSelling<_PosSearchField> {
   final _textSubject = BehaviorSubject<String>();
+  final _model = CoreViewModel();
   StreamSubscription<String>? _debounceSub;
   bool _focused = false;
+  late int _saleSessionSnapshotAtLastTextChange;
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      if (mounted) setState(() => _focused = _focusNode.hasFocus);
+    _saleSessionSnapshotAtLastTextChange = ref.read(
+      pendingCartSaleSessionProvider,
+    );
+    focusNode = FocusNode();
+    hasText = widget.controller.text.isNotEmpty;
+    focusNode.addListener(() {
+      if (mounted) setState(() => _focused = focusNode.hasFocus);
     });
     widget.controller.addListener(_syncSearch);
     _debounceSub = _textSubject
         .debounceTime(posCatalogSearchDebounce)
-        .listen(widget.onChanged);
+        .listen((value) => unawaited(_onDebounced(value)));
     _textSubject.add(widget.controller.text);
+  }
+
+  /// Same debounced path as [SearchField] / mobile checkout: scan mode with a
+  /// single barcode match auto-adds to cart, otherwise the grid search runs.
+  Future<void> _onDebounced(String value) async {
+    if (!mounted) return;
+    if (ref.read(pendingCartSaleSessionProvider) !=
+        _saleSessionSnapshotAtLastTextChange) {
+      return;
+    }
+    if (ref.read(searchStringProvider) == value) return;
+    await processDebouncedValue(value, _model, widget.controller);
   }
 
   @override
@@ -94,11 +104,17 @@ class _PosSearchFieldState extends State<_PosSearchField> {
     widget.controller.removeListener(_syncSearch);
     _debounceSub?.cancel();
     _textSubject.close();
-    _focusNode.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 
-  void _syncSearch() => _textSubject.add(widget.controller.text);
+  void _syncSearch() {
+    _saleSessionSnapshotAtLastTextChange = ref.read(
+      pendingCartSaleSessionProvider,
+    );
+    hasText = widget.controller.text.isNotEmpty;
+    _textSubject.add(widget.controller.text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +151,7 @@ class _PosSearchFieldState extends State<_PosSearchField> {
           Expanded(
             child: TextField(
               controller: widget.controller,
-              focusNode: _focusNode,
+              focusNode: focusNode,
               style: const TextStyle(
                 fontSize: 15.5,
                 fontWeight: FontWeight.w500,
