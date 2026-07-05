@@ -336,6 +336,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     bool immediateCompletion, [
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
+    double overrideAlreadyPaid = 0.0,
   ]) async {
     final controller = CheckoutController(ref: ref, context: context);
 
@@ -359,6 +360,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       discountController: discountController,
       afterCheckoutSaleCleanup: _resetCheckoutAfterSuccessfulSale,
       transactionItemsHint: transactionItemsHint,
+      overrideAlreadyPaid: overrideAlreadyPaid,
       onPaymentConfirmed: onPaymentConfirmed != null
           ? () {
               onPaymentConfirmed();
@@ -399,12 +401,14 @@ class CheckOutState extends ConsumerState<CheckOut>
                         immediateCompletion, [
                         onPaymentConfirmed,
                         onPaymentFailed,
+                        double overrideAlreadyPaid = 0.0,
                       ]) async {
                         return await _handleCompleteTransaction(
                           transaction,
                           immediateCompletion,
                           onPaymentConfirmed,
                           onPaymentFailed,
+                          overrideAlreadyPaid,
                         );
                       },
                 )

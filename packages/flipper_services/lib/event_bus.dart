@@ -6,6 +6,26 @@ class CustomerUpserted {
   CustomerUpserted(this.customer);
 }
 
+/// Fired when a service-layer action should switch an inner dashboard tab.
+class OpenDashboardPageEvent {
+  final String page;
+  const OpenDashboardPageEvent(this.page);
+}
+
+/// Fired when a print delegation arrives so the UI can show an in-app banner.
+/// OS notifications are often suppressed while Flipper is focused.
+class DelegationReceivedEvent {
+  final String transactionId;
+  final String title;
+  final String body;
+
+  const DelegationReceivedEvent({
+    required this.transactionId,
+    required this.title,
+    required this.body,
+  });
+}
+
 class EventBus {
   static final EventBus _instance = EventBus._internal();
   factory EventBus() => _instance;

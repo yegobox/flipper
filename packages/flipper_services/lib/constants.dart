@@ -14,6 +14,9 @@ const int dbVersion = 45;
 /// cleared after navigation from quick access / shortcuts.
 const String kPendingLauncherShortcutPageKey = 'pending_launcher_shortcut_page';
 
+/// Inner dashboard tab (e.g. `delegations`) requested from a notification tap.
+const String kPendingDashboardPageKey = 'pending_dashboard_page';
+
 // Enums
 enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS, CR, CP, PR, TR }
 

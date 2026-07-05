@@ -61,6 +61,16 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     super.didUpdateWidget(oldWidget);
     // Auto-update payment amounts when totalPayable changes
     if (oldWidget.totalPayable != widget.totalPayable) {
+      // Stale Ditto stream can briefly report a lower total while qty +/- is
+      // still optimistic — do not downgrade auto-filled tender (QuickSellingView
+      // owns received-amount sync during that window).
+      if (widget.totalPayable < oldWidget.totalPayable - 0.01) {
+        final payments = ref.read(paymentMethodsProvider);
+        if (payments.length == 1 &&
+            (payments[0].amount - oldWidget.totalPayable).abs() <= 0.01) {
+          return;
+        }
+      }
       talker.warning(
         "PaymentMethodsCard: Total changed from ${oldWidget.totalPayable} to ${widget.totalPayable}",
       );

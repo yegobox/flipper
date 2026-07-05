@@ -24,6 +24,7 @@ import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_
 import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_ledger_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/supabase_accounting_repository.dart';
+import 'package:flipper_web/modules/accounting/data/services/accounting_bootstrap_service.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
 import 'package:flipper_web/modules/accounting/data/services/journal_approval_service.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
@@ -77,6 +78,10 @@ final bankStatementServiceProvider = Provider<BankStatementService>(
 
 final journalApprovalServiceProvider = Provider<JournalApprovalService>(
   (ref) => JournalApprovalService(),
+);
+
+final accountingBootstrapServiceProvider = Provider<AccountingBootstrapService>(
+  (ref) => AccountingBootstrapService(),
 );
 
 final coaTypeFilterProvider = StateProvider<AccountType?>((ref) => null);
@@ -206,7 +211,80 @@ Future<bool> waitForAccountingDittoReady(
   return true;
 }
 
-/// Ditto replication + COA seed. Uses [ref.read] only — safe to call from
+/// Fire-and-forget server bootstrap when business context is known (login/restore).
+void kickoffAccountingBootstrap(WidgetRef ref, String businessId) {
+  kickoffAccountingServerBootstrap(
+    ref.read(accountingBootstrapServiceProvider),
+    businessId,
+    onOffline: () => unawaited(ensureCoaFallbackSeed(ref as Ref, businessId)),
+  );
+}
+
+/// Same as [kickoffAccountingBootstrap] for [Ref] callbacks (restore provider).
+void kickoffAccountingBootstrapFromRef(Ref ref, String businessId) {
+  kickoffAccountingServerBootstrap(
+    ref.read(accountingBootstrapServiceProvider),
+    businessId,
+    onOffline: () => unawaited(ensureCoaFallbackSeed(ref, businessId)),
+  );
+}
+
+void kickoffAccountingServerBootstrap(
+  AccountingBootstrapService service,
+  String businessId, {
+  void Function()? onOffline,
+}) {
+  if (businessId.isEmpty) return;
+  unawaited(
+    service
+        .ensureBusinessReady(businessId)
+        .then(
+          (r) => debugPrint(
+            '[Accounting] server bootstrap kickoff OK '
+            'businessId=$businessId seeded=${r.seeded} '
+            'alreadyReady=${r.alreadyReady}',
+          ),
+        )
+        .catchError(
+          (Object e) {
+            debugPrint(
+              '[Accounting] server bootstrap kickoff failed '
+              '(continuing with Ditto poll): $e',
+            );
+            onOffline?.call();
+          },
+        ),
+  );
+}
+
+/// Postgres + local Ditto seed when server bootstrap or replication did not
+/// deliver COA rows (common on localhost without data-connector).
+Future<void> ensureCoaFallbackSeed(Ref ref, String businessId) async {
+  if (businessId.isEmpty) return;
+
+  try {
+    await SupabaseAccountingLedgerRepository(ref.read(supabaseProvider))
+        .ensureSeeded(businessId: businessId);
+    debugPrint(
+      '[Accounting] Supabase COA fallback OK businessId=$businessId',
+    );
+  } catch (e) {
+    debugPrint('[Accounting] Supabase COA fallback failed: $e');
+  }
+
+  try {
+    await ref
+        .read(accountingLedgerRepositoryProvider)
+        .ensureSeeded(businessId: businessId);
+    debugPrint('[Accounting] Ditto COA fallback OK businessId=$businessId');
+  } catch (e) {
+    debugPrint('[Accounting] Ditto COA fallback failed: $e');
+  }
+
+  invalidateAccountingDataStreams(ref);
+}
+
+/// Ditto subscriptions + COA replication wait. Uses [ref.read] only — safe to call from
 /// providers without triggering same-frame rebuild loops.
 Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
   if (ref.read(accountingBackendStrategyProvider) !=
@@ -236,42 +314,49 @@ Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
       branchId: branchId.isEmpty ? null : branchId,
     );
 
-    final replicated = await waitForAccountingReplication(
+    try {
+      await ref
+          .read(accountingBootstrapServiceProvider)
+          .ensureBusinessReady(businessId)
+          .timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {
+              debugPrint(
+                '[Accounting] bootstrap HTTP slow — continuing with Ditto COA poll',
+              );
+              return const BootstrapAccountingResult(
+                seeded: false,
+                alreadyReady: false,
+              );
+            },
+          );
+    } catch (e) {
+      debugPrint(
+        '[Accounting] bootstrap HTTP failed — continuing with Ditto COA poll: $e',
+      );
+    }
+
+    final coaReady = await waitForChartOfAccountsReplication(
       ditto: instance,
       businessId: businessId,
-      branchId: branchId.isEmpty ? null : branchId,
     );
 
-    // COA can replicate before journal_entries on native — wait for GL rows.
-    if (replicated) {
-      final journalReady = await waitForJournalEntriesInDitto(
+    if (!coaReady) {
+      debugPrint(
+        '[Accounting] COA not visible after poll — running fallback seed',
+      );
+      await ensureCoaFallbackSeed(ref, businessId);
+      final afterSeed = await waitForChartOfAccountsReplication(
         ditto: instance,
         businessId: businessId,
-        timeout: kIsWeb
-            ? const Duration(seconds: 15)
-            : const Duration(seconds: 45),
+        timeout: const Duration(seconds: 20),
       );
-      if (!journalReady) {
+      if (!afterSeed) {
         debugPrint(
-          '[Accounting] journal_entries not visible yet after replication — '
-          'scheduling delayed stream refresh',
+          '[Accounting] COA still empty after fallback — scheduling refresh',
         );
         _scheduleAccountingReplicationRefresh(ref);
       }
-    }
-
-    final cloudSyncUp =
-        instance.sync.isActive && instance.auth.status.isAuthenticated;
-    if (!replicated && kIsWeb && cloudSyncUp) {
-      debugPrint(
-        '[Accounting] web replication slow — skipping COA seed while cloud sync '
-        'is active (avoids empty defaults on dart2wasm / slow DQL)',
-      );
-      _scheduleAccountingReplicationRefresh(ref);
-    } else {
-      await ref.read(accountingLedgerRepositoryProvider).ensureSeeded(
-            businessId: businessId,
-          );
     }
 
     invalidateAccountingDataStreams(ref);
@@ -287,11 +372,8 @@ Future<void> runAccountingPostSyncBootstrap(Ref ref) async {
   }
 }
 
-/// Registers Ditto subscriptions, waits for replication, seeds COA if empty,
-/// logs diagnostics, then refreshes data streams.
-final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
-  // One-shot wait for restore — read (not watch) avoids circular dependency
-  // when Ditto bootstrap invalidates this provider during restore.
+/// Fast gate: subscriptions, server bootstrap, COA replication (not journals).
+final accountingCoaBootstrapProvider = FutureProvider<void>((ref) async {
   await ref.read(selectedBusinessRestoreProvider.future);
 
   ref.watch(dittoReadyProvider);
@@ -300,7 +382,7 @@ final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
   if (businessId.isEmpty) return;
 
   debugPrint(
-    '[Accounting] post-sync bootstrap scheduled '
+    '[Accounting] COA bootstrap scheduled '
     'businessId=$businessId branchId=${branchId.isEmpty ? "(none)" : branchId} '
     'branch=${ref.read(selectedBranchProvider)?.name ?? "(none)"}',
   );
@@ -308,18 +390,28 @@ final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
   final strategy = ref.read(accountingBackendStrategyProvider);
   if (strategy == AccountingBackendStrategy.ditto) {
     if (!ref.read(dittoReadyProvider)) {
-      if (!await waitForAccountingDittoReady(ref)) {
-        debugPrint('[Accounting] post-sync bootstrap aborted — Ditto not ready');
+      if (!await waitForAccountingDittoReady(
+        ref,
+        timeout: const Duration(seconds: 30),
+      )) {
+        debugPrint('[Accounting] COA bootstrap aborted — Ditto not ready');
         return;
       }
     }
     try {
       await runAccountingPostSyncBootstrap(ref);
+      final coaCount = ref.read(accountingCoaProvider).length;
+      if (coaCount == 0) {
+        debugPrint(
+          '[Accounting] COA stream still empty after bootstrap — retrying fallback',
+        );
+        await ensureCoaFallbackSeed(ref, businessId);
+      }
       debugPrint(
-        '[Accounting] post-sync bootstrap OK (businessId=$businessId)',
+        '[Accounting] COA bootstrap OK (businessId=$businessId coa=$coaCount)',
       );
     } catch (e, st) {
-      debugPrint('[Accounting] post-sync bootstrap FAILED: $e\n$st');
+      debugPrint('[Accounting] COA bootstrap FAILED: $e\n$st');
       rethrow;
     }
   } else {
@@ -336,12 +428,48 @@ final accountingPostSyncBootstrapProvider = FutureProvider<void>((ref) async {
     }
   }
 
-  // Yield so stream invalidations from bootstrap can settle before we read them.
   await Future<void>.delayed(Duration.zero);
   if (!ref.mounted) return;
 
   await logAccountingStartupDiagnostics(ref);
 });
+
+/// Background journal replication after the shell is visible.
+final accountingJournalReplicationProvider = FutureProvider<void>((ref) async {
+  await ref.read(accountingCoaBootstrapProvider.future);
+
+  if (ref.read(accountingBackendStrategyProvider) !=
+      AccountingBackendStrategy.ditto) {
+    return;
+  }
+  if (!ref.read(dittoReadyProvider)) return;
+
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return;
+
+  final instance = ref.read(dittoServiceProvider).dittoInstance;
+  if (instance == null) return;
+
+  final journalReady = await waitForJournalEntriesInDitto(
+    ditto: instance,
+    businessId: businessId,
+    timeout: kIsWeb
+        ? const Duration(seconds: 15)
+        : const Duration(seconds: 45),
+  );
+  if (!journalReady) {
+    debugPrint(
+      '[Accounting] journal_entries not visible yet — scheduling delayed refresh',
+    );
+    _scheduleAccountingReplicationRefresh(ref);
+  } else {
+    invalidateAccountingDataStreams(ref);
+  }
+});
+
+/// Registers Ditto subscriptions, waits for COA replication, logs diagnostics.
+/// @deprecated Prefer [accountingCoaBootstrapProvider].
+final accountingPostSyncBootstrapProvider = accountingCoaBootstrapProvider;
 
 /// @deprecated Use [accountingPostSyncBootstrapProvider].
 final accountingDittoSyncProvider = Provider<void>((ref) {
@@ -444,7 +572,7 @@ final accountingJournalProvider = Provider<List<JournalEntry>>((ref) {
 final accountingAccountsProvider = Provider<List<Account>>((ref) {
   final coa = ref.watch(accountingCoaProvider);
   final journal = ref.watch(accountingJournalProvider);
-  if (coa.isEmpty) return [];
+  if (coa.isEmpty) return coa;
   return accountsWithBalances(coa, journal);
 });
 

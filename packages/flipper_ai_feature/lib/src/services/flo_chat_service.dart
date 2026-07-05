@@ -22,6 +22,10 @@ class FloChatService {
 
   final http.Client _client;
 
+  static const _connectTimeout = Duration(seconds: 30);
+  static const _chatTimeout = Duration(minutes: 3);
+  static const _briefingTimeout = Duration(seconds: 90);
+
   Future<String> _baseUrl() async {
     final branchId = ProxyService.box.getBranchId();
     String? dataConnectorUrl;
@@ -54,19 +58,21 @@ class FloChatService {
     final uri = Uri.parse('${base}api/ai/chat');
     http.Response response;
     try {
-      response = await _client.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'branch_id': branchId,
-          'message': message,
-          'history': history,
-          'mode': mode,
-          if (conversationId != null) 'conversation_id': conversationId,
-          if (deviceSales != null) 'device_sales': deviceSales,
-          if (shopName != null && shopName.isNotEmpty) 'shop_name': shopName,
-        }),
-      );
+      response = await _client
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'branch_id': branchId,
+              'message': message,
+              'history': history,
+              'mode': mode,
+              if (conversationId != null) 'conversation_id': conversationId,
+              if (deviceSales != null) 'device_sales': deviceSales,
+              if (shopName != null && shopName.isNotEmpty) 'shop_name': shopName,
+            }),
+          )
+          .timeout(_chatTimeout);
     } catch (e) {
       throw FloChatException('Could not reach Flo at $base: $e');
     }
@@ -104,7 +110,9 @@ class FloChatService {
 
     http.StreamedResponse streamed;
     try {
-      streamed = await _client.send(request);
+      streamed = await _client
+          .send(request)
+          .timeout(_connectTimeout);
     } catch (e) {
       throw FloChatException('Could not reach Flo at $base: $e');
     }
@@ -117,7 +125,9 @@ class FloChatService {
 
     var currentEvent = 'message';
     var lineBuffer = '';
-    await for (final chunk in streamed.stream.transform(utf8.decoder)) {
+    await for (final chunk in streamed.stream
+        .timeout(_chatTimeout)
+        .transform(utf8.decoder)) {
       lineBuffer += chunk;
       final lines = lineBuffer.split('\n');
       lineBuffer = lines.removeLast();
@@ -172,7 +182,9 @@ class FloChatService {
     );
     http.Response response;
     try {
-      response = await _client.get(uri);
+      response = await _client
+          .get(uri)
+          .timeout(_briefingTimeout);
     } catch (e) {
       throw FloChatException('Could not reach Flo briefing at $base: $e');
     }

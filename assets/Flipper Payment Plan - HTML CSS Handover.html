@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flipper · Payment Plan — HTML/CSS + Flutter Handover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#EEF2F9; --app:#F5F8FD; --surface:#FFFFFF; --surface-2:#F7F9FE;
+    --ink-1:#0B1220; --ink-2:#4A5567; --ink-3:#7E8AA0; --ink-4:#AEB8CA;
+    --line:#E6ECF5; --line-strong:#D6DEEA;
+    --blue:#2563EB; --blue-700:#1D4ED8; --blue-tint:#EAF1FE; --blue-tint2:#DEEAFD;
+    --loss:#DC2626; --warnamber:#B45309; --gain:#16A34A;
+    --grad-brand:linear-gradient(135deg,#22D3EE,#2563EB 52%,#4F46E5);
+    --grad-btn:linear-gradient(180deg,#2C6BF0,#1D4ED8);
+    --sans:'Geist',ui-sans-serif,system-ui,sans-serif;
+    --mono:'Geist Mono',ui-monospace,Menlo,monospace;
+    --sh-1:0 1px 2px rgba(16,32,64,.05),0 1px 1px rgba(16,32,64,.04);
+    --sh-2:0 6px 18px -6px rgba(16,32,64,.14),0 2px 6px rgba(16,32,64,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    font-family:var(--sans); color:var(--ink-1); background:var(--bg);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 30px; display:grid; grid-template-columns:232px 1fr; gap:44px; align-items:start;}
+  nav.toc{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; padding:40px 0 40px; border-right:1px solid var(--line);}
+  nav.toc::-webkit-scrollbar{width:0;}
+  main{padding:46px 0 120px; min-width:0;}
+
+  .brand{display:flex; align-items:center; gap:11px; margin-bottom:26px;}
+  .brand .mk{width:38px; height:38px; border-radius:12px; background:var(--grad-brand); display:grid; place-items:center; box-shadow:var(--sh-2);}
+  .brand .mk svg{width:22px; height:22px;}
+  .brand b{font-size:15px; font-weight:700; letter-spacing:-.01em;}
+  .brand span{display:block; font-size:11.5px; color:var(--ink-3); font-weight:500;}
+  .toc a{display:block; padding:6px 14px 6px 12px; font-size:13px; color:var(--ink-2); text-decoration:none; border-left:2px solid transparent; border-radius:0 6px 6px 0;}
+  .toc a:hover{color:var(--ink-1); background:var(--surface); }
+  .toc a.grp{margin-top:16px; font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-4); padding-left:12px; pointer-events:none;}
+
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--blue); }
+  .eyebrow .dot{width:7px; height:7px; border-radius:50%; background:var(--grad-brand);}
+  h1{font-size:40px; font-weight:800; letter-spacing:-.03em; margin:16px 0 0; line-height:1.05;}
+  .lede{font-size:16.5px; color:var(--ink-2); max-width:60ch; margin:16px 0 0; text-wrap:pretty;}
+  .meta{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px;}
+  .chip{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; color:var(--ink-2); background:var(--surface); border:1px solid var(--line); padding:7px 13px; border-radius:999px; box-shadow:var(--sh-1);}
+  .chip b{color:var(--ink-1);}
+
+  section{scroll-margin-top:24px; padding-top:52px;}
+  h2{font-size:13px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--blue); margin:0 0 4px;}
+  .h2sub{font-size:25px; font-weight:800; letter-spacing:-.02em; margin:0 0 20px;}
+  h3{font-size:17px; font-weight:700; letter-spacing:-.01em; margin:34px 0 12px;}
+  p{margin:0 0 14px; color:var(--ink-2); font-size:15px; max-width:70ch; text-wrap:pretty;}
+  p strong,li strong{color:var(--ink-1); font-weight:700;}
+  code{font-family:var(--mono); font-size:.88em; background:var(--blue-tint); color:var(--blue-700); padding:1px 6px; border-radius:6px;}
+  ul{margin:0 0 14px; padding-left:20px; color:var(--ink-2); font-size:15px;}
+  li{margin:5px 0;}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--sh-1); padding:22px 24px; margin:0 0 16px;}
+  .note{border-left:3px solid var(--blue); background:var(--blue-tint); border-radius:0 12px 12px 0; padding:14px 18px; margin:16px 0; font-size:14px; color:var(--ink-2);}
+  .note.warn{border-color:var(--warnamber); background:#FEF3E2;}
+  .note.flutter{border-color:#02569B; background:#E6F2FB;}
+  .note b{color:var(--ink-1);}
+
+  table{width:100%; border-collapse:collapse; margin:8px 0 18px; font-size:13.5px;}
+  th{text-align:left; font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3); padding:0 12px 9px; border-bottom:1px solid var(--line);}
+  td{padding:10px 12px; border-bottom:1px solid var(--line); color:var(--ink-2); vertical-align:top;}
+  td:first-child{color:var(--ink-1); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  .sw{display:inline-block; width:13px; height:13px; border-radius:4px; vertical-align:-2px; margin-right:7px; border:1px solid rgba(0,0,0,.08);}
+  td .mono,.tmono{font-family:var(--mono); font-size:12.5px;}
+
+  pre{background:#0B1220; color:#E9EEF6; border-radius:14px; padding:20px 22px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.65; margin:6px 0 20px; box-shadow:var(--sh-2); white-space:pre;}
+  pre .k{color:#7DB4FF;} pre .s{color:#9DE1A4;} pre .c{color:#5E6B82; font-style:italic;} pre .t{color:#7BE0F2;} pre .n{color:#F2C88B;} pre .p{color:#C9B6F5;}
+  .filetag{display:inline-block; font-family:var(--mono); font-size:11px; color:var(--ink-3); background:var(--surface-2); border:1px solid var(--line); padding:3px 9px; border-radius:7px; margin:0 0 -6px;}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:900px){ .wrap{grid-template-columns:1fr;} nav.toc{display:none;} .grid2{grid-template-columns:1fr;} }
+
+  .anat{display:flex; align-items:baseline; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;}
+  .anat b{min-width:170px; color:var(--ink-1);}
+  .anat span{color:var(--ink-2);}
+  .kbd{font-family:var(--mono); font-size:12px; color:var(--blue-700); background:var(--blue-tint); padding:1px 6px; border-radius:5px;}
+
+  @media print{
+    body{background:#fff;} nav.toc{display:none;} .wrap{grid-template-columns:1fr; max-width:none; padding:0 8mm;}
+    pre{box-shadow:none;} section{padding-top:26px;} h1{font-size:30px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc">
+    <div class="brand">
+      <span class="mk"><svg viewBox="0 0 48 48" fill="none"><path d="M24 7.5a16.5 16.5 0 1 1-11.6 4.8" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M24 16.5a7.5 7.5 0 1 0 5.3 2.2" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".6"/></svg></span>
+      <span><b>Flipper</b><span>Payment Plan · Handover</span></span>
+    </div>
+    <a class="grp">Foundations</a>
+    <a href="#overview">Overview</a>
+    <a href="#anatomy">Screen anatomy</a>
+    <a href="#tokens">Design tokens (CSS)</a>
+    <a href="#type">Typography</a>
+    <a href="#fonts">Fonts &amp; base</a>
+    <a class="grp">Components</a>
+    <a href="#header">Header</a>
+    <a href="#intro">Intro block</a>
+    <a href="#segment">Billing segment</a>
+    <a href="#plans">Plan tiles</a>
+    <a href="#addon">Additional services</a>
+    <a href="#total">Total card</a>
+    <a href="#split">Split payments</a>
+    <a href="#switch">Toggle switch</a>
+    <a href="#actions">Primary action</a>
+    <a class="grp">Behaviour</a>
+    <a href="#states">States</a>
+    <a href="#logic">Data &amp; logic</a>
+    <a href="#layout">Scroll &amp; layout</a>
+    <a href="#icons">Icons</a>
+    <a href="#copy">Copy deck</a>
+    <a class="grp">Flutter</a>
+    <a href="#flutter">Widget mapping</a>
+  </nav>
+
+  <main>
+    <div class="eyebrow"><span class="dot"></span>Developer handover · HTML + CSS → Flutter</div>
+    <h1>Payment Plan</h1>
+    <p class="lede">Complete build spec for the subscription plan-selection screen: token stylesheet, per-component markup &amp; rules, states, business logic, the one layout gotcha, and a Flutter widget mapping. Every value is pulled directly from the approved prototype — <code>Flipper Payment Plan.html</code> (styles: <code>payment_plan/plan.css</code> + <code>payment_issue/payment.css</code>).</p>
+    <div class="meta">
+      <span class="chip">Stack <b>HTML + CSS → Flutter</b></span>
+      <span class="chip">Design width <b>390px</b></span>
+      <span class="chip">Currency <b>RWF</b> · en-RW</span>
+      <span class="chip">Provider <b>MTN Mobile Money</b></span>
+      <span class="chip">Font <b>Geist / Geist Mono</b></span>
+    </div>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section id="overview">
+      <h2>01 — Overview</h2>
+      <div class="h2sub">What this screen does</div>
+      <p>A single-column plan-selection screen inside a phone frame with a fixed header. The user picks a billing cycle, selects one of three plans, optionally adds a service, optionally splits the charge into installments, and confirms. It reuses the Flipper checkout component set (segmented control, plan tiles, toggle switch, primary button) so it stays visually consistent with the rest of the app.</p>
+      <ul>
+        <li><strong>Primary goal</strong> — choose a plan and proceed to payment.</li>
+        <li><strong>Live pricing</strong> — the total recomputes on every cycle / plan / add-on / installment change.</li>
+        <li><strong>Payment rail</strong> — MTN Mobile Money (shown in the CTA sub-note; the charge itself happens on the next screen).</li>
+      </ul>
+      <div class="note"><b>Files.</b> New styles live in <code>payment_plan/plan.css</code>; shared component styles in <code>payment_issue/payment.css</code>; base tokens in <code>onboarding/styles.css</code>. Behaviour reference is <code>payment_plan/plan-app.jsx</code> — this handover restates the same UI as framework-free HTML/CSS plus a Flutter map.</div>
+    </section>
+
+    <!-- ============ ANATOMY ============ -->
+    <section id="anatomy">
+      <h2>02 — Screen anatomy</h2>
+      <div class="h2sub">Top → bottom order</div>
+      <div class="card">
+        <div class="anat"><b>1 · Header</b><span>Back chevron (left) + centered title "Payment Plan". Fixed, does not scroll.</span></div>
+        <div class="anat"><b>2 · Intro</b><span>Left-aligned title "Select the plan that works for you" + one-line subtitle.</span></div>
+        <div class="anat"><b>3 · Billing segment</b><span>Monthly / Yearly (20% off) sliding segmented control.</span></div>
+        <div class="anat"><b>4 · Plan tiles</b><span>3 single-select tiles: Mobile only · Mobile + Desktop · Enterprise.</span></div>
+        <div class="anat"><b>5 · Additional services</b><span>Section label + add-on row (Tax Reporting Consulting) with a toggle.</span></div>
+        <div class="anat"><b>6 · Total</b><span>Brand-tinted card: "Total" + selection summary + big mono price with /period suffix.</span></div>
+        <div class="anat"><b>7 · Split payments</b><span>Inline toggle → reveals 1× / 3× / 6× / 12× segment + per-payment hint.</span></div>
+        <div class="anat"><b>8 · Action</b><span>Proceed to Payment (primary) + "Secure payment via MTN Mobile Money" note.</span></div>
+      </div>
+      <p>The screen is a <strong>flex column</strong>: a fixed header, then a <code>flex:1</code> scroll region. Vertical gap between every block is <span class="kbd">16px</span>. Scroll padding: <span class="kbd">4px</span> top, <span class="kbd">20px</span> sides, <span class="kbd">26px</span> bottom.</p>
+<pre><span class="t">.pi</span> { <span class="p">position</span>:relative; <span class="p">height</span>:<span class="n">100%</span>; <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column;
+      <span class="p">background</span>:radial-gradient(<span class="n">120% 58%</span> at <span class="n">50% -6%</span>, #FFF <span class="n">0%</span>, <span class="k">var</span>(--app) <span class="n">46%</span>, <span class="k">var</span>(--app-2) <span class="n">100%</span>);
+      <span class="p">overflow</span>:hidden; }
+<span class="t">.pi-scroll</span> { <span class="p">flex</span>:<span class="n">1</span>; <span class="p">min-height</span>:<span class="n">0</span>; <span class="p">overflow-y</span>:auto; <span class="p">padding</span>:<span class="n">4px 20px 26px</span>;
+             <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column; <span class="p">gap</span>:<span class="n">16px</span>; }
+<span class="c">/* CRITICAL — see §17. Stops clipping cards from collapsing. */</span>
+<span class="t">.pi-scroll &gt; *</span> { <span class="p">flex-shrink</span>:<span class="n">0</span>; }</pre>
+    </section>
+
+    <!-- ============ TOKENS ============ -->
+    <section id="tokens">
+      <h2>03 — Design tokens</h2>
+      <div class="h2sub">The CSS custom properties</div>
+      <p>Base surfaces, ink, lines, brand, radii and shadows come from <code>onboarding/styles.css</code>; the success tone is defined at the top of <code>payment.css</code>. Drop this <code>:root</code> in once.</p>
+      <div class="filetag">tokens</div>
+<pre><span class="t">:root</span> {
+  <span class="c">/* surfaces */</span>
+  --app:<span class="n">#F5F8FD</span>; --app-2:<span class="n">#EDF2FB</span>; --surface:<span class="n">#FFFFFF</span>; --surface-2:<span class="n">#F7F9FE</span>;
+  <span class="c">/* ink */</span>
+  --ink-1:<span class="n">#0B1220</span>; --ink-2:<span class="n">#4A5567</span>; --ink-3:<span class="n">#7E8AA0</span>; --ink-4:<span class="n">#AEB8CA</span>;
+  <span class="c">/* lines */</span>
+  --line:<span class="n">#E6ECF5</span>; --line-strong:<span class="n">#D6DEEA</span>;
+  <span class="c">/* brand */</span>
+  --blue:<span class="n">#2563EB</span>; --blue-700:<span class="n">#1D4ED8</span>; --blue-tint:<span class="n">#EAF1FE</span>; --blue-tint2:<span class="n">#DEEAFD</span>;
+  --grad-btn:linear-gradient(<span class="n">180deg</span>, #2C6BF0 <span class="n">0%</span>, #1D4ED8 <span class="n">100%</span>);
+  --grad-brand-soft:linear-gradient(<span class="n">135deg</span>, #E7FBFE <span class="n">0%</span>, #EAF1FE <span class="n">60%</span>, #EEECFE <span class="n">100%</span>);
+  <span class="c">/* success (confirmation screen) */</span>
+  --gain:<span class="n">#16A34A</span>; --gain-ink:<span class="n">#15803D</span>; --gain-tint:<span class="n">#E7F6EE</span>;
+  <span class="c">/* radii */</span>
+  --r-sm:<span class="n">10px</span>; --r-md:<span class="n">14px</span>; --r-lg:<span class="n">20px</span>; --r-xl:<span class="n">26px</span>; --r-pill:<span class="n">999px</span>;
+  <span class="c">/* shadow */</span>
+  --sh-1:<span class="n">0 1px 2px</span> rgba(16,32,64,.05), <span class="n">0 1px 1px</span> rgba(16,32,64,.04);
+  --sh-blue:<span class="n">0 12px 28px -8px</span> rgba(37,99,235,.45), <span class="n">0 3px 8px</span> rgba(37,99,235,.25);
+  <span class="c">/* type */</span>
+  --sans:<span class="s">'Geist'</span>, ui-sans-serif, system-ui, sans-serif;
+  --mono:<span class="s">'Geist Mono'</span>, ui-monospace, Menlo, monospace;
+}</pre>
+
+      <h3>Color reference</h3>
+      <table>
+        <thead><tr><th>Token</th><th>Hex</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sw" style="background:#F5F8FD"></span>--app</td><td class="mono">#F5F8FD</td><td>Screen base (top of gradient)</td></tr>
+          <tr><td><span class="sw" style="background:#EDF2FB"></span>--app-2</td><td class="mono">#EDF2FB</td><td>Screen base (bottom of gradient)</td></tr>
+          <tr><td><span class="sw" style="background:#FFFFFF"></span>--surface</td><td class="mono">#FFFFFF</td><td>Cards, plan tiles, inputs</td></tr>
+          <tr><td><span class="sw" style="background:#F7F9FE"></span>--surface-2</td><td class="mono">#F7F9FE</td><td>Recessed rows (segment track)</td></tr>
+          <tr><td><span class="sw" style="background:#0B1220"></span>--ink-1</td><td class="mono">#0B1220</td><td>Primary text, titles</td></tr>
+          <tr><td><span class="sw" style="background:#4A5567"></span>--ink-2</td><td class="mono">#4A5567</td><td>Body / secondary text</td></tr>
+          <tr><td><span class="sw" style="background:#7E8AA0"></span>--ink-3</td><td class="mono">#7E8AA0</td><td>Captions, labels, hints</td></tr>
+          <tr><td><span class="sw" style="background:#AEB8CA"></span>--ink-4</td><td class="mono">#AEB8CA</td><td>Placeholders</td></tr>
+          <tr><td><span class="sw" style="background:#E6ECF5"></span>--line</td><td class="mono">#E6ECF5</td><td>Default borders</td></tr>
+          <tr><td><span class="sw" style="background:#D6DEEA"></span>--line-strong</td><td class="mono">#D6DEEA</td><td>Radio ring, switch-off track</td></tr>
+          <tr><td><span class="sw" style="background:#2563EB"></span>--blue</td><td class="mono">#2563EB</td><td>Primary accent, total value, switch on</td></tr>
+          <tr><td><span class="sw" style="background:#1D4ED8"></span>--blue-700</td><td class="mono">#1D4ED8</td><td>Gradient end / card titles on tint</td></tr>
+          <tr><td><span class="sw" style="background:#EAF1FE"></span>--blue-tint</td><td class="mono">#EAF1FE</td><td>Icon tiles, focus ring, selected add-on glow</td></tr>
+          <tr><td><span class="sw" style="background:#DEEAFD"></span>--blue-tint2</td><td class="mono">#DEEAFD</td><td>Brand card borders</td></tr>
+          <tr><td><span class="sw" style="background:#16A34A"></span>--gain</td><td class="mono">#16A34A</td><td>Success badge (confirmation)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Gradients, radii &amp; shadows</h3>
+      <ul>
+        <li><strong>--grad-btn</strong> — <span class="tmono">180deg, #2C6BF0 → #1D4ED8</span>. Primary button, selected plan tile, segment thumb.</li>
+        <li><strong>--grad-brand-soft</strong> — <span class="tmono">135deg, #E7FBFE → #EAF1FE (60%) → #EEECFE</span>. Total card background.</li>
+        <li><strong>Screen bg</strong> — radial from top-center, <span class="tmono">#FFF → --app (46%) → --app-2</span>.</li>
+      </ul>
+      <div class="grid2">
+        <table>
+          <thead><tr><th>Radius</th><th>px</th></tr></thead>
+          <tbody>
+            <tr><td>--r-sm</td><td class="mono">10</td></tr>
+            <tr><td>--r-md</td><td class="mono">14</td></tr>
+            <tr><td>--r-lg</td><td class="mono">20</td></tr>
+            <tr><td>--r-xl</td><td class="mono">26</td></tr>
+            <tr><td>--r-pill</td><td class="mono">999</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <thead><tr><th>Shadow</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>--sh-1</td><td class="mono">0 1 2 rgba(16,32,64,.05)</td></tr>
+            <tr><td>--sh-blue</td><td class="mono">0 12 28 -8 rgba(37,99,235,.45)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Spacing rhythm is a loose 4-scale: <span class="kbd">4</span> <span class="kbd">8</span> <span class="kbd">12</span> <span class="kbd">13</span> <span class="kbd">14</span> <span class="kbd">16</span> <span class="kbd">18</span> <span class="kbd">20</span> px. Card inner padding <span class="kbd">15–18</span>; segment height <span class="kbd">48</span> (40 button + 4×2 pad); primary button <span class="kbd">58</span>.</p>
+    </section>
+
+    <!-- ============ TYPOGRAPHY ============ -->
+    <section id="type">
+      <h2>04 — Typography</h2>
+      <div class="h2sub">Type scale</div>
+      <p>Sans is <strong>Geist</strong>; all currency / numeric values use <strong>Geist Mono</strong> (<code>font-family: var(--mono)</code>). Tracking tightens as size grows.</p>
+      <table>
+        <thead><tr><th>Role</th><th>size / weight</th><th>letter-spacing</th><th>color</th></tr></thead>
+        <tbody>
+          <tr><td>Intro title</td><td class="mono">24px / 800</td><td class="mono">-.03em</td><td>--ink-1</td></tr>
+          <tr><td>Header title</td><td class="mono">18px / 700</td><td class="mono">-.02em</td><td>--ink-1</td></tr>
+          <tr><td>Intro subtitle</td><td class="mono">14.5px / 400</td><td class="mono">0</td><td>--ink-2</td></tr>
+          <tr><td>Plan name</td><td class="mono">15.5px / 700</td><td class="mono">-.01em</td><td>--ink-1 / #fff</td></tr>
+          <tr><td>Plan price</td><td class="mono">13px / 600 (mono)</td><td class="mono">0</td><td>--ink-2 / --ink-3</td></tr>
+          <tr><td>Add-on name</td><td class="mono">15px / 700</td><td class="mono">-.01em</td><td>--ink-1</td></tr>
+          <tr><td>Section label</td><td class="mono">11.5px / 700</td><td class="mono">.09em ·UPPER</td><td>--ink-3</td></tr>
+          <tr><td>Total label</td><td class="mono">12.5px / 700</td><td class="mono">.06em ·UPPER</td><td>--ink-3</td></tr>
+          <tr><td>Total value <em>(mono)</em></td><td class="mono">22px / 800</td><td class="mono">-.02em</td><td>--blue</td></tr>
+          <tr><td>Segment button</td><td class="mono">14px / 700</td><td class="mono">0</td><td>--ink-2 / #fff</td></tr>
+          <tr><td>Installment button <em>(mono)</em></td><td class="mono">14px / 700</td><td class="mono">0</td><td>--ink-2 / #fff</td></tr>
+          <tr><td>Primary button</td><td class="mono">16.5px / 700</td><td class="mono">-.01em</td><td>#fff</td></tr>
+          <tr><td>Hint / note</td><td class="mono">12–12.5px / 500</td><td class="mono">0</td><td>--ink-3</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ FONTS ============ -->
+    <section id="fonts">
+      <h2>05 — Fonts &amp; base</h2>
+      <div class="h2sub">Load once in &lt;head&gt;</div>
+<pre><span class="k">&lt;link</span> rel=<span class="s">"preconnect"</span> href=<span class="s">"https://fonts.googleapis.com"</span><span class="k">&gt;</span>
+<span class="k">&lt;link</span> rel=<span class="s">"preconnect"</span> href=<span class="s">"https://fonts.gstatic.com"</span> crossorigin<span class="k">&gt;</span>
+<span class="k">&lt;link</span> href=<span class="s">"https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600;700&amp;display=swap"</span> rel=<span class="s">"stylesheet"</span><span class="k">&gt;</span></pre>
+<pre><span class="t">*</span> { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+<span class="t">body</span> { font-family:<span class="k">var</span>(--sans); color:<span class="k">var</span>(--ink-1); margin:<span class="n">0</span>; }
+<span class="c">/* mount the screen in a 390px-wide frame; .pi fills it 100% */</span></pre>
+      <div class="note flutter"><b>Flutter fonts.</b> Bundle Geist &amp; Geist Mono in <code>pubspec.yaml</code> under <code>fonts:</code> (weights 400/500/600/700/800). Use <code>fontFamily: 'Geist'</code> for text and <code>'GeistMono'</code> for every RWF amount, installment count, and price.</div>
+    </section>
+
+    <!-- ============ HEADER ============ -->
+    <section id="header">
+      <h2>06 — Header</h2>
+      <div class="h2sub">Fixed top bar</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pi-top"</span><span class="k">&gt;</span>
+  <span class="k">&lt;button</span> class=<span class="s">"icon-circle"</span> aria-label=<span class="s">"Back"</span><span class="k">&gt;</span>&lt;svg …chevron-left/&gt;<span class="k">&lt;/button&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pi-title"</span><span class="k">&gt;</span>Payment Plan<span class="k">&lt;/div&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+<pre><span class="t">.pi-top</span> { <span class="p">display</span>:grid; <span class="p">grid-template-columns</span>:<span class="n">44px 1fr 44px</span>; <span class="p">align-items</span>:center;
+          <span class="p">padding</span>:<span class="n">4px 16px 12px</span>; <span class="p">flex-shrink</span>:<span class="n">0</span>; }
+<span class="t">.pi-title</span> { <span class="p">grid-column</span>:<span class="n">2</span>; <span class="p">text-align</span>:center; <span class="p">font-size</span>:<span class="n">18px</span>;
+            <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">letter-spacing</span>:-<span class="n">.02em</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-1); }</pre>
+      <p>Back button: <span class="kbd">40×40</span> white circle, <code>--line</code> border, <code>--sh-1</code>, chevron 20px <code>--ink-1</code>. Sits <em>outside</em> the scroll region so it stays fixed. The 44/1fr/44 grid keeps the title optically centered.</p>
+    </section>
+
+    <!-- ============ INTRO ============ -->
+    <section id="intro">
+      <h2>07 — Intro block</h2>
+      <div class="h2sub">Left-aligned title + subtitle</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pp-intro"</span><span class="k">&gt;</span>
+  <span class="k">&lt;h1&gt;</span>Select the plan that works for you<span class="k">&lt;/h1&gt;</span>
+  <span class="k">&lt;p&gt;</span>Switch between plans anytime. Yearly billing saves you 20%.<span class="k">&lt;/p&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+      <div class="filetag">payment_plan/plan.css</div>
+<pre><span class="t">.pp-intro</span> { <span class="p">padding</span>:<span class="n">4px 4px 2px</span>; }
+<span class="t">.pp-intro h1</span> { <span class="p">margin</span>:<span class="n">0</span>; <span class="p">font-size</span>:<span class="n">24px</span>; <span class="p">font-weight</span>:<span class="n">800</span>;
+               <span class="p">letter-spacing</span>:-<span class="n">.03em</span>; <span class="p">line-height</span>:<span class="n">1.12</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-1);
+               <span class="p">text-wrap</span>:balance; }
+<span class="t">.pp-intro p</span> { <span class="p">margin</span>:<span class="n">8px 0 0</span>; <span class="p">font-size</span>:<span class="n">14.5px</span>; <span class="p">line-height</span>:<span class="n">1.5</span>;
+              <span class="p">color</span>:<span class="k">var</span>(--ink-2); <span class="p">max-width</span>:<span class="n">34ch</span>; }</pre>
+      <p>The subtitle's "20%" mirrors the active discount — keep it bound to the same value the segment shows (see §18).</p>
+    </section>
+
+    <!-- ============ SEGMENT ============ -->
+    <section id="segment">
+      <h2>08 — Billing segment</h2>
+      <div class="h2sub">Monthly / Yearly</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pi-seg"</span><span class="k">&gt;</span>          <span class="c">&lt;!-- add .yr for yearly --&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pi-seg-thumb"</span><span class="k">&gt;&lt;/div&gt;</span>
+  <span class="k">&lt;button</span> class=<span class="s">"on"</span><span class="k">&gt;</span>Monthly<span class="k">&lt;/button&gt;</span>
+  <span class="k">&lt;button&gt;</span>Yearly <span class="k">&lt;span</span> class=<span class="s">"save"</span><span class="k">&gt;</span>(20% off)<span class="k">&lt;/span&gt;&lt;/button&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+<pre><span class="t">.pi-seg</span> { <span class="p">position</span>:relative; <span class="p">display</span>:grid; <span class="p">grid-template-columns</span>:<span class="n">1fr 1fr</span>; <span class="p">padding</span>:<span class="n">4px</span>;
+          <span class="p">background</span>:<span class="k">var</span>(--surface-2); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--line); <span class="p">border-radius</span>:<span class="k">var</span>(--r-md); }
+<span class="t">.pi-seg-thumb</span> { <span class="p">position</span>:absolute; <span class="p">top</span>:<span class="n">4px</span>; <span class="p">bottom</span>:<span class="n">4px</span>; <span class="p">left</span>:<span class="n">4px</span>; <span class="p">width</span>:calc(<span class="n">50% - 4px</span>);
+                <span class="p">border-radius</span>:<span class="n">10px</span>; <span class="p">background</span>:<span class="k">var</span>(--grad-btn); <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-blue);
+                <span class="p">transition</span>:transform <span class="n">.26s</span> cubic-bezier(.22,.9,.3,1); }
+<span class="t">.pi-seg.yr .pi-seg-thumb</span> { <span class="p">transform</span>:translateX(<span class="n">100%</span>); }
+<span class="t">.pi-seg button</span> { <span class="p">height</span>:<span class="n">40px</span>; <span class="p">font-size</span>:<span class="n">14px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-2); <span class="p">z-index</span>:<span class="n">1</span>; }
+<span class="t">.pi-seg button.on</span> { <span class="p">color</span>:#fff; }
+<span class="t">.pi-seg .save</span> { <span class="p">color</span>:<span class="k">var</span>(--blue); }
+<span class="t">.pi-seg button.on .save</span> { <span class="p">color</span>:rgba(255,255,255,.85); }</pre>
+      <p>Add class <code>.yr</code> to slide the thumb right. The "(20% off)" tag is <code>--blue</code> when inactive, white@85% when active. Selecting Yearly recomputes all prices (see §18).</p>
+    </section>
+
+    <!-- ============ PLANS ============ -->
+    <section id="plans">
+      <h2>09 — Plan tiles</h2>
+      <div class="h2sub">Single-select list</div>
+<pre><span class="k">&lt;button</span> class=<span class="s">"pi-plan on"</span><span class="k">&gt;</span>       <span class="c">&lt;!-- .on = selected --&gt;</span>
+  <span class="k">&lt;span</span> class=<span class="s">"pi-plan-ic"</span><span class="k">&gt;</span>&lt;svg …phone/&gt;<span class="k">&lt;/span&gt;</span>
+  <span class="k">&lt;span</span> class=<span class="s">"pi-plan-txt"</span><span class="k">&gt;</span>
+    <span class="k">&lt;span</span> class=<span class="s">"pi-plan-name"</span><span class="k">&gt;</span>Mobile only<span class="k">&lt;/span&gt;</span>
+    <span class="k">&lt;span</span> class=<span class="s">"pi-plan-price"</span><span class="k">&gt;&lt;b&gt;</span>5,000 RWF/month<span class="k">&lt;/b&gt;&lt;/span&gt;</span>
+  <span class="k">&lt;/span&gt;</span>
+  <span class="k">&lt;span</span> class=<span class="s">"pi-plan-check"</span><span class="k">&gt;</span>&lt;svg …check/&gt;<span class="k">&lt;/span&gt;</span>  <span class="c">&lt;!-- else .pi-plan-radio --&gt;</span>
+<span class="k">&lt;/button&gt;</span></pre>
+<pre><span class="t">.pi-plan</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">gap</span>:<span class="n">13px</span>; <span class="p">padding</span>:<span class="n">14px 15px</span>;
+           <span class="p">border</span>:<span class="n">1.5px</span> solid <span class="k">var</span>(--line); <span class="p">border-radius</span>:<span class="k">var</span>(--r-md);
+           <span class="p">background</span>:<span class="k">var</span>(--surface); }
+<span class="t">.pi-plan-txt</span> { <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column; <span class="p">align-items</span>:flex-start; <span class="p">flex</span>:<span class="n">1</span>; }
+<span class="t">.pi-plan-ic</span> { <span class="p">width</span>:<span class="n">40px</span>; <span class="p">height</span>:<span class="n">40px</span>; <span class="p">border-radius</span>:<span class="n">11px</span>; <span class="p">display</span>:grid; <span class="p">place-items</span>:center;
+              <span class="p">background</span>:<span class="k">var</span>(--surface-2); <span class="p">color</span>:<span class="k">var</span>(--ink-2); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--line); }
+<span class="t">.pi-plan-name</span> { <span class="p">font-size</span>:<span class="n">15.5px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-1); }
+<span class="t">.pi-plan-price</span> { <span class="p">font-size</span>:<span class="n">13px</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-3); <span class="p">margin-top</span>:<span class="n">2px</span>; }
+<span class="t">.pi-plan-price b</span> { <span class="p">font-family</span>:<span class="k">var</span>(--mono); <span class="p">font-weight</span>:<span class="n">600</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-2); }
+<span class="t">.pi-plan-radio</span> { <span class="p">width</span>:<span class="n">22px</span>; <span class="p">height</span>:<span class="n">22px</span>; <span class="p">border-radius</span>:<span class="n">50%</span>; <span class="p">border</span>:<span class="n">2px</span> solid <span class="k">var</span>(--line-strong); }
+<span class="c">/* selected */</span>
+<span class="t">.pi-plan.on</span> { <span class="p">background</span>:<span class="k">var</span>(--grad-btn); <span class="p">border-color</span>:transparent; <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-blue); }
+<span class="t">.pi-plan.on .pi-plan-ic</span> { <span class="p">background</span>:rgba(255,255,255,.2); <span class="p">color</span>:#fff; <span class="p">border-color</span>:transparent; }
+<span class="t">.pi-plan.on .pi-plan-name</span> { <span class="p">color</span>:#fff; }
+<span class="t">.pi-plan.on .pi-plan-price</span>,
+<span class="t">.pi-plan.on .pi-plan-price b</span> { <span class="p">color</span>:rgba(255,255,255,.82); }
+<span class="t">.pi-plan-check</span> { <span class="p">width</span>:<span class="n">24px</span>; <span class="p">height</span>:<span class="n">24px</span>; <span class="p">border-radius</span>:<span class="n">50%</span>; <span class="p">background</span>:rgba(255,255,255,.22);
+                 <span class="p">color</span>:#fff; <span class="p">display</span>:grid; <span class="p">place-items</span>:center; }</pre>
+      <p>Leading <span class="kbd">40×40</span> icon tile (radius 11). Unselected shows <code>.pi-plan-radio</code>; selected replaces it with <code>.pi-plan-check</code>, flips the whole tile to the blue gradient, tile to white@20%, text to white / white@82%.</p>
+      <table>
+        <thead><tr><th>Plan</th><th>Icon</th><th>Monthly (RWF)</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Mobile only</td><td>Phone</td><td class="mono">5,000</td><td>default selection</td></tr>
+          <tr><td>Mobile + Desktop</td><td>Monitor</td><td class="mono">120,000</td><td>—</td></tr>
+          <tr><td>Enterprise</td><td>Building</td><td class="mono">1,500,000+</td><td>"+" = starting at</td></tr>
+        </tbody>
+      </table>
+      <p>Price line — monthly: <span class="tmono">"{m} RWF/month"</span>; yearly: <span class="tmono">"{round(m·0.8)} RWF/mo · billed yearly"</span>. Append "+" to the Enterprise figure in both cycles.</p>
+    </section>
+
+    <!-- ============ ADDON ============ -->
+    <section id="addon">
+      <h2>10 — Additional services</h2>
+      <div class="h2sub">Section label + add-on row</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pp-label"</span><span class="k">&gt;</span>Additional Services<span class="k">&lt;/div&gt;</span>
+<span class="k">&lt;div</span> class=<span class="s">"pp-addon"</span><span class="k">&gt;</span>            <span class="c">&lt;!-- .on when enabled --&gt;</span>
+  <span class="k">&lt;span</span> class=<span class="s">"pi-ic"</span><span class="k">&gt;</span>&lt;svg …document/&gt;<span class="k">&lt;/span&gt;</span>
+  <span class="k">&lt;span</span> class=<span class="s">"pp-addon-txt"</span><span class="k">&gt;</span>
+    <span class="k">&lt;span</span> class=<span class="s">"pp-addon-name"</span><span class="k">&gt;</span>Tax Reporting Consulting<span class="k">&lt;/span&gt;</span>
+    <span class="k">&lt;span</span> class=<span class="s">"pp-addon-price"</span><span class="k">&gt;&lt;b&gt;</span>30,000 RWF/month<span class="k">&lt;/b&gt;&lt;/span&gt;</span>
+  <span class="k">&lt;/span&gt;</span>
+  <span class="k">&lt;button</span> class=<span class="s">"pi-switch"</span> role=<span class="s">"switch"</span><span class="k">&gt;</span>&lt;i&gt;&lt;/i&gt;<span class="k">&lt;/button&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+      <div class="filetag">payment_plan/plan.css</div>
+<pre><span class="t">.pp-label</span> { <span class="p">padding</span>:<span class="n">6px 4px 0</span>; <span class="p">font-size</span>:<span class="n">11.5px</span>; <span class="p">font-weight</span>:<span class="n">700</span>;
+            <span class="p">letter-spacing</span>:<span class="n">.09em</span>; <span class="p">text-transform</span>:uppercase; <span class="p">color</span>:<span class="k">var</span>(--ink-3); }
+<span class="t">.pp-addon</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">gap</span>:<span class="n">13px</span>; <span class="p">padding</span>:<span class="n">15px 16px</span>;
+            <span class="p">background</span>:<span class="k">var</span>(--surface); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--line);
+            <span class="p">border-radius</span>:<span class="k">var</span>(--r-lg); <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-1); }
+<span class="t">.pp-addon.on</span> { <span class="p">border-color</span>:<span class="k">var</span>(--blue-tint2); <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-1), <span class="n">0 0 0 3px</span> <span class="k">var</span>(--blue-tint); }
+<span class="t">.pp-addon-txt</span> { <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column; <span class="p">align-items</span>:flex-start; <span class="p">flex</span>:<span class="n">1</span>; }
+<span class="t">.pp-addon-name</span> { <span class="p">font-size</span>:<span class="n">15px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-1); }
+<span class="t">.pp-addon-price</span> { <span class="p">font-size</span>:<span class="n">12.5px</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-3); <span class="p">margin-top</span>:<span class="n">2px</span>; }
+<span class="t">.pp-addon-price b</span> { <span class="p">font-family</span>:<span class="k">var</span>(--mono); <span class="p">font-weight</span>:<span class="n">600</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-2); }
+<span class="t">.pi-ic</span> { <span class="p">width</span>:<span class="n">40px</span>; <span class="p">height</span>:<span class="n">40px</span>; <span class="p">border-radius</span>:<span class="n">12px</span>; <span class="p">display</span>:grid; <span class="p">place-items</span>:center;
+        <span class="p">background</span>:<span class="k">var</span>(--blue-tint); <span class="p">color</span>:<span class="k">var</span>(--blue); }</pre>
+      <p>When on, the row gains a 3px <code>--blue-tint</code> ring. The price follows the active cycle (yearly shows the discounted per-month equivalent).</p>
+    </section>
+
+    <!-- ============ TOTAL ============ -->
+    <section id="total">
+      <h2>11 — Total card</h2>
+      <div class="h2sub">Brand-tinted running total</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pp-total"</span><span class="k">&gt;</span>            <span class="c">&lt;!-- add .plain for white variant --&gt;</span>
+  <span class="k">&lt;span&gt;</span>
+    <span class="k">&lt;span</span> class=<span class="s">"pp-total-k"</span><span class="k">&gt;</span>Total<span class="k">&lt;/span&gt;</span>
+    <span class="k">&lt;span</span> class=<span class="s">"pp-total-sub"</span><span class="k">&gt;</span>Mobile only<span class="k">&lt;/span&gt;</span>
+  <span class="k">&lt;/span&gt;</span>
+  <span class="k">&lt;span</span> class=<span class="s">"pp-total-right"</span><span class="k">&gt;</span>
+    <span class="k">&lt;span</span> class=<span class="s">"pp-total-v"</span><span class="k">&gt;</span>RWF 5,000.00 <span class="k">&lt;span</span> class=<span class="s">"per"</span><span class="k">&gt;</span>/month<span class="k">&lt;/span&gt;&lt;/span&gt;</span>
+  <span class="k">&lt;/span&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+<pre><span class="t">.pp-total</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">justify-content</span>:space-between; <span class="p">gap</span>:<span class="n">14px</span>;
+            <span class="p">padding</span>:<span class="n">17px 18px</span>; <span class="p">border-radius</span>:<span class="k">var</span>(--r-lg);
+            <span class="p">background</span>:<span class="k">var</span>(--grad-brand-soft); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--blue-tint2); }
+<span class="t">.pp-total.plain</span> { <span class="p">background</span>:<span class="k">var</span>(--surface); <span class="p">border-color</span>:<span class="k">var</span>(--line); <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-1); }
+<span class="t">.pp-total-k</span> { <span class="p">font-size</span>:<span class="n">12.5px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">letter-spacing</span>:<span class="n">.06em</span>;
+              <span class="p">text-transform</span>:uppercase; <span class="p">color</span>:<span class="k">var</span>(--ink-3); }
+<span class="t">.pp-total-sub</span> { <span class="p">display</span>:block; <span class="p">font-size</span>:<span class="n">12px</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-3); <span class="p">margin-top</span>:<span class="n">3px</span>; }
+<span class="t">.pp-total-v</span> { <span class="p">font-family</span>:<span class="k">var</span>(--mono); <span class="p">font-size</span>:<span class="n">22px</span>; <span class="p">font-weight</span>:<span class="n">800</span>;
+              <span class="p">letter-spacing</span>:-<span class="n">.02em</span>; <span class="p">color</span>:<span class="k">var</span>(--blue); <span class="p">white-space</span>:nowrap; }
+<span class="t">.pp-total-v .per</span> { <span class="p">font-family</span>:<span class="k">var</span>(--sans); <span class="p">font-size</span>:<span class="n">13px</span>; <span class="p">font-weight</span>:<span class="n">600</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-3); }</pre>
+      <p>The sub-line summarizes the current selection (<em>plan name</em>, plus <em>" + Tax Consulting"</em> when the add-on is on). The <code>/period</code> suffix is <code>/month</code> or <code>/year</code>, matching the cycle.</p>
+    </section>
+
+    <!-- ============ SPLIT ============ -->
+    <section id="split">
+      <h2>12 — Split payments</h2>
+      <div class="h2sub">Inline toggle + installment reveal</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pi-inline"</span><span class="k">&gt;</span>
+  <span class="k">&lt;span</span> class=<span class="s">"pi-inline-lbl"</span><span class="k">&gt;</span>Split into payments<span class="k">&lt;/span&gt;</span>
+  <span class="k">&lt;button</span> class=<span class="s">"pi-switch"</span> role=<span class="s">"switch"</span><span class="k">&gt;</span>&lt;i&gt;&lt;/i&gt;<span class="k">&lt;/button&gt;</span>
+<span class="k">&lt;/div&gt;</span>
+<span class="c">&lt;!-- when ON: --&gt;</span>
+<span class="k">&lt;div</span> class=<span class="s">"pp-inst"</span><span class="k">&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pp-seg4"</span><span class="k">&gt;</span>
+    <span class="k">&lt;div</span> class=<span class="s">"pp-seg4-thumb"</span> style=<span class="s">"transform:translateX(0%)"</span><span class="k">&gt;&lt;/div&gt;</span>
+    <span class="k">&lt;button</span> class=<span class="s">"on"</span><span class="k">&gt;</span>1×<span class="k">&lt;/button&gt;&lt;button&gt;</span>3×<span class="k">&lt;/button&gt;&lt;button&gt;</span>6×<span class="k">&lt;/button&gt;&lt;button&gt;</span>12×<span class="k">&lt;/button&gt;</span>
+  <span class="k">&lt;/div&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pp-inst-hint"</span><span class="k">&gt;</span>&lt;svg …info/&gt; Paid in full — one charge of &lt;b&gt;RWF 5,000&lt;/b&gt;.<span class="k">&lt;/div&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+<pre><span class="t">.pi-inline</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">justify-content</span>:space-between; <span class="p">padding</span>:<span class="n">0 4px</span>; }
+<span class="t">.pi-inline-lbl</span> { <span class="p">font-size</span>:<span class="n">15px</span>; <span class="p">font-weight</span>:<span class="n">600</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-1); }
+<span class="t">.pp-seg4</span> { <span class="p">position</span>:relative; <span class="p">display</span>:grid; <span class="p">grid-template-columns</span>:repeat(<span class="n">4</span>,1fr); <span class="p">padding</span>:<span class="n">4px</span>;
+           <span class="p">background</span>:<span class="k">var</span>(--surface-2); <span class="p">border</span>:<span class="n">1px</span> solid <span class="k">var</span>(--line); <span class="p">border-radius</span>:<span class="k">var</span>(--r-md); }
+<span class="t">.pp-seg4-thumb</span> { <span class="p">position</span>:absolute; <span class="p">top</span>:<span class="n">4px</span>; <span class="p">bottom</span>:<span class="n">4px</span>; <span class="p">left</span>:<span class="n">4px</span>; <span class="p">width</span>:calc(<span class="n">25% - 4px</span>);
+                 <span class="p">border-radius</span>:<span class="n">10px</span>; <span class="p">background</span>:<span class="k">var</span>(--grad-btn); <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-blue);
+                 <span class="p">transition</span>:transform <span class="n">.26s</span> cubic-bezier(.22,.9,.3,1); }
+<span class="t">.pp-seg4 button</span> { <span class="p">height</span>:<span class="n">40px</span>; <span class="p">font-size</span>:<span class="n">14px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">font-family</span>:<span class="k">var</span>(--mono);
+                  <span class="p">color</span>:<span class="k">var</span>(--ink-2); <span class="p">z-index</span>:<span class="n">1</span>; }
+<span class="t">.pp-seg4 button.on</span> { <span class="p">color</span>:#fff; }
+<span class="t">.pp-inst-hint</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">gap</span>:<span class="n">7px</span>; <span class="p">margin</span>:<span class="n">10px 2px 0</span>;
+                <span class="p">font-size</span>:<span class="n">12.5px</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-3); }
+<span class="t">.pp-inst-hint b</span> { <span class="p">color</span>:<span class="k">var</span>(--ink-2); <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">font-family</span>:<span class="k">var</span>(--mono); }</pre>
+      <p>Thumb position: <code>translateX(index × 100%)</code> where index is the position of the chosen count in <code>[1,3,6,12]</code>. Hint copy: <strong>1×</strong> → "Paid in full — one charge of <b>RWF&nbsp;{total}</b>."; otherwise → "<b>{n}</b> payments of <b>RWF&nbsp;{ceil(total/n)}</b> each."</p>
+    </section>
+
+    <!-- ============ SWITCH ============ -->
+    <section id="switch">
+      <h2>13 — Toggle switch</h2>
+      <div class="h2sub">Shared control</div>
+<pre><span class="k">&lt;button</span> class=<span class="s">"pi-switch"</span> role=<span class="s">"switch"</span> aria-checked=<span class="s">"false"</span><span class="k">&gt;</span>&lt;i&gt;&lt;/i&gt;<span class="k">&lt;/button&gt;</span></pre>
+<pre><span class="t">.pi-switch</span> { <span class="p">position</span>:relative; <span class="p">width</span>:<span class="n">50px</span>; <span class="p">height</span>:<span class="n">30px</span>; <span class="p">border-radius</span>:<span class="n">999px</span>;
+             <span class="p">background</span>:<span class="k">var</span>(--line-strong); <span class="p">transition</span>:background <span class="n">.22s</span>; }
+<span class="t">.pi-switch.on</span> { <span class="p">background</span>:<span class="k">var</span>(--blue); }
+<span class="t">.pi-switch i</span> { <span class="p">position</span>:absolute; <span class="p">top</span>:<span class="n">3px</span>; <span class="p">left</span>:<span class="n">3px</span>; <span class="p">width</span>:<span class="n">24px</span>; <span class="p">height</span>:<span class="n">24px</span>; <span class="p">border-radius</span>:<span class="n">50%</span>;
+               <span class="p">background</span>:#fff; <span class="p">box-shadow</span>:<span class="n">0 2px 5px</span> rgba(11,18,32,.28);
+               <span class="p">transition</span>:transform <span class="n">.22s</span> cubic-bezier(.3,.7,.4,1); }
+<span class="t">.pi-switch.on i</span> { <span class="p">transform</span>:translateX(<span class="n">20px</span>); }</pre>
+      <p>Used by the add-on and the split-payments rows. Toggle the <code>.on</code> class + <code>aria-checked</code> on tap.</p>
+    </section>
+
+    <!-- ============ ACTIONS ============ -->
+    <section id="actions">
+      <h2>14 — Primary action</h2>
+      <div class="h2sub">Proceed to Payment</div>
+<pre><span class="k">&lt;div</span> class=<span class="s">"pi-actions"</span><span class="k">&gt;</span>
+  <span class="k">&lt;button</span> class=<span class="s">"pi-retry"</span><span class="k">&gt;</span>&lt;svg …shield-check/&gt; Proceed to Payment<span class="k">&lt;/button&gt;</span>
+  <span class="k">&lt;div</span> class=<span class="s">"pp-cta-note"</span><span class="k">&gt;</span>Secure payment via <span class="k">&lt;b&gt;</span>MTN Mobile Money<span class="k">&lt;/b&gt;&lt;/div&gt;</span>
+<span class="k">&lt;/div&gt;</span></pre>
+<pre><span class="t">.pi-actions</span> { <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column; <span class="p">gap</span>:<span class="n">10px</span>; <span class="p">margin-top</span>:<span class="n">4px</span>; }
+<span class="t">.pi-retry</span> { <span class="p">display</span>:flex; <span class="p">align-items</span>:center; <span class="p">justify-content</span>:center; <span class="p">gap</span>:<span class="n">10px</span>;
+            <span class="p">width</span>:<span class="n">100%</span>; <span class="p">height</span>:<span class="n">58px</span>; <span class="p">border-radius</span>:<span class="k">var</span>(--r-md); <span class="p">color</span>:#fff;
+            <span class="p">font-size</span>:<span class="n">16.5px</span>; <span class="p">font-weight</span>:<span class="n">700</span>; <span class="p">background</span>:<span class="k">var</span>(--grad-btn); <span class="p">box-shadow</span>:<span class="k">var</span>(--sh-blue); }
+<span class="t">.pi-retry:disabled</span> { <span class="p">opacity</span>:.75; }
+<span class="t">.pp-cta-note</span> { <span class="p">text-align</span>:center; <span class="p">font-size</span>:<span class="n">12px</span>; <span class="p">color</span>:<span class="k">var</span>(--ink-3); }
+<span class="t">.pp-cta-note b</span> { <span class="p">color</span>:<span class="k">var</span>(--ink-2); <span class="p">font-weight</span>:<span class="n">700</span>; }</pre>
+      <p>Leading icon: shield-check, 20px. On tap: disable, show the loading overlay, then the success screen (see §15).</p>
+    </section>
+
+    <!-- ============ STATES ============ -->
+    <section id="states">
+      <h2>15 — States &amp; flow</h2>
+      <div class="h2sub">Three stages</div>
+      <table>
+        <thead><tr><th>Stage</th><th>Trigger</th><th>UI</th></tr></thead>
+        <tbody>
+          <tr><td>form</td><td>default</td><td>Full scroll layout described above.</td></tr>
+          <tr><td>loading</td><td>Tap Proceed</td><td>Full-screen <code>.pi-load</code>: 46px ring spinner + "Setting up your plan…", ~1500ms → success.</td></tr>
+          <tr><td>ok</td><td>after loading</td><td><code>.pi-ok</code> full-screen: gain badge (92px, check 44) + "You're all set" + "Your {plan} plan is active. A receipt has been sent via SMS." + Done.</td></tr>
+        </tbody>
+      </table>
+<pre><span class="t">.pi-load</span> { <span class="p">position</span>:absolute; <span class="p">inset</span>:<span class="n">0</span>; <span class="p">display</span>:flex; <span class="p">flex-direction</span>:column;
+            <span class="p">align-items</span>:center; <span class="p">justify-content</span>:center; <span class="p">gap</span>:<span class="n">18px</span>;
+            <span class="p">background</span>:radial-gradient(<span class="n">120% 60%</span> at <span class="n">50% -6%</span>, #FFF, <span class="k">var</span>(--app) <span class="n">46%</span>, <span class="k">var</span>(--app-2)); }
+<span class="t">.pi-load .spinner</span> { <span class="p">width</span>:<span class="n">46px</span>; <span class="p">height</span>:<span class="n">46px</span>; <span class="p">border-radius</span>:<span class="n">50%</span>;
+                    <span class="p">border</span>:<span class="n">4px</span> solid <span class="k">var</span>(--line); <span class="p">border-top-color</span>:<span class="k">var</span>(--blue);
+                    <span class="p">animation</span>:piSpin <span class="n">.75s</span> linear infinite; }
+<span class="t">.pi-ok-badge</span> { <span class="p">width</span>:<span class="n">92px</span>; <span class="p">height</span>:<span class="n">92px</span>; <span class="p">border-radius</span>:<span class="n">26px</span>; <span class="p">display</span>:grid; <span class="p">place-items</span>:center;
+               <span class="p">background</span>:<span class="k">var</span>(--gain-tint); <span class="p">color</span>:<span class="k">var</span>(--gain-ink); <span class="p">box-shadow</span>:inset <span class="n">0 0 0 1px</span> #BFE6CF; }</pre>
+      <div class="note"><b>Prototype flow</b> uses timers as a stand-in. Replace with the real MoMo request: <em>form → pending (loading) → success / error</em>. Keep the same three visual states; on error, surface a toast or inline message and re-enable the button.</div>
+    </section>
+
+    <!-- ============ LOGIC ============ -->
+    <section id="logic">
+      <h2>16 — Data &amp; logic</h2>
+      <div class="h2sub">Model + total</div>
+<pre><span class="k">const</span> PLANS = [
+  { id:<span class="s">'mobile'</span>,  name:<span class="s">'Mobile only'</span>,      icon:<span class="s">'phone'</span>,   m:<span class="n">5000</span>    },
+  { id:<span class="s">'desktop'</span>, name:<span class="s">'Mobile + Desktop'</span>, icon:<span class="s">'monitor'</span>, m:<span class="n">120000</span>  },
+  { id:<span class="s">'ent'</span>,     name:<span class="s">'Enterprise'</span>,       icon:<span class="s">'building'</span>,m:<span class="n">1500000</span>, plus:<span class="k">true</span> },
+];
+<span class="k">const</span> ADDON = { name:<span class="s">'Tax Reporting Consulting'</span>, m:<span class="n">30000</span> };
+<span class="k">const</span> INSTALLMENTS = [<span class="n">1</span>, <span class="n">3</span>, <span class="n">6</span>, <span class="n">12</span>];
+<span class="k">const</span> DISCOUNT = <span class="n">0.20</span>;                 <span class="c">// yearly</span>
+
+<span class="k">const</span> disc = <span class="n">1</span> - DISCOUNT;
+<span class="c">// per-line values, driven by cycle</span>
+<span class="k">const</span> monthlyEquiv = (m, yearly) =&gt; yearly ? m * disc : m;
+<span class="k">const</span> lineTotal    = (m, yearly) =&gt; yearly ? m * <span class="n">12</span> * disc : m;
+
+<span class="k">function</span> <span class="t">computeTotal</span>(plan, yearly, addonOn) {
+  <span class="k">const</span> base  = lineTotal(plan.m, yearly);
+  <span class="k">const</span> extra = addonOn ? lineTotal(ADDON.m, yearly) : <span class="n">0</span>;
+  <span class="k">return</span> base + extra;                <span class="c">// number, RWF</span>
+}
+<span class="k">const</span> per = yearly ? <span class="s">'year'</span> : <span class="s">'month'</span>;
+<span class="k">const</span> perPayment = total / (splitOn ? installments : <span class="n">1</span>);
+
+<span class="c">// grouped thousands for RWF; round before formatting</span>
+<span class="k">const</span> fmt = n =&gt; Math.round(n).toLocaleString(<span class="s">'en-US'</span>);   <span class="c">// 1,152,000</span>
+<span class="c">// total display: `RWF ${fmt(total)}.00`  → Geist Mono, --blue, 22/800</span></pre>
+      <table>
+        <thead><tr><th>Plan</th><th>Monthly total</th><th>Yearly total (−20%)</th><th>Yearly /mo shown</th></tr></thead>
+        <tbody>
+          <tr><td>Mobile only</td><td class="mono">5,000</td><td class="mono">48,000</td><td class="mono">4,000</td></tr>
+          <tr><td>Mobile + Desktop</td><td class="mono">120,000</td><td class="mono">1,152,000</td><td class="mono">96,000</td></tr>
+          <tr><td>Enterprise</td><td class="mono">1,500,000+</td><td class="mono">14,400,000+</td><td class="mono">1,200,000+</td></tr>
+          <tr><td>Add-on (Tax)</td><td class="mono">30,000</td><td class="mono">288,000</td><td class="mono">24,000</td></tr>
+        </tbody>
+      </table>
+      <p>Installment per-payment = <code>ceil(total / n)</code> for the hint. Enterprise is "starting at" — treat <code>1,500,000</code> as the base for math and append "+" only in display strings.</p>
+    </section>
+
+    <!-- ============ LAYOUT ============ -->
+    <section id="layout">
+      <h2>17 — Scroll &amp; layout gotcha</h2>
+      <div class="h2sub">Read this before you build</div>
+      <p>The screen is a flex column: a fixed <code>.pi-top</code>, then a <code>.pi-scroll</code> region with <code>flex:1; min-height:0; overflow-y:auto</code>. Blocks inside are separated by <code>gap:16px</code>.</p>
+      <div class="note warn"><b>Web gotcha.</b> Because <code>.pi-scroll</code> is a flex column, its children can <em>shrink</em> below content height and any card with <code>overflow:hidden</code> will clip to a sliver. <strong>Fix:</strong> <code>.pi-scroll &gt; * { flex-shrink:0; }</code>. In Flutter this doesn't apply — a <code>ListView</code>/<code>SingleChildScrollView</code> already gives children their natural height.</div>
+      <div class="note flutter"><b>Flutter equivalent.</b> <code>Column</code> (fixed header) → <code>Expanded(child: ListView(padding: EdgeInsets.fromLTRB(20,4,20,26), children: [...]))</code>. Insert <code>SizedBox(height:16)</code> between blocks (or <code>separatorBuilder</code>).</div>
+    </section>
+
+    <!-- ============ ICONS ============ -->
+    <section id="icons">
+      <h2>18 — Icons</h2>
+      <div class="h2sub">1.5–1.7 stroke, rounded caps</div>
+      <p>Inline SVG line icons, rounded joins, <code>stroke="currentColor"</code> so they inherit the parent color. In Flutter, use a matching rounded line-icon set (e.g. Lucide via <code>lucide_icons</code>, or Phosphor "regular") and tint with the parent color.</p>
+      <table>
+        <thead><tr><th>Icon</th><th>Where</th><th>Size</th><th>Lucide name</th></tr></thead>
+        <tbody>
+          <tr><td>chevron-left</td><td>Back button</td><td class="mono">20</td><td class="mono">chevron-left</td></tr>
+          <tr><td>phone</td><td>Mobile plan tile</td><td class="mono">20</td><td class="mono">smartphone</td></tr>
+          <tr><td>monitor</td><td>Desktop plan tile</td><td class="mono">20</td><td class="mono">monitor-smartphone</td></tr>
+          <tr><td>building</td><td>Enterprise plan tile</td><td class="mono">20</td><td class="mono">building-2</td></tr>
+          <tr><td>check</td><td>Selected plan · success</td><td class="mono">15 / 44</td><td class="mono">check</td></tr>
+          <tr><td>document (calc)</td><td>Add-on tile</td><td class="mono">20</td><td class="mono">file-text</td></tr>
+          <tr><td>info</td><td>Installment hint</td><td class="mono">14</td><td class="mono">info</td></tr>
+          <tr><td>shield-check</td><td>Primary button</td><td class="mono">20</td><td class="mono">shield-check</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ COPY ============ -->
+    <section id="copy">
+      <h2>19 — Copy deck</h2>
+      <div class="h2sub">Exact strings</div>
+      <table>
+        <thead><tr><th>Location</th><th>String</th></tr></thead>
+        <tbody>
+          <tr><td>Header</td><td>Payment Plan</td></tr>
+          <tr><td>Intro title</td><td>Select the plan that works for you</td></tr>
+          <tr><td>Intro subtitle</td><td>Switch between plans anytime. Yearly billing saves you 20%.</td></tr>
+          <tr><td>Segment</td><td>Monthly · Yearly (20% off)</td></tr>
+          <tr><td>Plan price (monthly)</td><td>{amount} RWF/month</td></tr>
+          <tr><td>Plan price (yearly)</td><td>{amount} RWF/mo · billed yearly</td></tr>
+          <tr><td>Section label</td><td>Additional Services</td></tr>
+          <tr><td>Add-on</td><td>Tax Reporting Consulting · {amount} RWF/month</td></tr>
+          <tr><td>Total label</td><td>Total</td></tr>
+          <tr><td>Total value</td><td>RWF {amount}.00 /{period}</td></tr>
+          <tr><td>Split toggle</td><td>Split into payments</td></tr>
+          <tr><td>Installment hint (1×)</td><td>Paid in full — one charge of RWF {total}.</td></tr>
+          <tr><td>Installment hint (n×)</td><td>{n} payments of RWF {perPayment} each.</td></tr>
+          <tr><td>Primary button</td><td>Proceed to Payment</td></tr>
+          <tr><td>CTA note</td><td>Secure payment via MTN Mobile Money</td></tr>
+          <tr><td>Loading</td><td>Setting up your plan…</td></tr>
+          <tr><td>Success</td><td>You're all set · Your {plan} plan is active. A receipt has been sent via SMS.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ FLUTTER ============ -->
+    <section id="flutter">
+      <h2>20 — Flutter widget mapping</h2>
+      <div class="h2sub">HTML/CSS → widgets</div>
+      <p>Direct translations for the main pieces. Colors below are the token hexes; define them once as a <code>Palette</code> (or <code>ThemeExtension</code>) and reference everywhere.</p>
+      <table>
+        <thead><tr><th>Component</th><th>Flutter</th></tr></thead>
+        <tbody>
+          <tr><td>Screen root <code>.pi</code></td><td><code>Container(decoration: gradient…)</code> → <code>Column</code>: header + <code>Expanded(ListView)</code></td></tr>
+          <tr><td>Header <code>.pi-top</code></td><td><code>Row</code> with 40×40 <code>Material</code>/<code>InkWell</code> circle back-button + centered <code>Text</code> (use a <code>Stack</code> or 3-slot <code>Row</code> to keep the title optically centered)</td></tr>
+          <tr><td>Segment <code>.pi-seg</code></td><td><code>Stack</code> = track <code>Container</code> + <code>AnimatedAlign</code>/<code>AnimatedPositioned</code> thumb + <code>Row</code> of two <code>Expanded</code> tap targets. Thumb 250ms, <code>Curves.easeOutCubic</code></td></tr>
+          <tr><td>Plan tile <code>.pi-plan</code></td><td><code>AnimatedContainer</code> (border/gradient/shadow), <code>Row</code>: icon tile · <code>Expanded(Column)</code> name+price · trailing radio/check. Wrap in <code>InkWell</code></td></tr>
+          <tr><td>Add-on <code>.pp-addon</code></td><td><code>AnimatedContainer</code> with the 3px blue ring when on (extra <code>BoxShadow</code> with spread) + trailing switch</td></tr>
+          <tr><td>Toggle <code>.pi-switch</code></td><td>Custom: <code>GestureDetector</code> → <code>AnimatedContainer</code> track + <code>AnimatedAlign</code> knob (50×30, knob 24, travel 20px). Don't use stock <code>Switch</code> — sizing/colors won't match</td></tr>
+          <tr><td>Total <code>.pp-total</code></td><td><code>Container</code> (grad-brand-soft, blue-tint2 border) → <code>Row(spaceBetween)</code>: label column + mono value with <code>RichText</code> for the smaller /period suffix</td></tr>
+          <tr><td>Installments <code>.pp-seg4</code></td><td>Same pattern as segment but 4 slots; thumb width <code>(w-8)/4</code>, <code>translateX(index×100%)</code></td></tr>
+          <tr><td>Primary <code>.pi-retry</code></td><td>58px <code>Container</code>(grad-btn, sh-blue) as <code>ElevatedButton</code>/<code>InkWell</code>, icon + label, <code>onTap</code> disabled while loading</td></tr>
+          <tr><td>Reveal (add-on/split rows)</td><td><code>AnimatedSize</code> + <code>AnimatedSwitcher</code>, or just conditionally build the child; entrance ≈ 300ms fade+slide</td></tr>
+          <tr><td>Loading / success</td><td>Swap the body with an overlay page; success badge = 92px rounded square, <code>gain-tint</code> bg + <code>gain-ink</code> check, inset 1px #BFE6CF border</td></tr>
+        </tbody>
+      </table>
+      <h3>Number formatting</h3>
+      <p>Use <code>intl</code>: <code>NumberFormat.decimalPattern('en_US').format(value)</code> for grouped thousands, then append <code>.00</code> for the total. Keep every numeric string in the <code>GeistMono</code> font.</p>
+<pre><span class="k">final</span> nf = NumberFormat.decimalPattern(<span class="s">'en_US'</span>);
+<span class="k">final</span> total = computeTotal(plan, yearly, addonOn);
+<span class="k">final</span> label = <span class="s">'RWF ${nf.format(total.round())}.00'</span>;   <span class="c">// RWF 1,152,000.00</span></pre>
+      <div class="note flutter"><b>Animation curves.</b> Segment/switch thumbs use <code>cubic-bezier(.22,.9,.3,1)</code> ≈ <code>Curves.easeOutCubic</code> at 220–260ms. The selected-plan check "pops" with <code>cubic-bezier(.2,1.5,.4,1)</code> ≈ an overshoot (<code>Curves.easeOutBack</code>) at ~300ms. Gate any entrance animation so the resting state is always visible (matters for reduced-motion &amp; instant loads).</div>
+      <p style="margin-top:30px; color:var(--ink-3); font-size:13px;">Live reference: open <strong>Flipper Payment Plan.html</strong> and toggle Tweaks for cycle / discount / total-style / copy variants. Full styles: <strong>payment_plan/plan.css</strong> + <strong>payment_issue/payment.css</strong>. All measurements are pixels at the 390px design width.</p>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>

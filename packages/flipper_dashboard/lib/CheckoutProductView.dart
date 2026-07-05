@@ -70,6 +70,7 @@ class CheckoutProductView extends StatefulHookConsumerWidget {
     bool immediateCompletion, [
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
+    double overrideAlreadyPaid,
   ])
   onCompleteTransaction;
 
@@ -713,12 +714,14 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             onPaymentConfirmed,
             onPaymentFailed, [
             bool immediateCompletion = false,
+            double overrideAlreadyPaid = 0.0,
           ]) async {
             return await widget.onCompleteTransaction(
               transaction,
               immediateCompletion,
               onPaymentConfirmed,
               onPaymentFailed,
+              overrideAlreadyPaid,
             );
           },
     );

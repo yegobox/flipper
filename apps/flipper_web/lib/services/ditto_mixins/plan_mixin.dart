@@ -221,6 +221,7 @@ mixin PlanMixin on DittoCore {
       businessId: document['businessId']?.toString(),
       branchId: document['branchId']?.toString(),
       selectedPlan: document['selectedPlan']?.toString(),
+      planTemplateId: document['planTemplateId']?.toString(),
       additionalDevices: (document['additionalDevices'] as num?)?.toInt(),
       isYearlyPlan: document['isYearlyPlan'] as bool?,
       totalPrice: (document['totalPrice'] as num?)?.toInt(),

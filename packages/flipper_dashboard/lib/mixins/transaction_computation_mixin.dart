@@ -74,6 +74,48 @@ mixin TransactionComputationMixin {
     return change > 0.01 ? change : 0.0;
   }
 
+  String formatTenderAmount(double amount) => _formatTenderAmount(amount);
+
+  bool tenderAmountsMatch(String fieldText, double amount) {
+    final parsed = double.tryParse(fieldText.trim());
+    return parsed != null && (parsed - amount).abs() <= 0.01;
+  }
+
+  String _formatTenderAmount(double amount) {
+    return amount == amount.truncateToDouble()
+        ? amount.toStringAsFixed(0)
+        : amount.toStringAsFixed(2);
+  }
+
+  void _syncPrimaryPaymentAmount({
+    required WidgetRef ref,
+    required double amount,
+  }) {
+    final text = _formatTenderAmount(amount);
+    ProxyService.box.writeDouble(key: 'getCashReceived', value: amount);
+
+    final payments = ref.read(paymentMethodsProvider);
+    if (payments.isEmpty) return;
+
+    final payment = payments[0];
+    if (payment.controller.text != text) {
+      payment.controller.text = text;
+    }
+    if ((payment.amount - amount).abs() <= 0.01) return;
+
+    ref
+        .read(paymentMethodsProvider.notifier)
+        .updatePaymentMethod(
+          0,
+          Payment(
+            amount: amount,
+            method: payment.method,
+            id: payment.id,
+            controller: payment.controller,
+          ),
+        );
+  }
+
   void updatePaymentRemainder({
     required WidgetRef ref,
     required ITransaction transaction,
@@ -83,41 +125,86 @@ mixin TransactionComputationMixin {
     TextEditingController? receivedAmountController,
     Function(double)? onAutoSetAmountChanged,
   }) {
-    final alreadyPaid = overrideAlreadyPaid ?? transaction.cashReceived ?? 0.0;
-    final currentRemainder = total - alreadyPaid;
-    final displayRemainder = currentRemainder > 0 ? currentRemainder : 0.0;
+    // Never fall back to [ITransaction.cashReceived]: item-add mirrors
+    // getCashReceived into that field, so it is the in-progress tender and
+    // would make displayRemainder 0 (received amount stuck at "0").
+    final alreadyPaid = overrideAlreadyPaid ?? 0.0;
+    final due = total - alreadyPaid;
+    final displayRemainder = due > 0 ? due : 0.0;
 
-    // Only auto-update if remainder has meaningfully changed or field is empty.
-    if ((displayRemainder - lastAutoSetAmount).abs() > 0.01 ||
-        (receivedAmountController != null &&
-            receivedAmountController.text.isEmpty)) {
-      if (receivedAmountController != null) {
-        receivedAmountController.text = displayRemainder.toString();
-      }
+    final fieldText = receivedAmountController?.text.trim() ?? '';
+    final fieldAmount = double.tryParse(fieldText);
+    // "0" is not empty — empty-cart reset writes "0", so treat it as unset.
+    final fieldIsEmptyOrZero =
+        fieldText.isEmpty || fieldAmount == null || fieldAmount <= 0.01;
 
-      if (onAutoSetAmountChanged != null) {
-        onAutoSetAmountChanged(displayRemainder);
-      }
+    // When the field is cleared/zero, fill to the sale total unless there is a
+    // real partial payment (0 < alreadyPaid < total). A stale alreadyPaid that
+    // equals the total (cashReceived mirror) must not keep the field at 0.
+    var fillAmount = displayRemainder;
+    if (fieldIsEmptyOrZero && total > 0.01) {
+      final realPartial =
+          alreadyPaid > 0.01 && alreadyPaid < total - 0.01;
+      fillAmount = realPartial ? displayRemainder : total;
+    }
 
-      final payments = ref.read(paymentMethodsProvider);
-      if (payments.isNotEmpty) {
-        final payment = payments[0];
-        if (payment.controller.text != displayRemainder.toString()) {
-          payment.controller.text = displayRemainder.toString();
+    // Still on the last auto-filled amount (qty +/- or catalog tap) — follow total.
+    final onAutoFillTrack = !fieldIsEmptyOrZero &&
+        (fieldAmount - lastAutoSetAmount).abs() <= 0.01;
+    if (onAutoFillTrack && (total - lastAutoSetAmount).abs() > 0.01) {
+      final realPartialRemainder =
+          alreadyPaid > 0.01 &&
+          alreadyPaid < total - 0.01 &&
+          (fieldAmount + alreadyPaid - total).abs() <= 0.01;
+      fillAmount = realPartialRemainder ? (total - alreadyPaid) : total;
+    }
+
+    final remainderChanged = (fillAmount - lastAutoSetAmount).abs() > 0.01;
+    final needsFillFromZero = fieldIsEmptyOrZero && fillAmount > 0.01;
+
+    final payments = ref.read(paymentMethodsProvider);
+    final paymentsTotal = payments.fold<double>(0, (sum, p) => sum + p.amount);
+    final stalePayments = !fieldIsEmptyOrZero &&
+        (fieldAmount - fillAmount).abs() <= 0.01 &&
+        (paymentsTotal - fillAmount).abs() > 0.01;
+
+    if (remainderChanged || needsFillFromZero || stalePayments) {
+      final paymentsMatchBefore =
+          (paymentsTotal - fillAmount).abs() <= 0.01;
+      final fieldMatchesBefore =
+          receivedAmountController != null &&
+          tenderAmountsMatch(receivedAmountController.text, fillAmount);
+
+      if (fieldMatchesBefore && paymentsMatchBefore) {
+        // Sale total grew but fill still matches old tender — do not bail out early.
+        if (onAutoFillTrack && (total - fillAmount).abs() > 0.01) {
+          fillAmount = total;
+        } else {
+          if ((fillAmount - lastAutoSetAmount).abs() > 0.01) {
+            onAutoSetAmountChanged?.call(fillAmount);
+          }
+          return;
         }
-
-        ref
-            .read(paymentMethodsProvider.notifier)
-            .updatePaymentMethod(
-              0,
-              Payment(
-                amount: displayRemainder,
-                method: payment.method,
-                id: payment.id,
-                controller: payment.controller,
-              ),
-            );
       }
+
+      final text = _formatTenderAmount(fillAmount);
+      if (receivedAmountController != null &&
+          !tenderAmountsMatch(receivedAmountController.text, fillAmount)) {
+        receivedAmountController.text = text;
+      }
+
+      onAutoSetAmountChanged?.call(fillAmount);
+      if ((paymentsTotal - fillAmount).abs() > 0.01) {
+        _syncPrimaryPaymentAmount(ref: ref, amount: fillAmount);
+      }
+      return;
+    }
+
+    // User typed a custom tender (e.g. for change) — keep payment methods aligned.
+    if (fieldAmount != null &&
+        fieldAmount > 0.01 &&
+        (paymentsTotal - fieldAmount).abs() > 0.01) {
+      _syncPrimaryPaymentAmount(ref: ref, amount: fieldAmount);
     }
   }
 
@@ -126,7 +213,8 @@ mixin TransactionComputationMixin {
     double total, {
     double? overrideAlreadyPaid,
   }) {
-    final alreadyPaid = overrideAlreadyPaid ?? transaction.cashReceived ?? 0.0;
+    // Same as [updatePaymentRemainder]: do not use cashReceived as prior paid.
+    final alreadyPaid = overrideAlreadyPaid ?? 0.0;
     final currentRemainder = total - alreadyPaid;
     return currentRemainder > 0.01 ? currentRemainder : 0.0;
   }

@@ -1,22 +1,14 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
-import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
-import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart' hide Category;
-import 'package:supabase_models/sync/ditto_sync_adapter.dart';
-import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
-import 'package:supabase_models/sync/ditto_sync_generated.dart';
-import 'package:supabase_models/brick/repository.dart';
 
-part 'device.model.ditto_sync_adapter.g.dart';
+// part 'device.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'devices'),
 )
-@DittoAdapter('devices', syncDirection: SyncDirection.sendOnly)
+// Ditto sync disabled for devices — delegation uses cloudSync (Supabase).
 class Device extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -24,6 +16,8 @@ class Device extends OfflineFirstWithSupabaseModel {
 
   String? linkingCode;
   String? deviceName;
+  /// User-chosen label shown in delegation pickers (e.g. "Front counter printer").
+  String? friendlyName;
   String? deviceVersion;
   bool? pubNubPublished;
   String? phone;
@@ -39,6 +33,7 @@ class Device extends OfflineFirstWithSupabaseModel {
     String? id,
     this.linkingCode,
     this.deviceName,
+    this.friendlyName,
     this.deviceVersion,
     this.pubNubPublished,
     this.phone,
@@ -54,6 +49,7 @@ class Device extends OfflineFirstWithSupabaseModel {
       id: json['id'] as String?,
       linkingCode: json['linkingCode'] as String?,
       deviceName: json['deviceName'] as String?,
+      friendlyName: json['friendlyName'] as String?,
       deviceVersion: json['deviceVersion'] as String?,
       pubNubPublished: json['pubNubPublished'] as bool?,
       phone: json['phone'] as String?,
@@ -65,5 +61,14 @@ class Device extends OfflineFirstWithSupabaseModel {
           ? DateTime.tryParse(json['deletedAt'].toString())
           : null,
     );
+  }
+}
+
+/// Label for delegation pickers: custom name when set, else OS/platform name.
+extension DeviceDisplayLabel on Device {
+  String get displayLabel {
+    final custom = friendlyName?.trim();
+    if (custom != null && custom.isNotEmpty) return custom;
+    return deviceName ?? 'Unknown Device';
   }
 }

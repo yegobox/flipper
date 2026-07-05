@@ -850,6 +850,7 @@ CREATE TABLE public.devices (
    id UUID PRIMARY KEY,
   linking_code text,
   device_name text,
+  friendly_name text,
   device_version text,
   pub_nub_published boolean,
   phone text,

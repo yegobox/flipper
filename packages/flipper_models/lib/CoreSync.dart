@@ -1028,6 +1028,12 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
+  Future<Device> upsertDevice(Device device) async {
+    await repository.upsert<Device>(device);
+    return device;
+  }
+
+  @override
   Future<Favorite?> getFavoriteById({required String favId}) async {
     final query = brick.Query(where: [brick.Where('id').isExactly(favId)]);
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
@@ -1302,6 +1308,16 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
+  Future<SubscriptionPlanCatalog> getSubscriptionPlanCatalog() async {
+    try {
+      return await SubscriptionPlanCatalog.fetchFromSupabase();
+    } catch (e) {
+      talker.error('getSubscriptionPlanCatalog error: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
@@ -1368,6 +1384,7 @@ class CoreSync extends AiStrategyImpl
         'business_id': businessId,
         'branch_id': selectedPlan.branchId,
         'selected_plan': selectedPlan.selectedPlan,
+        'plan_template_id': selectedPlan.planTemplateId,
         'additional_devices': selectedPlan.additionalDevices,
         'is_yearly_plan': selectedPlan.isYearlyPlan,
         'total_price': selectedPlan.totalPrice,
@@ -1499,6 +1516,7 @@ class CoreSync extends AiStrategyImpl
     required String businessId,
     List<String>? addons,
     required String selectedPlan,
+    String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
@@ -1530,6 +1548,7 @@ class CoreSync extends AiStrategyImpl
       final updatedPlan = await _upsertPlan(
         businessId: businessId,
         selectedPlan: selectedPlan,
+        planTemplateId: planTemplateId ?? plan?.planTemplateId,
         numberOfPayments: numberOfPayments,
         additionalDevices: additionalDevices,
         isYearlyPlan: isYearlyPlan,
@@ -1624,6 +1643,7 @@ class CoreSync extends AiStrategyImpl
   Future<Plan> _upsertPlan({
     required String businessId,
     required String selectedPlan,
+    String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
     required double totalPrice,
@@ -1640,6 +1660,7 @@ class CoreSync extends AiStrategyImpl
       'id': planId,
       'business_id': businessId,
       'selected_plan': selectedPlan,
+      if (planTemplateId != null) 'plan_template_id': planTemplateId,
       'additional_devices': additionalDevices,
       'is_yearly_plan': isYearlyPlan,
       'rule': isYearlyPlan ? 'yearly' : 'monthly',
@@ -1660,6 +1681,7 @@ class CoreSync extends AiStrategyImpl
       id: planId,
       businessId: businessId,
       selectedPlan: selectedPlan,
+      planTemplateId: planTemplateId,
       additionalDevices: additionalDevices,
       isYearlyPlan: isYearlyPlan,
       rule: isYearlyPlan ? 'yearly' : 'monthly',
@@ -2532,6 +2554,7 @@ class CoreSync extends AiStrategyImpl
           final device = existingDevice.first;
           device.linkingCode = data.linkingCode;
           device.deviceName = data.deviceName;
+          device.friendlyName = data.friendlyName ?? device.friendlyName;
           device.deviceVersion = data.deviceVersion;
           device.pubNubPublished = data.pubNubPublished;
           device.phone = data.phone;

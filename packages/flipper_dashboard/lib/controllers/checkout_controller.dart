@@ -25,6 +25,7 @@ class CheckoutController {
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
     List<TransactionItem>? transactionItemsHint,
+    double overrideAlreadyPaid = 0.0,
   }) async {
     final startTime = transaction.createdAt!;
 
@@ -59,6 +60,7 @@ class CheckoutController {
         onPaymentConfirmed: onPaymentConfirmed,
         onPaymentFailed: onPaymentFailed,
         attachedCustomerHint: attachedCustomerHint,
+        overrideAlreadyPaid: overrideAlreadyPaid,
         completeTransaction: () async {
           ref.read(payButtonStateProvider.notifier).stopLoading();
 

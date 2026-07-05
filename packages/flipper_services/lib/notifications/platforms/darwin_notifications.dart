@@ -42,8 +42,32 @@ class DarwinNotifications extends BaseNotifications {
 
   @override
   Future<bool?> requestPermission() async {
-    // iOS and macOS don't need explicit permission requests in the same way as Android
-    // The permission is requested when initializing the plugin
+    // macOS/iOS require explicit UNUserNotificationCenter authorization;
+    // without it show() silently does nothing.
+    final macOS = notificationsPlugin.resolvePlatformSpecificImplementation<
+        MacOSFlutterLocalNotificationsPlugin>();
+    if (macOS != null) {
+      permissionGranted = await macOS.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
+          false;
+      return permissionGranted;
+    }
+
+    final iOS = notificationsPlugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    if (iOS != null) {
+      permissionGranted = await iOS.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
+          false;
+      return permissionGranted;
+    }
+
     permissionGranted = true;
     return permissionGranted;
   }
@@ -157,5 +181,12 @@ class DarwinNotifications extends BaseNotifications {
   Future<void> showOrderNotification(InventoryRequest order) async {
     // Use the base implementation from BaseNotifications
     await super.showOrderNotification(order);
+  }
+
+  @override
+  Future<void> showDelegationNotification(
+    TransactionDelegation delegation,
+  ) async {
+    await super.showDelegationNotification(delegation);
   }
 }

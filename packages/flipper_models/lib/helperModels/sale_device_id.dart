@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flipper_services/DeviceIdService.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:uuid/uuid.dart';
 
 /// SharedPreferences / local storage key for the resolved sale device id fallback.
@@ -17,11 +20,57 @@ const kDittoInstallSuffixStorageKey = 'ditto_install_suffix';
 /// action; avoid repeated async storage writes on the hot path.
 String? _resolvedSaleDeviceIdMemory;
 
+bool _proxyBoxReady() {
+  try {
+    return getIt.isRegistered<LocalStorage>();
+  } catch (_) {
+    return false;
+  }
+}
+
+Future<String?> _readStoredString(String key) async {
+  if (flipperWebIsHostApp) {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(key)?.trim();
+    return value == null || value.isEmpty ? null : value;
+  }
+  if (!_proxyBoxReady()) return null;
+  return ProxyService.box.readString(key: key);
+}
+
+Future<void> _writeStoredString(String key, String value) async {
+  if (flipperWebIsHostApp) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
+    return;
+  }
+  if (!_proxyBoxReady()) return;
+  await ProxyService.box.writeString(key: key, value: value);
+}
+
+Future<void> _removeStoredString(String key) async {
+  if (flipperWebIsHostApp) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(key);
+    return;
+  }
+  if (!_proxyBoxReady()) return;
+  ProxyService.box.remove(key: key);
+}
+
+Future<String?> _userIdForDeviceMatch() async {
+  if (flipperWebIsHostApp) {
+    return _readStoredString('flipper_web_api_user_id');
+  }
+  if (!_proxyBoxReady()) return null;
+  return ProxyService.box.getUserId();
+}
+
 /// Clears cached sale device id so the next [resolveSaleDeviceId] uses the
 /// current Ditto [deviceName] (after userId change, logout, or Ditto re-init).
 Future<void> resetSaleDeviceIdCache() async {
   _resolvedSaleDeviceIdMemory = null;
-  ProxyService.box.remove(key: kSaleDeviceIdStorageKey);
+  await _removeStoredString(kSaleDeviceIdStorageKey);
 }
 
 /// One suffix per native app install (stable across sessions). Web tabs get a
@@ -31,14 +80,22 @@ Future<String> resolveDittoInstallSuffix() async {
     return DateTime.now().microsecondsSinceEpoch.toRadixString(36);
   }
 
-  final cached = ProxyService.box.readString(key: kDittoInstallSuffixStorageKey);
+  final cached = flipperWebIsHostApp
+      ? await _readStoredString(kDittoInstallSuffixStorageKey)
+      : (_proxyBoxReady()
+          ? ProxyService.box.readString(key: kDittoInstallSuffixStorageKey)
+          : null);
   if (cached != null && cached.isNotEmpty) return cached;
 
   final suffix = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
-  await ProxyService.box.writeString(
-    key: kDittoInstallSuffixStorageKey,
-    value: suffix,
-  );
+  if (flipperWebIsHostApp) {
+    await _writeStoredString(kDittoInstallSuffixStorageKey, suffix);
+  } else if (_proxyBoxReady()) {
+    await ProxyService.box.writeString(
+      key: kDittoInstallSuffixStorageKey,
+      value: suffix,
+    );
+  }
   return suffix;
 }
 
@@ -53,15 +110,16 @@ bool _saleDeviceIdMatchesUser(String deviceId, String? userId) {
 /// Order: Ditto [identity] (sync configuration for this open instance), then
 /// cached value, then [DeviceIdService], then a persisted random UUID.
 Future<String> resolveSaleDeviceId() async {
+  final boxUserId = await _userIdForDeviceMatch();
+
   final mem = _resolvedSaleDeviceIdMemory;
   if (mem != null && mem.isNotEmpty) {
-    if (_saleDeviceIdMatchesUser(mem, ProxyService.box.getUserId())) {
+    if (_saleDeviceIdMatchesUser(mem, boxUserId)) {
       return mem;
     }
     await resetSaleDeviceIdCache();
   }
 
-  final boxUserId = ProxyService.box.getUserId();
   final ditto = DittoService.instance.dittoInstance;
   final rawKey = ditto == null ? null : ditto.deviceName;
   final dittoName = rawKey?.trim();
@@ -73,7 +131,7 @@ Future<String> resolveSaleDeviceId() async {
     }
   }
 
-  var cached = ProxyService.box.readString(key: kSaleDeviceIdStorageKey);
+  var cached = await _readStoredString(kSaleDeviceIdStorageKey);
   if (cached != null && cached.isNotEmpty) {
     if (!_saleDeviceIdMatchesUser(cached, boxUserId)) {
       await resetSaleDeviceIdCache();
@@ -89,33 +147,20 @@ Future<String> resolveSaleDeviceId() async {
     final hw = await getIt<Device>().getDeviceId();
     if (hw != null && hw.isNotEmpty) {
       _resolvedSaleDeviceIdMemory = hw;
-      unawaited(
-        ProxyService.box.writeString(
-          key: kSaleDeviceIdStorageKey,
-          value: hw,
-        ),
-      );
+      unawaited(_writeStoredString(kSaleDeviceIdStorageKey, hw));
       return hw;
     }
   } catch (_) {}
 
   final fallback = const Uuid().v4();
   _resolvedSaleDeviceIdMemory = fallback;
-  unawaited(
-    ProxyService.box.writeString(
-      key: kSaleDeviceIdStorageKey,
-      value: fallback,
-    ),
-  );
+  unawaited(_writeStoredString(kSaleDeviceIdStorageKey, fallback));
   return fallback;
 }
 
 Future<void> _persistSaleDeviceIdIfChanged(String value) async {
-  final existing = ProxyService.box.readString(key: kSaleDeviceIdStorageKey);
+  final existing = await _readStoredString(kSaleDeviceIdStorageKey);
   if (existing != value) {
-    await ProxyService.box.writeString(
-      key: kSaleDeviceIdStorageKey,
-      value: value,
-    );
+    await _writeStoredString(kSaleDeviceIdStorageKey, value);
   }
 }

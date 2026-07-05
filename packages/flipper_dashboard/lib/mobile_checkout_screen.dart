@@ -73,6 +73,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   final Map<String, double> _optimisticQtyByItemId = {};
   final Set<String> _optimisticallyDeletedItemIds = {};
   bool _isClearingCustomer = false;
+  double _cachedNonCreditPaid = 0.0;
 
   String get _transactionId => widget.transaction.id;
 
@@ -262,6 +263,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         onPaymentConfirmed,
         onPaymentFailed,
         immediateCompletion,
+        _cachedNonCreditPaid,
       );
 
       if (mounted && (shouldWait != true || immediateCompletion)) {
@@ -694,6 +696,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 if (!mounted) return;
                 final nonCreditPaid = await fetchNonCreditPaid(txn.id);
                 if (!mounted) return;
+                setState(() => _cachedNonCreditPaid = nonCreditPaid);
                 standardizedPaymentInitialization(
                   ref: ref,
                   transaction: txn,

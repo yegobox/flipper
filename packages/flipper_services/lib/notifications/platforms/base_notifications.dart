@@ -8,6 +8,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../interfaces/notification_interface.dart';
+import '../utils/notification_utils.dart';
 
 /// Base implementation of notification functionality shared across platforms
 abstract class BaseNotifications implements NotificationInterface {
@@ -52,6 +53,26 @@ abstract class BaseNotifications implements NotificationInterface {
       id: order.id.hashCode,
       title: 'New Order Request',
       body: 'You have a new order request from $requesterInfo',
+      payload: payload,
+    );
+  }
+
+  @override
+  Future<void> showDelegationNotification(
+    TransactionDelegation delegation,
+  ) async {
+    final payload = jsonEncode({
+      'type': 'delegation',
+      'transactionId': delegation.transactionId,
+      'branchId': delegation.branchId,
+    });
+
+    final body = NotificationUtils.formatDelegationBody(delegation);
+
+    await showNotification(
+      id: delegation.transactionId.hashCode,
+      title: 'New Print Delegation',
+      body: body,
       payload: payload,
     );
   }

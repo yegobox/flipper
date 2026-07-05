@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Print Delegations — Flipper Books</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Spectral:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page">
+  <div class="container">
+
+    <!-- ===== Header ===== -->
+    <div class="header">
+      <div class="header__titles">
+        <h1 class="header__title">Print Delegations</h1>
+        <p class="header__subtitle">Track and manage transactions delegated across your tills — <strong id="totalCount">0</strong> in view.</p>
+      </div>
+      <button class="icon-btn" aria-label="About delegations">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+      </button>
+    </div>
+
+    <!-- ===== Search ===== -->
+    <div class="search">
+      <svg class="search__icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input class="search__input" id="search" type="text" placeholder="Search delegations, receipt, payment…" autocomplete="off">
+    </div>
+
+    <!-- ===== Filters ===== -->
+    <div class="filters" id="filters">
+      <div class="filters__label">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path></svg>
+        <span>Filter</span>
+      </div>
+      <!-- filter chips injected by JS -->
+    </div>
+
+    <!-- ===== List ===== -->
+    <div class="list" id="list"><!-- cards injected by JS --></div>
+
+    <!-- ===== Empty state ===== -->
+    <div class="empty hidden" id="empty">
+      <div class="empty__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      </div>
+      <div class="empty__title">No delegations found</div>
+      <div class="empty__text">Try a different search term or switch the filter above to see more results.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Data — replace with your API response.
+   status: 'completed' | 'delegated' | 'failed'
+   amount is a Number; currency is an ISO-ish code string.
+   ============================================================ */
+const DELEGATIONS = [
+  { name: 'Main',      status: 'completed', when: 'Jul 02, 2026 · 20:58', receiptType: 'NS', payment: 'Cash',         amount: 1234.00,   currency: 'RWF' },
+  { name: 'Counter 2', status: 'delegated', when: 'Jul 02, 2026 · 19:12', receiptType: 'NS', payment: 'Mobile Money', amount: 8500.00,   currency: 'RWF' },
+  { name: 'Kiosk',     status: 'failed',    when: 'Jul 02, 2026 · 17:45', receiptType: 'NR', payment: 'Card',         amount: 22750.00,  currency: 'RWF' },
+  { name: 'Main',      status: 'completed', when: 'Jul 01, 2026 · 16:03', receiptType: 'NS', payment: 'Cash',         amount: 3400.00,   currency: 'RWF' },
+  { name: 'Counter 3', status: 'delegated', when: 'Jul 01, 2026 · 11:20', receiptType: 'CS', payment: 'Bank',         amount: 145000.00, currency: 'RWF' },
+];
+
+const STATUS_META = {
+  completed: { label: 'Completed' },
+  delegated: { label: 'Delegated' },
+  failed:    { label: 'Failed' },
+};
+
+const FILTERS = [
+  { key: 'all',       label: 'All' },
+  { key: 'failed',    label: 'Failed' },
+  { key: 'delegated', label: 'Delegated' },
+  { key: 'completed', label: 'Completed' },
+];
+
+/* ---- Icons per status ---- */
+const STATUS_ICON = {
+  completed: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>',
+  delegated: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"></path><path d="m13 6 6 6-6 6"></path></svg>',
+  failed:    '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>',
+};
+
+/* ---- Helpers ---- */
+function formatAmount(n, cur) {
+  return cur + ' ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function matchesQuery(d, q) {
+  if (!q) return true;
+  const hay = [d.name, d.receiptType, d.payment, STATUS_META[d.status].label, formatAmount(d.amount, d.currency), d.when].join(' ').toLowerCase();
+  return hay.includes(q.toLowerCase());
+}
+
+/* ---- State ---- */
+let state = { query: '', filter: 'all' };
+
+/* ---- Render ---- */
+function render() {
+  const q = state.query.trim();
+  const bySearch = DELEGATIONS.filter(d => matchesQuery(d, q));
+  const count = key => key === 'all' ? bySearch.length : bySearch.filter(d => d.status === key).length;
+  const rows = bySearch.filter(d => state.filter === 'all' || d.status === state.filter);
+
+  // header count
+  document.getElementById('totalCount').textContent = rows.length;
+
+  // filters
+  const filtersEl = document.getElementById('filters');
+  filtersEl.querySelectorAll('.chip').forEach(el => el.remove());
+  FILTERS.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (state.filter === f.key ? ' is-active' : '');
+    btn.innerHTML = `<span>${f.label}</span><span class="chip__count">${count(f.key)}</span>`;
+    btn.addEventListener('click', () => { state.filter = f.key; render(); });
+    filtersEl.appendChild(btn);
+  });
+
+  // list
+  const listEl = document.getElementById('list');
+  const emptyEl = document.getElementById('empty');
+  listEl.innerHTML = '';
+  if (rows.length === 0) {
+    listEl.classList.add('hidden');
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  listEl.classList.remove('hidden');
+  emptyEl.classList.add('hidden');
+
+  rows.forEach(d => {
+    const card = document.createElement('div');
+    card.className = `card is-${d.status}`;
+    card.innerHTML = `
+      <div class="card__summary">
+        <div class="status-icon">${STATUS_ICON[d.status]}</div>
+        <div class="card__main">
+          <div class="card__name">${d.name}</div>
+          <div class="card__when">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+            <span>${d.when}</span>
+          </div>
+        </div>
+        <span class="badge">${STATUS_META[d.status].label}</span>
+      </div>
+      <div class="details">
+        <div class="detail">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5Z"></path><path d="M8 7h8"></path><path d="M8 11h8"></path><path d="M8 15h5"></path></svg>
+          <span class="detail__label">Receipt Type</span>
+          <span class="detail__value">${d.receiptType}</span>
+        </div>
+        <div class="detail">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+          <span class="detail__label">Payment</span>
+          <span class="detail__value">${d.payment}</span>
+        </div>
+        <div class="detail detail--amount">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9.5a2.5 2.5 0 0 0-2.5-1.5h-1a2 2 0 0 0 0 4h1a2 2 0 0 1 0 4h-1a2.5 2.5 0 0 1-2.5-1.5"></path><path d="M12 6.5v11"></path></svg>
+          <span class="detail__label">Amount</span>
+          <span class="detail__value">${formatAmount(d.amount, d.currency)}</span>
+        </div>
+      </div>
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+/* ---- Events ---- */
+document.getElementById('search').addEventListener('input', e => {
+  state.query = e.target.value;
+  render();
+});
+
+render();
+</script>
+
+</body>
+</html>

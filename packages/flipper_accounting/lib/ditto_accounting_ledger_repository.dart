@@ -18,8 +18,8 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       return;
     }
     if (!_ditto.isCloudReady()) {
-      throw StateError(
-        '[Accounting] Ditto COA seed blocked — cloud sync not ready',
+      debugPrint(
+        '[Accounting] Ditto COA seed proceeding locally — cloud sync not ready',
       );
     }
     final existing = await _ditto.queryCollection(

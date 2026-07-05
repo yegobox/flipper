@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 
 // Create cached providers to reduce network requests
 final productProvider = FutureProvider.family.autoDispose<Product?, String>((
@@ -164,177 +163,59 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     bool usePosCatalogTile = false,
     Stock? liveStock,
   }) {
-    final productAsync = ref.watch(productProvider(variant.productId ?? ""));
+    // Product/asset are optional enrichment only. Variant already has name,
+    // price, and usually image — never block the row on per-item DB fetches
+    // (that caused "15 of 16 products" with shimmer rows still visible).
+    final productId = variant.productId ?? '';
+    final productAsync = productId.isEmpty
+        ? null
+        : ref.watch(productProvider(productId));
+    if (productAsync?.hasError ?? false) {
+      talker.error(
+        "Error fetching product data: ${productAsync!.error}",
+        productAsync.stackTrace,
+      );
+    }
+    final product = productAsync?.asData?.value;
 
     final variantImage = variantRowImageAssetName(variant);
     // Only fetch product asset if the variant doesn't have its own image.
+    final needsAssetFallback =
+        (variantImage == null || variantImage.isEmpty) && productId.isNotEmpty;
     final assetAsync =
-        (variantImage == null || variantImage.isEmpty) &&
-            variant.productId != null &&
-            variant.productId!.isNotEmpty
-        ? ref.watch(assetProvider(variant.productId ?? ""))
-        : null;
+        needsAssetFallback ? ref.watch(assetProvider(productId)) : null;
+    if (assetAsync?.hasError ?? false) {
+      talker.error(
+        "Error fetching asset data: ${assetAsync!.error}",
+        assetAsync.stackTrace,
+      );
+    }
+    final assetName = assetAsync?.asData?.value?.assetName;
 
-    return productAsync.when(
-      loading: () => const VariantShimmerPlaceholder(),
-      error: (err, stack) {
-        // Log the error but don't show it to the user
-        talker.error("Error fetching product data: $err");
-        talker.error(stack);
-
-        // Return a fallback UI instead of showing the error
-        return RowItem(
-          forceRemoteUrl: forceRemoteUrl,
-          forceListView: forceListView,
-          usePosCatalogTile: usePosCatalogTile,
-          isOrdering: isOrdering,
-          color: variant.color ?? "#673AB7",
-          stock: stock,
-          liveStock: liveStock,
-          model: model,
-          variant: variant,
-          productName: variant.productName ?? "Unknown Product",
-          variantName: variant.name,
-          imageUrl: null, // No image available in error case
-          isComposite: false, // Default to false in error case
-          edit: (productId, type) {
-            talker.info("navigating to Edit!");
-            _openProductEntry(context, productId: productId);
-          },
-          delete: (productId, type) async {
-            await deleteFunc(productId, model);
-          },
-          enableNfc: (product) {
-            // Handle NFC functionality
-          },
-        );
+    return RowItem(
+      forceRemoteUrl: forceRemoteUrl,
+      forceListView: forceListView,
+      usePosCatalogTile: usePosCatalogTile,
+      isOrdering: isOrdering,
+      color: variant.color ?? "#673AB7",
+      stock: stock,
+      liveStock: liveStock,
+      model: model,
+      variant: variant,
+      product: product,
+      productName: variant.productName ?? "Unknown Product",
+      variantName: variant.name,
+      imageUrl: variantImage ?? assetName,
+      isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
+      edit: (productId, type) {
+        talker.info("navigating to Edit!");
+        _openProductEntry(context, productId: productId);
       },
-      data: (product) {
-        // If no asset provider was needed, directly return the RowItem
-        if (assetAsync == null) {
-          return RowItem(
-            forceRemoteUrl: forceRemoteUrl,
-            forceListView: forceListView,
-            usePosCatalogTile: usePosCatalogTile,
-            isOrdering: isOrdering,
-            color: variant.color ?? "#673AB7",
-            stock: stock,
-            liveStock: liveStock,
-            model: model,
-            variant: variant,
-            product: product,
-            productName: variant.productName ?? "Unknown Product",
-            variantName: variant.name,
-            imageUrl: variantImage, // Prefer variant image
-            isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
-            edit: (productId, type) {
-              talker.info("navigating to Edit!");
-              _openProductEntry(context, productId: productId);
-            },
-            delete: (productId, type) async {
-              await deleteFunc(productId, model);
-            },
-            enableNfc: (product) {
-              // Handle NFC functionality
-            },
-          );
-        }
-
-        // Otherwise, wait for asset data
-        return assetAsync.when(
-          loading: () => RowItem(
-            forceRemoteUrl: forceRemoteUrl,
-            forceListView: forceListView,
-            usePosCatalogTile: usePosCatalogTile,
-            isOrdering: isOrdering,
-            color: variant.color ?? "#673AB7",
-            stock: stock,
-            liveStock: liveStock,
-            model: model,
-            variant: variant,
-            product: product,
-            productName: variant.productName ?? "Unknown Product",
-            variantName: variant.name,
-            imageUrl: variantImage, // Prefer variant image
-            isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
-            edit: (productId, type) {
-              talker.info("navigating to Edit!");
-              _openProductEntry(context, productId: productId);
-            },
-            delete: (productId, type) async {
-              await deleteFunc(productId, model);
-            },
-            enableNfc: (product) {
-              // Handle NFC functionality
-            },
-          ),
-          error: (err, stack) {
-            // Log the error but don't show it to the user
-            talker.error("Error fetching asset data: $err");
-            talker.error(stack);
-
-            // Return the product row without asset data
-            return RowItem(
-              forceRemoteUrl: forceRemoteUrl,
-              forceListView: forceListView,
-              usePosCatalogTile: usePosCatalogTile,
-              isOrdering: isOrdering,
-              color: variant.color ?? "#673AB7",
-              stock: stock,
-              liveStock: liveStock,
-              model: model,
-              variant: variant,
-              product: product,
-              productName: variant.productName ?? "Unknown Product",
-              variantName: variant.name,
-              imageUrl: variantImage, // Prefer variant image
-              isComposite: !isOrdering
-                  ? (product?.isComposite ?? false)
-                  : false,
-              edit: (productId, type) {
-                talker.info("navigating to Edit!");
-                _openProductEntry(context, productId: productId);
-              },
-              delete: (productId, type) async {
-                await deleteFunc(productId, model);
-              },
-              enableNfc: (product) {
-                // Handle NFC functionality
-              },
-            );
-          },
-          data: (asset) {
-            return RowItem(
-              forceRemoteUrl: forceRemoteUrl,
-              forceListView: forceListView,
-              usePosCatalogTile: usePosCatalogTile,
-              isOrdering: isOrdering,
-              color: variant.color ?? "#673AB7",
-              stock: stock,
-              liveStock: liveStock,
-              model: model,
-              variant: variant,
-              product: product,
-              productName: variant.productName!,
-              variantName: variant.name,
-              imageUrl: variantImage ?? asset?.assetName,
-              isComposite: !isOrdering
-                  ? (product?.isComposite ?? false)
-                  : false,
-              edit: (productId, type) {
-                talker.info("navigating to Edit!");
-
-                _openProductEntry(context, productId: productId);
-              },
-              delete: (productId, type) async {
-                await deleteFunc(productId, model);
-              },
-              enableNfc: (product) {
-                // Handle NFC functionality
-              },
-            );
-          },
-        );
+      delete: (productId, type) async {
+        await deleteFunc(productId, model);
+      },
+      enableNfc: (product) {
+        // Handle NFC functionality
       },
     );
   }

@@ -1659,6 +1659,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 }
 
                 widget.delete(widget.variant!.id, 'variant');
+                ref.read(selectedItemIdsProvider.notifier).clearSelection();
               }
             },
           ),
@@ -1683,6 +1684,10 @@ class _RowItemState extends ConsumerState<RowItem>
                 );
                 if (confirmed != true) return;
               }
+
+              // Leave multi-select so the "N items selected" bar does not
+              // linger after edit (card chrome is gone but selection was kept).
+              ref.read(selectedItemIdsProvider.notifier).clearSelection();
 
               if (widget.variant != null) {
                 widget.edit(widget.variant?.productId, 'product');

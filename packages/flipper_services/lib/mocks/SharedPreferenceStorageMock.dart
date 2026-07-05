@@ -470,6 +470,12 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  String? getThisDeviceId() {
+    // TODO: implement getThisDeviceId
+    throw UnimplementedError();
+  }
+
+  @override
   String? whatsAppPhoneNumberId() {
     return null; // Mock: no WhatsApp phone number ID by default
   }

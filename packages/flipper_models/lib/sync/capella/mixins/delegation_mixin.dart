@@ -1,7 +1,12 @@
 import 'dart:async';
 
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/interfaces/DelegationInterface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -9,6 +14,76 @@ import 'package:supabase_models/brick/models/all_models.dart';
 mixin CapellaDelegationMixin implements DelegationInterface {
   DittoService get dittoService => DittoService.instance;
   static const String _collectionName = 'transaction_delegations';
+
+  /// Logs observer/sync params plus a snapshot of local Ditto rows so you can
+  /// compare against manual DQL in the Ditto debugger.
+  Future<void> _logDelegationStreamDiagnostics({
+    required dynamic ditto,
+    required String? branchId,
+    required String? status,
+    required String onDeviceId,
+    required String observerQuery,
+    required Map<String, dynamic> observerArgs,
+    required String syncQuery,
+    required Map<String, dynamic> syncArgs,
+  }) async {
+    final lines = <String>[
+      '[delegation-ditto] stream params:',
+      '  branchId=$branchId',
+      '  status=$status',
+      '  onDeviceId(thisDeviceId)=$onDeviceId',
+      '  selectedDelegationDeviceId(setting)=${ProxyService.box.selectedDelegationDeviceId()}',
+      '  dittoDeviceName=${ditto.deviceName}',
+      '  dittoReady=${dittoService.isReady()}',
+      '  observerQuery=$observerQuery',
+      '  observerArgs=$observerArgs',
+      '  syncQuery=$syncQuery',
+      '  syncArgs=$syncArgs',
+      '  compare SQL:',
+      "    SELECT * FROM $_collectionName WHERE branchId = '$branchId'"
+      "${status != null ? " AND status = '$status'" : ''}"
+      " AND selectedDelegationDeviceId = '$onDeviceId'",
+    ];
+
+    if (branchId == null) {
+      talker.info(lines.join('\n'));
+      return;
+    }
+
+    try {
+      final branchRows = await ditto.store.execute(
+        'SELECT * FROM $_collectionName WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+      );
+      lines.add('  branchLocalCount=${branchRows.items.length}');
+      for (final doc in branchRows.items) {
+        final row = Map<String, dynamic>.from(doc.value);
+        lines.add(
+          '    _id=${row['_id']} status=${row['status']} '
+          'selectedDelegationDeviceId=${row['selectedDelegationDeviceId']} '
+          'delegatedFromDevice=${row['delegatedFromDevice']}',
+        );
+      }
+
+      final filteredRows = await ditto.store.execute(
+        observerQuery,
+        arguments: observerArgs,
+      );
+      lines.add('  observerLocalCount=${filteredRows.items.length}');
+      for (final doc in filteredRows.items) {
+        final row = Map<String, dynamic>.from(doc.value);
+        lines.add(
+          '    match _id=${row['_id']} status=${row['status']} '
+          'selectedDelegationDeviceId=${row['selectedDelegationDeviceId']}',
+        );
+      }
+    } catch (e, st) {
+      lines.add('  diagnosticQueryError=$e');
+      lines.add('  $st');
+    }
+
+    talker.info(lines.join('\n'));
+  }
 
   @override
   Future<void> createDelegation({
@@ -48,8 +123,14 @@ mixin CapellaDelegationMixin implements DelegationInterface {
         'selectedDelegationDeviceId': selectedDelegationDeviceId,
       };
 
+      final ditto = dittoService.dittoInstance!;
+      await ensureBranchDelegationCloudSubscription(
+        ditto: ditto,
+        branchId: branchId,
+      );
+
       // Use DQL INSERT with conflict resolution (upsert)
-      await dittoService.dittoInstance!.store.execute(
+      await ditto.store.execute(
         "INSERT INTO $_collectionName DOCUMENTS (:delegation) ON ID CONFLICT DO UPDATE",
         arguments: {
           "delegation": delegationData,
@@ -59,7 +140,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       debugPrint(
           '✅ Delegation created in Ditto: $transactionId (status: delegated)');
       debugPrint(
-          '   Branch: $branchId, Receipt: $receiptType, Device: $deviceId');
+          '   Branch: $branchId, Receipt: $receiptType, From: $deviceId, Target deviceId: $selectedDelegationDeviceId');
     } catch (e) {
       debugPrint('❌ Error creating delegation: $e');
       rethrow;
@@ -74,8 +155,11 @@ mixin CapellaDelegationMixin implements DelegationInterface {
   }) {
     try {
       final ditto = dittoService.dittoInstance;
-      if (ditto == null) {
-        debugPrint('❌ Ditto not initialized:1');
+      if (ditto == null || !dittoService.isReady()) {
+        debugPrint(
+          '❌ Ditto not ready for delegation monitoring '
+          '(instance=${ditto != null})',
+        );
         return Stream.value([]);
       }
 
@@ -105,18 +189,45 @@ mixin CapellaDelegationMixin implements DelegationInterface {
 
       final query = 'SELECT * FROM $_collectionName $whereClause';
 
-      debugPrint('🔍 Watching delegations with query: $query');
-      debugPrint('   Arguments: $arguments');
+      final syncQuery = branchId != null
+          ? 'SELECT * FROM $_collectionName WHERE branchId = :branchId'
+          : 'SELECT * FROM $_collectionName';
+      final syncArgs = branchId != null
+          ? <String, dynamic>{'branchId': branchId}
+          : const <String, dynamic>{};
+
+      talker.info(
+        '[delegation-ditto] opening stream: branchId=$branchId status=$status '
+        'onDeviceId=$onDeviceId observerQuery=$query observerArgs=$arguments',
+      );
 
       // Initialize async to register subscription first
       () async {
         try {
-          // Subscribe to ensure we have the latest data from Ditto mesh
-          final preparedDel =
-              prepareDqlSyncSubscription(query, arguments);
+          // Pull all branch delegations from Ditto mesh/cloud; filter by target
+          // device locally in the observer (see branch_catalog_cloud_sync.dart).
+          if (branchId != null) {
+            await ensureBranchDelegationCloudSubscription(
+              ditto: ditto,
+              branchId: branchId,
+            );
+          }
+
+          final preparedDel = prepareDqlSyncSubscription(syncQuery, syncArgs);
           await ditto.sync.registerSubscription(
             preparedDel.dql,
             arguments: preparedDel.arguments,
+          );
+
+          await _logDelegationStreamDiagnostics(
+            ditto: ditto,
+            branchId: branchId,
+            status: status,
+            onDeviceId: onDeviceId,
+            observerQuery: query,
+            observerArgs: arguments,
+            syncQuery: syncQuery,
+            syncArgs: syncArgs,
           );
 
           // Use registerObserver with initial data fetch
@@ -137,8 +248,10 @@ mixin CapellaDelegationMixin implements DelegationInterface {
                 completer.complete(delegations);
               }
 
-              debugPrint(
-                  '📋 Delegations stream updated: ${delegations.length} records');
+              talker.info(
+                '[delegation-ditto] observer update: branchId=$branchId '
+                'onDeviceId=$onDeviceId status=$status count=${delegations.length}',
+              );
               controller.add(delegations);
             },
           );
@@ -174,69 +287,62 @@ mixin CapellaDelegationMixin implements DelegationInterface {
   }
 
   @override
-  Future<List<Device>> getDevicesByBranch({
-    required String branchId,
+  Future<void> updateDelegationStatus({
+    required String transactionId,
+    required String status,
+    String? errorMessage,
   }) async {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        debugPrint('❌ Ditto not initialized:2');
-        return [];
+        debugPrint('❌ Ditto not initialized: cannot update delegation status');
+        return;
       }
 
-      final query = 'SELECT * FROM devices WHERE branchId = :branchId';
-      final arguments = {'branchId': branchId};
+      final now = DateTime.now().toIso8601String();
+      final updateData = <String, dynamic>{
+        'status': status,
+        'updatedAt': now,
+      };
+      if (errorMessage != null) {
+        updateData['errorMessage'] = errorMessage;
+      }
+      if (status == 'completed') {
+        updateData['completedAt'] = now;
+        updateData['processingDevice'] = ditto.deviceName;
+      }
+      if (status == 'processing') {
+        updateData['processingDevice'] = ditto.deviceName;
+      }
 
-      debugPrint('🔍 Querying devices with: $query');
-      debugPrint('   Arguments: $arguments');
-
-      // Subscribe to ensure we have the latest data from Ditto mesh
-      final preparedDevices =
-          prepareDqlSyncSubscription(query, arguments);
-      await ditto.sync.registerSubscription(
-        preparedDevices.dql,
-        arguments: preparedDevices.arguments,
-      );
-
-      // Use registerObserver to wait for data
-      final completer = Completer<List<dynamic>>();
-      final observer = ditto.store.registerObserver(
-        query,
-        arguments: arguments,
-        onChange: (result) {
-          if (!completer.isCompleted) {
-            completer.complete(result.items.toList());
-          }
+      final setFields =
+          updateData.keys.map((key) => '$key = :$key').join(', ');
+      await ditto.store.execute(
+        'UPDATE $_collectionName SET $setFields WHERE _id = :transactionId',
+        arguments: {
+          'transactionId': transactionId,
+          ...updateData,
         },
       );
 
-      List<dynamic> items = [];
-      try {
-        // Wait for data or timeout
-        items = await completer.future.timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            if (!completer.isCompleted) {
-              debugPrint('⏱️ Timeout waiting for devices');
-              completer.complete([]);
-            }
-            return [];
-          },
-        );
-      } finally {
-        observer.cancel();
-      }
-
-      final devices = items.map((doc) {
-        final data = Map<String, dynamic>.from(doc.value);
-        return Device.fromJson(data);
-      }).toList();
-
-      debugPrint('📱 Found ${devices.length} device(s) for branch $branchId');
-      return devices;
+      debugPrint('✅ Delegation status updated in Ditto: $transactionId → $status');
     } catch (e) {
-      debugPrint('❌ Error getting devices by branch: $e');
-      return [];
+      debugPrint('❌ Error updating delegation status: $e');
+      rethrow;
     }
+  }
+
+  @override
+  Future<List<Device>> getDevicesByBranch({
+    required String branchId,
+    OfflineFirstGetPolicy getPolicy =
+        OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+  }) {
+    // Device pickers must use Brick/Supabase — Ditto `devices` is send-only
+    // mesh state and often stale vs thisDeviceId after desktop re-registration.
+    return ProxyService.getStrategy(Strategy.cloudSync).getDevicesByBranch(
+      branchId: branchId,
+      getPolicy: getPolicy,
+    );
   }
 }

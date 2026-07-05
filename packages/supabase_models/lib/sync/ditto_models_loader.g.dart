@@ -10,7 +10,6 @@ import 'package:supabase_models/brick/models/business.model.dart' as business_mo
 import 'package:supabase_models/brick/models/business_analytic.model.dart' as business_analytic_model;
 import 'package:supabase_models/brick/models/category.model.dart' as category_model;
 import 'package:supabase_models/brick/models/customer.model.dart' as customer_model;
-import 'package:supabase_models/brick/models/device.model.dart' as device_model;
 import 'package:supabase_models/brick/models/ebm.model.dart' as ebm_model;
 import 'package:supabase_models/brick/models/import_purchase_dates.model.dart' as import_purchase_dates_model;
 import 'package:supabase_models/brick/models/integration_config.model.dart' as integration_config_model;
@@ -40,7 +39,6 @@ void ensureDittoAdaptersLoaded() {
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements
   category_model.CategoryDittoAdapter.registryToken; // ignore: unnecessary_statements
   customer_model.CustomerDittoAdapter.registryToken; // ignore: unnecessary_statements
-  device_model.DeviceDittoAdapter.registryToken; // ignore: unnecessary_statements
   ebm_model.EbmDittoAdapter.registryToken; // ignore: unnecessary_statements
   import_purchase_dates_model.ImportPurchaseDatesDittoAdapter.registryToken; // ignore: unnecessary_statements
   integration_config_model.IntegrationConfigDittoAdapter.registryToken; // ignore: unnecessary_statements

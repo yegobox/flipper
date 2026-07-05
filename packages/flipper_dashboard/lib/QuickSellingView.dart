@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -97,18 +98,103 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         DateCoreWidget,
         Refresh<QuickSellingView>,
         TransactionComputationMixin {
-  double _amountToChange(double alreadyPaid) {
-    return calculateAmountToChange(
-      total: totalAfterDiscountAndShipping,
-      paid: alreadyPaid + calculateTotalPaid(ref.watch(paymentMethodsProvider)),
-    );
+  /// Current tender from the received-amount field, falling back to payment methods.
+  /// Treat field "0" as unset so we do not prefer a cleared field over payments.
+  double _currentTenderAmount(List<Payment> payments) {
+    final fieldAmount =
+        double.tryParse(widget.receivedAmountController.text.trim());
+    if (fieldAmount != null && fieldAmount > 0.01) return fieldAmount;
+    return calculateTotalPaid(payments);
   }
 
-  double _remainingBalance(double alreadyPaid) {
-    return calculateRemainingBalance(
-      total: totalAfterDiscountAndShipping,
-      paid: alreadyPaid + calculateTotalPaid(ref.watch(paymentMethodsProvider)),
+  /// Prior paid for change/balance math. Drops a stale cache that only mirrors
+  /// the in-progress exact-pay tender (cashReceived / getCashReceived), which
+  /// otherwise yields change = tender when tender == total (e.g. 500+500-500).
+  double _priorPaidForTenderMath({
+    required double alreadyPaid,
+    required double tender,
+    required double total,
+  }) {
+    if (alreadyPaid <= 0.01) return 0.0;
+
+    // Exact-pay mirror: prior == tender == sale total → not a real prior payment.
+    if ((alreadyPaid - tender).abs() <= 0.01 &&
+        (alreadyPaid - total).abs() <= 0.01) {
+      _clearStaleNonCreditCache(alreadyPaid);
+      return 0.0;
+    }
+    if ((tender - total).abs() <= 0.01 &&
+        (alreadyPaid - total).abs() <= 0.01) {
+      _clearStaleNonCreditCache(alreadyPaid);
+      return 0.0;
+    }
+
+    // Resumed ticket: field auto-filled to the remainder still owed.
+    final remainderDue = total - alreadyPaid;
+    if (remainderDue > 0.01 && (tender - remainderDue).abs() <= 0.01) {
+      return alreadyPaid;
+    }
+
+    // Cashier typed less than the sale total after auto-fill to exact total —
+    // field is amount tendered now, not cumulative on stale cache/cashReceived.
+    if (tender < total - 0.01 &&
+        _lastAutoSetAmount > tender + 0.01 &&
+        (_lastAutoSetAmount - total).abs() <= 0.01) {
+      _clearStaleNonCreditCache(alreadyPaid);
+      return 0.0;
+    }
+
+    // Additional installment on a resumed sale (real records).
+    if (tender + alreadyPaid < total - 0.01) {
+      return alreadyPaid;
+    }
+
+    _clearStaleNonCreditCache(alreadyPaid);
+    return 0.0;
+  }
+
+  void _clearStaleNonCreditCache(double alreadyPaid) {
+    if (_cachedNonCreditPaid != null &&
+        (_cachedNonCreditPaid! - alreadyPaid).abs() <= 0.01) {
+      _cachedNonCreditPaid = 0.0;
+    }
+  }
+
+  Future<void> _refetchNonCreditPaidForPendingSale() async {
+    final isExpense = ProxyService.box.isOrdering() ?? false;
+    final txnId = ref
+        .read(pendingTransactionStreamProvider(isExpense: isExpense))
+        .value
+        ?.id;
+    if (txnId == null || txnId.isEmpty) return;
+    final gen = ++_nonCreditPaidFetchGen;
+    final paid = await fetchNonCreditPaid(txnId);
+    if (!mounted || gen != _nonCreditPaidFetchGen) return;
+    // Qty +/- may have cleared cache while this fetch was in flight.
+    if (hasOptimisticLineQtyDrift()) return;
+    setState(() => _cachedNonCreditPaid = paid);
+  }
+
+  double _amountToChange(double alreadyPaid, List<Payment> payments) {
+    final total = totalAfterDiscountAndShipping;
+    final tender = _currentTenderAmount(payments);
+    final prior = _priorPaidForTenderMath(
+      alreadyPaid: alreadyPaid,
+      tender: tender,
+      total: total,
     );
+    return calculateAmountToChange(total: total, paid: prior + tender);
+  }
+
+  double _remainingBalance(double alreadyPaid, List<Payment> payments) {
+    final total = totalAfterDiscountAndShipping;
+    final tender = _currentTenderAmount(payments);
+    final prior = _priorPaidForTenderMath(
+      alreadyPaid: alreadyPaid,
+      tender: tender,
+      total: total,
+    );
+    return calculateRemainingBalance(total: total, paid: prior + tender);
   }
 
   /// Prior non-credit payments from payment records, when loaded.
@@ -118,6 +204,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// often holds the current tender and would be double-counted with
   /// [paymentMethodsProvider]. Loans may still use cashReceived until fetch completes.
   double _effectiveAlreadyPaid(ITransaction? transaction) {
+    // Ditto stream / async fetch can hold a stale prior while qty +/- is optimistic.
+    if (hasOptimisticLineQtyDrift()) return 0.0;
     if (_cachedNonCreditPaid != null) return _cachedNonCreditPaid!;
     if (transaction?.isLoan == true) {
       return transaction?.cashReceived ?? 0.0;
@@ -126,7 +214,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   double get totalAfterDiscountAndShipping {
-    return _calculateTotal();
+    return _checkoutSaleTotal();
+  }
+
+  /// Sale total for payment auto-fill — never regress below [grandTotal] while
+  /// cart +/- optimistic qty is ahead of the Ditto stream.
+  double _checkoutSaleTotal({List<TransactionItem>? items}) {
+    final computed = _calculateTotal(items: items);
+    if (!hasOptimisticLineQtyDrift()) return computed;
+    return math.max(computed, grandTotal.toDouble());
   }
 
   double _calculateTotal({List<TransactionItem>? items}) {
@@ -138,10 +234,38 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         double.tryParse(widget.discountController.text) ?? 0.0;
 
     return calculateTransactionTotal(
-      items: items ?? internalTransactionItems,
+      items: itemsForCheckoutTotals(items ?? internalTransactionItems),
       transaction: transaction,
       discountPercent: discountPercent,
     );
+  }
+
+  @override
+  void onLineQtyOptimisticChange() {
+    // Drop stale prior-paid from an earlier line total before Ditto catches up.
+    _nonCreditPaidFetchGen++;
+    _cachedNonCreditPaid = 0.0;
+    _scheduleReceivedAmountSync();
+  }
+
+  Timer? _receivedAmountSyncTimer;
+  static const Duration _receivedAmountSyncDebounce =
+      Duration(milliseconds: 48);
+
+  void _scheduleReceivedAmountSync() {
+    _receivedAmountSyncTimer?.cancel();
+    _receivedAmountSyncTimer = Timer(_receivedAmountSyncDebounce, () {
+      if (!mounted) return;
+      final isExpense = ProxyService.box.isOrdering() ?? false;
+      final transaction = ref
+          .read(pendingTransactionStreamProvider(isExpense: isExpense))
+          .value;
+      if (transaction == null) return;
+      _updateReceivedAmountIfNeeded(
+        transaction,
+        items: ref.read(posCartDisplayItemsProvider),
+      );
+    });
   }
 
   /// Skip hints while cart lines are still catching up to Ditto, and never pass
@@ -167,10 +291,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }) {
     if (!mounted) return;
 
+    final total = _checkoutSaleTotal(items: items);
+
     updatePaymentRemainder(
       ref: ref,
       transaction: transaction,
-      total: _calculateTotal(items: items),
+      total: total,
       overrideAlreadyPaid: _effectiveAlreadyPaid(transaction),
       receivedAmountController: widget.receivedAmountController,
       lastAutoSetAmount: _lastAutoSetAmount,
@@ -178,6 +304,41 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         _lastAutoSetAmount = amount;
       },
     );
+  }
+
+  /// Keeps the received-amount field, payment methods, and cash-received box
+  /// key in sync. Programmatic controller writes do not fire [onChanged], so
+  /// quick-cash and similar paths must call this instead of only setting text.
+  void _applyReceivedAmount(double amount, {String? transactionId}) {
+    final text = formatTenderAmount(amount);
+
+    if (!tenderAmountsMatch(widget.receivedAmountController.text, amount)) {
+      widget.receivedAmountController.text = text;
+    }
+
+    ProxyService.box.writeDouble(key: 'getCashReceived', value: amount);
+
+    final payments = ref.read(paymentMethodsProvider);
+    if (payments.isEmpty) return;
+
+    final payment = payments[0];
+    if (payment.controller.text != text) {
+      payment.controller.text = text;
+    }
+    if ((payment.amount - amount).abs() <= 0.01) return;
+
+    ref
+        .read(paymentMethodsProvider.notifier)
+        .updatePaymentMethod(
+          0,
+          Payment(
+            amount: amount,
+            method: payment.method,
+            id: payment.id,
+            controller: payment.controller,
+          ),
+          transactionId: transactionId,
+        );
   }
 
   Widget _buildInvoiceNumber() {
@@ -377,10 +538,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         final total = _calculateTotal();
         if (total <= 0) return const SizedBox.shrink();
 
-        final remaining = _remainingBalance(alreadyPaid);
-        final change = _amountToChange(alreadyPaid);
-        final tendered =
-            alreadyPaid + calculateTotalPaid(ref.watch(paymentMethodsProvider));
+        final payments = ref.watch(paymentMethodsProvider);
+        final tendered = _currentTenderAmount(payments);
+        final remaining = _remainingBalance(alreadyPaid, payments);
+        final change = _amountToChange(alreadyPaid, payments);
         final currency = ProxyService.box.defaultCurrency();
 
         final isRemaining = remaining > 0;
@@ -508,16 +669,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   void _onDiscountChanged() {
-    final transaction = ref
-        .read(
-          pendingTransactionStreamProvider(
-            isExpense: ProxyService.box.isOrdering() ?? false,
-          ),
-        )
-        .value;
-    if (transaction != null) {
-      _updateReceivedAmountIfNeeded(transaction);
-    }
+    _scheduleReceivedAmountSync();
   }
 
   /// Avoid redundant parent [updateTransaction] writes from customer fields
@@ -621,6 +773,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   // Ensure payment initialization runs once when both transaction & items are ready
   String? _lastPaymentInitTransactionId;
   double? _cachedNonCreditPaid;
+  int _nonCreditPaidFetchGen = 0;
   Timer? _customerNamePersistTimer;
   Timer? _customerPhonePersistTimer;
   static const Duration _customerFieldPersistDebounce =
@@ -708,6 +861,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     widget.discountController.removeListener(_onDiscountChanged);
     _customerNamePersistTimer?.cancel();
     _customerPhonePersistTimer?.cancel();
+    _receivedAmountSyncTimer?.cancel();
     for (final c in _quantityControllers.values) {
       c.dispose();
     }
@@ -833,22 +987,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       },
     );
 
-    // Payment totals track [posCartDisplayItemsProvider] via [internalTransactionItems].
-    ref.listen(posCartDisplayItemsProvider, (previous, next) {
+    // Payment totals track cart line totals (optimistic taps included).
+    // Prefer [posCartPaymentRefreshSignalProvider] over list identity — item-row
+    // qty bumps can yield list == equality while the sale total still changes.
+    ref.listen<double>(posCartPaymentRefreshSignalProvider, (previous, next) {
       if (previous == next) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final transaction = ref
-            .read(
-              pendingTransactionStreamProvider(
-                isExpense: ProxyService.box.isOrdering() ?? false,
-              ),
-            )
-            .value;
-        if (transaction != null) {
-          _updateReceivedAmountIfNeeded(transaction, items: next);
-        }
-      });
+      // Cart total changed — drop stale prior-paid from an earlier line total
+      // (e.g. qty 1 @ 500 then qty 2 @ 1000 must not keep alreadyPaid=500).
+      if (previous != null && (previous - next).abs() > 0.01) {
+        _cachedNonCreditPaid = 0.0;
+        unawaited(_refetchNonCreditPaidForPendingSale());
+      }
+      // Optimistic qty +/- already schedules sync; skip stale stream totals.
+      if (hasOptimisticLineQtyDrift()) return;
+      _scheduleReceivedAmountSync();
     });
 
     // Check for branch changes and refresh transaction if needed
@@ -864,17 +1016,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // Listen to paymentMethodsProvider to update receivedAmountController for backward compatibility
     ref.listen(paymentMethodsProvider, (previous, next) {
       final totalPaid = next.fold<double>(0, (sum, p) => sum + p.amount);
-      if (widget.receivedAmountController.text != totalPaid.toString()) {
-        final textValue = totalPaid == 0.0 && next.isEmpty
-            ? ""
-            : totalPaid.toString();
-
-        // Prevent infinite loops / conflicts if the update came from the controller
-        if (double.tryParse(widget.receivedAmountController.text) !=
-            totalPaid) {
-          widget.receivedAmountController.text = textValue;
-        }
+      final current =
+          double.tryParse(widget.receivedAmountController.text.trim());
+      if (current != null &&
+          totalPaid < current - 0.01 &&
+          hasOptimisticLineQtyDrift() &&
+          (current - _lastAutoSetAmount).abs() <= 0.01) {
+        return;
       }
+      if (tenderAmountsMatch(widget.receivedAmountController.text, totalPaid)) {
+        return;
+      }
+      if (totalPaid <= 0.01 && next.isEmpty) {
+        if (widget.receivedAmountController.text.isNotEmpty) {
+          widget.receivedAmountController.text = '';
+        }
+        return;
+      }
+      widget.receivedAmountController.text = formatTenderAmount(totalPaid);
     });
 
     final transactionAsyncValue = ref.watch(
@@ -1670,9 +1829,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         child: Consumer(
                           builder: (context, ref, _) {
                             ref.watch(posCartPaymentRefreshSignalProvider);
-                            final paymentAmount = ref
-                                .watch(paymentMethodsProvider)
-                                .fold<double>(0, (sum, p) => sum + p.amount)
+                            final payments = ref.watch(paymentMethodsProvider);
+                            final paymentAmount = _currentTenderAmount(payments)
                                 .toCurrencyFormatted(
                                   symbol: ProxyService.box.defaultCurrency(),
                                 );
@@ -1681,7 +1839,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                   symbol: ProxyService.box.defaultCurrency(),
                                 );
                             final payWording =
-                                (_remainingBalance(alreadyPaid) > 0)
+                                (_remainingBalance(alreadyPaid, payments) > 0)
                                 ? context.flipperL10n.recordPaymentWithAmount(
                                     paymentAmount,
                                   )
@@ -1731,6 +1889,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                             onPaymentConfirmed:
                                                 onPaymentConfirmed,
                                             onPaymentFailed: onPaymentFailed,
+                                            overrideAlreadyPaid: alreadyPaid,
                                           );
                                         } catch (e) {
                                           await ProxyService.box.writeBool(
@@ -2181,6 +2340,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     transactionItemsHint: transactionItemsHint,
                     paymentMethods: ref.watch(paymentMethodsProvider),
                     attachedCustomerHint: _attachedCustomerHintFor(transaction),
+                    overrideAlreadyPaid: _effectiveAlreadyPaid(
+                      transactionAsyncValue.value,
+                    ),
                   );
                 } catch (e, s) {
                   await ProxyService.box.writeBool(
@@ -2241,13 +2403,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       exactAmount: total,
                       enabled: total > 0,
                       onSelect: (amount) {
-                        widget.receivedAmountController.text =
-                            amount == amount.truncateToDouble()
-                            ? amount.toStringAsFixed(0)
-                            : amount.toStringAsFixed(2);
-                        ProxyService.box.writeDouble(
-                          key: 'getCashReceived',
-                          value: amount,
+                        _applyReceivedAmount(
+                          amount,
+                          transactionId: transactionId,
                         );
                         setState(() {});
                       },
@@ -2276,7 +2434,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return Consumer(
       builder: (context, ref, _) {
         ref.watch(posCartPaymentRefreshSignalProvider);
-        final finalPayable = (_calculateTotal() - alreadyPaid).clamp(
+        final saleTotal = _checkoutSaleTotal();
+        final finalPayable = (saleTotal - alreadyPaid).clamp(
           0.0,
           double.infinity,
         );
@@ -2454,31 +2613,35 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ),
         onChanged: (value) => setState(() {
           final receivedAmount = double.tryParse(value);
+          if (receivedAmount == null) {
+            ProxyService.box.writeDouble(key: 'getCashReceived', value: 0.0);
+            return;
+          }
+          // Field text is already [value]; only sync payments + box.
           ProxyService.box.writeDouble(
             key: 'getCashReceived',
-            value: receivedAmount ?? 0.0,
+            value: receivedAmount,
           );
-
-          if (receivedAmount != null) {
-            final payments = ref.read(paymentMethodsProvider);
-            if (payments.isNotEmpty) {
-              // Update the first payment method using the notifier
-              ref
-                  .read(paymentMethodsProvider.notifier)
-                  .updatePaymentMethod(
-                    0,
-                    Payment(
-                      amount: receivedAmount,
-                      method: payments[0].method,
-                      id: payments[0].id,
-                      controller: payments[0].controller,
-                    ),
-                    transactionId: transactionId,
-                  );
-              // Also update the controller text
-              payments[0].controller.text = receivedAmount.toString();
-            }
-          } // Update payment amounts after received amount changes
+          final payments = ref.read(paymentMethodsProvider);
+          if (payments.isEmpty) return;
+          final payment = payments[0];
+          final text = receivedAmount.toString();
+          if (payment.controller.text != text) {
+            payment.controller.text = text;
+          }
+          if ((payment.amount - receivedAmount).abs() <= 0.01) return;
+          ref
+              .read(paymentMethodsProvider.notifier)
+              .updatePaymentMethod(
+                0,
+                Payment(
+                  amount: receivedAmount,
+                  method: payment.method,
+                  id: payment.id,
+                  controller: payment.controller,
+                ),
+                transactionId: transactionId,
+              );
         }),
         validator: (String? value) {
           if (value == null || value.isEmpty) {

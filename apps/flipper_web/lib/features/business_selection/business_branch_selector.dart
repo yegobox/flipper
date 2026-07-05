@@ -4,6 +4,7 @@ import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/features/business_selection/login_choices_ui.dart';
 import 'package:flipper_web/features/business_selection/session_business_selection.dart';
 import 'package:flipper_web/models/user_profile.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -297,6 +298,7 @@ class _BusinessBranchSelectorState
 
     ref.read(selectedBusinessProvider.notifier).set(business);
     ref.read(selectedBranchProvider.notifier).set(null);
+    kickoffAccountingBootstrap(ref, business.id);
 
     try {
       final tenant = widget.userProfile.tenants.first;
@@ -339,6 +341,7 @@ class _BusinessBranchSelectorState
 
     final business = ref.read(selectedBusinessProvider);
     if (business != null) {
+      kickoffAccountingBootstrap(ref, business.id);
       final apiUserId = await SessionPersistence.readApiUserId();
       await BusinessSelectionPersistence.save(
         userId: apiUserId ?? widget.userProfile.id,

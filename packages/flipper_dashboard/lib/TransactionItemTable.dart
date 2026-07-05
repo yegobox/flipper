@@ -1333,6 +1333,34 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _bumpCartTotals() {
     _cartTotalsTick.value++;
+    onLineQtyOptimisticChange();
+  }
+
+  /// Checkout may sync received amount / payment rows when cart +/- changes qty
+  /// before Ditto stream totals catch up ([grandTotal] uses [_displayQtyFor]).
+  void onLineQtyOptimisticChange() {}
+
+  /// Applies in-cart +/- optimistic qty for payment totals (matches [grandTotal]).
+  List<TransactionItem> itemsForCheckoutTotals(List<TransactionItem> items) {
+    return [for (final item in items) _itemWithDisplayQtyForTotals(item)];
+  }
+
+  TransactionItem _itemWithDisplayQtyForTotals(TransactionItem item) {
+    final qty = _displayQtyFor(item);
+    if ((item.qty.toDouble() - qty).abs() < 0.0001) return item;
+    return item.copyWith(qty: qty);
+  }
+
+  /// True while cart +/- qty differs from Ditto stream (optimistic line qty).
+  bool hasOptimisticLineQtyDrift() {
+    for (final item in internalTransactionItems) {
+      final local = _optimisticQtyByItemId[item.id];
+      if (local != null &&
+          (item.qty.toDouble() - local).abs() > 0.0001) {
+        return true;
+      }
+    }
+    return false;
   }
 
   double _displayQtyFor(TransactionItem item) {

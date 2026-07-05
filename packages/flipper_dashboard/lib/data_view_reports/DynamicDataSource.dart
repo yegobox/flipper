@@ -21,7 +21,10 @@ String transactionReportReceiptLabel(ITransaction t) {
   final rec = t.receiptNumber;
   if (inv != null) return '#$inv';
   if (rec != null) return '#$rec';
-  return '#${t.id}';
+  final id = t.id.toString();
+  if (id.isEmpty) return '—';
+  final short = id.length > 5 ? id.substring(0, 5) : id;
+  return '#${short.toUpperCase()}';
 }
 
 String _transactionReportStatusLabel(ITransaction tx) {

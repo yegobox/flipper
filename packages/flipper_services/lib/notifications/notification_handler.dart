@@ -1,12 +1,17 @@
 import 'dart:convert';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/event_bus.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'notification_manager.dart';
+import 'utils/notification_utils.dart';
 
 /// Service to handle notification responses and route appropriately
 class NotificationHandler {
@@ -33,10 +38,12 @@ class NotificationHandler {
         if (payload['type'] == 'inventory_request') {
           // Navigate to the inventory request view
           _routerService.navigateTo(const InventoryRequestMobileViewRoute());
+        } else if (payload['type'] == 'delegation') {
+          await _openDelegationsDashboard();
         }
       } catch (e) {
         // If parsing fails, just log the error and continue
-        print('Error parsing notification payload: $e');
+        talker.error('Error parsing notification payload: $e');
       }
     }
   }
@@ -44,5 +51,57 @@ class NotificationHandler {
   /// Show a notification for a new incoming order
   Future<void> showOrderNotification(InventoryRequest order) async {
     await NotificationManager.instance.showOrderNotification(order);
+  }
+
+  /// Show a notification for a new print delegation.
+  ///
+  /// Always fires [DelegationReceivedEvent] for an in-app banner (visible while
+  /// Flipper is focused). Also attempts an OS notification for background use.
+  Future<void> showDelegationNotification(
+    TransactionDelegation delegation,
+  ) async {
+    final title = 'New Print Delegation';
+    final body = NotificationUtils.formatDelegationBody(delegation);
+
+    EventBus().fire(
+      DelegationReceivedEvent(
+        transactionId: delegation.transactionId,
+        title: title,
+        body: body,
+      ),
+    );
+
+    try {
+      await NotificationManager.instance.requestPermission();
+      await NotificationManager.instance.showDelegationNotification(delegation);
+      talker.info(
+        '[delegation-notify] OS notification shown for '
+        '${delegation.transactionId}',
+      );
+    } catch (e, stackTrace) {
+      talker.error(
+        '[delegation-notify] OS notification failed for '
+        '${delegation.transactionId}: $e',
+        stackTrace,
+      );
+    }
+  }
+
+  Future<void> _openDelegationsDashboard() async {
+    const page = 'delegations';
+    await ProxyService.box.writeString(
+      key: kPendingDashboardPageKey,
+      value: page,
+    );
+    EventBus().fire(const OpenDashboardPageEvent(page));
+
+    try {
+      final currentName = _routerService.router.current.name;
+      if (currentName != FlipperAppRoute.name) {
+        await _routerService.navigateTo(const FlipperAppRoute());
+      }
+    } catch (e) {
+      talker.error('Error navigating to delegations dashboard: $e');
+    }
   }
 }

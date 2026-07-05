@@ -107,11 +107,28 @@ final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
     // Warm the cache so subsequent reads are instant.
     if (userProfile != null && userProfile.hasBusinesses) {
       ref.read(userProfileCacheProvider.notifier).state = userProfile;
+      final rawPayload = userRepository.lastFetchedApiPayload;
+      if (rawPayload != null) {
+        ref.read(userProfileApiPayloadCacheProvider.notifier).state = rawPayload;
+      }
+      if (pinUserId != userProfile.id) {
+        ref.read(sessionApiUserIdProvider.notifier).state = userProfile.id;
+        unawaited(SessionPersistence.save(apiUserId: userProfile.id));
+      }
     }
 
-    final dittoUserId = (pinUserId ?? userProfile?.id ?? '').trim();
+    final dittoUserId = (userProfile?.id ?? pinUserId ?? '').trim();
     if (dittoUserId.isNotEmpty) {
       unawaited(DittoBootstrap.ensureInitialized(ref, userId: dittoUserId));
+      final rawPayload = ref.read(userProfileApiPayloadCacheProvider);
+      if (rawPayload != null && userProfile != null) {
+        unawaited(
+          ref.read(userRepositoryProvider).persistProfileToDitto(
+            apiPayload: rawPayload,
+            profile: userProfile,
+          ),
+        );
+      }
     }
 
     return userProfile;

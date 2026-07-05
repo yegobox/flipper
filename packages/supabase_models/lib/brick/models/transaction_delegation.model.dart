@@ -12,7 +12,7 @@ import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:supabase_models/brick/repository.dart';
 part 'transaction_delegation.model.ditto_sync_adapter.g.dart';
 
-/// Represents a transaction delegation for receipt printing
+/// Represents a Print Delegation for receipt printing
 ///
 /// Sync behavior:
 /// - Filtered by branchId

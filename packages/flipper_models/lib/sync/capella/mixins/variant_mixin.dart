@@ -15,8 +15,6 @@ import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
-import 'package:supabase_models/brick/models/transactionItemUtil.dart';
-import 'package:supabase_models/brick/models/sars.model.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
@@ -213,9 +211,12 @@ mixin CapellaVariantMixin implements VariantInterface {
       final String? searchTerm =
           isCatalogTextSearch ? name.trim().toLowerCase() : null;
 
-      // Name / product name / RRA item name search (substring). Barcode uses exact match.
-      if (searchTerm != null &&
-          !isLikelyCatalogBarcodeQuery(searchTerm)) {
+      final bool barcodeLikeSearch =
+          searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm);
+
+      // Name / product name / RRA item name search (substring). Barcode-like
+      // tokens try exact bcd/itemCd first (see execute path below).
+      if (searchTerm != null && !barcodeLikeSearch) {
         query +=
             " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
             "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
@@ -229,6 +230,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
+      // Filters only — barcode/fallback queries below append their own
+      // conditions and must add the ORDER BY/LIMIT suffix exactly once.
+      final String filterQuery = query;
       query += orderSuffix;
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -272,19 +276,17 @@ mixin CapellaVariantMixin implements VariantInterface {
         return r.items.toList();
       }
 
-      if (searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm)) {
-        final barcodeQuery =
-            '$query AND (LOWER(TRIM(COALESCE(bcd, \'\'))) = :bcdExact OR '
-            "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)$orderSuffix";
+      if (barcodeLikeSearch) {
+        final barcodeQuery = catalogBarcodeExactQuery(filterQuery, orderSuffix);
         final barcodeArgs = Map<String, dynamic>.from(arguments)
           ..['bcdExact'] = searchTerm;
         talker.info('Catalog barcode search (exact): $searchTerm');
         items = await runExecute(barcodeQuery, barcodeArgs);
         if (items.isEmpty) {
-          final fallbackQuery =
-              '$query AND (LOWER(COALESCE(name, \'\'))) LIKE :searchLike OR '
-              "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
-              "LOWER(COALESCE(productName, '')) LIKE :searchLike)$orderSuffix";
+          final fallbackQuery = catalogBarcodeNameFallbackQuery(
+            filterQuery,
+            orderSuffix,
+          );
           final fallbackArgs = Map<String, dynamic>.from(arguments)
             ..['searchLike'] = '%$searchTerm%';
           talker.info('Catalog barcode fallback to name search: $searchTerm');

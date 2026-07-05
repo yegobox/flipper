@@ -17,6 +17,11 @@ class UserRepository {
   final DittoService _dittoService;
   final http.Client _httpClient;
 
+  /// Last `/v2/api/user` or RPC payload from [fetchAndSaveUserProfile].
+  Map<String, dynamic>? _lastFetchedApiPayload;
+
+  Map<String, dynamic>? get lastFetchedApiPayload => _lastFetchedApiPayload;
+
   UserRepository(this._dittoService, {http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client();
 
@@ -56,8 +61,105 @@ class UserRepository {
     return businesses is List && businesses.isNotEmpty;
   }
 
-  Future<void> _saveProfileToDitto(UserProfile userProfile) async {
-    await syncProfileToDittoCloud(userProfile);
+  bool _isPhoneApiLoginKey(String loginKey) {
+    final trimmed = loginKey.trim();
+    if (trimmed.isEmpty) return false;
+    if (trimmed.contains('@')) return false;
+    return true;
+  }
+
+  Future<Map<String, dynamic>> _postApiUser(String loginKey) async {
+    debugPrint('User login key for profile fetch: $loginKey');
+    final response = await _httpClient.post(
+      Uri.parse(
+        '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/user',
+      ),
+      headers: _apiHubHeaders(),
+      body: jsonEncode({'phoneNumber': loginKey}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      debugPrint('Fetched user profile from /v2/api/user');
+      return data;
+    }
+    if (response.statusCode == 401) {
+      throw Exception('Unauthorized: Invalid token');
+    }
+    throw Exception('Failed to fetch user profile: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> _reconcileApiUserIdMismatch(
+    Map<String, dynamic> responseBody, {
+    required String? pinUserId,
+    required bool phoneApiLogin,
+  }) async {
+    var data = Map<String, dynamic>.from(responseBody);
+    final apiUserId = data['id']?.toString();
+    final apiBusinesses = data['businesses'] as List? ?? [];
+
+    if (pinUserId != null &&
+        pinUserId.isNotEmpty &&
+        apiUserId != null &&
+        apiUserId != pinUserId) {
+      if (phoneApiLogin && apiBusinesses.isNotEmpty) {
+        debugPrint(
+          'POST /v2/api/user returned id=$apiUserId but '
+          'pins.user_id=$pinUserId — using API user for phone login',
+        );
+        return data;
+      }
+
+      debugPrint(
+        'POST /v2/api/user returned id=$apiUserId but '
+        'pins.user_id=$pinUserId — using PIN user for session',
+      );
+      final corrected = await _fetchUserWithNestedData(pinUserId);
+      if (corrected != null) {
+        return corrected;
+      }
+      data['id'] = pinUserId;
+      return data;
+    }
+
+    if (phoneApiLogin &&
+        apiBusinesses.isEmpty &&
+        pinUserId != null &&
+        pinUserId.isNotEmpty) {
+      final corrected = await _fetchUserWithNestedData(pinUserId);
+      if (corrected != null &&
+          (corrected['businesses'] as List?)?.isNotEmpty == true) {
+        debugPrint(
+          'Phone login API returned no businesses; using pins.user_id=$pinUserId',
+        );
+        return corrected;
+      }
+    }
+
+    return data;
+  }
+
+  /// Writes `user_access` locally (login fast path) and tenant docs when cloud-ready.
+  Future<void> persistProfileToDitto({
+    required Map<String, dynamic> apiPayload,
+    required UserProfile profile,
+  }) async {
+    if (_dittoService.isReady()) {
+      try {
+        await _dittoService.saveUserAccess(
+          apiPayload,
+          localOnly: !_dittoService.isCloudReady(),
+        );
+      } catch (e, st) {
+        debugPrint('Could not save user_access to Ditto: $e\n$st');
+      }
+    } else {
+      debugPrint(
+        'Ditto not ready; profile kept in memory until bootstrap completes',
+      );
+    }
+
+    await syncProfileToDittoCloud(profile);
   }
 
   /// Push profile + nested tenant/business/branch docs to Ditto Cloud.
@@ -148,15 +250,6 @@ class UserRepository {
       Map<String, dynamic>? userProfileData;
       final canonicalPinUserId = pinUserId?.trim();
 
-      if (canonicalPinUserId != null && canonicalPinUserId.isNotEmpty) {
-        userProfileData = await _fetchUserWithNestedData(canonicalPinUserId);
-        if (userProfileData != null) {
-          debugPrint(
-            'Profile loaded via get_user_with_nested_data for $canonicalPinUserId',
-          );
-        }
-      }
-
       final resolvedLoginKey = _resolveLoginKey(
         session,
         loginKey: loginKey,
@@ -166,58 +259,37 @@ class UserRepository {
           isFlipperDittoLoginKey(resolvedLoginKey) &&
           canonicalPinUserId != null &&
           canonicalPinUserId.isNotEmpty;
+      final phoneApiLogin =
+          resolvedLoginKey.isNotEmpty && _isPhoneApiLoginKey(resolvedLoginKey);
 
-      if (userProfileData == null && resolvedLoginKey.isNotEmpty && !skipPhonePost) {
-        debugPrint('User login key for profile fetch: $resolvedLoginKey');
-        final response = await _httpClient.post(
-          Uri.parse(
-            '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/user',
-          ),
-          headers: _apiHubHeaders(),
-          body: jsonEncode({'phoneNumber': resolvedLoginKey}),
-        );
-
-        if (response.statusCode == 200) {
-          userProfileData =
-              jsonDecode(response.body) as Map<String, dynamic>;
-          debugPrint('Fetched user profile: $userProfileData');
-
-          if (canonicalPinUserId != null &&
-              canonicalPinUserId.isNotEmpty &&
-              userProfileData['id']?.toString() != canonicalPinUserId) {
-            final corrected =
-                await _fetchUserWithNestedData(canonicalPinUserId);
-            if (corrected != null) {
-              debugPrint(
-                'Corrected profile using pins.user_id=$canonicalPinUserId '
-                '(API returned id=${userProfileData['id']})',
-              );
-              userProfileData = corrected;
-            }
-          } else if (!_hasBusinesses(userProfileData) &&
-              canonicalPinUserId != null &&
-              canonicalPinUserId.isNotEmpty) {
-            final corrected =
-                await _fetchUserWithNestedData(canonicalPinUserId);
-            if (corrected != null && _hasBusinesses(corrected)) {
-              debugPrint(
-                'Reloaded profile via pins.user_id after empty businesses',
-              );
-              userProfileData = corrected;
-            }
-          }
-        } else if (response.statusCode == 401) {
-          throw Exception('Unauthorized: Invalid token');
-        } else {
-          throw Exception(
-            'Failed to fetch user profile: ${response.statusCode}',
-          );
-        }
-      } else if (skipPhonePost) {
+      if (skipPhonePost) {
         debugPrint(
           'Skipping /v2/api/user for Ditto login key $resolvedLoginKey; '
           'using pins.user_id=$canonicalPinUserId',
         );
+        userProfileData = await _fetchUserWithNestedData(canonicalPinUserId!);
+      } else if (resolvedLoginKey.isNotEmpty) {
+        final apiData = await _postApiUser(resolvedLoginKey);
+        userProfileData = await _reconcileApiUserIdMismatch(
+          apiData,
+          pinUserId: canonicalPinUserId,
+          phoneApiLogin: phoneApiLogin,
+        );
+      } else if (canonicalPinUserId != null && canonicalPinUserId.isNotEmpty) {
+        userProfileData = await _fetchUserWithNestedData(canonicalPinUserId);
+      }
+
+      if ((userProfileData == null || !_hasBusinesses(userProfileData)) &&
+          canonicalPinUserId != null &&
+          canonicalPinUserId.isNotEmpty &&
+          !skipPhonePost) {
+        final corrected = await _fetchUserWithNestedData(canonicalPinUserId);
+        if (corrected != null && _hasBusinesses(corrected)) {
+          debugPrint(
+            'Reloaded profile via pins.user_id after empty API businesses',
+          );
+          userProfileData = corrected;
+        }
       }
 
       if (userProfileData == null) {
@@ -226,11 +298,16 @@ class UserRepository {
         );
       }
 
+      _lastFetchedApiPayload = Map<String, dynamic>.from(userProfileData);
+
       final userProfile = UserProfile.fromApiResponse(
         userProfileData,
-        sessionUserId: canonicalPinUserId ?? session.user.id,
+        sessionUserId: userProfileData['id']?.toString() ?? session.user.id,
       );
-      await _saveProfileToDitto(userProfile);
+      await persistProfileToDitto(
+        apiPayload: userProfileData,
+        profile: userProfile,
+      );
       return userProfile;
     } catch (e) {
       debugPrint('Error in fetchAndSaveUserProfile: $e');
