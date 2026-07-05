@@ -35,6 +35,19 @@ class NotificationUtils {
     return scheduledDate.isBefore(DateTime.now());
   }
 
+  /// OS / in-app banner body for a print delegation notification.
+  static String formatDelegationBody(TransactionDelegation delegation) {
+    final amount = NumberFormat('#,##0', 'en_US').format(delegation.subTotal);
+    final customerName = delegation.customerName?.trim();
+    final fromDevice = delegation.delegatedFromDevice;
+
+    if (customerName != null && customerName.isNotEmpty) {
+      return '${delegation.receiptType} receipt for $customerName · '
+          'RWF $amount · from $fromDevice';
+    }
+    return '${delegation.receiptType} receipt · RWF $amount · from $fromDevice';
+  }
+
   /// Parse a notification payload into an IConversation object
   static IConversation? parseNotificationPayload(String? payload) {
     if (payload == null || payload.isEmpty) return null;
