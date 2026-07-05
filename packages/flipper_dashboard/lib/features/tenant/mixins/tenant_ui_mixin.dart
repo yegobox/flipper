@@ -190,6 +190,7 @@ class TenantUIMixin {
     void Function(BuildContext, Tenant, FlipperBaseModel) showDeleteConfirmation,
   ) {
     final currentUser = tenant.userId == ProxyService.box.getUserId();
+    final isAdmin = (tenant.type ?? '').trim().toLowerCase() == 'admin';
     final subtitle =
         tenant.email?.trim().isNotEmpty == true
             ? tenant.email!
@@ -269,7 +270,7 @@ class TenantUIMixin {
                 onPressed: () => onTenantSelected(tenant),
               ),
               const SizedBox(width: 6),
-              if (!currentUser)
+              if (!currentUser && !isAdmin)
                 _squareIconButton(
                   icon: Icons.delete_outline,
                   iconColor: Colors.red[600]!,
@@ -294,8 +295,20 @@ class TenantUIMixin {
           return Text("No branches available");
         }
 
+        // selectedBranchProvider is shared app-wide and may hold a branch from
+        // another business; only honor it when it exists in this list.
+        final activeBranchId = ProxyService.box.getBranchId();
+        final initialBranch = branches.firstWhere(
+          (b) => b.id == selectedBranch?.id,
+          orElse: () => branches.firstWhere(
+            (b) => b.id == activeBranchId,
+            orElse: () => branches.first,
+          ),
+        );
+
         return DropdownButtonFormField<Branch>(
-          initialValue: selectedBranch ?? branches.first,
+          key: ValueKey<String>('tenant_branch_${initialBranch.id}'),
+          initialValue: initialBranch,
           onChanged: (Branch? newValue) {
             ref.read(selectedBranchProvider.notifier).state = newValue;
           },

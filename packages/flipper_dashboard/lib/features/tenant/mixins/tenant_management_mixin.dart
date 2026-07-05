@@ -133,11 +133,20 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         ));
       }
       // Preserve the branch id used by existing accesses so edits upsert in-place
-      // (unique key includes branch_id).
-      final branchIdFromAccesses =
-          list.firstWhere((a) => a.branchId != null && a.branchId!.isNotEmpty,
-                  orElse: () => Access(id: 'x'))
-              .branchId;
+      // (unique key includes branch_id). Only consider accesses of the current
+      // business — stale rows can reference branches of another business and
+      // create_agent rejects those.
+      final currentBusinessId = ProxyService.box.getBusinessId();
+      final branchIdFromAccesses = list
+          .firstWhere(
+            (a) =>
+                a.branchId != null &&
+                a.branchId!.isNotEmpty &&
+                (currentBusinessId == null ||
+                    a.businessId == currentBusinessId),
+            orElse: () => Access(id: 'x'),
+          )
+          .branchId;
       if (branchIdFromAccesses != null && branchIdFromAccesses.isNotEmpty) {
         _selectedTenantBranchIdForEdit = branchIdFromAccesses;
       } else {

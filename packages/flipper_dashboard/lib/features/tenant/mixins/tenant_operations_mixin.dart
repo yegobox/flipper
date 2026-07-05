@@ -199,25 +199,36 @@ class TenantOperationsMixin {
         debugPrint('addUserStatic: branch guardrail query failed: $e');
       }
 
-      // Call the v2/api/user endpoint to get user information
-      final userResponse = await ProxyService.http.post(
-        Uri.parse('${AppSecrets.apihubProd}/v2/api/user'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'phone_number': phone, // phone can also be email
-        }),
-      );
-
-      if (userResponse.statusCode != 200) {
-        _fail(
-          context,
-          "Failed to find user with provided phone/email: ${userResponse.body}",
+      // Resolve the auth user id. On edit, ALWAYS use the edited tenant's
+      // userId: re-resolving from the typed phone/email can return a different
+      // auth user (formatting differences like +250783054804 vs 783054804),
+      // and create_agent then INSERTs a new tenant instead of updating.
+      final String userIdFromApi;
+      final String phoneNumber;
+      if (editMode && userId != null && userId.isNotEmpty) {
+        userIdFromApi = userId;
+        phoneNumber = phone;
+      } else {
+        // Call the v2/api/user endpoint to get user information
+        final userResponse = await ProxyService.http.post(
+          Uri.parse('${AppSecrets.apihubProd}/v2/api/user'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'phone_number': phone, // phone can also be email
+          }),
         );
-      }
 
-      final userJson = jsonDecode(userResponse.body);
-      final String userIdFromApi = userJson['id'];
-      final String phoneNumber = userJson['phone_number'];
+        if (userResponse.statusCode != 200) {
+          _fail(
+            context,
+            "Failed to find user with provided phone/email: ${userResponse.body}",
+          );
+        }
+
+        final userJson = jsonDecode(userResponse.body);
+        userIdFromApi = userJson['id'];
+        phoneNumber = userJson['phone_number'];
+      }
 
       // Call Supabase RPC function to create agent
       final supabaseClient = Supabase.instance.client;
@@ -417,6 +428,10 @@ class TenantOperationsMixin {
     FlipperBaseModel model,
     BuildContext context,
   ) async {
+    if ((tenant.type ?? '').trim().toLowerCase() == 'admin') {
+      _showError(context, 'Admin users cannot be deleted.');
+      return;
+    }
     try {
       // Call Supabase RPC function to remove tenant access
       final supabaseClient = Supabase.instance.client;

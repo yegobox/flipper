@@ -81,6 +81,14 @@ class FlipperBaseModel extends ReactiveViewModel {
         if (item is! Map) continue;
         final row = Map<String, dynamic>.from(item);
         if (row['deleted_at'] != null) continue;
+        final rowBusinessId = row['business_id']?.toString();
+        // Rows fetched via pins/junction can belong to another business
+        // (same user, different business). Never show those here.
+        if (rowBusinessId != null &&
+            rowBusinessId.isNotEmpty &&
+            rowBusinessId != businessUuid) {
+          continue;
+        }
         if (row['business_id'] == null) {
           row['business_id'] = businessUuid;
         }
@@ -209,6 +217,103 @@ class FlipperBaseModel extends ReactiveViewModel {
       (a, b) =>
           (a.name ?? '').toLowerCase().compareTo((b.name ?? '').toLowerCase()),
     );
+  }
+
+  /// PINs keyed by `user_id` for a business (from the `pins` table).
+  static Future<Map<String, int>> fetchPinsByUserIdForBusiness(
+    String businessUuid,
+  ) async {
+    final rows = await Supabase.instance.client
+        .from('pins')
+        .select('user_id, pin')
+        .eq('business_id', businessUuid);
+
+    final map = <String, int>{};
+    for (final row in rows as List) {
+      if (row is! Map) continue;
+      final uid = row['user_id']?.toString();
+      if (uid == null || uid.isEmpty) continue;
+      final pinRaw = row['pin'];
+      int? pin;
+      if (pinRaw is int) {
+        pin = pinRaw;
+      } else if (pinRaw is num) {
+        pin = pinRaw.toInt();
+      } else if (pinRaw != null) {
+        pin = int.tryParse(pinRaw.toString());
+      }
+      if (pin != null) map[uid] = pin;
+    }
+    return map;
+  }
+
+  /// Copies [tenant] with [pinsByUserId] when [Tenant.pin] is null.
+  static Tenant withPinFromLookup(
+    Tenant tenant,
+    Map<String, int> pinsByUserId,
+  ) {
+    if (tenant.pin != null) return tenant;
+    final uid = tenant.userId;
+    if (uid == null || uid.isEmpty) return tenant;
+    final pin = pinsByUserId[uid];
+    if (pin == null) return tenant;
+    return Tenant(
+      id: tenant.id,
+      name: tenant.name,
+      phoneNumber: tenant.phoneNumber,
+      email: tenant.email,
+      nfcEnabled: tenant.nfcEnabled,
+      businessId: tenant.businessId,
+      userId: tenant.userId,
+      imageUrl: tenant.imageUrl,
+      lastTouched: tenant.lastTouched,
+      deletedAt: tenant.deletedAt,
+      pin: pin,
+      isDefault: tenant.isDefault,
+      sessionActive: tenant.sessionActive,
+      type: tenant.type,
+      allowBusinessLogin: tenant.allowBusinessLogin,
+    );
+  }
+
+  /// Bar Mode staff roster — same tenants as User Management, with PINs merged
+  /// from the `pins` table when `tenants.pin` is null.
+  static Future<List<Tenant>> fetchBarStaffTenants({String? businessId}) async {
+    final id = businessId ?? ProxyService.box.getBusinessId();
+    if (id == null || id.isEmpty) return const [];
+
+    final businessUuid = await resolveBusinessUuidForTenants(id);
+    if (businessUuid == null || businessUuid.isEmpty) return const [];
+
+    final pinsByUserId = await fetchPinsByUserIdForBusiness(businessUuid);
+    var tenants = dedupeTenantsForDisplay(
+      await fetchTenantsFromSupabase(businessUuid),
+    ).map((t) => withPinFromLookup(t, pinsByUserId)).toList();
+
+    final currentUserId = ProxyService.box.getUserId();
+    if (currentUserId != null &&
+        !tenants.any((t) => t.userId == currentUserId)) {
+      final rows = await Supabase.instance.client
+          .from('tenants')
+          .select()
+          .eq('user_id', currentUserId)
+          .isFilter('deleted_at', null)
+          .order('last_touched', ascending: false)
+          .limit(1);
+      if (rows.isNotEmpty) {
+        final self = tenantFromSupabaseRow(
+          Map<String, dynamic>.from(rows.first as Map),
+        );
+        tenants = [...tenants, withPinFromLookup(self, pinsByUserId)];
+      }
+    }
+
+    tenants.sort(
+      (a, b) => (a.name ?? '').toLowerCase().compareTo(
+        (b.name ?? '').toLowerCase(),
+      ),
+    );
+    return tenants;
   }
 
   static Tenant tenantFromSupabaseRow(Map<String, dynamic> r) {

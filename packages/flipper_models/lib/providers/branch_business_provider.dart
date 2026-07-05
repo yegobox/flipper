@@ -6,6 +6,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'branch_business_provider.g.dart';
 
+/// Branches the current user may access for [businessId].
+///
+/// Same source as [LoginChoices] (`Ditto user_access` via `getBranches`).
+/// Local Brick rows only enrich fields (e.g. `isDefault`) for those ids —
+/// never add branches the user cannot access.
 @riverpod
 Future<List<Branch>> branches(Ref ref, {String? businessId}) async {
   if (businessId == null) return [];
@@ -15,41 +20,56 @@ Future<List<Branch>> branches(Ref ref, {String? businessId}) async {
 
   final branchesById = <String, Branch>{};
 
-  // Permission-aware list from Ditto user_access (populated at login).
   if (ProxyService.ditto.isReady()) {
-    final userAccess = await ProxyService.ditto.getUserAccess(userId);
-    if (userAccess != null && userAccess.containsKey('businesses')) {
-      final List<dynamic> businessesJson = userAccess['businesses'];
-      final businessJson = businessesJson.firstWhere(
-        (b) => b['id'] == businessId,
-        orElse: () => null,
-      );
-
-      if (businessJson != null && businessJson.containsKey('branches')) {
-        final List<dynamic> branchesJson = businessJson['branches'];
-        for (final json in branchesJson) {
-          final branch = Branch.fromMap(Map<String, dynamic>.from(json));
-          branchesById[branch.id] = branch;
-        }
+    final branchesJson =
+        await ProxyService.ditto.getBranches(userId, businessId);
+    for (final json in branchesJson) {
+      final branch = Branch.fromMap(Map<String, dynamic>.from(json));
+      if (branch.businessId != null &&
+          branch.businessId!.isNotEmpty &&
+          branch.businessId != businessId) {
+        continue;
       }
+      branchesById[branch.id] = branch;
     }
   }
 
-  // Merge Brick/SQLite branches over user_access so fields like isDefault stay
-  // current after Supabase updates (user_access is only refreshed at login).
-  try {
-    final localBranches = await Repository().get<Branch>(
-      query: Query(where: [Where('businessId').isExactly(businessId)]),
-      policy: OfflineFirstGetPolicy.localOnly,
-    );
-    for (final branch in localBranches) {
-      branchesById[branch.id] = branch;
+  if (branchesById.isNotEmpty) {
+    try {
+      final ids = branchesById.keys.toList();
+      final localBranches = await Repository().get<Branch>(
+        query: Query(
+          where: [
+            Where('businessId').isExactly(businessId),
+            Where('id').isIn(ids),
+          ],
+        ),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+      for (final branch in localBranches) {
+        branchesById[branch.id] = branch;
+      }
+    } catch (_) {
+      // Local read is best-effort.
     }
-  } catch (_) {
-    // Local read is best-effort.
   }
 
   return branchesById.values.toList();
+}
+
+/// Every branch row synced for [businessId] (admin screens, e.g. Add Branch).
+@riverpod
+Future<List<Branch>> allBusinessBranches(Ref ref, {String? businessId}) async {
+  if (businessId == null) return [];
+
+  try {
+    return await Repository().get<Branch>(
+      query: Query(where: [Where('businessId').isExactly(businessId)]),
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+  } catch (_) {
+    return [];
+  }
 }
 
 /// Pulls latest branch rows from Supabase into local Brick/SQLite.
