@@ -22,7 +22,11 @@ class PaymentVerificationNavigator {
     'TransactionDetail',
     'CheckOut',
     'NewTicket',
+    'BarModeHost',
   };
+
+  static const _barModeEnabledKey = 'barModeEnabled';
+  static const _barModeLaunchOnStartKey = 'barModeLaunchOnStart';
 
   /// Verifies payment online and navigates. Use after signup when payment was just completed.
   static Future<PaymentVerificationResponse> verifyAndNavigate({
@@ -84,6 +88,12 @@ class PaymentVerificationNavigator {
         'Returning to main app after successful payment verification',
       );
       _isOnPaymentScreen = false;
+    }
+
+    final currentRoute = _routerService.router.current.name;
+    if (currentRoute == BarModeRoute.name) {
+      talker.info('Already in bar mode — skipping home navigation');
+      return;
     }
 
     await _navigateToAuthenticatedHome();
@@ -165,7 +175,21 @@ class PaymentVerificationNavigator {
 
     if (await _navigateCommissionOnlyIfNeeded()) return;
 
+    if (_shouldOpenBarMode()) {
+      talker.info('Bar mode launch on start — opening bar register');
+      _routerService.navigateTo(BarModeRoute());
+      return;
+    }
+
     _routerService.navigateTo(FlipperAppRoute());
+  }
+
+  static bool _shouldOpenBarMode() {
+    final enabled =
+        ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
+    final launchOnStart =
+        ProxyService.box.readBool(key: _barModeLaunchOnStartKey) ?? false;
+    return enabled && launchOnStart;
   }
 
   static Future<bool> _shouldNavigateToPersonalApp() async {

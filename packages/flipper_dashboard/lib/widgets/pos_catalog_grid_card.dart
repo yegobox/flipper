@@ -20,6 +20,8 @@ class PosCatalogGridCard extends StatefulWidget {
     required this.thumb,
     required this.onTap,
     required this.onLongPress,
+    this.showPrice = true,
+    this.stockLabelColor,
   });
 
   final String productName;
@@ -34,6 +36,8 @@ class PosCatalogGridCard extends StatefulWidget {
   final Widget thumb;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final bool showPrice;
+  final Color? stockLabelColor;
 
   @override
   State<PosCatalogGridCard> createState() => _PosCatalogGridCardState();
@@ -155,20 +159,22 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
-                          Flexible(
-                            child: _PosCardPrice(
-                              currencySymbol: widget.currencySymbol,
-                              amount: widget.priceAmount,
+                          if (widget.showPrice)
+                            Flexible(
+                              child: _PosCardPrice(
+                                currencySymbol: widget.currencySymbol,
+                                amount: widget.priceAmount,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
+                          if (widget.showPrice) const SizedBox(width: 8),
                           Text(
                             widget.stockLabel,
                             style: PosTokens.posMonoStyle(
                               Theme.of(context).textTheme,
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
-                              color: posStockTextColor(widget.stockVisual),
+                              color: widget.stockLabelColor ??
+                                  posStockTextColor(widget.stockVisual),
                             ),
                           ),
                         ],

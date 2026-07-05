@@ -59,6 +59,11 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   String? ticketName;
 
+  /// Bar Mode: binds a running tab to a floor table ([bar_tables.id]).
+  @Sqlite(name: 'table_id')
+  @Supabase(name: 'table_id')
+  String? tableId;
+
   // fields when a transaction is created for ordering system
   int? supplierId;
 
@@ -195,6 +200,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   ITransaction({
     this.ticketName,
+    this.tableId,
     String? id,
     String? categoryId,
     this.transactionNumber,
@@ -362,6 +368,8 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     String? cashierName,
     String? deviceId,
     Strategy? dataSource,
+    String? ticketName,
+    String? tableId,
   }) {
     return ITransaction(
       id: id ?? this.id,
@@ -430,6 +438,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       items: items ?? this.items,
       customerPhone: customerPhone ?? this.customerPhone,
       ticketName: ticketName ?? this.ticketName,
+      tableId: tableId ?? this.tableId,
       agentId: agentId ?? this.agentId,
       attributedAgentUserId:
           attributedAgentUserId ?? this.attributedAgentUserId,

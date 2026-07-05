@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20260705114226.migration.dart';
 part '20260522081221.migration.dart';
 part '20260527030019.migration.dart';
 part '20260603185233.migration.dart';
@@ -12,6 +13,7 @@ part '20260702191831.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20260705114226(),
   const Migration20260522081221(),
   const Migration20260527030019(),
   const Migration20260603185233(),
@@ -1581,6 +1583,7 @@ final schema = Schema(
         SchemaColumn('note', Column.varchar),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('ticket_name', Column.varchar),
+        SchemaColumn('table_id', Column.varchar),
         SchemaColumn('supplier_id', Column.integer),
         SchemaColumn('ebm_synced', Column.boolean),
         SchemaColumn('is_income', Column.boolean),
@@ -1741,6 +1744,8 @@ final schema = Schema(
         SchemaColumn('ignore_for_report', Column.boolean),
         SchemaColumn('supply_price_at_sale', Column.num),
         SchemaColumn('tt_cat_cd', Column.varchar),
+        SchemaColumn('logged_by_tenant_id', Column.varchar),
+        SchemaColumn('logged_by_name', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

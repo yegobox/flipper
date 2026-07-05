@@ -219,6 +219,135 @@ class FlipperBaseModel extends ReactiveViewModel {
     );
   }
 
+  static int _tenantDisplayScore(Tenant t) {
+    var s = 0;
+    if (t.businessId != null && t.businessId!.isNotEmpty) s += 100;
+    if (t.userId != null && t.userId!.isNotEmpty) s += 50;
+    if (t.lastTouched != null) s += 10;
+    return s;
+  }
+
+  /// Bar roster dedupe — also collapses orphan tenant rows that share a name
+  /// but have no [Tenant.userId] (legacy Agent King / Murag duplicates).
+  static List<Tenant> dedupeBarStaffForDisplay(List<Tenant> users) {
+    final byIdentity = dedupeTenantsForDisplay(users);
+    final withUserId = <Tenant>[];
+    final byNamePhone = <String, Tenant>{};
+
+    for (final t in byIdentity) {
+      final uid = t.userId?.trim();
+      if (uid != null && uid.isNotEmpty) {
+        withUserId.add(t);
+        continue;
+      }
+      final name = (t.name ?? '').trim().toLowerCase();
+      if (name.isEmpty) {
+        withUserId.add(t);
+        continue;
+      }
+      final phone = (t.phoneNumber ?? '').trim();
+      final key = '$name|$phone';
+      final existing = byNamePhone[key];
+      if (existing == null ||
+          _tenantDisplayScore(t) > _tenantDisplayScore(existing)) {
+        byNamePhone[key] = t;
+      }
+    }
+
+    return [...withUserId, ...byNamePhone.values]..sort(
+      (a, b) =>
+          (a.name ?? '').toLowerCase().compareTo((b.name ?? '').toLowerCase()),
+    );
+  }
+
+  /// Business creator — often in `users` + `pins` but not `tenants`.
+  static Future<Tenant?> fetchBusinessOwnerStaffMember(
+    String businessUuid,
+    Map<String, int> pinsByUserId,
+  ) async {
+    final client = Supabase.instance.client;
+    final biz = await client
+        .from('businesses')
+        .select('user_id')
+        .eq('id', businessUuid)
+        .maybeSingle();
+    final ownerUserId = biz?['user_id']?.toString();
+    if (ownerUserId == null || ownerUserId.isEmpty) return null;
+
+    final user = await client
+        .from('users')
+        .select('id, name, phone_number')
+        .eq('id', ownerUserId)
+        .maybeSingle();
+    if (user == null) return null;
+
+    final ownerName = user['name']?.toString().trim();
+    final ownerPhone = user['phone_number']?.toString();
+
+    final tenantRows = await client
+        .from('tenants')
+        .select()
+        .eq('business_id', businessUuid)
+        .eq('user_id', ownerUserId)
+        .isFilter('deleted_at', null)
+        .order('last_touched', ascending: false)
+        .limit(1);
+
+    if (tenantRows.isNotEmpty) {
+      final row = Map<String, dynamic>.from(tenantRows.first as Map);
+      final tenant = withPinFromLookup(
+        tenantFromSupabaseRow(row),
+        pinsByUserId,
+      );
+      if (ownerName != null && ownerName.isNotEmpty && tenant.name != ownerName) {
+        return Tenant(
+          id: tenant.id,
+          name: ownerName,
+          phoneNumber: ownerPhone ?? tenant.phoneNumber,
+          email: tenant.email,
+          nfcEnabled: tenant.nfcEnabled,
+          businessId: tenant.businessId ?? businessUuid,
+          userId: tenant.userId,
+          imageUrl: tenant.imageUrl,
+          lastTouched: tenant.lastTouched,
+          deletedAt: tenant.deletedAt,
+          pin: tenant.pin,
+          isDefault: tenant.isDefault,
+          sessionActive: tenant.sessionActive,
+          type: tenant.type ?? 'Owner',
+          allowBusinessLogin: true,
+        );
+      }
+      return tenant;
+    }
+
+    return Tenant(
+      id: ownerUserId,
+      name: (ownerName != null && ownerName.isNotEmpty) ? ownerName : 'Owner',
+      phoneNumber: ownerPhone,
+      businessId: businessUuid,
+      userId: ownerUserId,
+      pin: pinsByUserId[ownerUserId],
+      type: 'Owner',
+      allowBusinessLogin: true,
+      nfcEnabled: false,
+    );
+  }
+
+  /// Parses a PIN column; `0` is the legacy sentinel for "unset" (see security.dart).
+  static int? parseStaffPinValue(Object? pinRaw) {
+    int? pin;
+    if (pinRaw is int) {
+      pin = pinRaw;
+    } else if (pinRaw is num) {
+      pin = pinRaw.toInt();
+    } else if (pinRaw != null) {
+      pin = int.tryParse(pinRaw.toString());
+    }
+    if (pin != null && pin == 0) return null;
+    return pin;
+  }
+
   /// PINs keyed by `user_id` for a business (from the `pins` table).
   static Future<Map<String, int>> fetchPinsByUserIdForBusiness(
     String businessUuid,
@@ -233,30 +362,97 @@ class FlipperBaseModel extends ReactiveViewModel {
       if (row is! Map) continue;
       final uid = row['user_id']?.toString();
       if (uid == null || uid.isEmpty) continue;
-      final pinRaw = row['pin'];
-      int? pin;
-      if (pinRaw is int) {
-        pin = pinRaw;
-      } else if (pinRaw is num) {
-        pin = pinRaw.toInt();
-      } else if (pinRaw != null) {
-        pin = int.tryParse(pinRaw.toString());
-      }
+      final pin = parseStaffPinValue(row['pin']);
       if (pin != null) map[uid] = pin;
     }
     return map;
   }
 
-  /// Copies [tenant] with [pinsByUserId] when [Tenant.pin] is null.
+  /// Staff with a row in `pins` but no `tenants` row (common for business owners).
+  static Future<List<Tenant>> tenantsFromPinsOnlyUsers({
+    required String businessUuid,
+    required Map<String, int> pinsByUserId,
+    required Set<String> existingUserIds,
+  }) async {
+    final missing = pinsByUserId.keys
+        .where((uid) => !existingUserIds.contains(uid))
+        .toList();
+    if (missing.isEmpty) return const [];
+
+    final client = Supabase.instance.client;
+
+    final ownerRow = await client
+        .from('businesses')
+        .select('user_id')
+        .eq('id', businessUuid)
+        .maybeSingle();
+    final ownerUserId = ownerRow?['user_id']?.toString();
+
+    final userRows = await client
+        .from('users')
+        .select('id, name, phone_number')
+        .inFilter('id', missing);
+
+    final pinMetaRows = await client
+        .from('pins')
+        .select('user_id, owner_name, phone_number')
+        .eq('business_id', businessUuid)
+        .inFilter('user_id', missing);
+
+    final ownerNameByUser = <String, String>{};
+    final phoneByUser = <String, String>{};
+    for (final row in pinMetaRows as List) {
+      if (row is! Map) continue;
+      final uid = row['user_id']?.toString();
+      if (uid == null || uid.isEmpty) continue;
+      final ownerName = row['owner_name']?.toString().trim();
+      if (ownerName != null && ownerName.isNotEmpty) {
+        ownerNameByUser[uid] = ownerName;
+      }
+      final phone = row['phone_number']?.toString().trim();
+      if (phone != null && phone.isNotEmpty) phoneByUser[uid] = phone;
+    }
+
+    final out = <Tenant>[];
+    for (final row in userRows as List) {
+      if (row is! Map) continue;
+      final uid = row['id']?.toString();
+      if (uid == null || uid.isEmpty) continue;
+      final pin = pinsByUserId[uid];
+      if (pin == null) continue;
+
+      final userName = row['name']?.toString().trim();
+      final isOwner = uid == ownerUserId;
+      out.add(
+        Tenant(
+          id: uid,
+          name: (userName != null && userName.isNotEmpty)
+              ? userName
+              : (ownerNameByUser[uid] ?? 'Staff'),
+          phoneNumber:
+              row['phone_number']?.toString() ?? phoneByUser[uid],
+          businessId: businessUuid,
+          userId: uid,
+          pin: pin,
+          type: isOwner ? 'Owner' : 'Agent',
+          allowBusinessLogin: isOwner,
+          nfcEnabled: false,
+        ),
+      );
+    }
+    return out;
+  }
+
+  /// Merges login PIN from `pins` — always preferred over `tenants.pin` (often `0`).
   static Tenant withPinFromLookup(
     Tenant tenant,
     Map<String, int> pinsByUserId,
   ) {
-    if (tenant.pin != null) return tenant;
     final uid = tenant.userId;
-    if (uid == null || uid.isEmpty) return tenant;
-    final pin = pinsByUserId[uid];
-    if (pin == null) return tenant;
+    final fromPins =
+        (uid != null && uid.isNotEmpty) ? pinsByUserId[uid] : null;
+    final effectivePin = fromPins ?? parseStaffPinValue(tenant.pin);
+    if (effectivePin == tenant.pin) return tenant;
     return Tenant(
       id: tenant.id,
       name: tenant.name,
@@ -268,7 +464,7 @@ class FlipperBaseModel extends ReactiveViewModel {
       imageUrl: tenant.imageUrl,
       lastTouched: tenant.lastTouched,
       deletedAt: tenant.deletedAt,
-      pin: pin,
+      pin: effectivePin,
       isDefault: tenant.isDefault,
       sessionActive: tenant.sessionActive,
       type: tenant.type,
@@ -286,9 +482,27 @@ class FlipperBaseModel extends ReactiveViewModel {
     if (businessUuid == null || businessUuid.isEmpty) return const [];
 
     final pinsByUserId = await fetchPinsByUserIdForBusiness(businessUuid);
-    var tenants = dedupeTenantsForDisplay(
+    var tenants = dedupeBarStaffForDisplay(
       await fetchTenantsFromSupabase(businessUuid),
     ).map((t) => withPinFromLookup(t, pinsByUserId)).toList();
+
+    final ownerStaff =
+        await fetchBusinessOwnerStaffMember(businessUuid, pinsByUserId);
+    if (ownerStaff != null) {
+      tenants.removeWhere((t) => t.userId == ownerStaff.userId);
+      tenants.add(withPinFromLookup(ownerStaff, pinsByUserId));
+    }
+
+    final knownUserIds =
+        tenants.map((t) => t.userId).whereType<String>().toSet();
+    tenants = [
+      ...tenants,
+      ...await tenantsFromPinsOnlyUsers(
+        businessUuid: businessUuid,
+        pinsByUserId: pinsByUserId,
+        existingUserIds: knownUserIds,
+      ),
+    ];
 
     final currentUserId = ProxyService.box.getUserId();
     if (currentUserId != null &&
@@ -305,8 +519,50 @@ class FlipperBaseModel extends ReactiveViewModel {
           Map<String, dynamic>.from(rows.first as Map),
         );
         tenants = [...tenants, withPinFromLookup(self, pinsByUserId)];
+      } else if (pinsByUserId.containsKey(currentUserId)) {
+        tenants = [
+          ...tenants,
+          ...await tenantsFromPinsOnlyUsers(
+            businessUuid: businessUuid,
+            pinsByUserId: pinsByUserId,
+            existingUserIds: {
+              ...knownUserIds,
+              ...tenants.map((t) => t.userId).whereType<String>(),
+            },
+          ),
+        ];
+      } else {
+        final userRow = await Supabase.instance.client
+            .from('users')
+            .select('id, name, phone_number')
+            .eq('id', currentUserId)
+            .maybeSingle();
+        if (userRow != null) {
+          final ownerRow = await Supabase.instance.client
+              .from('businesses')
+              .select('user_id')
+              .eq('id', businessUuid)
+              .maybeSingle();
+          final isOwner =
+              ownerRow?['user_id']?.toString() == currentUserId;
+          tenants = [
+            ...tenants,
+            Tenant(
+              id: currentUserId,
+              name: userRow['name']?.toString() ?? 'Staff',
+              phoneNumber: userRow['phone_number']?.toString(),
+              businessId: businessUuid,
+              userId: currentUserId,
+              type: isOwner ? 'Owner' : 'Agent',
+              allowBusinessLogin: isOwner,
+              nfcEnabled: false,
+            ),
+          ];
+        }
       }
     }
+
+    tenants = dedupeBarStaffForDisplay(tenants);
 
     tenants.sort(
       (a, b) => (a.name ?? '').toLowerCase().compareTo(
@@ -319,15 +575,7 @@ class FlipperBaseModel extends ReactiveViewModel {
   static Tenant tenantFromSupabaseRow(Map<String, dynamic> r) {
     String sid(Object? v) => v?.toString() ?? '';
 
-    final pinRaw = r['pin'];
-    int? pin;
-    if (pinRaw is int) {
-      pin = pinRaw;
-    } else if (pinRaw is num) {
-      pin = pinRaw.toInt();
-    } else if (pinRaw != null) {
-      pin = int.tryParse(pinRaw.toString());
-    }
+    final pin = parseStaffPinValue(r['pin']);
 
     DateTime? parseTs(Object? v) {
       if (v == null) return null;
