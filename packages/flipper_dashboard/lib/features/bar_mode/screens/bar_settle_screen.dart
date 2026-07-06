@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
+import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +24,7 @@ class BarSettleScreen extends ConsumerStatefulWidget {
 class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
   String _method = 'Cash';
   double _tender = 0;
+  bool _settling = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +48,7 @@ class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
     final due = (total - _tender).clamp(0, double.infinity);
     final change = (_tender - total).clamp(0, double.infinity);
     final canConfirm =
-        _method == 'Mobile Money' || _tender >= total - 0.01;
+        !_settling && (_method == 'Mobile Money' || _tender >= total - 0.01);
 
     return Container(
       color: BarTokens.posBg,
@@ -81,7 +88,8 @@ class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
                                 break;
                               }
                             }
-                            final name = tenant?.name ??
+                            final name =
+                                tenant?.name ??
                                 entry.value.first.loggedByName ??
                                 'Staff';
                             final sub = barTabTotal(entry.value.cast());
@@ -96,16 +104,18 @@ class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  ...entry.value.map((line) => Padding(
-                                        padding: const EdgeInsets.only(top: 6),
-                                        child: Text(
-                                          '${line.qty.toInt()}× ${line.name} @ ${NumberFormat('#,###').format(line.price)}',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 13,
-                                            color: BarTokens.ink2,
-                                          ),
+                                  ...entry.value.map(
+                                    (line) => Padding(
+                                      padding: const EdgeInsets.only(top: 6),
+                                      child: Text(
+                                        '${line.qty.toInt()}× ${line.name} @ ${NumberFormat('#,###').format(line.price)}',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 13,
+                                          color: BarTokens.ink2,
                                         ),
-                                      )),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
@@ -154,8 +164,8 @@ class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
                           due > 0
                               ? 'Balance due: RWF ${NumberFormat('#,###').format(due)}'
                               : change > 0
-                                  ? 'Change to give: RWF ${NumberFormat('#,###').format(change)}'
-                                  : 'Exact — no change',
+                              ? 'Change to give: RWF ${NumberFormat('#,###').format(change)}'
+                              : 'Exact — no change',
                           style: GoogleFonts.jetBrainsMono(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
@@ -178,8 +188,7 @@ class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
                                       ? 'Exact'
                                       : NumberFormat('#,###').format(chip),
                                 ),
-                                onPressed: () =>
-                                    setState(() => _tender = chip),
+                                onPressed: () => setState(() => _tender = chip),
                               ),
                           ],
                         ),
@@ -194,7 +203,7 @@ class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
                       const Spacer(),
                       FilledButton(
                         onPressed: canConfirm
-                            ? () => _confirm(ref, tab, total)
+                            ? () => _confirm(ref, tab, total, lines)
                             : null,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(52),
@@ -268,7 +277,10 @@ class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
               children: [
                 Icon(icon),
                 const SizedBox(height: 6),
-                Text(label, style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
+                Text(
+                  label,
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+                ),
               ],
             ),
           ),
@@ -301,19 +313,111 @@ class _BarSettleScreenState extends ConsumerState<BarSettleScreen> {
     );
   }
 
-  Future<void> _confirm(WidgetRef ref, dynamic tab, double total) async {
+  Future<void> _confirm(
+    WidgetRef ref,
+    ITransaction tab,
+    double total,
+    List<TransactionItem> lines,
+  ) async {
+    if (_settling) return;
+    setState(() => _settling = true);
+
     final sync = ProxyService.getStrategy(Strategy.capella);
-    await sync.settleBarTab(
-      transaction: tab,
-      paymentType: _method,
-      cashReceived: _method == 'Cash' ? _tender : total,
-      customerChangeDue: (_tender - total).clamp(0, double.infinity),
-    );
-    final tableName = ref.read(barModeProvider).activeTable?.name ?? '';
-    ref.read(barModeProvider.notifier).afterSettle(
-          tableName: tableName,
-          message:
-              '$tableName settled · RWF ${NumberFormat('#,###').format(total)} $_method',
+    final cashReceived = _method == 'Cash' ? _tender : total;
+    final change = (_tender - total).clamp(0, double.infinity).toDouble();
+
+    try {
+      var txn = tab.copyWith(
+        subTotal: total,
+        cashReceived: cashReceived,
+        customerChangeDue: change,
+        paymentType: _method,
+      );
+
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+      if (businessId != null && branchId != null) {
+        final taxEnabled = await sync.isTaxEnabled(
+          businessId: businessId,
+          branchId: branchId,
         );
+        final stopTax = ProxyService.box.stopTaxService() ?? false;
+        final hasBhf = (await ProxyService.box.bhfId()) != null;
+
+        if (taxEnabled && !stopTax && hasBhf) {
+          final ebm = await sync.ebm(branchId: branchId);
+          if (ebm?.taxServerUrl != null) {
+            ProxyService.box.writeString(
+              key: 'getServerUrl',
+              value: ebm!.taxServerUrl!,
+            );
+            ProxyService.box.writeString(key: 'bhfId', value: ebm.bhfId);
+
+            final filterType = ProxyService.box.isProformaMode()
+                ? FilterType.PS
+                : FilterType.NS;
+            final receiptLines = await enrichBarTabLinesForRraReceipt(lines);
+            final result = await TaxController(
+              object: txn,
+            ).handleReceipt(
+              filterType: filterType,
+              transactionItems: receiptLines,
+            );
+            if (result.response.resultCd != '000') {
+              throw Exception(result.response.resultMsg);
+            }
+          }
+        }
+      }
+
+      txn = await sync.settleBarTab(
+        transaction: txn,
+        paymentType: _method,
+        cashReceived: cashReceived,
+        customerChangeDue: change,
+      );
+
+      await sync.savePaymentType(
+        singlePaymentOnly: true,
+        amount: total,
+        transactionId: tab.id,
+        paymentMethod: _method,
+        saleCompletionFastPath: true,
+      );
+
+      if (lines.isNotEmpty) {
+        final allowBelow = await getIt<SettingsService>()
+            .isAllowSellingBelowStock();
+        final isProformaOrTraining =
+            ProxyService.box.isProformaMode() ||
+            ProxyService.box.isTrainingMode();
+        final receiptType = ProxyService.box.isProformaMode() ? 'PS' : 'NS';
+        schedulePostSaleStockDeductionAndRraSync(
+          transactionItems: lines,
+          allowSellingBelowStock: allowBelow,
+          isProformaOrTraining: isProformaOrTraining,
+          transactionId: tab.id,
+          transaction: txn,
+          receiptType: receiptType,
+        );
+      }
+
+      if (!mounted) return;
+      final tableName = ref.read(barModeProvider).activeTable?.name ?? '';
+      ref
+          .read(barModeProvider.notifier)
+          .afterSettle(
+            tableName: tableName,
+            message:
+                '$tableName settled · RWF ${NumberFormat('#,###').format(total)} $_method',
+          );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _settling = false);
+    }
   }
 }

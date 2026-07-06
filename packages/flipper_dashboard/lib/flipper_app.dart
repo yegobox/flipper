@@ -62,13 +62,14 @@ class FlipperApp extends HookConsumerWidget {
 
   /// Safety net when a login path lands on [FlipperApp] before branch settings hydrate.
   Future<void> _redirectToBarModeWhenBranchEnabled() async {
+    final router = locator<RouterService>();
+    final routeAtStart = router.router.current.name;
+    if (routeAtStart == BarModeRoute.name) return;
+
     await BarModeSettings.hydrateForActiveBranch();
     BarModeSettings.startWatchingActiveBranch();
     if (!BarModeSettings.enabled) return;
-
-    final router = locator<RouterService>();
-    final routeName = router.router.current.name;
-    if (routeName == BarModeRoute.name) return;
+    if (router.router.current.name != routeAtStart) return;
 
     router.navigateTo(BarModeRoute());
   }

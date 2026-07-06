@@ -1,4 +1,6 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
@@ -90,6 +92,55 @@ String? _barDittoOptString(dynamic v) {
   return s.isEmpty ? null : s;
 }
 
+bool _barDittoBool(dynamic v, {required bool fallback}) {
+  if (v == null) return fallback;
+  if (v is bool) return v;
+  if (v == 1 || v == '1' || v == 'true') return true;
+  if (v == 0 || v == '0' || v == 'false') return false;
+  return fallback;
+}
+
+const int _rraItemCdMaxLen = 20;
+
+bool _isInvalidRraItemCd(String? itemCd, {String? variantId}) {
+  if (itemCd == null || itemCd.isEmpty) return true;
+  if (itemCd.length > _rraItemCdMaxLen) return true;
+  if (variantId != null && itemCd == variantId) return true;
+  return false;
+}
+
+/// RRA [itemCd]: registered catalog code (≤20 chars), never a variant UUID.
+String? barRraItemCd({
+  Variant? variant,
+  String? sku,
+  String? legacyItemCd,
+  String? variantId,
+}) {
+  for (final candidate in <String?>[
+    variant?.itemCd,
+    sku,
+    variant?.sku,
+    legacyItemCd,
+  ]) {
+    if (!_isInvalidRraItemCd(candidate, variantId: variantId)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+/// Tourism tax category — RRA only accepts `TT` when applicable.
+String? barRraTtCatCd({Variant? variant, String? legacy}) {
+  for (final value in [variant?.ttCatCd, legacy]) {
+    if (value == 'TT') return 'TT';
+  }
+  return null;
+}
+
+/// [TransactionItem.copyWith] cannot clear nullable fields with `null` — use `''`.
+String barRraTtCatCdForItem({Variant? variant, String? legacy}) =>
+    barRraTtCatCd(variant: variant, legacy: legacy) ?? '';
+
 /// Parses a Ditto `transaction_items` row for bar tabs.
 ///
 /// Ditto often stores numeric fields as strings; the generated
@@ -115,11 +166,21 @@ TransactionItem? barTransactionLineFromDitto(Map<String, dynamic> data) {
     qty: _barDittoOptNum(data['qty']) ?? 0,
     price: _barDittoOptNum(data['price']) ?? 0,
     discount: _barDittoOptNum(data['discount']) ?? 0,
+    dcRt: _barDittoOptNum(data['dcRt']) ?? 0,
+    dcAmt: _barDittoOptNum(data['dcAmt']),
     prc: _barDittoOptNum(data['prc']) ?? 0,
+    taxblAmt: _barDittoOptNum(data['taxblAmt']),
     taxAmt: _barDittoOptNum(data['taxAmt']),
+    totAmt: _barDittoOptNum(data['totAmt']),
+    taxPercentage: _barDittoOptNum(data['taxPercentage']),
+    qtyUnitCd: _barDittoOptString(data['qtyUnitCd']),
+    pkgUnitCd: _barDittoOptString(data['pkgUnitCd']),
+    itemClsCd: _barDittoOptString(data['itemClsCd']),
+    bhfId: _barDittoOptString(data['bhfId']),
+    regrNm: _barDittoOptString(data['regrNm']),
     remainingStock: _barDittoOptNum(data['remainingStock']),
-    active: data['active'] ?? true,
-    doneWithTransaction: data['doneWithTransaction'] ?? false,
+    active: _barDittoBool(data['active'], fallback: true),
+    doneWithTransaction: _barDittoBool(data['doneWithTransaction'], fallback: false),
     lastTouched: parseDate(data['lastTouched']),
     branchId: _barDittoOptString(data['branchId']),
     taxTyCd: _barDittoOptString(data['taxTyCd']),
@@ -134,6 +195,74 @@ TransactionItem? barTransactionLineFromDitto(Map<String, dynamic> data) {
     createdAt: parseDate(data['createdAt']),
     updatedAt: parseDate(data['updatedAt']),
   );
+}
+
+/// Fills RRA-required fields on bar tab lines (variant catalog + pricing).
+Future<List<TransactionItem>> enrichBarTabLinesForRraReceipt(
+  List<TransactionItem> lines,
+) async {
+  final capella = ProxyService.getStrategy(Strategy.capella);
+  final enriched = <TransactionItem>[];
+
+  for (final line in lines) {
+    final variantId = line.variantId;
+    Variant? variant;
+    if (variantId != null && variantId.isNotEmpty) {
+      variant = await capella.getVariant(id: variantId);
+    }
+
+    final taxTyCd = line.taxTyCd ?? variant?.taxTyCd ?? 'B';
+    final taxPct =
+        (line.taxPercentage ?? variant?.taxPercentage ?? 18.0).toDouble();
+    final dcRt = (line.dcRt ?? variant?.dcRt ?? 0).toDouble();
+    final pricing = SaleLinePricing.compute(
+      unitPrice: line.price.toDouble(),
+      qty: line.qty.toDouble(),
+      dcRt: dcRt,
+      taxTyCd: taxTyCd,
+      taxPercentage: taxPct,
+    );
+
+    final itemCd = barRraItemCd(
+      variant: variant,
+      sku: line.sku ?? variant?.sku,
+      legacyItemCd: line.itemCd,
+      variantId: line.variantId,
+    );
+    if (itemCd == null) {
+      throw StateError(
+        'Cannot print RRA receipt: "${line.name}" has no RRA itemCd. '
+        'Register the product with RRA first.',
+      );
+    }
+
+    enriched.add(
+      line.copyWith(
+        dcRt: pricing.dcRt,
+        dcAmt: pricing.dcAmt,
+        discount: pricing.discount,
+        taxblAmt: pricing.taxblAmt,
+        taxAmt: pricing.taxAmt,
+        totAmt: pricing.totAmt,
+        taxTyCd: taxTyCd,
+        taxPercentage: taxPct,
+        qtyUnitCd: line.qtyUnitCd ?? variant?.qtyUnitCd,
+        pkgUnitCd: line.pkgUnitCd ?? variant?.pkgUnitCd,
+        itemCd: itemCd,
+        itemClsCd: line.itemClsCd ?? variant?.itemClsCd,
+        itemTyCd: line.itemTyCd ?? variant?.itemTyCd ?? '2',
+        itemNm: line.itemNm ?? variant?.itemNm ?? line.name,
+        bhfId: line.bhfId ?? variant?.bhfId,
+        regrNm: line.regrNm ?? variant?.regrNm ?? 'Registrar',
+        ttCatCd: barRraTtCatCdForItem(variant: variant, legacy: line.ttCatCd),
+        sku: line.sku ?? variant?.sku,
+        orgnNatCd: line.orgnNatCd ?? variant?.orgnNatCd ?? 'RW',
+        itemSeq: line.itemSeq ?? variant?.itemSeq,
+      ),
+    );
+  }
+
+  return enriched;
 }
 
 /// Merge key: variant + cashier + default price only.

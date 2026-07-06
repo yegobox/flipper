@@ -2,9 +2,36 @@ import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
+import 'package:supabase_models/brick/models/variant.model.dart';
 
 void main() {
   group('bar_mode_utils', () {
+    test('barRraItemCd rejects variant UUID and prefers catalog code', () {
+      const uuid = 'b7470ccb-1af1-457c-b426-bff0e129096d';
+      expect(
+        barRraItemCd(
+          variant: Variant(name: 'Beer', branchId: 'b1', itemCd: 'RW00001234'),
+          legacyItemCd: uuid,
+          variantId: uuid,
+        ),
+        'RW00001234',
+      );
+      expect(
+        barRraItemCd(variant: null, sku: 'SKU1', legacyItemCd: uuid, variantId: uuid),
+        'SKU1',
+      );
+      expect(barRraItemCd(variant: null, legacyItemCd: uuid, variantId: uuid), isNull);
+    });
+
+    test('barRraTtCatCd omits invalid legacy default', () {
+      expect(barRraTtCatCd(variant: null, legacy: '1'), isNull);
+      expect(barRraTtCatCdForItem(variant: null, legacy: '1'), '');
+      expect(
+        barRraTtCatCd(variant: Variant(name: 'x', branchId: 'b1', ttCatCd: 'TT')),
+        'TT',
+      );
+    });
+
     test('barTabTotal sums price x qty', () {
       final lines = [
         TransactionItem(

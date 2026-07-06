@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/bar_branch_settings.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/bar_interface.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -130,9 +132,9 @@ mixin CapellaBarMixin implements BarInterface {
   }
 
   BarBranchSettings? _branchSettingsFromResult(dynamic queryResult) {
-    final items = queryResult.items as Iterable<dynamic>;
-    if (items.isEmpty) return null;
     try {
+      final items = queryResult.items as Iterable<dynamic>;
+      if (items.isEmpty) return null;
       final raw = Map<String, dynamic>.from(items.first.value as Map);
       return BarBranchSettings.fromJson(raw);
     } catch (e) {
@@ -173,9 +175,8 @@ mixin CapellaBarMixin implements BarInterface {
           _barBranchSettingsSql,
           arguments: args,
         );
-        if (!controller.isClosed) {
-          controller.add(_branchSettingsFromResult(initial));
-        }
+        if (controller.isClosed) return;
+        controller.add(_branchSettingsFromResult(initial));
         observer = ditto.store.registerObserver(
           _barBranchSettingsSql,
           arguments: args,
@@ -501,34 +502,70 @@ mixin CapellaBarMixin implements BarInterface {
     if (mergeTarget != null) {
       final newQty = mergeTarget.qty + 1;
       if (newQty > stock) return;
-      final oldLineTotal =
-          mergeTarget.price.toDouble() * mergeTarget.qty.toDouble();
-      final newLineTotal = mergeTarget.price.toDouble() * newQty.toDouble();
       await setBarTabLineQty(
         lineId: mergeTarget.id,
         transactionId: transactionId,
         qty: newQty,
         stockCap: stock,
       );
-      await _adjustSubtotal(transactionId, newLineTotal - oldLineTotal);
       return;
+    }
+
+    final variant = await ProxyService.getStrategy(Strategy.capella)
+        .getVariant(id: variantId);
+    final taxTyCd = variant?.taxTyCd ?? 'B';
+    final taxPct = (variant?.taxPercentage ?? 18.0).toDouble();
+    final dcRt = (variant?.dcRt ?? 0).toDouble();
+    final pricing = SaleLinePricing.compute(
+      unitPrice: defaultPrice.toDouble(),
+      qty: 1,
+      dcRt: dcRt,
+      taxTyCd: taxTyCd,
+      taxPercentage: taxPct,
+    );
+
+    final itemCd = barRraItemCd(
+      variant: variant,
+      sku: sku ?? variant?.sku,
+      variantId: variantId,
+    );
+    if (itemCd == null) {
+      throw StateError(
+        'Cannot add "$productName" to bar tab: no RRA itemCd on variant. '
+        'Register the product with RRA first.',
+      );
     }
 
     final line = TransactionItem(
       name: productName,
-      itemNm: productName,
+      itemNm: variant?.itemNm ?? productName,
       variantId: variantId,
       transactionId: transactionId,
       branchId: branchId,
       qty: 1,
       price: defaultPrice,
-      prc: defaultPrice,
-      discount: 0,
-      ttCatCd: '1',
-      itemTyCd: '2',
-      itemCd: sku ?? variantId,
+      prc: variant?.retailPrice ?? defaultPrice,
+      discount: pricing.discount,
+      dcRt: pricing.dcRt,
+      dcAmt: pricing.dcAmt,
+      taxblAmt: pricing.taxblAmt,
+      taxAmt: pricing.taxAmt,
+      totAmt: pricing.totAmt,
+      ttCatCd: barRraTtCatCdForItem(variant: variant),
+      itemTyCd: variant?.itemTyCd ?? '2',
+      itemCd: itemCd,
+      taxTyCd: taxTyCd,
+      taxPercentage: taxPct,
+      qtyUnitCd: variant?.qtyUnitCd,
+      pkgUnitCd: variant?.pkgUnitCd,
+      itemClsCd: variant?.itemClsCd,
+      bhfId: variant?.bhfId,
+      regrNm: variant?.regrNm ?? 'Registrar',
+      orgnNatCd: variant?.orgnNatCd ?? 'RW',
+      itemSeq: variant?.itemSeq,
+      bcd: variant?.bcd,
       color: color,
-      sku: sku,
+      sku: sku ?? variant?.sku,
       loggedByTenantId: cashierTenantId,
       loggedByName: cashierName,
     );
