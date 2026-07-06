@@ -121,10 +121,9 @@ class ReportsDashboard extends HookConsumerWidget {
       if (dateRange == null) return;
       // Let route dismiss paint before triggering heavy downstream rebuilds.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(dateRangeProvider.notifier).setRange(
-              start: dateRange.start,
-              end: dateRange.end,
-            );
+        ref
+            .read(dateRangeProvider.notifier)
+            .setRange(start: dateRange.start, end: dateRange.end);
       });
     });
   }
@@ -138,7 +137,7 @@ class ReportsDashboard extends HookConsumerWidget {
       children: [
         Expanded(
           child: _buildMetricCard(
-            title: 'Stock Value',
+            title: 'Stock Value!',
             value:
                 stockValue.asData?.value.toCurrencyFormatted() ?? 'Loading...',
             icon: Icons.inventory_2_rounded,
