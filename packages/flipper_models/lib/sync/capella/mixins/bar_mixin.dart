@@ -77,12 +77,9 @@ mixin CapellaBarMixin implements BarInterface {
   }
 
   void _ensureBarTablesSync(dynamic ditto, String branchId) {
-    _ensureBarSyncSubscription(
-      ditto,
-      'bar_tables|$branchId',
-      _barTablesSql,
-      {'branchId': branchId},
-    );
+    _ensureBarSyncSubscription(ditto, 'bar_tables|$branchId', _barTablesSql, {
+      'branchId': branchId,
+    });
   }
 
   void _ensureBarTabsSync(dynamic ditto, String branchId) {
@@ -121,8 +118,9 @@ mixin CapellaBarMixin implements BarInterface {
     for (final item in queryResult.items as Iterable<dynamic>) {
       try {
         final data = Map<String, dynamic>.from(item.value as Map);
-        final txn =
-            await ITransactionDittoAdapter.instance.fromDittoDocument(data);
+        final txn = await ITransactionDittoAdapter.instance.fromDittoDocument(
+          data,
+        );
         if (txn != null) list.add(txn);
       } catch (e) {
         talker.error('bar tab map error: $e');
@@ -177,6 +175,7 @@ mixin CapellaBarMixin implements BarInterface {
         );
         if (controller.isClosed) return;
         controller.add(_branchSettingsFromResult(initial));
+        if (controller.isClosed) return;
         observer = ditto.store.registerObserver(
           _barBranchSettingsSql,
           arguments: args,
@@ -206,9 +205,7 @@ mixin CapellaBarMixin implements BarInterface {
   Future<void> saveBarBranchSettings(BarBranchSettings settings) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) throw StateError('Ditto not initialized');
-    final doc = settings
-        .copyWith(updatedAt: DateTime.now().toUtc())
-        .toJson();
+    final doc = settings.copyWith(updatedAt: DateTime.now().toUtc()).toJson();
     await ditto.store.execute(
       'INSERT INTO bar_branch_settings DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},
@@ -241,7 +238,10 @@ mixin CapellaBarMixin implements BarInterface {
 
     unawaited(() async {
       try {
-        final initial = await ditto.store.execute(_barTablesSql, arguments: args);
+        final initial = await ditto.store.execute(
+          _barTablesSql,
+          arguments: args,
+        );
         if (!controller.isClosed) {
           controller.add(_tablesFromResult(initial));
         }
@@ -352,11 +352,7 @@ mixin CapellaBarMixin implements BarInterface {
     if (ditto == null) return null;
     final result = await ditto.store.execute(
       'SELECT * FROM transactions WHERE branchId = :branchId AND tableId = :tableId AND status = :status LIMIT 1',
-      arguments: {
-        'branchId': branchId,
-        'tableId': tableId,
-        'status': PARKED,
-      },
+      arguments: {'branchId': branchId, 'tableId': tableId, 'status': PARKED},
     );
     if (result.items.isEmpty) return null;
     final data = Map<String, dynamic>.from(result.items.first.value);
@@ -511,8 +507,9 @@ mixin CapellaBarMixin implements BarInterface {
       return;
     }
 
-    final variant = await ProxyService.getStrategy(Strategy.capella)
-        .getVariant(id: variantId);
+    final variant = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getVariant(id: variantId);
     final taxTyCd = variant?.taxTyCd ?? 'B';
     final taxPct = (variant?.taxPercentage ?? 18.0).toDouble();
     final dcRt = (variant?.dcRt ?? 0).toDouble();
@@ -570,7 +567,9 @@ mixin CapellaBarMixin implements BarInterface {
       loggedByName: cashierName,
     );
 
-    final doc = await TransactionItemDittoAdapter.instance.toDittoDocument(line);
+    final doc = await TransactionItemDittoAdapter.instance.toDittoDocument(
+      line,
+    );
     await ditto.store.execute(
       'INSERT INTO transaction_items DOCUMENTS (:doc)',
       arguments: {'doc': doc},
@@ -706,7 +705,9 @@ mixin CapellaBarMixin implements BarInterface {
       lastTouched: DateTime.parse(nowIso),
     );
 
-    final doc = await ITransactionDittoAdapter.instance.toDittoDocument(updated);
+    final doc = await ITransactionDittoAdapter.instance.toDittoDocument(
+      updated,
+    );
     await ditto.store.execute(
       'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},

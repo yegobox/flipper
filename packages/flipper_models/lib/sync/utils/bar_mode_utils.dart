@@ -158,7 +158,8 @@ TransactionItem? barTransactionLineFromDitto(Map<String, dynamic> data) {
 
   return TransactionItem(
     id: id.toString(),
-    name: _barDittoOptString(data['name']) ??
+    name:
+        _barDittoOptString(data['name']) ??
         _barDittoOptString(data['itemNm']) ??
         '',
     transactionId: _barDittoOptString(data['transactionId']),
@@ -180,7 +181,10 @@ TransactionItem? barTransactionLineFromDitto(Map<String, dynamic> data) {
     regrNm: _barDittoOptString(data['regrNm']),
     remainingStock: _barDittoOptNum(data['remainingStock']),
     active: _barDittoBool(data['active'], fallback: true),
-    doneWithTransaction: _barDittoBool(data['doneWithTransaction'], fallback: false),
+    doneWithTransaction: _barDittoBool(
+      data['doneWithTransaction'],
+      fallback: false,
+    ),
     lastTouched: parseDate(data['lastTouched']),
     branchId: _barDittoOptString(data['branchId']),
     taxTyCd: _barDittoOptString(data['taxTyCd']),
@@ -202,18 +206,27 @@ Future<List<TransactionItem>> enrichBarTabLinesForRraReceipt(
   List<TransactionItem> lines,
 ) async {
   final capella = ProxyService.getStrategy(Strategy.capella);
+  final variantIds = lines
+      .map((line) => line.variantId)
+      .whereType<String>()
+      .where((id) => id.trim().isNotEmpty)
+      .toSet()
+      .toList();
+  final variantsById = variantIds.isEmpty
+      ? <String, Variant>{}
+      : await capella.batchGetVariantsByIds(variantIds);
+
   final enriched = <TransactionItem>[];
 
   for (final line in lines) {
     final variantId = line.variantId;
-    Variant? variant;
-    if (variantId != null && variantId.isNotEmpty) {
-      variant = await capella.getVariant(id: variantId);
-    }
+    final variant = (variantId != null && variantId.isNotEmpty)
+        ? variantsById[variantId]
+        : null;
 
     final taxTyCd = line.taxTyCd ?? variant?.taxTyCd ?? 'B';
-    final taxPct =
-        (line.taxPercentage ?? variant?.taxPercentage ?? 18.0).toDouble();
+    final taxPct = (line.taxPercentage ?? variant?.taxPercentage ?? 18.0)
+        .toDouble();
     final dcRt = (line.dcRt ?? variant?.dcRt ?? 0).toDouble();
     final pricing = SaleLinePricing.compute(
       unitPrice: line.price.toDouble(),
