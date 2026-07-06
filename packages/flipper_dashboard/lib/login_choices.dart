@@ -5,9 +5,9 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-// Import for payment plan route is already available from app.router.dart
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -899,14 +899,18 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     if (commissionOnly) {
       await _routerService.clearStackAndShow(const AgentCommissionRoute());
     } else {
-      await _routerService.clearStackAndShow(FlipperAppRoute());
+      await locator<AppService>().completeDittoAfterLoginChoices();
+      locator<AppService>().ensureBranchDittoSubscriptionsForCurrentBranch();
+      await PaymentVerificationNavigator.navigateToAuthenticatedHome(
+        clearStack: true,
+      );
     }
 
     // PIN login often defers Ditto sync until after business/branch selection.
-    unawaited(locator<AppService>().completeDittoAfterLoginChoices());
-    // Start Ditto catalog sync after leaving login — avoids memory spikes and
-    // main-isolate contention while the branch picker is still mounted.
-    locator<AppService>().ensureBranchDittoSubscriptionsForCurrentBranch();
+    if (commissionOnly) {
+      unawaited(locator<AppService>().completeDittoAfterLoginChoices());
+      locator<AppService>().ensureBranchDittoSubscriptionsForCurrentBranch();
+    }
     unawaited(locator<AppService>().completePostLoginLocalSetup());
 
     // Clear the navigation flag after a delay

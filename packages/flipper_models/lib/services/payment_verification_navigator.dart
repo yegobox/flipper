@@ -161,8 +161,18 @@ class PaymentVerificationNavigator {
     return true;
   }
 
+  static Future<void> navigateToAuthenticatedHome({
+    bool skipPersonalCheck = false,
+    bool clearStack = false,
+  }) =>
+      _navigateToAuthenticatedHome(
+        skipPersonalCheck: skipPersonalCheck,
+        clearStack: clearStack,
+      );
+
   static Future<void> _navigateToAuthenticatedHome({
     bool skipPersonalCheck = false,
+    bool clearStack = false,
   }) async {
     if (!skipPersonalCheck) {
       final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
@@ -179,11 +189,19 @@ class PaymentVerificationNavigator {
 
     if (_shouldOpenBarMode()) {
       talker.info('Bar mode launch on start — opening bar register');
-      _routerService.navigateTo(BarModeRoute());
+      if (clearStack) {
+        await _routerService.clearStackAndShow(BarModeRoute());
+      } else {
+        _routerService.navigateTo(BarModeRoute());
+      }
       return;
     }
 
-    _routerService.navigateTo(FlipperAppRoute());
+    if (clearStack) {
+      await _routerService.clearStackAndShow(FlipperAppRoute());
+    } else {
+      _routerService.navigateTo(FlipperAppRoute());
+    }
   }
 
   static bool _shouldOpenBarMode() {

@@ -21,25 +21,54 @@ abstract final class BarModeBranchSettingsService {
 
   static dynamic get _sync => ProxyService.getStrategy(Strategy.capella);
 
-  /// Pull branch settings from Ditto into the local cache (call after login / branch switch).
-  static Future<void> hydrateForActiveBranch() async {
+  /// Pull branch settings from Ditto into the local cache.
+  ///
+  /// Retries until [timeout] because a fresh device may navigate before Ditto
+  /// has finished authenticating or replicating `bar_branch_settings`.
+  static Future<void> hydrateForActiveBranch({
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
 
-    try {
-      final remote = await _sync.barBranchSettings(branchId: branchId);
-      if (remote != null) {
-        _applyToLocalCache(remote);
-        return;
+    final deadline = DateTime.now().add(timeout);
+    await _waitForDittoReady(deadline);
+
+    while (DateTime.now().isBefore(deadline)) {
+      try {
+        final remote = await _sync.barBranchSettings(branchId: branchId);
+        if (remote != null) {
+          _applyToLocalCache(remote);
+          talker.info(
+            'Bar branch settings hydrated for $branchId (enabled=${remote.enabled})',
+          );
+          return;
+        }
+      } catch (e, s) {
+        talker.warning('Bar branch settings hydrate attempt failed: $e\n$s');
       }
 
-      // One-time migration: device had bar mode on before branch sync existed.
-      if (_readLocalEnabled()) {
-        await persistCurrentBranch();
-      }
-    } catch (e, s) {
-      talker.warning('Bar branch settings hydrate failed: $e\n$s');
+      final remaining = deadline.difference(DateTime.now());
+      if (remaining <= Duration.zero) break;
+      final wait = remaining < const Duration(milliseconds: 400)
+          ? remaining
+          : const Duration(milliseconds: 400);
+      await Future.delayed(wait);
     }
+
+    // One-time migration: device had bar mode on before branch sync existed.
+    if (_readLocalEnabled()) {
+      try {
+        await persistCurrentBranch();
+      } catch (e, s) {
+        talker.warning('Bar branch settings migration persist failed: $e\n$s');
+      }
+      return;
+    }
+
+    talker.info(
+      'No bar_branch_settings for branch $branchId after ${timeout.inSeconds}s',
+    );
   }
 
   /// Persist the current local cache to Ditto for the active branch.
@@ -84,6 +113,15 @@ abstract final class BarModeBranchSettingsService {
   static Future<void> stopWatching() async {
     await _watchSub?.cancel();
     _watchSub = null;
+  }
+
+  static Future<void> _waitForDittoReady(DateTime deadline) async {
+    while (DateTime.now().isBefore(deadline)) {
+      try {
+        if (ProxyService.ditto.isReady()) return;
+      } catch (_) {}
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
   }
 
   static bool _readLocalEnabled() =>

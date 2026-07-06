@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -18,7 +19,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class FlipperApp extends HookConsumerWidget {
   const FlipperApp({Key? key}) : super(key: key);
@@ -47,6 +51,7 @@ class FlipperApp extends HookConsumerWidget {
     _requestPermissions();
     ProxyService.status.updateStatusColor();
     unawaited(getIt<SettingsService>().hydrateToggleStatesFromSettings());
+    unawaited(_redirectToBarModeWhenBranchEnabled());
     // ProxyService.dynamicLink.handleDynamicLink(context);
     if (isAndroid || isIos) {
       _startNFCForModel(model);
@@ -54,6 +59,19 @@ class FlipperApp extends HookConsumerWidget {
   }
 
   void _handleResumedState() => ProxyService.status.updateStatusColor();
+
+  /// Safety net when a login path lands on [FlipperApp] before branch settings hydrate.
+  Future<void> _redirectToBarModeWhenBranchEnabled() async {
+    await BarModeSettings.hydrateForActiveBranch();
+    BarModeSettings.startWatchingActiveBranch();
+    if (!BarModeSettings.enabled) return;
+
+    final router = locator<RouterService>();
+    final routeName = router.router.current.name;
+    if (routeName == BarModeRoute.name) return;
+
+    router.navigateTo(BarModeRoute());
+  }
 
   Future<void> _startNFCForModel(CoreViewModel model) async {
     // TODO: NFC logic is commented out, preserving original state.
