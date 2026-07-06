@@ -78,6 +78,64 @@ List<String> barTabServerIds(Iterable<TransactionItem> lines) {
   return (subtotal: subtotal, vat: vat, total: total);
 }
 
+num? _barDittoOptNum(dynamic v) {
+  if (v == null) return null;
+  if (v is num) return v;
+  return num.tryParse(v.toString());
+}
+
+String? _barDittoOptString(dynamic v) {
+  if (v == null) return null;
+  final s = v.toString().trim();
+  return s.isEmpty ? null : s;
+}
+
+/// Parses a Ditto `transaction_items` row for bar tabs.
+///
+/// Ditto often stores numeric fields as strings; the generated
+/// [TransactionItemDittoAdapter] does not coerce them and also
+/// performs branch filtering + stock hydration we do not need here.
+TransactionItem? barTransactionLineFromDitto(Map<String, dynamic> data) {
+  final id = data['_id'] ?? data['id'];
+  if (id == null) return null;
+
+  DateTime? parseDate(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is DateTime) return raw;
+    return DateTime.tryParse(raw.toString());
+  }
+
+  return TransactionItem(
+    id: id.toString(),
+    name: _barDittoOptString(data['name']) ??
+        _barDittoOptString(data['itemNm']) ??
+        '',
+    transactionId: _barDittoOptString(data['transactionId']),
+    variantId: _barDittoOptString(data['variantId']),
+    qty: _barDittoOptNum(data['qty']) ?? 0,
+    price: _barDittoOptNum(data['price']) ?? 0,
+    discount: _barDittoOptNum(data['discount']) ?? 0,
+    prc: _barDittoOptNum(data['prc']) ?? 0,
+    taxAmt: _barDittoOptNum(data['taxAmt']),
+    remainingStock: _barDittoOptNum(data['remainingStock']),
+    active: data['active'] ?? true,
+    doneWithTransaction: data['doneWithTransaction'] ?? false,
+    lastTouched: parseDate(data['lastTouched']),
+    branchId: _barDittoOptString(data['branchId']),
+    taxTyCd: _barDittoOptString(data['taxTyCd']),
+    itemTyCd: _barDittoOptString(data['itemTyCd']),
+    itemCd: _barDittoOptString(data['itemCd']),
+    itemNm: _barDittoOptString(data['itemNm']),
+    ttCatCd: _barDittoOptString(data['ttCatCd']),
+    color: _barDittoOptString(data['color']),
+    sku: _barDittoOptString(data['sku']),
+    loggedByTenantId: _barDittoOptString(data['loggedByTenantId']),
+    loggedByName: _barDittoOptString(data['loggedByName']),
+    createdAt: parseDate(data['createdAt']),
+    updatedAt: parseDate(data['updatedAt']),
+  );
+}
+
 /// Merge key: variant + cashier + default price only.
 bool barLineMatchesMerge({
   required TransactionItem line,

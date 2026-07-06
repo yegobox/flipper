@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/models/bar_branch_settings.dart';
 import 'package:flipper_models/models/bar_table.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/bar_interface.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_services/constants.dart';
@@ -19,6 +20,11 @@ TransactionItem? _barFindLine(List<TransactionItem> lines, String lineId) {
   return null;
 }
 
+/// Keys of Ditto sync subscriptions already registered for bar collections.
+/// Store queries/observers only read locally; without these subscriptions a
+/// fresh device never replicates bar documents from the mesh/cloud.
+final Set<String> _barSyncSubscriptionKeys = <String>{};
+
 mixin CapellaBarMixin implements BarInterface {
   DittoService get dittoService;
   Talker get talker;
@@ -29,6 +35,68 @@ mixin CapellaBarMixin implements BarInterface {
       'SELECT * FROM bar_tables WHERE branchId = :branchId ORDER BY ordinal ASC';
   static const _barTabsSql =
       "SELECT * FROM transactions WHERE branchId = :branchId AND status = :status AND tableId IS NOT NULL";
+
+  void _ensureBarSyncSubscription(
+    dynamic ditto,
+    String key,
+    String sql,
+    Map<String, dynamic>? args,
+  ) {
+    if (_barSyncSubscriptionKeys.contains(key)) return;
+    try {
+      final prepared = prepareDqlSyncSubscription(sql, args);
+      ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+      _barSyncSubscriptionKeys.add(key);
+      talker.debug('bar: registered sync subscription $key');
+    } catch (e, s) {
+      talker.warning('bar: sync subscription failed ($key): $e\n$s');
+    }
+  }
+
+  void _ensureBarSettingsSync(dynamic ditto, String branchId) {
+    // Collection-wide first: fresh devices can fail to pull with filtered
+    // subscriptions (known Ditto issue, see customer_mixin). The collection
+    // holds one small doc per branch, so this is cheap.
+    _ensureBarSyncSubscription(
+      ditto,
+      'bar_branch_settings|all',
+      'SELECT * FROM bar_branch_settings',
+      null,
+    );
+    _ensureBarSyncSubscription(
+      ditto,
+      'bar_branch_settings|$branchId',
+      _barBranchSettingsSql,
+      {'branchId': branchId},
+    );
+  }
+
+  void _ensureBarTablesSync(dynamic ditto, String branchId) {
+    _ensureBarSyncSubscription(
+      ditto,
+      'bar_tables|$branchId',
+      _barTablesSql,
+      {'branchId': branchId},
+    );
+  }
+
+  void _ensureBarTabsSync(dynamic ditto, String branchId) {
+    _ensureBarSyncSubscription(
+      ditto,
+      'bar_tabs|$branchId',
+      'SELECT * FROM transactions WHERE branchId = :branchId',
+      {'branchId': branchId},
+    );
+    _ensureBarSyncSubscription(
+      ditto,
+      'bar_tab_lines|$branchId',
+      'SELECT * FROM transaction_items WHERE branchId = :branchId',
+      {'branchId': branchId},
+    );
+  }
 
   List<BarTable> _tablesFromResult(dynamic queryResult) {
     final list = <BarTable>[];
@@ -79,6 +147,7 @@ mixin CapellaBarMixin implements BarInterface {
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return null;
+    _ensureBarSettingsSync(ditto, branchId);
     final result = await ditto.store.execute(
       _barBranchSettingsSql,
       arguments: {'branchId': branchId},
@@ -92,6 +161,7 @@ mixin CapellaBarMixin implements BarInterface {
   }) {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return Stream.value(null);
+    _ensureBarSettingsSync(ditto, branchId);
 
     final controller = StreamController<BarBranchSettings?>();
     final args = {'branchId': branchId};
@@ -148,6 +218,7 @@ mixin CapellaBarMixin implements BarInterface {
   Future<List<BarTable>> barTables({required String branchId}) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return [];
+    _ensureBarTablesSync(ditto, branchId);
     final result = await ditto.store.execute(
       _barTablesSql,
       arguments: {'branchId': branchId},
@@ -161,6 +232,7 @@ mixin CapellaBarMixin implements BarInterface {
     if (ditto == null) {
       return Stream.value(<BarTable>[]);
     }
+    _ensureBarTablesSync(ditto, branchId);
 
     final controller = StreamController<List<BarTable>>();
     final args = {'branchId': branchId};
@@ -233,6 +305,7 @@ mixin CapellaBarMixin implements BarInterface {
   Stream<List<ITransaction>> barTabsStream({required String branchId}) {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return Stream.value(<ITransaction>[]);
+    _ensureBarTabsSync(ditto, branchId);
 
     final controller = StreamController<List<ITransaction>>();
     final args = {'branchId': branchId, 'status': PARKED};
@@ -294,8 +367,7 @@ mixin CapellaBarMixin implements BarInterface {
     for (final item in queryResult.items as Iterable<dynamic>) {
       try {
         final data = Map<String, dynamic>.from(item.value as Map);
-        final line =
-            await TransactionItemDittoAdapter.instance.fromDittoDocument(data);
+        final line = barTransactionLineFromDitto(data);
         if (line != null) lines.add(line);
       } catch (e) {
         talker.error('barTabLines map: $e');

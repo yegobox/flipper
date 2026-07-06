@@ -72,7 +72,13 @@ abstract final class BarModeBranchSettingsService {
   }
 
   /// Persist the current local cache to Ditto for the active branch.
-  static Future<void> persistCurrentBranch() async {
+  ///
+  /// Snapshots the values immediately, then waits for Ditto and retries:
+  /// callers fire-and-forget from settings toggles, and a save that throws
+  /// while Ditto is still initializing would silently lose the change.
+  static Future<void> persistCurrentBranch({
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
 
@@ -85,12 +91,30 @@ abstract final class BarModeBranchSettingsService {
       autoLogout: ProxyService.box.readBool(key: autoLogoutKey) ?? false,
     );
 
-    try {
-      await _sync.saveBarBranchSettings(settings);
-    } catch (e, s) {
-      talker.error('Bar branch settings persist failed: $e\n$s');
-      rethrow;
+    final deadline = DateTime.now().add(timeout);
+    await _waitForDittoReady(deadline);
+
+    Object? lastError;
+    while (true) {
+      try {
+        await _sync.saveBarBranchSettings(settings);
+        talker.info(
+          'Bar branch settings persisted for $branchId '
+          '(enabled=${settings.enabled})',
+        );
+        return;
+      } catch (e, s) {
+        lastError = e;
+        talker.warning('Bar branch settings persist attempt failed: $e\n$s');
+      }
+      if (!DateTime.now().isBefore(deadline)) break;
+      await Future.delayed(const Duration(milliseconds: 500));
     }
+
+    talker.error(
+      'Bar branch settings persist gave up for $branchId '
+      '(enabled=${settings.enabled}): $lastError',
+    );
   }
 
   /// Live-sync remote changes into the local cache while the app runs.

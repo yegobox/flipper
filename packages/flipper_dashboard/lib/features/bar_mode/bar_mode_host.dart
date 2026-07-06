@@ -59,17 +59,25 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       backgroundColor: BarTokens.stageBg,
       body: LayoutBuilder(
         builder: (context, constraints) {
+          // Uniform scale from the 1440x912 design canvas, but extend the
+          // canvas to the window's aspect ratio so the UI fills the whole
+          // screen instead of letterboxing on the stage background. The
+          // extra space is absorbed by the flexible layouts inside screens.
           final s = [
             constraints.maxWidth / BarTokens.canvasWidth,
             constraints.maxHeight / BarTokens.canvasHeight,
           ].reduce((a, b) => a < b ? a : b);
+          if (!s.isFinite || s <= 0) return const SizedBox.shrink();
 
-          return Center(
-            child: Transform.scale(
-              scale: s,
+          final canvasWidth = constraints.maxWidth / s;
+          final canvasHeight = constraints.maxHeight / s;
+
+          return SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.fill,
               child: SizedBox(
-                width: BarTokens.canvasWidth,
-                height: BarTokens.canvasHeight,
+                width: canvasWidth,
+                height: canvasHeight,
                 child: Stack(
                   children: [
                     AnimatedSwitcher(
