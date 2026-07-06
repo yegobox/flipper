@@ -2,6 +2,7 @@
 
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -173,6 +174,8 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         branchesProvider(businessId: ProxyService.box.getBusinessId()),
       );
       ref.invalidate(activeBranchProvider);
+
+      await BarModeBranchSettingsService.hydrateForActiveBranch();
 
       // Add a small delay to ensure branch ID is fully set before invalidating transaction providers
       await Future.delayed(Duration(milliseconds: 100));

@@ -23,22 +23,34 @@ class BarModeAdminSection extends StatefulWidget {
 }
 
 class _BarModeAdminSectionState extends State<BarModeAdminSection> {
-  late bool _enabled;
-  late bool _requirePin;
-  late bool _floorFirst;
-  late bool _managerSettle;
-  late bool _autoLogout;
+  bool _enabled = false;
+  bool _requirePin = true;
+  bool _floorFirst = true;
+  bool _managerSettle = true;
+  bool _autoLogout = false;
   List<Tenant> _staff = const [];
 
   @override
   void initState() {
     super.initState();
+    _syncFromLocalCache();
+    _loadSettings();
+    _loadStaff();
+  }
+
+  void _syncFromLocalCache() {
     _enabled = BarModeSettings.enabled;
     _requirePin = BarModeSettings.requirePin;
     _floorFirst = BarModeSettings.floorFirst;
     _managerSettle = BarModeSettings.managerSettle;
     _autoLogout = BarModeSettings.autoLogout;
-    _loadStaff();
+  }
+
+  Future<void> _loadSettings() async {
+    await BarModeSettings.hydrateForActiveBranch();
+    if (!mounted) return;
+    setState(_syncFromLocalCache);
+    BarModeSettings.startWatchingActiveBranch();
   }
 
   Future<void> _loadStaff() async {
@@ -53,8 +65,9 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
     if (value) {
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
-        await ProxyService.getStrategy(Strategy.capella)
-            .seedDefaultFloorPlan(branchId: branchId);
+        await ProxyService.getStrategy(
+          Strategy.capella,
+        ).seedDefaultFloorPlan(branchId: branchId);
       }
     }
   }
@@ -128,8 +141,9 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
               ),
             ),
           ),
-          crossFadeState:
-              _enabled ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: _enabled
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 280),
         ),
         if (_enabled) ...[
@@ -169,10 +183,7 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0x00F0F2F5),
-                BarTokens.adminPageBg,
-              ],
+              colors: [Color(0x00F0F2F5), BarTokens.adminPageBg],
               stops: [0.0, 0.4],
             ),
           ),

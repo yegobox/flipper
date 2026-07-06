@@ -1,11 +1,20 @@
 import 'dart:async';
 
+import 'package:flipper_models/models/bar_branch_settings.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
 /// Bar Mode table service (Capella + Ditto implementation).
 abstract class BarInterface {
+  // --- Branch settings (synced across devices) ---
+
+  Future<BarBranchSettings?> barBranchSettings({required String branchId});
+
+  Stream<BarBranchSettings?> barBranchSettingsStream({required String branchId});
+
+  Future<void> saveBarBranchSettings(BarBranchSettings settings);
+
   // --- Floor plan ---
 
   Stream<List<BarTable>> barTablesStream({required String branchId});

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/models/bar_branch_settings.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/interfaces/bar_interface.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
@@ -10,6 +11,26 @@ mixin CoreBarStubMixin implements BarInterface {
   void _warn(String method) {
     talker.warning('Bar Mode is available on Capella only; $method ignored.');
   }
+
+  @override
+  Future<BarBranchSettings?> barBranchSettings({
+    required String branchId,
+  }) async {
+    _warn('barBranchSettings');
+    return null;
+  }
+
+  @override
+  Stream<BarBranchSettings?> barBranchSettingsStream({
+    required String branchId,
+  }) {
+    _warn('barBranchSettingsStream');
+    return Stream.value(null);
+  }
+
+  @override
+  Future<void> saveBarBranchSettings(BarBranchSettings settings) async =>
+      _warn('saveBarBranchSettings');
 
   @override
   Stream<List<BarTable>> barTablesStream({required String branchId}) {

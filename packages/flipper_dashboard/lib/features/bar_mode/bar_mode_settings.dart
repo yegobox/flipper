@@ -1,17 +1,20 @@
+import 'dart:async';
+
+import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
 import 'package:flipper_services/proxy.dart';
 
-/// Device-local Bar Mode settings (ProxyService.box).
+/// Bar Mode settings — branch-synced via Ditto with a local cache ([ProxyService.box]).
 abstract final class BarModeSettings {
-  static const enabledKey = 'barModeEnabled';
-  static const launchOnStartKey = 'barModeLaunchOnStart';
-  static const requirePinKey = 'barRequirePin';
-  static const floorFirstKey = 'barFloorFirst';
-  static const managerSettleKey = 'barManagerSettle';
-  static const autoLogoutKey = 'barAutoLogout';
+  static const enabledKey = BarModeBranchSettingsService.enabledKey;
+  static const launchOnStartKey = BarModeBranchSettingsService.launchOnStartKey;
+  static const requirePinKey = BarModeBranchSettingsService.requirePinKey;
+  static const floorFirstKey = BarModeBranchSettingsService.floorFirstKey;
+  static const managerSettleKey = BarModeBranchSettingsService.managerSettleKey;
+  static const autoLogoutKey = BarModeBranchSettingsService.autoLogoutKey;
 
   static bool get enabled => ProxyService.box.readBool(key: enabledKey) ?? false;
 
-  /// When true, post-login / payment verification opens [BarModeHost] instead of POS.
+  /// When true, post-login opens [BarModeHost]. Kept in sync with [enabled] for the branch.
   static bool get launchOnStart =>
       ProxyService.box.readBool(key: launchOnStartKey) ?? false;
 
@@ -27,25 +30,40 @@ abstract final class BarModeSettings {
   static bool get autoLogout =>
       ProxyService.box.readBool(key: autoLogoutKey) ?? false;
 
+  static Future<void> hydrateForActiveBranch() =>
+      BarModeBranchSettingsService.hydrateForActiveBranch();
+
+  static void startWatchingActiveBranch() =>
+      BarModeBranchSettingsService.startWatchingActiveBranch();
+
   static void setEnabled(bool value) {
     ProxyService.box.writeBool(key: enabledKey, value: value);
-    if (!value) {
-      ProxyService.box.writeBool(key: launchOnStartKey, value: false);
-    }
+    ProxyService.box.writeBool(key: launchOnStartKey, value: value);
+    unawaited(BarModeBranchSettingsService.persistCurrentBranch());
   }
 
-  static void setLaunchOnStart(bool value) =>
-      ProxyService.box.writeBool(key: launchOnStartKey, value: value);
+  static void setLaunchOnStart(bool value) {
+    ProxyService.box.writeBool(key: launchOnStartKey, value: value);
+    unawaited(BarModeBranchSettingsService.persistCurrentBranch());
+  }
 
-  static void setRequirePin(bool value) =>
-      ProxyService.box.writeBool(key: requirePinKey, value: value);
+  static void setRequirePin(bool value) {
+    ProxyService.box.writeBool(key: requirePinKey, value: value);
+    unawaited(BarModeBranchSettingsService.persistCurrentBranch());
+  }
 
-  static void setFloorFirst(bool value) =>
-      ProxyService.box.writeBool(key: floorFirstKey, value: value);
+  static void setFloorFirst(bool value) {
+    ProxyService.box.writeBool(key: floorFirstKey, value: value);
+    unawaited(BarModeBranchSettingsService.persistCurrentBranch());
+  }
 
-  static void setManagerSettle(bool value) =>
-      ProxyService.box.writeBool(key: managerSettleKey, value: value);
+  static void setManagerSettle(bool value) {
+    ProxyService.box.writeBool(key: managerSettleKey, value: value);
+    unawaited(BarModeBranchSettingsService.persistCurrentBranch());
+  }
 
-  static void setAutoLogout(bool value) =>
-      ProxyService.box.writeBool(key: autoLogoutKey, value: value);
+  static void setAutoLogout(bool value) {
+    ProxyService.box.writeBool(key: autoLogoutKey, value: value);
+    unawaited(BarModeBranchSettingsService.persistCurrentBranch());
+  }
 }

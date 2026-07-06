@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/models/bar_branch_settings.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/interfaces/bar_interface.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
@@ -22,6 +23,8 @@ mixin CapellaBarMixin implements BarInterface {
   DittoService get dittoService;
   Talker get talker;
 
+  static const _barBranchSettingsSql =
+      'SELECT * FROM bar_branch_settings WHERE branchId = :branchId LIMIT 1';
   static const _barTablesSql =
       'SELECT * FROM bar_tables WHERE branchId = :branchId ORDER BY ordinal ASC';
   static const _barTabsSql =
@@ -56,6 +59,89 @@ mixin CapellaBarMixin implements BarInterface {
       }
     }
     return list;
+  }
+
+  BarBranchSettings? _branchSettingsFromResult(dynamic queryResult) {
+    final items = queryResult.items as Iterable<dynamic>;
+    if (items.isEmpty) return null;
+    try {
+      final raw = Map<String, dynamic>.from(items.first.value as Map);
+      return BarBranchSettings.fromJson(raw);
+    } catch (e) {
+      talker.error('bar_branch_settings map error: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<BarBranchSettings?> barBranchSettings({
+    required String branchId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return null;
+    final result = await ditto.store.execute(
+      _barBranchSettingsSql,
+      arguments: {'branchId': branchId},
+    );
+    return _branchSettingsFromResult(result);
+  }
+
+  @override
+  Stream<BarBranchSettings?> barBranchSettingsStream({
+    required String branchId,
+  }) {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return Stream.value(null);
+
+    final controller = StreamController<BarBranchSettings?>();
+    final args = {'branchId': branchId};
+    dynamic observer;
+
+    unawaited(() async {
+      try {
+        final initial = await ditto.store.execute(
+          _barBranchSettingsSql,
+          arguments: args,
+        );
+        if (!controller.isClosed) {
+          controller.add(_branchSettingsFromResult(initial));
+        }
+        observer = ditto.store.registerObserver(
+          _barBranchSettingsSql,
+          arguments: args,
+          onChange: (r) {
+            if (!controller.isClosed) {
+              controller.add(_branchSettingsFromResult(r));
+            }
+          },
+        );
+      } catch (e, s) {
+        talker.error('barBranchSettingsStream: $e\n$s');
+        if (!controller.isClosed) controller.add(null);
+      }
+    }());
+
+    controller.onCancel = () async {
+      try {
+        await observer?.cancel();
+      } catch (_) {}
+      await controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  @override
+  Future<void> saveBarBranchSettings(BarBranchSettings settings) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) throw StateError('Ditto not initialized');
+    final doc = settings
+        .copyWith(updatedAt: DateTime.now().toUtc())
+        .toJson();
+    await ditto.store.execute(
+      'INSERT INTO bar_branch_settings DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {'doc': doc},
+    );
   }
 
   @override

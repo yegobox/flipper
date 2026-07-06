@@ -1,6 +1,7 @@
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
+import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -25,8 +26,7 @@ class PaymentVerificationNavigator {
     'BarModeHost',
   };
 
-  static const _barModeEnabledKey = 'barModeEnabled';
-  static const _barModeLaunchOnStartKey = 'barModeLaunchOnStart';
+  static const _barModeEnabledKey = BarModeBranchSettingsService.enabledKey;
 
   /// Verifies payment online and navigates. Use after signup when payment was just completed.
   static Future<PaymentVerificationResponse> verifyAndNavigate({
@@ -175,6 +175,8 @@ class PaymentVerificationNavigator {
 
     if (await _navigateCommissionOnlyIfNeeded()) return;
 
+    await BarModeBranchSettingsService.hydrateForActiveBranch();
+
     if (_shouldOpenBarMode()) {
       talker.info('Bar mode launch on start — opening bar register');
       _routerService.navigateTo(BarModeRoute());
@@ -185,11 +187,7 @@ class PaymentVerificationNavigator {
   }
 
   static bool _shouldOpenBarMode() {
-    final enabled =
-        ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
-    final launchOnStart =
-        ProxyService.box.readBool(key: _barModeLaunchOnStartKey) ?? false;
-    return enabled && launchOnStart;
+    return ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
   }
 
   static Future<bool> _shouldNavigateToPersonalApp() async {

@@ -156,7 +156,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'getDefaultApp',
     'background_sync_enabled',
     'pending_digital_receipt_',
-    // Bar Mode (device-local; see BarModeSettings)
+    // Bar Mode (branch-synced via Ditto; local cache for sync reads)
     'barModeEnabled',
     'barModeLaunchOnStart',
     'barRequirePin',

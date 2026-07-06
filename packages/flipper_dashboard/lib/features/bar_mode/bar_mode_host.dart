@@ -26,6 +26,8 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final branchId = ProxyService.box.getBranchId();
+      await BarModeSettings.hydrateForActiveBranch();
+      BarModeSettings.startWatchingActiveBranch();
       if (branchId != null) {
         await ProxyService.getStrategy(Strategy.capella)
             .seedDefaultFloorPlan(branchId: branchId);
