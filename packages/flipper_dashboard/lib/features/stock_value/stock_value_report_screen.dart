@@ -27,7 +27,7 @@ class StockValueReportScreen extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Stock Value',
+          'Stock Values',
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         actions: [

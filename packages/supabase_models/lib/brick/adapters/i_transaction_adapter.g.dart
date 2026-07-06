@@ -60,6 +60,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     ticketName: data['ticket_name'] == null
         ? null
         : data['ticket_name'] as String?,
+    tableId: data['table_id'] == null ? null : data['table_id'] as String?,
     supplierId: data['supplier_id'] == null
         ? null
         : data['supplier_id'] as int?,
@@ -226,6 +227,7 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'note': instance.note,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'ticket_name': instance.ticketName,
+    'table_id': instance.tableId,
     'supplier_id': instance.supplierId,
     'ebm_synced': instance.ebmSynced,
     'is_income': instance.isIncome,
@@ -336,6 +338,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
     ticketName: data['ticket_name'] == null
         ? null
         : data['ticket_name'] as String?,
+    tableId: data['table_id'] == null ? null : data['table_id'] as String?,
     supplierId: data['supplier_id'] == null
         ? null
         : data['supplier_id'] as int?,
@@ -538,6 +541,7 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'note': instance.note,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'ticket_name': instance.ticketName,
+    'table_id': instance.tableId,
     'supplier_id': instance.supplierId,
     'ebm_synced': instance.ebmSynced == null
         ? null
@@ -693,6 +697,10 @@ class ITransactionAdapter
     'ticketName': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'ticket_name',
+    ),
+    'tableId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'table_id',
     ),
     'supplierId': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -1014,6 +1022,12 @@ class ITransactionAdapter
     'ticketName': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'ticket_name',
+      iterable: false,
+      type: String,
+    ),
+    'tableId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'table_id',
       iterable: false,
       type: String,
     ),

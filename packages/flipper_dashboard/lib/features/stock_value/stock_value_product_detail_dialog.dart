@@ -8,6 +8,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -751,13 +752,9 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
             foregroundColor: const Color(0xFFB91C1C),
           ),
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Delete product from inventory is not available here.',
-                  style: GoogleFonts.outfit(),
-                ),
-              ),
+            showInfoNotification(
+              context,
+              'Delete product from inventory is not available here.',
             );
           },
           child: Row(
@@ -798,14 +795,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
       ..writeln('Stock,${line.currentStock}')
       ..writeln('Line value,${line.lineValue}');
     unawaited(Clipboard.setData(ClipboardData(text: buf.toString())));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Copied summary to clipboard.',
-          style: GoogleFonts.outfit(),
-        ),
-      ),
-    );
+    showSuccessNotification(context, 'Copied summary to clipboard.');
   }
 
   String _initials(String name) {

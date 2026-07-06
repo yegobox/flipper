@@ -53,6 +53,7 @@ import 'all_routes.dart';
     CustomRoute(page: NewTicket),
     CustomRoute(page: MobileView),
     CustomRoute(page: CheckOut),
+    CustomRoute(page: BarModeHost),
     CustomRoute(page: Cashbook),
 
     CustomRoute(page: SettingPage),

@@ -196,6 +196,8 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
       "ignoreForReport": model.ignoreForReport,
       "supplyPriceAtSale": model.supplyPriceAtSale,
       "ttCatCd": model.ttCatCd,
+      "loggedByTenantId": model.loggedByTenantId,
+      "loggedByName": model.loggedByName,
     };
   }
 
@@ -319,6 +321,8 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
       ignoreForReport: document["ignoreForReport"],
       supplyPriceAtSale: document["supplyPriceAtSale"],
       ttCatCd: document["ttCatCd"],
+      loggedByTenantId: document["loggedByTenantId"],
+      loggedByName: document["loggedByName"],
     );
   }
 

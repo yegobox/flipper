@@ -166,7 +166,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> _handleInitialPaymentVerification() async {
     try {
       final response = await _paymentVerificationService.verifyPaymentStatus();
-      _handlePaymentStatusChange(response);
+      await _handlePaymentStatusChange(response);
     } catch (e, stackTrace) {
       // If payment verification itself throws an exception, create a response and handle it
       talker.error(e, stackTrace);

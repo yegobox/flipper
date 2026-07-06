@@ -492,6 +492,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    BarModeRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.BarModeHost(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     CashbookRoute.name: (routeData) {
       final args = routeData.argsAs<CashbookArgs>();
       return _i4.CustomPage<dynamic>(
@@ -810,6 +818,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           CheckOutRoute.name,
           path: '/check-out',
+        ),
+        _i4.RouteConfig(
+          BarModeRoute.name,
+          path: '/bar-mode',
         ),
         _i4.RouteConfig(
           CashbookRoute.name,
@@ -2093,6 +2105,18 @@ class CheckOutArgs {
   String toString() {
     return 'CheckOutArgs{key: $key, isBigScreen: $isBigScreen}';
   }
+}
+
+/// generated route for
+/// [_i1.BarModeHost]
+class BarModeRoute extends _i4.PageRouteInfo<void> {
+  BarModeRoute()
+      : super(
+          BarModeRoute.name,
+          path: '/bar-mode',
+        );
+
+  static const String name = 'BarModeHost';
 }
 
 /// generated route for

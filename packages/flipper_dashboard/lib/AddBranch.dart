@@ -46,13 +46,13 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     if (businessId == null) return;
     await hydrateBusinessBranchesFromRemote(businessId: businessId);
     if (!mounted) return;
-    ref.invalidate(branchesProvider(businessId: businessId));
+    ref.invalidate(allBusinessBranchesProvider(businessId: businessId));
   }
 
   @override
   Widget build(BuildContext context) {
     final businessId = ProxyService.box.getBusinessId();
-    final branches = ref.watch(branchesProvider(businessId: businessId));
+    final branches = ref.watch(allBusinessBranchesProvider(businessId: businessId));
     final isProcessing = ref.watch(isProcessingProvider);
 
     return Scaffold(

@@ -155,7 +155,14 @@ class SharedPreferenceStorage implements LocalStorage {
     'pendingCustomerTin',
     'getDefaultApp',
     'background_sync_enabled',
-    'pending_digital_receipt_'
+    'pending_digital_receipt_',
+    // Bar Mode (branch-synced via Ditto; local cache for sync reads)
+    'barModeEnabled',
+    'barModeLaunchOnStart',
+    'barRequirePin',
+    'barFloorFirst',
+    'barManagerSettle',
+    'barAutoLogout',
     // Add new preference keys above this line
   };
 

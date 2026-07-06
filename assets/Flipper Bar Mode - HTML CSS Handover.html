@@ -1,0 +1,2278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flipper · Bar Mode — HTML/CSS Handover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#EEF2F9; --app:#F5F8FD; --surface:#FFFFFF; --surface-2:#F7F9FE;
+    --ink-1:#0B1220; --ink-2:#4A5567; --ink-3:#7E8AA0; --ink-4:#AEB8CA;
+    --line:#E6ECF5; --line-strong:#D6DEEA;
+    --blue:#2563EB; --blue-700:#1D4ED8; --blue-tint:#EAF1FE; --blue-tint2:#DEEAFD;
+    --loss:#DC2626; --warnamber:#B45309; --gain:#16A34A; --violet:#7C3AED;
+    --grad-brand:linear-gradient(135deg,#22D3EE,#2563EB 52%,#4F46E5);
+    --grad-btn:linear-gradient(180deg,#2C6BF0,#1D4ED8);
+    --sans:'Geist',ui-sans-serif,system-ui,sans-serif;
+    --mono:'Geist Mono',ui-monospace,Menlo,monospace;
+    --sh-1:0 1px 2px rgba(16,32,64,.05),0 1px 1px rgba(16,32,64,.04);
+    --sh-2:0 6px 18px -6px rgba(16,32,64,.14),0 2px 6px rgba(16,32,64,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{font-family:var(--sans); color:var(--ink-1); background:var(--bg); -webkit-font-smoothing:antialiased; line-height:1.5;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 30px; display:grid; grid-template-columns:246px 1fr; gap:44px; align-items:start;}
+  nav.toc{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; padding:40px 0 40px; border-right:1px solid var(--line);}
+  nav.toc::-webkit-scrollbar{width:0;}
+  main{padding:46px 0 120px; min-width:0;}
+  .brand{display:flex; align-items:center; gap:11px; margin-bottom:26px;}
+  .brand .mk{width:38px; height:38px; border-radius:12px; background:var(--grad-brand); display:grid; place-items:center; box-shadow:var(--sh-2);}
+  .brand .mk svg{width:22px; height:22px;}
+  .brand b{font-size:15px; font-weight:700; letter-spacing:-.01em;}
+  .brand span{display:block; font-size:11.5px; color:var(--ink-3); font-weight:500;}
+  .toc a{display:block; padding:6px 14px 6px 12px; font-size:13px; color:var(--ink-2); text-decoration:none; border-left:2px solid transparent; border-radius:0 6px 6px 0;}
+  .toc a:hover{color:var(--ink-1); background:var(--surface);}
+  .toc a.grp{margin-top:16px; font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-4); padding-left:12px; pointer-events:none;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--blue);}
+  .eyebrow .dot{width:7px; height:7px; border-radius:50%; background:var(--grad-brand);}
+  h1{font-size:40px; font-weight:800; letter-spacing:-.03em; margin:16px 0 0; line-height:1.05;}
+  .lede{font-size:16.5px; color:var(--ink-2); max-width:62ch; margin:16px 0 0; text-wrap:pretty;}
+  .meta{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px;}
+  .chip{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; color:var(--ink-2); background:var(--surface); border:1px solid var(--line); padding:7px 13px; border-radius:999px; box-shadow:var(--sh-1);}
+  .chip b{color:var(--ink-1);}
+  section{scroll-margin-top:24px; padding-top:52px;}
+  h2{font-size:13px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--blue); margin:0 0 4px;}
+  .h2sub{font-size:25px; font-weight:800; letter-spacing:-.02em; margin:0 0 20px;}
+  h3{font-size:17px; font-weight:700; letter-spacing:-.01em; margin:34px 0 12px;}
+  h4{font-size:14px; font-weight:700; margin:20px 0 8px; color:var(--ink-1);}
+  p{margin:0 0 14px; color:var(--ink-2); font-size:15px; max-width:74ch; text-wrap:pretty;}
+  p strong,li strong,td strong{color:var(--ink-1); font-weight:700;}
+  code{font-family:var(--mono); font-size:.88em; background:var(--blue-tint); color:var(--blue-700); padding:1px 6px; border-radius:6px;}
+  ul,ol{margin:0 0 14px; padding-left:20px; color:var(--ink-2); font-size:15px;}
+  li{margin:5px 0;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--sh-1); padding:22px 24px; margin:0 0 16px;}
+  .note{border-left:3px solid var(--blue); background:var(--blue-tint); border-radius:0 12px 12px 0; padding:14px 18px; margin:16px 0; font-size:14px; color:var(--ink-2);}
+  .note.warn{border-color:var(--warnamber); background:#FEF3E2;}
+  .note.violet{border-color:var(--violet); background:#F3EEFB;}
+  .note b{color:var(--ink-1);}
+  table{width:100%; border-collapse:collapse; margin:8px 0 18px; font-size:13.5px;}
+  th{text-align:left; font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3); padding:0 12px 9px; border-bottom:1px solid var(--line);}
+  td{padding:10px 12px; border-bottom:1px solid var(--line); color:var(--ink-2); vertical-align:top;}
+  td:first-child{color:var(--ink-1); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  .sw{display:inline-block; width:13px; height:13px; border-radius:4px; vertical-align:-2px; margin-right:7px; border:1px solid rgba(0,0,0,.08);}
+  td .mono,.tmono,.mono{font-family:var(--mono); font-size:12.5px;}
+  pre{background:#0B1220; color:#E9EEF6; border-radius:14px; padding:20px 22px; overflow-x:auto; font-family:var(--mono); font-size:12.25px; line-height:1.6; margin:6px 0 20px; box-shadow:var(--sh-2); white-space:pre; tab-size:2;}
+  .filetag{display:inline-block; font-family:var(--mono); font-size:11px; color:var(--ink-3); background:var(--surface-2); border:1px solid var(--line); padding:3px 9px; border-radius:7px; margin:14px 0 -6px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:900px){ .wrap{grid-template-columns:1fr;} nav.toc{display:none;} .grid2{grid-template-columns:1fr;} }
+  .anat{display:flex; align-items:baseline; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;}
+  .anat:last-child{border-bottom:0;}
+  .anat b{min-width:150px; color:var(--ink-1);}
+  .anat span{color:var(--ink-2);}
+  .kbd{font-family:var(--mono); font-size:12px; color:var(--blue-700); background:var(--blue-tint); padding:1px 6px; border-radius:5px;}
+  .pill{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink-3);}
+  .pill.new{background:var(--blue-tint); border-color:var(--blue-tint2); color:var(--blue-700);}
+  .pill.reuse{background:#E7F6EE; border-color:#BFE8D0; color:#15803D;}
+  hr{border:0; border-top:1px solid var(--line); margin:34px 0;}
+  @media print{ body{background:#fff;} nav.toc{display:none;} .wrap{grid-template-columns:1fr; max-width:none; padding:0 8mm;} pre{box-shadow:none; font-size:9.5px;} section{padding-top:26px;} h1{font-size:30px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc">
+    <div class="brand">
+      <span class="mk"><svg viewBox="0 0 48 48" fill="none"><path d="M24 7.5a16.5 16.5 0 1 1-11.6 4.8" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M24 16.5a7.5 7.5 0 1 0 5.3 2.2" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".6"/></svg></span>
+      <span><b>Flipper</b><span>Bar Mode · Handover</span></span>
+    </div>
+    <a class="grp">Foundations</a>
+    <a href="#overview">Overview</a>
+    <a href="#integration">How it plugs in</a>
+    <a href="#tokens">Design tokens</a>
+    <a class="grp">Architecture</a>
+    <a href="#datamodel">Data model</a>
+    <a href="#state">State &amp; routing</a>
+    <a href="#actions">Store actions</a>
+    <a href="#persistence">Persistence</a>
+    <a class="grp">Screens</a>
+    <a href="#stage">Stage / scaler</a>
+    <a href="#admin">1 · Admin config</a>
+    <a href="#lock">2 · PIN lock</a>
+    <a href="#floor">3 · Table floor</a>
+    <a href="#pos">4 · Table POS</a>
+    <a href="#manager">Manager PIN modal</a>
+    <a href="#settle">5 · Settle bill</a>
+    <a href="#toast">Toast</a>
+    <a class="grp">Reference</a>
+    <a href="#interactions">Interaction spec</a>
+    <a href="#copy">Copy deck</a>
+    <a href="#icons">Icons</a>
+    <a href="#accept">Acceptance checklist</a>
+    <a class="grp">Full source</a>
+    <a href="#src-css">bar.css</a>
+    <a href="#src-data">data</a>
+    <a href="#src-screens">screens</a>
+    <a href="#src-admin">admin</a>
+    <a href="#src-pos">pos</a>
+    <a href="#src-app">app</a>
+  </nav>
+  <main>
+    <div class="eyebrow"><span class="dot"></span>Developer handover · HTML + CSS · add-on</div>
+    <h1>Bar Mode — Table Service</h1>
+    <p class="lede">Everything needed to build Bar Mode as an <strong>add-on</strong> to the existing Flipper POS: what an admin flips on, the shared-register PIN flow, the running tab per table, and the manager-gated settlement. This is the complete spec — architecture, data model, state machine, per-screen markup &amp; CSS, interaction states, copy, and the full verbatim source of every new file. Every value is pulled directly from the approved prototype <code>Flipper Bar Mode.html</code>.</p>
+    <div class="meta">
+      <span class="chip">Stack <b>HTML + CSS + JS state</b></span>
+      <span class="chip">Canvas <b>1440 × 912</b> (tablet/desktop)</span>
+      <span class="chip">Currency <b>RWF</b> · VAT 18%</span>
+      <span class="chip">Font <b>Geist / Geist Mono</b></span>
+      <span class="chip">Add-on to <b>Flipper POS.html</b></span>
+      <span class="chip">New stylesheet <b>bar/bar.css</b></span>
+    </div>
+
+<section id="overview">
+  <h2>01 — Overview</h2>
+  <div class="h2sub">What Bar Mode is</div>
+  <p>Standard Flipper POS is a one-cashier, one-cart checkout. <strong>Bar Mode</strong> turns the same register into a shared bar terminal. It changes three behaviours:</p>
+  <ul>
+    <li><strong>Tab per table.</strong> Instead of a single anonymous cart, the register keeps a persistent running tab for every table on the floor. Items are added to a table, not to "the sale".</li>
+    <li><strong>Shared register, PIN hand-off.</strong> Any staff member logs in with a 4-digit PIN, adds a round to a table, then logs out. The next cashier logs in with <em>their</em> PIN and keeps adding to the same tab. Every line records who logged it.</li>
+    <li><strong>Manager-gated settlement.</strong> Servers build the tab; only a manager PIN can take payment and close the table.</li>
+  </ul>
+  <p>The whole feature is <strong>off by default</strong> and only activates when an admin turns on <em>Table Service (Bar Mode)</em> in the Management Dashboard. When off, the register behaves exactly as it does today.</p>
+  <div class="note"><b>The core loop.</b> Admin enables Bar Mode → cashier enters PIN → picks a table → logs drinks (each line tagged to them) → logs out → next cashier enters PIN → adds to the same tab → … → a manager settles the bill and frees the table.</div>
+  <h3>The five screens</h3>
+  <div class="card">
+    <div class="anat"><b>1 · Admin config</b><span>Management Dashboard section with the master <em>Bar Mode</em> toggle + sub-settings. Where the behaviour is switched on.</span></div>
+    <div class="anat"><b>2 · PIN lock</b><span>Shared-register lock. Pick your name, enter your 4-digit PIN. Shown at start and after every logout.</span></div>
+    <div class="anat"><b>3 · Table floor</b><span>Zoned floor plan of table cards (open vs free, running total, servers, time open). Entry point after login.</span></div>
+    <div class="anat"><b>4 · Table POS</b><span>The existing POS register, bound to one table. Catalog on the left, the table's running tab on the right with per-line server tags.</span></div>
+    <div class="anat"><b>5 · Settle bill</b><span>Manager-only. Itemised bill grouped by server, VAT breakdown, cash / mobile money, close table.</span></div>
+  </div>
+  <p>Plus two overlays: a <strong>Manager PIN modal</strong> (elevation prompt when a non-manager taps Settle) and a <strong>toast</strong> (settle confirmation).</p>
+</section>
+
+<section id="integration">
+  <h2>02 — How it plugs in</h2>
+  <div class="h2sub">Add-on wiring</div>
+  <p>Bar Mode reuses the existing token stylesheet and the existing POS register CSS. You add <strong>one new stylesheet</strong> and a set of new views, then gate them behind the admin setting.</p>
+  <h3>Files</h3>
+  <table>
+    <thead><tr><th>File</th><th>Status</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>onboarding/styles.css</td><td><span class="pill reuse">reuse</span></td><td>Base design tokens (colours, radii, shadows, fonts). Already loaded.</td></tr>
+      <tr><td>pos/pos.css</td><td><span class="pill reuse">reuse</span></td><td>The register: <code>.pos</code>, <code>.pos-top</code>, <code>.pos-rail</code>, <code>.pos-catalog</code>, <code>.pos-card</code>, <code>.pos-cart</code>, <code>.pos-line*</code>, <code>.pos-foot</code>, tender + quick-cash. Bar Mode's POS screen is built on these.</td></tr>
+      <tr><td>onboarding/icons.jsx</td><td><span class="pill reuse">reuse</span></td><td>The <code>Icons</code> set + <code>FlipperLogo</code>. See §Icons.</td></tr>
+      <tr><td>bar/bar.css</td><td><span class="pill new">new</span></td><td>All Bar-Mode-specific styles (stage, lock, floor, table binding, settle, admin, toast, modal). Full source in §bar.css.</td></tr>
+      <tr><td>bar/data.jsx</td><td><span class="pill new">new</span></td><td>Constants (cashiers, products, zones/tables), helpers, and the store (state + actions + persistence).</td></tr>
+      <tr><td>bar/screens.jsx</td><td><span class="pill new">new</span></td><td>PIN entry/keypad, PIN lock, table floor, settle, manager modal, toast.</td></tr>
+      <tr><td>bar/admin.jsx</td><td><span class="pill new">new</span></td><td>Admin config (Bar Mode toggle + sub-settings).</td></tr>
+      <tr><td>bar/pos.jsx</td><td><span class="pill new">new</span></td><td>The table-bound register + product tile + tab line.</td></tr>
+      <tr><td>bar/app.jsx</td><td><span class="pill new">new</span></td><td>Root: state machine, stage scaler, modal + toast host.</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>Load order matters.</b> <code>onboarding/styles.css</code> → <code>pos/pos.css</code> → <code>bar/bar.css</code>. The last line of bar.css only <em>adds</em> tokens (<code>--loss-tint</code>) and never redefines existing ones. In JS, load <code>icons.jsx</code>, then <code>data.jsx</code>, <code>screens.jsx</code>, <code>admin.jsx</code>, <code>pos.jsx</code>, <code>app.jsx</code>, then render <code>&lt;BarApp/&gt;</code>.</div>
+  <h3>The admin gate</h3>
+  <p>The whole feature keys off one boolean, <code>settings.barMode</code>, set in the Admin config screen. Your real app should:</p>
+  <ol>
+    <li>Add the <em>Table Service (Bar Mode)</em> section (§Admin config) to the existing Management Dashboard.</li>
+    <li>When <code>barMode</code> is <strong>on</strong>, route the POS entry to the <strong>PIN lock</strong> instead of the normal register; on login, land on the <strong>Table floor</strong>; opening a table binds the register to that table.</li>
+    <li>When <code>barMode</code> is <strong>off</strong>, do nothing new — the register opens as today.</li>
+  </ol>
+  <p>The four sub-settings refine the flow (see §Store actions for exactly what each one changes): <code>requirePin</code>, <code>floorFirst</code>, <code>managerSettle</code>, <code>autoLogout</code>.</p>
+</section>
+
+<section id="tokens">
+  <h2>03 — Design tokens</h2>
+  <div class="h2sub">Reused + the one new token</div>
+  <p>Bar Mode adds <strong>no new colour system</strong>. It consumes the existing tokens from <code>onboarding/styles.css</code> and <code>pos/pos.css</code>. The only declared addition is one semantic tint:</p>
+  <div class="filetag">bar/bar.css — top of file</div>
+<pre>:root { --loss-tint: #FDECEC; }   /* danger/logout hover fill; also fixes pos.css rail danger hover */</pre>
+  <h3>Tokens consumed (must exist)</h3>
+  <div class="grid2">
+    <table>
+      <thead><tr><th>Token</th><th>Hex</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sw" style="background:#FFFFFF"></span>--surface</td><td class="mono">#FFFFFF</td></tr>
+        <tr><td><span class="sw" style="background:#F7F9FE"></span>--surface-2</td><td class="mono">#F7F9FE</td></tr>
+        <tr><td><span class="sw" style="background:#EEF2F9"></span>--bg</td><td class="mono">#EEF2F9</td></tr>
+        <tr><td><span class="sw" style="background:#0B1220"></span>--ink-1</td><td class="mono">#0B1220</td></tr>
+        <tr><td><span class="sw" style="background:#4A5567"></span>--ink-2</td><td class="mono">#4A5567</td></tr>
+        <tr><td><span class="sw" style="background:#7E8AA0"></span>--ink-3</td><td class="mono">#7E8AA0</td></tr>
+        <tr><td><span class="sw" style="background:#AEB8CA"></span>--ink-4</td><td class="mono">#AEB8CA</td></tr>
+        <tr><td><span class="sw" style="background:#E6ECF5"></span>--line</td><td class="mono">#E6ECF5</td></tr>
+        <tr><td><span class="sw" style="background:#D6DEEA"></span>--line-strong</td><td class="mono">#D6DEEA</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Token</th><th>Hex</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sw" style="background:#2563EB"></span>--blue</td><td class="mono">#2563EB</td></tr>
+        <tr><td><span class="sw" style="background:#EAF1FE"></span>--blue-tint</td><td class="mono">#EAF1FE</td></tr>
+        <tr><td><span class="sw" style="background:#DEEAFD"></span>--blue-tint2</td><td class="mono">#DEEAFD</td></tr>
+        <tr><td><span class="sw" style="background:#7C3AED"></span>--violet</td><td class="mono">#7C3AED</td></tr>
+        <tr><td><span class="sw" style="background:#10B981"></span>--win</td><td class="mono">#10B981</td></tr>
+        <tr><td><span class="sw" style="background:#DEF7EC"></span>--win-tint</td><td class="mono">#DEF7EC</td></tr>
+        <tr><td><span class="sw" style="background:#B42318"></span>--loss-ink</td><td class="mono">#B42318</td></tr>
+        <tr><td><span class="sw" style="background:#F4F6FB"></span>--pos-bg</td><td class="mono">#F4F6FB</td></tr>
+        <tr><td><span class="sw" style="background:#8A5300"></span>--xp-ink / --xp-2</td><td class="mono">#8A5300 / #FF8A00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Radii <code>--r-md:14</code> <code>--r-lg:20</code> <code>--r-xl:26</code>; shadows <code>--sh-1</code> <code>--sh-2</code> <code>--sh-3</code> <code>--sh-blue</code>; gradients <code>--grad-btn</code> <code>--grad-brand</code>. All from the base sheet.</p>
+  <h3>Literal (non-token) colours used inline</h3>
+  <p>A few one-off values are written as literals in bar.css. Listed here so nothing looks arbitrary:</p>
+  <table>
+    <thead><tr><th>Hex</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sw" style="background:#0B0E17"></span><span class="mono">#0B0E17</span></td><td>Stage letterbox background behind the 1440×912 canvas</td></tr>
+      <tr><td><span class="sw" style="background:#F0F2F5"></span><span class="mono">#F0F2F5</span></td><td>Admin (Management Dashboard) page background</td></tr>
+      <tr><td><span class="sw" style="background:#10233F"></span><span class="mono">#10233F</span></td><td>Toast background · <span class="sw" style="background:#55E3A0"></span><span class="mono">#55E3A0</span> its check icon</td></tr>
+      <tr><td><span class="sw" style="background:#F3EEFB"></span><span class="mono">#F3EEFB</span></td><td>Violet tint — Manager tag pill, manager-modal icon tile</td></tr>
+      <tr><td><span class="sw" style="background:#FFFBEB"></span><span class="mono">#FFFBEB</span> / <span class="sw" style="background:#F0D9A6"></span><span class="mono">#F0D9A6</span></td><td>Settle button hover fill / border (amber)</td></tr>
+      <tr><td><span class="sw" style="background:#F3C9C9"></span><span class="mono">#F3C9C9</span></td><td>Danger/Logout button border</td></tr>
+      <tr><td><span class="sw" style="background:#D4DCEA"></span><span class="mono">#D4DCEA</span></td><td>Scrollbar thumbs</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="datamodel">
+  <h2>04 — Data model</h2>
+  <div class="h2sub">Constants &amp; shapes</div>
+  <p>All static in <code>bar/data.jsx</code>. Swap for your real catalog/staff/floor at integration; the shapes are what the UI binds to.</p>
+
+  <h3>Cashiers</h3>
+  <p>Four demo staff. <code>manager:true</code> unlocks settlement. PINs are demo values — replace with hashed server-side auth.</p>
+  <table>
+    <thead><tr><th>id</th><th>name</th><th>initials</th><th>color</th><th>role</th><th>pin</th></tr></thead>
+    <tbody>
+      <tr><td>vm</td><td>Victoria M.</td><td>VM</td><td><span class="sw" style="background:#2563EB"></span>#2563EB</td><td>Server</td><td class="mono">1234</td></tr>
+      <tr><td>en</td><td>Eric N.</td><td>EN</td><td><span class="sw" style="background:#2E9E83"></span>#2E9E83</td><td>Server</td><td class="mono">2468</td></tr>
+      <tr><td>du</td><td>Divine U.</td><td>DU</td><td><span class="sw" style="background:#C2557E"></span>#C2557E</td><td>Server</td><td class="mono">1357</td></tr>
+      <tr><td>rm</td><td>Richard M.</td><td>RM</td><td><span class="sw" style="background:#5457D6"></span>#5457D6</td><td>Manager</td><td class="mono">9999</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Products</h3>
+  <p>Identical to the existing POS demo catalog — <code>{ id, name, price, stock }</code>. Bar Mode does not change the catalog shape; it only changes what a "cart" is.</p>
+
+  <h3>Floor plan</h3>
+  <p>Zones each hold tables of <code>{ id, seats }</code>. <code>BAR_TABLES</code> flattens them with <code>zoneId</code> + <code>zoneName</code>.</p>
+  <table>
+    <thead><tr><th>Zone</th><th>Tables</th></tr></thead>
+    <tbody>
+      <tr><td>Main Bar</td><td class="mono">B1–B6 · 2 seats</td></tr>
+      <tr><td>Terrace</td><td class="mono">T1–T5 · 4 · T6/T7 · 6 · T8 · 8</td></tr>
+      <tr><td>VIP Lounge</td><td class="mono">V1/V2 · 6 · V3 · 10</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Tab (the running bill per table)</h3>
+  <p>The heart of Bar Mode. <code>tabs</code> is a map of <code>tableId → tab</code>. A table is "open" when a tab exists with ≥1 line; "free" otherwise.</p>
+<pre>tabs: {
+  "T3": {
+    openedById: "vm",           // who opened the table
+    openedAtMs: 1720000000000,  // epoch ms — drives "34m open" + "Opened 8:12"
+    lines: [
+      { id:"l1", productId:51, qty:2, price:6500, cashierId:"vm", ts: ... },
+      { id:"l2", productId:160, qty:3, price:2400, cashierId:"vm", ts: ... }
+    ]
+  }
+}</pre>
+  <p>Each <strong>line</strong> carries its own <code>cashierId</code> — that is what powers per-line server tags and the grouped settle bill. A line's <code>price</code> defaults to the product price but can be overridden (shows an "edited" flag).</p>
+  <h4>Derived helpers</h4>
+  <ul>
+    <li><code>tabTotal(tab)</code> — Σ <code>price × qty</code>.</li>
+    <li><code>tabCount(tab)</code> — Σ <code>qty</code> (item count).</li>
+    <li><code>tabServers(tab)</code> — distinct <code>cashierId</code>s in first-seen order (for the stacked avatars + "logged by N staff").</li>
+  </ul>
+
+  <h3>Settings (the admin toggles)</h3>
+  <table>
+    <thead><tr><th>key</th><th>default</th><th>effect</th></tr></thead>
+    <tbody>
+      <tr><td>barMode</td><td>on</td><td>Master switch. Off = normal retail register.</td></tr>
+      <tr><td>requirePin</td><td>on</td><td>Cashiers log in / out with a PIN to add to a tab.</td></tr>
+      <tr><td>floorFirst</td><td>on</td><td>Land on the table floor after login.</td></tr>
+      <tr><td>managerSettle</td><td>on</td><td>Only a manager PIN can settle a bill.</td></tr>
+      <tr><td>autoLogout</td><td>off</td><td>Return straight to the PIN lock after "Save to tab".</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Full store state</h3>
+<pre>{
+  screen: "admin" | "lock" | "tables" | "pos" | "settle",
+  settings: { barMode, requirePin, floorFirst, managerSettle, autoLogout },
+  activeCashierId: string | null,   // who is logged in
+  activeTableId: string | null,     // which table the POS is bound to
+  tabs: { [tableId]: Tab }          // all running bills
+}</pre>
+</section>
+
+<section id="state">
+  <h2>05 — State &amp; routing</h2>
+  <div class="h2sub">The screen machine</div>
+  <p>One field, <code>screen</code>, drives which view renders (root switch in <code>bar/app.jsx</code>). Transitions:</p>
+  <table>
+    <thead><tr><th>From</th><th>Trigger</th><th>To</th></tr></thead>
+    <tbody>
+      <tr><td>admin</td><td>"Open POS with Bar Mode" / Cancel / close X</td><td>lock</td></tr>
+      <tr><td>lock</td><td>Correct PIN for selected cashier → <code>login</code></td><td>tables</td></tr>
+      <tr><td>lock</td><td>"Admin settings" link</td><td>admin</td></tr>
+      <tr><td>tables</td><td>Tap a table → <code>openTable</code></td><td>pos</td></tr>
+      <tr><td>tables</td><td>Logout</td><td>lock</td></tr>
+      <tr><td>pos</td><td>"Tables" / back → <code>setScreen('tables')</code></td><td>tables</td></tr>
+      <tr><td>pos</td><td>"Save to tab" → <code>saveToTab</code></td><td>tables (or lock if <code>autoLogout</code>)</td></tr>
+      <tr><td>pos</td><td>Logout</td><td>lock</td></tr>
+      <tr><td>pos</td><td>Settle (manager) → <code>goSettle</code></td><td>settle</td></tr>
+      <tr><td>pos</td><td>Settle (non-manager, <code>managerSettle</code> on)</td><td>Manager PIN modal → <code>elevateSettle</code> → settle</td></tr>
+      <tr><td>settle</td><td>Back to tab</td><td>pos</td></tr>
+      <tr><td>settle</td><td>Confirm payment → <code>settleConfirm</code></td><td>tables (tab deleted, toast)</td></tr>
+    </tbody>
+  </table>
+  <h3>Guards</h3>
+  <p>Rendered in the root before returning a screen, so a bad state can never crash:</p>
+  <ul>
+    <li>If <code>screen ∈ {tables, pos, settle}</code> but <code>activeCashierId == null</code> → fall back to <strong>lock</strong>.</li>
+    <li>If <code>screen ∈ {pos, settle}</code> but <code>activeTableId == null</code> → fall back to <strong>tables</strong>.</li>
+  </ul>
+</section>
+
+<section id="actions">
+  <h2>06 — Store actions</h2>
+  <div class="h2sub">Exact behaviour</div>
+  <p>The reducer lives in <code>useBarStore()</code> (full source in §data). Each action and what it does:</p>
+  <table>
+    <thead><tr><th>Action</th><th>Behaviour</th></tr></thead>
+    <tbody>
+      <tr><td>setScreen(s)</td><td>Navigate.</td></tr>
+      <tr><td>setSetting(k,v)</td><td>Toggle an admin setting.</td></tr>
+      <tr><td>login(id)</td><td>Set <code>activeCashierId</code>, go to <strong>tables</strong>.</td></tr>
+      <tr><td>logout()</td><td>Clear cashier + table, go to <strong>lock</strong>. Tabs are untouched (persist).</td></tr>
+      <tr><td>openTable(id)</td><td>Create a tab if none exists (<code>openedById=</code> current cashier, <code>openedAtMs=</code> now), bind <code>activeTableId</code>, go to <strong>pos</strong>.</td></tr>
+      <tr><td>addItem(product)</td><td>Add to the active table's tab. <strong>Merges</strong> into the current cashier's existing line for that product <em>at the default price</em> (qty++, capped at stock); otherwise pushes a new line tagged with the current <code>cashierId</code>. Another cashier's line for the same product stays separate.</td></tr>
+      <tr><td>setLineQty(id,n)</td><td>Clamp 0…stock; a line dropping to 0 is removed.</td></tr>
+      <tr><td>setLinePrice(id,p)</td><td>Override unit price (reset restores product price).</td></tr>
+      <tr><td>delLine(id)</td><td>Remove a line.</td></tr>
+      <tr><td>saveToTab()</td><td>Unbind table, go to <strong>tables</strong>; if <code>autoLogout</code> also clear cashier and go to <strong>lock</strong>. (Lines are already live in the tab — this is just "done for now".)</td></tr>
+      <tr><td>goSettle()</td><td>Go to <strong>settle</strong>.</td></tr>
+      <tr><td>elevateSettle(mgrId)</td><td>Set active cashier to the approving manager, go to <strong>settle</strong>. Called from the Manager PIN modal.</td></tr>
+      <tr><td>settleConfirm()</td><td>Delete the tab, unbind table, go to <strong>tables</strong>. (Fire your real payment + receipt here.)</td></tr>
+      <tr><td>resetDemo()</td><td>Clear storage + reseed. (Prototype affordance; drop or repurpose in production.)</td></tr>
+    </tbody>
+  </table>
+  <div class="note warn"><b>Add-item merge rule.</b> The dedupe key is <code>productId + cashierId + price===defaultPrice</code>. This keeps each cashier's contribution visible while consolidating repeat taps, and never merges a price-edited line back into a default one.</div>
+</section>
+
+<section id="persistence">
+  <h2>07 — Persistence</h2>
+  <div class="h2sub">localStorage, session-fresh</div>
+  <p>State is written to <code>localStorage["flipper-bar-mode-v1"]</code> on every change. On load it rehydrates <strong>tabs + settings</strong>, but always <strong>starts a fresh session</strong>: <code>screen:"admin"</code>, <code>activeCashierId:null</code>, <code>activeTableId:null</code>. So a refresh never lands mid-settle, and no one stays "logged in" across a reload — matching how a real shared terminal should behave. Line-id counter is restored above the max persisted id to avoid collisions.</p>
+  <div class="note"><b>Production note.</b> Tabs, staff sessions and settlement should live server-side (multi-device sync, audit). localStorage here is a single-terminal stand-in. Keep the "fresh session on load" rule regardless of backend.</div>
+</section>
+
+<section id="stage">
+  <h2>08 — Stage / scaler</h2>
+  <div class="h2sub">Fixed 1440 × 912, letterboxed</div>
+  <p>Bar Mode is designed at a fixed <strong>1440 × 912</strong> tablet/desktop canvas and scaled to fit any viewport (centered, letterboxed on <span class="mono">#0B0E17</span>). Every screen fills this canvas.</p>
+  <div class="filetag">bar/bar.css</div>
+<pre>.bar-stage { position:fixed; inset:0; background:#0B0E17; overflow:hidden; }
+.bar-canvas { position:absolute; top:50%; left:50%; width:1440px; height:912px; transform-origin:center center; }
+.bar-screen { position:absolute; inset:0; }</pre>
+  <p>JS sets the transform on resize (in <code>BarStage</code>):</p>
+<pre>const s = Math.min(window.innerWidth / 1440, window.innerHeight / 912);
+canvas.style.transform = "translate(-50%, -50%) scale(" + s + ")";</pre>
+  <p>Entry animation for every screen: add class <code>bar-fade</code> (opacity + 8px rise, 0.34s).</p>
+</section>
+
+<section id="admin">
+  <h2>Screen 1</h2>
+  <div class="h2sub">Admin config — Management Dashboard</div>
+  <p>Page background <span class="mono">#F0F2F5</span>. A header (close X + "Management Dashboard"), then sections led by a blue accent-bar eyebrow. The feature section comes first.</p>
+  <div class="card">
+    <div class="anat"><b>Header</b><span>Round close-X (→ lock) · title · overflow kebab.</span></div>
+    <div class="anat"><b>Service Mode</b><span>The hero <code>.bar-mode-card</code>: Store icon, title with "On" pill, description, master <code>.bar-toggle</code>. Card gets <code>.on</code> (blue ring) when enabled.</span></div>
+    <div class="anat"><b>Sub-settings</b><span><code>.bar-subsettings</code> reveal (max-height + opacity transition) — 4 <code>.bar-subrow</code>s, each icon + text + small toggle. Hidden when Bar Mode is off.</span></div>
+    <div class="anat"><b>Quick Actions</b><span>Two <code>.bar-qa</code> cards (POS Default / Orders Default) mirroring the live dashboard.</span></div>
+    <div class="anat"><b>Staff &amp; PINs</b><span>Roster rows with avatar, role, masked PIN, Edit.</span></div>
+    <div class="anat"><b>Sticky CTA</b><span>Cancel + "Open POS with Bar Mode" (disabled unless barMode on) → lock.</span></div>
+  </div>
+  <h3>Toggle</h3>
+  <p>A pure-CSS switch — <code>.bar-toggle</code> (58×32) and <code>.bar-toggle.sm</code> (46×26), <code>.on</code> slides the knob.</p>
+  <h3>Markup — hero toggle + reveal</h3>
+<pre>&lt;div class="bar-admin-section"&gt;
+  &lt;div class="bar-admin-eyebrow"&gt;Service Mode&lt;/div&gt;
+
+  &lt;div class="bar-mode-card on"&gt;            &lt;!-- .on when enabled --&gt;
+    &lt;div class="bar-mode-top"&gt;
+      &lt;span class="bar-mode-ic"&gt;&lt;!-- Store icon --&gt;&lt;/span&gt;
+      &lt;div class="bar-mode-txt"&gt;
+        &lt;div class="bar-mode-h"&gt;Table Service (Bar Mode)
+          &lt;span class="bar-onpill"&gt;On&lt;/span&gt;&lt;/div&gt;
+        &lt;div class="bar-mode-p"&gt;Turns the register into a shared bar terminal…&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;button class="bar-toggle on" role="switch" aria-checked="true"&gt;&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class="bar-subsettings"&gt;               &lt;!-- add .hidden when off --&gt;
+    &lt;div class="bar-card"&gt;
+      &lt;div class="bar-subrow"&gt;
+        &lt;span class="bar-subrow-ic"&gt;&lt;!-- icon --&gt;&lt;/span&gt;
+        &lt;div class="bar-subrow-txt"&gt;
+          &lt;div class="bar-subrow-h"&gt;Require PIN to switch cashier&lt;/div&gt;
+          &lt;div class="bar-subrow-p"&gt;Each cashier logs in with a 4-digit PIN…&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;button class="bar-toggle sm on"&gt;&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;!-- + floorFirst, managerSettle, autoLogout rows --&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>Full component (with all four sub-rows, quick actions, roster) is in §admin.</p>
+</section>
+
+<section id="lock">
+  <h2>Screen 2</h2>
+  <div class="h2sub">PIN lock — shared register</div>
+  <p>Soft radial background. Brand line + shop chip on top; a centered two-pane card; admin/reset links at the bottom.</p>
+  <div class="card">
+    <div class="anat"><b>People pane</b><span>320px, recessed. "Who's on the register?" + a list of <code>.bar-person</code> rows (avatar, name, role, Manager tag). Selected row gets <code>.is-on</code>.</span></div>
+    <div class="anat"><b>Keypad pane</b><span>Selected cashier's avatar + name, "Enter your PIN" hint, 4 <code>.bar-dot</code>s, and the <code>.bar-keypad</code> (1-9, Clear, 0, ⌫). Disabled until a person is picked.</span></div>
+  </div>
+  <h3>PIN entry logic</h3>
+  <ul>
+    <li>Tapping a digit fills the next dot. At <strong>4 digits</strong> it auto-submits (~90ms later).</li>
+    <li><strong>Correct</strong> → <code>login(id)</code>. <strong>Wrong</strong> → dots turn red, shake (<code>.bar-dots.err</code>, <code>barShake</code>), clear after ~380ms, show "Wrong PIN — try again".</li>
+    <li>Physical number keys + Backspace also work (attach a keydown listener while active).</li>
+    <li>Clear empties the entry; ⌫ deletes the last digit.</li>
+  </ul>
+  <h3>Markup — keypad pane</h3>
+<pre>&lt;div class="bar-lock-pad"&gt;
+  &lt;div class="bar-pad-who"&gt;
+    &lt;span class="bar-pad-who-av" style="background:#2563EB"&gt;VM&lt;/span&gt;
+    &lt;span class="bar-pad-title"&gt;Victoria M.&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="bar-pad-hint"&gt;Enter your 4-digit PIN to log orders&lt;/div&gt;
+
+  &lt;div class="bar-dots"&gt;            &lt;!-- add .err to shake --&gt;
+    &lt;span class="bar-dot filled"&gt;&lt;/span&gt;&lt;span class="bar-dot filled"&gt;&lt;/span&gt;
+    &lt;span class="bar-dot"&gt;&lt;/span&gt;&lt;span class="bar-dot"&gt;&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;div class="bar-keypad"&gt;
+    &lt;button class="bar-key"&gt;1&lt;/button&gt; … &lt;button class="bar-key"&gt;9&lt;/button&gt;
+    &lt;button class="bar-key util"&gt;Clear&lt;/button&gt;
+    &lt;button class="bar-key"&gt;0&lt;/button&gt;
+    &lt;button class="bar-key util"&gt;&lt;!-- ChevLeft = delete --&gt;&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class="bar-key-err"&gt;Wrong PIN — try again&lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>The <code>PinEntry</code> + <code>Keypad</code> components (reused by the manager modal) are in §screens.</p>
+</section>
+
+<section id="floor">
+  <h2>Screen 3</h2>
+  <div class="h2sub">Table floor</div>
+  <p>Header (brand, "Tables" + open count, legend, active-cashier chip, Logout) over a scrolling body of zones. Each zone: heading + rule + "N/M open", then a 6-column grid of table cards.</p>
+  <h3>Table card — two states</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="margin-top:0">Free — <code>.bar-tcard.empty</code></h4>
+      <p style="margin:0">Dashed border. Big muted table id + seats. "＋ Open tab" CTA. Hover → blue. Tap → <code>openTable</code> (creates tab, opens POS).</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0">Open — <code>.bar-tcard.open</code></h4>
+      <p style="margin:0">Solid card, 4px blue left border. Table id + "Open" status pill, running total (RWF, mono), stacked server avatars + item count, and time-open. Tap → resume tab in POS.</p>
+    </div>
+  </div>
+  <h3>Markup — open card</h3>
+<pre>&lt;button class="bar-tcard open"&gt;
+  &lt;div class="bar-tcard-top"&gt;
+    &lt;span class="bar-tcard-id"&gt;T3&lt;/span&gt;
+    &lt;span class="bar-status open"&gt;&lt;span class="pip"&gt;&lt;/span&gt; Open&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="bar-tcard-amt"&gt;&lt;span class="v"&gt;&lt;small&gt;RWF&lt;/small&gt; 20,200&lt;/span&gt;&lt;/div&gt;
+  &lt;div class="bar-tcard-sub"&gt;
+    &lt;span class="bar-tcard-servers"&gt;
+      &lt;span class="sv" style="background:#2563EB"&gt;VM&lt;/span&gt;
+      &lt;span style="…"&gt;5 items&lt;/span&gt;
+    &lt;/span&gt;
+    &lt;span class="bar-tcard-time"&gt;&lt;!-- Clock --&gt; 34m&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/button&gt;</pre>
+</section>
+
+<section id="pos">
+  <h2>Screen 4</h2>
+  <div class="h2sub">Table-bound POS</div>
+  <p>This is the <strong>existing</strong> register (<code>.pos</code> from pos.css) with three Bar-Mode changes. Left: catalog grid (<code>.pos-card</code> tiles). Right: the cart <em>is</em> the table's tab.</p>
+  <h3>What changes vs the normal register</h3>
+  <ol>
+    <li><strong>Top bar user</strong> = the logged-in cashier (dynamic avatar/name/role). Nav shows "Tables" (active) to return to the floor. Rail logout → lock.</li>
+    <li><strong>Cart header → table binding.</strong> Replace invoice/txn with a back-to-<code>Tables</code> button, "Save to tab", and a <code>.bar-tablehead</code> strip: table badge, zone + "Open tab" pill, seats · "Opened 8:12 by Victoria" · time-open.</li>
+    <li><strong>Lines carry a server tag</strong> and edit permission depends on who logged them.</li>
+  </ol>
+  <h3>Line rules</h3>
+  <ul>
+    <li>Each line shows a <code>.bar-line-server</code> pill (tinted with the server's colour) = who logged it.</li>
+    <li><strong>Editable</strong> (stepper, delete, expandable qty/price editor) if <code>line.cashierId === activeCashier</code> <em>or</em> the active user is a manager.</li>
+    <li><strong>Read-only</strong> otherwise: <code>.pos-line-card.readonly</code>, quantity shown as "×N", a shield icon (<code>.bar-line-lock</code>) instead of delete, no edit toggle.</li>
+  </ul>
+  <h3>Foot</h3>
+  <ul>
+    <li>Tab total (RWF, mono) + "· N items".</li>
+    <li><code>.bar-pos-foot-note</code> — "Logged by N staff · you added M" (or "You've logged M lines").</li>
+    <li>Buttons: <strong>Logout</strong> (ghost) + <strong>Save to tab</strong> (primary, shows total).</li>
+    <li><code>.bar-settle-btn</code> full-width below: <em>"Settle bill &amp; close table"</em> for a manager, or <em>"Settle bill · manager PIN"</em> (shield) for a server. Disabled when the tab is empty.</li>
+  </ul>
+  <h3>Markup — table binding strip + a tab line</h3>
+<pre>&lt;div class="bar-tablehead"&gt;
+  &lt;span class="bar-tablehead-badge"&gt;T3&lt;/span&gt;
+  &lt;div class="bar-tablehead-meta"&gt;
+    &lt;div class="bar-tablehead-title"&gt;Terrace
+      &lt;span class="bar-status open"&gt;&lt;span class="pip"&gt;&lt;/span&gt; Open tab&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="bar-tablehead-sub"&gt;
+      &lt;span&gt;4 seats&lt;/span&gt;&lt;span class="sep"&gt;&lt;/span&gt;
+      &lt;span&gt;Opened 12:36 PM by Victoria&lt;/span&gt;&lt;span class="sep"&gt;&lt;/span&gt;
+      &lt;span&gt;34m open&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- editable line (uses pos.css .pos-line-card / .pos-line) --&gt;
+&lt;div class="pos-line-card"&gt;
+  &lt;div class="pos-line"&gt;
+    &lt;span class="pos-line-sw" style="background:#…"&gt;Ibi&lt;/span&gt;
+    &lt;div class="pos-line-mid"&gt;
+      &lt;div class="pos-line-name"&gt;Ibivero
+        &lt;span class="bar-line-server" style="background:#2563EB1A;color:#2563EB"&gt;
+          &lt;span class="av" style="background:#2563EB"&gt;VM&lt;/span&gt;Victoria&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class="pos-line-unit"&gt;RWF 6,500 each&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="pos-step"&gt;&lt;!-- − qty + --&gt;&lt;/div&gt;
+    &lt;span class="pos-line-total"&gt;13,000&lt;/span&gt;
+    &lt;button class="pos-line-del"&gt;&lt;!-- Trash --&gt;&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- read-only line (another cashier) --&gt;
+&lt;div class="pos-line-card readonly"&gt;
+  &lt;div class="pos-line"&gt; … &lt;span class="pos-step-qty"&gt;×3&lt;/span&gt;
+    &lt;span class="pos-line-total"&gt;7,200&lt;/span&gt;
+    &lt;span class="bar-line-lock"&gt;&lt;!-- ShieldCheck --&gt;&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<section id="manager">
+  <h2>Overlay</h2>
+  <div class="h2sub">Manager PIN modal</div>
+  <p>Shown when a non-manager taps Settle while <code>managerSettle</code> is on. Scrim + centered card: violet shield tile, "Manager approval", the same <code>PinEntry</code> keypad, Cancel.</p>
+  <ul>
+    <li>Any manager PIN is accepted (matched against <code>BAR_CASHIERS</code> where <code>manager===true</code>).</li>
+    <li>Success → <code>elevateSettle(mgrId)</code> (active cashier becomes that manager) → settle screen. Wrong → "Not a manager PIN" + shake.</li>
+    <li>The keypad grid tightens to <code>repeat(3, 76px)</code> inside the modal.</li>
+  </ul>
+</section>
+
+<section id="settle">
+  <h2>Screen 5</h2>
+  <div class="h2sub">Settle bill — manager only</div>
+  <p>Two panes. Left: the itemised bill grouped by server. Right: payment.</p>
+  <div class="card">
+    <div class="anat"><b>Top bar</b><span>Back-to-tab · "Settle bill · {zone}" with table badge · manager chip ("Settling as manager").</span></div>
+    <div class="anat"><b>Bill</b><span><code>.bar-bill-card</code>: head (table + "Opened … · 34m"), one <code>.bar-bill-group</code> per server (avatar + name + role + group subtotal, then its lines "2× Name @ unit … amount"), then a dashed foot: Subtotal (excl. VAT), VAT 18%, Total due.</span></div>
+    <div class="anat"><b>Payment</b><span>Cash / Mobile Money method cards; for cash: live tender readout (reuses pos.css <code>.pos-readout</code> / <code>.pos-tender</code> / <code>.pos-quickcash</code>) with balance-due / exact / change states; for MoMo: a push-request note. Confirm button (disabled until covered). Confirm → <code>settleConfirm</code> + toast.</span></div>
+  </div>
+  <h3>Money maths</h3>
+  <ul>
+    <li><code>total = Σ price×qty</code>. VAT is treated as <strong>inclusive</strong>: <code>vat = total − total/1.18</code>; subtotal = <code>total − vat</code>.</li>
+    <li>Cash: <code>change = max(0, tender−total)</code>, <code>due = max(0, total−tender)</code>. Confirm enabled when <code>tender ≥ total</code> (or method = MoMo).</li>
+    <li>Quick-cash chips: Exact (=total), 20,000, 50,000, 100,000.</li>
+  </ul>
+</section>
+
+<section id="toast">
+  <h2>Overlay</h2>
+  <div class="h2sub">Toast</div>
+  <p>Pill toast (bottom-center, dark <span class="mono">#10233F</span>, green check) confirming a settle, e.g. <em>"T3 settled · RWF 32,200 Cash"</em>. Auto-dismiss ~3.2s.</p>
+<pre>&lt;div class="bar-toast"&gt;&lt;!-- Check icon --&gt; T3 settled · RWF 32,200 Cash&lt;/div&gt;</pre>
+</section>
+
+<section id="interactions">
+  <h2>09 — Interaction spec</h2>
+  <div class="h2sub">States &amp; edge cases</div>
+  <table>
+    <thead><tr><th>Area</th><th>Behaviour</th></tr></thead>
+    <tbody>
+      <tr><td>PIN — empty</td><td>Keypad disabled until a cashier is selected; hint "Select your name".</td></tr>
+      <tr><td>PIN — wrong</td><td>Red dots + shake + clear + inline error. No lockout in the prototype (add attempt-limiting server-side).</td></tr>
+      <tr><td>PIN — keyboard</td><td>0-9 fill, Backspace deletes, while a keypad is active.</td></tr>
+      <tr><td>Table — free</td><td>Tap creates a tab and binds the register.</td></tr>
+      <tr><td>Table — open</td><td>Tap resumes the existing tab (does not reset opener/time).</td></tr>
+      <tr><td>Add item</td><td>Increments the current cashier's default-price line, else adds a new tagged line; capped at stock; out-of-stock tiles disabled.</td></tr>
+      <tr><td>Line ownership</td><td>Own lines editable; others' read-only with a shield. Managers may edit any line.</td></tr>
+      <tr><td>Save to tab</td><td>Returns to floor (tab already saved). With <code>autoLogout</code>, returns to lock instead.</td></tr>
+      <tr><td>Settle gate</td><td>Non-manager + <code>managerSettle</code> → manager PIN modal; else straight to settle. Disabled on an empty tab.</td></tr>
+      <tr><td>Settle done</td><td>Tab deleted, table freed, toast, back to floor.</td></tr>
+      <tr><td>Reload</td><td>Fresh session at admin, logged out; tabs + settings preserved.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="copy">
+  <h2>10 — Copy deck</h2>
+  <div class="h2sub">Exact strings</div>
+  <h4>Admin</h4>
+  <ul>
+    <li>Section: <strong>Service Mode</strong> · <strong>Quick Actions</strong> · <strong>Staff &amp; PINs</strong></li>
+    <li>Card: <strong>Table Service (Bar Mode)</strong> — "Turns the register into a shared bar terminal: staff keep a running tab per table, log rounds under their own PIN, and hand off between cashiers without losing the bill. Leave off for standard retail checkout."</li>
+    <li>Sub-settings: "Require PIN to switch cashier" · "Open the table floor on login" · "Manager PIN required to settle" · "Auto-logout after saving to a tab" (each with the descriptions in §admin source).</li>
+    <li>CTA: <strong>Open POS with Bar Mode</strong> · Cancel</li>
+  </ul>
+  <h4>Lock</h4>
+  <ul>
+    <li>Eyebrow "Bar mode · Shared register" · Heading "Who's on the register?"</li>
+    <li>"Enter your 4-digit PIN to log orders" · empty: "Select your name" / "Tap your name on the left, then enter your PIN"</li>
+    <li>Error "Wrong PIN — try again" · Links "Admin settings" / "Reset demo"</li>
+  </ul>
+  <h4>Floor</h4>
+  <ul><li>"Tables" · "{n} open · tap a table to log its order" · legend "Open tab" / "Free" · card "Open tab" / "{n}/{m} open" / "{count} items"</li></ul>
+  <h4>POS</h4>
+  <ul><li>Search "Search drinks &amp; products…" · "Save to tab" · empty "Fresh tab for {T} / Tap a product to add the first round" · foot "Logged by N staff · you added M" · "Settle bill &amp; close table" / "Settle bill · manager PIN"</li></ul>
+  <h4>Manager modal</h4>
+  <ul><li>"Manager approval" · "Settling a bill needs a manager PIN." · "Not a manager PIN" · Cancel</li></ul>
+  <h4>Settle</h4>
+  <ul><li>"Settle bill · {zone}" · "Settling as manager" · "Table {T} — running tab" · "Subtotal (excl. VAT)" / "VAT 18%" / "Total due" · "Payment" / "Choose method and take payment to close the table." · Cash / Mobile Money · readout "Balance due / Exact — no change / Change to give" · "Confirm payment · RWF {total}" · "Closing the table saves the sale and frees it for new guests." · toast "{T} settled · RWF {total} {method}"</li></ul>
+</section>
+
+<section id="icons">
+  <h2>11 — Icons</h2>
+  <div class="h2sub">From onboarding/icons.jsx</div>
+  <p>All stroke icons (1.5), sized via prop. Used by Bar Mode:</p>
+  <table>
+    <thead><tr><th>Screen</th><th>Icons</th></tr></thead>
+    <tbody>
+      <tr><td>Lock</td><td class="mono">Store, User, ChevRight, ChevLeft (delete), Cog, Refresh + FlipperLogo</td></tr>
+      <tr><td>Floor</td><td class="mono">User (seats), Clock, Plus, LogOut + FlipperLogo</td></tr>
+      <tr><td>POS</td><td class="mono">Grid, Barcode, Plus, Refresh, Chart, Bell, More, Search, ChevDown/Left/Right, Minus, Trash, ShieldCheck, Check, Warn, Cart, Archive, User, Users, Wallet, LogOut, Stack, Receipt, Clock, Cog</td></tr>
+      <tr><td>Settle</td><td class="mono">ChevLeft, Wallet, Phone, ShieldCheck</td></tr>
+      <tr><td>Admin</td><td class="mono">X, More, Store, ShieldCheck, Grid, Wallet, LogOut, Receipt, Cog, ArrowUpRight</td></tr>
+      <tr><td>Modal / toast</td><td class="mono">ShieldCheck · Check</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="accept">
+  <h2>12 — Acceptance checklist</h2>
+  <div class="h2sub">Done means</div>
+  <div class="card">
+    <ul style="margin:0">
+      <li>Admin can toggle Bar Mode + the four sub-settings; state persists.</li>
+      <li>With Bar Mode on, the POS entry is the PIN lock; wrong PIN shakes; correct PIN logs the cashier in.</li>
+      <li>Login lands on the table floor (when <code>floorFirst</code>); floor shows open vs free with live totals, servers, and time.</li>
+      <li>Opening a free table creates a tab; opening an open table resumes it.</li>
+      <li>Adding items tags each line to the current cashier; own lines editable, others' read-only (managers edit all).</li>
+      <li>Logout returns to the lock without losing the tab; a different cashier can log in and add to the same tab.</li>
+      <li>A server tapping Settle is asked for a manager PIN; a manager goes straight through.</li>
+      <li>Settle shows the bill grouped by server with VAT, takes cash/MoMo, closes the table, and frees it.</li>
+      <li>Reload starts a fresh logged-out session; tabs + settings survive.</li>
+      <li>All visuals use existing tokens; layout matches the 1440×912 canvas, scaled to fit.</li>
+    </ul>
+  </div>
+  <div class="note"><b>Source of truth.</b> The appendix below is the complete, verbatim source of every new file. Anything ambiguous above is settled by the code.</div>
+</section>
+<hr/><section id="src-css"><h2>Appendix A</h2><div class="h2sub">bar/bar.css — complete</div><div class="filetag">bar/bar.css</div><pre>/* ===========================================================
+   Flipper · Bar Mode
+   Requires onboarding/styles.css (tokens) + pos/pos.css loaded first.
+   =========================================================== */
+
+:root { --loss-tint: #FDECEC; }
+
+/* ---------------- stage / scaler ---------------- */
+.bar-stage {
+  position: fixed; inset: 0;
+  background: #0B0E17;
+  overflow: hidden;
+}
+.bar-canvas {
+  position: absolute; top: 50%; left: 50%;
+  width: 1440px; height: 912px;
+  transform-origin: center center;
+  border-radius: 2px; overflow: hidden;
+  box-shadow: 0 40px 120px -30px rgba(0,0,0,.7);
+  background: var(--pos-bg);
+}
+.bar-screen { position: absolute; inset: 0; }
+.bar-fade { animation: barFade .34s cubic-bezier(.22,.9,.3,1); }
+@keyframes barFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------------- shared bar top strip (floor / lock context) ---------------- */
+.bar-brandline { display: flex; align-items: center; gap: 11px; }
+.bar-brandline .wordmark { font-size: 19px; letter-spacing: -.01em; }
+.bar-brandline .bar-brandsub { font-size: 14px; color: var(--ink-3); font-weight: 500; }
+
+.bar-chip {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 46px; padding: 0 16px 0 6px;
+  border-radius: 999px; background: var(--surface);
+  border: 1px solid var(--line); box-shadow: var(--sh-1);
+}
+.bar-chip-av {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px;
+}
+.bar-chip-meta { display: flex; flex-direction: column; line-height: 1.15; }
+.bar-chip-name { font-size: 13.5px; font-weight: 700; }
+.bar-chip-role { font-size: 11.5px; color: var(--ink-3); }
+
+.bar-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  height: 46px; padding: 0 18px; border-radius: var(--r-md);
+  font-size: 14.5px; font-weight: 700; letter-spacing: -.01em;
+  transition: background .14s, border-color .14s, box-shadow .18s, transform .1s, color .14s;
+}
+.bar-btn:active { transform: scale(.985); }
+.bar-btn-ghost { background: var(--surface); border: 1.5px solid var(--line-strong); color: var(--ink-1); box-shadow: var(--sh-1); }
+.bar-btn-ghost:hover { background: var(--surface-2); border-color: var(--blue-tint2); }
+.bar-btn-primary { background: var(--grad-btn); color: #fff; box-shadow: var(--sh-blue); border: 0; }
+.bar-btn-primary:hover { box-shadow: 0 16px 34px -8px rgba(37,99,235,.5); }
+.bar-btn-danger { background: var(--surface); border: 1.5px solid #F3C9C9; color: var(--loss-ink); box-shadow: var(--sh-1); }
+.bar-btn-danger:hover { background: var(--loss-tint); }
+.bar-btn:disabled { opacity: .5; box-shadow: none; cursor: default; }
+
+/* ===========================================================
+   PIN LOCK
+   =========================================================== */
+.bar-lock {
+  height: 100%; display: flex; flex-direction: column;
+  background:
+    radial-gradient(1100px 620px at 50% -12%, #F4F7FE 0%, var(--bg) 62%),
+    var(--bg);
+  padding: 34px 40px;
+}
+.bar-lock-top { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.bar-lock-body { flex: 1; display: grid; place-items: center; }
+
+.bar-lock-card {
+  display: flex; width: 860px; max-width: 92%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-3);
+  overflow: hidden;
+}
+.bar-lock-people { width: 320px; flex-shrink: 0; padding: 26px 22px; border-right: 1px solid var(--line); background: var(--surface-2); }
+.bar-lock-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-4); margin-bottom: 4px; }
+.bar-lock-h { font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 18px; }
+.bar-people-list { display: flex; flex-direction: column; gap: 9px; }
+.bar-person {
+  display: flex; align-items: center; gap: 13px;
+  padding: 11px 12px; border-radius: var(--r-md);
+  border: 1.5px solid var(--line); background: var(--surface);
+  text-align: left; transition: border-color .14s, box-shadow .18s, background .14s, transform .1s;
+}
+.bar-person:hover { border-color: var(--line-strong); box-shadow: var(--sh-1); }
+.bar-person:active { transform: scale(.99); }
+.bar-person.is-on { border-color: var(--blue); background: var(--blue-tint); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.bar-person-av { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 15px; flex-shrink: 0; }
+.bar-person-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.bar-person-name { font-size: 15px; font-weight: 700; }
+.bar-person-role { font-size: 12px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 5px; margin-top: 1px; }
+.bar-mgr-tag { font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--violet); background: #F3EEFB; padding: 1px 6px; border-radius: 999px; }
+
+.bar-lock-pad { flex: 1; padding: 30px 34px 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.bar-pad-who { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; }
+.bar-pad-who-av { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 13px; }
+.bar-pad-title { font-size: 16px; font-weight: 700; }
+.bar-pad-hint { font-size: 13.5px; color: var(--ink-3); margin-bottom: 20px; text-align: center; }
+
+.bar-dots { display: flex; gap: 15px; margin-bottom: 24px; height: 20px; }
+.bar-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line-strong); background: transparent; transition: background .12s, border-color .12s, transform .12s; }
+.bar-dot.filled { background: var(--blue); border-color: var(--blue); transform: scale(1.05); }
+.bar-dots.err .bar-dot { border-color: var(--loss); background: var(--loss); }
+.bar-dots.err { animation: barShake .4s; }
+@keyframes barShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-9px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(4px)} }
+
+.bar-keypad { display: grid; grid-template-columns: repeat(3, 84px); gap: 12px; }
+.bar-key {
+  height: 68px; border-radius: var(--r-md);
+  background: var(--surface); border: 1.5px solid var(--line);
+  font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--ink-1);
+  display: grid; place-items: center;
+  transition: background .1s, border-color .12s, transform .06s, box-shadow .12s;
+}
+.bar-key:hover { border-color: var(--blue); background: var(--blue-tint); color: var(--blue); }
+.bar-key:active { transform: scale(.95); box-shadow: inset 0 2px 6px rgba(37,99,235,.12); }
+.bar-key.util { background: var(--surface-2); color: var(--ink-2); font-size: 15px; font-weight: 700; }
+.bar-key.util:hover { background: var(--surface-2); border-color: var(--line-strong); color: var(--ink-1); }
+.bar-key:disabled { opacity: .4; cursor: default; }
+.bar-key-err { color: var(--loss); font-size: 13px; font-weight: 700; margin-top: 16px; height: 18px; }
+
+/* ===========================================================
+   TABLE FLOOR
+   =========================================================== */
+.bar-floor { height: 100%; display: flex; flex-direction: column; background: var(--pos-bg); }
+.bar-floor-top {
+  flex-shrink: 0; height: 76px; display: flex; align-items: center; gap: 22px;
+  padding: 0 30px; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.bar-floor-title { display: flex; flex-direction: column; }
+.bar-floor-title .t { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.bar-floor-title .s { font-size: 12.5px; color: var(--ink-3); font-weight: 500; }
+.bar-floor-spacer { flex: 1; }
+.bar-legend { display: flex; align-items: center; gap: 16px; margin-right: 4px; }
+.bar-legend span { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-3); font-weight: 600; }
+.bar-legend i { width: 11px; height: 11px; border-radius: 4px; }
+.bar-legend i.open { background: var(--blue); }
+.bar-legend i.empty { background: var(--surface); border: 1.5px dashed var(--line-strong); }
+
+.bar-floor-scroll { flex: 1; overflow-y: auto; padding: 24px 30px 34px; }
+.bar-floor-scroll::-webkit-scrollbar { width: 9px; }
+.bar-floor-scroll::-webkit-scrollbar-thumb { background: #D4DCEA; border-radius: 8px; }
+.bar-zone { margin-bottom: 30px; }
+.bar-zone-head { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+.bar-zone-name { font-size: 15px; font-weight: 800; letter-spacing: .01em; }
+.bar-zone-rule { flex: 1; height: 1px; background: var(--line); }
+.bar-zone-meta { font-size: 12.5px; color: var(--ink-3); font-weight: 600; font-family: var(--mono); }
+
+.bar-tgrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; }
+.bar-tcard {
+  position: relative; text-align: left;
+  border-radius: var(--r-md); padding: 16px 16px 14px;
+  min-height: 138px; display: flex; flex-direction: column;
+  transition: border-color .14s, box-shadow .2s, transform .1s;
+}
+.bar-tcard:active { transform: scale(.985); }
+.bar-tcard.empty {
+  background: var(--surface); border: 1.5px dashed var(--line-strong); color: var(--ink-3);
+  align-items: flex-start; justify-content: space-between;
+}
+.bar-tcard.empty:hover { border-color: var(--blue); background: var(--blue-tint); color: var(--blue); }
+.bar-tcard.open {
+  background: var(--surface); border: 1.5px solid var(--line);
+  box-shadow: var(--sh-1); border-left: 4px solid var(--blue);
+}
+.bar-tcard.open:hover { border-color: var(--blue-tint2); box-shadow: var(--sh-2); transform: translateY(-2px); border-left-color: var(--blue); }
+
+.bar-tcard-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.bar-tcard-id { font-size: 26px; font-weight: 800; letter-spacing: -.02em; color: var(--ink-1); line-height: 1; }
+.bar-tcard.empty .bar-tcard-id { color: var(--ink-3); }
+.bar-tcard-seats { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--ink-4); font-family: var(--mono); }
+.bar-status {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
+  border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .02em;
+}
+.bar-status.open { background: var(--blue-tint); color: var(--blue); }
+.bar-status.empty { background: var(--surface-2); color: var(--ink-4); border: 1px solid var(--line); }
+.bar-status .pip { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+.bar-tcard-amt { margin-top: auto; }
+.bar-tcard-amt .v { font-family: var(--mono); font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: var(--ink-1); }
+.bar-tcard-amt .v small { font-size: 12px; color: var(--ink-3); font-weight: 700; }
+.bar-tcard-sub { display: flex; align-items: center; justify-content: space-between; margin-top: 9px; }
+.bar-tcard-servers { display: flex; align-items: center; }
+.bar-tcard-servers .sv {
+  width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--surface);
+  display: grid; place-items: center; color: #fff; font-size: 9.5px; font-weight: 800; margin-left: -7px;
+}
+.bar-tcard-servers .sv:first-child { margin-left: 0; }
+.bar-tcard-time { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--ink-3); font-weight: 600; font-family: var(--mono); }
+.bar-tcard-empty-cta { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; margin-top: auto; }
+
+/* ===========================================================
+   POS additions (table binding, server badges)
+   =========================================================== */
+.pos-backbtn {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 10px;
+  border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line);
+  font-size: 14px; font-weight: 700; color: var(--ink-1);
+  transition: background .12s, border-color .12s;
+}
+.pos-backbtn:hover { background: var(--blue-tint); color: var(--blue); border-color: transparent; }
+
+.bar-tablehead {
+  flex-shrink: 0; padding: 13px 20px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 13px;
+}
+.bar-tablehead-badge {
+  width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+  background: var(--blue); color: #fff; display: grid; place-items: center;
+  font-size: 18px; font-weight: 800; letter-spacing: -.02em;
+}
+.bar-tablehead-meta { flex: 1; min-width: 0; }
+.bar-tablehead-title { font-size: 16px; font-weight: 800; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.bar-tablehead-sub { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-top: 2px; display: flex; align-items: center; gap: 8px; }
+.bar-tablehead-sub .sep { width: 3px; height: 3px; border-radius: 50%; background: var(--ink-4); }
+
+.bar-line-server {
+  display: inline-flex; align-items: center; gap: 5px; margin-left: 8px;
+  font-size: 10px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+  padding: 1px 7px 1px 3px; border-radius: 999px;
+}
+.bar-line-server .av { width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 8px; font-weight: 800; }
+.pos-line-card.readonly { opacity: .96; }
+.pos-line-card.readonly .pos-line-total { color: var(--ink-2); }
+.bar-line-lock { color: var(--ink-4); flex-shrink: 0; padding: 4px; }
+
+.bar-round-div {
+  display: flex; align-items: center; gap: 10px; padding: 12px 0 6px; margin-top: 4px;
+}
+.bar-round-div .lbl { font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-4); display: inline-flex; align-items: center; gap: 7px; }
+.bar-round-div .av { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 8.5px; font-weight: 800; }
+.bar-round-div .rule { flex: 1; height: 1px; background: var(--line); }
+
+.bar-pos-foot-note { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+.bar-pos-foot-note b { color: var(--ink-1); font-weight: 700; }
+
+.bar-settle-btn {
+  width: 100%; height: 46px; margin-top: 11px; border-radius: var(--r-md);
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  background: var(--surface); border: 1.5px solid var(--line-strong); color: var(--ink-1);
+  font-size: 14.5px; font-weight: 700; transition: background .12s, border-color .12s, color .12s;
+}
+.bar-settle-btn:hover { background: #FFFBEB; border-color: #F0D9A6; color: var(--xp-ink); }
+.bar-settle-btn .lock { color: var(--ink-3); }
+.bar-settle-btn:hover .lock { color: var(--xp-2); }
+
+/* ===========================================================
+   SETTLE
+   =========================================================== */
+.bar-settle { height: 100%; display: flex; flex-direction: column; background: var(--pos-bg); }
+.bar-settle-top {
+  flex-shrink: 0; height: 72px; display: flex; align-items: center; gap: 16px;
+  padding: 0 26px; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.bar-settle-top .ttl { font-size: 19px; font-weight: 800; letter-spacing: -.02em; display: flex; align-items: center; gap: 10px; }
+.bar-settle-top .ttl .badge { width: 38px; height: 38px; border-radius: 11px; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 15px; font-weight: 800; }
+.bar-settle-body { flex: 1; min-height: 0; display: flex; }
+
+.bar-settle-bill { flex: 1; min-width: 0; padding: 24px 30px; overflow-y: auto; }
+.bar-settle-bill::-webkit-scrollbar { width: 9px; }
+.bar-settle-bill::-webkit-scrollbar-thumb { background: #D4DCEA; border-radius: 8px; }
+.bar-bill-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-1); overflow: hidden; max-width: 640px; margin: 0 auto; }
+.bar-bill-head { padding: 20px 24px 16px; border-bottom: 1px dashed var(--line-strong); display: flex; align-items: baseline; justify-content: space-between; }
+.bar-bill-head .h { font-size: 17px; font-weight: 800; }
+.bar-bill-head .m { font-size: 12.5px; color: var(--ink-3); font-family: var(--mono); }
+.bar-bill-group { padding: 6px 24px; }
+.bar-bill-grouphd { display: flex; align-items: center; gap: 9px; padding: 14px 0 8px; }
+.bar-bill-grouphd .av { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 9.5px; font-weight: 800; }
+.bar-bill-grouphd .n { font-size: 12.5px; font-weight: 800; letter-spacing: .02em; }
+.bar-bill-grouphd .r { font-size: 11px; color: var(--ink-4); font-weight: 600; }
+.bar-bill-line { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+.bar-bill-line .q { font-family: var(--mono); font-size: 13.5px; font-weight: 700; color: var(--blue); min-width: 30px; }
+.bar-bill-line .nm { flex: 1; font-size: 14px; font-weight: 600; }
+.bar-bill-line .unit { font-size: 11.5px; color: var(--ink-3); font-family: var(--mono); }
+.bar-bill-line .amt { font-family: var(--mono); font-size: 14px; font-weight: 700; min-width: 84px; text-align: right; }
+.bar-bill-foot { padding: 16px 24px 22px; border-top: 1px dashed var(--line-strong); }
+.bar-bill-row { display: flex; align-items: baseline; justify-content: space-between; padding: 4px 0; }
+.bar-bill-row .k { font-size: 13.5px; color: var(--ink-2); font-weight: 600; }
+.bar-bill-row .v { font-family: var(--mono); font-size: 14px; font-weight: 700; }
+.bar-bill-row.grand { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.bar-bill-row.grand .k { font-size: 16px; font-weight: 800; color: var(--ink-1); }
+.bar-bill-row.grand .v { font-size: 24px; font-weight: 800; color: var(--blue); letter-spacing: -.02em; }
+.bar-bill-row.grand .v small { font-size: 13px; color: var(--ink-3); font-weight: 700; }
+
+.bar-settle-pay { width: 460px; flex-shrink: 0; background: var(--surface); border-left: 1px solid var(--line); display: flex; flex-direction: column; padding: 24px; }
+.bar-pay-h { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+.bar-pay-sub { font-size: 12.5px; color: var(--ink-3); margin-bottom: 18px; }
+.bar-pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.bar-pay-method {
+  display: flex; align-items: center; gap: 10px; padding: 13px 14px; border-radius: var(--r-md);
+  border: 1.5px solid var(--line); background: var(--surface); transition: border-color .14s, background .14s, box-shadow .14s;
+}
+.bar-pay-method:active { transform: scale(.99); }
+.bar-pay-method.is-on { border-color: var(--blue); background: var(--blue-tint); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+.bar-pay-method .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
+.bar-pay-method.is-on .ic { background: var(--blue); color: #fff; border-color: var(--blue); }
+.bar-pay-method .nm { font-size: 14.5px; font-weight: 700; }
+
+.bar-pay-spacer { flex: 1; }
+
+/* ===========================================================
+   ADMIN — management dashboard config
+   =========================================================== */
+.bar-admin { height: 100%; display: flex; flex-direction: column; background: #F0F2F5; }
+.bar-admin-top {
+  flex-shrink: 0; height: 74px; display: flex; align-items: center; gap: 16px;
+  padding: 0 28px; background: #F0F2F5;
+}
+.bar-admin-x {
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--line-strong);
+  background: var(--surface); display: grid; place-items: center; color: var(--ink-1);
+  transition: background .12s;
+}
+.bar-admin-x:hover { background: var(--surface-2); }
+.bar-admin-title { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.bar-admin-scroll { flex: 1; overflow-y: auto; padding: 8px 28px 36px; }
+.bar-admin-scroll::-webkit-scrollbar { width: 9px; }
+.bar-admin-scroll::-webkit-scrollbar-thumb { background: #D0D6DE; border-radius: 8px; }
+
+.bar-admin-section { margin-bottom: 22px; }
+.bar-admin-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2);
+  margin-bottom: 13px;
+}
+.bar-admin-eyebrow::before { content: ''; width: 4px; height: 17px; border-radius: 2px; background: var(--blue); }
+.bar-admin-eyebrow.amber::before { background: var(--xp-2); }
+.bar-admin-eyebrow.violet::before { background: var(--violet); }
+
+.bar-card { background: var(--surface); border-radius: var(--r-lg); box-shadow: 0 1px 2px rgba(16,32,64,.05); }
+
+/* hero toggle for bar mode */
+.bar-mode-card { padding: 22px 24px; border: 1.5px solid var(--line); border-radius: var(--r-lg); transition: border-color .18s, box-shadow .18s; }
+.bar-mode-card.on { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+.bar-mode-top { display: flex; align-items: center; gap: 16px; }
+.bar-mode-ic { width: 52px; height: 52px; border-radius: 15px; display: grid; place-items: center; background: var(--blue-tint); color: var(--blue); flex-shrink: 0; }
+.bar-mode-card.on .bar-mode-ic { background: var(--blue); color: #fff; }
+.bar-mode-txt { flex: 1; min-width: 0; }
+.bar-mode-h { font-size: 18px; font-weight: 800; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+.bar-mode-p { font-size: 13.5px; color: var(--ink-2); margin-top: 3px; line-height: 1.45; max-width: 62ch; }
+.bar-onpill { font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--win); background: var(--win-tint); padding: 2px 8px; border-radius: 999px; }
+
+/* toggle */
+.bar-toggle { width: 58px; height: 32px; border-radius: 999px; background: var(--line-strong); position: relative; flex-shrink: 0; transition: background .2s; }
+.bar-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.2); transition: transform .2s; }
+.bar-toggle.on { background: var(--blue); }
+.bar-toggle.on::after { transform: translateX(26px); }
+.bar-toggle.sm { width: 46px; height: 26px; }
+.bar-toggle.sm::after { width: 20px; height: 20px; }
+.bar-toggle.sm.on::after { transform: translateX(20px); }
+
+/* sub settings revealed when bar mode on */
+.bar-subsettings { margin-top: 4px; overflow: hidden; transition: max-height .3s ease, opacity .25s, margin-top .3s; }
+.bar-subsettings.hidden { max-height: 0; opacity: 0; margin-top: 0; }
+.bar-subrow { display: flex; align-items: center; gap: 15px; padding: 16px 24px; border-top: 1px solid var(--line); }
+.bar-subrow:first-child { border-top: 0; }
+.bar-subrow-ic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); flex-shrink: 0; }
+.bar-subrow-txt { flex: 1; min-width: 0; }
+.bar-subrow-h { font-size: 14.5px; font-weight: 700; }
+.bar-subrow-p { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+
+/* quick actions (mirror screenshot) */
+.bar-qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.bar-qa { display: flex; align-items: center; gap: 15px; padding: 18px 20px; }
+.bar-qa-ic { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; flex-shrink: 0; }
+.bar-qa-ic.blue { background: var(--blue-tint); color: var(--blue); }
+.bar-qa-ic.green { background: var(--win-tint); color: var(--win); }
+.bar-qa-txt { flex: 1; }
+.bar-qa-h { font-size: 15.5px; font-weight: 800; }
+.bar-qa-p { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; }
+
+.bar-admin-cta { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 12px; padding: 16px 0 2px; background: linear-gradient(180deg, rgba(240,242,245,0) 0%, #F0F2F5 40%); }
+
+/* toast */
+.bar-toast {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 18px; border-radius: 999px;
+  background: #10233F; color: #fff; font-size: 13.5px; font-weight: 600;
+  box-shadow: 0 16px 40px -10px rgba(0,0,0,.5); z-index: 40;
+  animation: barToast .3s cubic-bezier(.2,1.3,.4,1);
+}
+.bar-toast svg { color: #55E3A0; }
+@keyframes barToast { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* manager pin modal */
+.bar-modal-scrim { position: absolute; inset: 0; background: rgba(11,18,32,.5); backdrop-filter: blur(3px); display: grid; place-items: center; z-index: 50; animation: barFade .2s; }
+.bar-modal {
+  width: 400px; background: var(--surface); border-radius: var(--r-xl); box-shadow: var(--sh-3);
+  padding: 28px 30px 26px; text-align: center;
+}
+.bar-modal-ic { width: 56px; height: 56px; border-radius: 17px; background: #F3EEFB; color: var(--violet); display: grid; place-items: center; margin: 0 auto 14px; }
+.bar-modal-h { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+.bar-modal-p { font-size: 13.5px; color: var(--ink-3); margin-top: 5px; margin-bottom: 20px; }
+.bar-modal .bar-dots { justify-content: center; }
+.bar-modal .bar-keypad { justify-content: center; margin: 0 auto; grid-template-columns: repeat(3, 76px); }
+.bar-modal-cancel { margin-top: 18px; font-size: 14px; font-weight: 700; color: var(--ink-3); }
+.bar-modal-cancel:hover { color: var(--ink-1); }
+</pre></section>
+<section id="src-data"><h2>Appendix B</h2><div class="h2sub">bar/data.jsx — constants, helpers, store</div><div class="filetag">bar/data.jsx</div><pre>/* ============================================================
+   Flipper · Bar Mode — data, constants, store
+   Requires React. Loaded before bar/screens.jsx, bar/pos.jsx, bar/app.jsx.
+   ============================================================ */
+
+/* ---- shared tile palette (mirrors pos.jsx) ---- */
+const BAR_TILE_COLORS = [
+  '#3B6FE0', '#5457D6', '#7A56E8', '#9A5BC4',
+  '#C2557E', '#C76B45', '#B5893B', '#5E8C3C',
+  '#2E9E83', '#2C8FB0', '#5B7488', '#9A6248',
+];
+function barHash(str, mod) {
+  let h = 0;
+  for (let i = 0; i &lt; str.length; i++) h = (h * 31 + str.charCodeAt(i)) &gt;&gt;&gt; 0;
+  return h % mod;
+}
+const barColorFor = (name) =&gt; BAR_TILE_COLORS[barHash(String(name), BAR_TILE_COLORS.length)];
+const barAbbr = (name) =&gt; String(name).replace(/[^A-Za-z ]/g, '').slice(0, 3) || String(name).slice(0, 3);
+const barMoney = (n) =&gt; Math.round(n).toLocaleString('en-US', { minimumFractionDigits: 0 });
+
+/* ---- products (kept identical to the existing POS demo catalog) ---- */
+const BAR_PRODUCTS = [
+  { id: 143, name: 'Cellure GJS',      price: 12000, stock: 4 },
+  { id: 160, name: 'Coupe coupe',      price: 2400,  stock: 368 },
+  { id: 189, name: "Urukezo 18' nziza", price: 3000, stock: 476 },
+  { id: 51,  name: 'Ibivero',          price: 6500,  stock: 1028 },
+  { id: 144, name: 'Cylendre Wista',   price: 3250,  stock: 763 },
+  { id: 100, name: 'Socket france',    price: 240,   stock: 3896 },
+  { id: 104, name: 'Toilesolante',     price: 250,   stock: 1855 },
+  { id: 171, name: 'Inyundo 5kg',      price: 12000, stock: 9 },
+  { id: 151, name: 'Ibitiyo 1kg',      price: 2500,  stock: 154 },
+  { id: 118, name: 'Umwiko',           price: 1125,  stock: 1053 },
+  { id: 178, name: 'Pince BUNT',       price: 3000,  stock: 0 },
+  { id: 96,  name: "Roulon 4'",        price: 600,   stock: 1205 },
+  { id: 207, name: 'Agafuni',          price: 4500,  stock: 62 },
+  { id: 212, name: 'Imbaho ya 3m',     price: 1800,  stock: 7 },
+  { id: 233, name: 'Fer à béton 12',   price: 9800,  stock: 240 },
+  { id: 245, name: 'Sima Cimerwa',     price: 11500, stock: 88 },
+];
+const barProduct = (id) =&gt; BAR_PRODUCTS.find((p) =&gt; p.id === id);
+
+/* ---- cashiers (PIN-based quick login) ---- */
+const BAR_CASHIERS = [
+  { id: 'vm', name: 'Victoria M.', initials: 'VM', color: '#2563EB', pin: '1234', role: 'Server' },
+  { id: 'en', name: 'Eric N.',     initials: 'EN', color: '#2E9E83', pin: '2468', role: 'Server' },
+  { id: 'du', name: 'Divine U.',   initials: 'DU', color: '#C2557E', pin: '1357', role: 'Server' },
+  { id: 'rm', name: 'Richard M.',  initials: 'RM', color: '#5457D6', pin: '9999', role: 'Manager', manager: true },
+];
+const barCashier = (id) =&gt; BAR_CASHIERS.find((c) =&gt; c.id === id) || null;
+
+/* ---- floor plan: zones + tables ---- */
+const BAR_ZONES = [
+  { id: 'bar',   name: 'Main Bar', tables: [
+    { id: 'B1', seats: 2 }, { id: 'B2', seats: 2 }, { id: 'B3', seats: 2 },
+    { id: 'B4', seats: 2 }, { id: 'B5', seats: 2 }, { id: 'B6', seats: 2 },
+  ] },
+  { id: 'terr',  name: 'Terrace', tables: [
+    { id: 'T1', seats: 4 }, { id: 'T2', seats: 4 }, { id: 'T3', seats: 4 }, { id: 'T4', seats: 4 },
+    { id: 'T5', seats: 4 }, { id: 'T6', seats: 6 }, { id: 'T7', seats: 6 }, { id: 'T8', seats: 8 },
+  ] },
+  { id: 'vip',   name: 'VIP Lounge', tables: [
+    { id: 'V1', seats: 6 }, { id: 'V2', seats: 6 }, { id: 'V3', seats: 10 },
+  ] },
+];
+const BAR_TABLES = BAR_ZONES.flatMap((z) =&gt; z.tables.map((t) =&gt; ({ ...t, zoneId: z.id, zoneName: z.name })));
+const barTable = (id) =&gt; BAR_TABLES.find((t) =&gt; t.id === id) || null;
+
+/* ---- time helpers ---- */
+function barFmtClock(ms) {
+  const d = new Date(ms);
+  let h = d.getHours();
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ap = h &lt; 12 ? 'AM' : 'PM';
+  h = h % 12 || 12;
+  return `${h}:${mm} ${ap}`;
+}
+function barFmtElapsed(ms) {
+  const mins = Math.max(0, Math.round((Date.now() - ms) / 60000));
+  if (mins &lt; 60) return `${mins}m`;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
+/* ---- initial seed (a few open tabs across the floor) ---- */
+let __lid = 1;
+const lid = () =&gt; 'l' + (__lid++);
+function seedState() {
+  const now = Date.now();
+  return {
+    screen: 'admin',
+    settings: { barMode: true, requirePin: true, managerSettle: true, floorFirst: true, autoLogout: false },
+    activeCashierId: null,
+    activeTableId: null,
+    tabs: {
+      T3: {
+        openedById: 'vm', openedAtMs: now - 34 * 60000,
+        lines: [
+          { id: lid(), productId: 51,  qty: 2, price: 6500, cashierId: 'vm', ts: now - 34 * 60000 },
+          { id: lid(), productId: 160, qty: 3, price: 2400, cashierId: 'vm', ts: now - 20 * 60000 },
+        ],
+      },
+      B2: {
+        openedById: 'en', openedAtMs: now - 12 * 60000,
+        lines: [
+          { id: lid(), productId: 118, qty: 3, price: 1125, cashierId: 'en', ts: now - 12 * 60000 },
+        ],
+      },
+      V1: {
+        openedById: 'du', openedAtMs: now - 51 * 60000,
+        lines: [
+          { id: lid(), productId: 143, qty: 2, price: 12000, cashierId: 'du', ts: now - 51 * 60000 },
+          { id: lid(), productId: 245, qty: 4, price: 11500, cashierId: 'du', ts: now - 40 * 60000 },
+          { id: lid(), productId: 207, qty: 1, price: 4500,  cashierId: 'rm', ts: now - 8 * 60000 },
+        ],
+      },
+    },
+  };
+}
+
+/* ---- derived tab helpers ---- */
+function tabTotal(tab) {
+  if (!tab) return 0;
+  return tab.lines.reduce((s, l) =&gt; s + l.price * l.qty, 0);
+}
+function tabCount(tab) {
+  if (!tab) return 0;
+  return tab.lines.reduce((s, l) =&gt; s + l.qty, 0);
+}
+function tabServers(tab) {
+  if (!tab) return [];
+  const ids = [];
+  tab.lines.forEach((l) =&gt; { if (!ids.includes(l.cashierId)) ids.push(l.cashierId); });
+  return ids;
+}
+
+/* ---- store: state + actions, persisted to localStorage ---- */
+const BAR_STORE_KEY = 'flipper-bar-mode-v1';
+
+function useBarStore() {
+  const [state, setState] = React.useState(() =&gt; {
+    try {
+      const raw = localStorage.getItem(BAR_STORE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // reset lineid counter above any persisted ids
+        let max = 0;
+        Object.values(parsed.tabs || {}).forEach((t) =&gt;
+          (t.lines || []).forEach((l) =&gt; { const n = parseInt(String(l.id).slice(1), 10); if (n &gt; max) max = n; }));
+        __lid = max + 1;
+        // persist tabs + settings, but always start a fresh session logged-out
+        // at the admin entry so a reload never lands mid-flow.
+        return { ...parsed, screen: 'admin', activeCashierId: null, activeTableId: null };
+      }
+    } catch (e) {}
+    return seedState();
+  });
+
+  React.useEffect(() =&gt; {
+    try { localStorage.setItem(BAR_STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }, [state]);
+
+  const patch = (p) =&gt; setState((s) =&gt; ({ ...s, ...(typeof p === 'function' ? p(s) : p) }));
+
+  const actions = React.useMemo(() =&gt; ({
+    setScreen: (screen) =&gt; patch({ screen }),
+    setSetting: (key, val) =&gt; setState((s) =&gt; ({ ...s, settings: { ...s.settings, [key]: val } })),
+
+    login: (cashierId) =&gt; setState((s) =&gt; ({
+      ...s, activeCashierId: cashierId,
+      screen: s.settings.floorFirst ? 'tables' : 'tables',
+    })),
+    logout: () =&gt; patch({ activeCashierId: null, activeTableId: null, screen: 'lock' }),
+
+    openTable: (tableId) =&gt; setState((s) =&gt; {
+      const tabs = { ...s.tabs };
+      if (!tabs[tableId]) {
+        tabs[tableId] = { openedById: s.activeCashierId, openedAtMs: Date.now(), lines: [] };
+      }
+      return { ...s, tabs, activeTableId: tableId, screen: 'pos' };
+    }),
+
+    addItem: (product) =&gt; setState((s) =&gt; {
+      const tid = s.activeTableId; if (!tid) return s;
+      const tab = s.tabs[tid] || { openedById: s.activeCashierId, openedAtMs: Date.now(), lines: [] };
+      const lines = tab.lines.slice();
+      // merge into this cashier's existing (unedited-price) line for the product
+      const idx = lines.findIndex((l) =&gt; l.productId === product.id &amp;&amp; l.cashierId === s.activeCashierId &amp;&amp; l.price === product.price);
+      if (idx &gt;= 0) lines[idx] = { ...lines[idx], qty: Math.min(product.stock, lines[idx].qty + 1) };
+      else lines.push({ id: lid(), productId: product.id, qty: 1, price: product.price, cashierId: s.activeCashierId, ts: Date.now() });
+      return { ...s, tabs: { ...s.tabs, [tid]: { ...tab, lines } } };
+    }),
+
+    setLineQty: (lineId, qty) =&gt; setState((s) =&gt; {
+      const tid = s.activeTableId; const tab = s.tabs[tid]; if (!tab) return s;
+      let lines = tab.lines.map((l) =&gt; {
+        if (l.id !== lineId) return l;
+        const p = barProduct(l.productId);
+        const n = Math.max(0, Math.min(p ? p.stock : 9999, qty));
+        return { ...l, qty: n };
+      }).filter((l) =&gt; l.qty &gt; 0);
+      return { ...s, tabs: { ...s.tabs, [tid]: { ...tab, lines } } };
+    }),
+    setLinePrice: (lineId, price) =&gt; setState((s) =&gt; {
+      const tid = s.activeTableId; const tab = s.tabs[tid]; if (!tab) return s;
+      const lines = tab.lines.map((l) =&gt; l.id === lineId ? { ...l, price } : l);
+      return { ...s, tabs: { ...s.tabs, [tid]: { ...tab, lines } } };
+    }),
+    delLine: (lineId) =&gt; setState((s) =&gt; {
+      const tid = s.activeTableId; const tab = s.tabs[tid]; if (!tab) return s;
+      return { ...s, tabs: { ...s.tabs, [tid]: { ...tab, lines: tab.lines.filter((l) =&gt; l.id !== lineId) } } };
+    }),
+
+    saveToTab: () =&gt; setState((s) =&gt; ({
+      ...s, activeTableId: null,
+      screen: s.settings.autoLogout ? 'lock' : 'tables',
+      activeCashierId: s.settings.autoLogout ? null : s.activeCashierId,
+    })),
+
+    goSettle: () =&gt; patch({ screen: 'settle' }),
+    elevateSettle: (mgrId) =&gt; patch({ activeCashierId: mgrId, screen: 'settle' }),
+    settleConfirm: () =&gt; setState((s) =&gt; {
+      const tabs = { ...s.tabs }; delete tabs[s.activeTableId];
+      return { ...s, tabs, activeTableId: null, screen: 'tables' };
+    }),
+
+    resetDemo: () =&gt; { try { localStorage.removeItem(BAR_STORE_KEY); } catch (e) {} setState(seedState()); },
+  }), []);
+
+  return [state, actions];
+}
+
+Object.assign(window, {
+  BAR_TILE_COLORS, barColorFor, barAbbr, barMoney,
+  BAR_PRODUCTS, barProduct, BAR_CASHIERS, barCashier,
+  BAR_ZONES, BAR_TABLES, barTable,
+  barFmtClock, barFmtElapsed,
+  tabTotal, tabCount, tabServers, useBarStore,
+});
+</pre></section>
+<section id="src-screens"><h2>Appendix C</h2><div class="h2sub">bar/screens.jsx — PIN, lock, floor, settle, modal, toast</div><div class="filetag">bar/screens.jsx</div><pre>/* ============================================================
+   Flipper · Bar Mode — screens
+   Requires: React, Icons, FlipperLogo, bar/data.jsx
+   ============================================================ */
+
+const { useState: useScr, useEffect: useScrE, useRef: useScrR } = React;
+
+/* ---------------- shared PIN entry (dots + keypad) ---------------- */
+function PinDots({ len, filled, error }) {
+  return (
+    &lt;div className={`bar-dots ${error ? 'err' : ''}`}&gt;
+      {Array.from({ length: len }).map((_, i) =&gt; (
+        &lt;span key={i} className={`bar-dot ${i &lt; filled ? 'filled' : ''}`} /&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+
+function Keypad({ onDigit, onBackspace, onClear, disabled, compact }) {
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  return (
+    &lt;div className="bar-keypad"&gt;
+      {keys.map((k) =&gt; (
+        &lt;button key={k} className="bar-key" disabled={disabled} onClick={() =&gt; onDigit(k)}&gt;{k}&lt;/button&gt;
+      ))}
+      &lt;button className="bar-key util" disabled={disabled} onClick={onClear}&gt;Clear&lt;/button&gt;
+      &lt;button className="bar-key" disabled={disabled} onClick={() =&gt; onDigit('0')}&gt;0&lt;/button&gt;
+      &lt;button className="bar-key util" disabled={disabled} onClick={onBackspace} aria-label="Delete"&gt;
+        &lt;Icons.ChevLeft size={22} /&gt;
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* Controlled-ish PIN entry: manages its own value, calls onComplete(pin).
+   Parent bumps `errorNonce` to shake + clear after a wrong PIN. */
+function PinEntry({ len = 4, onComplete, disabled, errorNonce = 0, keyboard }) {
+  const [val, setVal] = useScr('');
+  const [err, setErr] = useScr(false);
+  const firstErr = useScrR(errorNonce);
+
+  useScrE(() =&gt; {
+    if (errorNonce !== firstErr.current) {
+      firstErr.current = errorNonce;
+      setErr(true);
+      const t1 = setTimeout(() =&gt; { setVal(''); }, 380);
+      const t2 = setTimeout(() =&gt; setErr(false), 420);
+      return () =&gt; { clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [errorNonce]);
+
+  const push = (d) =&gt; {
+    if (disabled) return;
+    setErr(false);
+    setVal((v) =&gt; {
+      if (v.length &gt;= len) return v;
+      const nv = v + d;
+      if (nv.length === len) setTimeout(() =&gt; onComplete(nv), 90);
+      return nv;
+    });
+  };
+  const back = () =&gt; { setErr(false); setVal((v) =&gt; v.slice(0, -1)); };
+  const clear = () =&gt; { setErr(false); setVal(''); };
+
+  useScrE(() =&gt; {
+    if (!keyboard) return;
+    const h = (e) =&gt; {
+      if (disabled) return;
+      if (/^[0-9]$/.test(e.key)) push(e.key);
+      else if (e.key === 'Backspace') back();
+    };
+    window.addEventListener('keydown', h);
+    return () =&gt; window.removeEventListener('keydown', h);
+  }, [keyboard, disabled]);
+
+  return (
+    &lt;&gt;
+      &lt;PinDots len={len} filled={val.length} error={err} /&gt;
+      &lt;Keypad onDigit={push} onBackspace={back} onClear={clear} disabled={disabled} /&gt;
+    &lt;/&gt;
+  );
+}
+
+/* ============================================================
+   PIN LOCK
+   ============================================================ */
+function PinLock({ store, actions }) {
+  const [sel, setSel] = useScr(null);
+  const [nonce, setNonce] = useScr(0);
+  const cashier = sel ? barCashier(sel) : null;
+
+  const onComplete = (pin) =&gt; {
+    if (cashier &amp;&amp; pin === cashier.pin) actions.login(cashier.id);
+    else setNonce((n) =&gt; n + 1);
+  };
+
+  return (
+    &lt;div className="bar-lock bar-fade"&gt;
+      &lt;div className="bar-lock-top"&gt;
+        &lt;div className="bar-brandline"&gt;
+          &lt;FlipperLogo size={30} /&gt;
+          &lt;span className="wordmark"&gt;FLIPPER&lt;/span&gt;
+          &lt;span className="bar-brandsub"&gt;Point of Sale&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div className="bar-chip"&gt;
+          &lt;span className="bar-chip-av" style={{ background: 'var(--grad-brand)' }}&gt;&lt;Icons.Store size={17} /&gt;&lt;/span&gt;
+          &lt;span className="bar-chip-meta"&gt;
+            &lt;span className="bar-chip-name"&gt;Demo Shop&lt;/span&gt;
+            &lt;span className="bar-chip-role"&gt;Westlands Branch&lt;/span&gt;
+          &lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="bar-lock-body"&gt;
+        &lt;div className="bar-lock-card"&gt;
+          &lt;div className="bar-lock-people"&gt;
+            &lt;div className="bar-lock-eyebrow"&gt;Bar mode · Shared register&lt;/div&gt;
+            &lt;div className="bar-lock-h"&gt;Who's on the register?&lt;/div&gt;
+            &lt;div className="bar-people-list"&gt;
+              {BAR_CASHIERS.map((c) =&gt; (
+                &lt;button key={c.id} className={`bar-person ${sel === c.id ? 'is-on' : ''}`} onClick={() =&gt; { setSel(c.id); setNonce(0); }}&gt;
+                  &lt;span className="bar-person-av" style={{ background: c.color }}&gt;{c.initials}&lt;/span&gt;
+                  &lt;span className="bar-person-meta"&gt;
+                    &lt;span className="bar-person-name"&gt;{c.name}&lt;/span&gt;
+                    &lt;span className="bar-person-role"&gt;
+                      {c.role}
+                      {c.manager &amp;&amp; &lt;span className="bar-mgr-tag"&gt;Manager&lt;/span&gt;}
+                    &lt;/span&gt;
+                  &lt;/span&gt;
+                  {sel === c.id &amp;&amp; &lt;Icons.ChevRight size={18} color="var(--blue)" /&gt;}
+                &lt;/button&gt;
+              ))}
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div className="bar-lock-pad"&gt;
+            {cashier ? (
+              &lt;&gt;
+                &lt;div className="bar-pad-who"&gt;
+                  &lt;span className="bar-pad-who-av" style={{ background: cashier.color }}&gt;{cashier.initials}&lt;/span&gt;
+                  &lt;span className="bar-pad-title"&gt;{cashier.name}&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;div className="bar-pad-hint"&gt;Enter your 4-digit PIN to log orders&lt;/div&gt;
+                &lt;PinEntry len={4} onComplete={onComplete} errorNonce={nonce} keyboard /&gt;
+                &lt;div className="bar-key-err"&gt;{nonce &gt; 0 ? 'Wrong PIN — try again' : ''}&lt;/div&gt;
+              &lt;/&gt;
+            ) : (
+              &lt;&gt;
+                &lt;div className="bar-pad-who"&gt;
+                  &lt;span className="bar-pad-who-av" style={{ background: 'var(--line-strong)' }}&gt;&lt;Icons.User size={18} color="#fff" /&gt;&lt;/span&gt;
+                  &lt;span className="bar-pad-title" style={{ color: 'var(--ink-3)' }}&gt;Select your name&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;div className="bar-pad-hint"&gt;Tap your name on the left, then enter your PIN&lt;/div&gt;
+                &lt;PinEntry len={4} onComplete={() =&gt; {}} disabled /&gt;
+                &lt;div className="bar-key-err" /&gt;
+              &lt;/&gt;
+            )}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="bar-lock-top" style={{ justifyContent: 'center', gap: 26 }}&gt;
+        &lt;button className="btn-text" onClick={() =&gt; actions.setScreen('admin')} style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}&gt;
+          &lt;Icons.Cog size={16} /&gt; Admin settings
+        &lt;/button&gt;
+        &lt;button className="btn-text" onClick={actions.resetDemo} style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}&gt;
+          &lt;Icons.Refresh size={15} /&gt; Reset demo
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================
+   TABLE FLOOR
+   ============================================================ */
+function TableFloor({ store, actions }) {
+  const cashier = barCashier(store.activeCashierId);
+  const openCount = Object.keys(store.tabs).filter((id) =&gt; store.tabs[id].lines.length).length;
+
+  return (
+    &lt;div className="bar-floor bar-fade"&gt;
+      &lt;div className="bar-floor-top"&gt;
+        &lt;div className="bar-brandline"&gt;
+          &lt;FlipperLogo size={28} /&gt;
+          &lt;span className="wordmark"&gt;FLIPPER&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div className="bar-floor-title" style={{ marginLeft: 8 }}&gt;
+          &lt;span className="t"&gt;Tables&lt;/span&gt;
+          &lt;span className="s"&gt;{openCount} open · tap a table to log its order&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div className="bar-floor-spacer" /&gt;
+        &lt;div className="bar-legend"&gt;
+          &lt;span&gt;&lt;i className="open" /&gt; Open tab&lt;/span&gt;
+          &lt;span&gt;&lt;i className="empty" /&gt; Free&lt;/span&gt;
+        &lt;/div&gt;
+        {cashier &amp;&amp; (
+          &lt;div className="bar-chip"&gt;
+            &lt;span className="bar-chip-av" style={{ background: cashier.color }}&gt;{cashier.initials}&lt;/span&gt;
+            &lt;span className="bar-chip-meta"&gt;
+              &lt;span className="bar-chip-name"&gt;{cashier.name}&lt;/span&gt;
+              &lt;span className="bar-chip-role"&gt;{cashier.role} · logging&lt;/span&gt;
+            &lt;/span&gt;
+          &lt;/div&gt;
+        )}
+        &lt;button className="bar-btn bar-btn-danger" onClick={actions.logout}&gt;
+          &lt;Icons.LogOut size={18} /&gt; Logout
+        &lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div className="bar-floor-scroll"&gt;
+        {BAR_ZONES.map((zone) =&gt; {
+          const zoneOpen = zone.tables.filter((t) =&gt; store.tabs[t.id] &amp;&amp; store.tabs[t.id].lines.length).length;
+          return (
+            &lt;div className="bar-zone" key={zone.id}&gt;
+              &lt;div className="bar-zone-head"&gt;
+                &lt;span className="bar-zone-name"&gt;{zone.name}&lt;/span&gt;
+                &lt;span className="bar-zone-rule" /&gt;
+                &lt;span className="bar-zone-meta"&gt;{zoneOpen}/{zone.tables.length} open&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div className="bar-tgrid"&gt;
+                {zone.tables.map((t) =&gt; {
+                  const tab = store.tabs[t.id];
+                  const isOpen = tab &amp;&amp; tab.lines.length &gt; 0;
+                  if (!isOpen) {
+                    return (
+                      &lt;button key={t.id} className="bar-tcard empty" onClick={() =&gt; actions.openTable(t.id)}&gt;
+                        &lt;div className="bar-tcard-top" style={{ width: '100%' }}&gt;
+                          &lt;span className="bar-tcard-id"&gt;{t.id}&lt;/span&gt;
+                          &lt;span className="bar-tcard-seats"&gt;&lt;Icons.User size={13} /&gt;{t.seats}&lt;/span&gt;
+                        &lt;/div&gt;
+                        &lt;span className="bar-tcard-empty-cta"&gt;&lt;Icons.Plus size={16} /&gt; Open tab&lt;/span&gt;
+                      &lt;/button&gt;
+                    );
+                  }
+                  const total = tabTotal(tab);
+                  const count = tabCount(tab);
+                  const servers = tabServers(tab).map(barCashier).filter(Boolean);
+                  return (
+                    &lt;button key={t.id} className="bar-tcard open" onClick={() =&gt; actions.openTable(t.id)}&gt;
+                      &lt;div className="bar-tcard-top"&gt;
+                        &lt;span className="bar-tcard-id"&gt;{t.id}&lt;/span&gt;
+                        &lt;span className="bar-status open"&gt;&lt;span className="pip" /&gt; Open&lt;/span&gt;
+                      &lt;/div&gt;
+                      &lt;div className="bar-tcard-amt"&gt;
+                        &lt;span className="v"&gt;&lt;small&gt;RWF&lt;/small&gt; {barMoney(total)}&lt;/span&gt;
+                      &lt;/div&gt;
+                      &lt;div className="bar-tcard-sub"&gt;
+                        &lt;span className="bar-tcard-servers"&gt;
+                          {servers.slice(0, 3).map((s) =&gt; (
+                            &lt;span key={s.id} className="sv" style={{ background: s.color }} title={s.name}&gt;{s.initials}&lt;/span&gt;
+                          ))}
+                          &lt;span style={{ fontSize: 11.5, color: 'var(--ink-3)', fontWeight: 600, marginLeft: 8, fontFamily: 'var(--mono)' }}&gt;{count} items&lt;/span&gt;
+                        &lt;/span&gt;
+                        &lt;span className="bar-tcard-time"&gt;&lt;Icons.Clock size={13} /&gt;{barFmtElapsed(tab.openedAtMs)}&lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/button&gt;
+                  );
+                })}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          );
+        })}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================
+   SETTLE — manager pays a table's running bill
+   ============================================================ */
+function Settle({ store, actions, notify }) {
+  const table = barTable(store.activeTableId);
+  const tab = store.tabs[store.activeTableId];
+  const [method, setMethod] = useScr('cash');
+  const [tender, setTender] = useScr('');
+  const manager = barCashier(store.activeCashierId);
+
+  if (!table || !tab) return null;
+
+  const total = tabTotal(tab);
+  const vat = total - total / 1.18;
+  const tenderNum = parseFloat(String(tender).replace(/[^\d.]/g, '')) || 0;
+  const change = Math.max(0, tenderNum - total);
+  const due = Math.max(0, total - tenderNum);
+  const payState = method === 'momo' ? 'ok' : (tenderNum &lt;= 0 ? 'idle' : tenderNum &lt; total ? 'due' : tenderNum === total ? 'exact' : 'change');
+  const canPay = method === 'momo' || tenderNum &gt;= total;
+
+  // group lines by server, preserving first-seen order
+  const groups = [];
+  tab.lines.forEach((l) =&gt; {
+    let g = groups.find((x) =&gt; x.cashierId === l.cashierId);
+    if (!g) { g = { cashierId: l.cashierId, lines: [] }; groups.push(g); }
+    g.lines.push(l);
+  });
+
+  const confirm = () =&gt; {
+    actions.settleConfirm();
+    notify(`${table.id} settled · RWF ${barMoney(total)} ${method === 'momo' ? 'Mobile Money' : 'Cash'}`);
+  };
+
+  return (
+    &lt;div className="bar-settle bar-fade"&gt;
+      &lt;div className="bar-settle-top"&gt;
+        &lt;button className="pos-backbtn" onClick={() =&gt; actions.setScreen('pos')}&gt;&lt;Icons.ChevLeft size={18} /&gt; Back to tab&lt;/button&gt;
+        &lt;div className="ttl"&gt;&lt;span className="badge"&gt;{table.id}&lt;/span&gt; Settle bill · {table.zoneName}&lt;/div&gt;
+        &lt;div className="bar-floor-spacer" /&gt;
+        {manager &amp;&amp; (
+          &lt;div className="bar-chip"&gt;
+            &lt;span className="bar-chip-av" style={{ background: manager.color }}&gt;{manager.initials}&lt;/span&gt;
+            &lt;span className="bar-chip-meta"&gt;
+              &lt;span className="bar-chip-name"&gt;{manager.name}&lt;/span&gt;
+              &lt;span className="bar-chip-role"&gt;Settling as manager&lt;/span&gt;
+            &lt;/span&gt;
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+
+      &lt;div className="bar-settle-body"&gt;
+        &lt;div className="bar-settle-bill"&gt;
+          &lt;div className="bar-bill-card"&gt;
+            &lt;div className="bar-bill-head"&gt;
+              &lt;span className="h"&gt;Table {table.id} — running tab&lt;/span&gt;
+              &lt;span className="m"&gt;Opened {barFmtClock(tab.openedAtMs)} · {barFmtElapsed(tab.openedAtMs)}&lt;/span&gt;
+            &lt;/div&gt;
+            {groups.map((g) =&gt; {
+              const c = barCashier(g.cashierId);
+              const gt = g.lines.reduce((s, l) =&gt; s + l.price * l.qty, 0);
+              return (
+                &lt;div className="bar-bill-group" key={g.cashierId}&gt;
+                  &lt;div className="bar-bill-grouphd"&gt;
+                    &lt;span className="av" style={{ background: c ? c.color : '#999' }}&gt;{c ? c.initials : '?'}&lt;/span&gt;
+                    &lt;span className="n"&gt;{c ? c.name : 'Unknown'}&lt;/span&gt;
+                    &lt;span className="r"&gt;· {c ? c.role : ''}&lt;/span&gt;
+                    &lt;div className="bar-floor-spacer" /&gt;
+                    &lt;span className="r" style={{ fontFamily: 'var(--mono)' }}&gt;RWF {barMoney(gt)}&lt;/span&gt;
+                  &lt;/div&gt;
+                  {g.lines.map((l) =&gt; {
+                    const p = barProduct(l.productId);
+                    return (
+                      &lt;div className="bar-bill-line" key={l.id}&gt;
+                        &lt;span className="q"&gt;{l.qty}×&lt;/span&gt;
+                        &lt;span className="nm"&gt;{p ? p.name : 'Item'} &lt;span className="unit"&gt;@ {barMoney(l.price)}&lt;/span&gt;&lt;/span&gt;
+                        &lt;span className="amt"&gt;{barMoney(l.price * l.qty)}&lt;/span&gt;
+                      &lt;/div&gt;
+                    );
+                  })}
+                &lt;/div&gt;
+              );
+            })}
+            &lt;div className="bar-bill-foot"&gt;
+              &lt;div className="bar-bill-row"&gt;&lt;span className="k"&gt;Subtotal (excl. VAT)&lt;/span&gt;&lt;span className="v"&gt;RWF {barMoney(total - vat)}&lt;/span&gt;&lt;/div&gt;
+              &lt;div className="bar-bill-row"&gt;&lt;span className="k"&gt;VAT 18%&lt;/span&gt;&lt;span className="v"&gt;RWF {barMoney(vat)}&lt;/span&gt;&lt;/div&gt;
+              &lt;div className="bar-bill-row grand"&gt;&lt;span className="k"&gt;Total due&lt;/span&gt;&lt;span className="v"&gt;&lt;small&gt;RWF&lt;/small&gt; {barMoney(total)}&lt;/span&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div className="bar-settle-pay"&gt;
+          &lt;div className="bar-pay-h"&gt;Payment&lt;/div&gt;
+          &lt;div className="bar-pay-sub"&gt;Choose method and take payment to close the table.&lt;/div&gt;
+          &lt;div className="bar-pay-methods"&gt;
+            &lt;button className={`bar-pay-method ${method === 'cash' ? 'is-on' : ''}`} onClick={() =&gt; setMethod('cash')}&gt;
+              &lt;span className="ic"&gt;&lt;Icons.Wallet size={18} /&gt;&lt;/span&gt;&lt;span className="nm"&gt;Cash&lt;/span&gt;
+            &lt;/button&gt;
+            &lt;button className={`bar-pay-method ${method === 'momo' ? 'is-on' : ''}`} onClick={() =&gt; setMethod('momo')}&gt;
+              &lt;span className="ic"&gt;&lt;Icons.Phone size={18} /&gt;&lt;/span&gt;&lt;span className="nm"&gt;Mobile Money&lt;/span&gt;
+            &lt;/button&gt;
+          &lt;/div&gt;
+
+          {method === 'cash' &amp;&amp; (
+            &lt;&gt;
+              &lt;div className={`pos-readout ${payState}`} style={{ marginTop: 0 }}&gt;
+                &lt;div className="pos-readout-l"&gt;
+                  &lt;span className="pos-readout-k"&gt;
+                    {payState === 'idle' ? 'Enter amount tendered' : payState === 'due' ? 'Balance due' : payState === 'exact' ? 'Exact — no change' : 'Change to give'}
+                  &lt;/span&gt;
+                  &lt;span className="pos-readout-sub"&gt;{payState === 'idle' ? `RWF ${barMoney(total)} due` : `Tendered RWF ${barMoney(tenderNum)}`}&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;span className="pos-readout-v"&gt;{payState === 'idle' ? '—' : payState === 'due' ? `RWF ${barMoney(due)}` : `RWF ${barMoney(change)}`}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div className="pos-tender"&gt;
+                &lt;div className="pos-tender-field"&gt;
+                  &lt;input inputMode="decimal" placeholder="0" value={tender} onChange={(e) =&gt; setTender(e.target.value)} /&gt;
+                  &lt;span className="pos-tender-cur"&gt;RWF&lt;/span&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div className="pos-quickcash"&gt;
+                {[total, 20000, 50000, 100000].map((v, i) =&gt; (
+                  &lt;button key={i} className="pos-qc" onClick={() =&gt; setTender(String(Math.round(v)))}&gt;{i === 0 ? 'Exact' : barMoney(v)}&lt;/button&gt;
+                ))}
+              &lt;/div&gt;
+            &lt;/&gt;
+          )}
+          {method === 'momo' &amp;&amp; (
+            &lt;div style={{ padding: '18px', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--line)', fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.5 }}&gt;
+              A payment request for &lt;b&gt;RWF {barMoney(total)}&lt;/b&gt; will be pushed to the customer's phone. Confirm once the customer approves.
+            &lt;/div&gt;
+          )}
+
+          &lt;div className="bar-pay-spacer" /&gt;
+          &lt;button className="bar-btn bar-btn-primary" style={{ width: '100%', height: 58, fontSize: 16 }} disabled={!canPay} onClick={confirm}&gt;
+            &lt;Icons.ShieldCheck size={19} /&gt; Confirm payment · RWF {barMoney(total)}
+          &lt;/button&gt;
+          &lt;div className="bar-pos-foot-note" style={{ justifyContent: 'center', marginTop: 12 }}&gt;
+            &lt;Icons.ShieldCheck size={13} /&gt; Closing the table saves the sale and frees it for new guests.
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================
+   MANAGER PIN modal (elevated settle authorization)
+   ============================================================ */
+function ManagerPinModal({ onSuccess, onCancel }) {
+  const [nonce, setNonce] = useScr(0);
+  const onComplete = (pin) =&gt; {
+    const mgr = BAR_CASHIERS.find((c) =&gt; c.manager &amp;&amp; c.pin === pin);
+    if (mgr) onSuccess(mgr.id);
+    else setNonce((n) =&gt; n + 1);
+  };
+  return (
+    &lt;div className="bar-modal-scrim" onClick={onCancel}&gt;
+      &lt;div className="bar-modal" onClick={(e) =&gt; e.stopPropagation()}&gt;
+        &lt;div className="bar-modal-ic"&gt;&lt;Icons.ShieldCheck size={26} /&gt;&lt;/div&gt;
+        &lt;div className="bar-modal-h"&gt;Manager approval&lt;/div&gt;
+        &lt;div className="bar-modal-p"&gt;Settling a bill needs a manager PIN.&lt;/div&gt;
+        &lt;PinEntry len={4} onComplete={onComplete} errorNonce={nonce} keyboard /&gt;
+        &lt;div className="bar-key-err" style={{ textAlign: 'center' }}&gt;{nonce &gt; 0 ? 'Not a manager PIN' : ''}&lt;/div&gt;
+        &lt;button className="bar-modal-cancel" onClick={onCancel}&gt;Cancel&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ---------------- toast ---------------- */
+function BarToast({ msg }) {
+  if (!msg) return null;
+  return &lt;div className="bar-toast"&gt;&lt;Icons.Check size={17} /&gt; {msg}&lt;/div&gt;;
+}
+
+Object.assign(window, { PinDots, Keypad, PinEntry, PinLock, TableFloor, Settle, ManagerPinModal, BarToast });
+</pre></section>
+<section id="src-admin"><h2>Appendix D</h2><div class="h2sub">bar/admin.jsx — Management Dashboard config</div><div class="filetag">bar/admin.jsx</div><pre>/* ============================================================
+   Flipper · Bar Mode — Admin (Management Dashboard config)
+   Requires: React, Icons, bar/data.jsx
+   ============================================================ */
+
+const { useState: useAdm } = React;
+
+function Toggle({ on, onClick, sm }) {
+  return &lt;button className={`bar-toggle ${sm ? 'sm' : ''} ${on ? 'on' : ''}`} onClick={onClick} role="switch" aria-checked={on} /&gt;;
+}
+
+function AdminConfig({ store, actions }) {
+  const s = store.settings;
+  const t = (k) =&gt; actions.setSetting(k, !s[k]);
+
+  const subs = [
+    { key: 'requirePin', icon: 'ShieldCheck', h: 'Require PIN to switch cashier', p: 'Each cashier logs in with a 4-digit PIN before adding to a tab, and logs out when done.' },
+    { key: 'floorFirst', icon: 'Grid', h: 'Open the table floor on login', p: 'After signing in, staff land on the floor plan to pick a table instead of a blank sale.' },
+    { key: 'managerSettle', icon: 'Wallet', h: 'Manager PIN required to settle', p: 'Servers build the tab; only a manager can take payment and close a table.' },
+    { key: 'autoLogout', icon: 'LogOut', h: 'Auto-logout after saving to a tab', p: 'Return straight to the PIN lock after each round — best for a busy shared register.' },
+  ];
+
+  return (
+    &lt;div className="bar-admin bar-fade"&gt;
+      &lt;div className="bar-admin-top"&gt;
+        &lt;button className="bar-admin-x" onClick={() =&gt; actions.setScreen('lock')}&gt;&lt;Icons.X size={20} /&gt;&lt;/button&gt;
+        &lt;span className="bar-admin-title"&gt;Management Dashboard&lt;/span&gt;
+        &lt;div className="bar-floor-spacer" /&gt;
+        &lt;button className="bar-admin-x" style={{ borderRadius: 12 }}&gt;&lt;Icons.More size={20} /&gt;&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div className="bar-admin-scroll"&gt;
+        {/* --- SERVICE MODE (the feature) --- */}
+        &lt;div className="bar-admin-section"&gt;
+          &lt;div className="bar-admin-eyebrow"&gt;Service Mode&lt;/div&gt;
+          &lt;div className={`bar-mode-card ${s.barMode ? 'on' : ''}`}&gt;
+            &lt;div className="bar-mode-top"&gt;
+              &lt;span className="bar-mode-ic"&gt;&lt;Icons.Store size={26} /&gt;&lt;/span&gt;
+              &lt;div className="bar-mode-txt"&gt;
+                &lt;div className="bar-mode-h"&gt;
+                  Table Service (Bar Mode)
+                  {s.barMode &amp;&amp; &lt;span className="bar-onpill"&gt;On&lt;/span&gt;}
+                &lt;/div&gt;
+                &lt;div className="bar-mode-p"&gt;
+                  Turns the register into a shared bar terminal: staff keep a running tab per table, log rounds under
+                  their own PIN, and hand off between cashiers without losing the bill. Leave off for standard retail checkout.
+                &lt;/div&gt;
+              &lt;/div&gt;
+              &lt;Toggle on={s.barMode} onClick={() =&gt; t('barMode')} /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div className={`bar-subsettings ${s.barMode ? '' : 'hidden'}`} style={{ maxHeight: s.barMode ? 400 : 0 }}&gt;
+            &lt;div className="bar-card" style={{ marginTop: 14 }}&gt;
+              {subs.map((r) =&gt; (
+                &lt;div className="bar-subrow" key={r.key}&gt;
+                  &lt;span className="bar-subrow-ic"&gt;{React.createElement(Icons[r.icon], { size: 19 })}&lt;/span&gt;
+                  &lt;div className="bar-subrow-txt"&gt;
+                    &lt;div className="bar-subrow-h"&gt;{r.h}&lt;/div&gt;
+                    &lt;div className="bar-subrow-p"&gt;{r.p}&lt;/div&gt;
+                  &lt;/div&gt;
+                  &lt;Toggle sm on={s[r.key]} onClick={() =&gt; t(r.key)} /&gt;
+                &lt;/div&gt;
+              ))}
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        {/* --- QUICK ACTIONS (mirror of the existing dashboard) --- */}
+        &lt;div className="bar-admin-section"&gt;
+          &lt;div className="bar-admin-eyebrow"&gt;Quick Actions&lt;/div&gt;
+          &lt;div className="bar-qa-grid"&gt;
+            &lt;div className="bar-card bar-qa"&gt;
+              &lt;span className="bar-qa-ic blue"&gt;&lt;Icons.Grid size={22} /&gt;&lt;/span&gt;
+              &lt;div className="bar-qa-txt"&gt;
+                &lt;div className="bar-qa-h"&gt;POS Default&lt;/div&gt;
+                &lt;div className="bar-qa-p"&gt;Set POS as default app&lt;/div&gt;
+              &lt;/div&gt;
+              &lt;Toggle on={true} onClick={() =&gt; {}} /&gt;
+            &lt;/div&gt;
+            &lt;div className="bar-card bar-qa"&gt;
+              &lt;span className="bar-qa-ic green"&gt;&lt;Icons.Receipt size={22} /&gt;&lt;/span&gt;
+              &lt;div className="bar-qa-txt"&gt;
+                &lt;div className="bar-qa-h"&gt;Orders Default&lt;/div&gt;
+                &lt;div className="bar-qa-p"&gt;Set Orders as default app&lt;/div&gt;
+              &lt;/div&gt;
+              &lt;Toggle on={false} onClick={() =&gt; {}} /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        {/* --- STAFF &amp; PINS --- */}
+        &lt;div className="bar-admin-section"&gt;
+          &lt;div className="bar-admin-eyebrow violet"&gt;Staff &amp;amp; PINs&lt;/div&gt;
+          &lt;div className="bar-card" style={{ padding: '6px 0' }}&gt;
+            {BAR_CASHIERS.map((c, i) =&gt; (
+              &lt;div className="bar-subrow" key={c.id} style={{ borderTop: i === 0 ? '0' : undefined }}&gt;
+                &lt;span className="bar-subrow-ic" style={{ background: c.color, color: '#fff', border: 0, borderRadius: '50%', fontWeight: 800, fontSize: 12 }}&gt;{c.initials}&lt;/span&gt;
+                &lt;div className="bar-subrow-txt"&gt;
+                  &lt;div className="bar-subrow-h" style={{ display: 'flex', alignItems: 'center', gap: 8 }}&gt;
+                    {c.name}
+                    {c.manager &amp;&amp; &lt;span className="bar-mgr-tag"&gt;Manager&lt;/span&gt;}
+                  &lt;/div&gt;
+                  &lt;div className="bar-subrow-p"&gt;{c.role} · PIN •••• {c.manager ? '· can settle bills' : '· logs orders'}&lt;/div&gt;
+                &lt;/div&gt;
+                &lt;button className="pos-backbtn" style={{ height: 34 }}&gt;&lt;Icons.Cog size={15} /&gt; Edit&lt;/button&gt;
+              &lt;/div&gt;
+            ))}
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        {/* sticky CTA */}
+        &lt;div className="bar-admin-cta"&gt;
+          &lt;button className="bar-btn bar-btn-ghost" onClick={() =&gt; actions.setScreen('lock')}&gt;Cancel&lt;/button&gt;
+          &lt;button className="bar-btn bar-btn-primary" disabled={!s.barMode} onClick={() =&gt; actions.setScreen('lock')}&gt;
+            &lt;Icons.ArrowUpRight size={18} /&gt; Open POS with Bar Mode
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+Object.assign(window, { AdminConfig, Toggle });
+</pre></section>
+<section id="src-pos"><h2>Appendix E</h2><div class="h2sub">bar/pos.jsx — table-bound register</div><div class="filetag">bar/pos.jsx</div><pre>/* ============================================================
+   Flipper · Bar Mode — table-bound POS register
+   Requires: React, Icons, FlipperLogo, bar/data.jsx. Reuses pos/pos.css.
+   ============================================================ */
+
+const { useState: useBpos, useMemo: useBposMemo } = React;
+
+function barStockState(s) { if (s &lt;= 0) return 'out'; if (s &lt;= 10) return 'low'; return 'ok'; }
+
+/* ---- product tile ---- */
+function BarProductCard({ p, qty, onAdd }) {
+  const st = barStockState(p.stock);
+  const out = st === 'out';
+  return (
+    &lt;button className={`pos-card ${out ? 'is-out' : ''}`} onClick={() =&gt; !out &amp;&amp; onAdd(p)} disabled={out}&gt;
+      &lt;div className="pos-thumb" style={{ background: barColorFor(p.name) }}&gt;
+        &lt;span className="pos-thumb-abbr"&gt;{barAbbr(p.name)}&lt;/span&gt;
+        {qty &gt; 0 &amp;&amp; &lt;span className="pos-in-cart"&gt;&lt;Icons.Check size={12} /&gt;{qty}&lt;/span&gt;}
+        {st === 'low' &amp;&amp; &lt;span className="pos-stock-badge low"&gt;&lt;Icons.Warn size={11} /&gt;Low&lt;/span&gt;}
+        {out &amp;&amp; &lt;span className="pos-stock-badge out"&gt;Out&lt;/span&gt;}
+      &lt;/div&gt;
+      &lt;div className="pos-card-body"&gt;
+        &lt;div className="pos-card-name"&gt;{p.name}&lt;/div&gt;
+        &lt;div className="pos-card-bcd"&gt;BCD: {p.id}&lt;/div&gt;
+        &lt;div className="pos-card-foot"&gt;
+          &lt;span className="pos-card-price"&gt;&lt;small&gt;RWF&lt;/small&gt; {barMoney(p.price)}&lt;/span&gt;
+          &lt;span className={`pos-card-stock ${st}`}&gt;{out ? 'Out of stock' : `${p.stock} in stock`}&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/button&gt;
+  );
+}
+
+/* ---- one tab line (editable if logged by the active cashier / manager) ---- */
+function BarCartLine({ line, editable, actions }) {
+  const [open, setOpen] = useBpos(false);
+  const p = barProduct(line.productId) || { name: 'Item', price: line.price, stock: 9999 };
+  const server = barCashier(line.cashierId);
+  const priceCustom = line.price !== p.price;
+
+  return (
+    &lt;div className={`pos-line-card ${open ? 'is-open' : ''} ${editable ? '' : 'readonly'}`}&gt;
+      &lt;div className="pos-line"&gt;
+        &lt;span className="pos-line-sw" style={{ background: barColorFor(p.name) }}&gt;{barAbbr(p.name)}&lt;/span&gt;
+        &lt;div className="pos-line-mid"&gt;
+          &lt;div className="pos-line-name"&gt;
+            {p.name}
+            {server &amp;&amp; (
+              &lt;span className="bar-line-server" style={{ background: server.color + '1A', color: server.color }}&gt;
+                &lt;span className="av" style={{ background: server.color }}&gt;{server.initials}&lt;/span&gt;{server.name.split(' ')[0]}
+              &lt;/span&gt;
+            )}
+          &lt;/div&gt;
+          &lt;div className="pos-line-unit"&gt;RWF {barMoney(line.price)} each{priceCustom &amp;&amp; &lt;span className="pos-line-flag"&gt;edited&lt;/span&gt;}&lt;/div&gt;
+        &lt;/div&gt;
+        {editable ? (
+          &lt;div className="pos-step"&gt;
+            &lt;button className="pos-step-btn" onClick={() =&gt; actions.setLineQty(line.id, line.qty - 1)}&gt;&lt;Icons.Minus size={15} /&gt;&lt;/button&gt;
+            &lt;span className="pos-step-qty"&gt;{line.qty}&lt;/span&gt;
+            &lt;button className="pos-step-btn" onClick={() =&gt; actions.setLineQty(line.id, line.qty + 1)}&gt;&lt;Icons.Plus size={15} /&gt;&lt;/button&gt;
+          &lt;/div&gt;
+        ) : (
+          &lt;span className="pos-step-qty" style={{ minWidth: 40, fontSize: 14 }}&gt;×{line.qty}&lt;/span&gt;
+        )}
+        &lt;span className="pos-line-total"&gt;{barMoney(line.price * line.qty)}&lt;/span&gt;
+        {editable
+          ? &lt;button className="pos-line-del" onClick={() =&gt; actions.delLine(line.id)} title="Remove"&gt;&lt;Icons.Trash size={17} /&gt;&lt;/button&gt;
+          : &lt;span className="bar-line-lock" title="Logged by another cashier"&gt;&lt;Icons.ShieldCheck size={16} /&gt;&lt;/span&gt;}
+      &lt;/div&gt;
+
+      {editable &amp;&amp; (
+        &lt;button className="pos-line-toggle" onClick={() =&gt; setOpen((o) =&gt; !o)}&gt;
+          &lt;Icons.ChevDown size={15} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} /&gt;
+          {open ? 'Hide details' : 'Edit price &amp; quantity'}
+        &lt;/button&gt;
+      )}
+
+      {open &amp;&amp; editable &amp;&amp; (
+        &lt;div className="pos-detail"&gt;
+          &lt;div className="pos-detail-grid"&gt;
+            &lt;div className="pos-edit"&gt;
+              &lt;label className="pos-edit-lbl"&gt;Quantity&lt;/label&gt;
+              &lt;div className="pos-qtyfield"&gt;
+                &lt;button className="pos-qtyfield-btn" onClick={() =&gt; actions.setLineQty(line.id, line.qty - 1)}&gt;&lt;Icons.Minus size={18} /&gt;&lt;/button&gt;
+                &lt;input className="pos-qtyfield-input" inputMode="numeric" value={line.qty}
+                  onChange={(e) =&gt; actions.setLineQty(line.id, parseInt(e.target.value.replace(/[^\d]/g, '') || '0', 10))} /&gt;
+                &lt;button className="pos-qtyfield-btn" onClick={() =&gt; actions.setLineQty(line.id, line.qty + 1)} disabled={line.qty &gt;= p.stock}&gt;&lt;Icons.Plus size={18} /&gt;&lt;/button&gt;
+              &lt;/div&gt;
+              &lt;div className="pos-edit-hint"&gt;{p.stock - line.qty} left in stock&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div className="pos-edit"&gt;
+              &lt;label className="pos-edit-lbl"&gt;Unit price&lt;/label&gt;
+              &lt;div className="pos-pricefield"&gt;
+                &lt;span className="pos-pricefield-cur"&gt;RWF&lt;/span&gt;
+                &lt;input className="pos-pricefield-input" inputMode="decimal" value={line.price}
+                  onChange={(e) =&gt; actions.setLinePrice(line.id, Number(e.target.value.replace(/[^\d.]/g, '') || 0))} /&gt;
+                {priceCustom &amp;&amp; (
+                  &lt;button className="pos-pricefield-reset" onClick={() =&gt; actions.setLinePrice(line.id, p.price)} title="Reset"&gt;&lt;Icons.Refresh size={15} /&gt;&lt;/button&gt;
+                )}
+              &lt;/div&gt;
+              &lt;div className="pos-edit-hint"&gt;{priceCustom ? `Default RWF ${barMoney(p.price)}` : 'Default price'}&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div className="pos-detail-sub"&gt;
+            &lt;span className="pos-detail-sub-lbl"&gt;Line subtotal&lt;/span&gt;
+            &lt;span className="pos-detail-sub-calc"&gt;{line.qty} × RWF {barMoney(line.price)}&lt;/span&gt;
+            &lt;span className="pos-detail-sub-val"&gt;RWF {barMoney(line.price * line.qty)}&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+/* ---- top bar ---- */
+function BarTopBar({ cashier, onTables }) {
+  return (
+    &lt;div className="pos-top"&gt;
+      &lt;div className="pos-logo"&gt;
+        &lt;FlipperLogo size={30} /&gt;
+        &lt;span className="wordmark"&gt;FLIPPER&lt;/span&gt;
+        &lt;span className="pos-logo-sub"&gt;Point of Sale&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div className="pos-top-tools"&gt;
+        &lt;button className="pos-tool" title="Catalog"&gt;&lt;Icons.Grid size={19} /&gt;&lt;/button&gt;
+        &lt;button className="pos-tool" title="Scan"&gt;&lt;Icons.Barcode size={19} /&gt;&lt;/button&gt;
+        &lt;button className="pos-tool" title="New"&gt;&lt;Icons.Plus size={19} /&gt;&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div className="pos-top-spacer" /&gt;
+      &lt;nav className="pos-nav"&gt;
+        &lt;button className="pos-navitem is-on" onClick={onTables}&gt;&lt;Icons.Grid size={18} /&gt;Tables&lt;/button&gt;
+        &lt;button className="pos-navitem"&gt;&lt;Icons.Refresh size={18} /&gt;Transactions&lt;/button&gt;
+        &lt;button className="pos-navitem"&gt;&lt;Icons.Chart size={18} /&gt;Analytics&lt;/button&gt;
+        &lt;button className="pos-tool" title="More"&gt;&lt;Icons.More size={18} /&gt;&lt;/button&gt;
+      &lt;/nav&gt;
+      &lt;button className="pos-iconbtn" title="Notifications"&gt;&lt;Icons.Bell size={20} /&gt;&lt;/button&gt;
+      {cashier &amp;&amp; (
+        &lt;div className="pos-user"&gt;
+          &lt;div className="pos-user-av" style={{ background: cashier.color }}&gt;{cashier.initials}&lt;/div&gt;
+          &lt;div className="pos-user-meta"&gt;
+            &lt;div className="pos-user-name"&gt;{cashier.name}&lt;/div&gt;
+            &lt;div className="pos-user-role"&gt;{cashier.role}&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+/* ---- left rail ---- */
+function BarRail({ onLogout }) {
+  const top = ['Grid', 'Users', 'Stack', 'Chart', 'Receipt', 'Wallet', 'Clock'];
+  return (
+    &lt;div className="pos-rail"&gt;
+      {top.map((k, i) =&gt; (
+        &lt;button key={k} className={`pos-rail-btn ${i === 0 ? 'is-on' : ''}`}&gt;{React.createElement(Icons[k], { size: 21 })}&lt;/button&gt;
+      ))}
+      &lt;div className="pos-rail-spacer" /&gt;
+      &lt;button className="pos-rail-btn danger" title="Sign out" onClick={onLogout}&gt;&lt;Icons.LogOut size={21} /&gt;&lt;/button&gt;
+      &lt;button className="pos-rail-btn pos-rail-cog" title="Settings"&gt;&lt;Icons.Cog size={21} /&gt;&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================
+   Bar POS screen
+   ============================================================ */
+function BarPOS({ store, actions, onSettle }) {
+  const [query, setQuery] = useBpos('');
+  const [page, setPage] = useBpos(1);
+  const cashier = barCashier(store.activeCashierId);
+  const table = barTable(store.activeTableId);
+  const tab = store.tabs[store.activeTableId] || { lines: [], openedAtMs: Date.now(), openedById: store.activeCashierId };
+
+  const products = useBposMemo(() =&gt; {
+    const q = query.trim().toLowerCase();
+    return q ? BAR_PRODUCTS.filter((p) =&gt; p.name.toLowerCase().includes(q) || String(p.id).includes(q)) : BAR_PRODUCTS;
+  }, [query]);
+
+  const qtyInCart = (id) =&gt; tab.lines.filter((l) =&gt; l.productId === id).reduce((s, l) =&gt; s + l.qty, 0);
+  const total = tabTotal(tab);
+  const count = tabCount(tab);
+  const servers = tabServers(tab);
+  const myLines = tab.lines.filter((l) =&gt; l.cashierId === store.activeCashierId).length;
+  const opener = barCashier(tab.openedById);
+  const isManager = cashier &amp;&amp; cashier.manager;
+
+  if (!table) return null;
+
+  return (
+    &lt;div className="pos bar-fade"&gt;
+      &lt;BarTopBar cashier={cashier} onTables={() =&gt; actions.setScreen('tables')} /&gt;
+      &lt;div className="pos-body"&gt;
+        &lt;BarRail onLogout={actions.logout} /&gt;
+
+        {/* catalog */}
+        &lt;div className="pos-catalog"&gt;
+          &lt;div className="pos-search-row"&gt;
+            &lt;div className="pos-search"&gt;
+              &lt;Icons.Search size={20} color="var(--ink-3)" /&gt;
+              &lt;input placeholder="Search drinks &amp; products…" value={query} onChange={(e) =&gt; { setQuery(e.target.value); setPage(1); }} /&gt;
+            &lt;/div&gt;
+            &lt;button className="pos-scan" title="Scan barcode"&gt;&lt;Icons.Barcode size={22} /&gt;&lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div className="pos-meta-row"&gt;
+            &lt;span className="pos-count"&gt;Showing &lt;b&gt;1–{products.length}&lt;/b&gt; of &lt;b&gt;194&lt;/b&gt; results&lt;/span&gt;
+            &lt;button className="pos-sort"&gt;Sort by latest &lt;Icons.ChevDown size={16} /&gt;&lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div className="pos-grid-scroll"&gt;
+            &lt;div className="pos-grid"&gt;
+              {products.map((p) =&gt; &lt;BarProductCard key={p.id} p={p} qty={qtyInCart(p.id)} onAdd={actions.addItem} /&gt;)}
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div className="pos-pager"&gt;
+            &lt;div className="pos-pages"&gt;
+              &lt;button className="pos-page arrow" onClick={() =&gt; setPage((x) =&gt; Math.max(1, x - 1))}&gt;&lt;Icons.ChevLeft size={18} /&gt;&lt;/button&gt;
+              {[1, 2, 3].map((n) =&gt; &lt;button key={n} className={`pos-page ${page === n ? 'is-on' : ''}`} onClick={() =&gt; setPage(n)}&gt;{n}&lt;/button&gt;)}
+            &lt;/div&gt;
+            &lt;button className="pos-pageinfo" onClick={() =&gt; setPage((x) =&gt; Math.min(13, x + 1))}&gt;&lt;Icons.ChevRight size={16} /&gt; Page {page} of 13&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        {/* cart = the table's running tab */}
+        &lt;div className="pos-cart"&gt;
+          &lt;div className="pos-cart-head"&gt;
+            &lt;div className="pos-ident"&gt;
+              &lt;button className="pos-backbtn" onClick={() =&gt; actions.setScreen('tables')}&gt;&lt;Icons.ChevLeft size={18} /&gt; Tables&lt;/button&gt;
+            &lt;/div&gt;
+            &lt;button className="pos-saveticket" onClick={actions.saveToTab}&gt;&lt;Icons.Archive size={15} /&gt; Save to tab&lt;/button&gt;
+          &lt;/div&gt;
+
+          {/* table binding strip */}
+          &lt;div className="bar-tablehead"&gt;
+            &lt;span className="bar-tablehead-badge"&gt;{table.id}&lt;/span&gt;
+            &lt;div className="bar-tablehead-meta"&gt;
+              &lt;div className="bar-tablehead-title"&gt;
+                {table.zoneName}
+                &lt;span className="bar-status open" style={{ height: 20 }}&gt;&lt;span className="pip" /&gt; Open tab&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div className="bar-tablehead-sub"&gt;
+                &lt;span&gt;&lt;Icons.User size={12} style={{ verticalAlign: '-2px' }} /&gt; {table.seats} seats&lt;/span&gt;
+                &lt;span className="sep" /&gt;
+                &lt;span&gt;Opened {barFmtClock(tab.openedAtMs)}{opener ? ` by ${opener.name.split(' ')[0]}` : ''}&lt;/span&gt;
+                &lt;span className="sep" /&gt;
+                &lt;span&gt;{barFmtElapsed(tab.openedAtMs)} open&lt;/span&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div className="pos-lines"&gt;
+            {tab.lines.length === 0 ? (
+              &lt;div className="pos-empty"&gt;
+                &lt;span className="pos-empty-ic"&gt;&lt;Icons.Cart size={34} /&gt;&lt;/span&gt;
+                &lt;div className="pos-empty-h"&gt;Fresh tab for {table.id}&lt;/div&gt;
+                &lt;div className="pos-empty-p"&gt;Tap a product to add the first round&lt;/div&gt;
+              &lt;/div&gt;
+            ) : (
+              tab.lines.map((l) =&gt; (
+                &lt;BarCartLine key={l.id} line={l} editable={l.cashierId === store.activeCashierId || isManager} actions={actions} /&gt;
+              ))
+            )}
+          &lt;/div&gt;
+
+          &lt;div className="pos-foot"&gt;
+            &lt;div className="pos-total-row"&gt;
+              &lt;span className="pos-total-lbl"&gt;Tab total{count &gt; 0 ? ` · ${count} item${count &gt; 1 ? 's' : ''}` : ''}&lt;/span&gt;
+              &lt;span className="pos-total-val"&gt;&lt;small&gt;RWF&lt;/small&gt; {barMoney(total)}&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div className="bar-pos-foot-note"&gt;
+              &lt;Icons.Users size={14} /&gt;
+              {servers.length &gt; 1
+                ? &lt;span&gt;Logged by &lt;b&gt;{servers.length} staff&lt;/b&gt; · you added &lt;b&gt;{myLines}&lt;/b&gt;&lt;/span&gt;
+                : &lt;span&gt;You've logged &lt;b&gt;{myLines}&lt;/b&gt; line{myLines === 1 ? '' : 's'} on this tab&lt;/span&gt;}
+            &lt;/div&gt;
+
+            &lt;div className="pos-actions" style={{ marginTop: 12 }}&gt;
+              &lt;button className="pos-btn pos-btn-ghost" onClick={actions.logout}&gt;&lt;Icons.LogOut size={18} /&gt; Logout&lt;/button&gt;
+              &lt;button className="pos-btn pos-btn-pay" onClick={actions.saveToTab}&gt;
+                Save to tab &lt;span className="amt"&gt;RWF {barMoney(total)}&lt;/span&gt;
+              &lt;/button&gt;
+            &lt;/div&gt;
+
+            &lt;button className="bar-settle-btn" onClick={onSettle} disabled={count === 0}&gt;
+              {isManager ? &lt;Icons.Wallet size={17} /&gt; : &lt;span className="lock"&gt;&lt;Icons.ShieldCheck size={17} /&gt;&lt;/span&gt;}
+              {isManager ? 'Settle bill &amp; close table' : 'Settle bill · manager PIN'}
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+Object.assign(window, { BarPOS, BarProductCard, BarCartLine, BarTopBar, BarRail });
+</pre></section>
+<section id="src-app"><h2>Appendix F</h2><div class="h2sub">bar/app.jsx — root state machine + scaler</div><div class="filetag">bar/app.jsx</div><pre>/* ============================================================
+   Flipper · Bar Mode — root app (state machine + stage scaler)
+   Requires: React, ReactDOM, all bar/*.jsx above.
+   ============================================================ */
+
+const { useState: useApp, useEffect: useAppE, useRef: useAppR } = React;
+
+function BarStage({ children }) {
+  const ref = useAppR(null);
+  useAppE(() =&gt; {
+    const fit = () =&gt; {
+      const el = ref.current; if (!el) return;
+      const s = Math.min(window.innerWidth / 1440, window.innerHeight / 912);
+      el.style.transform = `translate(-50%, -50%) scale(${s})`;
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () =&gt; window.removeEventListener('resize', fit);
+  }, []);
+  return (
+    &lt;div className="bar-stage"&gt;
+      &lt;div className="bar-canvas" ref={ref}&gt;{children}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function BarApp() {
+  const [store, actions] = useBarStore();
+  const [toast, setToast] = useApp('');
+  const [mgrModal, setMgrModal] = useApp(false);
+  const toastT = useAppR(0);
+
+  const notify = (msg) =&gt; {
+    setToast(msg);
+    clearTimeout(toastT.current);
+    toastT.current = setTimeout(() =&gt; setToast(''), 3200);
+  };
+
+  // gentle clock tick so "34m open" stays fresh while reviewing
+  const [, tick] = useApp(0);
+  useAppE(() =&gt; { const t = setInterval(() =&gt; tick((n) =&gt; n + 1), 30000); return () =&gt; clearInterval(t); }, []);
+
+  const onSettle = () =&gt; {
+    const c = barCashier(store.activeCashierId);
+    if (store.settings.managerSettle &amp;&amp; !(c &amp;&amp; c.manager)) setMgrModal(true);
+    else actions.goSettle();
+  };
+
+  let screen = null;
+  if (store.screen === 'admin') screen = &lt;AdminConfig store={store} actions={actions} /&gt;;
+  else if (store.screen === 'lock') screen = &lt;PinLock store={store} actions={actions} /&gt;;
+  else if (store.screen === 'tables') screen = &lt;TableFloor store={store} actions={actions} /&gt;;
+  else if (store.screen === 'pos') screen = &lt;BarPOS store={store} actions={actions} onSettle={onSettle} /&gt;;
+  else if (store.screen === 'settle') screen = &lt;Settle store={store} actions={actions} notify={notify} /&gt;;
+  else screen = &lt;PinLock store={store} actions={actions} /&gt;;
+
+  // guard: if a screen needs an active cashier / table but none, fall back
+  if ((store.screen === 'tables' || store.screen === 'pos' || store.screen === 'settle') &amp;&amp; !store.activeCashierId) {
+    screen = &lt;PinLock store={store} actions={actions} /&gt;;
+  }
+  if ((store.screen === 'pos' || store.screen === 'settle') &amp;&amp; !store.activeTableId) {
+    screen = &lt;TableFloor store={store} actions={actions} /&gt;;
+  }
+
+  return (
+    &lt;BarStage&gt;
+      &lt;div className="bar-screen"&gt;{screen}&lt;/div&gt;
+      &lt;BarToast msg={toast} /&gt;
+      {mgrModal &amp;&amp; (
+        &lt;ManagerPinModal
+          onCancel={() =&gt; setMgrModal(false)}
+          onSuccess={(mgrId) =&gt; { setMgrModal(false); actions.elevateSettle(mgrId); }}
+        /&gt;
+      )}
+    &lt;/BarStage&gt;
+  );
+}
+
+Object.assign(window, { BarApp, BarStage });
+</pre></section>
+</main></div></body></html>

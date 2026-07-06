@@ -1,5 +1,7 @@
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/checkout.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_mode_host.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
@@ -32,6 +34,11 @@ class InventoryApp extends HookConsumerWidget {
 
     switch (selectedMenuItem) {
       case 0: // Sales
+        if (BarModeSettings.enabled) {
+          return const BarModeHost()
+              .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+              .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+        }
         return isScanningMode
             ? buildReceiptUI().shouldSeeTheApp(
                 ref,
