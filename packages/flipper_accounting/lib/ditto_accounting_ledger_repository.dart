@@ -169,7 +169,13 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       inRangeHeaders.sort((a, b) {
         final da = _entrySortKey(a, startDate: startDate, endDate: endDate);
         final db = _entrySortKey(b, startDate: startDate, endDate: endDate);
-        return db.compareTo(da);
+        final byDate = db.compareTo(da);
+        if (byDate != 0) return byDate;
+        // List.sort is not stable, so same-day rows would reshuffle between
+        // refreshes. Break ties on the entry id to keep a consistent order.
+        final ida = (a['id'] ?? a['_id'] ?? '').toString();
+        final idb = (b['id'] ?? b['_id'] ?? '').toString();
+        return ida.compareTo(idb);
       });
 
       final result = <JournalEntry>[];

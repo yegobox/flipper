@@ -571,8 +571,13 @@ Future<void> _categorizeBankLine(
   final businessId = ref.read(accountingBusinessIdProvider);
   if (businessId.isEmpty) return;
 
-  final refText =
-      'ADJ-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+  // Derive everything from the stable bank-line id so a retry after a partial
+  // failure converges on the same documents instead of double-counting: the
+  // header is upserted under a deterministic id, the ref is collision-free, and
+  // the bank-line match is keyed identically.
+  final bankLineId = _bankLineId(businessId, line);
+  final deterministicEntryId = 'je_bankrec_$bankLineId';
+  final refText = 'ADJ-${bankLineId.replaceAll('-', '').substring(0, 10).toUpperCase()}';
   final entry = JournalEntry(
     id: refText,
     date: line.date,
@@ -589,9 +594,12 @@ Future<void> _categorizeBankLine(
       businessId: businessId,
       entry: entry,
       journalCode: 'misc',
+      entryId: deterministicEntryId,
     );
     // createJournalEntry writes the header with the entry's status, but post
     // explicitly so the entry counts in balances/reports regardless of backend.
+    // Both create and post are idempotent upserts on the deterministic id, so a
+    // retry re-runs the whole sequence without producing duplicates.
     await ledger.postJournalEntry(businessId: businessId, entryId: entryId);
     ref.invalidate(journalEntriesStreamProvider);
 
