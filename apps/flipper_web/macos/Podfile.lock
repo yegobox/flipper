@@ -4,10 +4,10 @@ PODS:
     - FlutterMacOS
   - amplify_secure_storage (0.0.1):
     - FlutterMacOS
-  - ditto_live (5.0.1):
-    - DittoFlutter (= 5.0.1)
+  - ditto_live (5.0.2):
+    - DittoFlutter (= 5.0.2)
     - FlutterMacOS
-  - DittoFlutter (5.0.1)
+  - DittoFlutter (5.0.2)
   - FlutterMacOS (1.0.0)
   - location (0.0.1):
     - FlutterMacOS
@@ -43,8 +43,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   amplify_auth_cognito: b76a0e367489da2b9a3c6e5a8ec74a72a0a7cc2f
   amplify_secure_storage: a0f7269fd7bca15e77c30abae739000a990e8fcd
-  ditto_live: c622ec08654fb32c5c7d93b67c917142a45d67a6
-  DittoFlutter: 50a9461a32c813badafefffe52768035fc2cf9c2
+  ditto_live: b5a06dcb7849d9094a71555477b3ed62392f0903
+  DittoFlutter: f780d1a73cebce21503e00f9016880d46722f901
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   location: 7cdb0665bd6577d382b0a343acdadbcb7f964775
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
