@@ -167,9 +167,15 @@ List<GlPosting> generalLedgerPostings(
   final account = acctMap[accountCode];
   if (account == null) return [];
 
+  // Only posted entries: [accountsWithBalances] computes account.bal from
+  // posted lines, so including pending/draft here would break the tie between
+  // the running balance and the account's closing balance.
+  //
+  // Journal streams emit newest-first; a running balance must be accumulated
+  // oldest-first so the last row lands on the closing balance.
   final postings = <({String date, String jeId, String memo, int debit, int credit})>[];
-  for (final e in journal) {
-    if (e.status == JournalStatus.draft) continue;
+  for (final e in journal.reversed) {
+    if (e.status != JournalStatus.posted) continue;
     for (final line in e.lines) {
       if (line.ac != accountCode) continue;
       postings.add((
