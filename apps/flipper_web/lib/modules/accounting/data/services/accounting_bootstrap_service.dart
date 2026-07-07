@@ -47,15 +47,42 @@ class AccountingBootstrapService {
   final http.Client _client;
   final String _baseUrl;
 
+  /// One request per business at a time; login + branch selection + post-sync
+  /// bootstrap all call this concurrently and used to fire duplicate POSTs.
+  final Map<String, Future<BootstrapAccountingResult>> _inFlight = {};
+
+  /// Bootstrap is idempotent server-side: once a business reports ready it
+  /// stays ready, so successful results are cached for the session.
+  final Map<String, BootstrapAccountingResult> _ready = {};
+
   Uri get _bootstrapUri => Uri.parse('$_baseUrl/accounting/bootstrap');
 
   /// Returns when the server reports bootstrap complete (or was already ready).
-  Future<BootstrapAccountingResult> ensureBusinessReady(String businessId) async {
+  Future<BootstrapAccountingResult> ensureBusinessReady(String businessId) {
     final trimmed = businessId.trim();
     if (trimmed.isEmpty) {
-      throw AccountingBootstrapException('businessId is required');
+      return Future.error(
+        AccountingBootstrapException('businessId is required'),
+      );
     }
 
+    final cached = _ready[trimmed];
+    if (cached != null) return Future.value(cached);
+
+    return _inFlight.putIfAbsent(
+      trimmed,
+      () => _postBootstrap(trimmed).then((r) {
+        _ready[trimmed] = r;
+        return r;
+      }).whenComplete(() {
+        // Braces matter: returning the removed Future from this callback
+        // would make whenComplete await it — i.e. await itself, deadlocking.
+        _inFlight.remove(trimmed);
+      }),
+    );
+  }
+
+  Future<BootstrapAccountingResult> _postBootstrap(String trimmed) async {
     try {
       final response = await _client.post(
         _bootstrapUri,

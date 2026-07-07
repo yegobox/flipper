@@ -164,6 +164,20 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
       }).toList();
       if (inRangeHeaders.isEmpty) return <JournalEntry>[];
 
+      // Sort on the raw entry_date, newest first. Sorting the mapped display
+      // string ("Jul 7") would order entries alphabetically by month name.
+      inRangeHeaders.sort((a, b) {
+        final da = _entrySortKey(a, startDate: startDate, endDate: endDate);
+        final db = _entrySortKey(b, startDate: startDate, endDate: endDate);
+        final byDate = db.compareTo(da);
+        if (byDate != 0) return byDate;
+        // List.sort is not stable, so same-day rows would reshuffle between
+        // refreshes. Break ties on the entry id to keep a consistent order.
+        final ida = (a['id'] ?? a['_id'] ?? '').toString();
+        final idb = (b['id'] ?? b['_id'] ?? '').toString();
+        return ida.compareTo(idb);
+      });
+
       final result = <JournalEntry>[];
       for (final row in inRangeHeaders) {
         final entryId = (row['id'] ?? row['_id']).toString();
@@ -187,9 +201,19 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
           lines.map(LedgerRowMapper.lineFromRow).toList(),
         ));
       }
-      result.sort((a, b) => b.date.compareTo(a.date));
       return result;
     });
+  }
+
+  /// Chronological sort key for a journal entry row; unparseable dates sort last.
+  static DateTime _entrySortKey(
+    Map<String, dynamic> row, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    final parsed = _parseEntryRowDate(row['entry_date'] ?? row['entryDate']);
+    if (parsed == null) return DateTime(1900);
+    return _entryCalendarDay(parsed, startDate: startDate, endDate: endDate);
   }
 
   /// Minimal header when lines replicated but `journal_entries` header is absent

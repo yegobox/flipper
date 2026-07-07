@@ -172,6 +172,18 @@ class LoanCustomerLinker {
       tin: tin,
       transactionId: transactionId,
     );
+
+    // Mirror the resolved customer into the Ditto `customers` collection so the
+    // Books web client (which reads Ditto, not Brick) shows it immediately.
+    // Covers BOTH a matched-existing customer and a freshly auto-created one:
+    // the native POS (CoreSync) persists customers to Brick/Supabase only, so
+    // without this mirror they never reach the collection Books reads — which
+    // is exactly why "Customer linked" audit events show up with no matching
+    // customer in the list. Fire-and-forget so it never affects the caller's
+    // timeout budget (attachBeforeCompletion) or checkout latency.
+    if (customer != null) {
+      unawaited(_mirrorCustomerToDitto(customer, branchId));
+    }
     return customer;
   }
 
@@ -198,17 +210,56 @@ class LoanCustomerLinker {
       );
       return created ?? customer;
     } on UnimplementedError {
-      // Capella strategy has no addCustomer; write the canonical Ditto
-      // `customers` doc directly (same shape the Books party repo reads).
+      // Capella strategy has no addCustomer; the Ditto mirror in
+      // [_resolveCustomer] persists the canonical `customers` doc Books reads.
+      return customer;
+    }
+  }
+
+  /// Best-effort mirror of [customer] into the Ditto `customers` collection —
+  /// the store the Books web lists observe. Never throws.
+  ///
+  /// The document shape matches [PartyDraft.toDittoRow] / PartyRowMapper so the
+  /// Books party mapper reads it back correctly. `branchId` is keyed on the
+  /// branch UUID (same key Books queries with).
+  static Future<void> _mirrorCustomerToDitto(
+    Customer customer,
+    String branchId,
+  ) async {
+    try {
       final ditto = DittoService.instance;
       if (!ditto.isReady()) {
         _talker.warning(
-          '[LoanCustomerLinker] Ditto not ready — customer not created',
+          '[LoanCustomerLinker] Ditto not ready — customer mirror skipped '
+          '(PartyBackfill will heal from Supabase)',
         );
-        return null;
+        return;
       }
-      await ditto.upsertPartyDoc('customers', draft.id, draft.toDittoRow());
-      return customer;
+      await ditto.upsertPartyDoc('customers', customer.id, {
+        'custNm': customer.custNm,
+        'email': customer.email,
+        'telNo': customer.telNo,
+        'adrs': customer.adrs,
+        'branchId': customer.branchId ?? branchId,
+        'updatedAt':
+            (customer.updatedAt ?? DateTime.now().toUtc()).toIso8601String(),
+        'custNo': customer.custNo,
+        'custTin': customer.custTin,
+        'regrNm': customer.regrNm,
+        'regrId': customer.regrId,
+        'modrNm': customer.modrNm,
+        'modrId': customer.modrId,
+        'ebmSynced': customer.ebmSynced ?? false,
+        'bhfId': customer.bhfId ?? '00',
+        'useYn': customer.useYn ?? 'N',
+        'customerType': customer.customerType,
+      });
+      _talker.info(
+        '[LoanCustomerLinker] mirrored customer ${customer.id} '
+        '(${customer.custNm}) into Ditto customers for branch $branchId',
+      );
+    } catch (e) {
+      _talker.warning('[LoanCustomerLinker] Ditto customer mirror failed: $e');
     }
   }
 }

@@ -36,7 +36,7 @@ class DittoAccountingRepository implements AccountingRepository {
         'SELECT * FROM transactions '
         'WHERE (branchId = :branchId OR branch_id = :branchId) '
         'AND (status = :completed OR status = :parked) '
-        'AND subTotal > 0';
+        'AND (subTotal > 0 OR sub_total > 0)';
 
     if (startDate != null) {
       query += ' AND (createdAt >= :start OR created_at >= :start)';
@@ -49,7 +49,7 @@ class DittoAccountingRepository implements AccountingRepository {
               .toIso8601String();
     }
 
-query += ' ORDER BY createdAt DESC';
+    query += ' ORDER BY createdAt DESC';
 
     final result = await ditto.store.execute(query, arguments: args);
     return dittoQueryRows(result);
@@ -96,7 +96,7 @@ query += ' ORDER BY createdAt DESC';
         'SELECT * FROM transactions '
         'WHERE (branchId = :branchId OR branch_id = :branchId) '
         'AND (status = :completed OR status = :parked) '
-        'AND subTotal > 0';
+        'AND (subTotal > 0 OR sub_total > 0)';
     if (startDate != null) {
       query += ' AND (createdAt >= :start OR created_at >= :start)';
       args['start'] = startDate.toIso8601String();
