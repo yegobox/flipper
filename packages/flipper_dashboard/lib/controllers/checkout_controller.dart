@@ -1,17 +1,20 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart' as oldImplementationOfRiverpod;
-import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class CheckoutController {
+class CheckoutController with AnalyticsTrackingMixin {
   final WidgetRef ref;
   final BuildContext context;
 
   CheckoutController({required this.ref, required this.context});
+
+  @override
+  ProductAnalytics get analytics => ProxyService.productAnalytics;
 
   Future<bool> handleCompleteTransaction({
     required ITransaction transaction,
@@ -96,17 +99,14 @@ class CheckoutController {
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
     
-    PosthogService.instance.capture(
-      'transaction_completed',
-      properties: {
-        'transaction_id': transaction.id,
-        'branch_id': transaction.branchId!,
-        'business_id': ProxyService.box.getBusinessId()!,
-        'created_at': startTime.toIso8601String(),
-        'completed_at': endTime.toIso8601String(),
-        'duration_seconds': duration,
-        'source': 'checkout',
-      },
+    trackTransactionCompleted(
+      transactionId: transaction.id,
+      branchId: transaction.branchId,
+      businessId: ProxyService.box.getBusinessId(),
+      createdAt: startTime.toIso8601String(),
+      completedAt: endTime.toIso8601String(),
+      durationSeconds: duration,
+      source: 'checkout',
     );
   }
 }

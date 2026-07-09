@@ -1,4 +1,5 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/Supabase.dart';
@@ -19,11 +20,11 @@ import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
+import 'package:flipper_services/analytics/flipper_analytic_service.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
-import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
 import 'package:flipper_services/language_service.dart';
@@ -274,14 +275,13 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
+  ProductAnalytics productAnalytics() {
+    return FlipperAnalytics.instance;
+  }
+
+  @LazySingleton()
   Analytic get appAnalytic {
-    late Analytic appAnalytic;
-    if (UniversalPlatform.isAndroid) {
-      appAnalytic = FirebaseAnalyticsService();
-    } else {
-      appAnalytic = UnSupportedAnalyticPlatform();
-    }
-    return appAnalytic;
+    return FlipperAnalyticService(productAnalytics());
   }
 
   @LazySingleton()

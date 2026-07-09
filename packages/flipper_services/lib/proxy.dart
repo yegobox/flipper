@@ -4,6 +4,7 @@ import 'package:flipper_models/Supabase.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/HttpApi.dart';
 import 'package:flipper_services/PayStackService.dart';
@@ -80,6 +81,7 @@ abstract class ProxyService {
   static Country get country => getIt<Country>();
   static Language get locale => getIt<Language>();
   static Remote get remoteConfig => getIt<Remote>();
+  static ProductAnalytics get productAnalytics => getIt<ProductAnalytics>();
   static Analytic get analytics => getIt<Analytic>();
   static SettingsService get settings => getIt<SettingsService>();
   static CronService get cron => getIt<CronService>();

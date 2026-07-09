@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_web/core/api_login_key.dart';
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
@@ -58,12 +60,45 @@ class AuthRepository {
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
+        unawaited(
+          _ref.read(productAnalyticsProvider).track(
+            'login_pin_submitted',
+            properties: const {'source': 'auth_repository'},
+          ),
+        );
         return true;
       } else if (response.statusCode == 404) {
+        unawaited(
+          _ref.read(productAnalyticsProvider).track(
+            AnalyticsEvents.loginFailed,
+            properties: const {
+              'source': 'auth_repository',
+              'reason': 'pin_not_found',
+            },
+          ),
+        );
         throw Exception('Pin not found');
       } else if (response.statusCode == 403) {
+        unawaited(
+          _ref.read(productAnalyticsProvider).track(
+            AnalyticsEvents.loginFailed,
+            properties: const {
+              'source': 'auth_repository',
+              'reason': 'pin_access_denied',
+            },
+          ),
+        );
         throw Exception('Access denied - check authentication');
       } else {
+        unawaited(
+          _ref.read(productAnalyticsProvider).track(
+            AnalyticsEvents.loginFailed,
+            properties: {
+              'source': 'auth_repository',
+              'reason': 'pin_invalid_${response.statusCode}',
+            },
+          ),
+        );
         throw Exception('Invalid PIN (${response.statusCode})');
       }
     } on SocketException catch (e) {
@@ -156,6 +191,24 @@ class AuthRepository {
       loginKey: loginKey,
       pinUserId: pinUserId,
     );
+    final analytics = _ref.read(productAnalyticsProvider);
+    final analyticsUserId =
+        _supabase.auth.currentUser?.id ?? pinUserId ?? 'unknown_user';
+    await analytics.identify(
+      analyticsUserId,
+      properties: {
+        'source': 'auth_repository',
+        if (loginKey != null) 'login_key': loginKey,
+      },
+    );
+    await analytics.track(
+      AnalyticsEvents.loginSuccess,
+      properties: {
+        'source': 'auth_repository',
+        if (pinUserId != null) 'pin_user_id': pinUserId,
+      },
+    );
+    unawaited(analytics.reloadFeatureFlags());
     return true;
   }
 

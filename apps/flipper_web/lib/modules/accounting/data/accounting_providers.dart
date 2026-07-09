@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
@@ -73,11 +74,15 @@ final bankRecFinishedProvider = StateProvider<bool>((ref) => false);
 final bankStatementMetaProvider = StateProvider<ParsedStatement?>((ref) => null);
 
 final bankStatementServiceProvider = Provider<BankStatementService>(
-  (ref) => BankStatementService(),
+  (ref) => BankStatementService(
+    analytics: ref.watch(productAnalyticsProvider),
+  ),
 );
 
 final journalApprovalServiceProvider = Provider<JournalApprovalService>(
-  (ref) => JournalApprovalService(),
+  (ref) => JournalApprovalService(
+    analytics: ref.watch(productAnalyticsProvider),
+  ),
 );
 
 final accountingBootstrapServiceProvider = Provider<AccountingBootstrapService>(

@@ -1,3 +1,4 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,6 +28,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     refreshListenable: authRefresh,
     initialLocation: unauthenticatedEntryLocation,
+    observers: [createPostHogObserver()],
     routes: [
       // Root shows AuthWrapper which will choose appropriate screen
       GoRoute(path: '/', builder: (context, state) => const AuthWrapper()),

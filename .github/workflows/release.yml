@@ -652,7 +652,7 @@ jobs:
           bundler-cache: true
           # cache-version: 1
           working-directory: apps/${{ matrix.app }}/android
-      - name: Write Posthog API Key to local.properties
+      - name: Write PostHog project token to local.properties
         run: |
           echo "POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" > android/app/local.properties
         working-directory: apps/${{ matrix.app }}

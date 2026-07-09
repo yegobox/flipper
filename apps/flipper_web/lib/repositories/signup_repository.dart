@@ -1,6 +1,8 @@
 // ignore_for_file: constant_identifier_names
 
 import 'dart:convert';
+import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,15 +12,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 
 final signupRepositoryProvider = Provider<SignupRepository>((ref) {
-  return SignupRepository();
+  final analytics = ref.watch(productAnalyticsProvider);
+  return SignupRepository(analytics: analytics);
 });
 
 class SignupRepository {
-  late final http.Client _httpClient;
-
-  SignupRepository() {
+  SignupRepository({required ProductAnalytics analytics})
+      : _analytics = analytics {
     _httpClient = http.Client();
   }
+
+  final ProductAnalytics _analytics;
+  late final http.Client _httpClient;
 
   Future<bool> checkUsernameAvailability(String username) async {
     if (username.length < 3) {
@@ -120,6 +125,14 @@ class SignupRepository {
 
       // Check if the request was successful
       if (response.statusCode == 200 || response.statusCode == 201) {
+        await _analytics.track(
+          AnalyticsEvents.signupCompleted,
+          properties: {
+            'source': 'signup_repository',
+            'business_type_id': businessTypeId,
+            'country': country,
+          },
+        );
         // Parse and return the response data to caller
         try {
           final Map<String, dynamic> responseData = jsonDecode(response.body);
