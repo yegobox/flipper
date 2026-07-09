@@ -63,4 +63,15 @@ abstract final class BarTokens {
 
   static const Duration fadeIn = Duration(milliseconds: 340);
   static const Duration pinShake = Duration(milliseconds: 400);
+
+  // Mobile handover reference sizes (402×874 canvas)
+  static const double mobileCanvasWidth = 402;
+  static const double mobileCanvasHeight = 874;
+  static const double mobileKeySize = 62;
+  static const double mobilePrimaryButtonHeight = 52;
+  static const double mobileIconButtonSize = 42;
+  static const double mobileSheetRadius = 26;
+  static const double mobileTabBarHeight = 58;
+  static const double mobilePersonAvatarSize = 52;
+  static const double mobileTableCardMinHeight = 128;
 }

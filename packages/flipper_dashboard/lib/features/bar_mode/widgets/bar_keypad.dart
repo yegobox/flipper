@@ -21,6 +21,7 @@ class BarKeypad extends StatefulWidget {
     this.managerErrorText = 'Not a manager PIN',
     this.enabled = true,
     this.tight = false,
+    this.mobile = false,
     this.avatarLabel,
     this.avatarColor,
   });
@@ -33,6 +34,7 @@ class BarKeypad extends StatefulWidget {
   final String managerErrorText;
   final bool enabled;
   final bool tight;
+  final bool mobile;
   final String? avatarLabel;
   final Color? avatarColor;
 
@@ -129,7 +131,10 @@ class _BarKeypadState extends State<BarKeypad>
 
   @override
   Widget build(BuildContext context) {
-    final keySize = widget.tight ? 76.0 : 88.0;
+    final keySize = widget.mobile
+        ? BarTokens.mobileKeySize
+        : (widget.tight ? 76.0 : 88.0);
+    final keyGap = widget.mobile ? 12.0 : 12.0;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -203,13 +208,13 @@ class _BarKeypadState extends State<BarKeypad>
           child: IgnorePointer(
             ignoring: !widget.enabled || _verifying,
             child: SizedBox(
-              width: keySize * 3 + 24,
+              width: keySize * 3 + keyGap * 2,
               child: GridView.count(
                 crossAxisCount: 3,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
+                mainAxisSpacing: keyGap,
+                crossAxisSpacing: keyGap,
                 childAspectRatio: 1,
                 children: [
                   for (var n = 1; n <= 9; n++)
@@ -238,25 +243,39 @@ class _BarKeypadState extends State<BarKeypad>
   }
 
   Widget _keyButton(String label, VoidCallback onTap, {bool util = false}) {
+    final keyHeight = widget.mobile ? BarTokens.mobileKeySize : null;
     return Material(
       color: util ? BarTokens.surface2 : BarTokens.surface,
-      borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+      borderRadius: BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+        borderRadius: BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
         child: Container(
+          height: keyHeight,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-            border: Border.all(color: BarTokens.line),
+            borderRadius:
+                BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
+            border: Border.all(
+              color: util && widget.mobile
+                  ? Colors.transparent
+                  : BarTokens.line,
+              width: util && widget.mobile ? 0 : 1,
+            ),
           ),
           alignment: Alignment.center,
           child: Text(
             label,
-            style: GoogleFonts.outfit(
-              fontSize: util ? 13 : 22,
-              fontWeight: FontWeight.w700,
-              color: BarTokens.ink1,
-            ),
+            style: (util
+                    ? GoogleFonts.outfit(
+                        fontSize: widget.mobile ? 15 : 13,
+                        fontWeight: FontWeight.w700,
+                        color: BarTokens.ink2,
+                      )
+                    : GoogleFonts.jetBrainsMono(
+                        fontSize: widget.mobile ? 26 : 22,
+                        fontWeight: FontWeight.w700,
+                        color: BarTokens.ink1,
+                      )),
           ),
         ),
       ),

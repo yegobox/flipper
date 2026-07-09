@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/bar_mode/screens/bar_floor_screen.dar
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_lock_screen.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_pos_screen.dart';
 import 'package:flipper_dashboard/features/bar_mode/screens/bar_settle_screen.dart';
+import 'package:flipper_dashboard/features/bar_mode/theme/bar_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_manager_pin_modal.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_toast.dart';
@@ -59,6 +60,33 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       backgroundColor: BarTokens.stageBg,
       body: LayoutBuilder(
         builder: (context, constraints) {
+          final isMobile =
+              BarLayoutBreakpoints.isBarMobileLayout(constraints.maxWidth);
+
+          if (isMobile) {
+            return SafeArea(
+              child: Stack(
+                children: [
+                  AnimatedSwitcher(
+                    duration: BarTokens.fadeIn,
+                    child: KeyedSubtree(
+                      key: ValueKey(bar.screen),
+                      child: screen,
+                    ),
+                  ),
+                  if (bar.showManagerModal) const BarManagerPinModal(),
+                  if (bar.toastMessage != null)
+                    BarToast(
+                      message: bar.toastMessage!,
+                      mobile: true,
+                      onDone: () =>
+                          ref.read(barModeProvider.notifier).clearToast(),
+                    ),
+                ],
+              ),
+            );
+          }
+
           // Uniform scale from the 1440x912 design canvas, but extend the
           // canvas to the window's aspect ratio so the UI fills the whole
           // screen instead of letterboxing on the stage background. The
