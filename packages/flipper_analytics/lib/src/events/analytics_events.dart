@@ -1,4 +1,8 @@
 abstract final class AnalyticsEvents {
+  /// Canonical "user was active" signal for PostHog DAU/WAU/retention dashboards.
+  /// Emitted on cold start and each app foreground resume via [ProductActiveLifecycle].
+  static const productActive = 'product_active';
+
   static const loginSuccess = 'login_success';
   static const loginFailed = 'login_failed';
   static const signupCompleted = 'signup_completed';
