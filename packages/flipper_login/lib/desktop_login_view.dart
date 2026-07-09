@@ -43,7 +43,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
   @override
   void initState() {
     super.initState();
-    _loginCode = ref.read(loginCodeProvider);
+    _loginCode = newDesktopLoginCode();
+    ProxyService.event.resetLoginStatus();
+    ProxyService.event.unsubscribeLoginEvent();
     _loginStatusStream = ProxyService.event.desktopLoginStatusStream();
     _connectivityStream = Connectivity().onConnectivityChanged;
 
@@ -79,15 +81,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     if (!mounted || _switchingToPinLogin) return;
 
     final appService = locator<AppService>();
-    // Always (re)open the isolated login-* Ditto identity for this QR session.
-    // Skipping when [isReady] left a stale non-login instance subscribed with
-    // no cloud replication — polling then stays at 0 events forever.
-    final persistenceUserId = appService.dittoPersistenceUserId;
-    if (persistenceUserId != _loginCode || !ProxyService.ditto.isCloudReady()) {
-      await appService.initDittoForLogin(_loginCode);
-    } else {
-      await appService.ensureQrLoginCloudReady();
-    }
+    // New QR code every visit → new login_ditto store; never reuse a channel that
+    // may still hold a consumed broadcast from a previous session.
+    await appService.initDittoForLogin(_loginCode);
     if (!mounted || _switchingToPinLogin) return;
 
     ProxyService.event.subscribeLoginEvent(channel: _loginCode.split('-')[1]);

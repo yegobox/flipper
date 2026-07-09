@@ -493,6 +493,30 @@ class EventService
     }
   }
 
+  Future<void> _markLoginEventConsumed(
+    Map<String, dynamic> event,
+    String channel,
+  ) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    final eventId = event['_id']?.toString();
+    try {
+      if (eventId != null && eventId.isNotEmpty) {
+        await ditto.store.execute(
+          'UPDATE events SET loginConsumed = true WHERE _id = :id',
+          arguments: {'id': eventId},
+        );
+      }
+      await ditto.store.execute(
+        "UPDATE events SET loginConsumed = true WHERE channel = :channel AND type = 'broadcast'",
+        arguments: {'channel': channel},
+      );
+    } catch (e) {
+      talker.warning('Failed to mark login event consumed: $e');
+    }
+  }
+
   /// Handle a login event with deduplication
   void _handleLoginEventDedup(Map<String, dynamic> event, String channel) {
     final eventId = event['_id']?.toString() ?? '';
@@ -500,14 +524,17 @@ class EventService
     // Skip if already processed
     if (_processedLoginEventIds.contains(eventId)) return;
 
-    // Skip if logged out
+    // Skip if logged out or already used for a completed QR login
     if (event['loggedOut'] == true) return;
+    if (event['loginConsumed'] == true) return;
 
     // Skip success responses (these are our own responses)
     if (event['status'] == 'success') return;
 
     talker.debug('Processing login event: $event');
     _processedLoginEventIds.add(eventId);
+
+    unawaited(_markLoginEventConsumed(event, channel));
 
     // The QR login Ditto instance is temporary. Once we have the payload, tear
     // down its observer/subscription before the real login flow opens db2 and
