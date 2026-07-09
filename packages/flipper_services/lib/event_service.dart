@@ -154,24 +154,23 @@ class EventService
     String eventType,
     Map<String, dynamic> data,
   ) async {
-    try {
-      // Check if Ditto is ready before attempting to save events
-      if (!DittoService.instance.isReady()) {
-        talker.warning(
-          'Ditto not initialized yet, cannot save event. Event will be lost.',
-        );
-        return;
-      }
-
-      await DittoService.instance.saveEvent({
-        'channel': channel,
-        'type': eventType,
-        'data': data,
-      }, channel);
-    } catch (e) {
-      talker.error('Error saving event: $e');
+    if (!DittoService.instance.isReady()) {
+      throw StateError(
+        'Ditto not initialized yet, cannot save event for channel $channel',
+      );
     }
+
+    final eventId = _uniqueEventDocId(channel);
+    await DittoService.instance.saveEvent({
+      'channel': channel,
+      'type': eventType,
+      'data': data,
+    }, eventId);
+    talker.debug('Event saved: $eventId (channel: $channel)');
   }
+
+  String _uniqueEventDocId(String channel) =>
+      '${channel}_${DateTime.now().millisecondsSinceEpoch}';
 
   Stream<Map<String, dynamic>> subscribeToEvents({
     required String channel,
@@ -190,28 +189,27 @@ class EventService
 
   @override
   Future<void> publish({required Map loginDetails}) async {
-    try {
-      // Store the event in ditto - for response events, don't nest the data
-      final channel = loginDetails['channel'] ?? 'default';
-      final eventType = loginDetails['type'] ?? 'broadcast';
+    // Store the event in ditto - for response events, don't nest the data
+    final channel = loginDetails['channel'] ?? 'default';
+    final eventType = loginDetails['type'] ?? 'broadcast';
 
-      // For response events (success/error), save the data directly without nesting
-      if (loginDetails.containsKey('status')) {
-        await DittoService.instance.saveEvent(
-          Map<String, dynamic>.from(loginDetails),
-          channel,
-        );
-      } else {
-        // For other events, use the nested structure
-        await saveEvent(
-          channel,
-          eventType,
-          Map<String, dynamic>.from(loginDetails),
-        );
-      }
-    } catch (e) {
-      talker.error('Error publishing event with ditto: $e');
+    // For response events (success/error), save the data directly without nesting
+    if (loginDetails.containsKey('status')) {
+      final eventId = _uniqueEventDocId(channel);
+      await DittoService.instance.saveEvent(
+        Map<String, dynamic>.from(loginDetails),
+        eventId,
+      );
+      talker.debug('Published status event: $eventId (channel: $channel)');
+      return;
     }
+
+    // For other events, use the nested structure
+    await saveEvent(
+      channel,
+      eventType,
+      Map<String, dynamic>.from(loginDetails),
+    );
   }
 
   @override

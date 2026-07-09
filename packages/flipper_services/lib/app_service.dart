@@ -490,6 +490,16 @@ class AppService with ListenableServiceMixin {
         '⚠️ Ditto QR-login cloud replication not ready — '
         'phone scan may not reach this device',
       );
+    } else {
+      final ditto = DittoSingleton.instance.ditto;
+      if (ditto != null) {
+        try {
+          // Belt-and-suspenders: receive any events doc the phone publishes.
+          ditto.sync.registerSubscription('SELECT * FROM events');
+        } catch (e) {
+          print('⚠️ QR-login broad events subscription: $e');
+        }
+      }
     }
 
     // QR login only needs the events collection subscription. Do not attach the

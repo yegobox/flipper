@@ -148,10 +148,9 @@ class AuthScannerActions implements ScannerActions {
 
   // Private methods moved from scanner_view.dart
   Future<void> _publishLoginDetails(String channel) async {
-    // Vibrate on successful scan
-    // HapticFeedback.mediumImpact(); // HapticFeedback is in flutter/services.dart, not accessible here
-
     try {
+      await _ensureMobileDittoCloudReady();
+
       String userId = getUserId();
       String businessId = getBusinessId();
       String branchId = getBranchId();
@@ -171,6 +170,10 @@ class AuthScannerActions implements ScannerActions {
       // get the pin
       final pin = await getPinLocal(userId: userId, alwaysHydrate: false);
 
+      // Register the login channel before writing so Ditto Cloud routes the doc
+      // to the desktop QR-login peer that subscribed to the same channel.
+      await DittoService.instance.ensureEventsChannelSubscription(channel);
+
       await ProxyService.event.publish(loginDetails: {
         'channel': channel,
         'userId': userId,
@@ -179,22 +182,43 @@ class AuthScannerActions implements ScannerActions {
         'phone': phone,
         'defaultApp': defaultApp,
         'tokenUid': pin?.tokenUid,
+        'pin': pin?.pin,
         'deviceName': Platform.operatingSystem,
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': linkingCode,
-        'responseChannel': responseChannel, // Add response channel
+        'responseChannel': responseChannel,
       });
 
       // Handle successful publish - keep in pending state
       ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
     } catch (e) {
-      // Handle any exceptions
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       showSimpleNotification('Login error: ${e.toString()}');
 
-      // Wait a moment to show failure state before closing
-      await Future.delayed(Duration(milliseconds: 1500));
+      await Future.delayed(const Duration(milliseconds: 1500));
     }
+  }
+
+  Future<void> _ensureMobileDittoCloudReady({
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
+    if (!DittoService.instance.isReady()) {
+      throw StateError('Ditto not initialized — cannot send QR login event');
+    }
+
+    if (!DittoService.instance.isCloudReady()) {
+      DittoService.instance.startSync();
+    }
+
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (DittoService.instance.isCloudReady()) return;
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+
+    throw StateError(
+      'Ditto cloud sync not ready — login event would stay on this phone only',
+    );
   }
 
   void _listenForLoginResponse(String responseChannel) {
