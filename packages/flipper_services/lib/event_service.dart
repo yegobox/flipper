@@ -304,6 +304,72 @@ class EventService
 
   /// Actually set up the login event subscription (called when Ditto is ready)
   void _doSubscribeLoginEvent(String channel, dynamic ditto) {
+    unawaited(_doSubscribeLoginEventWhenCloudReady(channel, ditto));
+  }
+
+  Future<void> _doSubscribeLoginEventWhenCloudReady(
+    String channel,
+    dynamic ditto,
+  ) async {
+    try {
+      if (!await _waitForLoginDittoCloudReady(channel, ditto)) {
+        talker.error(
+          'Ditto cloud replication not ready — cannot receive QR login events',
+        );
+        _desktopLoginStatusController.add(
+          DesktopLoginStatus(
+            DesktopLoginState.failure,
+            message: 'Connection error. Please try again.',
+          ),
+        );
+        return;
+      }
+
+      if (!identical(ditto, dittoService.dittoInstance)) {
+        talker.debug(
+          'Ditto instance replaced before login subscription for $channel',
+        );
+        return;
+      }
+
+      await _registerLoginEventObservation(channel, ditto);
+    } catch (e) {
+      talker.error('Error subscribing to login events: $e');
+      _desktopLoginStatusController.add(
+        DesktopLoginStatus(
+          DesktopLoginState.failure,
+          message: 'Connection error. Please try again.',
+        ),
+      );
+    }
+  }
+
+  Future<bool> _waitForLoginDittoCloudReady(
+    String channel,
+    dynamic ditto, {
+    Duration timeout = const Duration(seconds: 60),
+  }) async {
+    if (dittoService.isCloudReady()) return true;
+
+    talker.debug(
+      'Waiting for Ditto cloud replication before login channel $channel',
+    );
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (!identical(ditto, dittoService.dittoInstance)) return false;
+      if (dittoService.isCloudReady()) {
+        talker.debug('Ditto cloud replication ready for QR login');
+        return true;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+    return dittoService.isCloudReady();
+  }
+
+  Future<void> _registerLoginEventObservation(
+    String channel,
+    dynamic ditto,
+  ) async {
     try {
       // Clear previously processed events for new subscription
       _processedLoginEventIds.clear();

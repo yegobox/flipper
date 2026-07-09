@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.757+1673
+version: 1.0.758+1674
 
 
 environment:
@@ -45,6 +45,8 @@ dependencies:
   supabase_models: any
   shared_preferences: ^2.5.3
   flutter_native_splash: ^2.4.7
+  posthog_flutter: ^5.30.0
+  flipper_analytics: any
 dependency_overrides:
   xml: ^7.0.1
   smithy:

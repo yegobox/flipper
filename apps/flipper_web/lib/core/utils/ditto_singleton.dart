@@ -335,6 +335,40 @@ class DittoSingleton {
     }
   }
 
+  /// Awaits QR/desktop login auth+sync started during [initialize].
+  ///
+  /// Desktop QR login must not register Ditto sync subscriptions until this
+  /// returns true — otherwise login events from the phone never replicate.
+  Future<bool> ensureQrLoginCloudReady({
+    Duration timeout = const Duration(seconds: 60),
+  }) async {
+    final inFlight = _qrLoginSyncInFlight;
+    if (inFlight != null) {
+      try {
+        await inFlight.timeout(timeout);
+      } catch (e) {
+        print('⚠️ [QR LOGIN] auth/sync in-flight failed or timed out: $e');
+      }
+    }
+
+    final ditto = _ditto;
+    if (ditto == null) {
+      print('❌ [QR LOGIN] no Ditto instance after init');
+      return false;
+    }
+
+    final ready = isAuthenticated(ditto) && ditto.sync.isActive;
+    if (ready) {
+      print('✅ [QR LOGIN] cloud replication ready');
+    } else {
+      print(
+        '❌ [QR LOGIN] cloud not ready '
+        '(auth=${ditto.auth.status}, sync=${ditto.sync.isActive})',
+      );
+    }
+    return ready;
+  }
+
   Future<void> _authenticateThenStartSync(
     String appId, {
     required int initGeneration,

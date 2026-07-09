@@ -163,7 +163,7 @@ class AuthScannerActions implements ScannerActions {
       String responseChannel = 'login-response-$userId-$linkingCode';
 
       // Start listening for response on the response channel
-      _listenForLoginResponse(channel);
+      _listenForLoginResponse(responseChannel);
 
       // Update UI to show we're processing
       ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
@@ -171,7 +171,7 @@ class AuthScannerActions implements ScannerActions {
       // get the pin
       final pin = await getPinLocal(userId: userId, alwaysHydrate: false);
 
-      await getEventService().publish(loginDetails: {
+      await ProxyService.event.publish(loginDetails: {
         'channel': channel,
         'userId': userId,
         'businessId': businessId,
@@ -197,66 +197,64 @@ class AuthScannerActions implements ScannerActions {
     }
   }
 
-  void _listenForLoginResponse(String channel) {
+  void _listenForLoginResponse(String responseChannel) {
     try {
-      // With Ditto, we use the event service to listen for responses
-      // The EventService handles polling and event distribution
-      final eventService = getEventService();
+      final ditto = DittoService.instance.dittoInstance;
+      if (ditto == null) {
+        throw StateError('Ditto not initialized');
+      }
 
-      // Register subscription with Ditto sync to ensure we receive events for this channel
+      // Register subscription with Ditto sync to ensure we receive responses
       final preparedEv = prepareDqlSyncSubscription(
         "SELECT * FROM events WHERE channel = :channel",
-        {"channel": channel},
+        {"channel": responseChannel},
       );
-      DittoService.instance.dittoInstance!.sync.registerSubscription(
+      ditto.sync.registerSubscription(
         preparedEv.dql,
         arguments: preparedEv.arguments,
       );
 
-      // Listen for response events on the response channel
-      eventService
-          .subscribeToEvents(channel: channel, eventType: 'broadcast')
-          .listen((envelope) {
-        // Parse the response
-        Map<String, dynamic> response = envelope;
-
-        if (response.containsKey('status')) {
-          if (response['status'] == 'success') {
-            // Update UI to show success and close
-            ref.read(scanStatusProvider.notifier).state =
-                ScanStatus.desktopLoginSuccess;
-            triggerHapticFeedback();
-            showSimpleNotification('Login successful');
-            Timer(const Duration(seconds: 1), pop);
-          } else if (response['status'] == 'choices_needed') {
-            // This is not a failure - it's part of the normal flow when a user
-            // needs to select a business/branch
-            ref.read(scanStatusProvider.notifier).state =
-                ScanStatus.desktopLoginSuccess;
-            showSimpleNotification('Login successful - select your business');
-            Timer(const Duration(seconds: 1), pop);
-          } else {
-            // Update UI to show failure and close
-            ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-
-            String errorMessage = response.containsKey('message')
-                ? response['message']
-                : 'Login failed';
-
-            showSimpleNotification(errorMessage);
-            Timer(const Duration(seconds: 2), pop);
+      // Success/error responses use `status`, not `type: broadcast` — observe
+      // the response channel directly instead of the global event stream filter.
+      ditto.store.registerObserver(
+        "SELECT * FROM events WHERE channel = :channel",
+        arguments: {"channel": responseChannel},
+        onChange: (queryResult) {
+          for (final item in queryResult.items) {
+            final response = Map<String, dynamic>.from(item.value);
+            if (!response.containsKey('status')) continue;
+            _handleDesktopLoginResponse(response);
           }
-        }
-      }, onError: (error) {
-        // Handle subscription error and close
-        ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-        showSimpleNotification('Connection error: $error');
-        Timer(const Duration(seconds: 2), pop);
-      });
+        },
+      );
     } catch (e) {
       // Handle any exceptions
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       showSimpleNotification('Subscription error: $e');
+    }
+  }
+
+  void _handleDesktopLoginResponse(Map<String, dynamic> response) {
+    if (response['status'] == 'success') {
+      ref.read(scanStatusProvider.notifier).state =
+          ScanStatus.desktopLoginSuccess;
+      triggerHapticFeedback();
+      showSimpleNotification('Login successful');
+      Timer(const Duration(seconds: 1), pop);
+    } else if (response['status'] == 'choices_needed') {
+      ref.read(scanStatusProvider.notifier).state =
+          ScanStatus.desktopLoginSuccess;
+      showSimpleNotification('Login successful - select your business');
+      Timer(const Duration(seconds: 1), pop);
+    } else {
+      ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
+
+      final errorMessage = response.containsKey('message')
+          ? response['message']
+          : 'Login failed';
+
+      showSimpleNotification(errorMessage);
+      Timer(const Duration(seconds: 2), pop);
     }
   }
 
@@ -276,8 +274,7 @@ class AuthScannerActions implements ScannerActions {
       ProxyService.strategy
           .getPinLocal(alwaysHydrate: alwaysHydrate, userId: userId);
   @override
-  EventService getEventService() =>
-      EventService(userId: getUserId().toString());
+  EventService getEventService() => ProxyService.event as EventService;
   @override
   dynamic getBoxService() => throw UnimplementedError();
   @override

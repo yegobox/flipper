@@ -482,10 +482,20 @@ class AppService with ListenableServiceMixin {
     // Initialize DittoSingleton with the temporary ID
     await DittoSingleton.instance.initialize(appId: appID, userId: tempUserId);
 
+    // QR login auth+sync starts unawaited inside [initialize]; wait here so
+    // [subscribeLoginEvent] registers replication after cloud auth is active.
+    final cloudReady = await DittoSingleton.instance.ensureQrLoginCloudReady();
+    if (!cloudReady) {
+      print(
+        '⚠️ Ditto QR-login cloud replication not ready — '
+        'phone scan may not reach this device',
+      );
+    }
+
     // QR login only needs the events collection subscription. Do not attach the
     // generated model sync coordinator to the temporary login Ditto identity.
     await DittoSyncCoordinator.instance.setDitto(null);
-    print("Ditto initialized for login flow");
+    print("Ditto initialized for login flow (cloudReady=$cloudReady)");
   }
 
   /// Opens Ditto for a returning session (real user id) before LoginChoices.
@@ -514,6 +524,13 @@ class AppService with ListenableServiceMixin {
   /// Tear down Ditto started for desktop QR login (temp identity + replication).
   /// Call when the user switches to PIN so sync does not compete with SQLite/Brick.
   Future<void> disposeQrLoginDitto() => beginQrLoginTeardown();
+
+  /// Last Ditto [initialize] user id (e.g. `login-<timestamp>` on QR screen).
+  String? get dittoPersistenceUserId => DittoSingleton.persistenceUserId;
+
+  /// Awaits QR-login cloud auth + sync after [initDittoForLogin].
+  Future<bool> ensureQrLoginCloudReady() =>
+      DittoSingleton.instance.ensureQrLoginCloudReady();
 
   Future<void> _attachLocalStorageDittoIfReady() async {
     if (!ProxyService.ditto.isReady()) return;

@@ -79,8 +79,14 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     if (!mounted || _switchingToPinLogin) return;
 
     final appService = locator<AppService>();
-    if (!ProxyService.ditto.isReady()) {
+    // Always (re)open the isolated login-* Ditto identity for this QR session.
+    // Skipping when [isReady] left a stale non-login instance subscribed with
+    // no cloud replication — polling then stays at 0 events forever.
+    final persistenceUserId = appService.dittoPersistenceUserId;
+    if (persistenceUserId != _loginCode || !ProxyService.ditto.isCloudReady()) {
       await appService.initDittoForLogin(_loginCode);
+    } else {
+      await appService.ensureQrLoginCloudReady();
     }
     if (!mounted || _switchingToPinLogin) return;
 
