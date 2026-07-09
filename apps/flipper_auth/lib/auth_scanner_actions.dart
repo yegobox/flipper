@@ -7,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/qr_login_client.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_scanner/providers/scan_status_provider.dart';
@@ -149,8 +150,6 @@ class AuthScannerActions implements ScannerActions {
   // Private methods moved from scanner_view.dart
   Future<void> _publishLoginDetails(String channel) async {
     try {
-      await _ensureMobileDittoCloudReady();
-
       String userId = getUserId();
       String businessId = getBusinessId();
       String branchId = getBranchId();
@@ -170,11 +169,7 @@ class AuthScannerActions implements ScannerActions {
       // get the pin
       final pin = await getPinLocal(userId: userId, alwaysHydrate: false);
 
-      // Register the login channel before writing so Ditto Cloud routes the doc
-      // to the desktop QR-login peer that subscribed to the same channel.
-      await DittoService.instance.ensureEventsChannelSubscription(channel);
-
-      await ProxyService.event.publish(loginDetails: {
+      final loginDetails = <String, dynamic>{
         'channel': channel,
         'userId': userId,
         'businessId': businessId,
@@ -187,7 +182,15 @@ class AuthScannerActions implements ScannerActions {
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': linkingCode,
         'responseChannel': responseChannel,
-      });
+      };
+
+      // Phone → Ditto direct writes often never reach Ditto Cloud (portal query
+      // empty). Relay via data-connector's subscribed service peer instead.
+      final connectorUrl = await _resolveQrLoginDataConnectorUrl(branchId);
+      await publishQrLoginEventViaDataConnector(
+        baseUrl: connectorUrl,
+        loginDetails: loginDetails,
+      );
 
       // Handle successful publish - keep in pending state
       ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
@@ -199,25 +202,17 @@ class AuthScannerActions implements ScannerActions {
     }
   }
 
-  Future<void> _ensureMobileDittoCloudReady({
-    Duration timeout = const Duration(seconds: 30),
-  }) async {
-    if (!DittoService.instance.isReady()) {
-      throw StateError('Ditto not initialized — cannot send QR login event');
-    }
-
-    if (!DittoService.instance.isCloudReady()) {
-      DittoService.instance.startSync();
-    }
-
-    final deadline = DateTime.now().add(timeout);
-    while (DateTime.now().isBefore(deadline)) {
-      if (DittoService.instance.isCloudReady()) return;
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    }
-
-    throw StateError(
-      'Ditto cloud sync not ready — login event would stay on this phone only',
+  Future<String> _resolveQrLoginDataConnectorUrl(String branchId) async {
+    String? dataConnectorUrl;
+    try {
+      final ebm = await ProxyService.strategy.ebm(
+        branchId: branchId,
+        fetchRemote: false,
+      );
+      dataConnectorUrl = ebm?.dataConnectorUrl;
+    } catch (_) {}
+    return resolveQrLoginDataConnectorUrl(
+      dataConnectorUrl: dataConnectorUrl,
     );
   }
 
