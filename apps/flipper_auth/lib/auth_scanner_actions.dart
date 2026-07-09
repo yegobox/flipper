@@ -7,7 +7,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/qr_login_client.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_scanner/providers/scan_status_provider.dart';
@@ -150,6 +149,8 @@ class AuthScannerActions implements ScannerActions {
   // Private methods moved from scanner_view.dart
   Future<void> _publishLoginDetails(String channel) async {
     try {
+      await _ensureMobileDittoForQrLogin();
+
       String userId = getUserId();
       String businessId = getBusinessId();
       String branchId = getBranchId();
@@ -169,7 +170,12 @@ class AuthScannerActions implements ScannerActions {
       // get the pin
       final pin = await getPinLocal(userId: userId, alwaysHydrate: false);
 
-      final loginDetails = <String, dynamic>{
+      // Register subs before write — channel for desktop observer, broad table
+      // sub so Ditto Cloud receives the doc when phone is online.
+      await DittoService.instance.ensureEventsChannelSubscription(channel);
+      await DittoService.instance.ensureBroadEventsCloudSubscription();
+
+      await ProxyService.event.publish(loginDetails: {
         'channel': channel,
         'userId': userId,
         'businessId': businessId,
@@ -182,15 +188,7 @@ class AuthScannerActions implements ScannerActions {
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': linkingCode,
         'responseChannel': responseChannel,
-      };
-
-      // Phone → Ditto direct writes often never reach Ditto Cloud (portal query
-      // empty). Relay via data-connector's subscribed service peer instead.
-      final connectorUrl = await _resolveQrLoginDataConnectorUrl(branchId);
-      await publishQrLoginEventViaDataConnector(
-        baseUrl: connectorUrl,
-        loginDetails: loginDetails,
-      );
+      });
 
       // Handle successful publish - keep in pending state
       ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
@@ -202,17 +200,43 @@ class AuthScannerActions implements ScannerActions {
     }
   }
 
-  Future<String> _resolveQrLoginDataConnectorUrl(String branchId) async {
-    String? dataConnectorUrl;
-    try {
-      final ebm = await ProxyService.strategy.ebm(
-        branchId: branchId,
-        fetchRemote: false,
-      );
-      dataConnectorUrl = ebm?.dataConnectorUrl;
-    } catch (_) {}
-    return resolveQrLoginDataConnectorUrl(
-      dataConnectorUrl: dataConnectorUrl,
+  /// Prepares Ditto for QR login publish.
+  ///
+  /// - **Offline / LAN:** sync active is enough; event writes locally and
+  ///   replicates over P2P to the desktop `login-*` peer.
+  /// - **Online:** also waits for cloud auth so the Big Peer can relay to
+  ///   desktop when phone and Mac are not on the same network.
+  Future<void> _ensureMobileDittoForQrLogin() async {
+    if (!DittoService.instance.isReady()) {
+      throw StateError('Ditto not initialized — cannot send QR login event');
+    }
+
+    if (!DittoService.instance.dittoInstance!.sync.isActive) {
+      DittoService.instance.startSync();
+    }
+
+    final syncDeadline = DateTime.now().add(const Duration(seconds: 15));
+    while (DateTime.now().isBefore(syncDeadline)) {
+      if (DittoService.instance.dittoInstance!.sync.isActive) break;
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+    if (!DittoService.instance.dittoInstance!.sync.isActive) {
+      throw StateError('Ditto sync not active — QR login event would stay local');
+    }
+
+    final connectivity = await Connectivity().checkConnectivity();
+    final isOnline =
+        connectivity.any((result) => result != ConnectivityResult.none);
+    if (!isOnline) return;
+
+    final cloudDeadline = DateTime.now().add(const Duration(seconds: 30));
+    while (DateTime.now().isBefore(cloudDeadline)) {
+      if (DittoService.instance.isCloudReady()) return;
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+
+    throw StateError(
+      'Ditto cloud sync not ready — desktop over internet will not receive login',
     );
   }
 

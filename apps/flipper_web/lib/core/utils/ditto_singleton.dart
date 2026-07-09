@@ -136,7 +136,7 @@ class DittoSingleton {
 
     try {
       print(
-        '🔐 [INIT] loginFlow=$isLoginIdentity (QR/desktop login uses isolated store + cloud-only sync)',
+        '🔐 [INIT] loginFlow=$isLoginIdentity (QR/desktop login uses isolated store)',
       );
 
       // Get the persistence directory first
@@ -234,21 +234,25 @@ class DittoSingleton {
 
       try {
         print('🔧 [INIT] Configuring transports...');
-        if (isLoginIdentity || kIsWeb) {
-          // Web/WASM and QR login: cloud WebSocket only (no BLE/AWDL/mDNS).
+        if (kIsWeb) {
+          // Web/WASM: cloud WebSocket only (no BLE/AWDL/mDNS in browser).
           _ditto!.transportConfig = TransportConfig.builder(
             connect: Connect(webSocketUrls: {webSocketUrl}),
           ).build();
-          print(
-            '✅ [INIT] Cloud WebSocket only '
-            '(${kIsWeb ? "web/WASM" : "QR login"})',
-          );
+          print('✅ [INIT] Cloud WebSocket only (web/WASM)');
         } else {
+          // Native (incl. QR login): P2P + cloud. QR login used to work offline
+          // over LAN before Ditto v5 disabled P2P on login-* peers (#505). The
+          // sync coordinator stays off (deviceName contains login-); only events
+          // channel subscriptions replicate.
           _ditto!.updateTransportConfig((config) {
             config.setAllPeerToPeerEnabled(true);
             config.connect.webSocketUrls = {webSocketUrl};
           });
-          print('✅ [INIT] Peer-to-peer transports + cloud WebSocket enabled');
+          print(
+            '✅ [INIT] Peer-to-peer + cloud WebSocket '
+            '(${isLoginIdentity ? "QR login" : "session"})',
+          );
         }
       } catch (e) {
         print('⚠️ [INIT] Error configuring Ditto transports: $e');
