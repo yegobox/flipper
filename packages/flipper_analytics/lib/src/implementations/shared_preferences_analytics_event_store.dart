@@ -18,15 +18,17 @@ class SharedPreferencesAnalyticsEventStore implements AnalyticsEventStore {
   @override
   Future<void> deleteByIds(List<String> ids) async {
     await initialize();
-    final existing = await peekBatch(limit: 1000);
-    final filtered = existing.where((event) => !ids.contains(event.id)).toList();
+    final existing = await _loadAll();
+    final filtered = existing
+        .where((event) => !ids.contains(event.id))
+        .toList();
     await _write(filtered);
   }
 
   @override
   Future<void> enqueue(PendingAnalyticsEvent event) async {
     await initialize();
-    final existing = await peekBatch(limit: 1000);
+    final existing = await _loadAll();
     existing.add(event);
     await _write(existing);
   }
@@ -34,7 +36,7 @@ class SharedPreferencesAnalyticsEventStore implements AnalyticsEventStore {
   @override
   Future<void> incrementAttempts(String id) async {
     await initialize();
-    final existing = await peekBatch(limit: 1000);
+    final existing = await _loadAll();
     final updated = existing
         .map(
           (event) => event.id == id
@@ -48,12 +50,16 @@ class SharedPreferencesAnalyticsEventStore implements AnalyticsEventStore {
   @override
   Future<List<PendingAnalyticsEvent>> peekBatch({int limit = 50}) async {
     await initialize();
+    final events = await _loadAll();
+    return events.take(limit).toList();
+  }
+
+  Future<List<PendingAnalyticsEvent>> _loadAll() async {
     final raw = _prefs?.getStringList(_prefsKey) ?? const [];
-    final events = raw
+    return raw
         .map((value) => PendingAnalyticsEvent.fromJson(jsonDecode(value)))
         .toList()
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return events.take(limit).toList();
   }
 
   Future<void> _write(List<PendingAnalyticsEvent> events) async {

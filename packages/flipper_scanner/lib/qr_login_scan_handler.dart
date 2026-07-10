@@ -7,7 +7,7 @@ import 'package:flipper_scanner/providers/scan_status_provider.dart';
 import 'package:flipper_scanner/random.dart';
 import 'package:flipper_scanner/scanner_actions.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Shared phone-side QR desktop login flow (dashboard + auth scanners).

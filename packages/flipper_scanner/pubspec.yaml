@@ -17,7 +17,6 @@ dependencies:
   connectivity_plus: ^7.0.0 # Check latest version
   flipper_models: any
   flipper_services: any
-  flipper_web: any
   flipper_ui: any
   flipper_routing: any
 dependency_overrides:
