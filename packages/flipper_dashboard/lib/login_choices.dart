@@ -1,3 +1,4 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -9,7 +10,6 @@ import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/posthog_service.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -887,8 +887,25 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       businessId: selectedBusinessId,
     );
 
-    PosthogService.instance.capture(
-      'login_success',
+    final analytics = ProxyService.productAnalytics;
+    unawaited(
+      analytics.identify(
+        ProxyService.box.getUserId()?.toString() ?? 'unknown_user',
+        properties: const {'source': 'login_choices'},
+      ),
+    );
+    if (selectedBusinessId != null) {
+      unawaited(
+        analytics.group(
+          'business',
+          selectedBusinessId,
+          properties: const {'source': 'login_choices'},
+        ),
+      );
+    }
+    unawaited(analytics.reloadFeatureFlags());
+    analytics.track(
+      AnalyticsEvents.loginSuccess,
       properties: {
         'source': 'login_choices',
         if (selectedBusinessId != null) 'business_id': selectedBusinessId,

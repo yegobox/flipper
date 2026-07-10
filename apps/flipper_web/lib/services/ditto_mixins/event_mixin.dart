@@ -1,13 +1,71 @@
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
 
 mixin EventMixin on DittoCore {
-  /// Save an event to the events collection
+  /// Save an event to the events collection (P2P and/or Ditto Cloud).
+  ///
+  /// Offline: local write only — replicates to desktop over LAN (P2P).
+  /// Online: [executeUpsert] pushes to Ditto Cloud (Big Peer) when authenticated.
   Future<void> saveEvent(Map<String, dynamic> eventData, String eventId) async {
     if (dittoInstance == null) return handleNotInitialized('saveEvent');
+    final channel = _eventChannel(eventData, eventId);
+    await ensureEventsChannelSubscription(channel);
+    await ensureBroadEventsCloudSubscription();
     final flattened = _flattenEventData(eventData, eventId);
-    await executeUpsert('events', eventId, flattened);
-    debugPrint('Saved event with ID: $eventId');
+    if (isCloudReady()) {
+      await executeUpsert('events', eventId, flattened);
+      debugPrint(
+        'Saved event with ID: $eventId (channel: $channel, cloud=yes)',
+      );
+    } else {
+      await executeUpsertLocal('events', eventId, flattened);
+      debugPrint(
+        'Saved event with ID: $eventId (channel: $channel, p2p-only)',
+      );
+    }
+  }
+
+  /// Belt-and-suspenders: active subscription on `events` is required for
+  /// Ditto to push local writes up to the Big Peer (see data-connector GL subs).
+  Future<void> ensureBroadEventsCloudSubscription() async {
+    final ditto = dittoInstance;
+    if (ditto == null) return;
+    try {
+      ditto.sync.registerSubscription('SELECT * FROM events');
+    } catch (e) {
+      debugPrint('ensureBroadEventsCloudSubscription: $e');
+    }
+  }
+
+  /// Register replication for [channel] so cloud peers (e.g. desktop QR login)
+  /// receive events published from a phone.
+  Future<void> ensureEventsChannelSubscription(String channel) async {
+    final ditto = dittoInstance;
+    if (ditto == null || channel.isEmpty) return;
+
+    final prepared = prepareDqlSyncSubscription(
+      'SELECT * FROM events WHERE channel = :channel',
+      {'channel': channel},
+    );
+    try {
+      ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+    } catch (e) {
+      debugPrint('ensureEventsChannelSubscription($channel): $e');
+    }
+  }
+
+  String _eventChannel(Map<String, dynamic> eventData, String eventId) {
+    final top = eventData['channel'];
+    if (top is String && top.isNotEmpty) return top;
+    if (eventData['data'] is Map<String, dynamic>) {
+      final nested = (eventData['data'] as Map<String, dynamic>)['channel'];
+      if (nested is String && nested.isNotEmpty) return nested;
+    }
+    return eventId;
   }
 
   /// Get events for a specific channel and type
@@ -39,7 +97,9 @@ mixin EventMixin on DittoCore {
     }
     flattened['timestamp'] = DateTime.now().toIso8601String();
     flattened['_id'] = eventId;
-    flattened['channel'] = eventId;
+    // Keep the logical login/response channel from the payload — [eventId] may
+    // be a unique doc id while [channel] is the QR session id desktop polls.
+    flattened['channel'] = flattened['channel'] ?? eventId;
     return flattened;
   }
 }

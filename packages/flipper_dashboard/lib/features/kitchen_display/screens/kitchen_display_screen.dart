@@ -1,9 +1,9 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'dart:async';
 
@@ -20,6 +20,8 @@ class KitchenDisplayScreen extends ConsumerStatefulWidget {
 
 class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
   bool _pendingDrag = false;
+
+  ProductAnalytics get _analytics => ProxyService.productAnalytics;
 
   /// Same Capella observer as the tickets screen (WAITING + PARKED + IN_PROGRESS).
   static final kitchenOrdersStreamProvider = StreamProvider<List<ITransaction>>((
@@ -175,7 +177,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       );
 
       unawaited(
-        PosthogService.instance.capture(
+        _analytics.track(
           'kitchen_order_status_changed',
           properties: {
             'order_id': order.id,
@@ -191,7 +193,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       );
     } catch (e) {
       // Track error event
-      await PosthogService.instance.capture(
+      await _analytics.track(
         'kitchen_order_status_change_failed',
         properties: {
           'order_id': order.id,

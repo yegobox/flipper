@@ -6,8 +6,12 @@ import 'package:flipper_web/features/login/signup_providers.dart';
 import 'package:flipper_web/repositories/signup_repository.dart';
 import 'package:flipper_web/models/business_type.dart';
 
+import '../../helpers/fake_product_analytics.dart';
+
 // Mock repository for testing
 class MockSignupRepository extends SignupRepository {
+  MockSignupRepository() : super(analytics: FakeProductAnalytics());
+
   bool checkUsernameResult = true;
   Map<String, dynamic> registerUserResult = {};
   String? errorMessage;
@@ -128,7 +132,7 @@ void main() {
         country: 'Rwanda',
       );
 
-      expect(result, isTrue);
+      expect(result, equals(mockRepository.registerUserResult));
       expect(mockRepository.registeredUsers.length, 1);
       expect(
         mockRepository.registeredUsers.first.username,

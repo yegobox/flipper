@@ -1,5 +1,5 @@
-// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format width=80
 
 // **************************************************************************
 // InjectableConfigGenerator
@@ -10,6 +10,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:firebase_crashlytics/firebase_crashlytics.dart' as _i141;
+import 'package:flipper_analytics/flipper_analytics.dart' as _i714;
 import 'package:flipper_models/DatabaseSyncInterface.dart' as _i7;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
 import 'package:flipper_models/Supabase.dart' as _i163;
@@ -51,16 +52,12 @@ import 'setting_service.dart' as _i290;
 import 'status.dart' as _i21;
 
 extension GetItInjectableX on _i174.GetIt {
-// initializes the registration of main-scope dependencies inside of GetIt
+  // initializes the registration of main-scope dependencies inside of GetIt
   Future<_i174.GetIt> init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
   }) async {
-    final gh = _i526.GetItHelper(
-      this,
-      environment,
-      environmentFilter,
-    );
+    final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final servicesModule = _$ServicesModule();
     gh.factory<bool>(() => servicesModule.isTestEnvironment());
     gh.singleton<_i141.FirebaseCrashlytics>(() => servicesModule.crashlytics);
@@ -85,26 +82,35 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i445.LNotification>(() => servicesModule.notification);
     gh.lazySingleton<_i299.FlipperLocation>(() => servicesModule.location);
     gh.lazySingleton<_i290.SettingsService>(
-        () => servicesModule.settingsService);
+      () => servicesModule.settingsService,
+    );
     gh.lazySingleton<_i106.AiStrategy>(
-        () => servicesModule.provideAiStrategy());
+      () => servicesModule.provideAiStrategy(),
+    );
     await gh.lazySingletonAsync<_i164.LocalStorage>(
       () => servicesModule.box(),
       preResolve: true,
     );
     gh.lazySingleton<_i843.HttpClientInterface>(() => servicesModule.http());
     gh.lazySingleton<_i918.PayStackServiceInterface>(
-        () => servicesModule.payStack());
+      () => servicesModule.payStack(),
+    );
     gh.lazySingleton<_i32.HttpApiInterface>(() => servicesModule.httpApi());
     gh.lazySingleton<_i172.Remote>(() => servicesModule.remote());
+    gh.lazySingleton<_i714.ProductAnalytics>(
+      () => servicesModule.productAnalytics(),
+    );
     gh.lazySingleton<_i107.SentryServiceInterface>(
-        () => servicesModule.sentry());
+      () => servicesModule.sentry(),
+    );
     gh.lazySingleton<_i403.AppService>(() => servicesModule.appService());
     gh.lazySingleton<_i777.ProductService>(
-        () => servicesModule.productService());
+      () => servicesModule.productService(),
+    );
     gh.lazySingleton<_i1069.CronService>(() => servicesModule.cron());
     gh.lazySingleton<_i798.ForceDataEntryService>(
-        () => servicesModule.forcedataEntry());
+      () => servicesModule.forcedataEntry(),
+    );
     gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());
     await gh.lazySingletonAsync<_i7.DatabaseSyncInterface>(
       () => servicesModule.capella(gh<_i164.LocalStorage>()),

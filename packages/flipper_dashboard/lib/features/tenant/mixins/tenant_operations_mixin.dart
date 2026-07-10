@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helpers/tenant_supabase_queries.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/secrets.dart';
@@ -433,19 +434,7 @@ class TenantOperationsMixin {
       return;
     }
     try {
-      // Call Supabase RPC function to remove tenant access
-      final supabaseClient = Supabase.instance.client;
-      await supabaseClient.rpc(
-        'remove_tenant_access',
-        params: {'p_tenant_id': tenant.id, 'p_business_id': tenant.businessId},
-      );
-
-      // Delete the tenant
-      await ProxyService.strategy.flipperDelete(
-        id: tenant.id,
-        endPoint: 'tenant',
-        flipperHttpClient: ProxyService.http,
-      );
+      await TenantSupabaseQueries.removeStaffFromBusiness(tenant: tenant);
 
       model.deleteTenant(tenant); // Update local state
       model.rebuildUi(); // Rebuild the UI

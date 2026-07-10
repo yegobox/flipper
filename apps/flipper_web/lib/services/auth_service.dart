@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/ditto/ditto_bootstrap.dart';
@@ -86,6 +87,7 @@ class AuthService {
       _ref.read(sessionApiUserIdProvider.notifier).state = null;
       await SessionPersistence.clear();
       await BusinessSelectionPersistence.clear();
+      await _ref.read(productAnalyticsProvider).reset();
       await _client.auth.signOut();
     } catch (e) {
       debugPrint('Error signing out: $e');

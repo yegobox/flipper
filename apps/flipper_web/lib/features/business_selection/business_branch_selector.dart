@@ -1,4 +1,6 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/features/business_selection/login_choices_ui.dart';
@@ -299,6 +301,14 @@ class _BusinessBranchSelectorState
     ref.read(selectedBusinessProvider.notifier).set(business);
     ref.read(selectedBranchProvider.notifier).set(null);
     kickoffAccountingBootstrap(ref, business.id);
+    await ref.read(productAnalyticsProvider).track(
+      AnalyticsEvents.businessSelected,
+      properties: {
+        'source': 'business_branch_selector',
+        'business_id': business.id,
+        'business_name': business.name,
+      },
+    );
 
     try {
       final tenant = widget.userProfile.tenants.first;
@@ -341,6 +351,32 @@ class _BusinessBranchSelectorState
 
     final business = ref.read(selectedBusinessProvider);
     if (business != null) {
+      final analytics = ref.read(productAnalyticsProvider);
+      await analytics.group(
+        'business',
+        business.id,
+        properties: {
+          'source': 'business_branch_selector',
+          'business_name': business.name,
+        },
+      );
+      await analytics.track(
+        AnalyticsEvents.branchSelected,
+        properties: {
+          'source': 'business_branch_selector',
+          'business_id': business.id,
+          'branch_id': branch.id,
+          'branch_name': branch.name,
+        },
+      );
+      await analytics.track(
+        AnalyticsEvents.booksSessionStarted,
+        properties: {
+          'source': 'business_branch_selector',
+          'business_id': business.id,
+          'branch_id': branch.id,
+        },
+      );
       kickoffAccountingBootstrap(ref, business.id);
       final apiUserId = await SessionPersistence.readApiUserId();
       await BusinessSelectionPersistence.save(

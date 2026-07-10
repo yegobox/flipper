@@ -1,5 +1,7 @@
 // router and auth wiring moved to router_provider
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_web/core/flipper_web_host.dart';
+import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/features/login/theme_provider.dart';
 import 'package:flipper_web/core/localization/locale_provider.dart';
 import 'package:flipper_web/router/router_provider.dart';
@@ -38,6 +40,18 @@ Future<void> main() async {
 
     // Initialize Supabase
     await initializeSupabase();
+
+    await FlipperAnalytics.initialize(
+      appName: 'flipper_web',
+      platformName: 'web',
+      projectToken: AppSecrets.postHogProjectToken,
+      store: SharedPreferencesAnalyticsEventStore(),
+      contextProvider: CallbackAnalyticsContextProvider(
+        appName: 'flipper_web',
+        platformName: 'web',
+        buildMode: kDebugMode ? 'debug' : 'release',
+      ),
+    );
 
     // Ditto initializes after login via DittoBootstrap (needs pin user id).
     debugPrint(

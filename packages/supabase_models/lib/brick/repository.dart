@@ -32,6 +32,7 @@ import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
 import 'package:supabase_models/brick/models/counter.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
+import 'package:supabase_models/brick/models/pending_analytics_event.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// Main repository class that serves as an entry point to the database operations
@@ -320,6 +321,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       memoryCacheProvider: MemoryCacheProvider(),
       dbPath: dbPath,
     );
+    await _singleton!._ensurePendingAnalyticsEventTable();
 
     _markReady();
     print('✅ [Repository] Repository marked as ready');
@@ -634,6 +636,97 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         ],
       ),
     );
+  }
+
+  Future<void> enqueueAnalyticsEvent(PendingAnalyticsEventRecord event) async {
+    if (_isDisposed) {
+      throw StateError('Repository is disposed');
+    }
+    await _ensurePendingAnalyticsEventTable();
+    final db = await sqliteProvider.getDb();
+    await db.insert(
+      'PendingAnalyticsEvents',
+      {
+        'id': event.id,
+        'event_name': event.eventName,
+        'properties_json': event.propertiesJson,
+        'event_type': event.eventType,
+        'created_at': event.createdAt.toUtc().toIso8601String(),
+        'attempt_count': event.attemptCount,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<PendingAnalyticsEventRecord>> getPendingAnalyticsEvents({
+    int limit = 50,
+  }) async {
+    if (_isDisposed) {
+      throw StateError('Repository is disposed');
+    }
+    await _ensurePendingAnalyticsEventTable();
+    final db = await sqliteProvider.getDb();
+    final rows = await db.query(
+      'PendingAnalyticsEvents',
+      orderBy: 'created_at ASC',
+      limit: limit,
+    );
+    return rows
+        .map(
+          (row) => PendingAnalyticsEventRecord(
+            id: row['id'] as String,
+            eventName: row['event_name'] as String,
+            propertiesJson: row['properties_json'] as String,
+            eventType: row['event_type'] as String,
+            createdAt: DateTime.parse(row['created_at'] as String).toUtc(),
+            attemptCount: (row['attempt_count'] as num?)?.toInt() ?? 0,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Future<void> deleteAnalyticsEvents(List<String> ids) async {
+    if (_isDisposed || ids.isEmpty) {
+      return;
+    }
+    await _ensurePendingAnalyticsEventTable();
+    final db = await sqliteProvider.getDb();
+    final placeholders = List.filled(ids.length, '?').join(',');
+    await db.delete(
+      'PendingAnalyticsEvents',
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+  }
+
+  Future<void> incrementAnalyticsEventAttempt(String id) async {
+    if (_isDisposed) {
+      return;
+    }
+    await _ensurePendingAnalyticsEventTable();
+    final db = await sqliteProvider.getDb();
+    await db.rawUpdate(
+      '''
+      UPDATE PendingAnalyticsEvents
+      SET attempt_count = attempt_count + 1
+      WHERE id = ?
+      ''',
+      [id],
+    );
+  }
+
+  Future<void> _ensurePendingAnalyticsEventTable() async {
+    final db = await sqliteProvider.getDb();
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS PendingAnalyticsEvents (
+        id TEXT PRIMARY KEY,
+        event_name TEXT NOT NULL,
+        properties_json TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        attempt_count INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
   }
 
   /// Upserts a model from Ditto without triggering a Ditto notification loop.

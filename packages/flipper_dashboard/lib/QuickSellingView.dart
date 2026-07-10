@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -26,7 +27,6 @@ import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -97,7 +97,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         TransactionItemTable,
         DateCoreWidget,
         Refresh<QuickSellingView>,
-        TransactionComputationMixin {
+        TransactionComputationMixin,
+        AnalyticsTrackingMixin {
+  @override
+  ProductAnalytics get analytics => ProxyService.productAnalytics;
+
   /// Current tender from the received-amount field, falling back to payment methods.
   /// Treat field "0" as unset so we do not prefer a cleared field over payments.
   double _currentTenderAmount(List<Payment> payments) {
@@ -880,8 +884,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final duration = endTime.difference(startTime).inSeconds;
 
     unawaited(
-      PosthogService.instance.capture(
-        'quick_sell_completed',
+      analytics.track(
+        AnalyticsEvents.quickSellCompleted,
         properties: {
           'transaction_id': transaction.id,
           'branch_id': transaction.branchId!,

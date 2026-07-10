@@ -50,6 +50,38 @@ class EventService
   dynamic _loginObserver;
   dynamic _loginSubscription;
   void Function(Ditto?)? _loginDittoListener;
+  Timer? _loginPollingTimer;
+  bool _loginObserverActive = false;
+  final Set<String> _processedLoginEventIds = {};
+  int _loginEmptyPollCount = 0;
+
+  void _emitDesktopLoginStatus(DesktopLoginStatus status) {
+    if (!_desktopLoginStatusController.isClosed) {
+      _desktopLoginStatusController.add(status);
+    }
+  }
+
+  Future<void> _publishLoginResponse({
+    required String responseChannel,
+    required String status,
+    String? message,
+  }) async {
+    try {
+      await publish(
+        loginDetails: {
+          'channel': responseChannel,
+          'status': status,
+          if (message != null) 'message': message,
+          if (status == 'success') 'loggedOut': false,
+        },
+      );
+      talker.debug(
+        'Sent login $status response to channel: $responseChannel',
+      );
+    } catch (e) {
+      talker.error('Failed to send login response: $e');
+    }
+  }
 
   @override
   Stream<DesktopLoginStatus> desktopLoginStatusStream() =>
@@ -57,13 +89,13 @@ class EventService
 
   @override
   void resetLoginStatus() {
-    _desktopLoginStatusController.add(
+    _emitDesktopLoginStatus(
       DesktopLoginStatus(DesktopLoginState.idle),
     );
   }
 
   EventService({required this.userId}) {
-    _desktopLoginStatusController.add(
+    _emitDesktopLoginStatus(
       DesktopLoginStatus(DesktopLoginState.idle),
     );
     _setupEventObservation();
@@ -154,24 +186,23 @@ class EventService
     String eventType,
     Map<String, dynamic> data,
   ) async {
-    try {
-      // Check if Ditto is ready before attempting to save events
-      if (!DittoService.instance.isReady()) {
-        talker.warning(
-          'Ditto not initialized yet, cannot save event. Event will be lost.',
-        );
-        return;
-      }
-
-      await DittoService.instance.saveEvent({
-        'channel': channel,
-        'type': eventType,
-        'data': data,
-      }, channel);
-    } catch (e) {
-      talker.error('Error saving event: $e');
+    if (!DittoService.instance.isReady()) {
+      throw StateError(
+        'Ditto not initialized yet, cannot save event for channel $channel',
+      );
     }
+
+    final eventId = _uniqueEventDocId(channel);
+    await DittoService.instance.saveEvent({
+      'channel': channel,
+      'type': eventType,
+      'data': data,
+    }, eventId);
+    talker.debug('Event saved: $eventId (channel: $channel)');
   }
+
+  String _uniqueEventDocId(String channel) =>
+      '${channel}_${DateTime.now().millisecondsSinceEpoch}';
 
   Stream<Map<String, dynamic>> subscribeToEvents({
     required String channel,
@@ -190,28 +221,27 @@ class EventService
 
   @override
   Future<void> publish({required Map loginDetails}) async {
-    try {
-      // Store the event in ditto - for response events, don't nest the data
-      final channel = loginDetails['channel'] ?? 'default';
-      final eventType = loginDetails['type'] ?? 'broadcast';
+    // Store the event in ditto - for response events, don't nest the data
+    final channel = loginDetails['channel'] ?? 'default';
+    final eventType = loginDetails['type'] ?? 'broadcast';
 
-      // For response events (success/error), save the data directly without nesting
-      if (loginDetails.containsKey('status')) {
-        await DittoService.instance.saveEvent(
-          Map<String, dynamic>.from(loginDetails),
-          channel,
-        );
-      } else {
-        // For other events, use the nested structure
-        await saveEvent(
-          channel,
-          eventType,
-          Map<String, dynamic>.from(loginDetails),
-        );
-      }
-    } catch (e) {
-      talker.error('Error publishing event with ditto: $e');
+    // For response events (success/error), save the data directly without nesting
+    if (loginDetails.containsKey('status')) {
+      final eventId = _uniqueEventDocId(channel);
+      await DittoService.instance.saveEvent(
+        Map<String, dynamic>.from(loginDetails),
+        eventId,
+      );
+      talker.debug('Published status event: $eventId (channel: $channel)');
+      return;
     }
+
+    // For other events, use the nested structure
+    await saveEvent(
+      channel,
+      eventType,
+      Map<String, dynamic>.from(loginDetails),
+    );
   }
 
   @override
@@ -272,6 +302,8 @@ class EventService
   }
 
   void _teardownLoginEventSubscription({required bool removeListener}) {
+    _loginObserverActive = false;
+
     if (removeListener && _loginDittoListener != null) {
       DittoService.instance.removeDittoListener(_loginDittoListener!);
       _loginDittoListener = null;
@@ -283,7 +315,11 @@ class EventService
     final loginObserver = _loginObserver;
     _loginObserver = null;
     if (loginObserver != null) {
-      unawaited(Future<void>.value(loginObserver.cancel()));
+      // Defer cancel so Ditto's native callback can finish without hitting a
+      // closed internal StreamController ("Cannot add event after closing").
+      scheduleMicrotask(() {
+        unawaited(Future<void>.value(loginObserver.cancel()));
+      });
     }
 
     final loginSubscription = _loginSubscription;
@@ -295,15 +331,74 @@ class EventService
     }
   }
 
-  // Timer for polling login events
-  Timer? _loginPollingTimer;
-  // Track processed event IDs to avoid duplicate processing
-  final Set<String> _processedLoginEventIds = {};
-  // Reduce log spam from polling when there are no events.
-  int _loginEmptyPollCount = 0;
-
   /// Actually set up the login event subscription (called when Ditto is ready)
   void _doSubscribeLoginEvent(String channel, dynamic ditto) {
+    unawaited(_doSubscribeLoginEventWhenCloudReady(channel, ditto));
+  }
+
+  Future<void> _doSubscribeLoginEventWhenCloudReady(
+    String channel,
+    dynamic ditto,
+  ) async {
+    try {
+      if (!await _waitForLoginDittoCloudReady(channel, ditto)) {
+        talker.error(
+          'Ditto cloud replication not ready — cannot receive QR login events',
+        );
+        _emitDesktopLoginStatus(
+          DesktopLoginStatus(
+            DesktopLoginState.failure,
+            message: 'Connection error. Please try again.',
+          ),
+        );
+        return;
+      }
+
+      if (!identical(ditto, dittoService.dittoInstance)) {
+        talker.debug(
+          'Ditto instance replaced before login subscription for $channel',
+        );
+        return;
+      }
+
+      await _registerLoginEventObservation(channel, ditto);
+    } catch (e) {
+      talker.error('Error subscribing to login events: $e');
+      _emitDesktopLoginStatus(
+        DesktopLoginStatus(
+          DesktopLoginState.failure,
+          message: 'Connection error. Please try again.',
+        ),
+      );
+    }
+  }
+
+  Future<bool> _waitForLoginDittoCloudReady(
+    String channel,
+    dynamic ditto, {
+    Duration timeout = const Duration(seconds: 60),
+  }) async {
+    if (dittoService.isCloudReady()) return true;
+
+    talker.debug(
+      'Waiting for Ditto cloud replication before login channel $channel',
+    );
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (!identical(ditto, dittoService.dittoInstance)) return false;
+      if (dittoService.isCloudReady()) {
+        talker.debug('Ditto cloud replication ready for QR login');
+        return true;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+    return dittoService.isCloudReady();
+  }
+
+  Future<void> _registerLoginEventObservation(
+    String channel,
+    dynamic ditto,
+  ) async {
     try {
       // Clear previously processed events for new subscription
       _processedLoginEventIds.clear();
@@ -324,10 +419,12 @@ class EventService
 
       // Use a DEDICATED observer for this channel instead of the global stream
       // This ensures we directly watch for synced events
+      _loginObserverActive = true;
       _loginObserver = ditto.store.registerObserver(
         "SELECT * FROM events WHERE channel = :channel",
         arguments: {"channel": channel},
         onChange: (queryResult) {
+          if (!_loginObserverActive) return;
           talker.debug(
             'Login observer fired for channel $channel, items: ${queryResult.items.length}',
           );
@@ -338,10 +435,11 @@ class EventService
         },
       );
 
-      // Also set up polling as backup since observers may not fire reliably for synced data
-      _loginPollingTimer = Timer.periodic(const Duration(seconds: 2), (
+      // Also set up polling as backup since observers may not fire reliably
+      _loginPollingTimer = Timer.periodic(const Duration(milliseconds: 500), (
         _,
       ) async {
+        if (!_loginObserverActive) return;
         await _pollForLoginEvents(channel, ditto);
       });
 
@@ -353,15 +451,18 @@ class EventService
       );
     } catch (e) {
       talker.error('Error subscribing to login events: $e');
-      String errorMessage = 'Connection error. Please try again.';
-      _desktopLoginStatusController.add(
-        DesktopLoginStatus(DesktopLoginState.failure, message: errorMessage),
+      _emitDesktopLoginStatus(
+        DesktopLoginStatus(
+          DesktopLoginState.failure,
+          message: 'Connection error. Please try again.',
+        ),
       );
     }
   }
 
   /// Poll for login events in the specified channel
   Future<void> _pollForLoginEvents(String channel, dynamic ditto) async {
+    if (!_loginObserverActive) return;
     try {
       final result = await ditto.store.execute(
         "SELECT * FROM events WHERE channel = :channel",
@@ -392,6 +493,30 @@ class EventService
     }
   }
 
+  Future<void> _markLoginEventConsumed(
+    Map<String, dynamic> event,
+    String channel,
+  ) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    final eventId = event['_id']?.toString();
+    try {
+      if (eventId != null && eventId.isNotEmpty) {
+        await ditto.store.execute(
+          'UPDATE events SET loginConsumed = true WHERE _id = :id',
+          arguments: {'id': eventId},
+        );
+      }
+      await ditto.store.execute(
+        "UPDATE events SET loginConsumed = true WHERE channel = :channel AND type = 'broadcast'",
+        arguments: {'channel': channel},
+      );
+    } catch (e) {
+      talker.warning('Failed to mark login event consumed: $e');
+    }
+  }
+
   /// Handle a login event with deduplication
   void _handleLoginEventDedup(Map<String, dynamic> event, String channel) {
     final eventId = event['_id']?.toString() ?? '';
@@ -399,14 +524,17 @@ class EventService
     // Skip if already processed
     if (_processedLoginEventIds.contains(eventId)) return;
 
-    // Skip if logged out
+    // Skip if logged out or already used for a completed QR login
     if (event['loggedOut'] == true) return;
+    if (event['loginConsumed'] == true) return;
 
     // Skip success responses (these are our own responses)
     if (event['status'] == 'success') return;
 
     talker.debug('Processing login event: $event');
     _processedLoginEventIds.add(eventId);
+
+    unawaited(_markLoginEventConsumed(event, channel));
 
     // The QR login Ditto instance is temporary. Once we have the payload, tear
     // down its observer/subscription before the real login flow opens db2 and
@@ -429,7 +557,7 @@ class EventService
       talker.debug(
         'Received login/broadcast event for channel $channel: $event',
       );
-      _desktopLoginStatusController.add(
+      _emitDesktopLoginStatus(
         DesktopLoginStatus(DesktopLoginState.loading),
       );
 
@@ -534,23 +662,27 @@ class EventService
       );
       // Complete login and send success response
       await ProxyService.strategy.completeLogin(thePin);
+
+      _emitDesktopLoginStatus(
+        DesktopLoginStatus(DesktopLoginState.success),
+      );
+      if (responseChannel != null) {
+        await _publishLoginResponse(
+          responseChannel: responseChannel,
+          status: 'success',
+          message: 'Login successful',
+        );
+      }
     } on LoginChoicesException {
-      _desktopLoginStatusController.add(
+      _emitDesktopLoginStatus(
         DesktopLoginStatus(DesktopLoginState.success),
       );
 
-      // This is expected - rethrow to let auth_mixin handle navigation
       if (responseChannel != null) {
-        await publish(
-          loginDetails: {
-            'channel': responseChannel,
-            'status': 'success',
-            'loggedOut': false,
-            'message': 'Login successful',
-          },
-        );
-        talker.debug(
-          "Sent login success response to channel: $responseChannel",
+        await _publishLoginResponse(
+          responseChannel: responseChannel,
+          status: 'choices_needed',
+          message: 'Select your business on the desktop',
         );
       }
       locator<RouterService>().navigateTo(LoginChoicesRoute());
@@ -564,21 +696,14 @@ class EventService
 
       // Send error response if we have a channel
       if (errorResponseChannel != null) {
-        try {
-          await publish(
-            loginDetails: {
-              'channel': errorResponseChannel,
-              'status': 'error',
-              'message': errorMessage,
-            },
-          );
-        } catch (responseError) {
-          talker.error('Failed to send error response: $responseError');
-        }
+        await _publishLoginResponse(
+          responseChannel: errorResponseChannel,
+          status: 'error',
+          message: errorMessage,
+        );
       }
 
-      // Update UI with failure status
-      _desktopLoginStatusController.add(
+      _emitDesktopLoginStatus(
         DesktopLoginStatus(DesktopLoginState.failure, message: errorMessage),
       );
     }

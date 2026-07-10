@@ -23,6 +23,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/helperModels/business_type.dart' as helper;
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 
 const socialApp = "socials";
@@ -482,10 +483,30 @@ class AppService with ListenableServiceMixin {
     // Initialize DittoSingleton with the temporary ID
     await DittoSingleton.instance.initialize(appId: appID, userId: tempUserId);
 
+    // QR login auth+sync starts unawaited inside [initialize]; wait here so
+    // [subscribeLoginEvent] registers replication after cloud auth is active.
+    final cloudReady = await DittoSingleton.instance.ensureQrLoginCloudReady();
+    if (!cloudReady) {
+      print(
+        '⚠️ Ditto QR-login cloud replication not ready — '
+        'phone scan may not reach this device',
+      );
+    } else {
+      final ditto = DittoSingleton.instance.ditto;
+      if (ditto != null) {
+        try {
+          // Belt-and-suspenders: receive any events doc the phone publishes.
+          ditto.sync.registerSubscription('SELECT * FROM events');
+        } catch (e) {
+          print('⚠️ QR-login broad events subscription: $e');
+        }
+      }
+    }
+
     // QR login only needs the events collection subscription. Do not attach the
     // generated model sync coordinator to the temporary login Ditto identity.
     await DittoSyncCoordinator.instance.setDitto(null);
-    print("Ditto initialized for login flow");
+    print("Ditto initialized for login flow (cloudReady=$cloudReady)");
   }
 
   /// Opens Ditto for a returning session (real user id) before LoginChoices.
@@ -514,6 +535,13 @@ class AppService with ListenableServiceMixin {
   /// Tear down Ditto started for desktop QR login (temp identity + replication).
   /// Call when the user switches to PIN so sync does not compete with SQLite/Brick.
   Future<void> disposeQrLoginDitto() => beginQrLoginTeardown();
+
+  /// Last Ditto [initialize] user id (e.g. `login-<timestamp>` on QR screen).
+  String? get dittoPersistenceUserId => DittoSingleton.persistenceUserId;
+
+  /// Awaits QR-login cloud auth + sync after [initDittoForLogin].
+  Future<bool> ensureQrLoginCloudReady() =>
+      DittoSingleton.instance.ensureQrLoginCloudReady();
 
   Future<void> _attachLocalStorageDittoIfReady() async {
     if (!ProxyService.ditto.isReady()) return;
@@ -751,7 +779,7 @@ class AppService with ListenableServiceMixin {
   Future<bool> checkAndStartShift({required String userId}) async {
     dynamic currentShift;
     try {
-      currentShift = await ProxyService.strategy
+      currentShift = await shiftSync
           .getCurrentShift(userId: userId)
           .timeout(const Duration(seconds: 12));
     } on TimeoutException {
@@ -771,7 +799,7 @@ class AppService with ListenableServiceMixin {
       }
       final openingBalance = response.data['openingBalance'] as double? ?? 0.0;
       final notes = response.data['notes'] as String?;
-      await ProxyService.strategy.startShift(
+      await shiftSync.startShift(
         userId: userId,
         openingBalance: openingBalance,
         note: notes,
