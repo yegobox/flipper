@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_models/helpers/tenant_supabase_queries.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
@@ -29,6 +31,7 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
   bool _managerSettle = true;
   bool _autoLogout = false;
   List<Tenant> _staff = const [];
+  String? _deletingStaffKey;
 
   @override
   void initState() {
@@ -56,7 +59,66 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
   Future<void> _loadStaff() async {
     final staff = await FlipperBaseModel.fetchBarStaffTenants();
     if (!mounted) return;
-    setState(() => _staff = staff);
+    setState(() => _staff = List<Tenant>.from(staff));
+  }
+
+  void _removeStaffFromList(Tenant tenant) {
+    setState(() {
+      _staff = _staff
+          .where((row) => !barStaffRowMatchesDeleted(row, tenant))
+          .toList();
+    });
+  }
+
+  Future<void> _confirmDeleteStaff(Tenant tenant) async {
+    if (_deletingStaffKey != null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Remove staff member'),
+          content: Text(
+            'Remove ${tenant.name ?? 'this staff member'} from your team? '
+            'They will lose PIN access for this business.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return;
+
+    final deleteKey = barStaffDeleteKey(tenant);
+    setState(() => _deletingStaffKey = deleteKey);
+    try {
+      await TenantSupabaseQueries.removeStaffFromBusiness(tenant: tenant);
+      if (!mounted) return;
+      _removeStaffFromList(tenant);
+      await _loadStaff();
+      if (!mounted) return;
+      showCustomSnackBarUtil(context, 'Staff member removed');
+    } catch (_) {
+      if (!mounted) return;
+      showCustomSnackBarUtil(
+        context,
+        'Could not remove staff member. Please try again.',
+        backgroundColor: Colors.red.shade600,
+      );
+    } finally {
+      if (mounted && _deletingStaffKey == deleteKey) {
+        setState(() => _deletingStaffKey = null);
+      }
+    }
   }
 
   Future<void> _onMasterToggle(bool value) async {
@@ -168,10 +230,19 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
               children: [
                 for (var i = 0; i < _staff.length; i++)
                   BarStaffRow(
+                    key: ValueKey('bar_staff_${_staff[i].id}_${_staff[i].userId}'),
                     tenant: _staff[i],
                     color: barColorForTenant(_staff[i].id, _staff),
                     showTopBorder: i > 0,
+                    isDeleteLoading:
+                        _deletingStaffKey == barStaffDeleteKey(_staff[i]),
                     onEdit: _openUserManagement,
+                    onDelete: barStaffDeleteAllowed(
+                      target: _staff[i],
+                      currentUserId: ProxyService.box.getUserId(),
+                    )
+                        ? () => _confirmDeleteStaff(_staff[i])
+                        : null,
                   ),
               ],
             ),

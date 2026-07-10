@@ -232,12 +232,16 @@ class BarStaffRow extends StatelessWidget {
     required this.tenant,
     required this.color,
     required this.onEdit,
+    this.onDelete,
+    this.isDeleteLoading = false,
     this.showTopBorder = true,
   });
 
   final Tenant tenant;
   final Color color;
   final VoidCallback onEdit;
+  final VoidCallback? onDelete;
+  final bool isDeleteLoading;
   final bool showTopBorder;
 
   static String roleLabel(Tenant tenant) {
@@ -319,9 +323,63 @@ class BarStaffRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
+          if (onDelete != null) ...[
+            BarDeleteButton(
+              onPressed: isDeleteLoading ? null : onDelete,
+              isLoading: isDeleteLoading,
+            ),
+            const SizedBox(width: 8),
+          ],
           BarEditButton(onPressed: onEdit),
         ],
+      ),
+    );
+  }
+}
+
+/// Danger action — trash icon, matches [BarEditButton] footprint.
+class BarDeleteButton extends StatelessWidget {
+  const BarDeleteButton({
+    super.key,
+    required this.onPressed,
+    this.isLoading = false,
+  });
+
+  final VoidCallback? onPressed;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: BarTokens.surface2,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: isLoading ? null : onPressed,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: BarTokens.line),
+          ),
+          alignment: Alignment.center,
+          child: isLoading
+              ? const SizedBox(
+                  width: 17,
+                  height: 17,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: BarTokens.lossInk,
+                  ),
+                )
+              : const Icon(
+                  Icons.delete_outline,
+                  size: 17,
+                  color: BarTokens.lossInk,
+                ),
+        ),
       ),
     );
   }

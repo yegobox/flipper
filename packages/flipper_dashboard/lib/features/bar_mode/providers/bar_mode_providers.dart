@@ -187,6 +187,46 @@ bool barTenantIsManager(Tenant tenant) {
       type.contains('manager');
 }
 
+/// Admin / owner — can manage staff roster (delete, etc.).
+bool barTenantIsAdmin(Tenant tenant) {
+  final type = tenant.type?.toLowerCase() ?? '';
+  return type.contains('admin') || type.contains('owner');
+}
+
+/// Stable key for tracking in-flight staff delete on a roster row.
+String barStaffDeleteKey(Tenant tenant) => '${tenant.id}|${tenant.userId ?? ''}';
+
+/// Whether [row] is the same staff member as [deleted] (id or user_id).
+bool barStaffRowMatchesDeleted(Tenant row, Tenant deleted) {
+  if (row.id == deleted.id) return true;
+  final deletedUserId = deleted.userId?.trim();
+  final rowUserId = row.userId?.trim();
+  if (deletedUserId != null &&
+      deletedUserId.isNotEmpty &&
+      rowUserId == deletedUserId) {
+    return true;
+  }
+  return false;
+}
+
+/// Whether [target] may be removed from the staff list (Management Dashboard).
+///
+/// Caller must already be on an admin-only screen. Blocks self-delete and
+/// admin-role rows.
+bool barStaffDeleteAllowed({
+  required Tenant target,
+  String? currentUserId,
+}) {
+  final targetUserId = target.userId?.trim();
+  final viewerUserId = currentUserId?.trim();
+  if (viewerUserId != null &&
+      targetUserId != null &&
+      viewerUserId == targetUserId) {
+    return false;
+  }
+  return (target.type ?? '').trim().toLowerCase() != 'admin';
+}
+
 int barColorIndexForTenant(String tenantId, List<Tenant> staff) {
   final idx = staff.indexWhere((t) => t.id == tenantId);
   return idx < 0 ? 0 : idx;
