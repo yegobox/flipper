@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../interfaces/analytics_event_store.dart';
@@ -56,10 +57,20 @@ class SharedPreferencesAnalyticsEventStore implements AnalyticsEventStore {
 
   Future<List<PendingAnalyticsEvent>> _loadAll() async {
     final raw = _prefs?.getStringList(_prefsKey) ?? const [];
-    return raw
-        .map((value) => PendingAnalyticsEvent.fromJson(jsonDecode(value)))
-        .toList()
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final events = <PendingAnalyticsEvent>[];
+    for (final value in raw) {
+      try {
+        events.add(
+          PendingAnalyticsEvent.fromJson(
+            jsonDecode(value) as Map<String, dynamic>,
+          ),
+        );
+      } catch (e, st) {
+        debugPrint('Skipping corrupted analytics event entry: $e\n$st');
+      }
+    }
+    events.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return events;
   }
 
   Future<void> _write(List<PendingAnalyticsEvent> events) async {
