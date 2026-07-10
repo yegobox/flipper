@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -501,7 +502,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
         throw Exception('User session has expired. Please log in again.');
       }
 
-      await ProxyService.strategy.startShift(
+      await shiftSync.startShift(
         userId: userId,
         openingBalance: openingBalance,
         // notes: notes.isEmpty ? null : notes,

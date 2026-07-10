@@ -1,4 +1,5 @@
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -73,7 +74,7 @@ class KeyPadService with ListenableServiceMixin {
     final String? userId = ProxyService.box.getUserId();
     String? shiftId;
     if (userId != null) {
-      final currentShift = await ProxyService.strategy.getCurrentShift(
+      final currentShift = await shiftSync.getCurrentShift(
         userId: userId,
       );
       shiftId = currentShift?.id;

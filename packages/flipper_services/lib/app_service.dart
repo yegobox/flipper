@@ -23,6 +23,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/helperModels/business_type.dart' as helper;
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 
 const socialApp = "socials";
@@ -778,7 +779,7 @@ class AppService with ListenableServiceMixin {
   Future<bool> checkAndStartShift({required String userId}) async {
     dynamic currentShift;
     try {
-      currentShift = await ProxyService.strategy
+      currentShift = await shiftSync
           .getCurrentShift(userId: userId)
           .timeout(const Duration(seconds: 12));
     } on TimeoutException {
@@ -798,7 +799,7 @@ class AppService with ListenableServiceMixin {
       }
       final openingBalance = response.data['openingBalance'] as double? ?? 0.0;
       final notes = response.data['notes'] as String?;
-      await ProxyService.strategy.startShift(
+      await shiftSync.startShift(
         userId: userId,
         openingBalance: openingBalance,
         note: notes,
