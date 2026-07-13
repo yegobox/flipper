@@ -603,45 +603,6 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  Future<bool> _startDittoReplication(String userId) async {
-    bool dittoAvailable = false;
-    try {
-      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
-      await Future(() async {
-        await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-        await DittoSingleton.instance
-            .ensureAuthenticatedAndSyncing(appId: appID);
-        await DittoSyncCoordinator.instance.setDitto(
-          DittoSingleton.instance.ditto,
-          skipInitialFetch: true,
-        );
-      }).timeout(const Duration(seconds: 15));
-      dittoAvailable = DittoSingleton.instance.isReady;
-      print("User id set to $userId and Ditto initialized: $dittoAvailable");
-
-      if (dittoAvailable && !ProxyService.ditto.isReady()) {
-        print("⚠️ Bridging DittoSingleton → DittoService manually");
-        ProxyService.ditto.setDitto(DittoSingleton.instance.ditto!);
-      }
-
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId != null && dittoAvailable) {
-        _registerBranchDittoSubscriptions(branchId: branchId);
-      }
-    } catch (e) {
-      print("⚠️ Ditto initialization failed (app will continue offline): $e");
-    }
-    return dittoAvailable;
-  }
-
-  void _schedulePostDittoSetup({required bool dittoAvailable}) {
-    unawaited(_attachLocalStorageDittoIfReady());
-    if (dittoAvailable && !Platform.isAndroid && !Platform.isIOS) {
-      unawaited(_saveDesktopDeviceRecordIfNeeded());
-      unawaited(ProxyService.cron.setupDelegationMonitoringIfNeeded());
-    }
-  }
-
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
