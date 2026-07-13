@@ -740,17 +740,27 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     // TotalSales column — manual export uses header "TotalSales" (same as app Total Sales card)
     int? totalSalesColumn;
+    int? priceColumn;
+    int? qtyColumn;
     for (final headerRow in [1, 4]) {
       for (int col = 1; col <= lastColumn; col++) {
         final raw = sheet.getRangeByIndex(headerRow, col).getText();
         if (raw == null) continue;
         final norm = raw.toLowerCase().replaceAll(RegExp(r'\s+'), '');
-        if (norm == 'totalsales' || norm.contains('totalsales')) {
+        if (totalSalesColumn == null &&
+            (norm == 'totalsales' || norm.contains('totalsales'))) {
           totalSalesColumn = col;
-          break;
+        }
+        if (priceColumn == null && norm == 'price') {
+          priceColumn = col;
+        }
+        if (qtyColumn == null && norm == 'qty') {
+          qtyColumn = col;
         }
       }
-      if (totalSalesColumn != null) break;
+      if (totalSalesColumn != null && priceColumn != null && qtyColumn != null) {
+        break;
+      }
     }
 
     // NetProfit column — prefer exact [NetProfit] header; default 10 was wrong for
@@ -827,9 +837,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         totalSalesRowIndex,
         totalSalesColumn,
       );
-      totalSalesSumCell.setFormula(
-        '=SUM($tsLetter${dataStartRow}:$tsLetter${dataEndRow})',
-      );
+      final grossLinesFormula = priceColumn != null && qtyColumn != null
+          ? '=SUMPRODUCT(${_getColumnLetter(priceColumn)}${dataStartRow}:'
+              '${_getColumnLetter(priceColumn)}${dataEndRow},'
+              '${_getColumnLetter(qtyColumn)}${dataStartRow}:'
+              '${_getColumnLetter(qtyColumn)}${dataEndRow})'
+          : '=SUM($tsLetter${dataStartRow}:$tsLetter${dataEndRow})';
+      totalSalesSumCell.setFormula(grossLinesFormula);
       // Apply style then number format — assigning [cellStyle] clears a prior [numberFormat].
       totalSalesSumCell.cellStyle = totalSalesStyle;
       totalSalesSumCell.numberFormat = _excelPluAmountNumberFormat;

@@ -9,7 +9,7 @@ import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/export/sale_report.dart';
 import 'package:flipper_dashboard/export/report_service.dart';
 
-import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
+import 'package:flipper_dashboard/export/utils/plu_detailed_report_row.dart';
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
@@ -17,7 +17,6 @@ import 'package:flipper_dashboard/export/transaction_report_full_export_loader.d
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
-import 'package:flipper_models/helpers/transaction_item_plu_metrics.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -1226,8 +1225,11 @@ class DataViewState extends ConsumerState<DataView>
     Map<String, TransactionPaymentSums>? fullPaymentSumsByTransactionId,
     List<TransactionItem>? fullDetailTransactionItems,
   }) async {
-    final columns = _getTableHeaders();
-    final columnNames = columns.map((c) => c.columnName).toList();
+    final columnNames = widget.showDetailedReport &&
+            (fullDetailTransactionItems != null ||
+                _dataGridSource is TransactionItemDataSource)
+        ? kPluDetailedExportColumnNames
+        : _getTableHeaders().map((c) => c.columnName).toList();
 
     // Summary range from Capella — do not depend on [_dataGridSource] type. If this were
     // skipped, [manualData] stays empty and Excel falls back to exportToExcelWorkbook()
@@ -1289,43 +1291,9 @@ class DataViewState extends ConsumerState<DataView>
         final taxPercentage = (fromItem != null && fromItem > 0)
             ? fromItem
             : (taxRateByType[taxType] ?? 18.0);
-        preparedData.add({
-          'ItemCode': item.itemCd,
-          'Name': (() {
-            final nameParts = item.name.split('(');
-            final name = nameParts[0].trim().toUpperCase();
-            final number = nameParts.length > 1
-                ? nameParts[1].split(')')[0]
-                : '';
-            return number.isEmpty ? name : '$name-$number';
-          })(),
-          'Barcode': TransactionItemPluMetrics.barcodeForReport(item),
-          'Price': item.price,
-          'TaxRate': taxPercentage,
-          'Qty': item.qty,
-          // Line gross (price × qty); matches Excel formula path and footer SUM(TotalSales).
-          'TotalSales': (item.price.toDouble() * item.qty.toDouble())
-              .roundToTwoDecimalPlaces(),
-          'SupplyAmount': item.splyAmt?.toDouble() ?? 0.0,
-          'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
-          // Use the same resolved rate shown in the TaxRate column so the
-          // static VAT / net-profit cells match it (and the Excel formulas).
-          'TaxPayable': TransactionItemPluMetrics.taxPayable(
-            item,
-            ratePercent: taxPercentage,
-          ),
-          'NetProfit': TransactionItemPluMetrics.netProfitColumn(
-            item,
-            ratePercent: taxPercentage,
-          ),
-          // Not DataGrid columns — used only by Excel manual export formulas
-          PluExcelRowKeys.taxTyCd: item.taxTyCd,
-          PluExcelRowKeys.discount: item.discount.toDouble(),
-          PluExcelRowKeys.splyAmt: item.splyAmt?.toDouble() ?? 0.0,
-          PluExcelRowKeys.taxAmt: item.taxAmt,
-          PluExcelRowKeys.totAmt: item.totAmt,
-          PluExcelRowKeys.taxblAmt: item.taxblAmt,
-        });
+        preparedData.add(
+          pluDetailedReportRow(item, taxRatePercent: taxPercentage),
+        );
       }
       return (manualData: preparedData, columnNames: columnNames);
     }
@@ -1505,6 +1473,7 @@ class DataViewState extends ConsumerState<DataView>
           showProfitCalculations: widget.showDetailedReport,
           manualData: manualData.isNotEmpty ? manualData : null,
           columnNames: manualData.isNotEmpty ? columnNames : null,
+          staticPluLineValues: widget.showDetailedReport,
         );
       });
 

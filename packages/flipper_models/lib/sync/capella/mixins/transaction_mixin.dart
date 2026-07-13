@@ -1078,7 +1078,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'updatedAt': now.toIso8601String(),
       'lastTouched': now.toIso8601String(),
     };
-    final updates = <String>['updatedAt = :updatedAt', 'lastTouched = :lastTouched'];
+    final updates = <String>[
+      'updatedAt = :updatedAt',
+      'lastTouched = :lastTouched',
+    ];
 
     // Preserve the previous non-null write semantics exactly (the old path
     // routed through updateTransaction, which only wrote non-null fields).
@@ -1276,7 +1279,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
         delta = newPricing.subtotalNet - oldPricing.subtotalNet;
       } else {
-        // Insert new item
+        // Insert new item — assign per-transaction line seq (legacy Brick parity).
+        // Do not copy [variation.itemSeq] (catalog field); it breaks cart/export order.
+        int nextItemSeq = 1;
+        final seqResult = await ditto.store.execute(
+          'SELECT itemSeq FROM transaction_items WHERE transactionId = :transactionId',
+          arguments: {'transactionId': pendingTransaction.id},
+        );
+        if (seqResult.items.isNotEmpty) {
+          var maxSeq = 0;
+          for (final row in seqResult.items) {
+            final seq = (row.value['itemSeq'] as num?)?.toInt() ?? 0;
+            if (seq > maxSeq) maxSeq = seq;
+          }
+          nextItemSeq = maxSeq + 1;
+        }
+
         final double qty = updatableQty ?? 1.0;
         final unitSupply = variation.supplyPrice ?? 0;
         final lineSupplyAmt = unitSupply * qty;
@@ -1309,7 +1327,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           branchId: pendingTransaction.branchId!,
           prc: variation.retailPrice ?? 0.0,
           ttCatCd: variation.ttCatCd,
-          itemSeq: variation.itemSeq,
+          itemSeq: nextItemSeq,
           isrccCd: variation.isrccCd,
           isrccNm: variation.isrccNm,
           isrcRt: variation.isrcRt,
@@ -1458,6 +1476,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         }
       }
 
+      // Cart-touch fields bump updatedAt (POS order). Checkout flags must not —
+      // otherwise every line gets the same “done” timestamp and export order
+      // diverges from QuickSellingView (which sorted by pre-checkout updatedAt).
+      final touchesCartOrder =
+          resolvedNewQty != null ||
+          price != null ||
+          prc != null ||
+          discount != null ||
+          taxAmt != null ||
+          taxblAmt != null ||
+          totAmt != null ||
+          dcRt != null ||
+          dcAmt != null ||
+          splyAmt != null ||
+          incrementQty == true;
+
       addUpdate('qty', resolvedNewQty);
       addUpdate('price', price);
       addUpdate('prc', prc); // Often same as price
@@ -1480,7 +1514,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
       addUpdate('dcRt', dcRt);
       addUpdate('dcAmt', dcAmt);
-      addUpdate('updatedAt', DateTime.now().toIso8601String());
+      if (touchesCartOrder) {
+        addUpdate('updatedAt', DateTime.now().toIso8601String());
+      }
 
       // Unit snapshot: supplyPriceAtSale (and supplyPrice) = cost per unit at sale.
       // Line COGS splyAmt = unit × qty so when qty==1, splyAmt equals supplyPriceAtSale.
@@ -2802,9 +2838,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           }
 
           Future<void> ensureInitialPendingEmit() async {
-            if (controller.isClosed ||
-                branchId == null ||
-                branchId.isEmpty) {
+            if (controller.isClosed || branchId == null || branchId.isEmpty) {
               return;
             }
             final snapshot = await activeDitto.store.execute(
