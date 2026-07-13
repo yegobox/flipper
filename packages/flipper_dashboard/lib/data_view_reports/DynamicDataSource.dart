@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/export/utils/plu_detailed_report_row.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
@@ -321,59 +322,18 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   }
 
   DataGridRow _buildTransactionItemRow(TransactionItem transactionItem) {
+    final taxRate = TransactionItemPluMetrics.taxRatePercent(transactionItem);
+    final row = pluDetailedReportRow(
+      transactionItem,
+      taxRatePercent: taxRate,
+    );
     return DataGridRow(
       cells: [
-        DataGridCell<String>(
-          columnName: 'ItemCode',
-          value: transactionItem.itemClsCd?.toString() ?? '',
-        ),
-        DataGridCell<String>(
-          columnName: 'Name',
-          value: (() {
-            final nameParts = (transactionItem.name).split('(');
-            final name = nameParts[0].trim().toUpperCase();
-            final number = nameParts.length > 1
-                ? nameParts[1].split(')')[0]
-                : '';
-            return number.isEmpty ? name : '$name-$number';
-          })(),
-        ),
-        DataGridCell<String>(
-          columnName: 'Barcode',
-          value: TransactionItemPluMetrics.barcodeForReport(transactionItem),
-        ),
-        DataGridCell<double>(
-          columnName: 'Price',
-          value: transactionItem.price.toDouble(),
-        ),
-        DataGridCell<double>(
-          columnName: 'TaxRate',
-          value: TransactionItemPluMetrics.taxRatePercent(transactionItem),
-        ),
-        DataGridCell<double>(
-          columnName: 'Qty',
-          value: transactionItem.qty.toDouble(),
-        ),
-        DataGridCell<double>(
-          columnName: 'TotalSales',
-          value: TransactionItemPluMetrics.profitMade(transactionItem),
-        ),
-        DataGridCell<double>(
-          columnName: 'SupplyAmount',
-          value: transactionItem.splyAmt?.toDouble() ?? 0.0,
-        ),
-        DataGridCell<double>(
-          columnName: 'CurrentStock',
-          value: TransactionItemPluMetrics.currentStockDisplay(transactionItem),
-        ),
-        DataGridCell<double>(
-          columnName: 'TaxPayable',
-          value: TransactionItemPluMetrics.taxPayable(transactionItem),
-        ),
-        DataGridCell<double>(
-          columnName: 'NetProfit',
-          value: TransactionItemPluMetrics.netProfitColumn(transactionItem),
-        ),
+        for (final name in kPluDetailedExportColumnNames)
+          DataGridCell<dynamic>(
+            columnName: name,
+            value: row[name],
+          ),
       ],
     );
   }

@@ -222,8 +222,10 @@ final filteredTransactionItemListProvider =
         return const AsyncValue.loading();
       }
 
-      final filtered = items
-          .where((i) => transactionReportLineMatchesSale(i, allowed))
-          .toList();
+      final filtered = sortTransactionItemLinesNewestFirst(
+        items
+            .where((i) => transactionReportLineMatchesSale(i, allowed))
+            .toList(),
+      );
       return AsyncValue.data(filtered);
     });

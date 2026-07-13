@@ -56,52 +56,32 @@ List<TransactionItem> stripCashMovementPluLines(List<TransactionItem> items) {
   return items.where((i) => !isCashMovementPluLine(i)).toList();
 }
 
-/// Detailed PLU lines belonging to sale transactions only, ordered so the
-/// export reads in the order things were sold: sales follow their position in
-/// [exportSales] (the report's sale order), and lines within a sale follow the
-/// order they were entered into the cart ([TransactionItem.createdAt]).
+/// Detailed PLU lines belonging to sale transactions only, ordered like the
+/// POS cart and detailed report grid: sales follow [exportSales] order (newest
+/// receipt first), lines within each sale use [sortTransactionItemLinesNewestFirst].
 ///
-/// The underlying bulk item query has no ORDER BY, so without this the rows
-/// come back in arbitrary Ditto-document order.
+/// The bulk [transactionItemsForIds] query has no ORDER BY, so without this the
+/// rows come back in arbitrary Ditto-document order.
 List<TransactionItem> exportPluItemsSalesOnly(
   List<TransactionItem> items,
   List<ITransaction> exportSales,
 ) {
-  final saleOrder = <String, int>{};
-  for (var i = 0; i < exportSales.length; i++) {
-    saleOrder[exportSales[i].id.toString()] = i;
+  final saleIds = {for (final t in exportSales) t.id.toString()};
+
+  final byTransactionId = <String, List<TransactionItem>>{};
+  for (final item in items) {
+    if (isCashMovementPluLine(item)) continue;
+    final tid = item.transactionId?.toString();
+    if (tid == null || !saleIds.contains(tid)) continue;
+    byTransactionId.putIfAbsent(tid, () => []).add(item);
   }
 
-  final filtered = items.where((i) {
-    if (isCashMovementPluLine(i)) return false;
-    final tid = i.transactionId?.toString();
-    return tid != null && saleOrder.containsKey(tid);
-  }).toList();
-
-  int entryOrder(TransactionItem a, TransactionItem b) {
-    final ca = a.createdAt;
-    final cb = b.createdAt;
-    if (ca != null && cb != null) {
-      final byCreated = ca.compareTo(cb);
-      if (byCreated != 0) return byCreated;
-    } else if (ca == null && cb != null) {
-      return 1; // nulls last
-    } else if (ca != null && cb == null) {
-      return -1;
-    }
-    final sa = a.itemSeq;
-    final sb = b.itemSeq;
-    if (sa != null && sb != null && sa != sb) return sa.compareTo(sb);
-    // Final deterministic tie-break so the sort is stable across runs.
-    return a.id.compareTo(b.id);
+  final ordered = <TransactionItem>[];
+  for (final sale in exportSales) {
+    final tid = sale.id.toString();
+    final lines = byTransactionId[tid];
+    if (lines == null || lines.isEmpty) continue;
+    ordered.addAll(sortTransactionItemLinesNewestFirst(lines));
   }
-
-  filtered.sort((a, b) {
-    final ia = saleOrder[a.transactionId!.toString()]!;
-    final ib = saleOrder[b.transactionId!.toString()]!;
-    if (ia != ib) return ia.compareTo(ib);
-    return entryOrder(a, b);
-  });
-
-  return filtered;
+  return ordered;
 }

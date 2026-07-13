@@ -1,3 +1,4 @@
+import 'package:flipper_models/helpers/transaction_item_line_order.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:meta/meta.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -529,13 +530,5 @@ TransactionItem _ghostTransactionItem({
 }
 
 List<TransactionItem> _sortNewestFirst(List<TransactionItem> items) {
-  final sorted = List<TransactionItem>.from(items)
-    ..sort((a, b) {
-      // Use updatedAt so re-tapping an existing item bumps it to the top.
-      // Falls back to createdAt for items that pre-date the updatedAt field.
-      final aDate = a.updatedAt ?? a.createdAt ?? DateTime(2000);
-      final bDate = b.updatedAt ?? b.createdAt ?? DateTime(2000);
-      return bDate.compareTo(aDate);
-    });
-  return sorted;
+  return sortTransactionItemLinesNewestFirst(items);
 }

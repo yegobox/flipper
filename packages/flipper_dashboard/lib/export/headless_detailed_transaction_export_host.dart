@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flipper_dashboard/export/export_report_transactions.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
-import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
+import 'package:flipper_dashboard/export/utils/plu_detailed_report_row.dart';
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -46,20 +46,6 @@ Future<List<TransactionItem>> _loadLineItemsFromSaleIds(
   }).toList();
 }
 
-const List<String> kPluDetailedExportColumnNames = [
-  'ItemCode',
-  'Name',
-  'Barcode',
-  'Price',
-  'TaxRate',
-  'Qty',
-  'TotalSales',
-  'SupplyAmount',
-  'CurrentStock',
-  'TaxPayable',
-  'NetProfit',
-];
-
 /// Same row mapping as [DataView._buildManualDataForExport] for [TransactionItemDataSource].
 Future<({List<dynamic> manualData, List<String> columnNames})>
 buildPluManualExportRows(List<TransactionItem> items) async {
@@ -92,40 +78,9 @@ buildPluManualExportRows(List<TransactionItem> items) async {
     final taxPercentage = (fromItem != null && fromItem > 0)
         ? fromItem
         : (taxRateByType[taxType] ?? 18.0);
-    preparedData.add({
-      'ItemCode': item.itemCd,
-      'Name': (() {
-        final nameParts = item.name.split('(');
-        final name = nameParts[0].trim().toUpperCase();
-        final number = nameParts.length > 1 ? nameParts[1].split(')')[0] : '';
-        return number.isEmpty ? name : '$name-$number';
-      })(),
-      'Barcode': TransactionItemPluMetrics.barcodeForReport(item),
-      'Price': item.price,
-      'TaxRate': taxPercentage,
-      'Qty': item.qty,
-      // Line gross (price × qty); matches Excel formula path and footer SUM(TotalSales).
-      'TotalSales': (item.price.toDouble() * item.qty.toDouble())
-          .roundToTwoDecimalPlaces(),
-      'SupplyAmount': item.splyAmt?.toDouble() ?? 0.0,
-      'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
-      // Use the same resolved rate shown in the TaxRate column so the static
-      // VAT / net-profit cells match it (and the Excel formulas).
-      'TaxPayable': TransactionItemPluMetrics.taxPayable(
-        item,
-        ratePercent: taxPercentage,
-      ),
-      'NetProfit': TransactionItemPluMetrics.netProfitColumn(
-        item,
-        ratePercent: taxPercentage,
-      ),
-      PluExcelRowKeys.taxTyCd: item.taxTyCd,
-      PluExcelRowKeys.discount: item.discount.toDouble(),
-      PluExcelRowKeys.splyAmt: item.splyAmt?.toDouble() ?? 0.0,
-      PluExcelRowKeys.taxAmt: item.taxAmt,
-      PluExcelRowKeys.totAmt: item.totAmt,
-      PluExcelRowKeys.taxblAmt: item.taxblAmt,
-    });
+    preparedData.add(
+      pluDetailedReportRow(item, taxRatePercent: taxPercentage),
+    );
   }
   return (manualData: preparedData, columnNames: kPluDetailedExportColumnNames);
 }
@@ -243,7 +198,6 @@ class DetailedTransactionReportExportHostState
       showProfitCalculations: true,
       manualData: manualData.isNotEmpty ? manualData : null,
       columnNames: manualData.isNotEmpty ? columnNames : null,
-      staticPluLineValues: false,
     );
     if (path == null || path.isEmpty) {
       throw StateError('export_failed');
