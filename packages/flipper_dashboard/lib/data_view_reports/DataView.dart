@@ -1473,7 +1473,6 @@ class DataViewState extends ConsumerState<DataView>
           showProfitCalculations: widget.showDetailedReport,
           manualData: manualData.isNotEmpty ? manualData : null,
           columnNames: manualData.isNotEmpty ? columnNames : null,
-          staticPluLineValues: widget.showDetailedReport,
         );
       });
 

@@ -198,7 +198,6 @@ class DetailedTransactionReportExportHostState
       showProfitCalculations: true,
       manualData: manualData.isNotEmpty ? manualData : null,
       columnNames: manualData.isNotEmpty ? columnNames : null,
-      staticPluLineValues: true,
     );
     if (path == null || path.isEmpty) {
       throw StateError('export_failed');
