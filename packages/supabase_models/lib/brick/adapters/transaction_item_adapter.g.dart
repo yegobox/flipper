@@ -182,6 +182,12 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
         ? null
         : data['supply_price_at_sale'] as num?,
     ttCatCd: data['tt_cat_cd'] == null ? null : data['tt_cat_cd'] as String?,
+    loggedByTenantId: data['logged_by_tenant_id'] == null
+        ? null
+        : data['logged_by_tenant_id'] as String?,
+    loggedByName: data['logged_by_name'] == null
+        ? null
+        : data['logged_by_name'] as String?,
   );
 }
 
@@ -286,6 +292,8 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'ignore_for_report': instance.ignoreForReport,
     'supply_price_at_sale': instance.supplyPriceAtSale,
     'tt_cat_cd': instance.ttCatCd,
+    'logged_by_tenant_id': instance.loggedByTenantId,
+    'logged_by_name': instance.loggedByName,
   };
 }
 
@@ -472,6 +480,12 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
         ? null
         : data['supply_price_at_sale'] as num?,
     ttCatCd: data['tt_cat_cd'] == null ? null : data['tt_cat_cd'] as String?,
+    loggedByTenantId: data['logged_by_tenant_id'] == null
+        ? null
+        : data['logged_by_tenant_id'] as String?,
+    loggedByName: data['logged_by_name'] == null
+        ? null
+        : data['logged_by_name'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -586,6 +600,8 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
     'ignore_for_report': instance.ignoreForReport ? 1 : 0,
     'supply_price_at_sale': instance.supplyPriceAtSale,
     'tt_cat_cd': instance.ttCatCd,
+    'logged_by_tenant_id': instance.loggedByTenantId,
+    'logged_by_name': instance.loggedByName,
   };
 }
 
@@ -958,6 +974,14 @@ class TransactionItemAdapter
     'ttCatCd': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'tt_cat_cd',
+    ),
+    'loggedByTenantId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'logged_by_tenant_id',
+    ),
+    'loggedByName': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'logged_by_name',
     ),
   };
   @override
@@ -1503,6 +1527,18 @@ class TransactionItemAdapter
     'ttCatCd': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tt_cat_cd',
+      iterable: false,
+      type: String,
+    ),
+    'loggedByTenantId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'logged_by_tenant_id',
+      iterable: false,
+      type: String,
+    ),
+    'loggedByName': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'logged_by_name',
       iterable: false,
       type: String,
     ),

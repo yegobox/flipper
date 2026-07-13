@@ -105,7 +105,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>com.posthog.posthog.API_KEY</key>
+	<key>com.posthog.posthog.PROJECT_TOKEN</key>
 	<string>$(POSTHOG_API_KEY)</string>
 	<key>com.posthog.posthog.CAPTURE_APPLICATION_LIFECYCLE_EVENTS</key>
 	<true/>

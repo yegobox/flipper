@@ -421,15 +421,6 @@ class TransactionListState extends ConsumerState<TransactionList>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Transaction Reports',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.2,
-                  color: const Color(0xFF111827),
-                  fontSize: 22,
-                ),
-              ),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(

@@ -8,7 +8,7 @@ const String PAYMENT_UPDATE_REQUIRED =
 const String PAYMENT_REACTIVATION_REQUIRED =
     "Payment failed. Please re-activate your payment method";
 
-const int dbVersion = 45;
+const int dbVersion = 46;
 
 /// Written when a launcher shortcut opens the app before the dashboard shell is ready;
 /// cleared after navigation from quick access / shortcuts.

@@ -89,7 +89,9 @@ class PlatformHelpers {
   static DatabaseFactory getQueueDatabaseFactory() {
     if (kIsWeb) {
       return databaseFactoryFfiWeb;
-    } else if (Platform.isWindows || DatabasePath.isTestEnvironment()) {
+    } else if (Platform.isWindows ||
+        Platform.isLinux ||
+        DatabasePath.isTestEnvironment()) {
       return databaseFactoryFfi;
     } else {
       return databaseFactory;

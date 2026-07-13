@@ -3,6 +3,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/db_model_export.dart';
 
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -913,7 +914,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
     final userId = ProxyService.box.getUserId();
     if (userId != null) {
       setState(() {
-        _shiftFuture = ProxyService.strategy.getCurrentShift(userId: userId);
+        _shiftFuture = shiftSync.getCurrentShift(userId: userId);
       });
     }
   }
@@ -1081,7 +1082,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
         }
         final notes =
             (dialogResponse?.data as Map<dynamic, dynamic>)['notes'] as String?;
-        await ProxyService.strategy.endShift(
+        await shiftSync.endShift(
           shiftId: shift.id,
           closingBalance: closingBalance,
           note: notes,
@@ -1100,7 +1101,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
         final openingBalance =
             response.data['openingBalance'] as double? ?? 0.0;
         final notes = response.data['notes'] as String?;
-        await ProxyService.strategy.startShift(
+        await shiftSync.startShift(
           userId: userId,
           openingBalance: openingBalance,
           note: notes,

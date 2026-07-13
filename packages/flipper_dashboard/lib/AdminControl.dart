@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
@@ -1194,6 +1195,8 @@ class _AdminControlState extends State<AdminControl> {
                   _buildAdminProfileSection(context),
                   const SizedBox(height: 28),
                   _buildQuickActions(context),
+                  const SizedBox(height: 28),
+                  const BarModeAdminSection(),
                   const SizedBox(height: 28),
                   _buildMainSections(context),
                 ],

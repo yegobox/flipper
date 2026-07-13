@@ -11,6 +11,7 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -64,7 +65,7 @@ mixin AuthMixin implements AuthInterface {
         if (branchId == null) {
           locator<RouterService>().navigateTo(LoginChoicesRoute());
         } else {
-          locator<RouterService>().navigateTo(FlipperAppRoute());
+          await PaymentVerificationNavigator.navigateToAuthenticatedHome();
         }
       }
     } catch (e) {

@@ -43,7 +43,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
   @override
   void initState() {
     super.initState();
-    _loginCode = ref.read(loginCodeProvider);
+    _loginCode = newDesktopLoginCode();
+    ProxyService.event.resetLoginStatus();
+    ProxyService.event.unsubscribeLoginEvent();
     _loginStatusStream = ProxyService.event.desktopLoginStatusStream();
     _connectivityStream = Connectivity().onConnectivityChanged;
 
@@ -79,9 +81,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     if (!mounted || _switchingToPinLogin) return;
 
     final appService = locator<AppService>();
-    if (!ProxyService.ditto.isReady()) {
-      await appService.initDittoForLogin(_loginCode);
-    }
+    // New QR code every visit → new login_ditto store; never reuse a channel that
+    // may still hold a consumed broadcast from a previous session.
+    await appService.initDittoForLogin(_loginCode);
     if (!mounted || _switchingToPinLogin) return;
 
     ProxyService.event.subscribeLoginEvent(channel: _loginCode.split('-')[1]);

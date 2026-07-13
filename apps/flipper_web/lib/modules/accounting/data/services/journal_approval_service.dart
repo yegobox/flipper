@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -72,9 +73,14 @@ class JournalApprovalException implements Exception {
 /// On network failure ([JournalApprovalException.isOffline]), callers should
 /// fall back to local Ditto `postJournalEntry(onlyIfPending: true)`.
 class JournalApprovalService {
-  JournalApprovalService({http.Client? client, String? baseUrl})
+  JournalApprovalService({
+    http.Client? client,
+    String? baseUrl,
+    ProductAnalytics? analytics,
+  })
       : _client = client ?? http.Client(),
-        _baseUrl = baseUrl ?? _defaultBaseUrl;
+        _baseUrl = baseUrl ?? _defaultBaseUrl,
+        _analytics = analytics;
 
   static String get _defaultBaseUrl => kDebugMode
       ? 'http://localhost:8084'
@@ -82,6 +88,7 @@ class JournalApprovalService {
 
   final http.Client _client;
   final String _baseUrl;
+  final ProductAnalytics? _analytics;
 
   Uri _entryUri(String entryId) =>
       Uri.parse('$_baseUrl/accounting/journal-entries/$entryId');
@@ -108,6 +115,14 @@ class JournalApprovalService {
     final response = await _post(
       _approveUri(entryId),
       body: body.isEmpty ? null : body,
+    );
+    await _analytics?.track(
+      AnalyticsEvents.journalEntryPosted,
+      properties: {
+        'source': 'journal_approval_service',
+        'entry_id': entryId,
+        if (businessId != null) 'business_id': businessId,
+      },
     );
     return JournalApproveResult.fromJson(
       jsonDecode(response.body) as Map<String, dynamic>,

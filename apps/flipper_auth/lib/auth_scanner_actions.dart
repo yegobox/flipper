@@ -1,26 +1,28 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:flipper_scanner/providers/scan_status_provider.dart';
+import 'package:flipper_scanner/qr_login_scan_handler.dart';
 import 'package:flipper_scanner/scanner_actions.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flipper_scanner/providers/scan_status_provider.dart';
-import 'package:flipper_scanner/random.dart';
-import 'package:flutter/services.dart'; // Added for HapticFeedback
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 class AuthScannerActions implements ScannerActions {
   final BuildContext context;
   final WidgetRef ref;
 
+  QrLoginScanHandler? _qrLoginHandler;
+
   AuthScannerActions(this.context, this.ref);
+
+  QrLoginScanHandler get _loginHandler =>
+      _qrLoginHandler ??= QrLoginScanHandler(this, ref);
 
   @override
   void onBarcodeDetected(Barcode? barcode) {
@@ -28,7 +30,7 @@ class AuthScannerActions implements ScannerActions {
     if (code != null && code.startsWith('otpauth://')) {
       _handleTotpScan(code);
     } else if (code != null && code.startsWith('login-')) {
-      handleLoginScan(code);
+      unawaited(_loginHandler.handleLoginScan(code));
     } else {
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       showSimpleNotification('Invalid QR code');
@@ -47,10 +49,7 @@ class AuthScannerActions implements ScannerActions {
 
       final secret = parsedUri.queryParameters['secret'];
       final issuer = parsedUri.queryParameters['issuer'];
-      // The path is something like /Example:alice@google.com
-      // We need to remove the leading '/'
       final path = parsedUri.path.substring(1);
-      // The label can be "Issuer:accountName" or just "accountName"
       final parts = path.split(':');
       final String accountName;
       final String finalIssuer;
@@ -88,40 +87,7 @@ class AuthScannerActions implements ScannerActions {
 
   @override
   Future<void> handleLoginScan(String? result) async {
-    // If there's no result or it doesn't match the login format, show error
-    if (result == null ||
-        !result.contains('-') ||
-        !result.split('-')[0].contains('login')) {
-      ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-      showSimpleNotification('Invalid QR code format');
-
-      // Wait a moment to show error state before closing
-      Future.delayed(Duration(milliseconds: 1500)).then((_) {
-        pop();
-      });
-      return;
-    }
-
-    final split = result.split('-');
-    if (split.length > 1 && split[0] == 'login') {
-      // Check if we have network connectivity
-      Connectivity().checkConnectivity().then((connectivityResult) {
-        if (connectivityResult.any((test) => test == ConnectivityResult.none)) {
-          // We're offline, show a specific message
-          ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-          showSimpleNotification(
-              'Cannot login via QR when offline. Please use PIN login instead.');
-
-          // Wait a moment to show error state before closing
-          Future.delayed(Duration(milliseconds: 2000)).then((_) {
-            pop();
-          });
-        } else {
-          // We're online, proceed with login
-          _publishLoginDetails(split[1]);
-        }
-      });
-    }
+    await _loginHandler.handleLoginScan(result);
   }
 
   @override
@@ -131,133 +97,19 @@ class AuthScannerActions implements ScannerActions {
 
   @override
   void pop() {
+    _qrLoginHandler?.dispose();
     Navigator.of(context).pop();
   }
 
   @override
   void navigateToSellRoute(product) {
-    // Not used for auth intent
     throw UnimplementedError(
         'navigateToSellRoute not implemented in AuthScannerActions');
   }
 
   @override
   void showSimpleNotification(String message) {
-    // showToast(context, message);
-  }
-
-  // Private methods moved from scanner_view.dart
-  Future<void> _publishLoginDetails(String channel) async {
-    // Vibrate on successful scan
-    // HapticFeedback.mediumImpact(); // HapticFeedback is in flutter/services.dart, not accessible here
-
-    try {
-      String userId = getUserId();
-      String businessId = getBusinessId();
-      String branchId = getBranchId();
-      String phone = getUserPhone();
-      String defaultApp = getDefaultApp();
-      String linkingCode = randomNumber().toString();
-
-      // Create a unique response channel for this login attempt
-      String responseChannel = 'login-response-$userId-$linkingCode';
-
-      // Start listening for response on the response channel
-      _listenForLoginResponse(channel);
-
-      // Update UI to show we're processing
-      ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
-
-      // get the pin
-      final pin = await getPinLocal(userId: userId, alwaysHydrate: false);
-
-      await getEventService().publish(loginDetails: {
-        'channel': channel,
-        'userId': userId,
-        'businessId': businessId,
-        'branchId': branchId,
-        'phone': phone,
-        'defaultApp': defaultApp,
-        'tokenUid': pin?.tokenUid,
-        'deviceName': Platform.operatingSystem,
-        'deviceVersion': Platform.operatingSystemVersion,
-        'linkingCode': linkingCode,
-        'responseChannel': responseChannel, // Add response channel
-      });
-
-      // Handle successful publish - keep in pending state
-      ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
-    } catch (e) {
-      // Handle any exceptions
-      ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-      showSimpleNotification('Login error: ${e.toString()}');
-
-      // Wait a moment to show failure state before closing
-      await Future.delayed(Duration(milliseconds: 1500));
-    }
-  }
-
-  void _listenForLoginResponse(String channel) {
-    try {
-      // With Ditto, we use the event service to listen for responses
-      // The EventService handles polling and event distribution
-      final eventService = getEventService();
-
-      // Register subscription with Ditto sync to ensure we receive events for this channel
-      final preparedEv = prepareDqlSyncSubscription(
-        "SELECT * FROM events WHERE channel = :channel",
-        {"channel": channel},
-      );
-      DittoService.instance.dittoInstance!.sync.registerSubscription(
-        preparedEv.dql,
-        arguments: preparedEv.arguments,
-      );
-
-      // Listen for response events on the response channel
-      eventService
-          .subscribeToEvents(channel: channel, eventType: 'broadcast')
-          .listen((envelope) {
-        // Parse the response
-        Map<String, dynamic> response = envelope;
-
-        if (response.containsKey('status')) {
-          if (response['status'] == 'success') {
-            // Update UI to show success and close
-            ref.read(scanStatusProvider.notifier).state =
-                ScanStatus.desktopLoginSuccess;
-            triggerHapticFeedback();
-            showSimpleNotification('Login successful');
-            Timer(const Duration(seconds: 1), pop);
-          } else if (response['status'] == 'choices_needed') {
-            // This is not a failure - it's part of the normal flow when a user
-            // needs to select a business/branch
-            ref.read(scanStatusProvider.notifier).state =
-                ScanStatus.desktopLoginSuccess;
-            showSimpleNotification('Login successful - select your business');
-            Timer(const Duration(seconds: 1), pop);
-          } else {
-            // Update UI to show failure and close
-            ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-
-            String errorMessage = response.containsKey('message')
-                ? response['message']
-                : 'Login failed';
-
-            showSimpleNotification(errorMessage);
-            Timer(const Duration(seconds: 2), pop);
-          }
-        }
-      }, onError: (error) {
-        // Handle subscription error and close
-        ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-        showSimpleNotification('Connection error: $error');
-        Timer(const Duration(seconds: 2), pop);
-      });
-    } catch (e) {
-      // Handle any exceptions
-      ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-      showSimpleNotification('Subscription error: $e');
-    }
+    showToast(context, message);
   }
 
   @override
@@ -276,8 +128,7 @@ class AuthScannerActions implements ScannerActions {
       ProxyService.strategy
           .getPinLocal(alwaysHydrate: alwaysHydrate, userId: userId);
   @override
-  EventService getEventService() =>
-      EventService(userId: getUserId().toString());
+  EventService getEventService() => ProxyService.event as EventService;
   @override
   dynamic getBoxService() => throw UnimplementedError();
   @override

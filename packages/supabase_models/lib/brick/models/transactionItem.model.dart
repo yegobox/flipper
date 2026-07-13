@@ -164,6 +164,15 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   String? ttCatCd;
 
+  /// Bar Mode: tenant who logged this line on a table tab.
+  @Sqlite(name: 'logged_by_tenant_id')
+  @Supabase(name: 'logged_by_tenant_id')
+  String? loggedByTenantId;
+
+  @Sqlite(name: 'logged_by_name')
+  @Supabase(name: 'logged_by_name')
+  String? loggedByName;
+
   /// Creates a new TransactionItem with required fields for proper functionality
   ///
   /// Required fields:
@@ -267,6 +276,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     bool? ignoreForReport,
     this.supplyPriceAtSale,
     required this.ttCatCd,
+    this.loggedByTenantId,
+    this.loggedByName,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
         ignoreForReport = false,
@@ -366,7 +377,9 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       num? compositePrice,
       String? taxTyCd,
       String? ttCatCd,
-      num? supplyPriceAtSale}) {
+      num? supplyPriceAtSale,
+      String? loggedByTenantId,
+      String? loggedByName}) {
     return TransactionItem(
       id: id ?? this.id,
       ttCatCd: ttCatCd ?? this.ttCatCd,
@@ -456,6 +469,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       compositePrice: compositePrice ?? this.compositePrice,
       taxTyCd: taxTyCd ?? this.taxTyCd,
       supplyPriceAtSale: supplyPriceAtSale ?? this.supplyPriceAtSale,
+      loggedByTenantId: loggedByTenantId ?? this.loggedByTenantId,
+      loggedByName: loggedByName ?? this.loggedByName,
     );
   }
 

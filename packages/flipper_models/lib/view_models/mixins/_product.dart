@@ -1,3 +1,4 @@
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 
 mixin ProductMixin {
   final ProductService productService = loc.getIt<ProductService>();
+  ProductAnalytics get analytics => ProxyService.productAnalytics;
   String currentColor = '#0984e3';
   double _discountRate = 0;
   double get discountRate => _discountRate;
@@ -248,8 +250,13 @@ mixin ProductMixin {
       required String productName,
       required String color}) async {
     try {
-      ProxyService.analytics
-          .trackEvent("product_creation", {'feature_name': 'product_creation'});
+      analytics.track(
+        AnalyticsEvents.productCreated,
+        properties: const {
+          'feature_name': 'product_creation',
+          'source': 'product_mixin',
+        },
+      );
 
       Category? activeCat = await ProxyService.strategy
           .activeCategory(branchId: ProxyService.box.getBranchId()!);

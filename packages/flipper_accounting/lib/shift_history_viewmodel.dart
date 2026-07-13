@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -62,7 +63,7 @@ class ShiftHistoryViewModel extends StreamViewModel<List<Shift>> {
 
   @override
   Stream<List<Shift>> get stream =>
-      ProxyService.strategy.getShifts(businessId: businessId);
+      shiftSync.getShifts(businessId: businessId);
 
   @override
   void onSubscribed() {

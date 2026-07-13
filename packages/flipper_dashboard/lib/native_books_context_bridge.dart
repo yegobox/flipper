@@ -93,7 +93,10 @@ void _markNativeDittoReady(WidgetRef ref) {
   final wasReady = ref.read(dittoReadyProvider);
   ref.read(dittoReadyProvider.notifier).state = true;
   if (!wasReady) {
-    invalidateAccountingDataStreams(ref as Ref);
+    // WidgetRef is not a Ref — use the container-based invalidation helper.
+    invalidateAccountingDataStreamsInContainer(
+      ProviderScope.containerOf(ref.context, listen: false),
+    );
     ref.invalidate(accountingPostSyncBootstrapProvider);
   }
 }

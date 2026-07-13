@@ -222,11 +222,8 @@ mixin DeleteMixin implements DeleteInterface {
         }
         break;
       case 'tenant':
-        final tenant = (await ProxyService.strategy.tenant(
-          fetchRemote: false,
-          tenantId: id,
-        ));
-
+        // Supabase removal is handled by [TenantSupabaseQueries.removeStaffFromBusiness].
+        // Roster reloads from Supabase on next fetch.
         break;
       case 'transaction':
         final transaction = (await ProxyService.strategy.getTransaction(

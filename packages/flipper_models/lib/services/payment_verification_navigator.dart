@@ -1,6 +1,7 @@
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
+import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -22,7 +23,10 @@ class PaymentVerificationNavigator {
     'TransactionDetail',
     'CheckOut',
     'NewTicket',
+    'BarModeHost',
   };
+
+  static const _barModeEnabledKey = BarModeBranchSettingsService.enabledKey;
 
   /// Verifies payment online and navigates. Use after signup when payment was just completed.
   static Future<PaymentVerificationResponse> verifyAndNavigate({
@@ -84,6 +88,12 @@ class PaymentVerificationNavigator {
         'Returning to main app after successful payment verification',
       );
       _isOnPaymentScreen = false;
+    }
+
+    final currentRoute = _routerService.router.current.name;
+    if (currentRoute == BarModeRoute.name) {
+      talker.info('Already in bar mode — skipping home navigation');
+      return;
     }
 
     await _navigateToAuthenticatedHome();
@@ -151,8 +161,18 @@ class PaymentVerificationNavigator {
     return true;
   }
 
+  static Future<void> navigateToAuthenticatedHome({
+    bool skipPersonalCheck = false,
+    bool clearStack = false,
+  }) =>
+      _navigateToAuthenticatedHome(
+        skipPersonalCheck: skipPersonalCheck,
+        clearStack: clearStack,
+      );
+
   static Future<void> _navigateToAuthenticatedHome({
     bool skipPersonalCheck = false,
+    bool clearStack = false,
   }) async {
     if (!skipPersonalCheck) {
       final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
@@ -165,7 +185,27 @@ class PaymentVerificationNavigator {
 
     if (await _navigateCommissionOnlyIfNeeded()) return;
 
-    _routerService.navigateTo(FlipperAppRoute());
+    await BarModeBranchSettingsService.hydrateForActiveBranch();
+
+    if (_shouldOpenBarMode()) {
+      talker.info('Bar mode launch on start — opening bar register');
+      if (clearStack) {
+        await _routerService.clearStackAndShow(BarModeRoute());
+      } else {
+        _routerService.navigateTo(BarModeRoute());
+      }
+      return;
+    }
+
+    if (clearStack) {
+      await _routerService.clearStackAndShow(FlipperAppRoute());
+    } else {
+      _routerService.navigateTo(FlipperAppRoute());
+    }
+  }
+
+  static bool _shouldOpenBarMode() {
+    return ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
   }
 
   static Future<bool> _shouldNavigateToPersonalApp() async {

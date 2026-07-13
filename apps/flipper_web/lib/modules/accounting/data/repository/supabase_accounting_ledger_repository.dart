@@ -103,7 +103,14 @@ class SupabaseAccountingLedgerRepository implements AccountingLedgerRepository {
             if (startDate != null && dt.isBefore(startDate)) return false;
             if (endDate != null && dt.isAfter(_endOfDay(endDate))) return false;
             return true;
-          }).toList();
+          }).toList()
+            // Newest first; sort on raw entry_date (the mapped display date
+            // "Jul 7" is not chronologically sortable).
+            ..sort((a, b) {
+              final da = _parseDate(a['entry_date']) ?? DateTime(1900);
+              final db = _parseDate(b['entry_date']) ?? DateTime(1900);
+              return db.compareTo(da);
+            });
 
           if (filtered.isEmpty) return <JournalEntry>[];
 

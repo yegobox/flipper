@@ -59,46 +59,7 @@ void main() {
       };
     }
 
-    test('returns null when taxAmt is positive', () {
-      expect(
-        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-          rowData: baseRow(taxAmt: 12.5),
-          excelRow: 2,
-          priceLetter: 'D',
-          qtyLetter: 'F',
-          taxRateLetter: 'H',
-        ),
-        isNull,
-      );
-    });
-
-    test('returns null when tot exceeds taxbl (tax from tot−taxbl)', () {
-      expect(
-        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-          rowData: baseRow(tot: 120, taxbl: 100),
-          excelRow: 3,
-          priceLetter: 'D',
-          qtyLetter: 'F',
-          taxRateLetter: 'H',
-        ),
-        isNull,
-      );
-    });
-
-    test('type D is zero', () {
-      expect(
-        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-          rowData: baseRow(ty: 'D'),
-          excelRow: 2,
-          priceLetter: 'D',
-          qtyLetter: 'F',
-          taxRateLetter: 'H',
-        ),
-        '=0',
-      );
-    });
-
-    test('type B tax-inclusive', () {
+    test('VAT-inclusive on gross revenue (TotalSales × rate/(100+rate))', () {
       expect(
         PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
           rowData: baseRow(ty: 'B'),
@@ -107,7 +68,56 @@ void main() {
           qtyLetter: 'F',
           taxRateLetter: 'H',
         ),
-        '=IF(D5*F5-0<=0,0,ROUND((D5*F5-0)*H5/(100+H5),2))',
+        '=IF(D5*F5<=0,0,ROUND((D5*F5)*H5/(100+H5),2))',
+      );
+    });
+
+    test('uniform regardless of stored taxAmt', () {
+      expect(
+        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+          rowData: baseRow(taxAmt: 12.5),
+          excelRow: 2,
+          priceLetter: 'D',
+          qtyLetter: 'F',
+          taxRateLetter: 'H',
+        ),
+        '=IF(D2*F2<=0,0,ROUND((D2*F2)*H2/(100+H2),2))',
+      );
+    });
+
+    test('uniform regardless of tot/taxbl', () {
+      expect(
+        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+          rowData: baseRow(tot: 120, taxbl: 100),
+          excelRow: 3,
+          priceLetter: 'D',
+          qtyLetter: 'F',
+          taxRateLetter: 'H',
+        ),
+        '=IF(D3*F3<=0,0,ROUND((D3*F3)*H3/(100+H3),2))',
+      );
+    });
+
+    test('uniform for every tax type (D, A) — no zero, no tax-exclusive', () {
+      expect(
+        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+          rowData: baseRow(ty: 'D'),
+          excelRow: 2,
+          priceLetter: 'D',
+          qtyLetter: 'F',
+          taxRateLetter: 'H',
+        ),
+        '=IF(D2*F2<=0,0,ROUND((D2*F2)*H2/(100+H2),2))',
+      );
+      expect(
+        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+          rowData: baseRow(ty: 'A'),
+          excelRow: 4,
+          priceLetter: 'D',
+          qtyLetter: 'F',
+          taxRateLetter: 'H',
+        ),
+        '=IF(D4*F4<=0,0,ROUND((D4*F4)*H4/(100+H4),2))',
       );
     });
 
@@ -121,36 +131,12 @@ void main() {
       );
       expect(
         f,
-        '=IF(D9*F9-0<=0,0,ROUND((D9*F9-0)*J9/(100+J9),2))',
+        '=IF(D9*F9<=0,0,ROUND((D9*F9)*J9/(100+J9),2))',
       );
       expect(f, isNot(contains('J9D')));
     });
 
-    test('type C same inclusive pattern as B', () {
-      final f = PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-        rowData: baseRow(ty: 'c'),
-        excelRow: 10,
-        priceLetter: 'D',
-        qtyLetter: 'F',
-        taxRateLetter: 'H',
-      );
-      expect(f, contains('(100+H10)'));
-    });
-
-    test('tax-exclusive for other tax types', () {
-      expect(
-        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-          rowData: baseRow(ty: 'A'),
-          excelRow: 4,
-          priceLetter: 'D',
-          qtyLetter: 'F',
-          taxRateLetter: 'H',
-        ),
-        '=IF(D4*F4-0<=0,0,ROUND((D4*F4-0)*H4/100,2))',
-      );
-    });
-
-    test('embeds discount literal', () {
+    test('ignores discount (TotalSales is price × qty, no discount)', () {
       expect(
         PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
           rowData: baseRow(ty: 'B', discount: 50),
@@ -159,21 +145,7 @@ void main() {
           qtyLetter: 'F',
           taxRateLetter: 'H',
         ),
-        '=IF(D2*F2-50<=0,0,ROUND((D2*F2-50)*H2/(100+H2),2))',
-      );
-    });
-
-    test('defaults empty tax type to B', () {
-      final row = <String, dynamic>{PluExcelRowKeys.discount: 0.0};
-      expect(
-        PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
-          rowData: row,
-          excelRow: 2,
-          priceLetter: 'D',
-          qtyLetter: 'F',
-          taxRateLetter: 'H',
-        ),
-        contains('(100+H2)'),
+        '=IF(D2*F2<=0,0,ROUND((D2*F2)*H2/(100+H2),2))',
       );
     });
   });

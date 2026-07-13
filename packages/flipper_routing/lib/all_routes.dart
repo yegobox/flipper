@@ -5,6 +5,7 @@ export 'package:flipper_dashboard/tax_configuration.dart';
 export 'package:flipper_dashboard/add_discount.dart';
 export 'package:flipper_dashboard/add_product_view.dart';
 export 'package:flipper_dashboard/devices.dart';
+export 'package:flipper_dashboard/features/bar_mode/bar_mode_host.dart';
 export 'package:flipper_dashboard/checkout.dart';
 export 'package:flipper_dashboard/settings.dart';
 export 'package:flipper_dashboard/security.dart';

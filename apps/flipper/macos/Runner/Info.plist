@@ -37,7 +37,7 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>com.posthog.posthog.API_KEY</key>
+	<key>com.posthog.posthog.PROJECT_TOKEN</key>
 		<string>$(POSTHOG_API_KEY)</string>
 		<key>com.posthog.posthog.POSTHOG_HOST</key>
 		<string>https://us.i.posthog.com</string>

@@ -177,4 +177,91 @@ abstract final class TenantSupabaseQueries {
     if (pin != null) return byPin(pin);
     throw Exception('UserId or Pin is required');
   }
+
+  /// Resolves the tenants.id UUID for [tenant] in [businessUuid].
+  ///
+  /// Bar roster rows may use [Tenant.userId] as [Tenant.id] when the row was
+  /// synthesized from `pins` without a matching `tenants` record.
+  static Future<String?> tenantUuidForBusiness({
+    required Tenant tenant,
+    required String businessUuid,
+    String? scopeBusinessId,
+  }) async {
+    final existing = await byId(tenant.id);
+    if (existing != null) return existing.id;
+
+    final userId = tenant.userId?.trim();
+    if (userId == null || userId.isEmpty) return null;
+
+    final byUser = await byUserId(userId, scopeBusinessId: scopeBusinessId);
+    if (byUser != null) return byUser.id;
+
+    try {
+      final junction = await _client
+          .from('tenant_businesses')
+          .select('tenant_id')
+          .eq('business_id', businessUuid);
+      final tenantIds = <String>[];
+      for (final row in junction as List) {
+        if (row is! Map) continue;
+        final id = row['tenant_id']?.toString();
+        if (id != null && id.isNotEmpty) tenantIds.add(id);
+      }
+      if (tenantIds.isEmpty) return null;
+
+      final rows = await _client
+          .from('tenants')
+          .select('id')
+          .inFilter('id', tenantIds)
+          .eq('user_id', userId)
+          .isFilter('deleted_at', null)
+          .order('last_touched', ascending: false)
+          .limit(1);
+      if (rows.isEmpty) return null;
+      return (rows.first as Map)['id']?.toString();
+    } catch (e, s) {
+      debugPrint('TenantSupabaseQueries.tenantUuidForBusiness: $e\n$s');
+      return null;
+    }
+  }
+
+  /// Removes staff from a business: tenant access, orphan rows, and login PIN.
+  static Future<void> removeStaffFromBusiness({
+    required Tenant tenant,
+    String? businessId,
+  }) async {
+    final scopedBusinessId = businessId ?? ProxyService.box.getBusinessId();
+    if (scopedBusinessId == null || scopedBusinessId.isEmpty) {
+      throw StateError('No active business');
+    }
+
+    final businessUuid =
+        await FlipperBaseModel.resolveBusinessUuidForTenants(scopedBusinessId);
+    if (businessUuid == null || businessUuid.isEmpty) {
+      throw StateError('Could not resolve business');
+    }
+
+    final userId = tenant.userId?.trim();
+    final tenantUuid = await tenantUuidForBusiness(
+      tenant: tenant,
+      businessUuid: businessUuid,
+      scopeBusinessId: scopedBusinessId,
+    );
+
+    if (tenantUuid != null && tenantUuid.isNotEmpty) {
+      await _client.rpc(
+        'remove_tenant_access',
+        params: {
+          'p_tenant_id': tenantUuid,
+          'p_business_id': businessUuid,
+        },
+      );
+    } else if (userId == null || userId.isEmpty) {
+      await _client.from('tenants').delete().eq('id', tenant.id);
+    }
+
+    if (userId != null && userId.isNotEmpty) {
+      await _client.from('pins').delete().eq('user_id', userId);
+    }
+  }
 }

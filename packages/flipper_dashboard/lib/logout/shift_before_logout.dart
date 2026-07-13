@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -85,7 +86,7 @@ Future<bool> prepareSessionExitAfterShiftHandling({
     useRootNavigator: loaderUseRootNavigator,
   );
   try {
-    final currentShift = await ProxyService.strategy
+    final currentShift = await shiftSync
         .getCurrentShift(userId: userId)
         .timeout(_kGetCurrentShiftTimeout);
     if (context.mounted) {
@@ -116,7 +117,7 @@ Future<bool> prepareSessionExitAfterShiftHandling({
       // Shift has no sales — close it silently, no reconciliation needed
       if (cashSales <= 0) {
         try {
-          await ProxyService.strategy.endShift(
+          await shiftSync.endShift(
             shiftId: currentShift.id,
             closingBalance: currentShift.openingBalance.toDouble(),
           );
@@ -145,7 +146,7 @@ Future<bool> prepareSessionExitAfterShiftHandling({
       final notes = map['notes'] as String?;
 
       try {
-        await ProxyService.strategy.endShift(
+        await shiftSync.endShift(
           shiftId: currentShift.id,
           closingBalance: closingBalance,
           note: notes,

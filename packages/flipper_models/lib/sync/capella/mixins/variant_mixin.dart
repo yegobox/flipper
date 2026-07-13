@@ -230,6 +230,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
+      // Filters only — barcode/fallback queries below append their own
+      // conditions and must add the ORDER BY/LIMIT suffix exactly once.
+      final String filterQuery = query;
       query += orderSuffix;
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -274,18 +277,16 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       if (barcodeLikeSearch) {
-        final barcodeQuery =
-            '$query AND (LOWER(TRIM(COALESCE(bcd, \'\'))) = :bcdExact OR '
-            "LOWER(TRIM(COALESCE(itemCd, ''))) = :bcdExact)$orderSuffix";
+        final barcodeQuery = catalogBarcodeExactQuery(filterQuery, orderSuffix);
         final barcodeArgs = Map<String, dynamic>.from(arguments)
           ..['bcdExact'] = searchTerm;
         talker.info('Catalog barcode search (exact): $searchTerm');
         items = await runExecute(barcodeQuery, barcodeArgs);
         if (items.isEmpty) {
-          final fallbackQuery =
-              '$query AND (LOWER(COALESCE(name, \'\'))) LIKE :searchLike OR '
-              "LOWER(COALESCE(itemNm, '')) LIKE :searchLike OR "
-              "LOWER(COALESCE(productName, '')) LIKE :searchLike)$orderSuffix";
+          final fallbackQuery = catalogBarcodeNameFallbackQuery(
+            filterQuery,
+            orderSuffix,
+          );
           final fallbackArgs = Map<String, dynamic>.from(arguments)
             ..['searchLike'] = '%$searchTerm%';
           talker.info('Catalog barcode fallback to name search: $searchTerm');

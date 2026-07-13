@@ -9,6 +9,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../interfaces/notification_interface.dart';
+import '../utils/notification_utils.dart';
 
 /// Base implementation of notification functionality shared across platforms
 abstract class BaseNotifications implements NotificationInterface {
@@ -67,18 +68,7 @@ abstract class BaseNotifications implements NotificationInterface {
       'branchId': delegation.branchId,
     });
 
-    final amount = NumberFormat('#,##0', 'en_US').format(delegation.subTotal);
-    final customerName = delegation.customerName?.trim();
-    final fromDevice = delegation.delegatedFromDevice;
-
-    final String body;
-    if (customerName != null && customerName.isNotEmpty) {
-      body =
-          '${delegation.receiptType} receipt for $customerName · RWF $amount · from $fromDevice';
-    } else {
-      body =
-          '${delegation.receiptType} receipt · RWF $amount · from $fromDevice';
-    }
+    final body = NotificationUtils.formatDelegationBody(delegation);
 
     await showNotification(
       id: delegation.transactionId.hashCode,

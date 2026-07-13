@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
@@ -73,11 +74,15 @@ final bankRecFinishedProvider = StateProvider<bool>((ref) => false);
 final bankStatementMetaProvider = StateProvider<ParsedStatement?>((ref) => null);
 
 final bankStatementServiceProvider = Provider<BankStatementService>(
-  (ref) => BankStatementService(),
+  (ref) => BankStatementService(
+    analytics: ref.watch(productAnalyticsProvider),
+  ),
 );
 
 final journalApprovalServiceProvider = Provider<JournalApprovalService>(
-  (ref) => JournalApprovalService(),
+  (ref) => JournalApprovalService(
+    analytics: ref.watch(productAnalyticsProvider),
+  ),
 );
 
 final accountingBootstrapServiceProvider = Provider<AccountingBootstrapService>(
@@ -213,19 +218,25 @@ Future<bool> waitForAccountingDittoReady(
 
 /// Fire-and-forget server bootstrap when business context is known (login/restore).
 void kickoffAccountingBootstrap(WidgetRef ref, String businessId) {
+  // Capture the container now: `WidgetRef` is not a `Ref`, and the offline
+  // callback may fire after this widget is gone.
+  final container = ProviderScope.containerOf(ref.context, listen: false);
   kickoffAccountingServerBootstrap(
     ref.read(accountingBootstrapServiceProvider),
     businessId,
-    onOffline: () => unawaited(ensureCoaFallbackSeed(ref as Ref, businessId)),
+    onOffline: () =>
+        unawaited(coaFallbackSeedInContainer(container, businessId)),
   );
 }
 
 /// Same as [kickoffAccountingBootstrap] for [Ref] callbacks (restore provider).
 void kickoffAccountingBootstrapFromRef(Ref ref, String businessId) {
+  final container = ref.container;
   kickoffAccountingServerBootstrap(
     ref.read(accountingBootstrapServiceProvider),
     businessId,
-    onOffline: () => unawaited(ensureCoaFallbackSeed(ref, businessId)),
+    onOffline: () =>
+        unawaited(coaFallbackSeedInContainer(container, businessId)),
   );
 }
 
@@ -259,11 +270,19 @@ void kickoffAccountingServerBootstrap(
 
 /// Postgres + local Ditto seed when server bootstrap or replication did not
 /// deliver COA rows (common on localhost without data-connector).
-Future<void> ensureCoaFallbackSeed(Ref ref, String businessId) async {
+Future<void> ensureCoaFallbackSeed(Ref ref, String businessId) =>
+    coaFallbackSeedInContainer(ref.container, businessId);
+
+/// Container-based variant of [ensureCoaFallbackSeed] — safe to call from
+/// widget callbacks that outlive their `WidgetRef` (offline bootstrap retry).
+Future<void> coaFallbackSeedInContainer(
+  ProviderContainer container,
+  String businessId,
+) async {
   if (businessId.isEmpty) return;
 
   try {
-    await SupabaseAccountingLedgerRepository(ref.read(supabaseProvider))
+    await SupabaseAccountingLedgerRepository(container.read(supabaseProvider))
         .ensureSeeded(businessId: businessId);
     debugPrint(
       '[Accounting] Supabase COA fallback OK businessId=$businessId',
@@ -273,7 +292,7 @@ Future<void> ensureCoaFallbackSeed(Ref ref, String businessId) async {
   }
 
   try {
-    await ref
+    await container
         .read(accountingLedgerRepositoryProvider)
         .ensureSeeded(businessId: businessId);
     debugPrint('[Accounting] Ditto COA fallback OK businessId=$businessId');
@@ -281,7 +300,7 @@ Future<void> ensureCoaFallbackSeed(Ref ref, String businessId) async {
     debugPrint('[Accounting] Ditto COA fallback failed: $e');
   }
 
-  invalidateAccountingDataStreams(ref);
+  invalidateAccountingDataStreamsInContainer(container);
 }
 
 /// Ditto subscriptions + COA replication wait. Uses [ref.read] only — safe to call from
@@ -580,13 +599,6 @@ final accountingIncomeStatementProvider = Provider<IncomeStatementResult>(
   (ref) => incomeStatement(ref.watch(accountingAccountsProvider)),
 );
 
-final accountingPriorIncomeStatementProvider = Provider<IncomeStatementResult>(
-  (ref) {
-    final accounts = ref.watch(accountingAccountsProvider);
-    return incomeStatement(accounts);
-  },
-);
-
 final accountingTrendProvider = Provider<List<TrendPoint>>((ref) {
   final txns = ref.watch(rawTransactionStreamProvider).value ?? [];
   return TransactionToAccounts.toTrend(txns);
@@ -748,15 +760,20 @@ int _rawInt(dynamic v) {
 }
 
 /// Refreshes Ditto-backed accounting streams after replication / COA seed.
-void invalidateAccountingDataStreams(Ref ref) {
-  ref.invalidate(rawTransactionStreamProvider);
-  ref.invalidate(rawTransactionItemsProvider);
-  ref.invalidate(rawAllTransactionsStreamProvider);
-  ref.invalidate(chartOfAccountsStreamProvider);
-  ref.invalidate(journalEntriesStreamProvider);
-  ref.invalidate(bankLinesStreamProvider);
-  ref.invalidate(accountingSettingsProvider);
-  ref.invalidate(accountingInventoryValueProvider);
+void invalidateAccountingDataStreams(Ref ref) =>
+    invalidateAccountingDataStreamsInContainer(ref.container);
+
+/// Container-based variant of [invalidateAccountingDataStreams] for widget
+/// callbacks that only hold a `WidgetRef` (which is not a `Ref`).
+void invalidateAccountingDataStreamsInContainer(ProviderContainer container) {
+  container.invalidate(rawTransactionStreamProvider);
+  container.invalidate(rawTransactionItemsProvider);
+  container.invalidate(rawAllTransactionsStreamProvider);
+  container.invalidate(chartOfAccountsStreamProvider);
+  container.invalidate(journalEntriesStreamProvider);
+  container.invalidate(bankLinesStreamProvider);
+  container.invalidate(accountingSettingsProvider);
+  container.invalidate(accountingInventoryValueProvider);
 }
 
 /// Logs GL/POS counts after bootstrap — plain function, not a FutureProvider.

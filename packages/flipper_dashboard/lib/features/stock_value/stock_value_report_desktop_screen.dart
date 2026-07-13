@@ -2,8 +2,10 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:async' show unawaited;
 
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_services/utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,25 +20,226 @@ class StockValueReportDesktopScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final reportAsync = ref.watch(stockValueReportProvider);
+    void close() => Navigator.of(context).pop();
 
     return Scaffold(
       backgroundColor: kStockValuePageBg,
+      // The header (with the shared close button) renders in every state so
+      // the page is never a blank white screen while data loads.
       body: reportAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(
-          child: Text(
-            'Unable to load stock report.',
-            style: GoogleFonts.outfit(color: Colors.black54, fontSize: 16),
+        loading: () => _StockValueLoadingShell(onClose: close),
+        error: (_, __) => SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _StockValueTopBar(onClose: close),
+              const Divider(height: 1),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'Unable to load stock report.',
+                    style: GoogleFonts.outfit(
+                      color: Colors.black54,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         data: (report) => _StockValueDesktopScaffold(
           report: report,
-          onClose: () => Navigator.of(context).pop(),
+          onClose: close,
           onRefresh: () async {
             ref.invalidate(stockValueReportProvider);
             await ref.read(stockValueReportProvider.future);
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Header shared by loading / error / data states: shared round close button
+/// (same as [CustomAppBar]/Cash Book), title, and optional subtitle + actions.
+class _StockValueTopBar extends StatelessWidget {
+  final VoidCallback onClose;
+  final String? subtitle;
+  final List<Widget> actions;
+
+  const _StockValueTopBar({
+    required this.onClose,
+    this.subtitle,
+    this.actions = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 56,
+            child: Center(
+              child: AppBarRoundIconButton(
+                icon: Icons.close,
+                onPressed: onClose,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Stock Value',
+                  style: GoogleFonts.outfit(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          ...actions,
+        ],
+      ),
+    );
+  }
+}
+
+/// Skeleton shown while the report loads: real header + grey placeholder
+/// cards mirroring the loaded layout, so the shell is visible immediately.
+class _StockValueLoadingShell extends StatelessWidget {
+  final VoidCallback onClose;
+
+  const _StockValueLoadingShell({required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget shellCard({double? height, Widget? child}) {
+      return Container(
+        height: height,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: child,
+      );
+    }
+
+    Widget bar(double width) {
+      return Container(
+        width: width,
+        height: 12,
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(6),
+        ),
+      );
+    }
+
+    Widget kpiPlaceholder() {
+      return shellCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [bar(90), bar(130), bar(70)],
+        ),
+      );
+    }
+
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _StockValueTopBar(onClose: onClose, subtitle: 'Loading products…'),
+          const Divider(height: 1),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: 120,
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < 4; i++) ...[
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(child: kpiPlaceholder()),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: shellCard(
+                            child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 3),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        SizedBox(
+                          width: 360,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              shellCard(
+                                height: 220,
+                                child: Align(
+                                  alignment: Alignment.topLeft,
+                                  child: bar(140),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Expanded(
+                                child: shellCard(
+                                  child: Align(
+                                    alignment: Alignment.topLeft,
+                                    child: bar(120),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -63,12 +266,16 @@ class _StockValueDesktopScaffold extends StatefulWidget {
 class _StockValueDesktopScaffoldState
     extends State<_StockValueDesktopScaffold> {
   final _search = TextEditingController();
+  // Shared by Scrollbar + SingleChildScrollView; on desktop the Scrollbar
+  // otherwise falls back to an unattached PrimaryScrollController and throws.
+  final _scroll = ScrollController();
   _ProductFilter _filter = _ProductFilter.all;
   var _refreshedAt = DateTime.now();
 
   @override
   void dispose() {
     _search.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -117,22 +324,20 @@ class _StockValueDesktopScaffoldState
               _exportCsv(context, rows);
             },
             onRestockStub: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Use inventory or receive stock to restock items.',
-                    style: GoogleFonts.outfit(),
-                  ),
-                ),
+              showInfoNotification(
+                context,
+                'Use inventory or receive stock to restock items.',
               );
             },
           ),
           const Divider(height: 1),
           Expanded(
             child: Scrollbar(
+              controller: _scroll,
               child: RefreshIndicator(
                 onRefresh: _onPullRefresh,
                 child: SingleChildScrollView(
+                  controller: _scroll,
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                   child: Column(
@@ -186,13 +391,9 @@ class _StockValueDesktopScaffoldState
 
   void _exportCsv(BuildContext context, List<StockValueProductLine> rows) {
     if (rows.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'No rows to export for the current filter.',
-            style: GoogleFonts.outfit(),
-          ),
-        ),
+      showWarningNotification(
+        context,
+        'No rows to export for the current filter.',
       );
       return;
     }
@@ -204,13 +405,9 @@ class _StockValueDesktopScaffoldState
       );
     }
     unawaited(Clipboard.setData(ClipboardData(text: buf.toString())));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Copied ${rows.length} rows as CSV to clipboard.',
-          style: GoogleFonts.outfit(),
-        ),
-      ),
+    showSuccessNotification(
+      context,
+      'Copied ${rows.length} rows as CSV to clipboard.',
     );
   }
 
@@ -235,85 +432,56 @@ class _StockValueDesktopScaffoldState
     required VoidCallback onExport,
     required VoidCallback onRestockStub,
   }) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 16, 8),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: widget.onClose,
-            icon: const Icon(Icons.close),
-            tooltip: 'Close',
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Stock Value',
-                  style: GoogleFonts.outfit(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${report.productsCount} products across ${report.valueByCategory.length} categories · Last updated today at $timeStr',
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            width: 220,
-            height: 40,
-            child: TextField(
-              controller: _search,
-              onChanged: (_) => setState(() {}),
-              style: GoogleFonts.outfit(fontSize: 14),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                hintText: 'Search product or BCD...',
-                hintStyle: GoogleFonts.outfit(
-                  color: Colors.black45,
-                  fontSize: 13,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  size: 20,
-                  color: Color(0xFF64748B),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: Colors.black.withValues(alpha: 0.1),
-                  ),
+    return _StockValueTopBar(
+      onClose: widget.onClose,
+      subtitle:
+          '${report.productsCount} products across ${report.valueByCategory.length} categories · Last updated today at $timeStr',
+      actions: [
+        SizedBox(
+          width: 220,
+          height: 40,
+          child: TextField(
+            controller: _search,
+            onChanged: (_) => setState(() {}),
+            style: GoogleFonts.outfit(fontSize: 14),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              hintText: 'Search product or BCD...',
+              hintStyle: GoogleFonts.outfit(
+                color: Colors.black45,
+                fontSize: 13,
+              ),
+              prefixIcon: const Icon(
+                Icons.search,
+                size: 20,
+                color: Color(0xFF64748B),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: Colors.black.withValues(alpha: 0.1),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          FilledButton.tonal(
-            onPressed: onExport,
-            child: Text('Export', style: GoogleFonts.outfit()),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: onRestockStub,
-            child: Text('+ Restock order', style: GoogleFonts.outfit()),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 8),
+        FilledButton.tonal(
+          onPressed: onExport,
+          child: Text('Export', style: GoogleFonts.outfit()),
+        ),
+        const SizedBox(width: 8),
+        FilledButton(
+          onPressed: onRestockStub,
+          child: Text('+ Restock order', style: GoogleFonts.outfit()),
+        ),
+      ],
     );
   }
 
@@ -515,10 +683,7 @@ class _KpiCard extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: FlipperFonts.mono(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
+            style: FlipperFonts.mono(fontSize: 18, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 2),
           Text(
@@ -760,24 +925,47 @@ class _ValueByCategoryPie extends StatelessWidget {
       );
     }
     final colors = _categoryPieColors();
-    final sections = <PieChartSectionData>[];
+
+    // Slices: top categories drawn individually; anything below 2% of total
+    // (or beyond the color palette) merged into a single "Others" slice so the
+    // pie doesn't render hairline slivers with overlapping 0% labels.
+    final major = <StockValueCategoryBreakdown>[];
+    var othersValue = 0.0;
     for (var i = 0; i < groups.length; i++) {
       final g = groups[i];
-      final v = g.value;
-      final pct = (g.percentOfTotal * 100);
-      sections.add(
-        PieChartSectionData(
-          color: colors[i % colors.length],
-          value: v <= 0 ? 0.0001 : v,
-          title: '${pct.round()}%',
-          radius: 52,
-          titleStyle: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+      if (g.value > 0 && g.percentOfTotal >= 0.02 && major.length < 6) {
+        major.add(g);
+      } else {
+        othersValue += g.value <= 0 ? 0 : g.value;
+      }
+    }
+
+    final sections = <PieChartSectionData>[];
+    PieChartSectionData section(double value, double pct, Color color) {
+      final showTitle = pct >= 5;
+      return PieChartSectionData(
+        color: color,
+        value: value <= 0 ? 0.0001 : value,
+        title: '${pct.round()}%',
+        showTitle: showTitle,
+        radius: 52,
+        titleStyle: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       );
+    }
+
+    for (var i = 0; i < major.length; i++) {
+      final g = major[i];
+      sections.add(
+        section(g.value, g.percentOfTotal * 100, colors[i % colors.length]),
+      );
+    }
+    if (othersValue > 0) {
+      final othersPct = totalValue <= 0 ? 0.0 : 100 * othersValue / totalValue;
+      sections.add(section(othersValue, othersPct, const Color(0xFF94A3B8)));
     }
 
     return Container(
@@ -806,28 +994,37 @@ class _ValueByCategoryPie extends StatelessWidget {
           const SizedBox(height: 8),
           SizedBox(
             height: 200,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 1,
-                centerSpaceRadius: 48,
-                sections: sections,
-                pieTouchData: PieTouchData(),
-              ),
-            ),
-          ),
-          Center(
-            child: Text(
-              '${_shortM(totalValue)} RWF',
-              style: FlipperFonts.mono(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-              ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PieChart(
+                  PieChartData(
+                    sectionsSpace: 1,
+                    centerSpaceRadius: 48,
+                    sections: sections,
+                    pieTouchData: PieTouchData(),
+                  ),
+                ),
+                // Total sits in the donut hole (centerSpaceRadius: 48).
+                Text(
+                  '${_shortM(totalValue)}\nRWF',
+                  textAlign: TextAlign.center,
+                  style: FlipperFonts.mono(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
-          ...groups.asMap().entries.map((e) {
-            final i = e.key;
-            final c = e.value;
+          ...groups.map((c) {
+            // Legend dot mirrors the pie: majors get palette colors, merged
+            // small categories share the grey "Others" slice color.
+            final majorIndex = major.indexOf(c);
+            final dotColor = majorIndex >= 0
+                ? colors[majorIndex % colors.length]
+                : const Color(0xFF94A3B8);
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
@@ -836,7 +1033,7 @@ class _ValueByCategoryPie extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: colors[i % colors.length],
+                      color: dotColor,
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),

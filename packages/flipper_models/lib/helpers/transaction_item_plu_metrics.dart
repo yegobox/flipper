@@ -36,28 +36,21 @@ class TransactionItemPluMetrics {
     return 18.0;
   }
 
+  /// VAT payable on the line, extracted from the tax-inclusive gross revenue
+  /// shown in the report's [TotalSales] column (price × qty). At the standard
+  /// 18% rate this is `totalSales × 18 / 118`.
+  ///
+  /// Applied uniformly to every line — VAT or non-VAT taxpayer, any tax type —
+  /// and independent of the stored fiscal fields ([taxAmt], [totAmt]/[taxblAmt]),
+  /// so the reported tax always matches the displayed sales. Keep this in lock
+  /// step with [PluExcelFormulaBuilder.pluTaxPayableExcelFormula].
   static double taxPayable(TransactionItem item) {
-    final rawTax = item.taxAmt;
-    if (rawTax != null && rawTax > 0) return rawTax.toDouble();
-
-    final tot = item.totAmt?.toDouble();
-    final taxbl = item.taxblAmt?.toDouble();
-    if (tot != null && taxbl != null && tot > taxbl + 0.0001) {
-      return double.parse((tot - taxbl).toStringAsFixed(2));
-    }
-
-    var ty = item.taxTyCd?.trim();
-    if (ty == null || ty.isEmpty) ty = 'B';
-    if (ty == 'D') return 0.0;
-
-    final lineGross = item.price.toDouble() * item.qty.toDouble();
-    final base = lineGross - item.discount.toDouble();
-    if (base <= 0) return 0.0;
+    final totalSales = item.price.toDouble() * item.qty.toDouble();
+    if (totalSales <= 0) return 0.0;
 
     final pct = taxRatePercent(item);
-    if (ty == 'B' || ty == 'C') {
-      return double.parse((base * pct / (100 + pct)).toStringAsFixed(2));
-    }
-    return double.parse((base * pct / 100).toStringAsFixed(2));
+    return double.parse(
+      (totalSales * pct / (100 + pct)).toStringAsFixed(2),
+    );
   }
 }

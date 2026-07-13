@@ -6,6 +6,7 @@ import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 
@@ -269,7 +270,7 @@ Future<EndOfShiftSummary> loadEndOfShiftSummary({
     );
   }
 
-  final shift = await ProxyService.strategy.getCurrentShift(userId: userId);
+  final shift = await shiftSync.getCurrentShift(userId: userId);
   if (shift == null || shift.userId != userId) {
     return EndOfShiftSummary(
       agentLabel: agentLabel,

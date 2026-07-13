@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -25,6 +26,7 @@ import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/analytics/repository_analytics_event_store.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -112,6 +114,17 @@ Future<void> _dumpInitErrorToFile(String errorText) async {
 }
 
 bool skipDependencyInitialization = false;
+
+String _analyticsPlatformName() {
+  if (kIsWeb) return 'web';
+  if (UniversalPlatform.isAndroid) return 'android';
+  if (UniversalPlatform.isIOS) return 'ios';
+  if (UniversalPlatform.isMacOS) return 'macos';
+  if (UniversalPlatform.isWindows) return 'windows';
+  if (UniversalPlatform.isLinux) return 'linux';
+  return 'unknown';
+}
+
 // net info: billers
 //1.1.14
 Future<void> main() async {
@@ -151,6 +164,21 @@ Future<void> main() async {
 
       debugPrint('🚀 [main] Step 6: initDependencies...');
       await initDependencies();
+
+      await FlipperAnalytics.initialize(
+        appName: 'flipper',
+        platformName: _analyticsPlatformName(),
+        projectToken: AppSecrets.postHogProjectToken,
+        store: RepositoryAnalyticsEventStore(),
+        contextProvider: CallbackAnalyticsContextProvider(
+          appName: 'flipper',
+          platformName: _analyticsPlatformName(),
+          buildMode: kDebugMode ? 'debug' : 'release',
+          userIdGetter: () => ProxyService.box.getUserId()?.toString(),
+          businessIdGetter: () => ProxyService.box.getBusinessId(),
+          branchIdGetter: () => ProxyService.box.getBranchId(),
+        ),
+      );
 
       debugPrint('🚀 [main] Step 7: Amplify configuration...');
       // Amplify Keychain/Cognito is mobile-only; desktop release should not

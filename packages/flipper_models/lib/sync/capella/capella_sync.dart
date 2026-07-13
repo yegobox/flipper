@@ -48,9 +48,11 @@ import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
+import 'package:flipper_models/sync/shift_operations.dart';
 import 'package:flipper_models/sync/capella/mixins/stock_recount_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/personal_goals_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/bar_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
@@ -100,6 +102,7 @@ class CapellaSync extends AiStrategyImpl
         CapellaSettingsMixin,
         CapellaProductionOutputMixin,
         CapellaPersonalGoalsMixin,
+        CapellaBarMixin,
         CapellaDailyReportFilesMixin,
         BulkProcessItemMixin
     implements DatabaseSyncInterface {
@@ -517,19 +520,8 @@ class CapellaSync extends AiStrategyImpl
       Future<void> updateOpenShiftTotals() async {
         if (userId == null) return;
         try {
-          final shifts = await repository.get<Shift>(
-            policy: OfflineFirstGetPolicy.localOnly,
-            query: brick.Query(
-              where: [
-                brick.Where('userId').isExactly(userId),
-                brick.Where(
-                  'businessId',
-                ).isExactly(ProxyService.box.getBusinessId()!),
-                brick.Where('status').isExactly(ShiftStatus.Open.name),
-              ],
-            ),
-          );
-          final currentShift = shifts.lastOrNull;
+          final shiftOps = ShiftOperations(repository: repository);
+          final currentShift = await shiftOps.getCurrentShift(userId: userId);
           if (currentShift != null) {
             num saleAmount = transaction.subTotal ?? 0.0;
             if (!isIncome) {

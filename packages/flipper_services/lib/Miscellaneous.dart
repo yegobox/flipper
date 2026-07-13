@@ -131,6 +131,9 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     final isTestEnvironment =
         const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
     try {
+      ProxyService.event.unsubscribeLoginEvent();
+      ProxyService.event.resetLoginStatus();
+
       await resetSaleDeviceIdCache();
       await setCommissionOnlySession(false);
       // set authComplete to false

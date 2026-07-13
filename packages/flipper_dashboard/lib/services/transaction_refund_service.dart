@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_services/constants.dart';
@@ -170,7 +171,7 @@ class TransactionRefundService {
     );
 
     try {
-      await ProxyService.strategy.updateShiftTotals(
+      await shiftSync.updateShiftTotals(
         transactionAmount: refundAmount,
         isRefund: true,
       );

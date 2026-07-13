@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flipper_scanner/scanner_actions.dart';
 import 'package:flipper_scanner/providers/scan_status_provider.dart';
+import 'package:flipper_scanner/qr_login_scan_handler.dart';
 
 class ScannView extends StatefulHookConsumerWidget {
   const ScannView({
@@ -40,12 +41,16 @@ class ScannViewState extends ConsumerState<ScannView>
   // For managing subscriptions and timers
   StreamSubscription<Map<String, dynamic>>? _loginResponseSubscription;
   Timer? _loginTimeoutTimer;
+  QrLoginScanHandler? _qrLoginHandler;
 
   @override
   void initState() {
     super.initState();
+    ref.read(scanStatusProvider.notifier).state = ScanStatus.idle;
     controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.normal,
+      detectionSpeed: widget.intent == LOGIN
+          ? DetectionSpeed.unrestricted
+          : DetectionSpeed.normal,
       facing: CameraFacing.back,
       torchEnabled: false,
     );
@@ -112,6 +117,18 @@ class ScannViewState extends ConsumerState<ScannView>
 
           final List<Barcode> barcodes = capture.barcodes;
           for (final barcode in barcodes) {
+            if (widget.intent == LOGIN) {
+              setState(() {
+                hasScanned = true;
+                isScanning = false;
+              });
+              HapticFeedback.mediumImpact();
+              _qrLoginHandler ??=
+                  QrLoginScanHandler(widget.scannerActions, ref);
+              unawaited(_qrLoginHandler!.handleLoginScan(barcode.rawValue));
+              return;
+            }
+
             setState(() {
               hasScanned = true;
               isScanning = false;
@@ -307,7 +324,15 @@ class ScannViewState extends ConsumerState<ScannView>
         iconColor = Colors.blue;
         statusIcon = Icons.sync;
         statusTitle = 'Processing';
-        statusMessage = 'Sending login data...';
+        statusMessage = 'Sending login to desktop...';
+        showSpinner = true;
+        break;
+      case ScanStatus.waitingForDesktop:
+        backgroundColor = Colors.blue.shade50;
+        iconColor = Colors.blue;
+        statusIcon = Icons.desktop_windows;
+        statusTitle = 'Waiting for desktop';
+        statusMessage = 'Login sent — completing on your computer...';
         showSpinner = true;
         break;
       case ScanStatus.success:
@@ -697,6 +722,8 @@ class ScannViewState extends ConsumerState<ScannView>
     // Cancel any active subscriptions
     _loginResponseSubscription?.cancel();
     _loginResponseSubscription = null;
+    _qrLoginHandler?.dispose();
+    _qrLoginHandler = null;
 
     // Cancel any active timers
     _loginTimeoutTimer?.cancel();

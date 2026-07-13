@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -10,8 +11,7 @@ Future<ShiftData> shiftData(Ref ref) async {
     return ShiftData(openingBalance: 0.0, cashSales: 0.0, expectedCash: 0.0);
   }
 
-  final currentShift =
-      await ProxyService.strategy.getCurrentShift(userId: userId);
+  final currentShift = await shiftSync.getCurrentShift(userId: userId);
 
   return ShiftData(
     openingBalance: currentShift?.openingBalance ?? 0.0,

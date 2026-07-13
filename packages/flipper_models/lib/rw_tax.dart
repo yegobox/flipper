@@ -979,14 +979,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     //NOTE: before I was excluding tax of type D but in recent test it is no longer wokring
     // I removed where((item) => item.taxTyCd != "D") from bellow line
     double totalTaxable = items.fold(0.0, (sum, item) {
-      double discountedPrice = item.dcRt?.toDouble() != 0
+      final dcRt = item.dcRt?.toDouble() ?? 0;
+      final discountedPrice = dcRt != 0
           ? item.price.toDouble() *
                 item.qty.toDouble() *
-                (1 -
-                    (item.dcRt!.toDouble() /
-                        100)) // Fixed: Discount calculation
+                (1 - (dcRt / 100))
           : item.price.toDouble() * item.qty.toDouble();
-      return sum + discountedPrice; // Fixed: Add to sum
+      return sum + discountedPrice;
     });
 
     // Get sales and receipt type codes
@@ -1309,7 +1308,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
 
     final itemJson = TransactionItem(
-      ttCatCd: item.ttCatCd,
+      ttCatCd: item.ttCatCd == 'TT' ? 'TT' : null,
       lastTouched: DateTime.now().toUtc(),
       qty: quantity,
       discount: item.discount,

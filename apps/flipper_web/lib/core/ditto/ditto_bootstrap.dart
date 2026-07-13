@@ -1,6 +1,8 @@
 import 'package:flipper_web/core/secrets.dart';
 import 'dart:async';
 
+import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
@@ -108,8 +110,27 @@ abstract final class DittoBootstrap {
 
       if (ref.mounted) {
         if (ready) {
+          unawaited(
+            ref.read(productAnalyticsProvider).track(
+              AnalyticsEvents.dittoInitReady,
+              properties: {
+                'source': 'ditto_bootstrap',
+                'user_id': userId,
+              },
+            ),
+          );
           _markReady(ref);
         } else {
+          unawaited(
+            ref.read(productAnalyticsProvider).track(
+              AnalyticsEvents.dittoInitFailed,
+              properties: {
+                'source': 'ditto_bootstrap',
+                'user_id': userId,
+                'reason': 'not_ready_after_initialize',
+              },
+            ),
+          );
           _markNotReady(ref);
         }
       }
@@ -117,6 +138,16 @@ abstract final class DittoBootstrap {
     } catch (e, st) {
       debugPrint('[DittoBootstrap] initialize FAILED: $e\n$st');
       if (ref.mounted) {
+        unawaited(
+          ref.read(productAnalyticsProvider).track(
+            AnalyticsEvents.dittoInitFailed,
+            properties: {
+              'source': 'ditto_bootstrap',
+              'user_id': userId,
+              'error': e.toString(),
+            },
+          ),
+        );
         _markNotReady(ref);
       }
       return false;

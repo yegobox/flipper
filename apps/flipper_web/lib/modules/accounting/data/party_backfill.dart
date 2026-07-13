@@ -20,10 +20,24 @@ class PartyBackfill {
 
   static final Set<String> _doneBranches = {};
 
+  Future<bool> _awaitDittoReady({
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (!_ditto.isReady()) {
+      if (DateTime.now().isAfter(deadline)) return false;
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    }
+    return true;
+  }
+
   Future<void> run({required String branchId}) async {
     if (branchId.isEmpty) return;
     if (!_doneBranches.add(branchId)) return;
-    if (!_ditto.isReady()) {
+    // Ditto often isn't ready the instant the Contacts page mounts. Wait a
+    // bounded window instead of bailing immediately (the old behavior left
+    // linked customers invisible until a manual navigate-away-and-back).
+    if (!await _awaitDittoReady()) {
       _doneBranches.remove(branchId);
       return;
     }

@@ -7,8 +7,12 @@ import 'package:flipper_web/repositories/signup_repository.dart';
 import 'package:flipper_web/models/business_type.dart';
 import 'package:flipper_web/widgets/app_button.dart';
 
+import '../../helpers/fake_product_analytics.dart';
+
 // Mock repository for testing
 class MockSignupRepository extends SignupRepository {
+  MockSignupRepository() : super(analytics: FakeProductAnalytics());
+
   bool checkUsernameResult = true;
   Map<String, dynamic> registerUserResult = {};
   String? errorMessage;

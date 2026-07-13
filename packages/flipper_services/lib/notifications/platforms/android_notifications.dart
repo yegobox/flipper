@@ -18,6 +18,7 @@ class AndroidNotifications extends BaseNotifications {
     'App notifications',
     importance: Importance.max,
     priority: Priority.high,
+    visibility: NotificationVisibility.private,
     styleInformation: DefaultStyleInformation(true, true),
   );
 
@@ -270,6 +271,7 @@ class AndroidNotifications extends BaseNotifications {
       'App notifications',
       importance: Importance.max,
       priority: Priority.high,
+      visibility: NotificationVisibility.private,
       styleInformation: BigTextStyleInformation(
         body,
         htmlFormatBigText: true,

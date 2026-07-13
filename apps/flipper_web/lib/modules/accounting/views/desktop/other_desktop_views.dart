@@ -344,8 +344,6 @@ Future<void> _matchBankLine(
   BankLine line,
 ) async {
   const bankAccountCode = '1020';
-  final meta = ref.read(bankStatementMetaProvider);
-  final (rangeStart, rangeEnd) = bankRecJournalDateRange(meta);
   final journal = await _journalEntriesForBankRec(ref);
   final matchCandidates = findBankMatchCandidates(
     journal: journal,
@@ -355,16 +353,10 @@ Future<void> _matchBankLine(
 
   if (matchCandidates.isEmpty) {
     if (!context.mounted) return;
-    showAccountingToast(
-      context,
-      'No matching journal entry',
-      subtitle:
-          'Searched ${journal.length} entries (${bankRecJournalRangeLabel(rangeStart, rangeEnd)}). '
-          'No posted line moves ${money(line.amt.abs())} on Bank ($bankAccountCode). '
-          'Bank fees and transfers are often not in POS journals — post a manual entry first.',
-      icon: Icons.search_off,
-      tone: AccountingToastTone.warn,
-    );
+    // No existing journal moves this amount (bank fees, transfers, owner
+    // draws, un-rung income, …). Instead of a dead end, let the user pick a
+    // plain-language category; we post the balanced entry for them and match.
+    await _categorizeBankLine(context, ref, index, line);
     return;
   }
 
@@ -399,32 +391,13 @@ Future<void> _matchBankLine(
   }
 
   final entry = chosen.entry;
-
-  final matched = BankLine(
-    date: line.date,
-    desc: line.desc,
-    amt: line.amt,
-    matched: true,
-    je: entry.id,
+  await _persistBankLineMatch(
+    ref,
+    index,
+    line,
+    entryUuid: entry.uuid ?? entry.id,
+    entryNumber: entry.id,
   );
-
-  final lines = List<BankLine>.from(ref.read(accountingBankLinesProvider));
-  if (index < lines.length) lines[index] = matched;
-  ref.read(bankRecLocalLinesProvider.notifier).state = lines;
-  ref.read(bankRecFinishedProvider.notifier).state = false;
-
-  final businessId = ref.read(accountingBusinessIdProvider);
-  if (businessId.isNotEmpty) {
-    await ref
-        .read(accountingLedgerRepositoryProvider)
-        .upsertBankLine(
-          businessId: businessId,
-          line: matched,
-          id: _bankLineId(businessId, line),
-          matchedJournalEntryId: entry.uuid ?? entry.id,
-          matchedEntryNumber: entry.id,
-        );
-  }
 
   if (!context.mounted) return;
   showAccountingToast(
@@ -434,6 +407,330 @@ Future<void> _matchBankLine(
     icon: Icons.check,
     tone: AccountingToastTone.success,
   );
+}
+
+/// Marks [line] matched in local state + persists the link to the ledger
+/// backend. Shared by auto-match and the categorize-and-create flow.
+Future<void> _persistBankLineMatch(
+  WidgetRef ref,
+  int index,
+  BankLine line, {
+  required String entryUuid,
+  required String entryNumber,
+}) async {
+  final matched = BankLine(
+    date: line.date,
+    desc: line.desc,
+    amt: line.amt,
+    matched: true,
+    je: entryNumber,
+  );
+
+  final lines = List<BankLine>.from(ref.read(accountingBankLinesProvider));
+  if (index < lines.length) lines[index] = matched;
+  ref.read(bankRecLocalLinesProvider.notifier).state = lines;
+  ref.read(bankRecFinishedProvider.notifier).state = false;
+
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isNotEmpty) {
+    await ref.read(accountingLedgerRepositoryProvider).upsertBankLine(
+          businessId: businessId,
+          line: matched,
+          id: _bankLineId(businessId, line),
+          matchedJournalEntryId: entryUuid,
+          matchedEntryNumber: entryNumber,
+        );
+  }
+}
+
+/// A plain-language reason a bank line exists, mapped to the GL account the
+/// non-bank leg of the auto-generated journal entry should hit.
+class _BankLineCategory {
+  const _BankLineCategory({
+    required this.label,
+    required this.hint,
+    required this.accountCode,
+  });
+
+  final String label;
+  final String hint;
+
+  /// GL code for the counter-leg (the bank leg is always 1020).
+  final String accountCode;
+}
+
+/// Categories shown when no journal matches a bank line. Money-in and money-out
+/// lists differ; every code exists in the default chart of accounts.
+List<_BankLineCategory> _bankLineCategories({required bool moneyIn}) {
+  if (moneyIn) {
+    return const [
+      _BankLineCategory(
+          label: 'A sale / income', hint: 'Money you earned', accountCode: '4010'),
+      _BankLineCategory(
+          label: 'A customer paid a debt',
+          hint: 'They owed you before',
+          accountCode: '1100'),
+      _BankLineCategory(
+          label: 'Owner added money',
+          hint: 'Capital you put in',
+          accountCode: '3010'),
+      _BankLineCategory(
+          label: 'A loan you received',
+          hint: 'Borrowed money',
+          accountCode: '2200'),
+      _BankLineCategory(
+          label: 'Transfer from cash',
+          hint: 'Moved from your cash box',
+          accountCode: '1010'),
+      _BankLineCategory(
+          label: 'Transfer from Mobile Money',
+          hint: 'Moved from MoMo',
+          accountCode: '1030'),
+      _BankLineCategory(
+          label: 'Other income',
+          hint: 'Anything else received',
+          accountCode: '4020'),
+    ];
+  }
+  return const [
+    _BankLineCategory(
+        label: 'Bank fee / charge',
+        hint: 'Charges the bank took',
+        accountCode: '6000'),
+    _BankLineCategory(
+        label: 'Paid a supplier / bought stock',
+        hint: 'Inventory or goods',
+        accountCode: '1200'),
+    _BankLineCategory(
+        label: 'Rent', hint: 'Shop or office rent', accountCode: '6010'),
+    _BankLineCategory(
+        label: 'Salaries / wages', hint: 'Paid staff', accountCode: '6020'),
+    _BankLineCategory(
+        label: 'Utilities',
+        hint: 'Electricity, water, internet',
+        accountCode: '6030'),
+    _BankLineCategory(
+        label: 'Transport / fuel',
+        hint: 'Travel & delivery',
+        accountCode: '6040'),
+    _BankLineCategory(
+        label: 'Loan repayment',
+        hint: 'Paid back a loan',
+        accountCode: '2200'),
+    _BankLineCategory(
+        label: 'Owner took money out',
+        hint: 'Personal withdrawal',
+        accountCode: '3010'),
+    _BankLineCategory(
+        label: 'Transfer to cash',
+        hint: 'Moved to your cash box',
+        accountCode: '1010'),
+    _BankLineCategory(
+        label: 'Transfer to Mobile Money',
+        hint: 'Moved to MoMo',
+        accountCode: '1030'),
+    _BankLineCategory(
+        label: 'Other expense',
+        hint: 'Anything else you paid',
+        accountCode: '6000'),
+  ];
+}
+
+/// Balanced double-entry for a bank line categorized as [categoryCode].
+/// Money in → Dr Bank / Cr category; money out → Dr category / Cr Bank.
+List<JournalLine> _bankAdjustmentLines(BankLine line, String categoryCode) {
+  const bank = '1020';
+  final amt = line.amt.abs();
+  if (line.amt >= 0) {
+    return [
+      JournalLine(ac: bank, dr: amt),
+      JournalLine(ac: categoryCode, cr: amt),
+    ];
+  }
+  return [
+    JournalLine(ac: categoryCode, dr: amt),
+    JournalLine(ac: bank, cr: amt),
+  ];
+}
+
+/// Lets the user categorize an unmatched bank line in plain language, then
+/// posts the balanced journal entry for them and matches the line — no
+/// accounting knowledge required.
+Future<void> _categorizeBankLine(
+  BuildContext context,
+  WidgetRef ref,
+  int index,
+  BankLine line,
+) async {
+  final category = await showDialog<_BankLineCategory>(
+    context: context,
+    builder: (context) => _BankLineCategoryDialog(line: line),
+  );
+  if (category == null || !context.mounted) return;
+
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return;
+
+  // Derive everything from the stable bank-line id so a retry after a partial
+  // failure converges on the same documents instead of double-counting: the
+  // header is upserted under a deterministic id, the ref is collision-free, and
+  // the bank-line match is keyed identically.
+  final bankLineId = _bankLineId(businessId, line);
+  final deterministicEntryId = 'je_bankrec_$bankLineId';
+  final refText = 'ADJ-${bankLineId.replaceAll('-', '').substring(0, 10).toUpperCase()}';
+  final entry = JournalEntry(
+    id: refText,
+    date: line.date,
+    memo: '${category.label} · ${line.desc}',
+    ref: refText,
+    status: JournalStatus.posted,
+    src: 'Bank rec',
+    lines: _bankAdjustmentLines(line, category.accountCode),
+  );
+
+  try {
+    final ledger = ref.read(accountingLedgerRepositoryProvider);
+    final entryId = await ledger.createJournalEntry(
+      businessId: businessId,
+      entry: entry,
+      journalCode: 'misc',
+      entryId: deterministicEntryId,
+    );
+    // createJournalEntry writes the header with the entry's status, but post
+    // explicitly so the entry counts in balances/reports regardless of backend.
+    // Both create and post are idempotent upserts on the deterministic id, so a
+    // retry re-runs the whole sequence without producing duplicates.
+    await ledger.postJournalEntry(businessId: businessId, entryId: entryId);
+    ref.invalidate(journalEntriesStreamProvider);
+
+    await _persistBankLineMatch(
+      ref,
+      index,
+      line,
+      entryUuid: entryId,
+      entryNumber: refText,
+    );
+
+    if (!context.mounted) return;
+    showAccountingToast(
+      context,
+      'Entry created & matched',
+      subtitle:
+          '${category.label} — ${money(line.amt.abs())} on Bank ($refText)',
+      icon: Icons.check,
+      tone: AccountingToastTone.success,
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+    showAccountingToast(
+      context,
+      'Could not create entry',
+      subtitle: '$e',
+      icon: Icons.error_outline,
+      tone: AccountingToastTone.warn,
+    );
+  }
+}
+
+class _BankLineCategoryDialog extends StatelessWidget {
+  const _BankLineCategoryDialog({required this.line});
+
+  final BankLine line;
+
+  @override
+  Widget build(BuildContext context) {
+    final moneyIn = line.amt >= 0;
+    final categories = _bankLineCategories(moneyIn: moneyIn);
+    return AlertDialog(
+      title: Text(moneyIn ? 'Where did this money come from?' : 'What was this payment for?'),
+      content: SizedBox(
+        width: 440,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AccountingTokens.surface2,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${line.date} · ${line.desc}',
+                      style: AccountingTokens.sans(
+                        fontSize: 13,
+                        color: AccountingTokens.ink2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    line.amt < 0 ? '(${money(-line.amt)})' : money(line.amt),
+                    style: AccountingTokens.mono(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: moneyIn
+                          ? AccountingTokens.gainInk
+                          : AccountingTokens.lossInk,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Pick the closest match — we\'ll record it correctly for you.',
+              style: AccountingTokens.sans(
+                fontSize: 12,
+                color: AccountingTokens.ink3,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final c in categories)
+                      ListTile(
+                        dense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 8),
+                        title: Text(
+                          c.label,
+                          style: AccountingTokens.sans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        subtitle: Text(
+                          c.hint,
+                          style: AccountingTokens.sans(
+                            fontSize: 12,
+                            color: AccountingTokens.ink3,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.chevron_right, size: 18),
+                        onTap: () => Navigator.of(context).pop(c),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
+    );
+  }
 }
 
 Future<BankMatchCandidate?> _pickBankMatchCandidate(

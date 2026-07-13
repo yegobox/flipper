@@ -7,11 +7,11 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:intl/intl.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'notification_manager.dart';
+import 'utils/notification_utils.dart';
 
 /// Service to handle notification responses and route appropriately
 class NotificationHandler {
@@ -61,7 +61,7 @@ class NotificationHandler {
     TransactionDelegation delegation,
   ) async {
     final title = 'New Print Delegation';
-    final body = _delegationBody(delegation);
+    final body = NotificationUtils.formatDelegationBody(delegation);
 
     EventBus().fire(
       DelegationReceivedEvent(
@@ -85,18 +85,6 @@ class NotificationHandler {
         stackTrace,
       );
     }
-  }
-
-  String _delegationBody(TransactionDelegation delegation) {
-    final amount = NumberFormat('#,##0', 'en_US').format(delegation.subTotal);
-    final customerName = delegation.customerName?.trim();
-    final fromDevice = delegation.delegatedFromDevice;
-
-    if (customerName != null && customerName.isNotEmpty) {
-      return '${delegation.receiptType} receipt for $customerName · '
-          'RWF $amount · from $fromDevice';
-    }
-    return '${delegation.receiptType} receipt · RWF $amount · from $fromDevice';
   }
 
   Future<void> _openDelegationsDashboard() async {

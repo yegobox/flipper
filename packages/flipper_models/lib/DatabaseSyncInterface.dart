@@ -36,6 +36,7 @@ import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:flipper_services/ai_strategy.dart';
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/sync/interfaces/personal_goals_interface.dart';
+import 'package:flipper_models/sync/interfaces/bar_interface.dart';
 import 'package:flipper_models/sync/interfaces/production_output_interface.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -86,6 +87,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         ReceiptInterface,
         ProductionOutputInterface,
         PersonalGoalsInterface,
+        BarInterface,
         LogInterface,
         GetterOperationsInterface {
   // Repository get repository;

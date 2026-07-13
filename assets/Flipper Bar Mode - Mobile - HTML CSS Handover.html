@@ -1,0 +1,1835 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flipper · Bar Mode MOBILE — HTML/CSS Handover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#EEF2F9; --surface:#FFFFFF; --surface-2:#F7F9FE; --pos-bg:#F4F6FB;
+    --ink-1:#0B1220; --ink-2:#4A5567; --ink-3:#7E8AA0; --ink-4:#AEB8CA;
+    --line:#E6ECF5; --line-strong:#D6DEEA;
+    --blue:#2563EB; --blue-700:#1D4ED8; --blue-tint:#EAF1FE; --blue-tint2:#DEEAFD;
+    --loss:#DC2626; --loss-ink:#B42318; --violet:#7C3AED; --win:#10B981; --win-tint:#DEF7EC;
+    --grad-brand:linear-gradient(135deg,#22D3EE,#2563EB 52%,#4F46E5);
+    --grad-btn:linear-gradient(180deg,#2C6BF0,#1D4ED8);
+    --sans:'Geist',ui-sans-serif,system-ui,sans-serif;
+    --mono:'Geist Mono',ui-monospace,Menlo,monospace;
+    --sh-1:0 1px 2px rgba(16,32,64,.05),0 1px 1px rgba(16,32,64,.04);
+    --sh-2:0 6px 18px -6px rgba(16,32,64,.14),0 2px 6px rgba(16,32,64,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{font-family:var(--sans); color:var(--ink-1); background:var(--bg); -webkit-font-smoothing:antialiased; line-height:1.5;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 30px; display:grid; grid-template-columns:250px 1fr; gap:44px; align-items:start;}
+  nav.toc{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; padding:40px 0 40px; border-right:1px solid var(--line);}
+  nav.toc::-webkit-scrollbar{width:0;}
+  main{padding:46px 0 120px; min-width:0;}
+  .brand{display:flex; align-items:center; gap:11px; margin-bottom:26px;}
+  .brand .mk{width:38px; height:38px; border-radius:12px; background:var(--grad-brand); display:grid; place-items:center; box-shadow:var(--sh-2);}
+  .brand .mk svg{width:22px; height:22px;}
+  .brand b{font-size:15px; font-weight:700; letter-spacing:-.01em;}
+  .brand span{display:block; font-size:11.5px; color:var(--ink-3); font-weight:500;}
+  .toc a{display:block; padding:6px 14px 6px 12px; font-size:13px; color:var(--ink-2); text-decoration:none; border-left:2px solid transparent; border-radius:0 6px 6px 0;}
+  .toc a:hover{color:var(--ink-1); background:var(--surface);}
+  .toc a.grp{margin-top:16px; font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-4); padding-left:12px; pointer-events:none;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--blue);}
+  .eyebrow .dot{width:7px; height:7px; border-radius:50%; background:var(--grad-brand);}
+  h1{font-size:40px; font-weight:800; letter-spacing:-.03em; margin:16px 0 0; line-height:1.05;}
+  .lede{font-size:16.5px; color:var(--ink-2); max-width:64ch; margin:16px 0 0; text-wrap:pretty;}
+  .meta{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px;}
+  .chip{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; color:var(--ink-2); background:var(--surface); border:1px solid var(--line); padding:7px 13px; border-radius:999px; box-shadow:var(--sh-1);}
+  .chip b{color:var(--ink-1);}
+  section{scroll-margin-top:24px; padding-top:52px;}
+  h2{font-size:13px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--blue); margin:0 0 4px;}
+  .h2sub{font-size:25px; font-weight:800; letter-spacing:-.02em; margin:0 0 20px;}
+  h3{font-size:17px; font-weight:700; letter-spacing:-.01em; margin:34px 0 12px;}
+  h4{font-size:14px; font-weight:700; margin:20px 0 8px; color:var(--ink-1);}
+  p{margin:0 0 14px; color:var(--ink-2); font-size:15px; max-width:76ch; text-wrap:pretty;}
+  p strong,li strong,td strong{color:var(--ink-1); font-weight:700;}
+  code{font-family:var(--mono); font-size:.88em; background:var(--blue-tint); color:var(--blue-700); padding:1px 6px; border-radius:6px;}
+  ul,ol{margin:0 0 14px; padding-left:20px; color:var(--ink-2); font-size:15px;}
+  li{margin:5px 0;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--sh-1); padding:22px 24px; margin:0 0 16px;}
+  .note{border-left:3px solid var(--blue); background:var(--blue-tint); border-radius:0 12px 12px 0; padding:14px 18px; margin:16px 0; font-size:14px; color:var(--ink-2);}
+  .note.warn{border-color:#B45309; background:#FEF3E2;}
+  .note.violet{border-color:var(--violet); background:#F3EEFB;}
+  .note b{color:var(--ink-1);}
+  table{width:100%; border-collapse:collapse; margin:8px 0 18px; font-size:13.5px;}
+  th{text-align:left; font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3); padding:0 12px 9px; border-bottom:1px solid var(--line);}
+  td{padding:10px 12px; border-bottom:1px solid var(--line); color:var(--ink-2); vertical-align:top;}
+  td:first-child{color:var(--ink-1); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  .sw{display:inline-block; width:13px; height:13px; border-radius:4px; vertical-align:-2px; margin-right:7px; border:1px solid rgba(0,0,0,.08);}
+  .mono,.tmono{font-family:var(--mono); font-size:12.5px;}
+  pre{background:#0B1220; color:#E9EEF6; border-radius:14px; padding:20px 22px; overflow-x:auto; font-family:var(--mono); font-size:12.25px; line-height:1.6; margin:6px 0 20px; box-shadow:var(--sh-2); white-space:pre; tab-size:2;}
+  .filetag{display:inline-block; font-family:var(--mono); font-size:11px; color:var(--ink-3); background:var(--surface-2); border:1px solid var(--line); padding:3px 9px; border-radius:7px; margin:14px 0 -6px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:900px){ .wrap{grid-template-columns:1fr;} nav.toc{display:none;} .grid2{grid-template-columns:1fr;} }
+  .anat{display:flex; align-items:baseline; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;}
+  .anat:last-child{border-bottom:0;}
+  .anat b{min-width:158px; color:var(--ink-1);}
+  .anat span{color:var(--ink-2);}
+  .pill{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink-3);}
+  .pill.new{background:var(--blue-tint); border-color:var(--blue-tint2); color:var(--blue-700);}
+  .pill.reuse{background:#E7F6EE; border-color:#BFE8D0; color:#15803D;}
+  hr{border:0; border-top:1px solid var(--line); margin:34px 0;}
+  @media print{ body{background:#fff;} nav.toc{display:none;} .wrap{grid-template-columns:1fr; max-width:none; padding:0 8mm;} pre{box-shadow:none; font-size:9.5px;} section{padding-top:26px;} h1{font-size:30px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc">
+    <div class="brand">
+      <span class="mk"><svg viewBox="0 0 48 48" fill="none"><path d="M24 7.5a16.5 16.5 0 1 1-11.6 4.8" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M24 16.5a7.5 7.5 0 1 0 5.3 2.2" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".6"/></svg></span>
+      <span><b>Flipper</b><span>Bar Mode · Mobile handover</span></span>
+    </div>
+    <a class="grp">Foundations</a>
+    <a href="#overview">Overview</a>
+    <a href="#relationship">Mobile vs. tablet</a>
+    <a href="#integration">How it plugs in</a>
+    <a href="#device">Device frame &amp; stage</a>
+    <a href="#tokens">Tokens &amp; primitives</a>
+    <a class="grp">Architecture</a>
+    <a href="#shared">Shared data layer</a>
+    <a href="#state">State &amp; routing</a>
+    <a class="grp">Screens</a>
+    <a href="#lock">1 · PIN lock</a>
+    <a href="#floor">2 · Table floor</a>
+    <a href="#pos">3 · Table POS</a>
+    <a href="#sheet">· Tab sheet</a>
+    <a href="#manager">· Manager modal</a>
+    <a href="#settle">4 · Settle</a>
+    <a href="#toast">· Toast</a>
+    <a class="grp">Reference</a>
+    <a href="#interactions">Interaction spec</a>
+    <a href="#copy">Copy deck</a>
+    <a href="#accept">Acceptance checklist</a>
+    <a class="grp">Full source</a>
+    <a href="#src-css">mobile.css</a>
+    <a href="#src-jsx">mobile screens</a>
+    <a href="#src-data">shared data</a>
+    <a href="#src-frame">iOS frame</a>
+    <a href="#src-host">host HTML</a>
+  </nav>
+  <main>
+    <div class="eyebrow"><span class="dot"></span>Developer handover · HTML + CSS · mobile</div>
+    <h1>Bar Mode — Mobile</h1>
+    <p class="lede">The complete spec to build the <strong>phone / small-device</strong> version of Flipper Bar Mode — the roaming-waiter surface. Same feature and same data as the tablet register, re-laid-out for one hand on a <strong>402 × 874</strong> canvas: catalog and tab split apart, the running tab as a pull-up sheet, and touch targets ≥ 44px. Every value here is pulled directly from the approved prototype <code>Flipper Bar Mode - Mobile.html</code>.</p>
+    <div class="meta">
+      <span class="chip">Canvas <b>402 × 874</b> (iPhone)</span>
+      <span class="chip">Currency <b>RWF</b> · VAT 18%</span>
+      <span class="chip">Font <b>Geist / Geist Mono</b></span>
+      <span class="chip">Shares store with <b>the tablet build</b></span>
+      <span class="chip">New <b>bar/mobile.css</b> + <b>bar/mobile.jsx</b></span>
+    </div>
+    <div class="note"><b>Read alongside the tablet handover.</b> The <em>data model, store actions, persistence, cashiers/products/floor, and settle maths</em> are identical and documented in full there. This doc covers what is <strong>mobile-specific</strong>: layout, components, gestures, and the screens the phone shows.</div>
+
+<section id="overview">
+  <h2>01 — Overview</h2>
+  <div class="h2sub">The waiter's phone</div>
+  <p>Mobile is the <strong>waiter-facing</strong> half of Bar Mode. A server carries a phone around the floor: they log in with a PIN, pick a table, tap drinks into its running tab, and pull up the tab to review, save, or hand off. Settlement is still manager-gated.</p>
+  <p>The four phone screens:</p>
+  <div class="card">
+    <div class="anat"><b>1 · PIN lock</b><span>Pick your name from an avatar strip, enter your 4-digit PIN. Start + after every logout.</span></div>
+    <div class="anat"><b>2 · Table floor</b><span>Zone tabs (Main Bar / Terrace / VIP) + a 2-column grid of table cards.</span></div>
+    <div class="anat"><b>3 · Table POS</b><span>2-column product grid with quick-add; a sticky bottom "View tab" bar; the tab itself opens as a bottom sheet.</span></div>
+    <div class="anat"><b>4 · Settle</b><span>Single-column bill grouped by server, VAT, cash / mobile money. Reached via a manager PIN modal for non-managers.</span></div>
+  </div>
+  <p>Plus two overlays: a <strong>Manager PIN modal</strong> (bottom sheet) and a <strong>toast</strong>. <strong>Admin config is intentionally not on mobile</strong> — it's a back-office dashboard that lives on the terminal; the lock screen notes "configured by admin on the main terminal."</p>
+</section>
+
+<section id="relationship">
+  <h2>02 — Mobile vs. tablet</h2>
+  <div class="h2sub">What changes, what's identical</div>
+  <table>
+    <thead><tr><th>Aspect</th><th>Tablet (1440×912)</th><th>Mobile (402×874)</th></tr></thead>
+    <tbody>
+      <tr><td>Catalog &amp; tab</td><td>Side-by-side (catalog left, cart right)</td><td><strong>Split</strong>: full-screen grid + pull-up tab sheet</td></tr>
+      <tr><td>Floor</td><td>All zones stacked, 6-col grids</td><td>Zone <strong>tabs</strong>, 2-col grid</td></tr>
+      <tr><td>Cashier picker</td><td>Vertical people list beside keypad</td><td>Horizontal avatar strip above keypad</td></tr>
+      <tr><td>Admin config</td><td>Full Management-Dashboard screen</td><td><strong>Omitted</strong> (terminal only)</td></tr>
+      <tr><td>Settle</td><td>Two-pane (bill + payment)</td><td>Single column, sticky confirm bar</td></tr>
+      <tr><td>Line editing</td><td>Inline expandable qty/price editor</td><td>Compact stepper in the sheet (no price editor)</td></tr>
+      <tr><td>Data / store / actions</td><td colspan="2" style="text-align:center"><strong>Identical — same <code>bar/data.jsx</code>, same localStorage key. State syncs across both.</strong></td></tr>
+    </tbody>
+  </table>
+  <div class="note warn"><b>One store, two skins.</b> Mobile imports the exact same <code>useBarStore()</code> and helpers. A tab opened on the tablet appears on the phone and vice-versa (same bar, same terminal group). Do not fork the data layer.</div>
+</section>
+
+<section id="integration">
+  <h2>03 — How it plugs in</h2>
+  <div class="h2sub">Files &amp; load order</div>
+  <table>
+    <thead><tr><th>File</th><th>Status</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>onboarding/styles.css</td><td><span class="pill reuse">reuse</span></td><td>Design tokens (colours, radii, shadows, fonts).</td></tr>
+      <tr><td>bar/bar.css</td><td><span class="pill reuse">reuse</span></td><td>Only for the <code>--loss-tint</code> token it declares; mobile.css assumes it is present.</td></tr>
+      <tr><td>onboarding/icons.jsx</td><td><span class="pill reuse">reuse</span></td><td><code>Icons</code> set + <code>FlipperLogo</code>.</td></tr>
+      <tr><td>bar/data.jsx</td><td><span class="pill reuse">reuse</span></td><td>Store, actions, constants, helpers — shared verbatim with tablet.</td></tr>
+      <tr><td>bar/ios-frame.jsx</td><td><span class="pill new">new*</span></td><td>Device bezel (<code>IOSDevice</code>) — status bar, dynamic island, home indicator. *Starter component; only <code>IOSDevice</code> is used.</td></tr>
+      <tr><td>bar/mobile.css</td><td><span class="pill new">new</span></td><td>All mobile styles (<code>.m-*</code>). Full source in §mobile.css.</td></tr>
+      <tr><td>bar/mobile.jsx</td><td><span class="pill new">new</span></td><td>All mobile screens + the mobile root <code>MBarApp</code>. Full source in §mobile screens.</td></tr>
+    </tbody>
+  </table>
+  <p>CSS order: <code>styles.css</code> → <code>bar.css</code> → <code>mobile.css</code>. JS order: <code>icons.jsx</code> → <code>ios-frame.jsx</code> → <code>data.jsx</code> → <code>mobile.jsx</code>, then render <code>&lt;MBarApp/&gt;</code>. (pos.css is <em>not</em> needed on mobile — the phone POS is built entirely from <code>.m-*</code>.) Full host file in §host HTML.</p>
+</section>
+
+<section id="device">
+  <h2>04 — Device frame &amp; stage</h2>
+  <div class="h2sub">402 × 874, letterboxed</div>
+  <p>Every screen renders <strong>inside</strong> <code>&lt;IOSDevice&gt;</code> (default 402×874, radius 48, overflow hidden). The frame draws its own status bar (z 10), dynamic island (z 50) and home indicator (z 60). Screen content sits behind those, so each <code>.m-screen</code> is <code>position:absolute; inset:0</code> and reserves space with spacers:</p>
+  <ul>
+    <li><code>.m-safe-top</code> — 60px, clears the status bar / island.</li>
+    <li><code>.m-safe-bottom</code> — 30px, clears the home indicator.</li>
+  </ul>
+  <p>The device is centered and scaled to the viewport by <code>MStage</code> (same guarded scaler as tablet — retries a 0-sized mount, re-runs on <code>load</code>, observes with <code>ResizeObserver</code>), fitting <code>402+40 × 874+40</code> so there's a little breathing room:</p>
+<pre>const s = Math.min(vw / (402 + 40), vh / (874 + 40));
+fit.style.transform = "translate(-50%, -50%) scale(" + (s || 1) + ")";</pre>
+  <div class="note"><b>On a real device</b> you'd drop <code>IOSDevice</code> + <code>MStage</code> and let <code>.m-screen</code> fill the viewport, swapping the fixed 60/30 spacers for <code>env(safe-area-inset-*)</code>. The internal layout (flex column: fixed header → <code>.m-scroll</code> flex:1 → fixed footer) is already responsive to any height.</p></div>
+</section>
+
+<section id="tokens">
+  <h2>05 — Tokens &amp; primitives</h2>
+  <div class="h2sub">Reused system + mobile shells</div>
+  <p>No new colours. Mobile consumes the same tokens (see the tablet handover's token tables). Mobile-specific structural primitives:</p>
+  <table>
+    <thead><tr><th>Class</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>.m-screen</td><td>Full-device flex column (header / <code>.m-scroll</code> / footer), <code>position:absolute; inset:0</code>, <code>.m-fade</code> entrance.</td></tr>
+      <tr><td>.m-safe-top / .m-safe-bottom</td><td>60px / 30px spacers for status bar &amp; home indicator.</td></tr>
+      <tr><td>.m-scroll</td><td>The single scroll region (<code>flex:1; overflow-y:auto</code>), scrollbar hidden.</td></tr>
+      <tr><td>.m-btn (+ -primary / -ghost / -danger)</td><td>52px pill buttons; <code>:active</code> scale 0.97.</td></tr>
+      <tr><td>.m-iconbtn</td><td>42px square icon button (+ <code>.danger</code>).</td></tr>
+      <tr><td>.m-topchip</td><td>Logged-in cashier chip in headers.</td></tr>
+      <tr><td>.m-sheet / .m-sheet-scrim</td><td>Bottom-sheet shell (radius 26 top, <code>mSheetUp</code> slide-in) + dim scrim.</td></tr>
+      <tr><td>.m-sheet-grip</td><td>40×5 drag handle at the top of every sheet/modal.</td></tr>
+      <tr><td>.m-toast</td><td>Bottom toast (dark, green check, auto-dismiss ~3.2s).</td></tr>
+    </tbody>
+  </table>
+  <p>Tap-target rule: interactive rows/keys/buttons are ≥ 44px tall (keypad keys 62px, primary buttons 52–58px, steppers 30px are inside 44px+ rows).</p>
+</section>
+
+<section id="shared">
+  <h2>06 — Shared data layer</h2>
+  <div class="h2sub">Everything comes from bar/data.jsx</div>
+  <p>Mobile does not redefine any data. It imports the same exports (see §shared data source and the tablet handover for full shapes):</p>
+  <ul>
+    <li><strong>Store:</strong> <code>useBarStore()</code> → <code>[store, actions]</code>. Same reducer, same <code>localStorage["flipper-bar-mode-v1"]</code>, same fresh-session-on-load rule.</li>
+    <li><strong>Constants:</strong> <code>BAR_CASHIERS</code>, <code>BAR_PRODUCTS</code>, and the editable floor in <code>store.floor</code>.</li>
+    <li><strong>Helpers:</strong> <code>barCashier</code>, <code>barProduct</code>, <code>findTable(floor,id)</code>, <code>barColorFor</code>, <code>barAbbr</code>, <code>barMoney</code>, <code>barFmtClock</code>, <code>barFmtElapsed</code>, <code>tabTotal</code>, <code>tabCount</code>, <code>tabServers</code>.</li>
+    <li><strong>Actions used:</strong> <code>login</code>, <code>logout</code>, <code>openTable</code>, <code>addItem</code>, <code>setLineQty</code>, <code>saveToTab</code>, <code>goSettle</code>, <code>elevateSettle</code>, <code>settleConfirm</code>, <code>setScreen</code>. (Mobile does not use the admin-only <code>setSetting</code> / floor-editor actions or <code>setLinePrice</code>.)</li>
+  </ul>
+  <div class="note"><b>Add-item merge &amp; line ownership are unchanged.</b> Each line still carries <code>cashierId</code>; a server edits their own lines, a manager edits any, others are read-only. This drives the grouped tab sheet and grouped settle bill.</div>
+</section>
+
+<section id="state">
+  <h2>07 — State &amp; routing</h2>
+  <div class="h2sub">Same machine, mobile entry</div>
+  <p><code>MBarApp</code> maps <code>store.screen</code> to a mobile view. Because admin doesn't exist on mobile, on mount it redirects <code>admin → lock</code>, and treats <code>admin</code> as <code>lock</code> in the switch:</p>
+  <table>
+    <thead><tr><th>store.screen</th><th>Mobile view</th></tr></thead>
+    <tbody>
+      <tr><td>admin / lock / (default)</td><td><code>MLock</code></td></tr>
+      <tr><td>tables</td><td><code>MFloor</code></td></tr>
+      <tr><td>pos</td><td><code>MPos</code> (tab sheet is local state)</td></tr>
+      <tr><td>settle</td><td><code>MSettle</code></td></tr>
+    </tbody>
+  </table>
+  <p>Transitions match tablet: login → tables; tap table → pos; back / save → tables; logout → lock; settle (manager) → settle; settle (server) → manager modal → <code>elevateSettle</code> → settle; confirm → tables + toast. <strong>Guards:</strong> no cashier ⇒ lock; pos/settle without a table ⇒ floor.</p>
+</section>
+
+<section id="lock">
+  <h2>Screen 1</h2>
+  <div class="h2sub">PIN lock</div>
+  <p>Soft radial background. Centered brand, eyebrow "Bar mode · Shared register", heading "Who's serving?".</p>
+  <div class="card">
+    <div class="anat"><b>People strip</b><span><code>.m-people</code> — horizontal-scroll of <code>.m-person</code> (52px rounded avatar + first-name). Managers get a violet shield badge. Selected → <code>.is-on</code>.</span></div>
+    <div class="anat"><b>Keypad</b><span>Selected avatar + name, "Enter your 4-digit PIN", four <code>.m-dot</code>s, then <code>.m-keypad</code> (3-col: 1-9, Clear, 0, ⌫). Disabled until a person is picked.</span></div>
+    <div class="anat"><b>Feedback</b><span>4th digit auto-submits (~90ms). Wrong → red dots + <code>mShake</code> + clear + "Wrong PIN — try again".</span></div>
+    <div class="anat"><b>Foot note</b><span>"Bar mode configured by admin on the main terminal."</span></div>
+  </div>
+<pre>&lt;div class="m-people"&gt;
+  &lt;button class="m-person is-on"&gt;
+    &lt;span class="m-person-av" style="background:#2563EB"&gt;VM
+      &lt;!-- managers: &lt;span class="mgr"&gt;shield&lt;/span&gt; --&gt;
+    &lt;/span&gt;
+    &lt;span class="m-person-nm"&gt;Victoria M.&lt;/span&gt;
+  &lt;/button&gt; …
+&lt;/div&gt;
+&lt;div class="m-dots"&gt;&lt;span class="m-dot filled"&gt;&lt;/span&gt;…&lt;/div&gt;   &lt;!-- add .err to shake --&gt;
+&lt;div class="m-keypad"&gt;
+  &lt;button class="m-key"&gt;1&lt;/button&gt; … &lt;button class="m-key util"&gt;Clear&lt;/button&gt;
+  &lt;button class="m-key"&gt;0&lt;/button&gt;&lt;button class="m-key util"&gt;&lt;!-- ChevLeft --&gt;&lt;/button&gt;
+&lt;/div&gt;</pre>
+  <p>PIN logic is the shared <code>MPinEntry</code> component (also used by the manager modal) — full source in §mobile screens.</p>
+</section>
+
+<section id="floor">
+  <h2>Screen 2</h2>
+  <div class="h2sub">Table floor</div>
+  <p>Fixed header (brand + cashier chip + logout icon), a "Tables / N open" title, a horizontal <strong>zone-tab bar</strong>, then a scrolling 2-column grid for the <em>selected</em> zone.</p>
+  <div class="card">
+    <div class="anat"><b>Zone bar</b><span><code>.m-zonebar</code> of <code>.m-zonechip</code> (name + <code>open/total</code> count). Active chip is dark (<code>.is-on</code>). Local <code>zoneId</code> state; defaults to first zone.</span></div>
+    <div class="anat"><b>Free card</b><span><code>.m-tcard.empty</code> — dashed, big muted id + seats, "＋ Open tab". Tap → <code>openTable</code>.</span></div>
+    <div class="anat"><b>Open card</b><span><code>.m-tcard.open</code> — blue left border, id + "Open" pill, running total, stacked server avatars, time-open. Tap → resume in POS.</span></div>
+  </div>
+<pre>&lt;div class="m-zonebar"&gt;
+  &lt;button class="m-zonechip is-on"&gt;Main Bar &lt;span class="cnt"&gt;1/6&lt;/span&gt;&lt;/button&gt; …
+&lt;/div&gt;
+&lt;div class="m-tgrid"&gt;
+  &lt;button class="m-tcard open"&gt;
+    &lt;div class="m-tcard-top"&gt;&lt;span class="m-tcard-id"&gt;B2&lt;/span&gt;
+      &lt;span class="m-status open"&gt;&lt;span class="pip"&gt;&lt;/span&gt; Open&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="m-tcard-amt"&gt;&lt;span class="v"&gt;&lt;small&gt;RWF&lt;/small&gt; 3,375&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="m-tcard-sub"&gt;
+      &lt;span class="m-tcard-servers"&gt;&lt;span class="sv" style="background:#2E9E83"&gt;EN&lt;/span&gt;&lt;/span&gt;
+      &lt;span class="m-tcard-time"&gt;&lt;!-- Clock --&gt; 1h 12m&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<section id="pos">
+  <h2>Screen 3</h2>
+  <div class="h2sub">Table POS — catalog</div>
+  <p>Fixed header: back button, table badge, zone + "Open" pill, and a sub-line "seats · opened HH:MM by {name} · {elapsed}". A search field, then a scrolling 2-column product grid. A sticky bar pins the tab summary to the bottom.</p>
+  <div class="card">
+    <div class="anat"><b>Product card</b><span><code>.m-pcard</code>: coloured thumb (abbrev), name, price; a blue ＋ add button; an in-cart count pill; Low / Out badges. Out-of-stock disabled + dimmed.</span></div>
+    <div class="anat"><b>Sticky tab bar</b><span><code>.m-tabbar</code>: when the tab has items, a full-width <code>.m-tabbar-btn</code> — cart icon + count badge, "View tab", server/item count, and the total. Opens the sheet. Empty tab → a hint line instead.</span></div>
+  </div>
+<pre>&lt;div class="m-tabbar"&gt;
+  &lt;button class="m-tabbar-btn"&gt;
+    &lt;span class="cart"&gt;&lt;!-- Cart --&gt;&lt;span class="n"&gt;5&lt;/span&gt;&lt;/span&gt;
+    &lt;span class="lbl"&gt;&lt;b&gt;View tab&lt;/b&gt;&lt;span&gt;2 servers&lt;/span&gt;&lt;/span&gt;
+    &lt;span class="amt"&gt;17,775&lt;/span&gt;
+  &lt;/button&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<section id="sheet">
+  <h2>Screen 3 · overlay</h2>
+  <div class="h2sub">The running-tab sheet</div>
+  <p>Tapping "View tab" slides up <code>.m-sheet</code> (over a scrim; local <code>sheet</code> state). This is the tab review + hand-off surface.</p>
+  <div class="card">
+    <div class="anat"><b>Header</b><span>Grip, table badge, "Running tab", "{zone} · N items", close ×.</span></div>
+    <div class="anat"><b>Lines by server</b><span>Grouped with a <code>.m-round-div</code> divider per server ("You · Victoria" for the active user, full name otherwise). Own lines get a <code>.m-step</code> (− qty +); others show "×N" + a shield (read-only). Managers edit all.</span></div>
+    <div class="anat"><b>Foot</b><span>Tab total, "Logged by N servers · you added M", then a 2-up <strong>Logout</strong> / <strong>Save to tab</strong>, and a full-width <strong>Settle</strong> button ("…&amp; close table" for managers, "· manager PIN" for servers; disabled when empty).</span></div>
+  </div>
+  <div class="note"><b>Hand-off loop.</b> Save to tab → floor (tab persists); Logout → lock, so the next server logs in and re-opens the same table to keep adding. Both close the sheet first.</div>
+<pre>&lt;div class="m-sheet"&gt;
+  &lt;div class="m-sheet-grip"&gt;&lt;/div&gt;
+  &lt;div class="m-sheet-head"&gt;…&lt;/div&gt;
+  &lt;div class="m-sheet-lines"&gt;
+    &lt;div class="m-round-div"&gt;&lt;span class="av"&gt;VM&lt;/span&gt;&lt;span class="lbl"&gt;You · Victoria&lt;/span&gt;&lt;span class="rule"&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="m-line"&gt;
+      &lt;span class="m-line-sw"&gt;Ibi&lt;/span&gt;
+      &lt;div class="m-line-mid"&gt;&lt;div class="m-line-nm"&gt;Ibivero&lt;/div&gt;&lt;div class="m-line-unit"&gt;RWF 6,500 each&lt;/div&gt;&lt;/div&gt;
+      &lt;div class="m-step"&gt;&lt;button&gt;−&lt;/button&gt;&lt;span class="q"&gt;2&lt;/span&gt;&lt;button&gt;+&lt;/button&gt;&lt;/div&gt;
+      &lt;span class="m-line-total"&gt;13,000&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;!-- another server: &lt;span class="m-line-ro"&gt;×3 &lt;span class="lock"&gt;shield&lt;/span&gt;&lt;/span&gt; --&gt;
+  &lt;/div&gt;
+  &lt;div class="m-sheet-foot"&gt;…Logout | Save to tab … Settle…&lt;/div&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<section id="manager">
+  <h2>Overlay</h2>
+  <div class="h2sub">Manager PIN modal</div>
+  <p>When a non-manager taps Settle (and <code>managerSettle</code> is on), <code>.m-modal-scrim</code> presents a bottom-anchored <code>.m-modal</code>: grip, violet shield tile, "Manager approval", "Settling a bill needs a manager PIN.", the same <code>MPinEntry</code>, Cancel. Any manager PIN passes → <code>elevateSettle(mgrId)</code> → settle. Wrong → "Not a manager PIN" + shake.</p>
+</section>
+
+<section id="settle">
+  <h2>Screen 4</h2>
+  <div class="h2sub">Settle</div>
+  <p>Single column. Back + "{badge} Settle bill" header; a scrolling bill card; payment method + note; a sticky confirm bar.</p>
+  <div class="card">
+    <div class="anat"><b>Bill</b><span><code>.m-bill-card</code>: head (table + "opened … · elapsed"), a <code>.m-bill-grp</code> per server (avatar + name + group subtotal, then "N× Name  amount" lines), dashed foot: Subtotal (excl. VAT), VAT 18%, Total due.</span></div>
+    <div class="anat"><b>Payment</b><span>Cash / Mobile Money method cards + a contextual note. Sticky <code>.m-settle-foot</code> holds the full-width "Confirm · RWF {total}".</span></div>
+  </div>
+  <p><strong>Maths (identical to tablet):</strong> VAT inclusive — <code>vat = total − total/1.18</code>, subtotal = <code>total − vat</code>. Confirm → <code>settleConfirm()</code> (deletes the tab, frees the table) + toast, back to floor.</p>
+</section>
+
+<section id="toast">
+  <h2>Overlay</h2>
+  <div class="h2sub">Toast</div>
+  <p><code>.m-toast</code> — bottom, dark <span class="mono">#10233F</span>, green check, auto-dismiss ~3.2s. e.g. <em>"B2 settled · RWF 17,775 Cash"</em>.</p>
+</section>
+
+<section id="interactions">
+  <h2>08 — Interaction spec</h2>
+  <div class="h2sub">Gestures &amp; states</div>
+  <table>
+    <thead><tr><th>Area</th><th>Behaviour</th></tr></thead>
+    <tbody>
+      <tr><td>PIN keypad</td><td>Disabled until a name is tapped; 4th digit auto-submits; wrong shakes + clears. No hardware-keyboard binding on mobile (touch keypad only).</td></tr>
+      <tr><td>Zone tabs</td><td>Switch the visible grid; count badge = open/total per zone.</td></tr>
+      <tr><td>Add item</td><td>Tap card or ＋ → increments the current server's default-price line (capped at stock) else adds a new tagged line; in-cart count pill updates; out-of-stock disabled.</td></tr>
+      <tr><td>Tab sheet</td><td>Opens on "View tab"; closes on scrim tap, ×, or after Save/Logout/Settle. Grouped by server; own lines editable, others read-only; manager edits all.</td></tr>
+      <tr><td>Save vs Logout</td><td>Save → floor (tab kept). Logout → lock (tab kept, ready for next server). Both dismiss the sheet.</td></tr>
+      <tr><td>Settle gate</td><td>Server → manager PIN modal; manager → straight to settle. Disabled on empty tab.</td></tr>
+      <tr><td>Reload</td><td>Fresh logged-out session at lock; tabs + settings + floor persist (shared store).</td></tr>
+      <tr><td>Touch feedback</td><td>Cards/keys/buttons scale ~0.94–0.98 on <code>:active</code>.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="copy">
+  <h2>09 — Copy deck</h2>
+  <div class="h2sub">Exact strings</div>
+  <h4>Lock</h4>
+  <ul><li>"Bar mode · Shared register" · "Who's serving?" · "Select your name" / "Tap a name above, then enter your PIN" · "Enter your 4-digit PIN" · "Wrong PIN — try again" · "Bar mode configured by admin on the main terminal"</li></ul>
+  <h4>Floor</h4>
+  <ul><li>"Tables" · "{n} open · tap to log an order" · zone chip "{open}/{total}" · "Open" · "＋ Open tab"</li></ul>
+  <h4>POS</h4>
+  <ul><li>"Search drinks &amp; products…" · header "{seats} seats · opened {time} by {name} · {elapsed}" · "View tab" + "{n} servers"/"{n} items" · empty "Tap a product to start {T}'s tab"</li></ul>
+  <h4>Tab sheet</h4>
+  <ul><li>"Running tab" · "{zone} · {n} items" · divider "You · {first}" / "{full name}" · "Tab total" · "Logged by {n} servers · you added {m}" / "You've logged {m} lines" · "Logout" · "Save to tab" · "Settle bill &amp; close table" / "Settle bill · manager PIN"</li></ul>
+  <h4>Manager modal</h4>
+  <ul><li>"Manager approval" · "Settling a bill needs a manager PIN." · "Not a manager PIN" · "Cancel"</li></ul>
+  <h4>Settle</h4>
+  <ul><li>"Settle bill" · "Table {T} — running tab" · "{zone} · opened {time} · {elapsed}" · "Subtotal (excl. VAT)" / "VAT 18%" / "Total due" · "Cash" / "Mobile Money" · cash note "Take RWF {total} in cash from the customer, then confirm to close the table." · momo note "A request for RWF {total} will be pushed to the customer's phone. Confirm once approved." · "Confirm · RWF {total}" · toast "{T} settled · RWF {total} {Cash|MoMo}"</li></ul>
+</section>
+
+<section id="accept">
+  <h2>10 — Acceptance checklist</h2>
+  <div class="h2sub">Done means</div>
+  <div class="card"><ul style="margin:0">
+    <li>Everything renders inside a 402×874 frame, scaled to fit, with safe-area spacers top &amp; bottom.</li>
+    <li>Lock: avatar strip + keypad; wrong PIN shakes; correct logs in → floor.</li>
+    <li>Floor: zone tabs switch a 2-col grid; open vs free with totals, servers, time.</li>
+    <li>POS: 2-col grid, quick-add, in-cart counts; sticky "View tab" bar shows count + total.</li>
+    <li>Tab sheet: slides up, grouped by server, own lines editable (stepper), others read-only; Save / Logout / Settle work and dismiss the sheet.</li>
+    <li>Server tapping Settle gets the manager PIN modal; manager goes straight through.</li>
+    <li>Settle: grouped bill + VAT, cash/MoMo, confirm closes table + toast → floor.</li>
+    <li>State persists and syncs with the tablet build (same store key); reload lands at lock.</li>
+    <li>All tap targets ≥ 44px; only design-system tokens used.</li>
+  </ul></div>
+  <div class="note"><b>Source of truth.</b> The appendix is the complete, verbatim source of every mobile file.</div>
+</section>
+<hr/><section id="src-css"><h2>Appendix A</h2><div class="h2sub">bar/mobile.css — complete</div><div class="filetag">bar/mobile.css</div><pre>/* ===========================================================
+   Flipper · Bar Mode — MOBILE (phone / small devices)
+   Requires onboarding/styles.css tokens + bar/bar.css (reuses --loss-tint etc).
+   Everything lives inside the 402×874 iOS bezel. Screens fill it and
+   account for the status bar (top) + home indicator (bottom).
+   =========================================================== */
+
+.mbar-stage { position: fixed; inset: 0; background: #0B0E17; overflow: hidden; }
+.mbar-fit { position: absolute; top: 50%; left: 50%; transform-origin: center center; }
+
+/* every screen fills the device content box */
+.m-screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--pos-bg);
+  font-family: var(--sans);
+  color: var(--ink-1);
+  overflow: hidden;
+}
+.m-safe-top { height: 60px; flex-shrink: 0; }        /* under status bar / island */
+.m-safe-bottom { height: 30px; flex-shrink: 0; }      /* above home indicator */
+.m-fade { animation: mFade .3s cubic-bezier(.22,.9,.3,1); }
+@keyframes mFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.m-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.m-scroll::-webkit-scrollbar { width: 0; }
+
+/* buttons */
+.m-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; border-radius: 15px; font-size: 16px; font-weight: 700; letter-spacing: -.01em; transition: transform .1s, background .14s, box-shadow .16s; }
+.m-btn:active { transform: scale(.97); }
+.m-btn-primary { background: var(--grad-btn); color: #fff; box-shadow: var(--sh-blue); border: 0; }
+.m-btn-ghost { background: var(--surface); border: 1.5px solid var(--line-strong); color: var(--ink-1); }
+.m-btn-danger { background: var(--surface); border: 1.5px solid #F3C9C9; color: var(--loss-ink); }
+.m-btn:disabled { opacity: .5; box-shadow: none; }
+
+/* ================= brand / top bar ================= */
+.m-topbar { flex-shrink: 0; display: flex; align-items: center; gap: 11px; padding: 4px 18px 12px; }
+.m-brand { display: flex; align-items: center; gap: 8px; }
+.m-brand .wordmark { font-size: 16px; letter-spacing: -.01em; }
+.m-top-spacer { flex: 1; }
+.m-topchip { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px; }
+.m-topchip-av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 12px; }
+.m-topchip-meta { line-height: 1.1; }
+.m-topchip-name { font-size: 12.5px; font-weight: 700; }
+.m-topchip-role { font-size: 10.5px; color: var(--ink-3); }
+.m-iconbtn { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); }
+.m-iconbtn.danger { color: var(--loss-ink); border-color: #F3C9C9; }
+.m-iconbtn:active { transform: scale(.94); }
+
+/* ================= PIN LOCK ================= */
+.m-lock { padding: 0 20px; background:
+  radial-gradient(520px 360px at 50% -8%, #F4F7FE 0%, var(--bg) 60%), var(--bg); }
+.m-lock-head { text-align: center; margin: 6px 0 14px; }
+.m-lock-eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-4); }
+.m-lock-h { font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin-top: 3px; }
+.m-people { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: none; }
+.m-people::-webkit-scrollbar { height: 0; }
+.m-person { flex-shrink: 0; width: 78px; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 10px 4px; border-radius: 18px; border: 1.5px solid transparent; background: transparent; transition: background .14s, border-color .14s; }
+.m-person.is-on { background: var(--surface); border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.m-person-av { width: 52px; height: 52px; border-radius: 17px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 18px; position: relative; }
+.m-person-av .mgr { position: absolute; bottom: -4px; right: -4px; width: 20px; height: 20px; border-radius: 50%; background: var(--violet); color: #fff; display: grid; place-items: center; border: 2px solid var(--bg); }
+.m-person-nm { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.15; }
+
+.m-pad-who { display: flex; align-items: center; justify-content: center; gap: 9px; margin: 6px 0 3px; }
+.m-pad-who-av { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 12px; }
+.m-pad-title { font-size: 15px; font-weight: 700; }
+.m-pad-hint { text-align: center; font-size: 13px; color: var(--ink-3); margin-bottom: 14px; }
+.m-dots { display: flex; gap: 14px; justify-content: center; height: 18px; margin-bottom: 18px; }
+.m-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--line-strong); transition: background .12s, border-color .12s, transform .12s; }
+.m-dot.filled { background: var(--blue); border-color: var(--blue); transform: scale(1.06); }
+.m-dots.err .m-dot { border-color: var(--loss); background: var(--loss); }
+.m-dots.err { animation: mShake .4s; }
+@keyframes mShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(3px)} }
+.m-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 6px; }
+.m-key { height: 62px; border-radius: 16px; background: var(--surface); border: 1.5px solid var(--line); font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--ink-1); display: grid; place-items: center; transition: transform .06s, background .1s, color .12s, border-color .12s; }
+.m-key:active { transform: scale(.94); background: var(--blue-tint); border-color: var(--blue); color: var(--blue); }
+.m-key.util { background: transparent; border-color: transparent; font-size: 15px; font-weight: 700; color: var(--ink-2); }
+.m-key:disabled { opacity: .4; }
+.m-key-err { text-align: center; font-size: 12.5px; font-weight: 700; color: var(--loss); height: 16px; margin-top: 12px; }
+.m-lock-foot { text-align: center; font-size: 11.5px; color: var(--ink-4); padding: 6px 0 2px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* ================= TABLE FLOOR ================= */
+.m-floor-sub { flex-shrink: 0; padding: 0 18px 10px; display: flex; align-items: center; gap: 10px; }
+.m-floor-h { font-size: 26px; font-weight: 800; letter-spacing: -.03em; }
+.m-floor-count { font-size: 12.5px; color: var(--ink-3); font-weight: 600; margin-top: 2px; }
+.m-zonebar { flex-shrink: 0; display: flex; gap: 8px; overflow-x: auto; padding: 2px 18px 12px; scrollbar-width: none; }
+.m-zonebar::-webkit-scrollbar { height: 0; }
+.m-zonechip { flex-shrink: 0; height: 34px; padding: 0 15px; border-radius: 999px; background: var(--surface); border: 1.5px solid var(--line); font-size: 13.5px; font-weight: 700; color: var(--ink-2); display: inline-flex; align-items: center; gap: 7px; transition: background .14s, color .14s, border-color .14s; }
+.m-zonechip.is-on { background: var(--ink-1); color: #fff; border-color: var(--ink-1); }
+.m-zonechip .cnt { font-family: var(--mono); font-size: 11px; opacity: .8; }
+.m-floor-body { padding: 4px 16px 8px; }
+.m-tgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.m-tcard { text-align: left; border-radius: 18px; padding: 14px; min-height: 128px; display: flex; flex-direction: column; transition: transform .1s; }
+.m-tcard:active { transform: scale(.98); }
+.m-tcard.empty { background: var(--surface); border: 1.5px dashed var(--line-strong); }
+.m-tcard.open { background: var(--surface); border: 1.5px solid var(--line); box-shadow: var(--sh-1); border-left: 4px solid var(--blue); }
+.m-tcard-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.m-tcard-id { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+.m-tcard.empty .m-tcard-id { color: var(--ink-3); }
+.m-tcard-seats { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--ink-4); display: inline-flex; align-items: center; gap: 3px; }
+.m-status { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: .02em; }
+.m-status.open { background: var(--blue-tint); color: var(--blue); }
+.m-status .pip { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.m-tcard-amt { margin-top: auto; }
+.m-tcard-amt .v { font-family: var(--mono); font-size: 19px; font-weight: 800; letter-spacing: -.02em; }
+.m-tcard-amt .v small { font-size: 10.5px; color: var(--ink-3); font-weight: 700; }
+.m-tcard-sub { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.m-tcard-servers { display: flex; align-items: center; }
+.m-tcard-servers .sv { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); display: grid; place-items: center; color: #fff; font-size: 8.5px; font-weight: 800; margin-left: -7px; }
+.m-tcard-servers .sv:first-child { margin-left: 0; }
+.m-tcard-time { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.m-tcard-cta { margin-top: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.m-tcard.empty:active .m-tcard-cta { color: var(--blue); }
+
+/* ================= TABLE POS (catalog + tab sheet) ================= */
+.m-pos { background: var(--pos-bg); }
+.m-pos-head { flex-shrink: 0; display: flex; align-items: center; gap: 11px; padding: 2px 16px 10px; }
+.m-back { width: 40px; height: 40px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink-1); }
+.m-back:active { transform: scale(.94); }
+.m-pos-tbadge { width: 40px; height: 40px; border-radius: 12px; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 15px; font-weight: 800; flex-shrink: 0; }
+.m-pos-tmeta { flex: 1; min-width: 0; }
+.m-pos-ttitle { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 7px; }
+.m-pos-tsub { font-size: 11px; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.m-search { flex-shrink: 0; margin: 0 16px 10px; display: flex; align-items: center; gap: 9px; height: 44px; padding: 0 14px; border-radius: 13px; background: var(--surface); border: 1px solid var(--line); }
+.m-search input { flex: 1; border: 0; outline: 0; background: transparent; font-family: var(--sans); font-size: 15px; color: var(--ink-1); }
+.m-search input::placeholder { color: var(--ink-4); }
+
+.m-cat { padding: 0 16px 20px; }
+.m-cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.m-pcard { position: relative; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--sh-1); transition: transform .1s; }
+.m-pcard:active { transform: scale(.97); }
+.m-pcard.out { opacity: .55; }
+.m-pcard-thumb { height: 74px; display: grid; place-items: center; position: relative; }
+.m-pcard-abbr { color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -.02em; opacity: .92; }
+.m-pcard-incart { position: absolute; top: 8px; right: 8px; height: 22px; min-width: 22px; padding: 0 6px; border-radius: 999px; background: rgba(255,255,255,.95); color: var(--blue); font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; box-shadow: var(--sh-1); }
+.m-pcard-badge { position: absolute; top: 8px; left: 8px; height: 20px; padding: 0 7px; border-radius: 999px; font-size: 9.5px; font-weight: 800; letter-spacing: .02em; display: inline-flex; align-items: center; gap: 3px; }
+.m-pcard-badge.low { background: #FFF4E0; color: #8A5300; }
+.m-pcard-badge.out { background: var(--surface-2); color: var(--ink-3); }
+.m-pcard-body { padding: 9px 11px 11px; }
+.m-pcard-name { font-size: 13px; font-weight: 700; line-height: 1.2; min-height: 31px; }
+.m-pcard-foot { display: flex; align-items: baseline; justify-content: space-between; margin-top: 5px; }
+.m-pcard-price { font-family: var(--mono); font-size: 14px; font-weight: 800; }
+.m-pcard-price small { font-size: 9.5px; color: var(--ink-3); font-weight: 700; }
+.m-pcard-stock { font-size: 10px; color: var(--ink-4); font-weight: 600; }
+.m-pcard-add { position: absolute; bottom: 10px; right: 10px; width: 30px; height: 30px; border-radius: 10px; background: var(--blue); color: #fff; display: grid; place-items: center; box-shadow: var(--sh-blue); }
+
+/* sticky tab bar (bottom) */
+.m-tabbar { flex-shrink: 0; padding: 10px 14px; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px -12px rgba(16,32,64,.2); }
+.m-tabbar-btn { width: 100%; height: 58px; border-radius: 16px; background: var(--grad-btn); color: #fff; box-shadow: var(--sh-blue); display: flex; align-items: center; gap: 12px; padding: 0 16px; }
+.m-tabbar-btn:active { transform: scale(.985); }
+.m-tabbar-btn .cart { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.2); display: grid; place-items: center; position: relative; }
+.m-tabbar-btn .cart .n { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: #fff; color: var(--blue); font-size: 10.5px; font-weight: 800; display: grid; place-items: center; }
+.m-tabbar-btn .lbl { text-align: left; line-height: 1.15; }
+.m-tabbar-btn .lbl b { font-size: 15px; font-weight: 800; display: block; }
+.m-tabbar-btn .lbl span { font-size: 11.5px; opacity: .85; }
+.m-tabbar-btn .amt { margin-left: auto; font-family: var(--mono); font-size: 18px; font-weight: 800; }
+.m-tabbar-empty { text-align: center; font-size: 13px; color: var(--ink-3); padding: 8px 0; display: flex; align-items: center; justify-content: center; gap: 7px; }
+
+/* ================= BOTTOM SHEET (the tab) ================= */
+.m-sheet-scrim { position: absolute; inset: 0; background: rgba(11,18,32,.42); z-index: 40; animation: mFade .2s; }
+.m-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 41; background: var(--surface); border-radius: 26px 26px 0 0; box-shadow: 0 -20px 60px -20px rgba(0,0,0,.4); display: flex; flex-direction: column; max-height: 88%; animation: mSheetUp .34s cubic-bezier(.22,.9,.3,1); overflow: hidden; }
+@keyframes mSheetUp { from { transform: translateY(100%); } to { transform: none; } }
+.m-sheet-grip { width: 40px; height: 5px; border-radius: 999px; background: var(--line-strong); margin: 10px auto 4px; flex-shrink: 0; }
+.m-sheet-head { flex-shrink: 0; display: flex; align-items: center; gap: 11px; padding: 8px 18px 12px; border-bottom: 1px solid var(--line); }
+.m-sheet-tbadge { width: 38px; height: 38px; border-radius: 11px; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 15px; font-weight: 800; }
+.m-sheet-title { font-size: 16px; font-weight: 800; }
+.m-sheet-sub { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+.m-sheet-x { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; color: var(--ink-2); }
+.m-sheet-lines { flex: 1; overflow-y: auto; padding: 8px 18px; }
+.m-sheet-lines::-webkit-scrollbar { width: 0; }
+
+.m-round-div { display: flex; align-items: center; gap: 9px; padding: 12px 0 7px; }
+.m-round-div .av { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 8.5px; font-weight: 800; }
+.m-round-div .lbl { font-size: 10.5px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-4); }
+.m-round-div .rule { flex: 1; height: 1px; background: var(--line); }
+
+.m-line { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--line-soft, #EEF1F7); }
+.m-line-sw { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+.m-line-mid { flex: 1; min-width: 0; }
+.m-line-nm { font-size: 14px; font-weight: 700; line-height: 1.2; }
+.m-line-unit { font-size: 11.5px; color: var(--ink-3); font-family: var(--mono); margin-top: 1px; }
+.m-line-total { font-family: var(--mono); font-size: 14px; font-weight: 800; min-width: 62px; text-align: right; }
+.m-step { display: flex; align-items: center; gap: 6px; }
+.m-step button { width: 30px; height: 30px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-1); display: grid; place-items: center; }
+.m-step button:active { transform: scale(.92); }
+.m-step .q { font-family: var(--mono); font-size: 15px; font-weight: 700; min-width: 20px; text-align: center; }
+.m-line-ro { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink-2); }
+.m-line-ro .lock { color: var(--ink-4); }
+
+.m-sheet-foot { flex-shrink: 0; padding: 14px 18px; border-top: 1px solid var(--line); }
+.m-tot-row { display: flex; align-items: baseline; justify-content: space-between; }
+.m-tot-lbl { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.m-tot-val { font-family: var(--mono); font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+.m-tot-val small { font-size: 12px; color: var(--ink-3); font-weight: 700; }
+.m-foot-note { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); margin: 6px 0 12px; }
+.m-foot-note b { color: var(--ink-1); }
+.m-foot-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.m-settle-row { margin-top: 10px; }
+.m-settle-btn { width: 100%; height: 48px; border-radius: 14px; background: var(--surface); border: 1.5px solid var(--line-strong); color: var(--ink-1); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14.5px; font-weight: 700; }
+.m-settle-btn:active { transform: scale(.98); }
+.m-settle-btn .lock { color: var(--ink-3); }
+
+/* ================= MANAGER PIN modal ================= */
+.m-modal-scrim { position: absolute; inset: 0; background: rgba(11,18,32,.5); z-index: 60; display: flex; align-items: flex-end; animation: mFade .2s; }
+.m-modal { width: 100%; background: var(--surface); border-radius: 26px 26px 0 0; padding: 14px 20px 30px; text-align: center; animation: mSheetUp .34s cubic-bezier(.22,.9,.3,1); }
+.m-modal-ic { width: 54px; height: 54px; border-radius: 16px; background: #F3EEFB; color: var(--violet); display: grid; place-items: center; margin: 6px auto 12px; }
+.m-modal-h { font-size: 19px; font-weight: 800; }
+.m-modal-p { font-size: 13px; color: var(--ink-3); margin: 4px 0 18px; }
+.m-modal-cancel { margin-top: 16px; font-size: 14px; font-weight: 700; color: var(--ink-3); }
+
+/* ================= SETTLE ================= */
+.m-settle { background: var(--pos-bg); }
+.m-settle-head { flex-shrink: 0; display: flex; align-items: center; gap: 11px; padding: 2px 16px 12px; }
+.m-settle-head .ttl { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 9px; }
+.m-settle-head .ttl .badge { width: 34px; height: 34px; border-radius: 10px; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 800; }
+.m-bill { padding: 0 16px 16px; }
+.m-bill-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--sh-1); overflow: hidden; }
+.m-bill-head { padding: 15px 18px 12px; border-bottom: 1px dashed var(--line-strong); }
+.m-bill-head .h { font-size: 15px; font-weight: 800; }
+.m-bill-head .m { font-size: 11px; color: var(--ink-3); font-family: var(--mono); margin-top: 2px; }
+.m-bill-grp { padding: 4px 18px; }
+.m-bill-grphd { display: flex; align-items: center; gap: 8px; padding: 12px 0 6px; }
+.m-bill-grphd .av { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 8.5px; font-weight: 800; }
+.m-bill-grphd .n { font-size: 12px; font-weight: 800; }
+.m-bill-grphd .amt { margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--ink-4); font-weight: 600; }
+.m-bill-ln { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line-soft, #EEF1F7); }
+.m-bill-ln .q { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--blue); min-width: 26px; }
+.m-bill-ln .nm { flex: 1; font-size: 13px; font-weight: 600; }
+.m-bill-ln .amt { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+.m-bill-foot { padding: 14px 18px 18px; border-top: 1px dashed var(--line-strong); }
+.m-bill-row { display: flex; align-items: baseline; justify-content: space-between; padding: 3px 0; }
+.m-bill-row .k { font-size: 12.5px; color: var(--ink-2); }
+.m-bill-row .v { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+.m-bill-row.grand { margin-top: 7px; padding-top: 10px; border-top: 1px solid var(--line); }
+.m-bill-row.grand .k { font-size: 15px; font-weight: 800; color: var(--ink-1); }
+.m-bill-row.grand .v { font-size: 21px; font-weight: 800; color: var(--blue); letter-spacing: -.02em; }
+.m-bill-row.grand .v small { font-size: 11px; color: var(--ink-3); }
+.m-pay { padding: 0 16px; }
+.m-pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.m-pay-m { display: flex; align-items: center; gap: 9px; padding: 12px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface); }
+.m-pay-m.is-on { border-color: var(--blue); background: var(--blue-tint); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+.m-pay-m .ic { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); }
+.m-pay-m.is-on .ic { background: var(--blue); color: #fff; }
+.m-pay-m .nm { font-size: 13.5px; font-weight: 700; }
+.m-pay-note { padding: 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+.m-settle-foot { flex-shrink: 0; padding: 12px 16px; background: var(--surface); border-top: 1px solid var(--line); }
+
+/* toast */
+.m-toast { position: absolute; left: 16px; right: 16px; bottom: 44px; z-index: 70; display: flex; align-items: center; gap: 9px; padding: 13px 16px; border-radius: 14px; background: #10233F; color: #fff; font-size: 13px; font-weight: 600; box-shadow: 0 16px 40px -10px rgba(0,0,0,.5); animation: mToast .3s cubic-bezier(.2,1.3,.4,1); }
+.m-toast svg { color: #55E3A0; flex-shrink: 0; }
+@keyframes mToast { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+</pre></section>
+<section id="src-jsx"><h2>Appendix B</h2><div class="h2sub">bar/mobile.jsx — all screens + MBarApp</div><div class="filetag">bar/mobile.jsx</div><pre>/* ============================================================
+   Flipper · Bar Mode — MOBILE screens
+   Requires: React, ReactDOM, Icons, FlipperLogo, IOSDevice, bar/data.jsx
+   Reuses the device-agnostic store (useBarStore) + all helpers.
+   ============================================================ */
+
+const { useState: useM, useEffect: useME, useRef: useMR, useMemo: useMM } = React;
+
+/* ---------------- PIN entry (dots + keypad, mobile) ---------------- */
+function MPinEntry({ len = 4, onComplete, disabled, errorNonce = 0 }) {
+  const [val, setVal] = useM('');
+  const [err, setErr] = useM(false);
+  const last = useMR(errorNonce);
+  useME(() =&gt; {
+    if (errorNonce !== last.current) {
+      last.current = errorNonce; setErr(true);
+      const t1 = setTimeout(() =&gt; setVal(''), 380);
+      const t2 = setTimeout(() =&gt; setErr(false), 420);
+      return () =&gt; { clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [errorNonce]);
+  const push = (d) =&gt; {
+    if (disabled) return; setErr(false);
+    setVal((v) =&gt; { if (v.length &gt;= len) return v; const nv = v + d; if (nv.length === len) setTimeout(() =&gt; onComplete(nv), 90); return nv; });
+  };
+  const back = () =&gt; { setErr(false); setVal((v) =&gt; v.slice(0, -1)); };
+  const clear = () =&gt; { setErr(false); setVal(''); };
+  return (
+    &lt;&gt;
+      &lt;div className={`m-dots ${err ? 'err' : ''}`}&gt;
+        {Array.from({ length: len }).map((_, i) =&gt; &lt;span key={i} className={`m-dot ${i &lt; val.length ? 'filled' : ''}`} /&gt;)}
+      &lt;/div&gt;
+      &lt;div className="m-keypad"&gt;
+        {['1','2','3','4','5','6','7','8','9'].map((k) =&gt; &lt;button key={k} className="m-key" disabled={disabled} onClick={() =&gt; push(k)}&gt;{k}&lt;/button&gt;)}
+        &lt;button className="m-key util" disabled={disabled} onClick={clear}&gt;Clear&lt;/button&gt;
+        &lt;button className="m-key" disabled={disabled} onClick={() =&gt; push('0')}&gt;0&lt;/button&gt;
+        &lt;button className="m-key util" disabled={disabled} onClick={back} aria-label="Delete"&gt;&lt;Icons.ChevLeft size={22} /&gt;&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/&gt;
+  );
+}
+
+/* ============================================================ LOCK */
+function MLock({ store, actions }) {
+  const [sel, setSel] = useM(null);
+  const [nonce, setNonce] = useM(0);
+  const cashier = sel ? barCashier(sel) : null;
+  const onComplete = (pin) =&gt; { if (cashier &amp;&amp; pin === cashier.pin) actions.login(cashier.id); else setNonce((n) =&gt; n + 1); };
+  return (
+    &lt;div className="m-screen m-lock m-fade"&gt;
+      &lt;div className="m-safe-top" /&gt;
+      &lt;div className="m-scroll"&gt;
+        &lt;div style={{ padding: '0 20px' }}&gt;
+          &lt;div className="m-brand" style={{ justifyContent: 'center', marginBottom: 4 }}&gt;
+            &lt;FlipperLogo size={26} /&gt;&lt;span className="wordmark"&gt;FLIPPER&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div className="m-lock-head"&gt;
+            &lt;div className="m-lock-eyebrow"&gt;Bar mode · Shared register&lt;/div&gt;
+            &lt;div className="m-lock-h"&gt;Who's serving?&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div className="m-people"&gt;
+            {BAR_CASHIERS.map((c) =&gt; (
+              &lt;button key={c.id} className={`m-person ${sel === c.id ? 'is-on' : ''}`} onClick={() =&gt; { setSel(c.id); setNonce(0); }}&gt;
+                &lt;span className="m-person-av" style={{ background: c.color }}&gt;
+                  {c.initials}
+                  {c.manager &amp;&amp; &lt;span className="mgr"&gt;&lt;Icons.ShieldCheck size={11} /&gt;&lt;/span&gt;}
+                &lt;/span&gt;
+                &lt;span className="m-person-nm"&gt;{c.name}&lt;/span&gt;
+              &lt;/button&gt;
+            ))}
+          &lt;/div&gt;
+
+          &lt;div className="m-pad-who"&gt;
+            {cashier
+              ? &lt;&gt;&lt;span className="m-pad-who-av" style={{ background: cashier.color }}&gt;{cashier.initials}&lt;/span&gt;&lt;span className="m-pad-title"&gt;{cashier.name}&lt;/span&gt;&lt;/&gt;
+              : &lt;span className="m-pad-title" style={{ color: 'var(--ink-3)' }}&gt;Select your name&lt;/span&gt;}
+          &lt;/div&gt;
+          &lt;div className="m-pad-hint"&gt;{cashier ? 'Enter your 4-digit PIN' : 'Tap a name above, then enter your PIN'}&lt;/div&gt;
+          &lt;MPinEntry onComplete={cashier ? onComplete : () =&gt; {}} disabled={!cashier} errorNonce={nonce} /&gt;
+          &lt;div className="m-key-err"&gt;{nonce &gt; 0 ? 'Wrong PIN — try again' : ''}&lt;/div&gt;
+          &lt;div className="m-lock-foot"&gt;&lt;Icons.Cog size={13} /&gt; Bar mode configured by admin on the main terminal&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="m-safe-bottom" /&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================ FLOOR */
+function MFloor({ store, actions }) {
+  const cashier = barCashier(store.activeCashierId);
+  const [zoneId, setZoneId] = useM(store.floor[0] ? store.floor[0].id : null);
+  const zone = store.floor.find((z) =&gt; z.id === zoneId) || store.floor[0];
+  const openCount = Object.keys(store.tabs).filter((id) =&gt; store.tabs[id].lines.length).length;
+
+  return (
+    &lt;div className="m-screen m-fade"&gt;
+      &lt;div className="m-safe-top" /&gt;
+      &lt;div className="m-topbar"&gt;
+        &lt;div className="m-brand"&gt;&lt;FlipperLogo size={24} /&gt;&lt;span className="wordmark"&gt;FLIPPER&lt;/span&gt;&lt;/div&gt;
+        &lt;div className="m-top-spacer" /&gt;
+        {cashier &amp;&amp; (
+          &lt;div className="m-topchip"&gt;
+            &lt;span className="m-topchip-av" style={{ background: cashier.color }}&gt;{cashier.initials}&lt;/span&gt;
+            &lt;span className="m-topchip-meta"&gt;
+              &lt;span className="m-topchip-name"&gt;{cashier.name.split(' ')[0]}&lt;/span&gt;
+              &lt;span className="m-topchip-role"&gt;{cashier.role}&lt;/span&gt;
+            &lt;/span&gt;
+          &lt;/div&gt;
+        )}
+        &lt;button className="m-iconbtn danger" onClick={actions.logout} title="Logout"&gt;&lt;Icons.LogOut size={19} /&gt;&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div className="m-floor-sub"&gt;
+        &lt;div&gt;
+          &lt;div className="m-floor-h"&gt;Tables&lt;/div&gt;
+          &lt;div className="m-floor-count"&gt;{openCount} open · tap to log an order&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="m-zonebar"&gt;
+        {store.floor.map((z) =&gt; {
+          const oc = z.tables.filter((t) =&gt; store.tabs[t.id] &amp;&amp; store.tabs[t.id].lines.length).length;
+          return (
+            &lt;button key={z.id} className={`m-zonechip ${zone &amp;&amp; z.id === zone.id ? 'is-on' : ''}`} onClick={() =&gt; setZoneId(z.id)}&gt;
+              {z.name}&lt;span className="cnt"&gt;{oc}/{z.tables.length}&lt;/span&gt;
+            &lt;/button&gt;
+          );
+        })}
+      &lt;/div&gt;
+      &lt;div className="m-scroll"&gt;
+        &lt;div className="m-floor-body"&gt;
+          &lt;div className="m-tgrid"&gt;
+            {zone &amp;&amp; zone.tables.map((t) =&gt; {
+              const tab = store.tabs[t.id];
+              const isOpen = tab &amp;&amp; tab.lines.length &gt; 0;
+              if (!isOpen) {
+                return (
+                  &lt;button key={t.id} className="m-tcard empty" onClick={() =&gt; actions.openTable(t.id)}&gt;
+                    &lt;div className="m-tcard-top"&gt;
+                      &lt;span className="m-tcard-id"&gt;{t.id}&lt;/span&gt;
+                      &lt;span className="m-tcard-seats"&gt;&lt;Icons.User size={12} /&gt;{t.seats}&lt;/span&gt;
+                    &lt;/div&gt;
+                    &lt;span className="m-tcard-cta"&gt;&lt;Icons.Plus size={15} /&gt; Open tab&lt;/span&gt;
+                  &lt;/button&gt;
+                );
+              }
+              const servers = tabServers(tab).map(barCashier).filter(Boolean);
+              return (
+                &lt;button key={t.id} className="m-tcard open" onClick={() =&gt; actions.openTable(t.id)}&gt;
+                  &lt;div className="m-tcard-top"&gt;
+                    &lt;span className="m-tcard-id"&gt;{t.id}&lt;/span&gt;
+                    &lt;span className="m-status open"&gt;&lt;span className="pip" /&gt; Open&lt;/span&gt;
+                  &lt;/div&gt;
+                  &lt;div className="m-tcard-amt"&gt;&lt;span className="v"&gt;&lt;small&gt;RWF&lt;/small&gt; {barMoney(tabTotal(tab))}&lt;/span&gt;&lt;/div&gt;
+                  &lt;div className="m-tcard-sub"&gt;
+                    &lt;span className="m-tcard-servers"&gt;
+                      {servers.slice(0, 3).map((s) =&gt; &lt;span key={s.id} className="sv" style={{ background: s.color }}&gt;{s.initials}&lt;/span&gt;)}
+                    &lt;/span&gt;
+                    &lt;span className="m-tcard-time"&gt;&lt;Icons.Clock size={12} /&gt;{barFmtElapsed(tab.openedAtMs)}&lt;/span&gt;
+                  &lt;/div&gt;
+                &lt;/button&gt;
+              );
+            })}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="m-safe-bottom" /&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ---------------- product card (mobile) ---------------- */
+function MProduct({ p, qty, onAdd }) {
+  const out = p.stock &lt;= 0;
+  const low = p.stock &gt; 0 &amp;&amp; p.stock &lt;= 10;
+  return (
+    &lt;button className={`m-pcard ${out ? 'out' : ''}`} onClick={() =&gt; !out &amp;&amp; onAdd(p)} disabled={out}&gt;
+      &lt;div className="m-pcard-thumb" style={{ background: barColorFor(p.name) }}&gt;
+        &lt;span className="m-pcard-abbr"&gt;{barAbbr(p.name)}&lt;/span&gt;
+        {qty &gt; 0 &amp;&amp; &lt;span className="m-pcard-incart"&gt;&lt;Icons.Check size={11} /&gt;{qty}&lt;/span&gt;}
+        {low &amp;&amp; &lt;span className="m-pcard-badge low"&gt;&lt;Icons.Warn size={10} /&gt;Low&lt;/span&gt;}
+        {out &amp;&amp; &lt;span className="m-pcard-badge out"&gt;Out&lt;/span&gt;}
+      &lt;/div&gt;
+      &lt;div className="m-pcard-body"&gt;
+        &lt;div className="m-pcard-name"&gt;{p.name}&lt;/div&gt;
+        &lt;div className="m-pcard-foot"&gt;
+          &lt;span className="m-pcard-price"&gt;&lt;small&gt;RWF&lt;/small&gt; {barMoney(p.price)}&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      {!out &amp;&amp; &lt;span className="m-pcard-add"&gt;&lt;Icons.Plus size={16} /&gt;&lt;/span&gt;}
+    &lt;/button&gt;
+  );
+}
+
+/* ---------------- one tab line in the sheet ---------------- */
+function MLine({ line, editable, actions }) {
+  const p = barProduct(line.productId) || { name: 'Item', price: line.price, stock: 9999 };
+  return (
+    &lt;div className="m-line"&gt;
+      &lt;span className="m-line-sw" style={{ background: barColorFor(p.name) }}&gt;{barAbbr(p.name)}&lt;/span&gt;
+      &lt;div className="m-line-mid"&gt;
+        &lt;div className="m-line-nm"&gt;{p.name}&lt;/div&gt;
+        &lt;div className="m-line-unit"&gt;RWF {barMoney(line.price)} each&lt;/div&gt;
+      &lt;/div&gt;
+      {editable ? (
+        &lt;div className="m-step"&gt;
+          &lt;button onClick={() =&gt; actions.setLineQty(line.id, line.qty - 1)}&gt;&lt;Icons.Minus size={15} /&gt;&lt;/button&gt;
+          &lt;span className="q"&gt;{line.qty}&lt;/span&gt;
+          &lt;button onClick={() =&gt; actions.setLineQty(line.id, line.qty + 1)} disabled={line.qty &gt;= p.stock}&gt;&lt;Icons.Plus size={15} /&gt;&lt;/button&gt;
+        &lt;/div&gt;
+      ) : (
+        &lt;span className="m-line-ro"&gt;×{line.qty}&lt;span className="lock" title="Logged by another server"&gt;&lt;Icons.ShieldCheck size={14} /&gt;&lt;/span&gt;&lt;/span&gt;
+      )}
+      &lt;span className="m-line-total"&gt;{barMoney(line.price * line.qty)}&lt;/span&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================ POS + TAB SHEET */
+function MPos({ store, actions, onSettle }) {
+  const [query, setQuery] = useM('');
+  const [sheet, setSheet] = useM(false);
+  const cashier = barCashier(store.activeCashierId);
+  const table = findTable(store.floor, store.activeTableId);
+  const tab = store.tabs[store.activeTableId] || { lines: [], openedAtMs: Date.now(), openedById: store.activeCashierId };
+  const isManager = cashier &amp;&amp; cashier.manager;
+  const opener = barCashier(tab.openedById);
+
+  const products = useMM(() =&gt; {
+    const q = query.trim().toLowerCase();
+    return q ? BAR_PRODUCTS.filter((p) =&gt; p.name.toLowerCase().includes(q) || String(p.id).includes(q)) : BAR_PRODUCTS;
+  }, [query]);
+
+  if (!table) return null;
+  const qtyInCart = (id) =&gt; tab.lines.filter((l) =&gt; l.productId === id).reduce((s, l) =&gt; s + l.qty, 0);
+  const total = tabTotal(tab);
+  const count = tabCount(tab);
+  const servers = tabServers(tab);
+  const myLines = tab.lines.filter((l) =&gt; l.cashierId === store.activeCashierId).length;
+
+  // group lines by server
+  const groups = [];
+  tab.lines.forEach((l) =&gt; { let g = groups.find((x) =&gt; x.cid === l.cashierId); if (!g) { g = { cid: l.cashierId, lines: [] }; groups.push(g); } g.lines.push(l); });
+
+  return (
+    &lt;div className="m-screen m-pos m-fade"&gt;
+      &lt;div className="m-safe-top" /&gt;
+      &lt;div className="m-pos-head"&gt;
+        &lt;button className="m-back" onClick={() =&gt; actions.setScreen('tables')}&gt;&lt;Icons.ChevLeft size={20} /&gt;&lt;/button&gt;
+        &lt;span className="m-pos-tbadge"&gt;{table.id}&lt;/span&gt;
+        &lt;div className="m-pos-tmeta"&gt;
+          &lt;div className="m-pos-ttitle"&gt;{table.zoneName} &lt;span className="m-status open" style={{ height: 18 }}&gt;&lt;span className="pip" /&gt; Open&lt;/span&gt;&lt;/div&gt;
+          &lt;div className="m-pos-tsub"&gt;{table.seats} seats · opened {barFmtClock(tab.openedAtMs)}{opener ? ` by ${opener.name.split(' ')[0]}` : ''} · {barFmtElapsed(tab.openedAtMs)}&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="m-search"&gt;
+        &lt;Icons.Search size={18} color="var(--ink-3)" /&gt;
+        &lt;input placeholder="Search drinks &amp; products…" value={query} onChange={(e) =&gt; setQuery(e.target.value)} /&gt;
+      &lt;/div&gt;
+      &lt;div className="m-scroll"&gt;
+        &lt;div className="m-cat"&gt;
+          &lt;div className="m-cat-grid"&gt;
+            {products.map((p) =&gt; &lt;MProduct key={p.id} p={p} qty={qtyInCart(p.id)} onAdd={actions.addItem} /&gt;)}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      {/* sticky tab bar */}
+      &lt;div className="m-tabbar"&gt;
+        {count &gt; 0 ? (
+          &lt;button className="m-tabbar-btn" onClick={() =&gt; setSheet(true)}&gt;
+            &lt;span className="cart"&gt;&lt;Icons.Cart size={18} /&gt;&lt;span className="n"&gt;{count}&lt;/span&gt;&lt;/span&gt;
+            &lt;span className="lbl"&gt;&lt;b&gt;View tab&lt;/b&gt;&lt;span&gt;{servers.length &gt; 1 ? `${servers.length} servers` : `${count} item${count &gt; 1 ? 's' : ''}`}&lt;/span&gt;&lt;/span&gt;
+            &lt;span className="amt"&gt;{barMoney(total)}&lt;/span&gt;
+          &lt;/button&gt;
+        ) : (
+          &lt;div className="m-tabbar-empty"&gt;&lt;Icons.Cart size={16} /&gt; Tap a product to start {table.id}'s tab&lt;/div&gt;
+        )}
+      &lt;/div&gt;
+      &lt;div className="m-safe-bottom" /&gt;
+
+      {/* ---- bottom sheet: the running tab ---- */}
+      {sheet &amp;&amp; (
+        &lt;&gt;
+          &lt;div className="m-sheet-scrim" onClick={() =&gt; setSheet(false)} /&gt;
+          &lt;div className="m-sheet"&gt;
+            &lt;div className="m-sheet-grip" /&gt;
+            &lt;div className="m-sheet-head"&gt;
+              &lt;span className="m-sheet-tbadge"&gt;{table.id}&lt;/span&gt;
+              &lt;div&gt;
+                &lt;div className="m-sheet-title"&gt;Running tab&lt;/div&gt;
+                &lt;div className="m-sheet-sub"&gt;{table.zoneName} · {count} item{count === 1 ? '' : 's'}&lt;/div&gt;
+              &lt;/div&gt;
+              &lt;button className="m-sheet-x" onClick={() =&gt; setSheet(false)}&gt;&lt;Icons.X size={18} /&gt;&lt;/button&gt;
+            &lt;/div&gt;
+            &lt;div className="m-sheet-lines"&gt;
+              {groups.map((g) =&gt; {
+                const c = barCashier(g.cid);
+                const mine = g.cid === store.activeCashierId;
+                return (
+                  &lt;div key={g.cid}&gt;
+                    &lt;div className="m-round-div"&gt;
+                      &lt;span className="av" style={{ background: c ? c.color : '#999' }}&gt;{c ? c.initials : '?'}&lt;/span&gt;
+                      &lt;span className="lbl"&gt;{c ? (mine ? `You · ${c.name.split(' ')[0]}` : c.name) : 'Unknown'}&lt;/span&gt;
+                      &lt;span className="rule" /&gt;
+                    &lt;/div&gt;
+                    {g.lines.map((l) =&gt; &lt;MLine key={l.id} line={l} editable={mine || isManager} actions={actions} /&gt;)}
+                  &lt;/div&gt;
+                );
+              })}
+            &lt;/div&gt;
+            &lt;div className="m-sheet-foot"&gt;
+              &lt;div className="m-tot-row"&gt;
+                &lt;span className="m-tot-lbl"&gt;Tab total&lt;/span&gt;
+                &lt;span className="m-tot-val"&gt;&lt;small&gt;RWF&lt;/small&gt; {barMoney(total)}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div className="m-foot-note"&gt;
+                &lt;Icons.Users size={13} /&gt;
+                {servers.length &gt; 1 ? &lt;span&gt;Logged by &lt;b&gt;{servers.length} servers&lt;/b&gt; · you added &lt;b&gt;{myLines}&lt;/b&gt;&lt;/span&gt; : &lt;span&gt;You've logged &lt;b&gt;{myLines}&lt;/b&gt; line{myLines === 1 ? '' : 's'}&lt;/span&gt;}
+              &lt;/div&gt;
+              &lt;div className="m-foot-actions"&gt;
+                &lt;button className="m-btn m-btn-danger" onClick={actions.logout}&gt;&lt;Icons.LogOut size={17} /&gt; Logout&lt;/button&gt;
+                &lt;button className="m-btn m-btn-primary" onClick={() =&gt; { setSheet(false); actions.saveToTab(); }}&gt;&lt;Icons.Archive size={16} /&gt; Save to tab&lt;/button&gt;
+              &lt;/div&gt;
+              &lt;div className="m-settle-row"&gt;
+                &lt;button className="m-settle-btn" disabled={count === 0} onClick={() =&gt; { setSheet(false); onSettle(); }}&gt;
+                  {isManager ? &lt;Icons.Wallet size={16} /&gt; : &lt;span className="lock"&gt;&lt;Icons.ShieldCheck size={16} /&gt;&lt;/span&gt;}
+                  {isManager ? 'Settle bill &amp; close table' : 'Settle bill · manager PIN'}
+                &lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================ SETTLE */
+function MSettle({ store, actions, notify }) {
+  const table = findTable(store.floor, store.activeTableId);
+  const tab = store.tabs[store.activeTableId];
+  const [method, setMethod] = useM('cash');
+  const manager = barCashier(store.activeCashierId);
+  if (!table || !tab) return null;
+
+  const total = tabTotal(tab);
+  const vat = total - total / 1.18;
+  const groups = [];
+  tab.lines.forEach((l) =&gt; { let g = groups.find((x) =&gt; x.cid === l.cashierId); if (!g) { g = { cid: l.cashierId, lines: [] }; groups.push(g); } g.lines.push(l); });
+
+  const confirm = () =&gt; { actions.settleConfirm(); notify(`${table.id} settled · RWF ${barMoney(total)} ${method === 'momo' ? 'MoMo' : 'Cash'}`); };
+
+  return (
+    &lt;div className="m-screen m-settle m-fade"&gt;
+      &lt;div className="m-safe-top" /&gt;
+      &lt;div className="m-settle-head"&gt;
+        &lt;button className="m-back" onClick={() =&gt; actions.setScreen('pos')}&gt;&lt;Icons.ChevLeft size={20} /&gt;&lt;/button&gt;
+        &lt;div className="ttl"&gt;&lt;span className="badge"&gt;{table.id}&lt;/span&gt; Settle bill&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="m-scroll"&gt;
+        &lt;div className="m-bill"&gt;
+          &lt;div className="m-bill-card"&gt;
+            &lt;div className="m-bill-head"&gt;
+              &lt;div className="h"&gt;Table {table.id} — running tab&lt;/div&gt;
+              &lt;div className="m"&gt;{table.zoneName} · opened {barFmtClock(tab.openedAtMs)} · {barFmtElapsed(tab.openedAtMs)}&lt;/div&gt;
+            &lt;/div&gt;
+            {groups.map((g) =&gt; {
+              const c = barCashier(g.cid);
+              const gt = g.lines.reduce((s, l) =&gt; s + l.price * l.qty, 0);
+              return (
+                &lt;div className="m-bill-grp" key={g.cid}&gt;
+                  &lt;div className="m-bill-grphd"&gt;
+                    &lt;span className="av" style={{ background: c ? c.color : '#999' }}&gt;{c ? c.initials : '?'}&lt;/span&gt;
+                    &lt;span className="n"&gt;{c ? c.name : 'Unknown'}&lt;/span&gt;
+                    &lt;span className="amt"&gt;RWF {barMoney(gt)}&lt;/span&gt;
+                  &lt;/div&gt;
+                  {g.lines.map((l) =&gt; {
+                    const p = barProduct(l.productId);
+                    return (
+                      &lt;div className="m-bill-ln" key={l.id}&gt;
+                        &lt;span className="q"&gt;{l.qty}×&lt;/span&gt;
+                        &lt;span className="nm"&gt;{p ? p.name : 'Item'}&lt;/span&gt;
+                        &lt;span className="amt"&gt;{barMoney(l.price * l.qty)}&lt;/span&gt;
+                      &lt;/div&gt;
+                    );
+                  })}
+                &lt;/div&gt;
+              );
+            })}
+            &lt;div className="m-bill-foot"&gt;
+              &lt;div className="m-bill-row"&gt;&lt;span className="k"&gt;Subtotal (excl. VAT)&lt;/span&gt;&lt;span className="v"&gt;RWF {barMoney(total - vat)}&lt;/span&gt;&lt;/div&gt;
+              &lt;div className="m-bill-row"&gt;&lt;span className="k"&gt;VAT 18%&lt;/span&gt;&lt;span className="v"&gt;RWF {barMoney(vat)}&lt;/span&gt;&lt;/div&gt;
+              &lt;div className="m-bill-row grand"&gt;&lt;span className="k"&gt;Total due&lt;/span&gt;&lt;span className="v"&gt;&lt;small&gt;RWF&lt;/small&gt; {barMoney(total)}&lt;/span&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div className="m-pay"&gt;
+          &lt;div className="m-pay-methods"&gt;
+            &lt;button className={`m-pay-m ${method === 'cash' ? 'is-on' : ''}`} onClick={() =&gt; setMethod('cash')}&gt;&lt;span className="ic"&gt;&lt;Icons.Wallet size={17} /&gt;&lt;/span&gt;&lt;span className="nm"&gt;Cash&lt;/span&gt;&lt;/button&gt;
+            &lt;button className={`m-pay-m ${method === 'momo' ? 'is-on' : ''}`} onClick={() =&gt; setMethod('momo')}&gt;&lt;span className="ic"&gt;&lt;Icons.Phone size={17} /&gt;&lt;/span&gt;&lt;span className="nm"&gt;Mobile Money&lt;/span&gt;&lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div className="m-pay-note"&gt;
+            {method === 'cash'
+              ? &lt;&gt;Take &lt;b&gt;RWF {barMoney(total)}&lt;/b&gt; in cash from the customer, then confirm to close the table.&lt;/&gt;
+              : &lt;&gt;A request for &lt;b&gt;RWF {barMoney(total)}&lt;/b&gt; will be pushed to the customer's phone. Confirm once approved.&lt;/&gt;}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="m-settle-foot"&gt;
+        &lt;button className="m-btn m-btn-primary" style={{ width: '100%', height: 56 }} onClick={confirm}&gt;
+          &lt;Icons.ShieldCheck size={18} /&gt; Confirm · RWF {barMoney(total)}
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div className="m-safe-bottom" /&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================ MANAGER MODAL */
+function MManagerModal({ onSuccess, onCancel }) {
+  const [nonce, setNonce] = useM(0);
+  const onComplete = (pin) =&gt; { const m = BAR_CASHIERS.find((c) =&gt; c.manager &amp;&amp; c.pin === pin); if (m) onSuccess(m.id); else setNonce((n) =&gt; n + 1); };
+  return (
+    &lt;div className="m-modal-scrim" onClick={onCancel}&gt;
+      &lt;div className="m-modal" onClick={(e) =&gt; e.stopPropagation()}&gt;
+        &lt;div className="m-sheet-grip" /&gt;
+        &lt;div className="m-modal-ic"&gt;&lt;Icons.ShieldCheck size={26} /&gt;&lt;/div&gt;
+        &lt;div className="m-modal-h"&gt;Manager approval&lt;/div&gt;
+        &lt;div className="m-modal-p"&gt;Settling a bill needs a manager PIN.&lt;/div&gt;
+        &lt;MPinEntry onComplete={onComplete} errorNonce={nonce} /&gt;
+        &lt;div className="m-key-err"&gt;{nonce &gt; 0 ? 'Not a manager PIN' : ''}&lt;/div&gt;
+        &lt;button className="m-modal-cancel" onClick={onCancel}&gt;Cancel&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+/* ============================================================ ROOT */
+function MStage({ children }) {
+  const ref = useMR(null), stageRef = useMR(null);
+  useME(() =&gt; {
+    let raf = 0;
+    const fit = () =&gt; {
+      const el = ref.current; if (!el) return;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      if (!vw || !vh) { raf = requestAnimationFrame(fit); return; }
+      const s = Math.min(vw / (402 + 40), vh / (874 + 40));
+      el.style.transform = `translate(-50%, -50%) scale(${s || 1})`;
+    };
+    fit();
+    window.addEventListener('resize', fit); window.addEventListener('load', fit);
+    let ro; if (window.ResizeObserver &amp;&amp; stageRef.current) { ro = new ResizeObserver(fit); ro.observe(stageRef.current); }
+    return () =&gt; { cancelAnimationFrame(raf); window.removeEventListener('resize', fit); window.removeEventListener('load', fit); if (ro) ro.disconnect(); };
+  }, []);
+  return &lt;div className="mbar-stage" ref={stageRef}&gt;&lt;div className="mbar-fit" ref={ref}&gt;{children}&lt;/div&gt;&lt;/div&gt;;
+}
+
+function MBarApp() {
+  const [store, actions] = useBarStore();
+  const [toast, setToast] = useM('');
+  const [mgr, setMgr] = useM(false);
+  const toastT = useMR(0);
+  const [, tick] = useM(0);
+
+  // mobile is the waiter-facing surface — admin lives on the terminal, so enter at the lock
+  useME(() =&gt; { if (store.screen === 'admin') actions.setScreen('lock'); }, []);
+  useME(() =&gt; { const t = setInterval(() =&gt; tick((n) =&gt; n + 1), 30000); return () =&gt; clearInterval(t); }, []);
+
+  const notify = (msg) =&gt; { setToast(msg); clearTimeout(toastT.current); toastT.current = setTimeout(() =&gt; setToast(''), 3200); };
+  const onSettle = () =&gt; { const c = barCashier(store.activeCashierId); if (store.settings.managerSettle &amp;&amp; !(c &amp;&amp; c.manager)) setMgr(true); else actions.goSettle(); };
+
+  let screen;
+  const sc = store.screen === 'admin' ? 'lock' : store.screen;
+  if (sc === 'tables') screen = &lt;MFloor store={store} actions={actions} /&gt;;
+  else if (sc === 'pos') screen = &lt;MPos store={store} actions={actions} onSettle={onSettle} /&gt;;
+  else if (sc === 'settle') screen = &lt;MSettle store={store} actions={actions} notify={notify} /&gt;;
+  else screen = &lt;MLock store={store} actions={actions} /&gt;;
+
+  // guards
+  if ((sc === 'tables' || sc === 'pos' || sc === 'settle') &amp;&amp; !store.activeCashierId) screen = &lt;MLock store={store} actions={actions} /&gt;;
+  if ((sc === 'pos' || sc === 'settle') &amp;&amp; !store.activeTableId) screen = &lt;MFloor store={store} actions={actions} /&gt;;
+
+  return (
+    &lt;MStage&gt;
+      &lt;IOSDevice&gt;
+        {screen}
+        {toast &amp;&amp; &lt;div className="m-toast"&gt;&lt;Icons.Check size={16} /&gt; {toast}&lt;/div&gt;}
+        {mgr &amp;&amp; &lt;MManagerModal onCancel={() =&gt; setMgr(false)} onSuccess={(id) =&gt; { setMgr(false); actions.elevateSettle(id); }} /&gt;}
+      &lt;/IOSDevice&gt;
+    &lt;/MStage&gt;
+  );
+}
+
+Object.assign(window, { MBarApp, MLock, MFloor, MPos, MSettle, MManagerModal, MPinEntry, MProduct, MLine, MStage });
+</pre></section>
+<section id="src-data"><h2>Appendix C</h2><div class="h2sub">bar/data.jsx — shared store, constants, helpers</div><div class="filetag">bar/data.jsx</div><pre>/* ============================================================
+   Flipper · Bar Mode — data, constants, store
+   Requires React. Loaded before bar/screens.jsx, bar/pos.jsx, bar/app.jsx.
+   ============================================================ */
+
+/* ---- shared tile palette (mirrors pos.jsx) ---- */
+const BAR_TILE_COLORS = [
+  '#3B6FE0', '#5457D6', '#7A56E8', '#9A5BC4',
+  '#C2557E', '#C76B45', '#B5893B', '#5E8C3C',
+  '#2E9E83', '#2C8FB0', '#5B7488', '#9A6248',
+];
+function barHash(str, mod) {
+  let h = 0;
+  for (let i = 0; i &lt; str.length; i++) h = (h * 31 + str.charCodeAt(i)) &gt;&gt;&gt; 0;
+  return h % mod;
+}
+const barColorFor = (name) =&gt; BAR_TILE_COLORS[barHash(String(name), BAR_TILE_COLORS.length)];
+const barAbbr = (name) =&gt; String(name).replace(/[^A-Za-z ]/g, '').slice(0, 3) || String(name).slice(0, 3);
+const barMoney = (n) =&gt; Math.round(n).toLocaleString('en-US', { minimumFractionDigits: 0 });
+
+/* ---- products (kept identical to the existing POS demo catalog) ---- */
+const BAR_PRODUCTS = [
+  { id: 143, name: 'Cellure GJS',      price: 12000, stock: 4 },
+  { id: 160, name: 'Coupe coupe',      price: 2400,  stock: 368 },
+  { id: 189, name: "Urukezo 18' nziza", price: 3000, stock: 476 },
+  { id: 51,  name: 'Ibivero',          price: 6500,  stock: 1028 },
+  { id: 144, name: 'Cylendre Wista',   price: 3250,  stock: 763 },
+  { id: 100, name: 'Socket france',    price: 240,   stock: 3896 },
+  { id: 104, name: 'Toilesolante',     price: 250,   stock: 1855 },
+  { id: 171, name: 'Inyundo 5kg',      price: 12000, stock: 9 },
+  { id: 151, name: 'Ibitiyo 1kg',      price: 2500,  stock: 154 },
+  { id: 118, name: 'Umwiko',           price: 1125,  stock: 1053 },
+  { id: 178, name: 'Pince BUNT',       price: 3000,  stock: 0 },
+  { id: 96,  name: "Roulon 4'",        price: 600,   stock: 1205 },
+  { id: 207, name: 'Agafuni',          price: 4500,  stock: 62 },
+  { id: 212, name: 'Imbaho ya 3m',     price: 1800,  stock: 7 },
+  { id: 233, name: 'Fer à béton 12',   price: 9800,  stock: 240 },
+  { id: 245, name: 'Sima Cimerwa',     price: 11500, stock: 88 },
+];
+const barProduct = (id) =&gt; BAR_PRODUCTS.find((p) =&gt; p.id === id);
+
+/* ---- cashiers (PIN-based quick login) ---- */
+const BAR_CASHIERS = [
+  { id: 'vm', name: 'Victoria M.', initials: 'VM', color: '#2563EB', pin: '1234', role: 'Server' },
+  { id: 'en', name: 'Eric N.',     initials: 'EN', color: '#2E9E83', pin: '2468', role: 'Server' },
+  { id: 'du', name: 'Divine U.',   initials: 'DU', color: '#C2557E', pin: '1357', role: 'Server' },
+  { id: 'rm', name: 'Richard M.',  initials: 'RM', color: '#5457D6', pin: '9999', role: 'Manager', manager: true },
+];
+const barCashier = (id) =&gt; BAR_CASHIERS.find((c) =&gt; c.id === id) || null;
+
+/* ---- floor plan: zones + tables ---- */
+const BAR_ZONES = [
+  { id: 'bar',   name: 'Main Bar', tables: [
+    { id: 'B1', seats: 2 }, { id: 'B2', seats: 2 }, { id: 'B3', seats: 2 },
+    { id: 'B4', seats: 2 }, { id: 'B5', seats: 2 }, { id: 'B6', seats: 2 },
+  ] },
+  { id: 'terr',  name: 'Terrace', tables: [
+    { id: 'T1', seats: 4 }, { id: 'T2', seats: 4 }, { id: 'T3', seats: 4 }, { id: 'T4', seats: 4 },
+    { id: 'T5', seats: 4 }, { id: 'T6', seats: 6 }, { id: 'T7', seats: 6 }, { id: 'T8', seats: 8 },
+  ] },
+  { id: 'vip',   name: 'VIP Lounge', tables: [
+    { id: 'V1', seats: 6 }, { id: 'V2', seats: 6 }, { id: 'V3', seats: 10 },
+  ] },
+];
+const BAR_TABLES = BAR_ZONES.flatMap((z) =&gt; z.tables.map((t) =&gt; ({ ...t, zoneId: z.id, zoneName: z.name })));
+const barTable = (id) =&gt; BAR_TABLES.find((t) =&gt; t.id === id) || null;
+
+/* ---- editable floor helpers (the floor plan lives in store.floor) ---- */
+const cloneFloor = (f) =&gt; f.map((z) =&gt; ({ ...z, tables: z.tables.map((t) =&gt; ({ ...t })) }));
+const flattenFloor = (floor) =&gt; floor.flatMap((z) =&gt; z.tables.map((t) =&gt; ({ ...t, zoneId: z.id, zoneName: z.name })));
+const findTable = (floor, id) =&gt; {
+  for (const z of floor) { const t = z.tables.find((x) =&gt; x.id === id); if (t) return { ...t, zoneId: z.id, zoneName: z.name }; }
+  return null;
+};
+
+/* ---- time helpers ---- */
+function barFmtClock(ms) {
+  const d = new Date(ms);
+  let h = d.getHours();
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ap = h &lt; 12 ? 'AM' : 'PM';
+  h = h % 12 || 12;
+  return `${h}:${mm} ${ap}`;
+}
+function barFmtElapsed(ms) {
+  const mins = Math.max(0, Math.round((Date.now() - ms) / 60000));
+  if (mins &lt; 60) return `${mins}m`;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
+/* ---- initial seed (a few open tabs across the floor) ---- */
+let __lid = 1;
+const lid = () =&gt; 'l' + (__lid++);
+function seedState() {
+  const now = Date.now();
+  return {
+    screen: 'admin',
+    floor: cloneFloor(BAR_ZONES),
+    settings: { barMode: true, requirePin: true, managerSettle: true, floorFirst: true, autoLogout: false },
+    activeCashierId: null,
+    activeTableId: null,
+    tabs: {
+      T3: {
+        openedById: 'vm', openedAtMs: now - 34 * 60000,
+        lines: [
+          { id: lid(), productId: 51,  qty: 2, price: 6500, cashierId: 'vm', ts: now - 34 * 60000 },
+          { id: lid(), productId: 160, qty: 3, price: 2400, cashierId: 'vm', ts: now - 20 * 60000 },
+        ],
+      },
+      B2: {
+        openedById: 'en', openedAtMs: now - 12 * 60000,
+        lines: [
+          { id: lid(), productId: 118, qty: 3, price: 1125, cashierId: 'en', ts: now - 12 * 60000 },
+        ],
+      },
+      V1: {
+        openedById: 'du', openedAtMs: now - 51 * 60000,
+        lines: [
+          { id: lid(), productId: 143, qty: 2, price: 12000, cashierId: 'du', ts: now - 51 * 60000 },
+          { id: lid(), productId: 245, qty: 4, price: 11500, cashierId: 'du', ts: now - 40 * 60000 },
+          { id: lid(), productId: 207, qty: 1, price: 4500,  cashierId: 'rm', ts: now - 8 * 60000 },
+        ],
+      },
+    },
+  };
+}
+
+/* ---- derived tab helpers ---- */
+function tabTotal(tab) {
+  if (!tab) return 0;
+  return tab.lines.reduce((s, l) =&gt; s + l.price * l.qty, 0);
+}
+function tabCount(tab) {
+  if (!tab) return 0;
+  return tab.lines.reduce((s, l) =&gt; s + l.qty, 0);
+}
+function tabServers(tab) {
+  if (!tab) return [];
+  const ids = [];
+  tab.lines.forEach((l) =&gt; { if (!ids.includes(l.cashierId)) ids.push(l.cashierId); });
+  return ids;
+}
+
+/* ---- store: state + actions, persisted to localStorage ---- */
+const BAR_STORE_KEY = 'flipper-bar-mode-v1';
+
+function useBarStore() {
+  const [state, setState] = React.useState(() =&gt; {
+    try {
+      const raw = localStorage.getItem(BAR_STORE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // reset lineid counter above any persisted ids
+        let max = 0;
+        Object.values(parsed.tabs || {}).forEach((t) =&gt;
+          (t.lines || []).forEach((l) =&gt; { const n = parseInt(String(l.id).slice(1), 10); if (n &gt; max) max = n; }));
+        __lid = max + 1;
+        // back-fill floor for state saved before the floor editor existed
+        if (!parsed.floor) parsed.floor = cloneFloor(BAR_ZONES);
+        // persist tabs + settings + floor, but always start a fresh session
+        // logged-out at the admin entry so a reload never lands mid-flow.
+        return { ...parsed, screen: 'admin', activeCashierId: null, activeTableId: null };
+      }
+    } catch (e) {}
+    return seedState();
+  });
+
+  React.useEffect(() =&gt; {
+    try { localStorage.setItem(BAR_STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }, [state]);
+
+  const patch = (p) =&gt; setState((s) =&gt; ({ ...s, ...(typeof p === 'function' ? p(s) : p) }));
+
+  const actions = React.useMemo(() =&gt; ({
+    setScreen: (screen) =&gt; patch({ screen }),
+    setSetting: (key, val) =&gt; setState((s) =&gt; ({ ...s, settings: { ...s.settings, [key]: val } })),
+
+    login: (cashierId) =&gt; setState((s) =&gt; ({
+      ...s, activeCashierId: cashierId,
+      screen: s.settings.floorFirst ? 'tables' : 'tables',
+    })),
+    logout: () =&gt; patch({ activeCashierId: null, activeTableId: null, screen: 'lock' }),
+
+    openTable: (tableId) =&gt; setState((s) =&gt; {
+      const tabs = { ...s.tabs };
+      if (!tabs[tableId]) {
+        tabs[tableId] = { openedById: s.activeCashierId, openedAtMs: Date.now(), lines: [] };
+      }
+      return { ...s, tabs, activeTableId: tableId, screen: 'pos' };
+    }),
+
+    addItem: (product) =&gt; setState((s) =&gt; {
+      const tid = s.activeTableId; if (!tid) return s;
+      const tab = s.tabs[tid] || { openedById: s.activeCashierId, openedAtMs: Date.now(), lines: [] };
+      const lines = tab.lines.slice();
+      // merge into this cashier's existing (unedited-price) line for the product
+      const idx = lines.findIndex((l) =&gt; l.productId === product.id &amp;&amp; l.cashierId === s.activeCashierId &amp;&amp; l.price === product.price);
+      if (idx &gt;= 0) lines[idx] = { ...lines[idx], qty: Math.min(product.stock, lines[idx].qty + 1) };
+      else lines.push({ id: lid(), productId: product.id, qty: 1, price: product.price, cashierId: s.activeCashierId, ts: Date.now() });
+      return { ...s, tabs: { ...s.tabs, [tid]: { ...tab, lines } } };
+    }),
+
+    setLineQty: (lineId, qty) =&gt; setState((s) =&gt; {
+      const tid = s.activeTableId; const tab = s.tabs[tid]; if (!tab) return s;
+      let lines = tab.lines.map((l) =&gt; {
+        if (l.id !== lineId) return l;
+        const p = barProduct(l.productId);
+        const n = Math.max(0, Math.min(p ? p.stock : 9999, qty));
+        return { ...l, qty: n };
+      }).filter((l) =&gt; l.qty &gt; 0);
+      return { ...s, tabs: { ...s.tabs, [tid]: { ...tab, lines } } };
+    }),
+    setLinePrice: (lineId, price) =&gt; setState((s) =&gt; {
+      const tid = s.activeTableId; const tab = s.tabs[tid]; if (!tab) return s;
+      const lines = tab.lines.map((l) =&gt; l.id === lineId ? { ...l, price } : l);
+      return { ...s, tabs: { ...s.tabs, [tid]: { ...tab, lines } } };
+    }),
+    delLine: (lineId) =&gt; setState((s) =&gt; {
+      const tid = s.activeTableId; const tab = s.tabs[tid]; if (!tab) return s;
+      return { ...s, tabs: { ...s.tabs, [tid]: { ...tab, lines: tab.lines.filter((l) =&gt; l.id !== lineId) } } };
+    }),
+
+    saveToTab: () =&gt; setState((s) =&gt; ({
+      ...s, activeTableId: null,
+      screen: s.settings.autoLogout ? 'lock' : 'tables',
+      activeCashierId: s.settings.autoLogout ? null : s.activeCashierId,
+    })),
+
+    goSettle: () =&gt; patch({ screen: 'settle' }),
+    elevateSettle: (mgrId) =&gt; patch({ activeCashierId: mgrId, screen: 'settle' }),
+    settleConfirm: () =&gt; setState((s) =&gt; {
+      const tabs = { ...s.tabs }; delete tabs[s.activeTableId];
+      return { ...s, tabs, activeTableId: null, screen: 'tables' };
+    }),
+
+    resetDemo: () =&gt; { try { localStorage.removeItem(BAR_STORE_KEY); } catch (e) {} setState(seedState()); },
+
+    /* ---- floor plan editing (admin) ---- */
+    addZone: () =&gt; setState((s) =&gt; ({
+      ...s, floor: [...s.floor, { id: 'z' + Date.now(), name: 'New zone', tables: [] }],
+    })),
+    renameZone: (zoneId, name) =&gt; setState((s) =&gt; ({
+      ...s, floor: s.floor.map((z) =&gt; z.id === zoneId ? { ...z, name: name.trim() || z.name } : z),
+    })),
+    removeZone: (zoneId) =&gt; setState((s) =&gt; ({ ...s, floor: s.floor.filter((z) =&gt; z.id !== zoneId) })),
+    addTable: (zoneId) =&gt; setState((s) =&gt; {
+      const ids = new Set(flattenFloor(s.floor).map((t) =&gt; t.id));
+      const floor = s.floor.map((z) =&gt; {
+        if (z.id !== zoneId) return z;
+        const prefix = ((z.tables[0] &amp;&amp; z.tables[0].id.match(/^[A-Za-z]+/)) || [null])[0]
+          || (z.name.replace(/[^A-Za-z]/g, '')[0] || 'T').toUpperCase();
+        let n = z.tables.length + 1, id;
+        do { id = prefix + n; n++; } while (ids.has(id));
+        ids.add(id);
+        return { ...z, tables: [...z.tables, { id, seats: 4 }] };
+      });
+      return { ...s, floor };
+    }),
+    setTableSeats: (tableId, seats) =&gt; setState((s) =&gt; ({
+      ...s, floor: s.floor.map((z) =&gt; ({
+        ...z, tables: z.tables.map((t) =&gt; t.id === tableId ? { ...t, seats: Math.max(1, Math.min(30, seats)) } : t),
+      })),
+    })),
+    removeTable: (tableId) =&gt; setState((s) =&gt; ({
+      ...s, floor: s.floor.map((z) =&gt; ({ ...z, tables: z.tables.filter((t) =&gt; t.id !== tableId) })),
+    })),
+  }), []);
+
+  return [state, actions];
+}
+
+Object.assign(window, {
+  BAR_TILE_COLORS, barColorFor, barAbbr, barMoney,
+  BAR_PRODUCTS, barProduct, BAR_CASHIERS, barCashier,
+  BAR_ZONES, BAR_TABLES, barTable, cloneFloor, flattenFloor, findTable,
+  barFmtClock, barFmtElapsed,
+  tabTotal, tabCount, tabServers, useBarStore,
+});
+</pre></section>
+<section id="src-frame"><h2>Appendix D</h2><div class="h2sub">bar/ios-frame.jsx — device bezel (IOSDevice used)</div><div class="filetag">bar/ios-frame.jsx</div><pre>// @ds-adherence-ignore -- omelette starter scaffold (raw elements/hex/px by design)
+
+/* BEGIN USAGE */
+// iOS.jsx — Simplified iOS 26 (Liquid Glass) device frame
+// Based on the iOS 26 UI Kit + Figma status bar spec. No assets, no deps.
+// Exports (to window): IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard
+//
+// Usage — wrap your screen content in &lt;IOSDevice&gt; to get the bezel, status bar
+// and home indicator (props: title, dark, keyboard):
+//
+//   &lt;IOSDevice title="Settings"&gt;
+//     ...your screen content...
+//   &lt;/IOSDevice&gt;
+//   &lt;IOSDevice dark title="Search" keyboard&gt;…&lt;/IOSDevice&gt;
+/* END USAGE */
+
+// ─────────────────────────────────────────────────────────────
+// Status bar
+// ─────────────────────────────────────────────────────────────
+function IOSStatusBar({ dark = false, time = '9:41' }) {
+  const c = dark ? '#fff' : '#000';
+  return (
+    &lt;div style={{
+      display: 'flex', gap: 154, alignItems: 'center', justifyContent: 'center',
+      padding: '21px 24px 19px', boxSizing: 'border-box',
+      position: 'relative', zIndex: 20, width: '100%',
+    }}&gt;
+      &lt;div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 1.5 }}&gt;
+        &lt;span style={{
+          fontFamily: '-apple-system, "SF Pro", system-ui', fontWeight: 590,
+          fontSize: 17, lineHeight: '22px', color: c,
+        }}&gt;{time}&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, paddingTop: 1, paddingRight: 1 }}&gt;
+        &lt;svg width="19" height="12" viewBox="0 0 19 12"&gt;
+          &lt;rect x="0" y="7.5" width="3.2" height="4.5" rx="0.7" fill={c}/&gt;
+          &lt;rect x="4.8" y="5" width="3.2" height="7" rx="0.7" fill={c}/&gt;
+          &lt;rect x="9.6" y="2.5" width="3.2" height="9.5" rx="0.7" fill={c}/&gt;
+          &lt;rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill={c}/&gt;
+        &lt;/svg&gt;
+        &lt;svg width="17" height="12" viewBox="0 0 17 12"&gt;
+          &lt;path d="M8.5 3.2C10.8 3.2 12.9 4.1 14.4 5.6L15.5 4.5C13.7 2.7 11.2 1.5 8.5 1.5C5.8 1.5 3.3 2.7 1.5 4.5L2.6 5.6C4.1 4.1 6.2 3.2 8.5 3.2Z" fill={c}/&gt;
+          &lt;path d="M8.5 6.8C9.9 6.8 11.1 7.3 12 8.2L13.1 7.1C11.8 5.9 10.2 5.1 8.5 5.1C6.8 5.1 5.2 5.9 3.9 7.1L5 8.2C5.9 7.3 7.1 6.8 8.5 6.8Z" fill={c}/&gt;
+          &lt;circle cx="8.5" cy="10.5" r="1.5" fill={c}/&gt;
+        &lt;/svg&gt;
+        &lt;svg width="27" height="13" viewBox="0 0 27 13"&gt;
+          &lt;rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke={c} strokeOpacity="0.35" fill="none"/&gt;
+          &lt;rect x="2" y="2" width="20" height="9" rx="2" fill={c}/&gt;
+          &lt;path d="M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z" fill={c} fillOpacity="0.4"/&gt;
+        &lt;/svg&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Liquid glass pill — blur + tint + shine
+// ─────────────────────────────────────────────────────────────
+function IOSGlassPill({ children, dark = false, style = {} }) {
+  return (
+    &lt;div style={{
+      height: 44, minWidth: 44, borderRadius: 9999,
+      position: 'relative', overflow: 'hidden',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: dark
+        ? '0 2px 6px rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.2)'
+        : '0 1px 3px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.06)',
+      ...style,
+    }}&gt;
+      {/* blur + tint */}
+      &lt;div style={{
+        position: 'absolute', inset: 0, borderRadius: 9999,
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        background: dark ? 'rgba(120,120,128,0.28)' : 'rgba(255,255,255,0.5)',
+      }} /&gt;
+      {/* shine */}
+      &lt;div style={{
+        position: 'absolute', inset: 0, borderRadius: 9999,
+        boxShadow: dark
+          ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15), inset -1px -1px 1px rgba(255,255,255,0.08)'
+          : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
+        border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)',
+      }} /&gt;
+      &lt;div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', padding: '0 4px' }}&gt;
+        {children}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Navigation bar — glass pills + large title
+// ─────────────────────────────────────────────────────────────
+function IOSNavBar({ title = 'Title', dark = false, trailingIcon = true }) {
+  const muted = dark ? 'rgba(255,255,255,0.6)' : '#404040';
+  const text = dark ? '#fff' : '#000';
+  const pillIcon = (content) =&gt; (
+    &lt;IOSGlassPill dark={dark}&gt;
+      &lt;div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}&gt;
+        {content}
+      &lt;/div&gt;
+    &lt;/IOSGlassPill&gt;
+  );
+  return (
+    &lt;div style={{
+      display: 'flex', flexDirection: 'column', gap: 10,
+      paddingTop: 62, paddingBottom: 10, position: 'relative', zIndex: 5,
+    }}&gt;
+      &lt;div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px',
+      }}&gt;
+        {/* back chevron */}
+        {pillIcon(
+          &lt;svg width="12" height="20" viewBox="0 0 12 20" fill="none" style={{ marginLeft: -1 }}&gt;
+            &lt;path d="M10 2L2 10l8 8" stroke={muted} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/&gt;
+          &lt;/svg&gt;
+        )}
+        {/* trailing ellipsis */}
+        {trailingIcon &amp;&amp; pillIcon(
+          &lt;svg width="22" height="6" viewBox="0 0 22 6"&gt;
+            &lt;circle cx="3" cy="3" r="2.5" fill={muted}/&gt;
+            &lt;circle cx="11" cy="3" r="2.5" fill={muted}/&gt;
+            &lt;circle cx="19" cy="3" r="2.5" fill={muted}/&gt;
+          &lt;/svg&gt;
+        )}
+      &lt;/div&gt;
+      {/* large title */}
+      &lt;div style={{
+        padding: '0 16px',
+        fontFamily: '-apple-system, system-ui',
+        fontSize: 34, fontWeight: 700, lineHeight: '41px',
+        color: text, letterSpacing: 0.4,
+      }}&gt;{title}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Grouped list (inset card, r:26) + row (52px)
+// ─────────────────────────────────────────────────────────────
+function IOSListRow({ title, detail, icon, chevron = true, isLast = false, dark = false }) {
+  const text = dark ? '#fff' : '#000';
+  const sec = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
+  const ter = dark ? 'rgba(235,235,245,0.3)' : 'rgba(60,60,67,0.3)';
+  const sep = dark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.12)';
+  return (
+    &lt;div style={{
+      display: 'flex', alignItems: 'center', minHeight: 52,
+      padding: '0 16px', position: 'relative',
+      fontFamily: '-apple-system, system-ui', fontSize: 17,
+      letterSpacing: -0.43,
+    }}&gt;
+      {icon &amp;&amp; (
+        &lt;div style={{
+          width: 30, height: 30, borderRadius: 7, background: icon,
+          marginRight: 12, flexShrink: 0,
+        }} /&gt;
+      )}
+      &lt;div style={{ flex: 1, color: text }}&gt;{title}&lt;/div&gt;
+      {detail &amp;&amp; &lt;span style={{ color: sec, marginRight: 6 }}&gt;{detail}&lt;/span&gt;}
+      {chevron &amp;&amp; (
+        &lt;svg width="8" height="14" viewBox="0 0 8 14" style={{ flexShrink: 0 }}&gt;
+          &lt;path d="M1 1l6 6-6 6" stroke={ter} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/&gt;
+        &lt;/svg&gt;
+      )}
+      {!isLast &amp;&amp; (
+        &lt;div style={{
+          position: 'absolute', bottom: 0, right: 0,
+          left: icon ? 58 : 16, height: 0.5, background: sep,
+        }} /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+function IOSList({ header, children, dark = false }) {
+  const hc = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
+  const bg = dark ? '#1C1C1E' : '#fff';
+  return (
+    &lt;div&gt;
+      {header &amp;&amp; (
+        &lt;div style={{
+          fontFamily: '-apple-system, system-ui', fontSize: 13,
+          color: hc, textTransform: 'uppercase',
+          padding: '8px 36px 6px', letterSpacing: -0.08,
+        }}&gt;{header}&lt;/div&gt;
+      )}
+      &lt;div style={{
+        background: bg, borderRadius: 26,
+        margin: '0 16px', overflow: 'hidden',
+      }}&gt;{children}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Device frame
+// ─────────────────────────────────────────────────────────────
+function IOSDevice({
+  children, width = 402, height = 874, dark = false,
+  title, keyboard = false,
+}) {
+  return (
+    &lt;div style={{
+      width, height, borderRadius: 48, overflow: 'hidden',
+      position: 'relative', background: dark ? '#000' : '#F2F2F7',
+      boxShadow: '0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)',
+      fontFamily: '-apple-system, system-ui, sans-serif',
+      WebkitFontSmoothing: 'antialiased',
+    }}&gt;
+      {/* dynamic island */}
+      &lt;div style={{
+        position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
+        width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50,
+      }} /&gt;
+      {/* status bar (absolute) */}
+      &lt;div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}&gt;
+        &lt;IOSStatusBar dark={dark} /&gt;
+      &lt;/div&gt;
+      {/* nav + content */}
+      &lt;div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}&gt;
+        {title !== undefined &amp;&amp; &lt;IOSNavBar title={title} dark={dark} /&gt;}
+        &lt;div style={{ flex: 1, overflow: 'auto' }}&gt;{children}&lt;/div&gt;
+        {keyboard &amp;&amp; &lt;IOSKeyboard dark={dark} /&gt;}
+      &lt;/div&gt;
+      {/* home indicator — always on top */}
+      &lt;div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 60,
+        height: 34, display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+        paddingBottom: 8, pointerEvents: 'none',
+      }}&gt;
+        &lt;div style={{
+          width: 139, height: 5, borderRadius: 100,
+          background: dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.25)',
+        }} /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Keyboard — iOS 26 liquid glass
+// ─────────────────────────────────────────────────────────────
+function IOSKeyboard({ dark = false }) {
+  const glyph = dark ? 'rgba(255,255,255,0.7)' : '#595959';
+  const sugg = dark ? 'rgba(255,255,255,0.6)' : '#333';
+  const keyBg = dark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.85)';
+
+  // special-key icons
+  const icons = {
+    shift: &lt;svg width="19" height="17" viewBox="0 0 19 17"&gt;&lt;path d="M9.5 1L1 9.5h4.5V16h8V9.5H18L9.5 1z" fill={glyph}/&gt;&lt;/svg&gt;,
+    del: &lt;svg width="23" height="17" viewBox="0 0 23 17"&gt;&lt;path d="M7 1h13a2 2 0 012 2v11a2 2 0 01-2 2H7l-6-7.5L7 1z" fill="none" stroke={glyph} strokeWidth="1.6" strokeLinejoin="round"/&gt;&lt;path d="M10 5l7 7M17 5l-7 7" stroke={glyph} strokeWidth="1.6" strokeLinecap="round"/&gt;&lt;/svg&gt;,
+    ret: &lt;svg width="20" height="14" viewBox="0 0 20 14"&gt;&lt;path d="M18 1v6H4m0 0l4-4M4 7l4 4" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/&gt;&lt;/svg&gt;,
+  };
+
+  const key = (content, { w, flex, ret, fs = 25, k } = {}) =&gt; (
+    &lt;div key={k} style={{
+      height: 42, borderRadius: 8.5,
+      flex: flex ? 1 : undefined, width: w, minWidth: 0,
+      background: ret ? '#08f' : keyBg,
+      boxShadow: '0 1px 0 rgba(0,0,0,0.075)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: '-apple-system, "SF Compact", system-ui',
+      fontSize: fs, fontWeight: 458, color: ret ? '#fff' : glyph,
+    }}&gt;{content}&lt;/div&gt;
+  );
+
+  const row = (keys, pad = 0) =&gt; (
+    &lt;div style={{ display: 'flex', gap: 6.5, justifyContent: 'center', padding: `0 ${pad}px` }}&gt;
+      {keys.map(l =&gt; key(l, { flex: true, k: l }))}
+    &lt;/div&gt;
+  );
+
+  return (
+    &lt;div style={{
+      position: 'relative', zIndex: 15, borderRadius: 27, overflow: 'hidden',
+      padding: '11px 0 2px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      boxShadow: dark
+        ? '0 -2px 20px rgba(0,0,0,0.09)'
+        : '0 -1px 6px rgba(0,0,0,0.018), 0 -3px 20px rgba(0,0,0,0.012)',
+    }}&gt;
+      {/* liquid glass bg — same recipe as nav pills */}
+      &lt;div style={{
+        position: 'absolute', inset: 0, borderRadius: 27,
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        background: dark ? 'rgba(120,120,128,0.14)' : 'rgba(255,255,255,0.25)',
+      }} /&gt;
+      &lt;div style={{
+        position: 'absolute', inset: 0, borderRadius: 27,
+        boxShadow: dark
+          ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15)'
+          : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
+        border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)',
+        pointerEvents: 'none',
+      }} /&gt;
+
+      {/* autocorrect bar */}
+      &lt;div style={{
+        display: 'flex', gap: 20, alignItems: 'center',
+        padding: '8px 22px 13px', width: '100%', boxSizing: 'border-box',
+        position: 'relative',
+      }}&gt;
+        {['"The"', 'the', 'to'].map((w, i) =&gt; (
+          &lt;React.Fragment key={i}&gt;
+            {i &gt; 0 &amp;&amp; &lt;div style={{ width: 1, height: 25, background: '#ccc', opacity: 0.3 }} /&gt;}
+            &lt;div style={{
+              flex: 1, textAlign: 'center',
+              fontFamily: '-apple-system, system-ui', fontSize: 17,
+              color: sugg, letterSpacing: -0.43, lineHeight: '22px',
+            }}&gt;{w}&lt;/div&gt;
+          &lt;/React.Fragment&gt;
+        ))}
+      &lt;/div&gt;
+
+      {/* key layout */}
+      &lt;div style={{
+        display: 'flex', flexDirection: 'column', gap: 13,
+        padding: '0 6.5px', width: '100%', boxSizing: 'border-box',
+        position: 'relative',
+      }}&gt;
+        {row(['q','w','e','r','t','y','u','i','o','p'])}
+        {row(['a','s','d','f','g','h','j','k','l'], 20)}
+        &lt;div style={{ display: 'flex', gap: 14.25, alignItems: 'center' }}&gt;
+          {key(icons.shift, { w: 45, k: 'shift' })}
+          &lt;div style={{ display: 'flex', gap: 6.5, flex: 1 }}&gt;
+            {['z','x','c','v','b','n','m'].map(l =&gt; key(l, { flex: true, k: l }))}
+          &lt;/div&gt;
+          {key(icons.del, { w: 45, k: 'del' })}
+        &lt;/div&gt;
+        &lt;div style={{ display: 'flex', gap: 6, alignItems: 'center' }}&gt;
+          {key('ABC', { w: 92.25, fs: 18, k: 'abc' })}
+          {key('', { flex: true, k: 'space' })}
+          {key(icons.ret, { w: 92.25, ret: true, k: 'ret' })}
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      {/* bottom spacer (emoji+mic area, icons omitted) */}
+      &lt;div style={{ height: 56, width: '100%', position: 'relative' }} /&gt;
+    &lt;/div&gt;
+  );
+}
+
+Object.assign(window, {
+  IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard,
+});
+</pre></section>
+<section id="src-host"><h2>Appendix E</h2><div class="h2sub">Flipper Bar Mode - Mobile.html — host / load order</div><div class="filetag">Flipper Bar Mode - Mobile.html</div><pre>&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8" /&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1" /&gt;
+  &lt;title&gt;Flipper · Bar Mode — Mobile&lt;/title&gt;
+
+  &lt;link rel="preconnect" href="https://fonts.googleapis.com" /&gt;
+  &lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /&gt;
+  &lt;link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500;600;700&amp;display=swap" rel="stylesheet" /&gt;
+
+  &lt;link rel="stylesheet" href="onboarding/styles.css" /&gt;
+  &lt;link rel="stylesheet" href="pos/pos.css" /&gt;
+  &lt;link rel="stylesheet" href="bar/bar.css" /&gt;
+  &lt;link rel="stylesheet" href="bar/mobile.css" /&gt;
+
+  &lt;script src="https://unpkg.com/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8dacdc9cbdce89990869b8699">[email&#160;protected]</a>/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"&gt;&lt;/script&gt;
+  &lt;script src="https://unpkg.com/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0b796e6a687f266f64664b3a332538253a">[email&#160;protected]</a>/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"&gt;&lt;/script&gt;
+  &lt;script src="https://unpkg.com/@babel/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="384b4c59565c595457565d780f160a011608">[email&#160;protected]</a>/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"&gt;&lt;/script&gt;
+
+  &lt;template id="__bundler_thumbnail"&gt;
+    &lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"&gt;
+      &lt;rect width="48" height="48" rx="10" fill="#2563EB"/&gt;
+      &lt;rect x="17" y="10" width="14" height="28" rx="3" fill="#fff"/&gt;
+      &lt;rect x="19.5" y="13" width="9" height="19" rx="1" fill="#2563EB"/&gt;
+      &lt;circle cx="24" cy="35" r="1.4" fill="#2563EB"/&gt;
+    &lt;/svg&gt;
+  &lt;/template&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="root"&gt;&lt;/div&gt;
+
+  &lt;script type="text/babel" src="onboarding/icons.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="onboarding/frame.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="bar/ios-frame.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="bar/data.jsx"&gt;&lt;/script&gt;
+  &lt;script type="text/babel" src="bar/mobile.jsx"&gt;&lt;/script&gt;
+
+  &lt;script type="text/babel" data-presets="react"&gt;
+    ReactDOM.createRoot(document.getElementById('root')).render(&lt;MBarApp /&gt;);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></section>
+</main></div><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body></html>

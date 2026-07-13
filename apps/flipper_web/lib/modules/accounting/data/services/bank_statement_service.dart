@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -89,14 +90,16 @@ class BankStatementParseException implements Exception {
 /// a Gemini-standard row as fallback for image-only statements), so no AI
 /// credentials ever pass through the browser.
 class BankStatementService {
-  BankStatementService({http.Client? client})
-      : _client = client ?? http.Client();
+  BankStatementService({http.Client? client, ProductAnalytics? analytics})
+      : _client = client ?? http.Client(),
+        _analytics = analytics;
 
   static String get _baseUrl => kDebugMode
       ? 'http://localhost:8084'
       : 'https://data-connector.yegobox.com';
 
   final http.Client _client;
+  final ProductAnalytics? _analytics;
 
   Future<ParsedStatement> parse(Uint8List pdfBytes) async {
     final http.Response response;
@@ -121,8 +124,18 @@ class BankStatementService {
       throw BankStatementParseException(message);
     }
 
-    return ParsedStatement.fromJson(
+    final parsed = ParsedStatement.fromJson(
       jsonDecode(response.body) as Map<String, dynamic>,
     );
+    await _analytics?.track(
+      AnalyticsEvents.bankStatementImported,
+      properties: {
+        'source': 'bank_statement_service',
+        'line_count': parsed.lines.length,
+        if (parsed.bankName != null) 'bank_name': parsed.bankName!,
+        if (parsed.currency != null) 'currency': parsed.currency!,
+      },
+    );
+    return parsed;
   }
 }
