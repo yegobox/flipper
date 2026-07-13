@@ -36,8 +36,14 @@ abstract final class PluExcelFormulaBuilder {
     return "'${t.replaceAll("'", "''")}'!";
   }
 
-  /// Matches [TransactionItemPluMetrics.taxPayable] when tax is derived from rate;
-  /// returns `null` when the app uses [taxAmt] or (tot - taxbl) — then the static cell value is used.
+  /// Mirrors [TransactionItemPluMetrics.taxPayable]: VAT-inclusive extraction
+  /// from gross line revenue (price × qty) at the row's own [TaxRate] cell,
+  /// i.e. `TotalSales × rate/(100+rate)` — `× 18/118` at the standard 18% rate.
+  ///
+  /// The rate cell carries the line's configured percentage, so a line with a
+  /// different (or zero) rate is handled naturally: a 0 rate yields 0 tax. Always
+  /// returns a formula (never a static-cell fallback); return type stays nullable
+  /// for call-site compatibility.
   static String? pluTaxPayableExcelFormula({
     required Map<String, dynamic> rowData,
     required int excelRow,
@@ -45,39 +51,13 @@ abstract final class PluExcelFormulaBuilder {
     required String qtyLetter,
     required String taxRateLetter,
   }) {
-    final taxAmt = rowData[PluExcelRowKeys.taxAmt];
-    if (taxAmt is num && taxAmt.toDouble() > 0) {
-      return null;
-    }
-    final tot = rowData[PluExcelRowKeys.totAmt];
-    final taxbl = rowData[PluExcelRowKeys.taxblAmt];
-    if (tot is num &&
-        taxbl is num &&
-        tot.toDouble() > taxbl.toDouble() + 0.0001) {
-      return null;
-    }
-
-    var ty = rowData[PluExcelRowKeys.taxTyCd]?.toString().trim();
-    if (ty == null || ty.isEmpty) ty = 'B';
-    ty = ty.toUpperCase();
-    final discount =
-        (rowData[PluExcelRowKeys.discount] as num?)?.toDouble() ?? 0.0;
-    final dLit = excelLiteralNumForFormula(discount);
-
     final p = priceLetter;
     final q = qtyLetter;
     final tr = taxRateLetter;
     final r = excelRow;
     // Always use ${} for letter+row so identifiers like [tr] never split (e.g. $tr$r vs $t + r…).
-    final base = '${p}${r}*${q}${r}-$dLit';
-
-    if (ty == 'D') {
-      return '=0';
-    }
-    if (ty == 'B' || ty == 'C') {
-      return '=IF($base<=0,0,ROUND(($base)*${tr}${r}/(100+${tr}${r}),2))';
-    }
-    return '=IF($base<=0,0,ROUND(($base)*${tr}${r}/100,2))';
+    final base = '${p}${r}*${q}${r}';
+    return '=IF($base<=0,0,ROUND(($base)*${tr}${r}/(100+${tr}${r}),2))';
   }
 
   /// Net profit line: (total sales cell − supply − tax), rounded to 2 dp.

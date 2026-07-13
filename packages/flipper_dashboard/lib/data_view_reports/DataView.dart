@@ -1284,6 +1284,8 @@ class DataViewState extends ConsumerState<DataView>
       for (final item in items) {
         final taxType = item.taxTyCd ?? 'B';
         final fromItem = item.taxPercentage?.toDouble();
+        // Per-line configured rate: item rate, else the tax type's configured
+        // rate, else the 18% default. Honors any configured rate per tax type.
         final taxPercentage = (fromItem != null && fromItem > 0)
             ? fromItem
             : (taxRateByType[taxType] ?? 18.0);
@@ -1306,8 +1308,16 @@ class DataViewState extends ConsumerState<DataView>
               .roundToTwoDecimalPlaces(),
           'SupplyAmount': item.splyAmt?.toDouble() ?? 0.0,
           'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
-          'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
-          'NetProfit': TransactionItemPluMetrics.netProfitColumn(item),
+          // Use the same resolved rate shown in the TaxRate column so the
+          // static VAT / net-profit cells match it (and the Excel formulas).
+          'TaxPayable': TransactionItemPluMetrics.taxPayable(
+            item,
+            ratePercent: taxPercentage,
+          ),
+          'NetProfit': TransactionItemPluMetrics.netProfitColumn(
+            item,
+            ratePercent: taxPercentage,
+          ),
           // Not DataGrid columns — used only by Excel manual export formulas
           PluExcelRowKeys.taxTyCd: item.taxTyCd,
           PluExcelRowKeys.discount: item.discount.toDouble(),

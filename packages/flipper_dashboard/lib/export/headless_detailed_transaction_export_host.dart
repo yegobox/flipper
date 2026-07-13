@@ -87,6 +87,8 @@ buildPluManualExportRows(List<TransactionItem> items) async {
   for (final item in items) {
     final taxType = item.taxTyCd ?? 'B';
     final fromItem = item.taxPercentage?.toDouble();
+    // Per-line configured rate: item rate, else the tax type's configured
+    // rate, else the 18% default. Honors any configured rate per tax type.
     final taxPercentage = (fromItem != null && fromItem > 0)
         ? fromItem
         : (taxRateByType[taxType] ?? 18.0);
@@ -107,8 +109,16 @@ buildPluManualExportRows(List<TransactionItem> items) async {
           .roundToTwoDecimalPlaces(),
       'SupplyAmount': item.splyAmt?.toDouble() ?? 0.0,
       'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
-      'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
-      'NetProfit': TransactionItemPluMetrics.netProfitColumn(item),
+      // Use the same resolved rate shown in the TaxRate column so the static
+      // VAT / net-profit cells match it (and the Excel formulas).
+      'TaxPayable': TransactionItemPluMetrics.taxPayable(
+        item,
+        ratePercent: taxPercentage,
+      ),
+      'NetProfit': TransactionItemPluMetrics.netProfitColumn(
+        item,
+        ratePercent: taxPercentage,
+      ),
       PluExcelRowKeys.taxTyCd: item.taxTyCd,
       PluExcelRowKeys.discount: item.discount.toDouble(),
       PluExcelRowKeys.splyAmt: item.splyAmt?.toDouble() ?? 0.0,
