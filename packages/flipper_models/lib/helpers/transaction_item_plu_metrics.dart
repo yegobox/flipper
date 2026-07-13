@@ -12,8 +12,11 @@ class TransactionItemPluMetrics {
   }
 
   /// Per-line net before expenses: [profitMade] minus line tax.
-  static double netProfitColumn(TransactionItem item) {
-    return profitMade(item) - taxPayable(item);
+  ///
+  /// Pass [ratePercent] to reuse a rate the caller already resolved (e.g. the
+  /// export's displayed TaxRate), so net profit matches that same rate.
+  static double netProfitColumn(TransactionItem item, {double? ratePercent}) {
+    return profitMade(item) - taxPayable(item, ratePercent: ratePercent);
   }
 
   static double currentStockDisplay(TransactionItem item) {
@@ -44,21 +47,25 @@ class TransactionItemPluMetrics {
   }
 
   /// VAT payable on the line, extracted (tax-inclusive) from the gross revenue
-  /// shown in the report's [TotalSales] column (price × qty) at the line's own
-  /// [taxRatePercent] — so lines with different configured rates are handled
-  /// individually (a line whose configured rate is 0 comes out as 0). At the
-  /// standard 18% rate this is `totalSales × 18/118`.
+  /// shown in the report's [TotalSales] column (price × qty). At the standard
+  /// 18% rate this is `totalSales × 18/118`.
   ///
-  /// Derived only from the item's rate and gross revenue (not the stored
+  /// The rate is either [ratePercent] — the effective rate a caller has already
+  /// resolved for the row (e.g. the value shown in the export's TaxRate column),
+  /// which lets VAT and net profit match that displayed rate and preserves a
+  /// configured 0% — or, when not supplied, the line's own [taxRatePercent].
+  /// A resolved rate of 0 yields 0 tax.
+  ///
+  /// Derived only from the rate and gross revenue (not the stored
   /// [taxAmt]/[totAmt]/[taxblAmt] fiscal fields, whose values were the source of
   /// the wrong figures), so the reported tax always matches the displayed
   /// [TotalSales] and [TaxRate]. Keep in lock step with
   /// [PluExcelFormulaBuilder.pluTaxPayableExcelFormula].
-  static double taxPayable(TransactionItem item) {
+  static double taxPayable(TransactionItem item, {double? ratePercent}) {
     final totalSales = item.price.toDouble() * item.qty.toDouble();
     if (totalSales <= 0) return 0.0;
 
-    final pct = taxRatePercent(item);
+    final pct = ratePercent ?? taxRatePercent(item);
     if (pct <= 0) return 0.0;
     return double.parse(
       (totalSales * pct / (100 + pct)).toStringAsFixed(2),

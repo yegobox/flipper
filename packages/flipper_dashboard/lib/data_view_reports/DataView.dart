@@ -1308,8 +1308,16 @@ class DataViewState extends ConsumerState<DataView>
               .roundToTwoDecimalPlaces(),
           'SupplyAmount': item.splyAmt?.toDouble() ?? 0.0,
           'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
-          'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
-          'NetProfit': TransactionItemPluMetrics.netProfitColumn(item),
+          // Use the same resolved rate shown in the TaxRate column so the
+          // static VAT / net-profit cells match it (and the Excel formulas).
+          'TaxPayable': TransactionItemPluMetrics.taxPayable(
+            item,
+            ratePercent: taxPercentage,
+          ),
+          'NetProfit': TransactionItemPluMetrics.netProfitColumn(
+            item,
+            ratePercent: taxPercentage,
+          ),
           // Not DataGrid columns — used only by Excel manual export formulas
           PluExcelRowKeys.taxTyCd: item.taxTyCd,
           PluExcelRowKeys.discount: item.discount.toDouble(),
