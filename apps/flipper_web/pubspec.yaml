@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.765+1681
+version: 1.0.766+1682
 
 
 environment:
@@ -26,7 +26,8 @@ dependencies:
   go_router: ^16.2.2
   flutter_bloc: ^9.1.1
   equatable: ^2.0.7
-  firebase_auth: ^6.1.0
+  # Cap below Firebase Auth 6.5.5 (extends unpublished FirebasePlugin).
+  firebase_auth: ">=6.1.0 <6.5.5"
   ditto_live: ^5.0.2
   flipper_accounting: any
   flipper_models: any
