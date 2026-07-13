@@ -20,7 +20,7 @@ dependencies:
   flutter_settings_ui: ^3.0.1
   stacked: ^3.5.0
   google_fonts: ^6.1.0
-  firebase_auth: ^6.1.0
+  firebase_auth: ">=6.1.0 <6.5.5"
   flipper_routing: ^1.0.0
   connectivity_plus: ^7.0.0
   flipper_localize: ^1.0.0-dev

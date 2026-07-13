@@ -14,13 +14,15 @@ dependencies:
   stacked: ^3.5.0
   # firebase_remote_config: ^6.2.0  # Disabled on Windows - see conditional dependency below
   share_plus: ^10.1.4
-  firebase_messaging: ^16.1.0
+  # Cap below broken FlutterFire patches that extend unpublished FirebasePlugin
+  # (auth 6.5.5 / messaging 16.4.2 / crashlytics 5.2.5 / analytics 12.4.4).
+  firebase_messaging: ">=16.1.0 <16.4.2"
   image: ^4.1.0
-  firebase_auth: ^6.1.0
+  firebase_auth: ">=6.1.0 <6.5.5"
   geolocator: ^13.0.2
   geocode: ^1.0.3
-  firebase_analytics: ^12.0.2
-  firebase_crashlytics: ^5.0.2
+  firebase_analytics: ">=12.0.2 <12.4.4"
+  firebase_crashlytics: ">=5.0.2 <5.2.5"
   location: ^8.0.0
   google_sign_in: ^6.2.2
   dio: ^5.4.3+1
