@@ -37,10 +37,13 @@ abstract final class PluExcelFormulaBuilder {
   }
 
   /// Mirrors [TransactionItemPluMetrics.taxPayable]: VAT-inclusive extraction
-  /// from gross line revenue (price × qty), i.e. `TotalSales × rate/(100+rate)`
-  /// — `TotalSales × 18/118` at the standard rate. Applied uniformly to every
-  /// line (any tax type, any taxpayer), so it never falls back to a static cell
-  /// value. Return type stays nullable for call-site compatibility.
+  /// from gross line revenue (price × qty) at the row's own [TaxRate] cell,
+  /// i.e. `TotalSales × rate/(100+rate)` — `× 18/118` at the standard 18% rate.
+  ///
+  /// The rate cell carries the line's configured percentage, so a line with a
+  /// different (or zero) rate is handled naturally: a 0 rate yields 0 tax. Always
+  /// returns a formula (never a static-cell fallback); return type stays nullable
+  /// for call-site compatibility.
   static String? pluTaxPayableExcelFormula({
     required Map<String, dynamic> rowData,
     required int excelRow,

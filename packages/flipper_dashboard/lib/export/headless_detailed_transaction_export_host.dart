@@ -87,6 +87,8 @@ buildPluManualExportRows(List<TransactionItem> items) async {
   for (final item in items) {
     final taxType = item.taxTyCd ?? 'B';
     final fromItem = item.taxPercentage?.toDouble();
+    // Per-line configured rate: item rate, else the tax type's configured
+    // rate, else the 18% default. Honors any configured rate per tax type.
     final taxPercentage = (fromItem != null && fromItem > 0)
         ? fromItem
         : (taxRateByType[taxType] ?? 18.0);
