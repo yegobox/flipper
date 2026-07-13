@@ -52,13 +52,16 @@ ensure_branch() {
   git checkout "$branch"
 
   if [[ "$stashed" == "1" ]]; then
-    git stash pop || true
+    if ! git stash pop; then
+      echo "  warning: git stash pop failed — stash remains; recover manually with: git stash list / git stash pop" >&2
+    fi
   fi
 }
 
 sync_with_remote() {
   local branch="$1"
-  git fetch origin "$branch"
+  # Remote branch may not exist yet (first push); do not abort under set -e.
+  git fetch origin "$branch" || true
   if ! git rev-parse --verify "origin/$branch" >/dev/null 2>&1; then
     return 0
   fi
@@ -66,7 +69,10 @@ sync_with_remote() {
   behind="$(git rev-list --count HEAD.."origin/$branch" 2>/dev/null || echo 0)"
   if [[ "$behind" -gt 0 ]]; then
     echo "  rebasing onto origin/$branch ($behind behind)"
-    git pull --rebase origin "$branch"
+    if ! git pull --rebase origin "$branch"; then
+      echo "  error: rebase onto origin/$branch failed — resolve conflicts then \`git rebase --continue\`, or \`git rebase --abort\` to undo" >&2
+      exit 1
+    fi
   fi
 }
 
