@@ -6,31 +6,74 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MESSAGE="${1:-clean-up}"
 
-# path (relative to flipper/) | branch | stash before checkout (1/0)
+# path (relative to flipper/) | branch
 REPOS=(
-  "open-sources/flutter.widgets|main|0"
-  "open-sources/qr.flutter|main|0"
-  "open-sources/receipt|sql|0"
-  "open-sources/flutter_slidable|dev|1"
-  "open-sources/form_bloc|master|0"
-  "open-sources/brick|main|0"
-  "../data-connector|main|0"
+  "open-sources/flutter.widgets|main"
+  "open-sources/qr.flutter|main"
+  "open-sources/receipt|sql"
+  "open-sources/flutter_slidable|dev"
+  "open-sources/form_bloc|master"
+  "open-sources/brick|main"
+  "../data-connector|main"
 )
 
 # Optional — uncomment to include:
-# "open-sources/kds|master|0"
-# "open-sources/flutter_list_drag_and_drop|main|1"
-# "open-sources/flutter_datetime_picker|master|0"
-# "open-sources/flutter_luban|master|1"
-# "../flipper-turbo|uat|0"
-# "../dart_pdf|master|0"
+# "open-sources/kds|master"
+# "open-sources/flutter_list_drag_and_drop|main"
+# "open-sources/flutter_datetime_picker|master"
+# "open-sources/flutter_luban|master"
+# "../flipper-turbo|uat"
+# "../dart_pdf|master"
+
+# Flutter iOS ephemeral files are machine-local; never commit them.
+drop_flutter_ephemeral_noise() {
+  local path
+  while IFS= read -r path; do
+    [[ -n "$path" ]] || continue
+    git restore -- "$path" 2>/dev/null || true
+  done < <(git status --porcelain | awk '{print $2}' | grep 'Flutter/ephemeral/' || true)
+}
+
+ensure_branch() {
+  local branch="$1"
+  local current
+  current="$(git branch --show-current)"
+
+  if [[ "$current" == "$branch" ]]; then
+    return 0
+  fi
+
+  local stashed=0
+  if [[ -n "$(git status --porcelain)" ]]; then
+    git stash push -u -m "git.sh auto-stash"
+    stashed=1
+  fi
+
+  git checkout "$branch"
+
+  if [[ "$stashed" == "1" ]]; then
+    git stash pop || true
+  fi
+}
+
+sync_with_remote() {
+  local branch="$1"
+  git fetch origin "$branch"
+  if ! git rev-parse --verify "origin/$branch" >/dev/null 2>&1; then
+    return 0
+  fi
+  local behind
+  behind="$(git rev-list --count HEAD.."origin/$branch" 2>/dev/null || echo 0)"
+  if [[ "$behind" -gt 0 ]]; then
+    echo "  rebasing onto origin/$branch ($behind behind)"
+    git pull --rebase origin "$branch"
+  fi
+}
 
 push_repo() {
   local spec="$1"
   local relpath="${spec%%|*}"
-  local rest="${spec#*|}"
-  local branch="${rest%%|*}"
-  local stash="${rest##*|}"
+  local branch="${spec#*|}"
   local dir="$ROOT/$relpath"
 
   if [[ ! -e "$dir/.git" ]]; then
@@ -41,11 +84,8 @@ push_repo() {
   echo "=== $relpath ($branch) ==="
   cd "$dir"
 
-  if [[ "$stash" == "1" ]]; then
-    git stash push -u -m "git.sh auto-stash" || true
-  fi
-
-  git checkout "$branch"
+  ensure_branch "$branch"
+  drop_flutter_ephemeral_noise
 
   local dirty=0
   if ! git diff --quiet || ! git diff --cached --quiet; then
@@ -57,12 +97,41 @@ push_repo() {
   fi
 
   if [[ "$dirty" == "1" ]] || { git rev-parse --verify '@{u}' >/dev/null 2>&1 && [[ "$(git rev-list --count '@{u}'..HEAD)" -gt 0 ]]; }; then
+    sync_with_remote "$branch"
     git push origin "$branch"
+  fi
+}
+
+bump_flipper_submodules() {
+  cd "$ROOT"
+  [[ -e .git ]] || return 0
+
+  local path updated=0
+  for spec in "${REPOS[@]}"; do
+    path="${spec%%|*}"
+    [[ "$path" == ../* ]] && continue
+    [[ -e "$path/.git" ]] || continue
+    if ! git diff --quiet HEAD -- "$path" 2>/dev/null; then
+      updated=1
+      git add "$path"
+    fi
+  done
+
+  if [[ "$updated" == "1" ]]; then
+    echo "=== flipper (submodule pointers) ==="
+    git commit -m "chore: bump open-source submodule pointers"
+    if git rev-parse --verify '@{u}' >/dev/null 2>&1; then
+      git push origin "$(git branch --show-current)"
+    else
+      echo "  committed locally (no upstream — push flipper manually)"
+    fi
   fi
 }
 
 for spec in "${REPOS[@]}"; do
   push_repo "$spec"
 done
+
+bump_flipper_submodules
 
 echo "done"
