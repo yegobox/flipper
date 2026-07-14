@@ -43,6 +43,11 @@ import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:flipper_dashboard/widgets/checkout_error_recovery_screen.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_table_host.dart';
+import 'package:flipper_dashboard/widgets/checkout_mode_bar.dart';
+import 'package:flipper_dashboard/widgets/checkout_transfer_branch_row.dart';
+import 'package:flipper_dashboard/widgets/checkout_transfer_footer.dart';
+import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
+import 'package:flipper_dashboard/services/branch_transfer_service.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 
@@ -774,6 +779,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   // Track current branch ID to detect branch changes
   String? _currentBranchId;
 
+  /// Collapsed = Search Customer; expanded = Name + Phone (swap, not stack).
+  bool _customerFieldsExpanded = false;
+
+  bool _transferBusy = false;
+
   // Ensure payment initialization runs once when both transaction & items are ready
   String? _lastPaymentInitTransactionId;
   double? _cachedNonCreditPaid;
@@ -951,6 +961,98 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     if (ref.read(previewingCart)) {
       ref.read(previewingCart.notifier).state = false;
+    }
+  }
+
+  Future<void> _clearTransferCart(
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) async {
+    final isOrdering = ProxyService.box.isOrdering() ?? false;
+    if (isOrdering) return;
+    final txn = transactionAsyncValue.asData?.value;
+    if (txn == null) return;
+    try {
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).deleteAllTransactionItems(transactionId: txn.id);
+      clearCartLinesOptimistically();
+      ref.read(optimisticCartProvider.notifier).clearForTransaction(txn.id);
+      ref.invalidate(
+        transactionItemsStreamProvider(
+          transactionId: txn.id,
+          branchId: ProxyService.box.getBranchId() ?? '0',
+        ),
+      );
+      if (mounted) setState(() {});
+    } catch (e, s) {
+      tv_talk.talker.error('Failed to clear transfer cart', e, s);
+      if (mounted) {
+        showErrorNotification(context, 'Failed to clear cart');
+      }
+    }
+  }
+
+  Future<void> _confirmOutgoingTransfer(
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) async {
+    if (_transferBusy) return;
+    final txn = transactionAsyncValue.asData?.value;
+    if (txn == null) return;
+    final dest = ref.read(transferDestinationBranchProvider);
+    if (dest == null) {
+      showErrorNotification(context, 'Select a destination branch');
+      return;
+    }
+    final sourceId = ProxyService.box.getBranchId();
+    if (sourceId == null || sourceId.isEmpty) {
+      showErrorNotification(context, 'Current branch is missing');
+      return;
+    }
+
+    final items = ref.read(posCartDisplayItemsProvider);
+    if (items.isEmpty) {
+      showErrorNotification(context, 'Add items before transferring');
+      return;
+    }
+
+    setState(() => _transferBusy = true);
+    try {
+      final service = BranchTransferService();
+      await service.confirmBranchTransfer(
+        context: context,
+        items: items,
+        sourceBranchId: sourceId,
+        destinationBranchId: dest.id,
+        destinationBranchName: dest.name,
+      );
+      await service.finalizeCartAfterTransfer(
+        transaction: txn,
+        items: items,
+      );
+
+      if (!mounted) return;
+      final destName = dest.name ?? 'branch';
+      showSuccessNotification(
+        context,
+        'Transferred ${items.length} item(s) to $destName',
+      );
+
+      ref.read(checkoutCartModeProvider.notifier).state =
+          CheckoutCartMode.sale;
+      ref.read(transferDestinationBranchProvider.notifier).state = null;
+      await _onQuickSellComplete(txn);
+    } catch (e, s) {
+      tv_talk.talker.error('Outgoing branch transfer failed', e, s);
+      if (mounted) {
+        showErrorNotification(
+          context,
+          e is StateError || e is Exception
+              ? e.toString().replaceFirst(RegExp(r'^Exception: '), '')
+              : 'Transfer failed',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _transferBusy = false);
     }
   }
 
@@ -1173,6 +1275,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     AsyncValue<ITransaction> transactionAsyncValue,
     CoreViewModel model,
   ) {
+    final isTransferMode =
+        !isOrdering &&
+        ref.watch(checkoutCartModeProvider) == CheckoutCartMode.transfer;
+
     return CustomScrollView(
       slivers: [
         // Transaction Summary Header
@@ -1181,6 +1287,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ),
 
         SliverToBoxAdapter(child: _buildInvoiceNumber()),
+
+        if (!isOrdering)
+          const SliverToBoxAdapter(child: CheckoutModeBar()),
+
+        if (!isOrdering && !isTransferMode)
+          SliverToBoxAdapter(child: _buildCompactCustomerCapture()),
+
+        if (!isOrdering && isTransferMode)
+          const SliverToBoxAdapter(child: CheckoutTransferBranchRow()),
 
         // Items Section
         SliverToBoxAdapter(
@@ -1193,18 +1308,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
         _buildMobileCartItemsSliver(transactionAsyncValue),
 
-        // Customer & Payment Section
-        if (!isOrdering) ...[
-          SliverToBoxAdapter(
-            child: _buildSectionHeader(
-              context.flipperL10n.customer,
-              Icons.person_outline,
-            ),
-          ),
+        // Customer & Payment Section (sale only; customer capture is above)
+        if (!isOrdering && !isTransferMode) ...[
           SliverToBoxAdapter(
             child: _buildSectionHeader(
               context.flipperL10n.payment,
               Icons.payment_outlined,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: _buildForm(
+                isOrdering,
+                transactionId: transactionAsyncValue.value?.id ?? '',
+                alreadyPaid: alreadyPaid,
+              ),
             ),
           ),
         ],
@@ -1792,6 +1911,25 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   ) {
     if (ProxyService.box.isOrdering() ?? false) return SizedBox.shrink();
 
+    final isTransfer =
+        ref.watch(checkoutCartModeProvider) == CheckoutCartMode.transfer;
+    if (isTransfer) {
+      return SafeArea(
+        child: Material(
+          elevation: 8,
+          color: Theme.of(context).colorScheme.surface,
+          child: CheckoutTransferFooter(
+            itemCount: ref.watch(posCartDisplayItemsProvider).length,
+            busy: _transferBusy,
+            onClear: () => _clearTransferCart(transactionAsyncValue),
+            onTransfer: () => unawaited(
+              _confirmOutgoingTransfer(transactionAsyncValue),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Builder(
       builder: (context) {
         final branchAsync = ref.watch(activeBranchProvider);
@@ -2065,7 +2203,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return qty.toStringAsFixed(qty.truncateToDouble() == qty ? 0 : 2);
   }
 
-  /// Cart column: checkout summary, items table, optional delivery.
+  /// Cart column: checkout summary, mode, customer/branch, items table, optional delivery.
   /// When [pinGrandTotal] is true, the table keeps Grand Total pinned at the
   /// bottom of this pane; parent must provide bounded height ([Expanded]).
   /// The top summary bar is outside the list [ListView] so it stays visible
@@ -2076,6 +2214,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required CoreViewModel model,
     required bool isOrdering,
     required bool pinGrandTotal,
+    required bool isTransferMode,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2084,10 +2223,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           transactionAsyncValue: transactionAsyncValue,
           model: model,
         ),
-        const SizedBox(height: 6),
-        if (!isOrdering) ...[
-          const SearchInputWithDropdown(embeddedInCheckoutPane: true),
-          const SizedBox(height: 8),
+        if (!isOrdering) CheckoutModeBar(enabled: !isOrdering),
+        if (!isOrdering && !isTransferMode) ...[
+          _buildCompactCustomerCapture(),
+        ],
+        if (!isOrdering && isTransferMode) ...[
+          const CheckoutTransferBranchRow(),
         ],
         if (pinGrandTotal)
           Expanded(
@@ -2137,6 +2278,76 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  /// Search Customer OR Name+Phone — mutually exclusive swap (handover).
+  Widget _buildCompactCustomerCapture() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 4, 2, 6),
+      child: _customerFieldsExpanded
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 3, child: _customerNameField()),
+                const SizedBox(width: 7),
+                Expanded(flex: 2, child: _buildCustomerPhoneField()),
+                const SizedBox(width: 4),
+                IconButton(
+                  tooltip: 'Close',
+                  onPressed: _collapseCustomerFields,
+                  icon: const Icon(Icons.close, size: 18),
+                  color: PosTokens.ink3,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                const Expanded(
+                  child: SearchInputWithDropdown(embeddedInCheckoutPane: true),
+                ),
+                const SizedBox(width: 6),
+                Tooltip(
+                  message: 'Add customer',
+                  child: Material(
+                    color: PosTokens.surface2,
+                    borderRadius: BorderRadius.circular(9),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() => _customerFieldsExpanded = true);
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            _customerNameFocusNode.requestFocus();
+                          }
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(9),
+                      child: const SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: Icon(
+                          FluentIcons.person_add_20_regular,
+                          size: 18,
+                          color: PosTokens.ink2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  void _collapseCustomerFields() {
+    setState(() => _customerFieldsExpanded = false);
+    ref.read(customerNameControllerProvider).clear();
+    widget.customerPhoneNumberController.clear();
+    ProxyService.box.writeString(key: 'customerName', value: '');
+    ProxyService.box.writeString(
+      key: 'currentSaleCustomerPhoneNumber',
+      value: '',
+    );
+  }
+
   Widget _buildSharedView(
     double alreadyPaid,
     AsyncValue<ITransaction> transactionAsyncValue,
@@ -2144,15 +2355,29 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     bool isOrdering,
     CoreViewModel model,
   ) {
+    final isTransferMode =
+        !isOrdering &&
+        ref.watch(checkoutCartModeProvider) == CheckoutCartMode.transfer;
+
     final pinnedBottomColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (!isOrdering) ...[
+        if (!isOrdering && !isTransferMode) ...[
           _buildForm(
             isOrdering,
             transactionId: transactionAsyncValue.value?.id ?? "",
             alreadyPaid: alreadyPaid,
+          ),
+        ],
+        if (!isOrdering && isTransferMode) ...[
+          CheckoutTransferFooter(
+            itemCount: ref.watch(posCartDisplayItemsProvider).length,
+            busy: _transferBusy,
+            onClear: () => _clearTransferCart(transactionAsyncValue),
+            onTransfer: () => unawaited(
+              _confirmOutgoingTransfer(transactionAsyncValue),
+            ),
           ),
         ],
       ],
@@ -2174,24 +2399,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   model: model,
                   isOrdering: isOrdering,
                   pinGrandTotal: false,
+                  isTransferMode: isTransferMode,
                 ),
                 if (!isOrdering) ...[
-                  const SizedBox(height: 20),
-                  _buildForm(
-                    isOrdering,
-                    transactionId: transactionAsyncValue.value?.id ?? "",
-                    alreadyPaid: alreadyPaid,
-                  ),
+                  const SizedBox(height: 12),
+                  pinnedBottomColumn,
                 ],
               ],
             ),
           );
         }
 
-        // Phone landscape and other short panels: flex split leaves too little
-        // height for toolbar + cart card (header, list, grand total) and form,
-        // causing bottom overflow. One vertical scroll matches unbounded-height
-        // behavior above.
+        // Phone landscape and other short panels: one vertical scroll fallback.
         if (PosLayoutBreakpoints.useSingleScrollCheckoutPane(
           constraints.maxHeight,
         )) {
@@ -2207,6 +2426,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   model: model,
                   isOrdering: isOrdering,
                   pinGrandTotal: false,
+                  isTransferMode: isTransferMode,
                 ),
               ),
             );
@@ -2222,22 +2442,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   model: model,
                   isOrdering: isOrdering,
                   pinGrandTotal: false,
+                  isTransferMode: isTransferMode,
                 ),
-                if (!isOrdering) ...[
-                  const SizedBox(height: 12),
-                  pinnedBottomColumn,
-                ],
+                const SizedBox(height: 12),
+                pinnedBottomColumn,
               ],
             ),
           );
         }
 
-        // Split space so the items block never collapses when the form+footer
-        // is tall (avoids flex overflow and keeps "No items yet" visible).
-        // 3:2 gives the form + footer a bit more height than the old 2:1 split
-        // so payment fields and customer inputs stay easier to see at once.
-        // Upper pane: scrollable line items with Grand Total pinned above the
-        // card bottom; lower pane: form scrolls independently.
         // Ordering mode has no payment form — use full height for cart + delivery.
         if (isOrdering) {
           return SizedBox(
@@ -2251,38 +2464,38 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 model: model,
                 isOrdering: isOrdering,
                 pinGrandTotal: true,
+                isTransferMode: isTransferMode,
               ),
             ),
           );
         }
 
-        final flex = PosLayoutBreakpoints.checkoutFlexForPaneHeight(
-          constraints.maxHeight,
-        );
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              flex: flex.items,
-              child: Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: _buildSharedViewItemsPane(
-                  alreadyPaid: alreadyPaid,
-                  transactionAsyncValue: transactionAsyncValue,
-                  model: model,
-                  isOrdering: isOrdering,
-                  pinGrandTotal: true,
+        // Tall pane: only line items scroll; form/footer is intrinsic height.
+        return SizedBox(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: _buildSharedViewItemsPane(
+                    alreadyPaid: alreadyPaid,
+                    transactionAsyncValue: transactionAsyncValue,
+                    model: model,
+                    isOrdering: isOrdering,
+                    pinGrandTotal: true,
+                    isTransferMode: isTransferMode,
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: flex.form,
-              child: SingleChildScrollView(
+              Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: pinnedBottomColumn,
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -2389,7 +2602,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         key: widget.formKey,
         child: Column(
           children: [
-            // Customer Information Section (only shown when not ordering)
+            // Payment section only — customer capture lives above the cart list.
             if (!isOrdering) ...[
               _buildBalanceDueBanner(alreadyPaid),
               _buildDigitalReceiptToggle(),
@@ -2418,11 +2631,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 },
               ),
               const SizedBox(height: 10.0),
-              _customerNameField(),
-              const SizedBox(height: 10.0),
             ],
-            _buildCustomerPhoneField(),
-            const SizedBox(height: 10.0),
             _buildPaymentRow(isOrdering, transactionId, alreadyPaid),
           ],
         ),

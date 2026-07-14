@@ -111,19 +111,22 @@ abstract class _$StockRequests extends $StreamNotifier<List<InventoryRequest>> {
   }
 }
 
-@ProviderFor(outgoingStockRequests)
+/// Outgoing / destination-side stock requests (this branch is [subBranchId]).
+///
+/// Used by Incoming Orders "Outgoing" tab and POS transfer destination alerts.
+
+@ProviderFor(OutgoingStockRequests)
 const outgoingStockRequestsProvider = OutgoingStockRequestsFamily._();
 
+/// Outgoing / destination-side stock requests (this branch is [subBranchId]).
+///
+/// Used by Incoming Orders "Outgoing" tab and POS transfer destination alerts.
 final class OutgoingStockRequestsProvider
     extends
-        $FunctionalProvider<
-          AsyncValue<List<InventoryRequest>>,
-          List<InventoryRequest>,
-          Stream<List<InventoryRequest>>
-        >
-    with
-        $FutureModifier<List<InventoryRequest>>,
-        $StreamProvider<List<InventoryRequest>> {
+        $StreamNotifierProvider<OutgoingStockRequests, List<InventoryRequest>> {
+  /// Outgoing / destination-side stock requests (this branch is [subBranchId]).
+  ///
+  /// Used by Incoming Orders "Outgoing" tab and POS transfer destination alerts.
   const OutgoingStockRequestsProvider._({
     required OutgoingStockRequestsFamily super.from,
     required ({String status, String? search}) super.argument,
@@ -147,19 +150,7 @@ final class OutgoingStockRequestsProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<InventoryRequest>> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
-
-  @override
-  Stream<List<InventoryRequest>> create(Ref ref) {
-    final argument = this.argument as ({String status, String? search});
-    return outgoingStockRequests(
-      ref,
-      status: argument.status,
-      search: argument.search,
-    );
-  }
+  OutgoingStockRequests create() => OutgoingStockRequests();
 
   @override
   bool operator ==(Object other) {
@@ -173,11 +164,18 @@ final class OutgoingStockRequestsProvider
 }
 
 String _$outgoingStockRequestsHash() =>
-    r'59081d9839c8eea7b9d9ef797853876c8034e549';
+    r'6f814a4330d3bb4d9bbeb9acfcf8b12c9f7ae0fd';
+
+/// Outgoing / destination-side stock requests (this branch is [subBranchId]).
+///
+/// Used by Incoming Orders "Outgoing" tab and POS transfer destination alerts.
 
 final class OutgoingStockRequestsFamily extends $Family
     with
-        $FunctionalFamilyOverride<
+        $ClassFamilyOverride<
+          OutgoingStockRequests,
+          AsyncValue<List<InventoryRequest>>,
+          List<InventoryRequest>,
           Stream<List<InventoryRequest>>,
           ({String status, String? search})
         > {
@@ -190,6 +188,10 @@ final class OutgoingStockRequestsFamily extends $Family
         isAutoDispose: true,
       );
 
+  /// Outgoing / destination-side stock requests (this branch is [subBranchId]).
+  ///
+  /// Used by Incoming Orders "Outgoing" tab and POS transfer destination alerts.
+
   OutgoingStockRequestsProvider call({
     required String status,
     String? search,
@@ -200,4 +202,40 @@ final class OutgoingStockRequestsFamily extends $Family
 
   @override
   String toString() => r'outgoingStockRequestsProvider';
+}
+
+/// Outgoing / destination-side stock requests (this branch is [subBranchId]).
+///
+/// Used by Incoming Orders "Outgoing" tab and POS transfer destination alerts.
+
+abstract class _$OutgoingStockRequests
+    extends $StreamNotifier<List<InventoryRequest>> {
+  late final _$args = ref.$arg as ({String status, String? search});
+  String get status => _$args.status;
+  String? get search => _$args.search;
+
+  Stream<List<InventoryRequest>> build({
+    required String status,
+    String? search,
+  });
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(status: _$args.status, search: _$args.search);
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<List<InventoryRequest>>, List<InventoryRequest>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<List<InventoryRequest>>,
+                List<InventoryRequest>
+              >,
+              AsyncValue<List<InventoryRequest>>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
 }

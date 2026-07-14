@@ -87,6 +87,45 @@ class NotificationHandler {
     }
   }
 
+  /// Source or destination alert for a completed / incoming branch stock transfer.
+  ///
+  /// Fires [StockTransferNotificationEvent] (in-app banner on desktop + mobile)
+  /// and shows an OS local notification via [NotificationManager].
+  Future<void> showStockTransferNotification({
+    required String requestId,
+    required String title,
+    required String body,
+  }) async {
+    EventBus().fire(
+      StockTransferNotificationEvent(
+        requestId: requestId,
+        title: title,
+        body: body,
+      ),
+    );
+
+    try {
+      await NotificationManager.instance.requestPermission();
+      await NotificationManager.instance.showNotification(
+        id: requestId.hashCode,
+        title: title,
+        body: body,
+        payload: jsonEncode({
+          'type': 'inventory_request',
+          'id': requestId,
+        }),
+      );
+      // Also go through the Conversation path used elsewhere in the app.
+      await ProxyService.notification.sendLocalNotification(body: '$title: $body');
+      talker.info('[transfer-notify] shown for $requestId');
+    } catch (e, stackTrace) {
+      talker.error(
+        '[transfer-notify] OS notification failed for $requestId: $e',
+        stackTrace,
+      );
+    }
+  }
+
   Future<void> _openDelegationsDashboard() async {
     const page = 'delegations';
     await ProxyService.box.writeString(
