@@ -31,8 +31,8 @@ class Connection implements Finalizable {
       final g.FFIStringResponse(:value, :error_message) = result;
       checkIfError(error_message);
       final json = value.toDartString();
-      final rows = (jsonDecode(json) as List).cast<Map<String, dynamic>>();
       g.free_string(value);
+      final rows = (jsonDecode(json) as List).cast<Map<String, dynamic>>();
       return rows;
     });
   }

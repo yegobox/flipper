@@ -115,8 +115,6 @@ class NotificationHandler {
           'id': requestId,
         }),
       );
-      // Also go through the Conversation path used elsewhere in the app.
-      await ProxyService.notification.sendLocalNotification(body: '$title: $body');
       talker.info('[transfer-notify] shown for $requestId');
     } catch (e, stackTrace) {
       talker.error(

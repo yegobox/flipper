@@ -164,8 +164,8 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
                     );
                     await SeenRequestsStorage.markAsSeen(request.id);
                   });
+                  seenRequestIds.add(request.id);
                 }
-                seenRequestIds.add(request.id);
               }
             }
             _controller!.add(requests);

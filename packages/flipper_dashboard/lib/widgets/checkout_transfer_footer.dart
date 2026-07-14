@@ -21,12 +21,13 @@ class CheckoutTransferFooter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dest = ref.watch(transferDestinationBranchProvider);
+    final destName = dest?.name;
     final canTransfer =
         !busy && itemCount > 0 && dest != null && dest.id.isNotEmpty;
     final label = canTransfer &&
-            dest.name != null &&
-            dest.name!.isNotEmpty
-        ? 'Transfer to ${dest.name}'
+            destName != null &&
+            destName.isNotEmpty
+        ? 'Transfer to $destName'
         : 'Transfer';
 
     return Padding(

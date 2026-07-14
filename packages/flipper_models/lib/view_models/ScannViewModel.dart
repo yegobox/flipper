@@ -643,9 +643,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
           // Update expiration date if available
           if (dates != null && dates.containsKey(variant.id)) {
-            variant.expirationDate = DateFormat(
-              'yyyy-MM-dd',
-            ).parse(dates[variant.id]!);
+            try {
+              variant.expirationDate = DateFormat(
+                'yyyy-MM-dd',
+              ).parse(dates[variant.id]!);
+            } catch (e) {
+              talker.error('Error parsing expiration date: $e');
+            }
           }
 
           // Update discount rate from discount controller if available

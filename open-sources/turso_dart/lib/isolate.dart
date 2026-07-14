@@ -314,7 +314,7 @@ void _tursoWorkerIsolate(SendPort initReplyPort) {
           transactions.remove(cmd.txId)?.rollback();
           reply.send(true);
       }
-    } on Exception catch (e) {
+    } catch (e) {
       reply.send(Exception(e.toString()));
     }
   });

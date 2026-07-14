@@ -103,7 +103,14 @@ class BranchTransferService with StockRequestApprovalLogic {
       );
     }
 
-    await approveRequest(request: request, context: context);
+    final approved = await approveRequest(request: request, context: context);
+    if (!approved) {
+      // Request stays pending; do not notify or signal cart finalization.
+      throw Exception(
+        'Transfer was created but approval did not complete; '
+        'it remains pending for review',
+      );
+    }
 
     await _notifyTransferCompleted(
       requestId: requestId,
