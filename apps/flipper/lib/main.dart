@@ -363,12 +363,12 @@ Future<void> main() async {
 
 /// Keep in sync with [DevicePreview.enabled] on [FlipperApp].
 ///
-/// Desktop (macOS/Windows/Linux): off. DevicePreview's frame [LayoutBuilder]
-/// runs [MaterialApp.builder] during [performLayout]; activating [OverlayPortal]
-/// (Tooltips, overlay_support) in that pass trips Flutter's
-/// "mutated in performLayout" assert. Enable only on mobile/web debug.
-bool get kFlipperDevicePreviewEnabled =>
-    kDebugMode;
+/// Enabled in debug on all platforms (including desktop). DevicePreview's frame
+/// [LayoutBuilder] rebuilds during [performLayout]; mounting [MaterialApp]
+/// (Tooltips / [OverlayPortal]) in that same pass trips Flutter's
+/// `!_skipMarkNeedsLayout` assert. [FlipperApp] therefore hosts the app under
+/// [_DevicePreviewOverlaySafeHost], which mounts [MaterialApp] after the frame.
+bool get kFlipperDevicePreviewEnabled => kDebugMode;
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
@@ -408,6 +408,38 @@ class _FlipperAppState extends State<FlipperApp> {
     return FlipperTheme.light(allowRuntimeFontFetching: false);
   }
 
+  Widget _buildMaterialApp(BuildContext context, Locale? locale) {
+    return MaterialApp.router(
+      key: const ValueKey('flipper_material_app'),
+      debugShowCheckedModeBanner: false,
+      title: 'flipper',
+      theme: _theme,
+      localizationsDelegates: const [
+        FlipperLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        FlipperCountryLocalizationsDelegate(),
+      ],
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+      // Locale must be captured during [build], not inside a post-frame setState
+      // (DevicePreview.locale uses Provider.of listen:true).
+      locale: locale ?? const Locale('en'),
+      themeMode: ThemeMode.system,
+      routerDelegate: _routerDelegate,
+      routeInformationParser: _routeInformationParser,
+      builder: (context, child) {
+        final app = DevicePreview.appBuilder(context, child);
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.noScaling,
+          ),
+          child: app,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint('🎬 [FlipperApp] build start');
@@ -419,8 +451,7 @@ class _FlipperAppState extends State<FlipperApp> {
               providerPerfTracingEnabledProvider.overrideWith((ref) => true),
             ]
           : const [],
-      // Hosts that must not rebuild under DevicePreview / MaterialApp.builder
-      // LayoutBuilders (those run during performLayout and cannot attach overlays).
+      // OverlaySupport must stay outside DevicePreview (layout-safe toasts).
       child: OverlaySupport.global(
         child: PersonalGoalRemoteContributionListener(
           child: DelegationNotificationListener(
@@ -430,32 +461,9 @@ class _FlipperAppState extends State<FlipperApp> {
                 tools: const [
                   ...DevicePreview.defaultTools,
                 ],
-                builder: (context) => MaterialApp.router(
-                  debugShowCheckedModeBanner: false,
-                  title: 'flipper',
-                  theme: _theme,
-                  localizationsDelegates: const [
-                    FlipperLocalizationsDelegate(),
-                    GlobalMaterialLocalizations.delegate,
-                    GlobalCupertinoLocalizations.delegate,
-                    GlobalWidgetsLocalizations.delegate,
-                    FlipperCountryLocalizationsDelegate(),
-                  ],
-                  supportedLocales:
-                      FlipperLocalizationDelegates.supportedLocales,
-                  locale: DevicePreview.locale(context) ?? const Locale('en'),
-                  themeMode: ThemeMode.system,
-                  routerDelegate: _routerDelegate,
-                  routeInformationParser: _routeInformationParser,
-                  builder: (context, child) {
-                    final app = DevicePreview.appBuilder(context, child);
-                    return MediaQuery(
-                      data: MediaQuery.of(context).copyWith(
-                        textScaler: TextScaler.noScaling,
-                      ),
-                      child: app,
-                    );
-                  },
+                builder: (context) => _DevicePreviewOverlaySafeHost(
+                  locale: DevicePreview.locale(context),
+                  builder: _buildMaterialApp,
                 ),
               ),
             ),
@@ -463,6 +471,55 @@ class _FlipperAppState extends State<FlipperApp> {
         ),
       ),
     );
+  }
+}
+
+/// Mounts [builder] after the current frame so DevicePreview's [LayoutBuilder]
+/// never inserts OverlayPortal/Tooltip subtrees during [performLayout].
+class _DevicePreviewOverlaySafeHost extends StatefulWidget {
+  const _DevicePreviewOverlaySafeHost({
+    required this.builder,
+    required this.locale,
+  });
+
+  final Widget Function(BuildContext context, Locale? locale) builder;
+  final Locale? locale;
+
+  @override
+  State<_DevicePreviewOverlaySafeHost> createState() =>
+      _DevicePreviewOverlaySafeHostState();
+}
+
+class _DevicePreviewOverlaySafeHostState
+    extends State<_DevicePreviewOverlaySafeHost> {
+  Widget? _app;
+  Locale? _mountedLocale;
+  bool _frameScheduled = false;
+
+  void _scheduleAppMount() {
+    if (_frameScheduled) return;
+    _frameScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _frameScheduled = false;
+      if (!mounted) return;
+      if (_app != null && _mountedLocale == widget.locale) return;
+      // Use [widget.locale] captured during build — do not call
+      // DevicePreview.locale here (Provider listen outside build asserts).
+      setState(() {
+        _mountedLocale = widget.locale;
+        _app = widget.builder(context, widget.locale);
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_app == null || _mountedLocale != widget.locale) {
+      _scheduleAppMount();
+    }
+    // During DevicePreview LayoutBuilder layout, return the already-mounted app
+    // (or an empty placeholder) — never construct a new MaterialApp here.
+    return _app ?? const ColoredBox(color: Colors.white);
   }
 }
 
