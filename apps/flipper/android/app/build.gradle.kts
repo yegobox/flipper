@@ -93,12 +93,15 @@ android {
     }
 
 
-    packagingOptions {
+    packaging {
         resources {
             excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
         }
         jniLibs {
-            useLegacyPackaging = true  // CRITICAL: Required for 16KB page size support with extractNativeLibs=false
+            // AGP 8.5+: keep .so uncompressed so ZIP+ELF 16KB alignment is preserved
+            // when extractNativeLibs=false. Legacy compressed packaging is only the
+            // workaround for AGP < 8.5.1 — not for this project (AGP 8.12.1).
+            useLegacyPackaging = false
         }
     }
 }

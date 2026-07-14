@@ -880,6 +880,16 @@ jobs:
           set -euo pipefail
           shorebird release android -v -- --no-android-gradle-daemon 2>&1 | tee /tmp/shorebird-release.log
           test -f build/app/outputs/bundle/release/app-release.aab
+      - name: Verify AAB 16 KB ELF compliance
+        # Must run before Play upload. flipper_auth builds inside fastlane; for that
+        # app we verify after fastlane below as well when an AAB is present.
+        if: matrix.app == 'flipper'
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          ARTIFACT_PATH="apps/flipper/build/app/outputs/bundle/release/app-release.aab"
+          test -f "$ARTIFACT_PATH"
+          python3 scripts/ci/check_aab_16kb_elf.py "$ARTIFACT_PATH"
       - name: Dump Shorebird release log on failure
         if: failure() && matrix.app == 'flipper'
         run: |
@@ -898,6 +908,21 @@ jobs:
           SHOREBIRD_PREBUILT: ${{ matrix.app == 'flipper' && 'true' || 'false' }}
           USE_SHOREBIRD: 'false'
         working-directory: apps/${{ matrix.app }}/android
+      - name: Verify AAB 16 KB ELF compliance (post-fastlane)
+        if: matrix.app == 'flipper_auth'
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          SEARCH_DIR="apps/${{ matrix.app }}"
+          ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1 || true)
+          if [ -z "$ARTIFACT_PATH" ]; then
+            ARTIFACT_PATH=$(find "$SEARCH_DIR/build" -name "app-release.aab" 2>/dev/null | head -n 1 || true)
+          fi
+          if [ -z "$ARTIFACT_PATH" ]; then
+            echo "::error::No app-release.aab found under $SEARCH_DIR/build — cannot verify 16KB alignment"
+            exit 1
+          fi
+          python3 scripts/ci/check_aab_16kb_elf.py "$ARTIFACT_PATH"
       - name: Upload Shorebird logs on failure
         if: failure() && matrix.app == 'flipper'
         uses: actions/upload-artifact@v4
@@ -909,64 +934,6 @@ jobs:
             ~/.shorebird/logs/
           if-no-files-found: ignore
       
-      # ===== POST-BUILD 16 KB VERIFICATION - START =====
-      # - name: Verify AAB/APK 16 KB Compliance
-      #   if: always()
-      #   run: |
-      #     SCRIPT_PATH="${{ github.workspace }}/apps/flipper/en_check_elf_alignment.sh"
-      #     echo "=== Debug: Checking for script ===" 
-      #     echo "Looking for script at: $SCRIPT_PATH"
-      #     echo "Workspace directory:"
-      #     ls -la "${{ github.workspace }}/apps/flipper/" 2>/dev/null || echo "apps/flipper directory not found"
-      #     echo "=== End Debug ==="
-          
-      #     if [ ! -f "$SCRIPT_PATH" ]; then
-      #       echo "::error::Verification script not found at $SCRIPT_PATH"
-      #       exit 1
-      #     fi
-      #     chmod +x "$SCRIPT_PATH"
-
-      #     SEARCH_DIR="apps/${{ matrix.app }}"
-      #     echo "Searching for build artifact in $SEARCH_DIR..."
-          
-      #     # Debug: List directory structure
-      #     echo "=== Debug: Listing build directories ==="
-      #     ls -la "$SEARCH_DIR/" 2>/dev/null || echo "Directory $SEARCH_DIR not found"
-      #     ls -la "$SEARCH_DIR/build/" 2>/dev/null || echo "Directory $SEARCH_DIR/build not found"
-      #     ls -la "build/" 2>/dev/null || echo "Directory build/ not found"
-      #     find "build/" -name "*.aab" -o -name "*.apk" 2>/dev/null || echo "No artifacts in build/"
-      #     echo "=== End Debug ==="
-          
-      #     # Prioritize standard output directories
-      #     ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
-      #     if [ -z "$ARTIFACT_PATH" ]; then
-      #       ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
-      #     fi
-
-      #     # Check custom build directory (build.gradle.kts redirects to workspace root)
-      #     if [ -z "$ARTIFACT_PATH" ]; then
-      #       echo "Checking custom build directory at workspace root..."
-      #       ARTIFACT_PATH=$(find "build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
-      #       if [ -z "$ARTIFACT_PATH" ]; then
-      #         ARTIFACT_PATH=$(find "build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
-      #       fi
-      #     fi
-
-      #     # Fallback to searching the whole directory
-      #     if [ -z "$ARTIFACT_PATH" ]; then
-      #       echo "::warning::Build artifact not found in standard output paths, searching entire $SEARCH_DIR..."
-      #       ARTIFACT_PATH=$(find "$SEARCH_DIR" -name "*.aab" -o -name "*.apk" | head -n 1)
-      #     fi
-
-      #     if [ -z "$ARTIFACT_PATH" ]; then
-      #       echo "::error::Build artifact (.aab or .apk) not found in $SEARCH_DIR!"
-      #       exit 1
-      #     fi
-
-      #     echo "Found artifact: $ARTIFACT_PATH"
-      #     "$SCRIPT_PATH" "$ARTIFACT_PATH"
-      # # ===== POST-BUILD 16 KB VERIFICATION - END =====
-      
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v2
         with:
@@ -977,7 +944,7 @@ jobs:
           body: |
             Android AAB from fastlane-deploy (${{ matrix.app }}) on ${{ github.ref_name }}.
             
-            16 KB page size: NDK 29.0.14206865, AGP verified in CI.
+            16 KB page size: ELF LOAD scan of AAB (scripts/ci/check_aab_16kb_elf.py).
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
