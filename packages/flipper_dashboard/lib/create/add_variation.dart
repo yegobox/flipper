@@ -167,8 +167,8 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
   Future<void> _saveVariation(
     ScannViewModel model, {
     required String selectedProductType,
-    Map<String, TextEditingController>? rates,
-    Map<String, TextEditingController>? dates,
+    Map<String, String>? rates,
+    Map<String, String>? dates,
     required String productName,
   }) async {
     Business? business = await ProxyService.strategy

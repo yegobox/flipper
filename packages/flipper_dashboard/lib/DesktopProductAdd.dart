@@ -54,8 +54,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       Colors.blue; // Add this to your State class if not already present
   bool isColorPicked = false;
 
-  Map<String, TextEditingController> _rates = {};
-  Map<String, TextEditingController> _dates = {};
+  Map<String, String> _rates = {};
+  Map<String, String> _dates = {};
 
   // Default to the first packaging unit option (Ampoule)
   String selectedPackageUnitValue = RRADEFAULTS.packagingUnit.first;
@@ -117,6 +117,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     retailPriceController.dispose();
     scannedInputController.dispose();
     supplyPriceController.dispose();
+    countryOfOriginController.dispose();
+    barCodeController.dispose();
+    skuController.dispose();
     _scannedInputFocusNode.dispose();
     _formTick.dispose();
     super.dispose();
@@ -183,7 +186,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       ref.read(loadingProvider.notifier).startLoading();
 
       if (_formKey.currentState!.validate() &&
-          !ref.watch(isCompositeProvider)) {
+          !ref.read(isCompositeProvider)) {
         final syncedProductName = _syncProductNameFromForm(model, productRef);
         if (syncedProductName.length < 3) {
           _showNoProductNameToast(context);
@@ -291,10 +294,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             Navigator.pop(context);
           }
         }
-      } else if (_fieldComposite.currentState?.validate() ?? false) {
-        await _handleCompositeProductSave(model);
       } else {
-        // Validation failed or no action taken
+        // Validation failed. Composite saves never reach this method — they are
+        // routed straight to _handleCompositeProductSave() by _onDesktopSave,
+        // which owns the _saveInProgress guard for that path. Re-dispatching
+        // composite here would hit that guard (already held by
+        // _onSaveButtonPressed) and silently no-op, so we only release loading.
         ref.read(loadingProvider.notifier).stopLoading();
       }
     } catch (e, s) {
@@ -1028,9 +1033,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     isEditMode: widget.productId != null,
                     useCardLayout: true,
                     onDateChanged: (String variantId, DateTime date) {
-                      _dates[variantId] = TextEditingController(
-                        text: date.toIso8601String(),
-                      );
+                      _dates[variantId] = date.toIso8601String();
                     },
                     unversalProducts: ref.watch(universalProductsNames).value,
                     units: ref.watch(unitsProvider).value?.value ?? [],
