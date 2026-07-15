@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/branch_info.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_by_id_provider.dart';
@@ -9,13 +10,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 void main() {
   group('BranchInfo Tests', () {
     late InventoryRequest mockRequest;
-    late Branch mockIncomingBranch;
+    late Branch mockActiveBranch;
     late Branch mockSourceBranch;
+    late Branch mockMainBranch;
 
     setUp(() {
       mockSourceBranch = Branch(
         id: '2',
-        name: 'Main Branch',
+        name: 'Requester Branch',
         businessId: '1',
         longitude: 0.0,
         latitude: 0.0,
@@ -23,20 +25,30 @@ void main() {
         isDefault: true,
       );
 
+      mockMainBranch = Branch(
+        id: '1',
+        name: 'Fulfiller Branch',
+        businessId: '1',
+        longitude: 0.0,
+        latitude: 0.0,
+        location: 'Midtown',
+        isDefault: false,
+      );
+
       mockRequest = InventoryRequest(
         id: '1',
         mainBranchId: '1',
         subBranchId: '2',
-        branchId: '1',
+        branchId: '2',
         deliveryDate: DateTime.now(),
         deliveryNote: 'Test delivery',
         createdAt: DateTime.now(),
         branch: mockSourceBranch,
       );
 
-      mockIncomingBranch = Branch(
-        id: '3',
-        name: 'Sub Branch',
+      mockActiveBranch = Branch(
+        id: '1',
+        name: 'Active Store',
         businessId: '1',
         longitude: 0.0,
         latitude: 0.0,
@@ -48,8 +60,10 @@ void main() {
     Future<void> pumpBranchInfo(
       WidgetTester tester, {
       required InventoryRequest request,
-      required Branch incomingBranch,
+      required Branch activeBranch,
+      bool isIncoming = true,
       Branch? fromBranch,
+      Branch? toBranch,
     }) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -57,12 +71,17 @@ void main() {
             branchByIdProvider(branchId: request.subBranchId).overrideWith(
               (ref) => Stream.value(fromBranch ?? request.branch),
             ),
+            if (request.mainBranchId != null)
+              branchByIdProvider(branchId: request.mainBranchId).overrideWith(
+                (ref) => Stream.value(toBranch ?? mockMainBranch),
+              ),
           ],
           child: MaterialApp(
             home: Scaffold(
               body: BranchInfo(
                 request: request,
-                incomingBranch: incomingBranch,
+                activeBranch: activeBranch,
+                isIncoming: isIncoming,
               ),
             ),
           ),
@@ -71,58 +90,45 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('displays branch names correctly', (tester) async {
+    testWidgets('incoming shows requester → active branch', (tester) async {
       await pumpBranchInfo(
         tester,
         request: mockRequest,
-        incomingBranch: mockIncomingBranch,
+        activeBranch: mockActiveBranch,
         fromBranch: mockSourceBranch,
       );
 
-      expect(find.text('From: '), findsOneWidget);
-      expect(find.text('Main Branch'), findsOneWidget);
-      expect(find.text('To: '), findsOneWidget);
-      expect(find.text('Sub Branch'), findsOneWidget);
-    });
-
-    testWidgets('displays swap icon', (tester) async {
-      await pumpBranchInfo(
-        tester,
-        request: mockRequest,
-        incomingBranch: mockIncomingBranch,
-        fromBranch: mockSourceBranch,
-      );
-
+      expect(find.textContaining('From:'), findsOneWidget);
+      expect(find.textContaining('Requester Branch'), findsOneWidget);
+      expect(find.textContaining('To:'), findsOneWidget);
+      expect(find.textContaining('Active Store'), findsOneWidget);
       expect(find.byIcon(Icons.swap_horiz), findsOneWidget);
     });
 
-    testWidgets('has correct container structure', (tester) async {
+    testWidgets('outgoing shows active → fulfiller branch', (tester) async {
       await pumpBranchInfo(
         tester,
         request: mockRequest,
-        incomingBranch: mockIncomingBranch,
-        fromBranch: mockSourceBranch,
+        activeBranch: mockActiveBranch,
+        isIncoming: false,
+        toBranch: mockMainBranch,
       );
 
-      expect(find.byType(Container), findsAtLeastNWidgets(2));
-      expect(find.byType(Row), findsAtLeastNWidgets(3));
-      expect(find.byType(Column), findsOneWidget);
-      expect(find.byType(Expanded), findsOneWidget);
+      expect(find.textContaining('Active Store'), findsOneWidget);
+      expect(find.textContaining('Fulfiller Branch'), findsOneWidget);
     });
 
-    testWidgets('applies correct text colors', (tester) async {
+    testWidgets('uses handoff accent on swap icon', (tester) async {
       await pumpBranchInfo(
         tester,
         request: mockRequest,
-        incomingBranch: mockIncomingBranch,
+        activeBranch: mockActiveBranch,
         fromBranch: mockSourceBranch,
       );
 
-      final fromBranchText = tester.widget<Text>(find.text('Main Branch'));
-      final toBranchText = tester.widget<Text>(find.text('Sub Branch'));
-
-      expect(fromBranchText.style?.color, Colors.green[700]);
-      expect(toBranchText.style?.color, Colors.blue[700]);
+      final icon = tester.widget<Icon>(find.byIcon(Icons.swap_horiz));
+      expect(icon.color, OmTokens.accentStrong);
+      expect(icon.size, 17);
     });
 
     testWidgets('handles null branch name gracefully', (tester) async {
@@ -130,7 +136,7 @@ void main() {
         id: '1',
         mainBranchId: '1',
         subBranchId: '2',
-        branchId: '1',
+        branchId: '2',
         deliveryDate: DateTime.now(),
         deliveryNote: 'Test delivery',
         createdAt: DateTime.now(),
@@ -140,59 +146,12 @@ void main() {
       await pumpBranchInfo(
         tester,
         request: requestWithNullBranch,
-        incomingBranch: mockIncomingBranch,
+        activeBranch: mockActiveBranch,
         fromBranch: null,
       );
 
-      expect(find.text('From: '), findsOneWidget);
-      expect(find.text('Sub Branch'), findsOneWidget);
-    });
-
-    testWidgets('icon has correct styling', (tester) async {
-      await pumpBranchInfo(
-        tester,
-        request: mockRequest,
-        incomingBranch: mockIncomingBranch,
-        fromBranch: mockSourceBranch,
-      );
-
-      final icon = tester.widget<Icon>(find.byIcon(Icons.swap_horiz));
-      expect(icon.color, Colors.blue[700]);
-      expect(icon.size, 24);
-    });
-
-    testWidgets('label text has correct styling', (tester) async {
-      await pumpBranchInfo(
-        tester,
-        request: mockRequest,
-        incomingBranch: mockIncomingBranch,
-        fromBranch: mockSourceBranch,
-      );
-
-      final fromLabel = tester.widget<Text>(find.text('From: '));
-      final toLabel = tester.widget<Text>(find.text('To: '));
-
-      expect(fromLabel.style?.fontSize, 14);
-      expect(fromLabel.style?.fontWeight, FontWeight.w500);
-      expect(toLabel.style?.fontSize, 14);
-      expect(toLabel.style?.fontWeight, FontWeight.w500);
-    });
-
-    testWidgets('branch name text has correct styling', (tester) async {
-      await pumpBranchInfo(
-        tester,
-        request: mockRequest,
-        incomingBranch: mockIncomingBranch,
-        fromBranch: mockSourceBranch,
-      );
-
-      final fromBranch = tester.widget<Text>(find.text('Main Branch'));
-      final toBranch = tester.widget<Text>(find.text('Sub Branch'));
-
-      expect(fromBranch.style?.fontSize, 14);
-      expect(fromBranch.style?.fontWeight, FontWeight.w600);
-      expect(toBranch.style?.fontSize, 14);
-      expect(toBranch.style?.fontWeight, FontWeight.w600);
+      expect(find.textContaining('From:'), findsOneWidget);
+      expect(find.textContaining('Active Store'), findsOneWidget);
     });
   });
 }

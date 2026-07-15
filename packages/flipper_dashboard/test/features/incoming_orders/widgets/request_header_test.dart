@@ -1,39 +1,38 @@
+import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_header.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mocktail/mocktail.dart';
-import '../../../test_helpers/setup.dart';
+
+RequestHeader _header(
+  InventoryRequest request, {
+  bool isIncoming = true,
+  bool expanded = false,
+  VoidCallback? onToggle,
+}) {
+  return RequestHeader(
+    request: request,
+    isIncoming: isIncoming,
+    expanded: expanded,
+    onToggle: onToggle ?? () {},
+  );
+}
 
 // flutter test test/features/incoming_orders/widgets/request_header_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
-  late TestEnvironment env;
-
-  setUpAll(() async {
-    env = TestEnvironment();
-    await env.init();
-  });
-
-  tearDownAll(() async {
-    await env.dispose();
-  });
-
   group('RequestHeader Tests', () {
     late InventoryRequest mockRequest;
     late Branch mockBranch;
     late List<TransactionItem> mockItems;
 
     setUp(() {
-      env.injectMocks();
-      env.stubCommonMethods();
-
-      mockBranch = Branch(id: '1', name: 'Main Branch', businessId: "1");
+      mockBranch = Branch(id: '1', name: 'Main Branch', businessId: '1');
 
       mockItems = [
         TransactionItem(
           id: '1',
-          ttCatCd: "TT",
+          ttCatCd: 'TT',
           name: 'Test Item 1',
           qty: 10.0,
           price: 100.0,
@@ -46,7 +45,7 @@ void main() {
         ),
         TransactionItem(
           id: '2',
-          ttCatCd: "TT",
+          ttCatCd: 'TT',
           name: 'Test Item 2',
           qty: 8.0,
           price: 150.0,
@@ -64,135 +63,77 @@ void main() {
         branchId: '1',
         status: 'pending',
         branch: mockBranch,
-        itemCounts: 18.0,
+        itemCounts: 2,
         transactionItems: mockItems,
       );
-
-      when(
-        () => env.mockDbSync.transactionItems(requestId: '1'),
-      ).thenAnswer((_) async => mockItems);
     });
 
-    tearDown(() {
-      env.restore();
-    });
+    Future<void> pumpHeader(
+      WidgetTester tester,
+      InventoryRequest request, {
+      bool isIncoming = true,
+      bool expanded = false,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: _header(
+                request,
+                isIncoming: isIncoming,
+                expanded: expanded,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
 
     testWidgets('displays branch name correctly', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(body: RequestHeader(request: mockRequest)),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      expect(find.textContaining('Request From Main Branch'), findsOneWidget);
-    });
-
-    // testWidgets('displays item count in title', (tester) async {
-    //   await tester.pumpWidget(
-    //     ProviderScope(
-    //       child: MaterialApp(
-    //         home: Scaffold(body: RequestHeader(request: mockRequest)),
-    //       ),
-    //     ),
-    //   );
-
-    //   await tester.pump();
-
-    //   expect(find.textContaining('(2 items)'), findsOneWidget);
-    // });
-
-    testWidgets('shows copy icon', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(body: RequestHeader(request: mockRequest)),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      expect(find.byIcon(Icons.copy), findsOneWidget);
-    });
-
-    testWidgets('displays approved/requested count', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(body: RequestHeader(request: mockRequest)),
-          ),
-        ),
-      );
-
-      await tester.pump();
+      await pumpHeader(tester, mockRequest);
 
       expect(
-        find.textContaining('13/18'),
+        find.byWidgetPredicate(
+          (w) =>
+              w is RichText &&
+              w.text.toPlainText().contains('Request From Main Branch'),
+        ),
         findsOneWidget,
-      ); // 5+8 approved / 10+8 requested
+      );
     });
 
-    // testWidgets('shows loading state initially', (tester) async {
-    //   await tester.pumpWidget(
-    //     ProviderScope(
-    //       child: MaterialApp(
-    //         home: Scaffold(body: RequestHeader(request: mockRequest)),
-    //       ),
-    //     ),
-    //   );
+    testWidgets('shows box icon instead of copy', (tester) async {
+      await pumpHeader(tester, mockRequest);
 
-    //   expect(find.textContaining('0/18'), findsOneWidget);
-    // });
+      expect(find.byIcon(Icons.inventory_2_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.copy), findsNothing);
+    });
 
-    // testWidgets('handles single item correctly', (tester) async {
-    //   final singleItemRequest = InventoryRequest(
-    //     id: '2',
-    //     branchId: '1',
-    //     status: 'pending',
-    //     branch: mockBranch,
-    //     itemCounts: 1.0,
-    //     transactionItems: [mockItems.first],
-    //   );
+    testWidgets('displays approved/requested count for incoming',
+        (tester) async {
+      await pumpHeader(tester, mockRequest);
 
-    //   await tester.pumpWidget(
-    //     ProviderScope(
-    //       child: MaterialApp(
-    //         home: Scaffold(body: RequestHeader(request: singleItemRequest)),
-    //       ),
-    //     ),
-    //   );
+      // 5+8 approved / 10+8 requested
+      expect(find.textContaining('13/18'), findsOneWidget);
+    });
 
-    //   await tester.pump();
+    testWidgets('outgoing pending shows requested total only', (tester) async {
+      await pumpHeader(tester, mockRequest, isIncoming: false);
 
-    //   expect(find.textContaining('(1 items)'), findsOneWidget);
-    //   expect(
-    //     find.textContaining('Item'),
-    //     findsOneWidget,
-    //   ); // Should show "Item" not "Items"
-    // });
+      expect(find.textContaining('18 Item'), findsOneWidget);
+      expect(find.textContaining('13/18'), findsNothing);
+    });
 
-    testWidgets('has correct structure', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(body: RequestHeader(request: mockRequest)),
-          ),
-        ),
-      );
+    testWidgets('expand chevron reflects expanded state', (tester) async {
+      await pumpHeader(tester, mockRequest, expanded: true);
 
-      await tester.pump();
-
-      expect(find.byType(Row), findsNWidgets(2)); // Main row + inner row
+      expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
+      final materials = tester.widgetList<Material>(find.byType(Material));
       expect(
-        find.byType(Material),
-        findsNWidgets(2),
-      ); // Scaffold material + Copy button material
-      expect(find.byType(InkWell), findsOneWidget); // Copy button inkwell
-      expect(find.byType(Container), findsOneWidget); // Item count container
+        materials.any((m) => m.color == OmTokens.accentWash),
+        isTrue,
+      );
     });
 
     testWidgets('handles null branch name', (tester) async {
@@ -203,37 +144,38 @@ void main() {
         itemCounts: 18.0,
       );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(body: RequestHeader(request: requestWithoutBranch)),
-          ),
+      await pumpHeader(tester, requestWithoutBranch);
+
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is RichText &&
+              w.text.toPlainText().contains('Request From Unknown'),
         ),
+        findsOneWidget,
       );
-
-      await tester.pump();
-
-      expect(find.textContaining('Request From null'), findsOneWidget);
     });
 
-    testWidgets('copy button is tappable', (tester) async {
+    testWidgets('calls onToggle when chevron tapped', (tester) async {
+      var toggled = false;
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(body: RequestHeader(request: mockRequest)),
+            home: Scaffold(
+              body: _header(
+                mockRequest,
+                onToggle: () => toggled = true,
+              ),
+            ),
           ),
         ),
       );
-
       await tester.pump();
 
-      final copyButton = find.byIcon(Icons.copy);
-      expect(copyButton, findsOneWidget);
-
-      await tester.tap(copyButton);
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
       await tester.pump();
 
-      // Should not throw any errors
+      expect(toggled, isTrue);
     });
   });
 }

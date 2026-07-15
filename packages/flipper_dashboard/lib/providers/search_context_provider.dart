@@ -18,6 +18,7 @@ final searchContextProvider = Provider<SearchContext>((ref) {
       return SearchContext.products;
     case DashboardPage.orders:
     case DashboardPage.incomingOrders:
+    case DashboardPage.transfersReport:
       return SearchContext.orders;
     case DashboardPage.leads:
       return SearchContext.general;

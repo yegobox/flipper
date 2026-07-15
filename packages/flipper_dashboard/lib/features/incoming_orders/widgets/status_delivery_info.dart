@@ -1,4 +1,6 @@
+import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -12,141 +14,140 @@ class StatusDeliveryInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final status = request.status ?? RequestStatus.pending;
+    final isApproved = status == RequestStatus.approved ||
+        status == RequestStatus.partiallyApproved ||
+        status == RequestStatus.fulfilled;
+    final date = request.createdAt ?? DateTime.now();
+    final dateLabel = DateFormat('MMM d, yyyy HH:mm').format(date);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Status & Delivery',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[800],
+          'STATUS & DELIVERY',
+          style: OmTokens.text(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: OmTokens.muted,
+            letterSpacing: 0.05 * 12,
           ),
         ),
-        SizedBox(height: 12),
-        Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: Column(
-            children: [
-              _buildStatusInfo(),
-              SizedBox(height: 12),
-              _buildDeliveryInfo(),
-            ],
-          ),
+        const SizedBox(height: 10),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final twoCol = constraints.maxWidth >= 400;
+            final tiles = [
+              _MetaTile(
+                icon: Icons.more_horiz,
+                iconBg: isApproved ? OmTokens.greenWash : OmTokens.amberWash,
+                iconColor:
+                    isApproved ? OmTokens.greenStrong : OmTokens.amber,
+                label: 'Status',
+                value: status.toUpperCase(),
+                valueColor:
+                    isApproved ? OmTokens.greenStrong : OmTokens.amber,
+              ),
+              _MetaTile(
+                icon: Icons.calendar_today_outlined,
+                iconBg: OmTokens.dateWash,
+                iconColor: OmTokens.dateIcon,
+                label: 'Requested On',
+                value: dateLabel,
+                valueColor: OmTokens.ink,
+              ),
+            ];
+
+            if (twoCol) {
+              return Row(
+                children: [
+                  Expanded(child: tiles[0]),
+                  const SizedBox(width: 10),
+                  Expanded(child: tiles[1]),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                tiles[0],
+                const SizedBox(height: 10),
+                tiles[1],
+              ],
+            );
+          },
         ),
       ],
     );
   }
+}
 
-  Widget _buildStatusInfo() {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: _getStatusColor(request.status).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            _getStatusIcon(request.status),
-            color: _getStatusColor(request.status),
-            size: 20,
-          ),
-        ),
-        SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Status',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
+class _MetaTile extends StatelessWidget {
+  const _MetaTile({
+    required this.icon,
+    required this.iconBg,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  });
+
+  final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: OmTokens.surface,
+        borderRadius: BorderRadius.circular(OmTokens.radiusSm),
+        border: Border.all(color: OmTokens.line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(9),
             ),
-            Text(
-              request.status?.toUpperCase() ?? 'N/A',
-              style: TextStyle(
-                fontSize: 14,
-                color: _getStatusColor(request.status),
-                fontWeight: FontWeight.w600,
-              ),
+            child: Icon(icon, size: 17, color: iconColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: OmTokens.text(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: OmTokens.muted,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: OmTokens.text(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: valueColor,
+                  ).copyWith(
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
-  }
-
-  Widget _buildDeliveryInfo() {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.purple[50],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child:
-              Icon(Icons.calendar_today, color: Colors.purple[700], size: 20),
-        ),
-        SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Requested On',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              DateFormat('MMM dd, yyyy HH:mm')
-                  .format(request.createdAt ?? DateTime.now()),
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.purple[700],
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-        return Colors.orange[700]!;
-      case 'approved':
-        return Colors.green[700]!;
-      case 'voided':
-        return Colors.red[700]!;
-      default:
-        return Colors.grey[700]!;
-    }
-  }
-
-  IconData _getStatusIcon(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-        return Icons.pending;
-      case 'approved':
-        return Icons.check_circle;
-      case 'voided':
-        return Icons.cancel;
-      default:
-        return Icons.help;
-    }
   }
 }
 
@@ -164,27 +165,28 @@ class OrderNote extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Order Note',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[800],
+          'ORDER NOTE',
+          style: OmTokens.text(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: OmTokens.muted,
+            letterSpacing: 0.05 * 12,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 10),
         Container(
           width: double.infinity,
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
+            color: OmTokens.surface,
+            borderRadius: BorderRadius.circular(OmTokens.radiusSm),
+            border: Border.all(color: OmTokens.line),
           ),
           child: Text(
             request.orderNote ?? '',
-            style: TextStyle(
+            style: OmTokens.text(
               fontSize: 14,
-              color: Colors.grey[700],
+              color: OmTokens.ink2,
             ),
           ),
         ),

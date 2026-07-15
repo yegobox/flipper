@@ -125,12 +125,33 @@ mixin StockMixin implements StockInterface {
   }
 
   @override
+  Future<List<InventoryRequest>> stockRequestsToBranch({
+    required String destinationBranchId,
+    DateTime? start,
+    DateTime? end,
+    String status = 'all',
+    int limit = 500,
+  }) async {
+    return ProxyService.getStrategy(Strategy.capella).stockRequestsToBranch(
+      destinationBranchId: destinationBranchId,
+      start: start,
+      end: end,
+      status: status,
+      limit: limit,
+    );
+  }
+
+  @override
   Future<List<InventoryRequest>> requests({
     String? branchId,
     String? requestId,
   }) async {
-    // This should be implemented by specific sync strategies (e.g., Capella)
-    throw UnimplementedError();
+    if (requestId == null || requestId.isEmpty) {
+      return [];
+    }
+    return ProxyService.getStrategy(Strategy.capella).requests(
+      requestId: requestId,
+    );
   }
 
   @override

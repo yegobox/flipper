@@ -296,6 +296,17 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           },
           tooltip: 'Incoming Orders',
         ),
+      if (showIncomingOrders)
+        _SideMenuItem(
+          iconBuilder: (c) => Icon(Icons.swap_horiz, color: c, size: 24),
+          isSelected: selectedItem == 14,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 14;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.transfersReport;
+          },
+          tooltip: 'Transfers Report',
+        ),
       if (showProduction)
         _SideMenuItem(
           iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.production, c),

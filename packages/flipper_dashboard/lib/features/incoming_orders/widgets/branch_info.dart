@@ -1,70 +1,108 @@
+import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_by_id_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+/// From/To flow strip. Incoming: requester → active branch.
+/// Outgoing: active branch (requester) → main/fulfiller branch.
 class BranchInfo extends ConsumerWidget {
   final InventoryRequest request;
-  final Branch incomingBranch;
+  final Branch activeBranch;
+  final bool isIncoming;
 
   const BranchInfo({
     Key? key,
     required this.request,
-    required this.incomingBranch,
+    required this.activeBranch,
+    this.isIncoming = true,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (request.subBranchId == null) {
-      return SizedBox.shrink();
+    if (isIncoming) {
+      final fromAsync = request.subBranchId != null
+          ? ref.watch(branchByIdProvider(branchId: request.subBranchId))
+          : null;
+
+      final fromName = fromAsync?.when(
+            data: (b) => b?.name ?? request.branch?.name ?? 'Unknown',
+            loading: () => request.branch?.name ?? '…',
+            error: (_, __) => request.branch?.name ?? 'Unknown',
+          ) ??
+          request.branch?.name ??
+          'Unknown';
+
+      return _FlowStrip(
+        fromName: fromName,
+        toName: activeBranch.name ?? 'Unknown',
+      );
     }
+
+    // Outgoing: this store is requester (sub); destination is mainBranch.
+    final toAsync = request.mainBranchId != null
+        ? ref.watch(branchByIdProvider(branchId: request.mainBranchId))
+        : null;
+    final toName = toAsync?.when(
+          data: (b) => b?.name ?? 'Unknown',
+          loading: () => '…',
+          error: (_, __) => 'Unknown',
+        ) ??
+        'Unknown';
+
+    return _FlowStrip(
+      fromName: activeBranch.name ?? request.branch?.name ?? 'Unknown',
+      toName: toName,
+    );
+  }
+}
+
+class _FlowStrip extends StatelessWidget {
+  const _FlowStrip({required this.fromName, required this.toName});
+
+  final String fromName;
+  final String toName;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: OmTokens.surface2,
+        borderRadius: BorderRadius.circular(OmTokens.radius),
+        border: Border.all(color: OmTokens.line),
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8),
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
+              color: OmTokens.surface,
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: OmTokens.line2),
             ),
-            child: Icon(Icons.swap_horiz, color: Colors.blue[700], size: 24),
+            child: const Icon(
+              Icons.swap_horiz,
+              size: 17,
+              color: OmTokens.accentStrong,
+            ),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ref
-                    .watch(branchByIdProvider(branchId: request.subBranchId))
-                    .when(
-                      data: (branch) {
-                        return _buildBranchInfoRow(
-                          'From',
-                          "${branch?.name ?? request.branch?.name}",
-                          Colors.green[700]!,
-                        );
-                      },
-                      loading: () => Text("Loading..."),
-                      error: (error, stack) => Text("Error: $error"),
-                    ),
-                SizedBox(height: 8),
-                _buildBranchInfoRow(
-                  'To',
-                  "${incomingBranch.name}",
-                  Colors.blue[700]!,
+                _FlowLine(
+                  label: 'From: ',
+                  value: fromName,
+                  valueColor: OmTokens.greenStrong,
+                ),
+                const SizedBox(height: 4),
+                _FlowLine(
+                  label: 'To: ',
+                  value: toName,
+                  valueColor: OmTokens.accentStrong,
                 ),
               ],
             ),
@@ -73,27 +111,36 @@ class BranchInfo extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildBranchInfoRow(String label, String branch, Color color) {
-    return Row(
-      children: [
-        Text(
-          '$label: ',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
+class _FlowLine extends StatelessWidget {
+  const _FlowLine({
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(
+        style: OmTokens.text(fontSize: 14, color: OmTokens.ink2),
+        children: [
+          TextSpan(text: label),
+          TextSpan(
+            text: value,
+            style: OmTokens.text(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: valueColor,
+            ),
           ),
-        ),
-        Text(
-          branch,
-          style: TextStyle(
-            fontSize: 14,
-            color: color,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

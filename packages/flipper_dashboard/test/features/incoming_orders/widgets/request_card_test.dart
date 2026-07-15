@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_card.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
@@ -29,18 +30,18 @@ void main() {
       env.injectMocks();
       env.stubCommonMethods();
 
-      mockBranch = Branch(id: '1', name: 'Source Branch', businessId: "1");
+      mockBranch = Branch(id: '1', name: 'Source Branch', businessId: '1');
 
       mockIncomingBranch = Branch(
         id: '2',
         name: 'Incoming Branch',
-        businessId: "1",
+        businessId: '1',
       );
 
       mockItems = [
         TransactionItem(
           id: '1',
-          ttCatCd: "TT",
+          ttCatCd: 'TT',
           name: 'Test Item 1',
           qty: 10.0,
           price: 100.0,
@@ -58,9 +59,11 @@ void main() {
         branchId: '1',
         status: 'pending',
         branch: mockBranch,
-        itemCounts: 10.0,
+        itemCounts: 1,
         transactionItems: mockItems,
         orderNote: 'Test order note',
+        subBranchId: '1',
+        mainBranchId: '2',
       );
 
       when(
@@ -72,7 +75,8 @@ void main() {
       env.restore();
     });
 
-    testWidgets('displays as expansion tile', (tester) async {
+    testWidgets('renders accordion panel without Material ExpansionTile',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -88,90 +92,48 @@ void main() {
 
       await tester.pump();
 
-      expect(find.byType(Card), findsOneWidget);
-      expect(find.byType(ExpansionTile), findsOneWidget);
-    });
-
-    testWidgets('shows request header in title', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(
-              body: RequestCard(
-                request: mockRequest,
-                incomingBranch: mockIncomingBranch,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      expect(find.textContaining('Request From Source Branch'), findsOneWidget);
-    });
-
-    testWidgets('expands to show content when tapped', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: RequestCard(
-                  request: mockRequest,
-                  incomingBranch: mockIncomingBranch,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      // Initially collapsed
-      expect(find.text('Items'), findsNothing);
-
-      // Tap to expand
-      await tester.tap(find.byType(ExpansionTile));
-      await tester.pumpAndSettle();
-
-      // Should now show content
-      expect(find.text('Items'), findsOneWidget);
-    });
-
-    testWidgets('shows all child widgets when expanded', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: RequestCard(
-                  request: mockRequest,
-                  incomingBranch: mockIncomingBranch,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      // Expand the tile
-      await tester.tap(find.byType(ExpansionTile));
-      await tester.pumpAndSettle();
-
-      // Check for child widgets
-      expect(find.text('Items'), findsOneWidget); // ItemsList
+      expect(find.byType(RequestCard), findsOneWidget);
+      expect(find.byType(ExpansionTile), findsNothing);
+      expect(find.byIcon(Icons.inventory_2_outlined), findsOneWidget);
       expect(
-        find.textContaining('Source Branch'),
-        findsAtLeastNWidgets(1),
-      ); // BranchInfo + RequestHeader
-      expect(find.text('Test order note'), findsOneWidget); // OrderNote
+        find.byWidgetPredicate(
+          (w) =>
+              w is RichText &&
+              w.text.toPlainText().contains('Request From Source Branch'),
+        ),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('has correct card styling', (tester) async {
+    testWidgets('expands to show content when header tapped', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: RequestCard(
+                  request: mockRequest,
+                  incomingBranch: mockIncomingBranch,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.text('ITEMS'), findsNothing);
+
+      await tester.tap(find.byType(InkWell).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('ITEMS'), findsOneWidget);
+      expect(find.text('STATUS & DELIVERY'), findsOneWidget);
+      expect(find.text('Test order note'), findsOneWidget);
+    });
+
+    testWidgets('uses handoff panel radius and surface', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -187,20 +149,25 @@ void main() {
 
       await tester.pump();
 
-      final card = tester.widget<Card>(find.byType(Card));
-      expect(card.elevation, 2);
-      expect(card.shadowColor, Colors.black26);
-      expect(card.margin, EdgeInsets.only(bottom: 16.0));
+      final panel = tester.widget<Container>(find.byType(Container).first);
+      final decoration = panel.decoration as BoxDecoration?;
+      expect(decoration?.color, OmTokens.surface);
+      expect(
+        (decoration?.borderRadius as BorderRadius?)?.topLeft.x,
+        OmTokens.radiusLg,
+      );
     });
 
-    testWidgets('handles request without order note', (tester) async {
+    testWidgets('omits order note when empty', (tester) async {
       final requestWithoutNote = InventoryRequest(
         id: '1',
         branchId: '1',
         status: 'pending',
         branch: mockBranch,
-        itemCounts: 10.0,
+        itemCounts: 1,
         transactionItems: mockItems,
+        subBranchId: '1',
+        mainBranchId: '2',
       );
 
       await tester.pumpWidget(
@@ -219,101 +186,11 @@ void main() {
       );
 
       await tester.pump();
-
-      // Expand the tile
-      await tester.tap(find.byType(ExpansionTile));
+      await tester.tap(find.byType(InkWell).first);
       await tester.pumpAndSettle();
 
-      // Should not show order note
       expect(find.text('Test order note'), findsNothing);
-    });
-
-    testWidgets('handles empty order note', (tester) async {
-      final requestWithEmptyNote = InventoryRequest(
-        id: '1',
-        branchId: '1',
-        status: 'pending',
-        branch: mockBranch,
-        itemCounts: 10.0,
-        transactionItems: mockItems,
-        orderNote: '',
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: RequestCard(
-                  request: requestWithEmptyNote,
-                  incomingBranch: mockIncomingBranch,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      // Expand the tile
-      await tester.tap(find.byType(ExpansionTile));
-      await tester.pumpAndSettle();
-
-      // Should not show order note section
-      expect(find.text('Test order note'), findsNothing);
-    });
-
-    testWidgets('has correct structure', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(
-              body: RequestCard(
-                request: mockRequest,
-                incomingBranch: mockIncomingBranch,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      expect(find.byType(Card), findsOneWidget);
-      expect(find.byType(Theme), findsAtLeastNWidgets(1));
-      expect(find.byType(ExpansionTile), findsOneWidget);
-    });
-
-    testWidgets('shows content container when expanded', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: RequestCard(
-                  request: mockRequest,
-                  incomingBranch: mockIncomingBranch,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      // Expand the tile
-      await tester.tap(find.byType(ExpansionTile));
-      await tester.pumpAndSettle();
-
-      // Should show the content container with decoration
-      final containers = tester.widgetList<Container>(find.byType(Container));
-      final hasDecoratedContainer = containers.any(
-        (container) => container.decoration != null,
-      );
-
-      expect(hasDecoratedContainer, isTrue);
+      expect(find.text('ORDER NOTE'), findsNothing);
     });
   });
 }
