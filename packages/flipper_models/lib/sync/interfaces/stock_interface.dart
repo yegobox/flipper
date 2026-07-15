@@ -48,6 +48,17 @@ abstract class StockInterface {
     String? search,
     int limit = 50,
   });
+
+  /// One-shot fetch of stock requests / transfers **to** [destinationBranchId]
+  /// (`subBranchId`). Status mirrors stream rules; date range is applied in-memory.
+  Future<List<InventoryRequest>> stockRequestsToBranch({
+    required String destinationBranchId,
+    DateTime? start,
+    DateTime? end,
+    String status = 'all',
+    int limit = 500,
+  });
+
   Stream<Stock?> watchStockByVariantId({required String stockId});
 
   /// Live map of stock id → row for a bounded id set (single Ditto observer).

@@ -18,21 +18,32 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
     required BuildContext context,
   }) async {
+    var loadingVisible = false;
     try {
       _showLoadingDialog(context);
+      loadingVisible = true;
 
-      List<TransactionItem> items = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).transactionItems(requestId: request.id);
+      // Prefer embedded stock_request items (source of truth for approval qty).
+      // Table rows may lag or omit quantityRequested until linked fully.
+      List<TransactionItem> items =
+          _resolveRequestItemsForApproval(request);
 
-      if (items.isEmpty &&
-          request.transactionItems != null &&
-          request.transactionItems!.isNotEmpty) {
-        items = request.transactionItems!;
+      if (items.isEmpty) {
+        final fromTable = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).transactionItems(requestId: request.id);
+        items = fromTable
+            .map(
+              (i) => i.copyWith(
+                quantityRequested:
+                    i.quantityRequested ?? i.qty.round().clamp(1, 1 << 30),
+              ),
+            )
+            .toList();
       }
 
       if (items.isEmpty) {
-        Navigator.of(context).pop();
+        loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
         _showSnackBar(message: 'No items found in request', context: context);
         return false;
       }
@@ -43,7 +54,7 @@ mixin StockRequestApprovalLogic {
             item: item,
             request: request,
             subBranchId: request.subBranchId!,
-            sourceBranchId: request.subBranchId!,
+            sourceBranchId: request.mainBranchId ?? request.subBranchId!,
           ),
         ),
       );
@@ -58,7 +69,7 @@ mixin StockRequestApprovalLogic {
         }
       }
 
-      Navigator.of(context).pop(true); // Dismiss loading
+      loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
 
       if (!isFullyApproved) {
         final bool partialApprovalResult = await _handlePartialApproval(
@@ -70,12 +81,19 @@ mixin StockRequestApprovalLogic {
         if (!partialApprovalResult) return false;
       }
 
+      // Same source as approveSingleItem: Capella embedded items after writes.
+      final refreshed = (await ProxyService.getStrategy(Strategy.capella)
+              .requests(requestId: request.id))
+          .firstOrNull;
       final List<TransactionItem> approvedItems =
-          await ProxyService.getStrategy(
-            Strategy.capella,
-          ).transactionItems(requestId: request.id);
+          refreshed?.transactionItems ??
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).transactionItems(requestId: request.id);
 
-      if (!_atLeastOneItemApproved(approvedItems) &&
+      final anyProcessed = itemApprovalResults.any((r) => r);
+      if (!anyProcessed &&
+          !_atLeastOneItemApproved(approvedItems) &&
           !_atLeastOneItemApproved(items)) {
         _showSnackBar(
           message: 'At least one item must be approved',
@@ -85,16 +103,23 @@ mixin StockRequestApprovalLogic {
         return false;
       }
 
+      final bool fullyFromEmbedded = approvedItems.isNotEmpty &&
+          approvedItems.every(
+            (item) =>
+                (item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0) &&
+                (item.quantityRequested ?? 0) > 0,
+          );
+
       await _finalizeApproval(
-        request: request,
-        isFullyApproved: isFullyApproved,
+        request: refreshed ?? request,
+        isFullyApproved: isFullyApproved || fullyFromEmbedded,
         context: context,
       );
       return true;
     } catch (e, s) {
       talker.error('Error in approveRequest', e, s);
+      _dismissLoadingIfShown(context, loadingVisible);
       if (context.mounted) {
-        Navigator.of(context).pop(); // Ensure loading dialog is dismissed
         _showSnackBar(
           message: 'An error occurred while processing the request',
           context: context,
@@ -147,13 +172,15 @@ mixin StockRequestApprovalLogic {
     required BuildContext context,
     double? quantity,
   }) async {
+    var loadingVisible = false;
     try {
       _showLoadingDialog(context);
+      loadingVisible = true;
 
       final canApprove = await _canApproveItem(item: item);
       if (!canApprove) {
+        loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
         if (context.mounted) {
-          Navigator.of(context).pop();
           _showSnackBar(
             message: 'Insufficient stock for ${item.name}',
             context: context,
@@ -167,8 +194,8 @@ mixin StockRequestApprovalLogic {
         id: item.variantId!,
       );
       if (variant == null) {
+        loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
         if (context.mounted) {
-          Navigator.of(context).pop();
           _showSnackBar(
             message: 'Variant not found for ${item.name}',
             context: context,
@@ -179,7 +206,7 @@ mixin StockRequestApprovalLogic {
       }
 
       final double availableStock = variant.stock?.currentStock ?? 0;
-      final int requestedQuantity = item.quantityRequested ?? 0;
+      final int requestedQuantity = _requestedQty(item);
 
       int approvedQuantity;
       if (quantity != null) {
@@ -203,14 +230,14 @@ mixin StockRequestApprovalLogic {
       );
 
       // Re-fetch the request to get updated embedded items
-      final updatedRequest = (await ProxyService.strategy.requests(
-        requestId: request.id,
-      )).firstOrNull;
+      final updatedRequest = (await ProxyService.getStrategy(Strategy.capella)
+              .requests(requestId: request.id))
+          .firstOrNull;
 
       if (updatedRequest != null && updatedRequest.transactionItems != null) {
         final bool isFullyApproved = updatedRequest.transactionItems!.every(
-          (item) =>
-              (item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0),
+          (line) =>
+              (line.quantityApproved ?? 0) >= (_requestedQty(line)),
         );
 
         await _finalizeApproval(
@@ -220,8 +247,8 @@ mixin StockRequestApprovalLogic {
         );
       }
 
+      loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
       if (context.mounted) {
-        Navigator.of(context).pop();
         _showSnackBar(
           message: '${item.name} has been approved',
           context: context,
@@ -229,8 +256,8 @@ mixin StockRequestApprovalLogic {
       }
     } catch (e, s) {
       talker.error('Error in approveSingleItem', e, s);
+      _dismissLoadingIfShown(context, loadingVisible);
       if (context.mounted) {
-        Navigator.of(context).pop();
         _showSnackBar(
           message: 'An error occurred while approving the item',
           context: context,
@@ -238,6 +265,11 @@ mixin StockRequestApprovalLogic {
         );
       }
     }
+  }
+
+  int _requestedQty(TransactionItem item) {
+    final requested = item.quantityRequested ?? item.qty.round();
+    return requested < 1 ? 0 : requested;
   }
 
   Future<bool> _canApproveItem({required TransactionItem item}) async {
@@ -250,7 +282,7 @@ mixin StockRequestApprovalLogic {
     }
 
     final double availableStock = variant.stock!.currentStock!;
-    final int quantityRequested = item.quantityRequested ?? 0;
+    final int quantityRequested = _requestedQty(item);
     final int quantityApproved = item.quantityApproved ?? 0;
     final int remainingQuantityToApprove = quantityRequested - quantityApproved;
 
@@ -265,13 +297,16 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
+      final requested = _requestedQty(item);
+      if (requested < 1) return false;
+
       // If the item is already fully approved, we don't need to do anything
-      if ((item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0)) {
+      if ((item.quantityApproved ?? 0) >= requested) {
         // Heal DB
         await ProxyService.strategy.updateStockRequestItem(
           requestId: request.id,
           transactionItemId: item.id,
-          quantityApproved: item.quantityApproved,
+          quantityApproved: item.quantityApproved ?? requested,
         );
         return true;
       }
@@ -307,7 +342,7 @@ mixin StockRequestApprovalLogic {
       }
 
       final double availableStock = variant.stock?.currentStock ?? 0;
-      final int requestedQuantity = item.quantityRequested ?? 0;
+      final int requestedQuantity = _requestedQty(item);
       final int approvedQuantity = availableStock >= requestedQuantity
           ? requestedQuantity
           : availableStock.toInt();
@@ -317,6 +352,8 @@ mixin StockRequestApprovalLogic {
         approvedQuantity: approvedQuantity,
         request: request,
       );
+      item.quantityApproved = approvedQuantity;
+      item.quantityRequested ??= requestedQuantity;
     } catch (e, s) {
       talker.error('Error in _approveItem', e, s);
       throw Exception('Failed to approve item');
@@ -365,6 +402,23 @@ mixin StockRequestApprovalLogic {
     return partialApprovalResult;
   }
 
+  /// Prefer embedded [InventoryRequest.transactionItems] (approval qty source of
+  /// truth). Fall back to empty so callers can load from `transaction_items`.
+  List<TransactionItem> _resolveRequestItemsForApproval(
+    InventoryRequest request,
+  ) {
+    final embedded = request.transactionItems;
+    if (embedded == null || embedded.isEmpty) return const [];
+    return embedded
+        .map(
+          (i) => i.copyWith(
+            quantityRequested:
+                i.quantityRequested ?? i.qty.round().clamp(1, 1 << 30),
+          ),
+        )
+        .toList();
+  }
+
   //Fix: Use the List<TransactionItem> that you get after approval to validate it.
   bool _atLeastOneItemApproved(List<TransactionItem> items) {
     return items.any((item) => (item.quantityApproved ?? 0) > 0);
@@ -388,19 +442,24 @@ mixin StockRequestApprovalLogic {
         approvedAt: DateTime.now().toUtc(),
       );
 
-      // Send SMS notification to requester
+      // Send SMS notification to requester (never pop navigator here).
       try {
-        // Get requester's branch SMS config
-        final requesterConfig = await SmsNotificationService.getBranchSmsConfig(
-          request.branch!.id,
-        );
-        if (requesterConfig?.smsPhoneNumber != null) {
-          await SmsNotificationService.sendOrderRequestNotification(
-            receiverBranchId: request.branch!.id,
-            orderDetails:
-                'Your stock request #${request.id.substring(0, 5)} has been ${isFullyApproved ? 'approved' : 'partially approved'}.',
-            requesterPhone: requesterConfig!.smsPhoneNumber!,
+        final requesterBranchId =
+            request.branch?.id ?? request.subBranchId;
+        if (requesterBranchId != null && requesterBranchId.isNotEmpty) {
+          final requesterConfig =
+              await SmsNotificationService.getBranchSmsConfig(
+            requesterBranchId,
           );
+          final phone = requesterConfig?.smsPhoneNumber;
+          if (phone != null && phone.isNotEmpty) {
+            await SmsNotificationService.sendOrderRequestNotification(
+              receiverBranchId: requesterBranchId,
+              orderDetails:
+                  'Your stock request #${request.id.substring(0, 5)} has been ${isFullyApproved ? 'approved' : 'partially approved'}.',
+              requesterPhone: phone,
+            );
+          }
         }
       } catch (smsError) {
         talker.error('Failed to send SMS notification: $smsError');
@@ -408,17 +467,15 @@ mixin StockRequestApprovalLogic {
       }
 
       if (context.mounted) {
-        Navigator.of(context).pop(true); // Dismiss loading dialog
+        _showSnackBar(
+          message:
+              'Request ${isFullyApproved ? 'approved' : 'partially approved'} successfully',
+          context: context,
+        );
       }
-      _showSnackBar(
-        message:
-            'Request ${isFullyApproved ? 'approved' : 'partially approved'} successfully',
-        context: context,
-      );
     } catch (e, s) {
       talker.error('Error in finalizeApproval', e, s);
       if (context.mounted) {
-        Navigator.of(context).pop(); // Dismiss loading dialog
         _showSnackBar(
           message: 'Failed to finalize approval',
           context: context,
@@ -428,10 +485,22 @@ mixin StockRequestApprovalLogic {
     }
   }
 
+  /// Dismisses the loading dialog only when we know it is still open.
+  /// Extra pops were leaving Incoming Orders and looking like an app restart.
+  bool _dismissLoadingIfShown(BuildContext context, bool loadingVisible) {
+    if (!loadingVisible || !context.mounted) return false;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+    return false;
+  }
+
   void _showLoadingDialog(BuildContext context) {
     showDialog(
       barrierDismissible: false,
       context: context,
+      useRootNavigator: true,
       builder: (context) => Dialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

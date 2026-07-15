@@ -1,18 +1,20 @@
-// import 'package:flipper_dashboard/OrderStatusSelector.dart';
 // ignore_for_file: unused_result
 
-import 'package:flipper_dashboard/OrderStatusSelector.dart';
 import 'package:flipper_dashboard/checkout.dart' show OrderStatus;
+import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
+import 'package:flipper_dashboard/features/incoming_orders/widgets/bulk_action_bar.dart';
+import 'package:flipper_dashboard/features/incoming_orders/widgets/om_segmented.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_card.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:flipper_dashboard/features/incoming_orders/widgets/bulk_action_bar.dart';
+enum OmDirection { incoming, outgoing }
 
 class IncomingOrdersScreen extends HookConsumerWidget {
   const IncomingOrdersScreen({Key? key}) : super(key: key);
@@ -22,6 +24,8 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     final stringValue = ref.watch(stringProvider);
     final status = ref.watch(requestStatusProvider);
     final search = stringValue?.isNotEmpty == true ? stringValue : null;
+    final direction = useState(OmDirection.incoming);
+    final orderStatus = ref.watch(orderStatusProvider);
 
     final incomingRequestsAsync = ref.watch(
       stockRequestsProvider(status: status, search: search),
@@ -29,349 +33,192 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     final outgoingRequestsAsync = ref.watch(
       outgoingStockRequestsProvider(status: status, search: search),
     );
+    final branchAsync = ref.watch(activeBranchProvider);
 
-    final incomingBranchAsync = ref.watch(activeBranchProvider);
+    final isIncoming = direction.value == OmDirection.incoming;
+    final requestsAsync =
+        isIncoming ? incomingRequestsAsync : outgoingRequestsAsync;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
           return const SizedBox.shrink();
         }
-        final isMobile = constraints.maxWidth < 600;
-        final isTablet =
-            constraints.maxWidth >= 600 && constraints.maxWidth < 1024;
 
-        return DefaultTabController(
-          length: 2,
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  _buildHeader(context, ref, isMobile, isTablet),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        _buildOrdersList(
-                          ref,
-                          incomingRequestsAsync,
-                          incomingBranchAsync,
-                          isIncoming: true,
-                          status: status,
-                          search: search,
-                        ),
-                        _buildOrdersList(
-                          ref,
-                          outgoingRequestsAsync,
-                          incomingBranchAsync,
-                          isIncoming: false,
-                          status: status,
-                          search: search,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Positioned(bottom: 0, left: 0, right: 0, child: BulkActionBar()),
-            ],
-          ),
-        );
-      },
-    );
-  }
+        final compact = constraints.maxWidth < OmTokens.compactBreakpoint;
+        final hPad = compact ? 16.0 : 32.0;
+        final vPad = compact ? 20.0 : 36.0;
 
-  Widget _buildHeader(
-    BuildContext context,
-    WidgetRef ref,
-    bool isMobile,
-    bool isTablet,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              isMobile ? 12 : 24,
-              isMobile ? 12 : 20,
-              isMobile ? 12 : 24,
-              isMobile ? 8 : 16,
-            ),
-            child: Row(
-              children: [
-                if (isMobile)
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.maybePop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                if (isMobile) const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Orders Management',
-                        style: TextStyle(
-                          fontSize: isMobile ? 20 : 28,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1A1A1A),
-                        ),
-                      ),
-                      if (!isMobile) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Track and manage incoming and outgoing orders',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                if (!isMobile) ...[
-                  const SizedBox(width: 16),
-                  OrderStatusSelector(
-                    selectedStatus: ref.watch(orderStatusProvider),
-                    onStatusChanged: (newStatus) {
-                      ref.read(orderStatusProvider.notifier).state = newStatus;
-                      ref
-                          .read(requestStatusProvider.notifier)
-                          .state = newStatus == OrderStatus.approved
-                          ? RequestStatus.approved
-                          : RequestStatus.pending;
-                    },
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 12 : 24,
-              vertical: isMobile ? 8 : 12,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: isMobile ? 44 : 48,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(isMobile ? 22 : 24),
-                    ),
-                    child: TabBar(
-                      indicator: BoxDecoration(
-                        color: const Color(0xFF0078D4),
-                        borderRadius: BorderRadius.circular(isMobile ? 22 : 24),
-                      ),
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.grey[700],
-                      labelStyle: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: isMobile ? 13 : 15,
-                      ),
-                      dividerColor: Colors.transparent,
-                      tabs: [
-                        Tab(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.move_to_inbox, size: 18),
-                              if (!isMobile) ...[
-                                const SizedBox(width: 8),
-                                const Text('Incoming'),
-                              ],
-                            ],
-                          ),
-                        ),
-                        Tab(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.outbox, size: 18),
-                              if (!isMobile) ...[
-                                const SizedBox(width: 8),
-                                const Text('Outgoing'),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (isMobile) ...[
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.filter_list),
-                    onPressed: () => _showMobileFilterSheet(context, ref),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.grey[100],
-                      foregroundColor: Colors.grey[700],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showMobileFilterSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        return Stack(
           children: [
-            const Text(
-              'Filter Orders',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            OrderStatusSelector(
-              selectedStatus: ref.watch(orderStatusProvider),
-              onStatusChanged: (newStatus) {
-                ref.read(orderStatusProvider.notifier).state = newStatus;
-                ref
-                    .read(requestStatusProvider.notifier)
-                    .state = newStatus == OrderStatus.approved
-                    ? RequestStatus.approved
-                    : RequestStatus.pending;
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrdersList(
-    WidgetRef ref,
-    AsyncValue<List<InventoryRequest>> requestsAsync,
-    AsyncValue<Branch?> branchAsync, {
-    required bool isIncoming,
-    required String status,
-    String? search,
-  }) {
-    return requestsAsync.when(
-      data: (requests) {
-        if (requests.isEmpty) {
-          return _buildEmptyState(ref, isIncoming, status, search);
-        }
-
-        return branchAsync.when(
-          data: (currentBranch) {
-            if (currentBranch == null) {
-              return _buildErrorState(
-                'Branch not found',
-                'Could not load active branch',
-                Icons.business,
-                () => ref.refresh(activeBranchProvider),
-              );
-            }
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final isMobile = constraints.maxWidth < 600;
-                return NotificationListener<ScrollNotification>(
-                  onNotification: (ScrollNotification scrollInfo) {
-                    if (isIncoming &&
-                        scrollInfo.metrics.pixels ==
-                            scrollInfo.metrics.maxScrollExtent) {
-                      ref
-                          .read(
-                            stockRequestsProvider(
-                              status: status,
-                              search: search,
-                            ).notifier,
-                          )
-                          .loadMore();
-                    }
-                    return false;
-                  },
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(isMobile ? 12 : 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatsCard(requests.length, isIncoming, isMobile),
-                        const SizedBox(height: 20),
-                        Text(
-                          isIncoming ? 'Received Orders' : 'My Requests',
-                          style: TextStyle(
-                            fontSize: isMobile ? 16 : 18,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1A1A1A),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: requests.length,
-                          separatorBuilder: (context, index) =>
-                              SizedBox(height: isMobile ? 8 : 12),
-                          itemBuilder: (context, index) => Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 2),
+            ColoredBox(
+              color: OmTokens.canvas,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: OmTokens.maxContentWidth,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _OmHeader(
+                              compact: compact,
+                              orderStatus: orderStatus,
+                              onStatusChanged: (newStatus) {
+                                ref.read(orderStatusProvider.notifier).state =
+                                    newStatus;
+                                ref.read(requestStatusProvider.notifier).state =
+                                    newStatus == OrderStatus.approved
+                                        ? RequestStatus.approved
+                                        : RequestStatus.pending;
+                              },
+                            ),
+                            SizedBox(height: compact ? 16 : 22),
+                            OmSegmented<OmDirection>(
+                              value: direction.value,
+                              large: true,
+                              onChanged: (v) => direction.value = v,
+                              options: const [
+                                OmSegOption(
+                                  value: OmDirection.incoming,
+                                  label: 'Incoming',
+                                  icon: Icons.move_to_inbox_outlined,
+                                ),
+                                OmSegOption(
+                                  value: OmDirection.outgoing,
+                                  label: 'Outgoing',
+                                  icon: Icons.outbox_outlined,
                                 ),
                               ],
                             ),
-                            child: RequestCard(
-                              request: requests[index],
-                              incomingBranch: currentBranch,
-                              isIncoming: isIncoming,
-                            ),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
+                      Expanded(
+                        child: _buildBody(
+                          ref: ref,
+                          requestsAsync: requestsAsync,
+                          branchAsync: branchAsync,
+                          isIncoming: isIncoming,
+                          status: status,
+                          search: search,
+                          compact: compact,
+                          hPad: hPad,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: BulkActionBar(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBody({
+    required WidgetRef ref,
+    required AsyncValue<List<InventoryRequest>> requestsAsync,
+    required AsyncValue<Branch?> branchAsync,
+    required bool isIncoming,
+    required String status,
+    String? search,
+    required bool compact,
+    required double hPad,
+  }) {
+    return requestsAsync.when(
+      data: (requests) {
+        return branchAsync.when(
+          data: (currentBranch) {
+            if (currentBranch == null) {
+              return _OmErrorState(
+                title: 'Branch not found',
+                message: 'Could not load active branch',
+                onRetry: () => ref.refresh(activeBranchProvider),
+              );
+            }
+
+            final isPending = status == RequestStatus.pending;
+            final sectionTitle =
+                isIncoming ? 'Received Orders' : 'Sent Orders';
+
+            return NotificationListener<ScrollNotification>(
+              onNotification: (scrollInfo) {
+                if (isIncoming &&
+                    scrollInfo.metrics.pixels >=
+                        scrollInfo.metrics.maxScrollExtent - 40) {
+                  ref
+                      .read(
+                        stockRequestsProvider(
+                          status: status,
+                          search: search,
+                        ).notifier,
+                      )
+                      .loadMore();
+                }
+                return false;
+              },
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(hPad, compact ? 16 : 22, hPad, 80),
+                children: [
+                  if (isPending) ...[
+                    _OmStatCard(count: requests.length),
+                    SizedBox(height: compact ? 16 : 22),
+                  ],
+                  Text(
+                    sectionTitle,
+                    style: OmTokens.text(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.01 * 15,
                     ),
                   ),
-                );
-              },
+                  const SizedBox(height: 12),
+                  if (requests.isEmpty)
+                    _OmEmptyState(status: status)
+                  else
+                    ...List.generate(requests.length, (index) {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index == requests.length - 1 ? 0 : 12,
+                        ),
+                        child: RequestCard(
+                          request: requests[index],
+                          incomingBranch: currentBranch,
+                          isIncoming: isIncoming,
+                        ),
+                      );
+                    }),
+                ],
+              ),
             );
           },
-          loading: _buildLoadingState,
-          error: (err, stack) => _buildErrorState(
-            'Error loading branch',
-            err.toString(),
-            Icons.business_center_outlined,
-            () => ref.refresh(activeBranchProvider),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => _OmErrorState(
+            title: 'Error loading branch',
+            message: err.toString(),
+            onRetry: () => ref.refresh(activeBranchProvider),
           ),
         );
       },
-      loading: _buildLoadingState,
-      error: (err, stack) => _buildErrorState(
-        'Error loading requests',
-        err.toString(),
-        Icons.error_outline,
-        () {
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => _OmErrorState(
+        title: 'Error loading requests',
+        message: err.toString(),
+        onRetry: () {
           ref.refresh(
             isIncoming
                 ? stockRequestsProvider(status: status, search: search)
@@ -381,225 +228,260 @@ class IncomingOrdersScreen extends HookConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildStatsCard(int orderCount, bool isIncoming, bool isMobile) {
+class _OmHeader extends StatelessWidget {
+  const _OmHeader({
+    required this.compact,
+    required this.orderStatus,
+    required this.onStatusChanged,
+  });
+
+  final bool compact;
+  final OrderStatus orderStatus;
+  final ValueChanged<OrderStatus> onStatusChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = Text(
+      'Orders Management',
+      style: OmTokens.text(
+        fontSize: compact ? 22 : 28,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.02 * (compact ? 22 : 28),
+      ),
+    );
+    final subtitle = Text(
+      'Track and manage incoming and outgoing orders',
+      style: OmTokens.text(
+        fontSize: 14.5,
+        fontWeight: FontWeight.w400,
+        color: OmTokens.muted,
+      ),
+    );
+    final statusSeg = OmSegmented<OrderStatus>(
+      value: orderStatus,
+      onChanged: onStatusChanged,
+      options: const [
+        OmSegOption(
+          value: OrderStatus.pending,
+          label: 'Pending',
+          icon: Icons.check_circle_outline,
+        ),
+        OmSegOption(
+          value: OrderStatus.approved,
+          label: 'Approved',
+          icon: Icons.check_circle_outline,
+        ),
+      ],
+    );
+
+    if (compact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          title,
+          const SizedBox(height: 6),
+          subtitle,
+          const SizedBox(height: 12),
+          statusSeg,
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              title,
+              const SizedBox(height: 6),
+              subtitle,
+            ],
+          ),
+        ),
+        const SizedBox(width: 24),
+        statusSeg,
+      ],
+    );
+  }
+}
+
+class _OmStatCard extends StatelessWidget {
+  const _OmStatCard({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16 : 20),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF0078D4).withOpacity(0.05),
-            const Color(0xFF0078D4).withOpacity(0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF0078D4).withOpacity(0.1),
-          width: 1,
-        ),
+        color: OmTokens.surface,
+        borderRadius: BorderRadius.circular(OmTokens.radiusLg),
+        border: Border.all(color: OmTokens.line),
+        boxShadow: OmTokens.shadowSm,
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(isMobile ? 12 : 14),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFF0078D4),
-              borderRadius: BorderRadius.circular(12),
+              color: OmTokens.accentWash,
+              borderRadius: BorderRadius.circular(13),
             ),
-            child: Icon(
-              isIncoming ? Icons.move_to_inbox : Icons.outbox,
-              color: Colors.white,
-              size: isMobile ? 20 : 24,
+            child: const Icon(
+              Icons.move_to_inbox_outlined,
+              color: OmTokens.accentStrong,
+              size: 24,
             ),
           ),
-          SizedBox(width: isMobile ? 12 : 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$orderCount',
-                  style: TextStyle(
-                    fontSize: isMobile ? 24 : 28,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1A1A1A),
-                  ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$count',
+                style: OmTokens.text(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
                 ),
-                Text(
-                  orderCount == 1
-                      ? (isIncoming ? 'Pending Request' : 'Sent Request')
-                      : (isIncoming ? 'Pending Requests' : 'Sent Requests'),
-                  style: TextStyle(
-                    fontSize: isMobile ? 12 : 14,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 5 : 6,
-            ),
-            decoration: BoxDecoration(
-              color: orderCount > 0
-                  ? const Color(0xFF58D68D)
-                  : Colors.grey[200],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              orderCount > 0 ? 'Active' : 'Idle',
-              style: TextStyle(
-                color: orderCount > 0 ? Colors.white : Colors.grey[600],
-                fontWeight: FontWeight.w600,
-                fontSize: isMobile ? 11 : 12,
               ),
-            ),
+              const SizedBox(height: 3),
+              Text(
+                'Pending Requests',
+                style: OmTokens.text(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: OmTokens.muted,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildEmptyState(
-    WidgetRef ref,
-    bool isIncoming,
-    String status,
-    String? search,
-  ) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF58D68D), Color(0xFF48C9B0)],
-              ),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: Icon(
-              isIncoming ? Icons.inbox_outlined : Icons.outbox_outlined,
-              size: 40,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            isIncoming ? 'All caught up!' : 'No outgoing orders',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A1A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isIncoming
-                ? 'No pending orders at the moment.\nNew requests will appear here.'
-                : 'You haven\'t placed any orders yet.\nYour requests will appear here.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.withOpacity(0.6),
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              ref.refresh(
-                isIncoming
-                    ? stockRequestsProvider(status: status, search: search)
-                    : outgoingStockRequestsProvider(
-                        status: status,
-                        search: search,
-                      ),
-              );
-            },
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Refresh'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0078D4),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ],
+class _OmEmptyState extends StatelessWidget {
+  const _OmEmptyState({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 54),
+      decoration: BoxDecoration(
+        color: OmTokens.surface2,
+        borderRadius: BorderRadius.circular(OmTokens.radiusLg),
+        border: Border.all(color: OmTokens.line2, width: 1.5),
       ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(child: CircularProgressIndicator());
-  }
-
-  Widget _buildErrorState(
-    String title,
-    String message,
-    IconData icon,
-    VoidCallback onRetry,
-  ) {
-    return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              color: const Color(0xFFE74C3C).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: OmTokens.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: OmTokens.line),
             ),
-            child: Icon(icon, size: 32, color: const Color(0xFFE74C3C)),
+            child: const Icon(
+              Icons.move_to_inbox_outlined,
+              size: 28,
+              color: OmTokens.faint,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
-            title,
-            style: const TextStyle(
+            'No $status requests',
+            style: OmTokens.text(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1A1A1A),
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
-            message,
+            'Nothing to show here right now.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.withOpacity(0.6),
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Try Again'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0078D4),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+            style: OmTokens.text(
+              fontSize: 14,
+              color: OmTokens.muted,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _OmErrorState extends StatelessWidget {
+  const _OmErrorState({
+    required this.title,
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String title;
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: OmTokens.redWash,
+                borderRadius: BorderRadius.circular(OmTokens.radiusSm),
+              ),
+              child: const Icon(
+                Icons.error_outline,
+                size: 32,
+                color: OmTokens.red,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: OmTokens.text(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: OmTokens.text(
+                fontSize: 12,
+                color: OmTokens.muted,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Try Again'),
+              style: TextButton.styleFrom(
+                foregroundColor: OmTokens.accentStrong,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

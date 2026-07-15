@@ -99,6 +99,13 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
         color: Color(0xFF2563EB),
         feature: 'Stock',
       ),
+      const DashboardAllAppTile(
+        page: 'TransfersReport',
+        label: 'Transfers Report',
+        icon: FluentIcons.arrow_swap_24_regular,
+        color: Color(0xFF0EA5E9),
+        feature: 'Orders',
+      ),
       DashboardAllAppTile(
         page: 'Orders',
         label: context.flipperL10n.purchases,
