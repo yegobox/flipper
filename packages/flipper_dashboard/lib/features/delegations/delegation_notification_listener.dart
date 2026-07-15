@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-/// Shows an in-app banner when a print delegation is received.
+/// Shows an in-app banner for print delegations and stock transfers.
 ///
 /// - **Mobile**: [showSimpleNotification] via outer [OverlaySupport] (works well).
 /// - **Desktop**: inserts on the navigator [Overlay] via [StackedService.navigatorKey]
@@ -26,7 +26,8 @@ class DelegationNotificationListener extends StatefulWidget {
 
 class _DelegationNotificationListenerState
     extends State<DelegationNotificationListener> {
-  StreamSubscription<DelegationReceivedEvent>? _subscription;
+  StreamSubscription<DelegationReceivedEvent>? _delegationSub;
+  StreamSubscription<StockTransferNotificationEvent>? _transferSub;
   final Map<String, DateTime> _lastNotified = {};
   OverlayEntry? _desktopEntry;
   OverlaySupportEntry? _mobileEntry;
@@ -39,13 +40,17 @@ class _DelegationNotificationListenerState
   @override
   void initState() {
     super.initState();
-    _subscription =
+    _delegationSub =
         EventBus().on<DelegationReceivedEvent>().listen(_onDelegationReceived);
+    _transferSub = EventBus()
+        .on<StockTransferNotificationEvent>()
+        .listen(_onStockTransferReceived);
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _delegationSub?.cancel();
+    _transferSub?.cancel();
     _dismissBanner();
     super.dispose();
   }
@@ -59,13 +64,18 @@ class _DelegationNotificationListenerState
     _mobileEntry = null;
   }
 
-  void _onDelegationReceived(DelegationReceivedEvent event) {
+  bool _shouldThrottle(String key) {
     final now = DateTime.now();
-    final last = _lastNotified[event.transactionId];
+    final last = _lastNotified[key];
     if (last != null && now.difference(last) < const Duration(seconds: 2)) {
-      return;
+      return true;
     }
-    _lastNotified[event.transactionId] = now;
+    _lastNotified[key] = now;
+    return false;
+  }
+
+  void _onDelegationReceived(DelegationReceivedEvent event) {
+    if (_shouldThrottle(event.transactionId)) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -74,36 +84,94 @@ class _DelegationNotificationListenerState
         '(desktop=$_isDesktop)',
       );
       _dismissBanner();
-      if (_isDesktop) {
-        _showDesktopBanner(event);
-      } else {
-        _showMobileBanner(event);
-      }
+      _showBanner(
+        title: event.title,
+        body: event.body,
+        icon: Icons.print_outlined,
+        hint: 'Tap to open Delegations',
+        onTap: () {
+          _dismissBanner();
+          unawaited(_openDelegations());
+        },
+      );
     });
   }
 
-  void _showDesktopBanner(DelegationReceivedEvent event) {
-    // NavigatorState.overlay is the navigator's own Overlay (a descendant —
-    // Overlay.maybeOf(context) only finds ancestors and returns null here).
+  void _onStockTransferReceived(StockTransferNotificationEvent event) {
+    if (_shouldThrottle(event.requestId)) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      debugPrint(
+        '[transfer-banner] showing banner for ${event.requestId} '
+        '(desktop=$_isDesktop)',
+      );
+      _dismissBanner();
+      _showBanner(
+        title: event.title,
+        body: event.body,
+        icon: Icons.swap_horiz,
+        hint: null,
+        onTap: _dismissBanner,
+      );
+    });
+  }
+
+  void _showBanner({
+    required String title,
+    required String body,
+    required IconData icon,
+    required String? hint,
+    required VoidCallback onTap,
+  }) {
+    if (_isDesktop) {
+      _showDesktopBanner(
+        title: title,
+        body: body,
+        icon: icon,
+        hint: hint,
+        onTap: onTap,
+      );
+    } else {
+      _showMobileBanner(
+        title: title,
+        body: body,
+        icon: icon,
+        onTap: onTap,
+      );
+    }
+  }
+
+  void _showDesktopBanner({
+    required String title,
+    required String body,
+    required IconData icon,
+    required String? hint,
+    required VoidCallback onTap,
+  }) {
     final overlay = StackedService.navigatorKey?.currentState?.overlay;
     if (overlay == null) {
       debugPrint(
         '[delegation-banner] navigator overlay unavailable, '
         'falling back to overlay_support',
       );
-      _showMobileBanner(event);
+      _showMobileBanner(
+        title: title,
+        body: body,
+        icon: icon,
+        onTap: onTap,
+      );
       return;
     }
 
     late OverlayEntry entry;
     entry = OverlayEntry(
       builder: (context) => _DelegationBanner(
-        title: event.title,
-        body: event.body,
-        onTap: () {
-          _dismissBanner();
-          unawaited(_openDelegations());
-        },
+        title: title,
+        body: body,
+        icon: icon,
+        hint: hint,
+        onTap: onTap,
         onDismiss: _dismissBanner,
       ),
     );
@@ -112,20 +180,22 @@ class _DelegationNotificationListenerState
     _dismissTimer = Timer(const Duration(seconds: 8), _dismissBanner);
   }
 
-  void _showMobileBanner(DelegationReceivedEvent event) {
+  void _showMobileBanner({
+    required String title,
+    required String body,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     _mobileEntry = showSimpleNotification(
       GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {
-          _dismissBanner();
-          unawaited(_openDelegations());
-        },
+        onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              event.title,
+              title,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -134,7 +204,7 @@ class _DelegationNotificationListenerState
             ),
             const SizedBox(height: 2),
             Text(
-              event.body,
+              body,
               style: const TextStyle(color: Colors.white, fontSize: 13),
             ),
           ],
@@ -143,7 +213,7 @@ class _DelegationNotificationListenerState
       background: const Color(0xFF059669),
       position: NotificationPosition.top,
       duration: const Duration(seconds: 8),
-      leading: const Icon(Icons.print_outlined, color: Colors.white),
+      leading: Icon(icon, color: Colors.white),
     );
   }
 
@@ -164,12 +234,16 @@ class _DelegationBanner extends StatelessWidget {
   const _DelegationBanner({
     required this.title,
     required this.body,
+    required this.icon,
+    required this.hint,
     required this.onTap,
     required this.onDismiss,
   });
 
   final String title;
   final String body;
+  final IconData icon;
+  final String? hint;
   final VoidCallback onTap;
   final VoidCallback onDismiss;
 
@@ -220,11 +294,7 @@ class _DelegationBanner extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(
-                            Icons.print_outlined,
-                            color: Colors.white,
-                            size: 22,
-                          ),
+                          child: Icon(icon, color: Colors.white, size: 22),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -249,15 +319,18 @@ class _DelegationBanner extends StatelessWidget {
                                   height: 1.25,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Tap to open Delegations',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
+                              if (hint != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  hint!,
+                                  style: TextStyle(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.8),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),

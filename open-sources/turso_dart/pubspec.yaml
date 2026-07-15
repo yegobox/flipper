@@ -1,0 +1,46 @@
+name: turso_dart
+description: "Dart binding for the new-gen Turso (Flipper fork: Android 16KB ELF alignment)"
+version: 0.1.0
+repository: https://github.com/dikatok/turso_dart
+topics: [turso, sqlite, database, local, sync]
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  code_assets: ^1.0.0
+  ffi: ^2.2.0
+  hooks: ^1.0.0
+  native_toolchain_rust: ^1.0.4
+
+dev_dependencies:
+  ffigen: ^20.1.1
+  test: ^1.28.0
+  very_good_analysis: ^10.2.0
+
+ffigen:
+  name: NativeLibrary
+  output: lib/src/ffi.g.dart
+  ffi-native:
+    asset-id: "package:turso_dart/src/ffi.g.dart"
+  headers:
+    entry-points:
+      - rust/bindings.h
+    include-directives:
+      - rust/bindings.h
+  functions:
+    include:
+      - ".*"
+  unnamed-enums:
+    exclude:
+      - ".*"
+  globals:
+    exclude:
+      - ".*"
+  macros:
+    exclude:
+      - ".*"
+  typedefs:
+    exclude:
+      - ".*"

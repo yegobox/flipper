@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flipper · POS Checkout Fix — HTML/CSS Handover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#EEF2F9;--surface:#FFFFFF;--surface-2:#F7F9FE;
+  --ink-1:#0B1220;--ink-2:#4A5567;--ink-3:#7E8AA0;--ink-4:#AEB8CA;
+  --line:#E6ECF5;--line-soft:#EFF3F9;--line-strong:#D6DEEA;
+  --blue:#2563EB;--blue-700:#1D4ED8;--blue-tint:#EAF1FE;--blue-tint2:#DEEAFD;
+  --gain:#16A34A;--gain-ink:#15803D;--loss:#E5484D;--loss-ink:#B42318;
+  --warnamber:#E08600;--warn-tint:#FFF4E2;--violet:#7C3AED;--win-tint:#DEF7EC;
+  --r-sm:10px;--r-md:14px;--r-pill:999px;
+  --grad-brand:linear-gradient(135deg,#22D3EE,#2563EB 52%,#4F46E5);
+  --grad-btn:linear-gradient(180deg,#2C6BF0,#1D4ED8);
+  --sans:'Geist',ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,Menlo,monospace;
+  --sh-1:0 1px 2px rgba(16,32,64,.05),0 1px 1px rgba(16,32,64,.04);
+  --sh-2:0 6px 18px -6px rgba(16,32,64,.14),0 2px 6px rgba(16,32,64,.06);
+  --sh-blue:0 12px 28px -8px rgba(37,99,235,.45),0 3px 8px rgba(37,99,235,.25);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--sans);color:var(--ink-1);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:var(--blue)}a:hover{color:var(--blue-700)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 30px;display:grid;grid-template-columns:230px 1fr;gap:44px;align-items:start}
+nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:40px 0 40px;border-right:1px solid var(--line)}
+nav.toc::-webkit-scrollbar{width:0}
+main{padding:46px 0 120px;min-width:0}
+.brand{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+.brand .mk{width:38px;height:38px;border-radius:12px;background:var(--grad-brand);display:grid;place-items:center;box-shadow:var(--sh-2)}
+.brand .mk svg{width:22px;height:22px}
+.brand b{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.brand span{display:block;font-size:11.5px;color:var(--ink-3);font-weight:500}
+.toc a{display:block;padding:6px 14px 6px 12px;font-size:13px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;border-radius:0 6px 6px 0}
+.toc a:hover{color:var(--ink-1);background:var(--surface)}
+.toc a.grp{margin-top:16px;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-4);padding-left:12px;pointer-events:none}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--grad-brand)}
+h1{font-size:38px;font-weight:800;letter-spacing:-.03em;margin:16px 0 0;line-height:1.05}
+.lede{font-size:16.5px;color:var(--ink-2);max-width:66ch;margin:16px 0 0;text-wrap:pretty}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);padding:7px 13px;border-radius:999px;box-shadow:var(--sh-1)}
+.chip b{color:var(--ink-1)}
+section{scroll-margin-top:24px;padding-top:52px}
+h2{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin:0 0 4px}
+.h2sub{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 18px}
+h3{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:30px 0 12px}
+p{margin:0 0 14px;color:var(--ink-2);font-size:15px;max-width:76ch;text-wrap:pretty}
+p strong,li strong{color:var(--ink-1);font-weight:700}
+code{font-family:var(--mono);font-size:.88em;background:var(--blue-tint);color:var(--blue-700);padding:1px 6px;border-radius:6px}
+ul,ol{margin:0 0 14px;padding-left:20px;color:var(--ink-2);font-size:15px}
+li{margin:5px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-1);padding:22px 24px;margin:0 0 16px}
+.note{border-left:3px solid var(--blue);background:var(--blue-tint);border-radius:0 12px 12px 0;padding:14px 18px;margin:16px 0;font-size:14px;color:var(--ink-2)}
+.note.warn{border-color:#B45309;background:#FEF3E2}
+.note b{color:var(--ink-1)}
+table{width:100%;border-collapse:collapse;margin:8px 0 18px;font-size:13.5px}
+th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:0 12px 9px;border-bottom:1px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:top}
+td:first-child{color:var(--ink-1);font-weight:600}
+tr:last-child td{border-bottom:0}
+pre{background:#0B1220;color:#E9EEF6;border-radius:14px;padding:20px 22px;overflow-x:auto;font-family:var(--mono);font-size:12.25px;line-height:1.6;margin:6px 0 20px;box-shadow:var(--sh-2);white-space:pre;tab-size:2}
+.filetag{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--line);padding:3px 9px;border-radius:7px;margin:14px 0 -6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.toc{display:none}.grid2{grid-template-columns:1fr}}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-3)}
+.pill.new{background:var(--blue-tint);border-color:var(--blue-tint2);color:var(--blue-700)}
+.pill.fix{background:#FEECEC;border-color:#F6CFCF;color:var(--loss-ink)}
+hr{border:0;border-top:1px solid var(--line);margin:34px 0}
+@media print{body{background:#fff}nav.toc{display:none}.wrap{grid-template-columns:1fr;max-width:none;padding:0 8mm}pre{box-shadow:none;font-size:9.5px}section{padding-top:26px}h1{font-size:28px}}
+</style>
+<style id="cofStyle">
+/* ============================================================
+   Live demo — this IS the deliverable markup/CSS/JS.
+   The "Full source" section below reads it back verbatim.
+   ============================================================ */
+.cof-demorow{display:flex;gap:22px;flex-wrap:wrap;margin:14px 0 8px}
+.cof-frame{width:340px;flex-shrink:0}
+.cof-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-bottom:10px;padding:5px 11px;border-radius:999px}
+.cof-tag.bad{background:#FEECEC;color:var(--loss-ink)}
+.cof-tag.good{background:var(--win-tint);color:var(--gain-ink)}
+.cof-shell{border:1.5px solid var(--line-strong);border-radius:16px;background:var(--surface);box-shadow:var(--sh-2);overflow:hidden;height:472px;display:flex;flex-direction:column;position:relative}
+.cof-shell.scrolly{overflow-y:auto}
+.cof-shell::-webkit-scrollbar{width:7px}
+.cof-shell::-webkit-scrollbar-thumb{background:#D4DCEA;border-radius:8px}
+.cof-cutoff{position:absolute;left:0;right:0;bottom:0;height:46px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.94));pointer-events:none}
+.cof-head{flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cof-ident{display:flex;gap:16px;font-size:11.5px;color:var(--ink-3)}
+.cof-ident b{font-family:var(--mono);color:var(--ink-1);display:block;font-size:12.5px}
+.cof-save{font-size:11.5px;font-weight:700;color:var(--ink-1);border:1px solid var(--line-strong);background:var(--surface);border-radius:8px;padding:6px 10px;white-space:nowrap}
+.cof-cust{flex-shrink:0;padding:11px 16px;border-bottom:1px solid var(--line)}
+.cof-modebar{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.cof-modebar>span{font-size:10.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+.cof-xfer-only{display:none}
+.cof-cust-row{display:flex;gap:7px;align-items:center}
+.cof-cust-search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:38px;padding:0 10px;border:1.5px solid var(--line);border-radius:10px;color:var(--ink-3)}
+.cof-cust-search input{border:0;outline:0;background:none;font-size:12.5px;flex:1;min-width:0;font-family:var(--sans)}
+.cof-cust-act{width:34px;height:34px;flex-shrink:0;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2)}
+.cof-cust-act:hover,.cof-cust-act.on{background:var(--blue-tint);color:var(--blue)}
+.cof-cust-fields{display:none;gap:7px;align-items:center;margin-top:0}
+.cof-cust.expanded .cof-cust-row{display:none}
+.cof-cust.expanded .cof-cust-fields{display:flex}
+.cof-cust-field{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:38px;padding:0 10px;border:1.5px solid var(--blue);border-radius:10px;box-shadow:0 0 0 3px var(--blue-tint)}
+.cof-cust-field input{border:0;outline:0;background:none;font-size:12.5px;flex:1;font-family:var(--sans);min-width:0}
+.cof-cust-field.phone{flex:0 0 118px}
+.cof-cust-x{width:30px;height:30px;flex-shrink:0;border-radius:8px;color:var(--ink-3);display:grid;place-items:center}
+.cof-cust-x:hover{background:var(--surface-2);color:var(--loss)}
+/* the "before" screen shows both blocks stacked, unconditionally, full height */
+.cof-cust.stacked .cof-cust-row{margin-bottom:9px}
+.cof-cust.stacked .cof-cust-fields{display:flex;flex-direction:column;gap:9px}
+.cof-cust.stacked .cof-cust-field{flex:1 1 auto}
+.cof-lines{flex:1;min-height:0;overflow-y:auto;padding:4px 16px}
+.cof-shell.scrolly .cof-lines{flex:none;overflow:visible}
+.cof-line{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+.cof-sw{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+.cof-line-mid{flex:1;min-width:0}
+.cof-line-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cof-line-unit{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.cof-line-total{font-family:var(--mono);font-size:13px;font-weight:700}
+.cof-foot{flex-shrink:0;border-top:1px solid var(--line);padding:12px 16px 14px;background:var(--surface)}
+.cof-total{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+.cof-total span{font-size:13px;font-weight:700}
+.cof-total b{font-family:var(--mono);font-size:19px;color:var(--blue)}
+.cof-pay-row{display:flex;gap:7px;margin-bottom:8px}
+.cof-amt{flex:1;min-width:0;display:flex;align-items:center;height:38px;padding:0 6px 0 10px;border:1.5px solid var(--blue);border-radius:10px;box-shadow:0 0 0 3px var(--blue-tint)}
+.cof-amt input{border:0;outline:0;background:none;font-family:var(--mono);font-size:14px;font-weight:700;flex:1;min-width:0}
+.cof-amt span{font-size:10px;font-weight:700;color:var(--ink-3);background:var(--surface-2);border-radius:6px;padding:4px 6px}
+.cof-method{flex:0 0 92px;display:flex;align-items:center;gap:5px;height:38px;padding:0 9px;border:1.5px solid var(--line);border-radius:10px;font-size:11.5px;font-weight:700;color:var(--ink-2)}
+.cof-quick{display:flex;gap:6px;margin-bottom:10px}
+.cof-quick button{flex:1;height:28px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--ink-2)}
+.cof-actions{display:flex;gap:8px}
+.cof-actions .ghost{flex:0 0 74px;height:40px;border-radius:10px;border:1.5px solid var(--line-strong);background:var(--surface);font-size:12.5px;font-weight:700}
+.cof-actions .primary{flex:1;height:40px;border-radius:10px;background:var(--grad-btn);color:#fff;font-size:12.5px;font-weight:700;box-shadow:var(--sh-blue)}
+.cof-fold-note{margin-top:10px;font-size:11.5px;color:var(--loss-ink);font-weight:600;display:flex;align-items:center;gap:6px}
+
+/* transfer — same cart, different footer */
+.cof-modeswitch{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:2px;margin-left:auto}
+.cof-modeswitch button{height:26px;padding:0 10px;border-radius:7px;font-size:11px;font-weight:700;color:var(--ink-3)}
+.cof-modeswitch button.on{background:var(--blue);color:#fff}
+.cof-xfer-branch{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line)}
+.cof-xfer-branch label{font-size:11.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.cof-xfer-branch select{flex:1;min-width:0;height:34px;padding:0 10px;border-radius:9px;border:1.5px solid var(--line);font-size:12.5px;font-weight:600;background:var(--surface);font-family:var(--sans)}
+.cof-xfer-picker{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--line)}
+.cof-xfer-chip{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;box-shadow:var(--sh-1);transition:transform .1s}
+.cof-xfer-chip:active{transform:scale(.92)}
+.cof-xfer-hint{font-size:11px;color:var(--ink-3);margin-left:4px}
+.cof-empty-xfer{padding:26px 4px;text-align:center;font-size:12.5px;color:var(--ink-3)}
+.cof-xfer-step{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.cof-xfer-step button{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);background:var(--surface);font-size:13px;font-weight:700;color:var(--ink-2);display:grid;place-items:center}
+.cof-xfer-step span{min-width:16px;text-align:center;font-family:var(--mono);font-size:12.5px;font-weight:700}
+.cof-xfer-del{color:var(--ink-4);flex-shrink:0;padding:4px}
+.cof-xfer-del:hover{color:var(--loss)}
+.cof-toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink-1);color:#fff;padding:12px 18px;border-radius:12px;font-size:13.5px;font-weight:600;box-shadow:var(--sh-2);transition:opacity .2s,transform .2s;z-index:90;pointer-events:none}
+.cof-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="root">
+<div class="wrap">
+  <nav class="toc">
+    <div class="brand">
+      <span class="mk"><svg viewBox="0 0 48 48" fill="none"><path d="M24 7.5a16.5 16.5 0 1 1-11.6 4.8" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M24 16.5a7.5 7.5 0 1 0 5.3 2.2" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".6"/></svg></span>
+      <span><b>Flipper</b><span>POS · Checkout fix handover</span></span>
+    </div>
+    <a class="grp">Overview</a>
+    <a href="#overview">What changed &amp; why</a>
+    <a href="#problem">The problem</a>
+    <a class="grp">The fix</a>
+    <a href="#fix-checkout">1 · No-scroll checkout</a>
+    <a href="#fix-transfer">2 · Transfer stock to a branch</a>
+    <a class="grp">Reference</a>
+    <a href="#interactions">Interaction spec</a>
+    <a href="#tokens">Tokens used</a>
+    <a href="#accept">Acceptance checklist</a>
+    <a class="grp">Full source</a>
+    <a href="#src-css">CSS</a>
+    <a href="#src-html">HTML</a>
+    <a href="#src-js">JS behavior</a>
+  </nav>
+  <main>
+    <div class="eyebrow"><span class="dot"></span>Developer handover · HTML + CSS + JS</div>
+    <h1 id="overview">POS checkout — fix the scroll, add branch transfer</h1>
+    <p class="lede">Two changes to the existing production <b>Point of Sale</b> register: (1) a cashier can reach <b>customer name, phone and payment method</b> without scrolling — critical on the smaller/shorter screens common in the field, and (2) a cashier can <b>transfer a product's stock to another branch</b> straight from the catalog.</p>
+    <div class="meta">
+      <span class="chip">Screen <b>POS register — cart panel</b></span>
+      <span class="chip">Type <b>Layout fix + new feature</b></span>
+      <span class="chip">Fidelity <b>High</b> — CSS below is drop-in</span>
+      <span class="chip">Stack <b>Plain HTML/CSS/JS</b> — framework-agnostic</span>
+    </div>
+
+    <section id="problem">
+      <h2>Problem</h2>
+      <div class="h2sub">Three stacked full-width fields push Pay off-screen</div>
+      <p>In production, once an amount is entered the cart panel reveals <b>Customer name</b>, then <b>Phone Number</b>, then <b>Payment Method + Amount</b> — three separate full-height rows stacked <em>above</em> the Pay button. On a laptop or short tablet viewport that's roughly 200px more content than fits, so the cashier must scroll the whole right panel just to tap <b>Pay</b>. That's a real cost per transaction for high-volume, low-friction cash sales — exactly the case that should be fastest.</p>
+      <div class="note warn"><b>Why this matters here:</b> most Flipper sales are quick walk-in cash sales. Forcing a scroll before every one of them, on devices that are often small/older, adds friction to the single most repeated action in the app.</div>
+    </section>
+
+    <section id="fix-checkout">
+      <h2>Fix 1 of 2</h2>
+      <div class="h2sub">Pin the action bar · collapse customer capture to one row</div>
+      <p>Two structural changes, independent of each other:</p>
+      <ol>
+        <li><b>Make the cart panel a flex column with one scrolling region.</b> Header, customer capture and the totals/payment/action footer are fixed; only the <b>line-items list</b> scrolls. The footer — total, payment method + amount, quick-cash, Tickets/Pay — is <em>always in view</em>, no matter how many lines are in the cart or whether customer fields are expanded.</li>
+        <li><b>Collapse customer name/phone into the search row.</b> Today "Search Customer" and the Name/Phone fields are two separate, simultaneously-stacked blocks — redundant, and expensive in height. Default to the single search row (covers the common walk-in case at zero extra cost). Tapping <b>Add customer</b> swaps it, in place, for one compact row with Name and Phone side by side. No new vertical space is added to the layout — it's a swap, not an insertion.</li>
+      </ol>
+      <p>Compare: the panel on the left is today's stacked behavior (shortened to fit a small screen, scaled to this doc — the cut-off/scrollbar is the actual bug). The panel on the right is the fix, at the same height. Try the buttons — they're live.</p>
+
+      <div class="cof-demorow" id="cofDemoRoot">
+        <div class="cof-frame">
+          <span class="cof-tag bad">✕ Today — requires scrolling</span>
+          <div class="cof-shell scrolly">
+            <div class="cof-head">
+              <div class="cof-ident">Invoice<b>No. 10295</b></div>
+              <div class="cof-ident">Txn ID<b>BBC38</b></div>
+              <button class="cof-save">Save ticket</button>
+            </div>
+            <div class="cof-cust stacked">
+              <div class="cof-cust-row">
+                <div class="cof-cust-search"><span>🔍</span><input placeholder="Search Customer" readonly></div>
+              </div>
+              <div class="cof-cust-fields">
+                <div class="cof-cust-field"><span>👤</span><input placeholder="Customer name" readonly></div>
+                <div class="cof-cust-field"><span>📞</span><input placeholder="Phone Number" readonly></div>
+              </div>
+            </div>
+            <div class="cof-lines">
+              <div class="cof-line"><span class="cof-sw" style="background:#C76B45">XRA</span><div class="cof-line-mid"><div class="cof-line-name">XRAY REVENUE CHARGES</div><div class="cof-line-unit">RWF 2.0K each</div></div><span class="cof-line-total">1.8K</span></div>
+            </div>
+            <div class="cof-foot">
+              <div class="cof-total"><span>Grand Total · 1 item</span><b>RWF 1,800</b></div>
+              <div class="cof-pay-row"><div class="cof-amt"><input value="1800" readonly><span>RWF</span></div><div class="cof-method">💳 CASH</div></div>
+              <div class="cof-quick"><button>Exact</button><button>5,000</button><button>10,000</button><button>20,000</button></div>
+              <div class="cof-actions"><button class="ghost">Tickets</button><button class="primary">Pay RWF 1,800</button></div>
+            </div>
+          </div>
+          <div class="cof-fold-note">⚠ Pay sits below the fold on short viewports</div>
+        </div>
+
+        <div class="cof-frame">
+          <span class="cof-tag good">✓ Fixed — Pay always in view, in either mode</span>
+          <div class="cof-shell mode-sale" id="cofAfterShell">
+            <div class="cof-head">
+              <div class="cof-ident">Invoice<b>No. 10295</b></div>
+              <div class="cof-ident">Txn ID<b>BBC38</b></div>
+              <button class="cof-save">Save ticket</button>
+            </div>
+            <div class="cof-modebar">
+              <span>Mode</span>
+              <div class="cof-modeswitch"><button class="on" id="cofModeSale">Sale</button><button id="cofModeXfer">Transfer</button></div>
+            </div>
+            <div class="cof-cust cof-sale-only" id="cofCust">
+              <div class="cof-cust-row">
+                <div class="cof-cust-search"><span>🔍</span><input placeholder="Search Customer"></div>
+                <button class="cof-cust-act" title="Walk-in">🚶</button>
+                <button class="cof-cust-act" title="Call">📞</button>
+                <button class="cof-cust-act" id="cofAddCust" title="Add customer">👤+</button>
+              </div>
+              <div class="cof-cust-fields">
+                <div class="cof-cust-field"><input placeholder="Customer name" id="cofName"></div>
+                <div class="cof-cust-field phone"><input placeholder="Phone" id="cofPhone"></div>
+                <button class="cof-cust-x" id="cofCustClose" title="Close">✕</button>
+              </div>
+            </div>
+            <div class="cof-xfer-branch cof-xfer-only" id="cofXferBranchRow">
+              <label>To branch</label>
+              <select id="cofXferBranch">
+                <option>Kimironko Branch</option>
+                <option>Remera Branch</option>
+                <option>Musanze Branch</option>
+              </select>
+            </div>
+            <div class="cof-xfer-picker cof-xfer-only" id="cofXferPicker">
+              <div class="cof-xfer-chip" data-name="XRAY REVENUE CHARGES" data-stock="7999" data-color="#2C8FB0" title="XRAY REVENUE CHARGES · tap to add">XRA</div>
+              <div class="cof-xfer-chip" data-name="Inyundo 5kg" data-stock="9" data-color="#B5893B" title="Inyundo 5kg · tap to add">INY</div>
+              <div class="cof-xfer-chip" data-name="Sima Cimerwa" data-stock="88" data-color="#5E8C3C" title="Sima Cimerwa · tap to add">SIM</div>
+              <span class="cof-xfer-hint">tap to add →</span>
+            </div>
+            <div class="cof-lines cof-sale-only" id="cofLines">
+              <div class="cof-line"><span class="cof-sw" style="background:#C76B45">XRA</span><div class="cof-line-mid"><div class="cof-line-name">XRAY REVENUE CHARGES</div><div class="cof-line-unit">RWF 2.0K each</div></div><span class="cof-line-total">1.8K</span></div>
+              <button class="cof-cust-act" id="cofAddLine" style="margin-top:8px;width:100%;height:30px;font-size:11px;font-weight:700">+ add demo line (test scroll)</button>
+            </div>
+            <div class="cof-lines cof-xfer-only" id="cofXferLines"><div class="cof-empty-xfer">No items yet — tap a product above</div></div>
+            <div class="cof-foot">
+              <div class="cof-total"><span id="cofFootLabel">Grand Total · 1 item</span><b id="cofFootAmt">RWF 1,800</b></div>
+              <div class="cof-pay-row cof-sale-only" id="cofPayRow"><div class="cof-amt"><input value="1800"><span>RWF</span></div><div class="cof-method">💳 CASH</div></div>
+              <div class="cof-quick cof-sale-only" id="cofQuickRow"><button>Exact</button><button>5,000</button><button>10,000</button><button>20,000</button></div>
+              <div class="cof-actions">
+                <button class="ghost cof-sale-only" id="cofTicketsBtn">Tickets</button>
+                <button class="primary cof-sale-only" id="cofPayBtn">Pay RWF 1,800</button>
+                <button class="ghost cof-xfer-only" id="cofXferClear">Clear</button>
+                <button class="primary cof-xfer-only" id="cofXferGo" disabled>Transfer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-3)">The <b>Mode</b> switch is the whole answer to "how do I get from checkout to transfer": it's right at the top of the same panel, always visible, and it's the only way in or out of Transfer mode — no separate screen. Tap <b>Transfer</b> to see the customer/payment fields swap for a branch picker and product chips; tap <b>👤+</b> in Sale mode to expand Name/Phone; tap <b>+ add demo line</b> a few times to prove the footer never moves.</p>
+    </section>
+
+    <section id="fix-transfer">
+      <h2>Fix 2 of 2</h2>
+      <div class="h2sub">Transfer a product's stock to another branch</div>
+      <p>There is currently no way to move a product's stock from the current branch to another one without leaving the register. Rather than a separate one-off dialog, <b>transfer reuses the exact same "build a cart" interaction as a sale</b> — the <b>Mode</b> switch in the panel above turns the cart panel from <b>Sale</b> to <b>Transfer</b>: pick a destination branch once, then tap products to add them just like building a sale (same steppers, same remove), and the footer's payment fields are replaced by a single <b>Transfer</b> action. No new mental model for the cashier — it's the same cart, a different destination and a different final button.</p>
+      <p><a href="#fix-checkout">↑ Try it in the live panel above</a> — flip Sale/Transfer and tap the product swatches.</p>
+      <div class="note"><b>Where this lives elsewhere:</b> transfers should show up in a <b>Transfers</b> log (new, or a tab under Transactions) with status <i>Pending → Received</i>, and the destination branch should see it as incoming stock to accept — mirroring how <code>Stock Recount</code> already models branch-scoped inventory events.</div>
+    </section>
+
+    <section id="interactions">
+      <h2>Reference</h2>
+      <div class="h2sub">Interaction spec</div>
+      <table>
+        <tr><th>Element</th><th>Behavior</th></tr>
+        <tr><td>Add customer (👤+)</td><td>Swaps the search row for a Name + Phone row, in place — no layout shift below it. Autofocus Name. <b>✕</b> reverts to search and clears both fields.</td></tr>
+        <tr><td>Cart panel</td><td>Flex column: header + customer capture + footer are fixed height; only the line-item list is a scroll container (<code>flex:1;min-height:0;overflow-y:auto</code>). This is the whole fix — no JS required for it.</td></tr>
+        <tr><td>Payment method + amount</td><td>Stay combined on one row, immediately under Grand Total — never gated behind customer entry.</td></tr>
+        <tr><td>Sale / Transfer toggle</td><td>Segmented switch in the cart header. Switching to Transfer swaps customer-capture for a "To branch" selector and swaps the payment footer for a single Transfer action — the line-item list and its add/remove/qty interactions are unchanged.</td></tr>
+        <tr><td>Transfer — adding items</td><td>Tapping a product adds it to the transfer list exactly like adding to a sale cart (same stepper, same remove). Quantity is clamped to <code>1…stock</code> at the source branch.</td></tr>
+        <tr><td>Transfer confirm</td><td>Decrements the source branch's stock immediately (optimistic) for every line; shows a toast; the receiving branch sees a pending transfer.</td></tr>
+      </table>
+    </section>
+
+    <section id="tokens">
+      <h2>Reference</h2>
+      <div class="h2sub">Tokens used (already in <code>pos.css</code> / <code>onboarding/styles.css</code>)</div>
+      <p>No new tokens were introduced — the fix reuses the existing Flipper POS palette: <code>--blue</code>, <code>--ink-1…4</code>, <code>--line</code>/<code>--line-strong</code>, <code>--surface</code>/<code>--surface-2</code>, radii <code>--r-md</code> (14px), shadows <code>--sh-1</code>/<code>--sh-2</code>/<code>--sh-blue</code>, and the <code>Geist</code>/<code>Geist Mono</code> type pairing (mono for all numerics).</p>
+    </section>
+
+    <section id="accept">
+      <h2>Reference</h2>
+      <div class="h2sub">Acceptance checklist</div>
+      <ul>
+        <li>On a 1280×720 (or smaller) viewport, Pay is reachable with zero scrolling, cart empty or full, customer fields collapsed or expanded.</li>
+        <li>Expanding customer name/phone does not change the position of the total/payment/action footer.</li>
+        <li>Only the line-items list scrolls internally when the cart has many lines.</li>
+        <li>Switching Sale → Transfer and back preserves the underlying cart-panel chrome (header, footer position) — only the customer/payment fields swap for branch-select/Transfer.</li>
+        <li>Transfer quantity per line cannot exceed on-hand stock at the source branch.</li>
+        <li>A confirmed transfer is visible as pending on the destination branch's side.</li>
+      </ul>
+    </section>
+
+    <section id="src-css">
+      <h2>Full source</h2>
+      <div class="h2sub">CSS</div>
+      <p>Exactly what's driving the live demo above — copy as-is, then rename the <code>cof-</code> prefix to match your existing <code>pos-</code> classes (this doc namespaced it to avoid colliding with the rest of the page).</p>
+      <span class="filetag">checkout-fix.css</span>
+      <pre id="srcCssOut"></pre>
+    </section>
+
+    <section id="src-html">
+      <h2>Full source</h2>
+      <div class="h2sub">HTML</div>
+      <span class="filetag">checkout-fix.html (fixed panel + product cards + modal)</span>
+      <pre id="srcHtmlOut"></pre>
+    </section>
+
+    <section id="src-js">
+      <h2>Full source</h2>
+      <div class="h2sub">JS behavior</div>
+      <p>Vanilla JS, ~60 lines, no dependencies. Swap the toast/console calls for your real customer-save and transfer-API calls.</p>
+      <span class="filetag">checkout-fix.js</span>
+      <pre id="srcJsOut"></pre>
+    </section>
+  </main>
+</div>
+
+<div class="cof-toast" id="cofToast"></div>
+
+<script id="cofScript">
+// ---- customer capture: collapse/expand in place, no layout shift below ----
+document.getElementById('cofAddCust').addEventListener('click', () => {
+  document.getElementById('cofCust').classList.add('expanded');
+  document.getElementById('cofName').focus();
+});
+document.getElementById('cofCustClose').addEventListener('click', () => {
+  const cust = document.getElementById('cofCust');
+  cust.classList.remove('expanded');
+  document.getElementById('cofName').value = '';
+  document.getElementById('cofPhone').value = '';
+});
+
+// ---- prove the footer never moves: add lines, only the list scrolls ----
+let demoLineCount = 1;
+document.getElementById('cofAddLine').addEventListener('click', () => {
+  demoLineCount++;
+  const line = document.createElement('div');
+  line.className = 'cof-line';
+  line.innerHTML = '<span class="cof-sw" style="background:#5457D6">ITM</span><div class="cof-line-mid"><div class="cof-line-name">Demo item ' + demoLineCount + '</div><div class="cof-line-unit">RWF 1.0K each</div></div><span class="cof-line-total">1.0K</span>';
+  document.getElementById('cofLines').insertBefore(line, document.getElementById('cofAddLine'));
+});
+
+// ---- Sale / Transfer mode switch (the one control that moves between the two) ----
+const cofSaleEls = { cofCust: '', cofPayRow: 'flex', cofQuickRow: 'flex', cofLines: '', cofTicketsBtn: '', cofPayBtn: '' };
+const cofXferEls = { cofXferBranchRow: 'flex', cofXferPicker: 'flex', cofXferLines: '', cofXferClear: '', cofXferGo: '' };
+function cofSetMode(mode) {
+  document.getElementById('cofAfterShell').className = 'cof-shell mode-' + mode;
+  document.getElementById('cofModeSale').classList.toggle('on', mode === 'sale');
+  document.getElementById('cofModeXfer').classList.toggle('on', mode === 'transfer');
+  Object.keys(cofSaleEls).forEach((id) => { document.getElementById(id).style.display = mode === 'sale' ? cofSaleEls[id] : 'none'; });
+  Object.keys(cofXferEls).forEach((id) => { document.getElementById(id).style.display = mode === 'transfer' ? cofXferEls[id] : 'none'; });
+  document.getElementById('cofFootAmt').style.display = mode === 'sale' ? '' : 'none';
+  if (mode === 'sale') document.getElementById('cofFootLabel').textContent = 'Grand Total · 1 item';
+  else cofXferRender();
+}
+document.getElementById('cofModeSale').addEventListener('click', () => cofSetMode('sale'));
+document.getElementById('cofModeXfer').addEventListener('click', () => cofSetMode('transfer'));
+cofSetMode('sale');
+
+// ---- transfer mode: same "tap to add" cart, different footer ----
+const cofXferState = {}; // productName -> { qty, stock, color }
+
+function cofXferGoLabel() {
+  const total = Object.values(cofXferState).reduce((s, it) => s + it.qty, 0);
+  const branch = document.getElementById('cofXferBranch').value;
+  document.getElementById('cofXferGo').textContent = total ? 'Transfer to ' + branch : 'Transfer';
+}
+
+function cofXferRender() {
+  const lines = document.getElementById('cofXferLines');
+  const names = Object.keys(cofXferState);
+  lines.innerHTML = '';
+  if (!names.length) {
+    lines.innerHTML = '<div class="cof-empty-xfer">No items yet — tap a product above</div>';
+  } else {
+    names.forEach((name) => {
+      const it = cofXferState[name];
+      const row = document.createElement('div');
+      row.className = 'cof-line';
+      row.innerHTML =
+        '<span class="cof-sw" style="background:' + it.color + '">' + name.slice(0, 3).toUpperCase() + '</span>' +
+        '<div class="cof-line-mid"><div class="cof-line-name">' + name + '</div><div class="cof-line-unit">' + it.stock.toLocaleString() + ' in stock</div></div>' +
+        '<div class="cof-xfer-step"><button class="m" data-n="' + name + '">−</button><span>' + it.qty + '</span><button class="p" data-n="' + name + '">+</button></div>' +
+        '<button class="cof-xfer-del" data-n="' + name + '">✕</button>';
+      lines.appendChild(row);
+    });
+    lines.querySelectorAll('.m').forEach((b) => b.addEventListener('click', () => { const n = b.dataset.n; cofXferState[n].qty = Math.max(1, cofXferState[n].qty - 1); cofXferRender(); }));
+    lines.querySelectorAll('.p').forEach((b) => b.addEventListener('click', () => { const n = b.dataset.n; cofXferState[n].qty = Math.min(cofXferState[n].stock, cofXferState[n].qty + 1); cofXferRender(); }));
+    lines.querySelectorAll('.cof-xfer-del').forEach((b) => b.addEventListener('click', () => { delete cofXferState[b.dataset.n]; cofXferRender(); }));
+  }
+  const total = names.reduce((s, n) => s + cofXferState[n].qty, 0);
+  document.getElementById('cofFootLabel').textContent = total ? total + ' item' + (total > 1 ? 's' : '') + ' selected' : 'No items selected';
+  document.getElementById('cofXferGo').disabled = total === 0;
+  cofXferGoLabel();
+}
+
+document.querySelectorAll('.cof-xfer-chip').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    const name = chip.dataset.name;
+    if (!cofXferState[name]) cofXferState[name] = { qty: 1, stock: parseInt(chip.dataset.stock, 10), color: chip.dataset.color };
+    else cofXferState[name].qty = Math.min(cofXferState[name].stock, cofXferState[name].qty + 1);
+    cofXferRender();
+  });
+});
+document.getElementById('cofXferBranch').addEventListener('change', cofXferGoLabel);
+document.getElementById('cofXferClear').addEventListener('click', () => { for (const k in cofXferState) delete cofXferState[k]; cofXferRender(); });
+document.getElementById('cofXferGo').addEventListener('click', () => {
+  const branch = document.getElementById('cofXferBranch').value;
+  const total = Object.values(cofXferState).reduce((s, it) => s + it.qty, 0);
+  const toast = document.getElementById('cofToast');
+  toast.textContent = 'Transferred ' + total + ' item' + (total > 1 ? 's' : '') + ' to ' + branch;
+  toast.classList.add('show');
+  clearTimeout(window.__cofToastTimer);
+  window.__cofToastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+  for (const k in cofXferState) delete cofXferState[k];
+  cofXferRender();
+});
+</script>
+
+<script>
+// doc glue only — mirrors the real source above into the "Full source" panes so the doc can never drift from the demo
+document.getElementById('srcCssOut').textContent = document.getElementById('cofStyle') ? document.getElementById('cofStyle').textContent.trim() : '';
+document.getElementById('srcHtmlOut').textContent = document.getElementById('cofDemoRoot').outerHTML
+  .replace(/></g, '>\n<');
+document.getElementById('srcJsOut').textContent = document.getElementById('cofScript').textContent.trim();
+</script>
+</div>
+</body>
+</html>

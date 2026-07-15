@@ -30,6 +30,10 @@ const Duration _kLoginPipelineTimeout = Duration(seconds: 300);
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
 
+  /// Set by "Not you?" so returning to PIN login does not re-show the previous
+  /// remembered account until a successful sign-in saves a new local PIN.
+  static bool suppressAccountChip = false;
+
   @override
   State<PinLogin> createState() => _PinLoginState();
 }
@@ -95,6 +99,10 @@ class _PinLoginState extends State<PinLogin>
       );
 
   Future<void> _loadLocalAccount() async {
+    if (PinLogin.suppressAccountChip) {
+      if (mounted) setState(() => _localPin = null);
+      return;
+    }
     try {
       final pin = await ProxyService.strategy.getPinLocal(
         alwaysHydrate: false,
@@ -185,6 +193,7 @@ class _PinLoginState extends State<PinLogin>
   }
 
   void _markSignInSuccess() {
+    PinLogin.suppressAccountChip = false;
     if (!mounted) return;
     setState(() => _isDone = true);
   }
@@ -250,15 +259,28 @@ class _PinLoginState extends State<PinLogin>
   }
 
   Future<void> _switchAccount() async {
+    PinLogin.suppressAccountChip = true;
     _pinController.clear();
     _otpController.clear();
-    setState(() {
-      _showOtpField = false;
-      _hasError = false;
-      _errorMessage = '';
-      _localPin = null;
-    });
-    await locator<RouterService>().replaceWith(LoginRoute());
+    if (mounted) {
+      setState(() {
+        _showOtpField = false;
+        _hasError = false;
+        _errorMessage = '';
+        _localPin = null;
+        _isProcessing = false;
+        _isDone = false;
+      });
+    }
+
+    // Drop draft session keys so Login/PIN no longer bind to this phone.
+    ProxyService.box.remove(key: 'userPhone');
+    ProxyService.box.remove(key: 'userId');
+
+    final router = locator<RouterService>();
+    // clearStackAndShow matches other logout/exit-login paths; replaceWith can
+    // no-op when PinLogin already replaced Login on the stack.
+    await router.clearStackAndShow(const LoginRoute());
   }
 
   Future<void> _handleLogin() async {
@@ -532,7 +554,10 @@ class _PinLoginState extends State<PinLogin>
   String get _accountInitial {
     final name = _accountName.trim();
     if (name.isEmpty) return 'F';
-    return name[0];
+    // Phone chips often start with '+'; use the first letter/digit instead.
+    final usable =
+        name.startsWith('+') && name.length > 1 ? name.substring(1) : name;
+    return usable[0].toUpperCase();
   }
 
   bool _useSignInDesktopLayout(BoxConstraints constraints) {

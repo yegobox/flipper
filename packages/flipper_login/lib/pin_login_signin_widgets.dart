@@ -94,26 +94,30 @@ class SignInAccountChip extends StatelessWidget {
               ],
             ),
           ),
-          Semantics(
-            key: const Key(LoginMaestroIds.pinAccountSwitch),
-            identifier: LoginMaestroIds.pinAccountSwitch,
-            label: 'Switch account',
-            button: true,
-            enabled: onNotYou != null,
-            child: TextButton(
-              onPressed: onNotYou,
-              style: TextButton.styleFrom(
-                foregroundColor: SignInTokens.blue,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(
-                'Not you?',
-                style: context.signInText(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: SignInTokens.blue,
+          MouseRegion(
+            cursor: onNotYou != null
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
+            child: Semantics(
+              key: const Key(LoginMaestroIds.pinAccountSwitch),
+              identifier: LoginMaestroIds.pinAccountSwitch,
+              label: 'Switch account',
+              button: true,
+              enabled: onNotYou != null,
+              child: InkWell(
+                onTap: onNotYou,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Text(
+                    'Not you?',
+                    style: context.signInText(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: SignInTokens.blue,
+                    ),
+                  ),
                 ),
               ),
             ),

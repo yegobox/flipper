@@ -45,4 +45,4 @@ final class ShiftDataProvider
   }
 }
 
-String _$shiftDataHash() => r'a5a8bbc25782c07f93d7c58a4728c82ab011a148';
+String _$shiftDataHash() => r'1bcd59218905f1c567839884c094a5bf17870f81';

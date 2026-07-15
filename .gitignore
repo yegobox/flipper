@@ -105,3 +105,4 @@ postman
 yegobox-2ee43-b80ca010ff08.json
 *.dll
 *.docx
+.tmp_aab_scan/

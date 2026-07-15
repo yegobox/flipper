@@ -614,10 +614,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     bool editmode, {
     required String color,
     required String selectedProductType,
-    Map<String, TextEditingController>? rates,
+    Map<String, String>? rates,
     required double newRetailPrice,
     double? newSupplyPrice,
-    Map<String, TextEditingController>? dates,
+    Map<String, String>? dates,
     required String productName,
     Function(List<Variant>)? onCompleteCallback,
     String? categoryId,
@@ -643,9 +643,13 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
           // Update expiration date if available
           if (dates != null && dates.containsKey(variant.id)) {
-            variant.expirationDate = DateFormat(
-              'yyyy-MM-dd',
-            ).parse(dates[variant.id]!.text);
+            try {
+              variant.expirationDate = DateFormat(
+                'yyyy-MM-dd',
+              ).parse(dates[variant.id]!);
+            } catch (e) {
+              talker.error('Error parsing expiration date: $e');
+            }
           }
 
           // Update discount rate from discount controller if available
@@ -726,8 +730,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             productName: productName.isEmpty ? null : productName,
             expirationDate: variant.expirationDate,
             newRetailPrice: newRetailPrice,
-            rates: rates?.map((key, value) => MapEntry(key, value.text)),
-            dates: dates?.map((key, value) => MapEntry(key, value.text)),
+            rates: rates,
+            dates: dates,
             supplyPrice: newSupplyPrice,
             updateIo: false,
           );

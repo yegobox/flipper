@@ -4,7 +4,7 @@ publish_to: "none"
 #  ios : 1.184
 # macos : 1.181
 
-version: 1.185.4252223235658+1756529663
+version: 1.185.4252223235662+1756529667
 
 
 
@@ -156,6 +156,9 @@ dependency_overrides:
     path: ../../open-sources/smithy
   smithy_aws:
     path: ../../open-sources/smithy_aws
+  # Upstream turso_dart 0.1.0 ships 4KB ELF libs; Play requires 16KB.
+  turso_dart:
+    path: ../../open-sources/turso_dart
   jni: ^0.14.2
   # 2.3.0+ requires jni ^1.0; keep in sync with flipper/melos.yaml
   path_provider_android: ">=2.2.5 <2.3.0"
@@ -180,7 +183,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   msix: ^3.16.12
   patrol: ^3.20.0
-  device_preview_plus: ^2.7.2
+  device_preview_plus: ^2.8.4
   # Java interop code generation
   jnigen: ^0.14.2
   flutter_launcher_icons: ^0.14.4
@@ -206,7 +209,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5551.0
+  msix_version: 1.170.5555.0
 
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE

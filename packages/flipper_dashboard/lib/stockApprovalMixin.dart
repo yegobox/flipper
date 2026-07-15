@@ -12,7 +12,9 @@ import 'dart:async';
 import 'package:flipper_ui/snack_bar_utils.dart';
 
 mixin StockRequestApprovalLogic {
-  Future<void> approveRequest({
+  /// Returns true when approval is finalized; false when left pending/unapproved.
+  /// Unexpected failures are surfaced via snackbar then rethrown.
+  Future<bool> approveRequest({
     required InventoryRequest request,
     required BuildContext context,
   }) async {
@@ -32,7 +34,7 @@ mixin StockRequestApprovalLogic {
       if (items.isEmpty) {
         Navigator.of(context).pop();
         _showSnackBar(message: 'No items found in request', context: context);
-        return;
+        return false;
       }
 
       final itemApprovalResults = await Future.wait(
@@ -65,7 +67,7 @@ mixin StockRequestApprovalLogic {
           context: context,
         );
 
-        if (!partialApprovalResult) return;
+        if (!partialApprovalResult) return false;
       }
 
       final List<TransactionItem> approvedItems =
@@ -80,7 +82,7 @@ mixin StockRequestApprovalLogic {
           context: context,
           isError: true,
         );
-        return;
+        return false;
       }
 
       await _finalizeApproval(
@@ -88,6 +90,7 @@ mixin StockRequestApprovalLogic {
         isFullyApproved: isFullyApproved,
         context: context,
       );
+      return true;
     } catch (e, s) {
       talker.error('Error in approveRequest', e, s);
       if (context.mounted) {
@@ -98,6 +101,7 @@ mixin StockRequestApprovalLogic {
           isError: true,
         );
       }
+      rethrow;
     }
   }
 

@@ -527,7 +527,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             model: model,
             productName: _roomNumberController.text,
             countryofOrigin: "RW",
-            rates: {"TT": TextEditingController(text: "3.0")},
+            rates: {"TT": "3.0"},
             color: "#FF0000",
             dates: {},
             retailPrice: double.tryParse(_priceController.text) ?? 0.0,

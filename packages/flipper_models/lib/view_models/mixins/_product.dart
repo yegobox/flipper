@@ -8,7 +8,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/utils/bulk_desktop_variant_prep.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as newMod;
 import 'package:flipper_services/locator.dart' as loc;
-import 'package:flutter/material.dart';
 
 mixin ProductMixin {
   final ProductService productService = loc.getIt<ProductService>();
@@ -32,8 +31,8 @@ mixin ProductMixin {
   Future<void> addVariant(
       {List<Variant>? variations,
       required String packagingUnit,
-      Map<String, TextEditingController>? rates,
-      Map<String, TextEditingController>? dates,
+      Map<String, String>? rates,
+      Map<String, String>? dates,
       double? retailPrice,
       double? supplyPrice,
       bool preserveVariationFields = false,
@@ -83,11 +82,9 @@ mixin ProductMixin {
           fallback: existing.pkgUnitCd ?? 'CT',
         );
 
-        final discountController =
-            rates != null ? rates[existing.id] : null;
-        final discountText = (discountController ??
-                model.getDiscountController(existing.id))
-            .text;
+        final rateText = rates != null ? rates[existing.id] : null;
+        final discountText =
+            rateText ?? model.getDiscountController(existing.id).text;
         final dcRt = double.tryParse(discountText) ?? 0;
 
         final effectiveRetailPrice = preserveVariationFields

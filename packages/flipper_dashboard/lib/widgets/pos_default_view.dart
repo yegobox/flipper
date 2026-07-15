@@ -1,7 +1,9 @@
 import 'package:flipper_dashboard/payable_view.dart';
+import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart' as oldImplementationOfRiverpod;
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    as oldImplementationOfRiverpod;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,7 +19,8 @@ class PosDefaultView extends ConsumerWidget {
     bool immediateCompletion, [
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
-  ]) onCompleteTransaction;
+  ])
+  onCompleteTransaction;
   final VoidCallback onTicketNavigation;
 
   const PosDefaultView({
@@ -31,7 +34,10 @@ class PosDefaultView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final branchAsync = ref.watch(activeBranchProvider);
-    
+    final isTransfer =
+        ref.watch(checkoutCartModeProvider) == CheckoutCartMode.transfer;
+    final isOrdering = ProxyService.box.isOrdering() ?? false;
+
     return branchAsync.when(
       data: (branch) {
         return FutureBuilder<bool>(
@@ -40,11 +46,13 @@ class PosDefaultView extends ConsumerWidget {
           ) as Future<bool>,
           builder: (context, snapshot) {
             final digitalPaymentEnabled = snapshot.data ?? false;
-            
+
             return ViewModelBuilder<CoreViewModel>.reactive(
               viewModelBuilder: () => CoreViewModel(),
               builder: (context, model, child) {
                 final txn = transaction;
+                // Transfer CTAs live inside QuickSellingView — hide Pay/Tickets.
+                final showPayBar = !isTransfer && !isOrdering;
                 return Column(
                   children: [
                     Expanded(
@@ -53,20 +61,21 @@ class PosDefaultView extends ConsumerWidget {
                         child: quickSellingView,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: txn == null
-                          ? _transactionFooterLoadingPlaceholder(context)
-                          : PayableView(
-                              transactionId: txn.id,
-                              mode: oldImplementationOfRiverpod
-                                  .SellingMode.forSelling,
-                              completeTransaction: onCompleteTransaction,
-                              model: model,
-                              ticketHandler: onTicketNavigation,
-                              digitalPaymentEnabled: digitalPaymentEnabled,
-                            ),
-                    ),
+                    if (showPayBar)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: txn == null
+                            ? _transactionFooterLoadingPlaceholder(context)
+                            : PayableView(
+                                transactionId: txn.id,
+                                mode: oldImplementationOfRiverpod
+                                    .SellingMode.forSelling,
+                                completeTransaction: onCompleteTransaction,
+                                model: model,
+                                ticketHandler: onTicketNavigation,
+                                digitalPaymentEnabled: digitalPaymentEnabled,
+                              ),
+                      ),
                   ],
                 );
               },

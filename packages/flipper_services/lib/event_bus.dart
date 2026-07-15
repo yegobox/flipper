@@ -26,6 +26,20 @@ class DelegationReceivedEvent {
   });
 }
 
+/// Fired when a POS branch stock transfer completes (source) or arrives (dest).
+/// Same banner path as [DelegationReceivedEvent] on desktop + mobile.
+class StockTransferNotificationEvent {
+  final String requestId;
+  final String title;
+  final String body;
+
+  const StockTransferNotificationEvent({
+    required this.requestId,
+    required this.title,
+    required this.body,
+  });
+}
+
 class EventBus {
   static final EventBus _instance = EventBus._internal();
   factory EventBus() => _instance;

@@ -31,6 +31,9 @@ dependency_overrides:
     path: open-sources/smithy
   smithy_aws:
     path: open-sources/smithy_aws
+  # Upstream turso_dart 0.1.0 ships 4KB ELF libs; Play requires 16KB.
+  turso_dart:
+    path: open-sources/turso_dart
   flutter_native_splash: ^2.3.2
   analyzer: ^9.0.0
   source_gen: ">=3.1.0 <5.0.0"  # Override to allow compatibility with json_serializable
