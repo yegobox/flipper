@@ -176,4 +176,12 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
           },
         );
   }
+
+  void loadMore() {
+    _limit += 50;
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId != null) {
+      _setupSubscription(branchId);
+    }
+  }
 }

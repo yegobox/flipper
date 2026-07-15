@@ -243,10 +243,7 @@ class ActionRow extends ConsumerWidget
                     status: RequestStatus.voided,
                   );
 
-                  await ProxyService.strategy.flipperDelete(
-                    id: request.id,
-                    endPoint: 'stockRequest',
-                  );
+                  // Keep the voided request for history / audit — do not delete.
 
                   try {
                     final requesterConfig =

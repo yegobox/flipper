@@ -111,42 +111,30 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
   final tin = businessEbm.tinNumber.toString();
   final now = DateTime.now();
 
-  final stockIoItems = <TransactionItem>[];
-  double totalSupply = 0;
-  double totalAmount = 0;
+  // OUT reports the source branch's item identity; IN reports the destination
+  // branch's (its own itemCd / units may differ from the source's).
+  final outItems = <TransactionItem>[];
+  final inItems = <TransactionItem>[];
+  double outTotalSupply = 0;
+  double outTotalAmount = 0;
+  double inTotalSupply = 0;
+  double inTotalAmount = 0;
   for (final line in lines) {
     if (line.approvedQty <= 0) continue;
-    final v = line.sourceVariant;
-    final unitSupply = (v.supplyPrice ?? v.retailPrice ?? 0).toDouble();
-    final unitRetail = (v.retailPrice ?? v.supplyPrice ?? 0).toDouble();
     final qty = line.approvedQty.toDouble();
-    final lineSupply = unitSupply * qty;
-    final lineRetail = unitRetail * qty;
-    totalSupply += lineSupply;
-    totalAmount += lineRetail;
-    stockIoItems.add(
-      TransactionItem(
-        name: line.itemName,
-        qty: qty,
-        price: unitRetail,
-        discount: 0,
-        prc: unitRetail,
-        supplyPrice: unitSupply,
-        ttCatCd: v.taxTyCd ?? 'B',
-        taxTyCd: v.taxTyCd ?? 'B',
-        itemCd: v.itemCd,
-        itemClsCd: v.itemClsCd,
-        itemNm: v.name,
-        itemTyCd: v.itemTyCd,
-        qtyUnitCd: v.qtyUnitCd ?? 'U',
-        pkgUnitCd: v.pkgUnitCd ?? 'NT',
-        variantId: v.id,
-        branchId: mainBranchId,
-      ),
-    );
+
+    final source = line.sourceVariant;
+    outTotalSupply += (source.supplyPrice ?? source.retailPrice ?? 0) * qty;
+    outTotalAmount += (source.retailPrice ?? source.supplyPrice ?? 0) * qty;
+    outItems.add(_transferLineItem(line.itemName, source, qty, mainBranchId));
+
+    final dest = line.destVariant;
+    inTotalSupply += (dest.supplyPrice ?? dest.retailPrice ?? 0) * qty;
+    inTotalAmount += (dest.retailPrice ?? dest.supplyPrice ?? 0) * qty;
+    inItems.add(_transferLineItem(line.itemName, dest, qty, subBranchId));
   }
 
-  if (stockIoItems.isEmpty) return BranchTransferRraResult.skipped;
+  if (outItems.isEmpty) return BranchTransferRraResult.skipped;
 
   try {
     Future<Sar> bumpSar(String branchId) =>
@@ -162,7 +150,7 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
 
     final outResp = await retryTransientRraCall(
       () => ProxyService.tax.saveStockItems(
-        items: stockIoItems,
+        items: outItems,
         updateMaster: false,
         tinNumber: tin,
         bhFId: sourceBhfId,
@@ -172,9 +160,9 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
         custTin: tin,
         custBhfId: destBhfId,
         regTyCd: 'M',
-        totalSupplyPrice: totalSupply,
+        totalSupplyPrice: outTotalSupply,
         totalvat: 0,
-        totalAmount: totalAmount,
+        totalAmount: outTotalAmount,
         remark: 'Stock transfer to branch $destBhfId',
         ocrnDt: now,
         sarNo: sourceSarNo.toString(),
@@ -201,7 +189,7 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
 
     final inResp = await retryTransientRraCall(
       () => ProxyService.tax.saveStockItems(
-        items: stockIoItems,
+        items: inItems,
         updateMaster: false,
         tinNumber: tin,
         bhFId: destBhfId,
@@ -212,9 +200,9 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
         custBhfId: sourceBhfId,
         includeCustomerFields: true,
         regTyCd: 'M',
-        totalSupplyPrice: totalSupply,
+        totalSupplyPrice: inTotalSupply,
         totalvat: 0,
-        totalAmount: totalAmount,
+        totalAmount: inTotalAmount,
         remark: 'Stock received from branch $sourceBhfId',
         ocrnDt: now,
         sarNo: destSarNo.toString(),
@@ -236,7 +224,10 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
       );
     }
 
-    // Stock masters with absolute on-hand after local move.
+    // Stock masters with absolute on-hand after local move. StockIO already
+    // succeeded, so a master failure is a partial sync: leave that stock's
+    // ebmSynced false and report the transfer as not fully reconciled.
+    var mastersSucceeded = true;
     for (final line in lines) {
       final sourceStock = line.sourceVariant.stock;
       final destStock = line.destVariant.stock;
@@ -253,10 +244,18 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
             stockMasterQty: sourceQty,
           ),
         );
-        if (masterResp.resultCd == '000' && sourceStock != null) {
-          await ProxyService.strategy.updateStock(
-            stockId: sourceStock.id,
-            ebmSynced: true,
+        if (masterResp.resultCd == '000') {
+          if (sourceStock != null) {
+            await ProxyService.strategy.updateStock(
+              stockId: sourceStock.id,
+              ebmSynced: true,
+            );
+          }
+        } else {
+          mastersSucceeded = false;
+          talker.error(
+            'BranchTransferRra source master failed: '
+            '${masterResp.resultCd} ${masterResp.resultMsg}',
           );
         }
       }
@@ -268,15 +267,30 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
             stockMasterQty: destQty,
           ),
         );
-        if (masterResp.resultCd == '000' && destStock != null) {
-          await ProxyService.strategy.updateStock(
-            stockId: destStock.id,
-            ebmSynced: true,
+        if (masterResp.resultCd == '000') {
+          if (destStock != null) {
+            await ProxyService.strategy.updateStock(
+              stockId: destStock.id,
+              ebmSynced: true,
+            );
+          }
+        } else {
+          mastersSucceeded = false;
+          talker.error(
+            'BranchTransferRra dest master failed: '
+            '${masterResp.resultCd} ${masterResp.resultMsg}',
           );
         }
       }
     }
 
+    if (!mastersSucceeded) {
+      return const BranchTransferRraResult(
+        attempted: true,
+        succeeded: false,
+        message: 'EBM stock master sync incomplete',
+      );
+    }
     return const BranchTransferRraResult(attempted: true, succeeded: true);
   } catch (e, s) {
     talker.error('BranchTransferRra failed', e, s);
@@ -286,6 +300,37 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
       message: e.toString(),
     );
   }
+}
+
+/// One `saveStockItems` line for [variant] at [branchId], moving [qty] units.
+TransactionItem _transferLineItem(
+  String name,
+  Variant variant,
+  double qty,
+  String branchId,
+) {
+  final unitSupply =
+      (variant.supplyPrice ?? variant.retailPrice ?? 0).toDouble();
+  final unitRetail =
+      (variant.retailPrice ?? variant.supplyPrice ?? 0).toDouble();
+  return TransactionItem(
+    name: name,
+    qty: qty,
+    price: unitRetail,
+    discount: 0,
+    prc: unitRetail,
+    supplyPrice: unitSupply,
+    ttCatCd: variant.taxTyCd ?? 'B',
+    taxTyCd: variant.taxTyCd ?? 'B',
+    itemCd: variant.itemCd,
+    itemClsCd: variant.itemClsCd,
+    itemNm: variant.name,
+    itemTyCd: variant.itemTyCd,
+    qtyUnitCd: variant.qtyUnitCd ?? 'U',
+    pkgUnitCd: variant.pkgUnitCd ?? 'NT',
+    variantId: variant.id,
+    branchId: branchId,
+  );
 }
 
 /// Any vat-enabled EBM row for the business (shared tin / tax URL).

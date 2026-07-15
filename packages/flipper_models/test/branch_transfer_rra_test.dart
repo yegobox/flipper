@@ -56,6 +56,7 @@ class RecordingTaxApi extends Mock implements TaxApi {
       'isStockIn': isStockIn,
       'includeCustomerFields': includeCustomerFields,
       'URI': URI,
+      'itemCd': items.isNotEmpty ? items.first.itemCd : null,
     });
     return ioResponse;
   }
@@ -99,13 +100,14 @@ Variant _variant({
   required String id,
   required String branchId,
   required Stock stock,
+  String itemCd = 'RW2AMCT0000138',
 }) {
   return Variant(
     id: id,
     name: 'Tea',
     branchId: branchId,
     taxTyCd: 'B',
-    itemCd: 'RW2AMCT0000138',
+    itemCd: itemCd,
     itemClsCd: '5020230602',
     itemTyCd: '2',
     supplyPrice: 25,
@@ -123,6 +125,8 @@ BranchTransferApprovedLine _line() {
   final dest = _variant(
     id: 'vDst',
     branchId: 'branchB',
+    // Destination branch registers its own itemCd for the shared item.
+    itemCd: 'RW2AMCT0000999',
     stock: Stock(id: 'sDst', branchId: 'branchB', currentStock: 3, rsdQty: 3),
   );
   return BranchTransferApprovedLine(
@@ -302,6 +306,7 @@ void main() {
       expect(out['sarNo'], '100');
       expect(out['invoiceNumber'], 100);
       expect(out['URI'], 'https://tax.example/');
+      expect(out['itemCd'], 'RW2AMCT0000138'); // source item identity
 
       final incoming = tax.ioCalls[1];
       expect(incoming['sarTyCd'], StockInOutType.stockMovementIn);
@@ -313,6 +318,7 @@ void main() {
       // orgSarNo on IN links back to A's OUT sarNo.
       expect(incoming['invoiceNumber'], 100);
       expect(incoming['invoiceNumber'], out['invoiceNumber']);
+      expect(incoming['itemCd'], 'RW2AMCT0000999'); // destination item identity
 
       // Local stocks flagged ebmSynced once masters return 000.
       verify(() => db.updateStock(stockId: 'sSrc', ebmSynced: true)).called(1);
@@ -344,6 +350,43 @@ void main() {
       expect(result.message, 'rejected');
       // Only the OUT call happened.
       expect(tax.order, ['io:13']);
+    });
+
+    test('master failure after successful IO yields not-succeeded result',
+        () async {
+      when(() => db.ebm(branchId: 'branchA'))
+          .thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
+      when(() => db.ebm(branchId: 'branchB'))
+          .thenAnswer((_) async => _ebm(branchId: 'branchB', bhfId: '01'));
+      when(() => db.updateStock(
+            stockId: any(named: 'stockId'),
+            ebmSynced: any(named: 'ebmSynced'),
+          )).thenAnswer((_) async {});
+      // OUT/IN succeed, masters do not.
+      tax.masterResponse = RwApiResponse(resultCd: '894', resultMsg: 'no item');
+
+      final result = await reportBranchTransferToRra(
+        request: _request(),
+        lines: [_line()],
+        businessId: 'biz1',
+        resolveEbm: (_) async => _ebm(
+          branchId: 'branchA',
+          bhfId: '00',
+          taxServerUrl: 'https://tax.example/',
+        ),
+        nextBranchSar: (branchId) async =>
+            Sar(sarNo: branchId == 'branchA' ? 100 : 200, branchId: branchId),
+      );
+
+      expect(result.attempted, isTrue);
+      expect(result.succeeded, isFalse);
+      // IO fully ran; masters were attempted but failed.
+      expect(tax.order, ['io:13', 'io:04', 'master:vSrc', 'master:vDst']);
+      // No stock is flagged synced when its master failed.
+      verifyNever(() => db.updateStock(
+            stockId: any(named: 'stockId'),
+            ebmSynced: any(named: 'ebmSynced'),
+          ));
     });
   });
 }

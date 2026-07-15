@@ -789,50 +789,74 @@ WHERE _id = :stockId OR id = :stockId
       query += ' AND status = :status';
     }
 
-    query += ' ORDER BY createdAt DESC LIMIT :limit';
+    // For bounded (date-window) reports, apply the window to ALL candidates
+    // before limiting, otherwise LIMIT would drop older in-window transfers.
+    final bounded = start != null || end != null;
+    query += bounded
+        ? ' ORDER BY createdAt DESC'
+        : ' ORDER BY createdAt DESC LIMIT :limit';
 
     final result = await ditto.store.execute(query, arguments: arguments);
+
+    var converted = result.items
+        .map(
+          (item) => _convertInventoryRequestFromDitto(
+            Map<String, dynamic>.from(item.value),
+          ),
+        )
+        .toList();
+
+    if (bounded) {
+      final startUtc = start?.toUtc();
+      final endUtc = end?.toUtc();
+      converted = converted
+          .where((r) {
+            final stamp = r.approvedAt ?? r.createdAt;
+            // Bounded reports exclude undated rows (can't confirm the window).
+            if (stamp == null) return false;
+            final t = stamp.toUtc();
+            if (startUtc != null && t.isBefore(startUtc)) return false;
+            if (endUtc != null && t.isAfter(endUtc)) return false;
+            return true;
+          })
+          .take(limit)
+          .toList();
+    }
+
+    // Hydrate source branches, caching by mainBranchId to avoid N+1 queries.
+    final branchCache = <String, Branch?>{};
     final requests = <InventoryRequest>[];
-
-    for (final item in result.items) {
-      final data = Map<String, dynamic>.from(item.value);
-      final request = _convertInventoryRequestFromDitto(data);
-
-      if (request.mainBranchId != null && request.mainBranchId!.isNotEmpty) {
-        try {
-          final branchResult = await ditto.store.execute(
-            'SELECT * FROM branches WHERE _id = :id',
-            arguments: {'id': request.mainBranchId},
-          );
-          if (branchResult.items.isNotEmpty) {
-            request.branch = Branch.fromMap(
-              Map<String, dynamic>.from(branchResult.items.first.value),
+    for (final request in converted) {
+      final mainId = request.mainBranchId;
+      if (mainId != null && mainId.isNotEmpty) {
+        Branch? branch;
+        if (branchCache.containsKey(mainId)) {
+          branch = branchCache[mainId];
+        } else {
+          try {
+            final branchResult = await ditto.store.execute(
+              'SELECT * FROM branches WHERE _id = :id',
+              arguments: {'id': mainId},
+            );
+            if (branchResult.items.isNotEmpty) {
+              branch = Branch.fromMap(
+                Map<String, dynamic>.from(branchResult.items.first.value),
+              );
+            }
+          } catch (e) {
+            talker.warning(
+              'stockRequestsToBranch: could not load source branch '
+              '$mainId: $e',
             );
           }
-        } catch (e) {
-          talker.warning(
-            'stockRequestsToBranch: could not load source branch '
-            '${request.mainBranchId}: $e',
-          );
+          branchCache[mainId] = branch;
         }
+        if (branch != null) request.branch = branch;
       }
-
       requests.add(request);
     }
 
-    if (start == null && end == null) return requests;
-
-    final startUtc = start?.toUtc();
-    final endUtc = end?.toUtc();
-
-    return requests.where((r) {
-      final stamp = r.approvedAt ?? r.createdAt;
-      if (stamp == null) return true;
-      final t = stamp.toUtc();
-      if (startUtc != null && t.isBefore(startUtc)) return false;
-      if (endUtc != null && t.isAfter(endUtc)) return false;
-      return true;
-    }).toList();
+    return requests;
   }
 
   InventoryRequest _convertInventoryRequestFromDitto(

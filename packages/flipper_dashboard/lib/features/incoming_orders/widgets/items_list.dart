@@ -150,8 +150,9 @@ class _ItemRow extends HookConsumerWidget {
       return null;
     }, [isEditing.value, item.quantityRequested]);
 
-    final isOutgoingPending =
-        !isIncoming && request.status == RequestStatus.pending;
+    // Pending requests (incoming or outgoing) show the requested qty; only
+    // approved/partial requests show the approved-vs-requested split.
+    final isPending = request.status == RequestStatus.pending;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
@@ -217,7 +218,7 @@ class _ItemRow extends HookConsumerWidget {
                         fontSize: 13,
                         color: OmTokens.muted,
                       ),
-                      children: isOutgoingPending
+                      children: isPending
                           ? [
                               const TextSpan(text: 'Requested: '),
                               TextSpan(

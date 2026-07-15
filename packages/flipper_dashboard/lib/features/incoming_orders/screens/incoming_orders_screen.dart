@@ -25,6 +25,9 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     final status = ref.watch(requestStatusProvider);
     final search = stringValue?.isNotEmpty == true ? stringValue : null;
     final direction = useState(OmDirection.incoming);
+    // Gates pagination so loadMore() fires once per scroll-to-bottom, not on
+    // every settling scroll notification while parked at the end.
+    final loadMoreGate = useRef(false);
     final orderStatus = ref.watch(orderStatusProvider);
 
     final incomingRequestsAsync = ref.watch(
@@ -110,6 +113,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                           search: search,
                           compact: compact,
                           hPad: hPad,
+                          loadMoreGate: loadMoreGate,
                         ),
                       ),
                     ],
@@ -138,6 +142,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     String? search,
     required bool compact,
     required double hPad,
+    required ObjectRef<bool> loadMoreGate,
   }) {
     return requestsAsync.when(
       data: (requests) {
@@ -155,55 +160,88 @@ class IncomingOrdersScreen extends HookConsumerWidget {
             final sectionTitle =
                 isIncoming ? 'Received Orders' : 'Sent Orders';
 
+            final listPadding =
+                EdgeInsets.fromLTRB(hPad, compact ? 16 : 22, hPad, 80);
+
+            Widget header() => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (isPending) ...[
+                      _OmStatCard(count: requests.length),
+                      SizedBox(height: compact ? 16 : 22),
+                    ],
+                    Text(
+                      sectionTitle,
+                      style: OmTokens.text(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.01 * 15,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                );
+
             return NotificationListener<ScrollNotification>(
               onNotification: (scrollInfo) {
-                if (isIncoming &&
-                    scrollInfo.metrics.pixels >=
-                        scrollInfo.metrics.maxScrollExtent - 40) {
-                  ref
-                      .read(
-                        stockRequestsProvider(
-                          status: status,
-                          search: search,
-                        ).notifier,
-                      )
-                      .loadMore();
+                final atEnd = scrollInfo.metrics.pixels >=
+                    scrollInfo.metrics.maxScrollExtent - 40;
+                if (atEnd) {
+                  if (!loadMoreGate.value) {
+                    loadMoreGate.value = true;
+                    if (isIncoming) {
+                      ref
+                          .read(
+                            stockRequestsProvider(
+                              status: status,
+                              search: search,
+                            ).notifier,
+                          )
+                          .loadMore();
+                    } else {
+                      ref
+                          .read(
+                            outgoingStockRequestsProvider(
+                              status: status,
+                              search: search,
+                            ).notifier,
+                          )
+                          .loadMore();
+                    }
+                  }
+                } else {
+                  loadMoreGate.value = false;
                 }
                 return false;
               },
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(hPad, compact ? 16 : 22, hPad, 80),
-                children: [
-                  if (isPending) ...[
-                    _OmStatCard(count: requests.length),
-                    SizedBox(height: compact ? 16 : 22),
-                  ],
-                  Text(
-                    sectionTitle,
-                    style: OmTokens.text(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.01 * 15,
+              child: requests.isEmpty
+                  ? ListView(
+                      padding: listPadding,
+                      children: [
+                        header(),
+                        _OmEmptyState(status: status),
+                      ],
+                    )
+                  : ListView.builder(
+                      padding: listPadding,
+                      itemCount: requests.length + 1,
+                      itemBuilder: (context, i) {
+                        if (i == 0) return header();
+                        final index = i - 1;
+                        final request = requests[index];
+                        return Padding(
+                          key: ValueKey(request.id),
+                          padding: EdgeInsets.only(
+                            bottom: index == requests.length - 1 ? 0 : 12,
+                          ),
+                          child: RequestCard(
+                            request: request,
+                            incomingBranch: currentBranch,
+                            isIncoming: isIncoming,
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (requests.isEmpty)
-                    _OmEmptyState(status: status)
-                  else
-                    ...List.generate(requests.length, (index) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == requests.length - 1 ? 0 : 12,
-                        ),
-                        child: RequestCard(
-                          request: requests[index],
-                          incomingBranch: currentBranch,
-                          isIncoming: isIncoming,
-                        ),
-                      );
-                    }),
-                ],
-              ),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),

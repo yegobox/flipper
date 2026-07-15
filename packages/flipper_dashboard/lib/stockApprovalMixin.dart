@@ -486,7 +486,7 @@ mixin StockRequestApprovalLogic {
           request: request,
           lines: rraLines,
         );
-        if (rra.attempted && !rra.succeeded && context.mounted) {
+        if (!rra.succeeded && context.mounted) {
           _showSnackBar(
             message:
                 'Approved locally; EBM sync failed${rra.message != null ? ': ${rra.message}' : ''}',
