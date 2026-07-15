@@ -52,7 +52,9 @@ abstract class TaxApi implements NoticeInterface {
       String? sarNo,
       required String URI,
       num? invoiceNumber,
-      num? approvedQty});
+      num? approvedQty,
+      /// Emit cust* on incoming StockIO (branch-transfer IN).
+      bool includeCustomerFields = false});
   Future<RwApiResponse> saveCustomer(
       {required ICustomer customer, required String URI});
   Future<BusinessInfo> initApi(

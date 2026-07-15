@@ -297,6 +297,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     num? approvedQty,
     bool updateMaster = true,
     required String URI,
+    bool includeCustomerFields = false,
   }) async {
     if ((isAndroid || isIos) && URI.contains('localhost')) {
       return RwApiResponse(
@@ -355,6 +356,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         saleCustomerName: effectiveCustomerName,
         saleCustTin: custTin != null && custTin.isValidTin() ? custTin : null,
         saleCustBhfId: custBhfId,
+        includeCustomerFields: includeCustomerFields,
       );
       talker.info(json);
       Response response = await sendPostRequest(url, json);

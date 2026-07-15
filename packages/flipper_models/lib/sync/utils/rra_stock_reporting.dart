@@ -142,6 +142,8 @@ Map<String, dynamic> buildRraSaveStockItemsRequest({
   String? saleCustTin,
   String? saleCustBhfId,
   String Function()? fallbackRegistrarId,
+  /// When true, emit cust* even for incoming [sarTyCd] (branch-transfer IN `04`).
+  bool includeCustomerFields = false,
 }) {
   final registrar = rraStockIoRegistrarFields(
     items,
@@ -169,7 +171,7 @@ Map<String, dynamic> buildRraSaveStockItemsRequest({
     'itemList': itemList,
   };
 
-  if (!incoming) {
+  if (!incoming || includeCustomerFields) {
     final name = saleCustomerName?.trim();
     json['custNm'] = (name != null && name.isNotEmpty) ? name : 'N/A';
     if (saleCustBhfId != null && saleCustBhfId.isNotEmpty) {

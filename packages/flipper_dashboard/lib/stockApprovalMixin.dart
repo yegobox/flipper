@@ -1,5 +1,6 @@
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/sync/utils/branch_transfer_rra.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,8 +26,7 @@ mixin StockRequestApprovalLogic {
 
       // Prefer embedded stock_request items (source of truth for approval qty).
       // Table rows may lag or omit quantityRequested until linked fully.
-      List<TransactionItem> items =
-          _resolveRequestItemsForApproval(request);
+      List<TransactionItem> items = _resolveRequestItemsForApproval(request);
 
       if (items.isEmpty) {
         final fromTable = await ProxyService.getStrategy(
@@ -60,10 +60,15 @@ mixin StockRequestApprovalLogic {
       );
 
       final List<TransactionItem> itemsNeedingApproval = [];
+      final List<BranchTransferApprovedLine> rraLines = [];
       bool isFullyApproved = true;
 
       for (var i = 0; i < items.length; i++) {
-        if (!itemApprovalResults[i]) {
+        final result = itemApprovalResults[i];
+        if (result.line != null) {
+          rraLines.add(result.line!);
+        }
+        if (!result.ok) {
           isFullyApproved = false;
           itemsNeedingApproval.add(items[i]);
         }
@@ -72,26 +77,28 @@ mixin StockRequestApprovalLogic {
       loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
 
       if (!isFullyApproved) {
-        final bool partialApprovalResult = await _handlePartialApproval(
+        final partial = await _handlePartialApproval(
           items: itemsNeedingApproval,
           request: request,
           context: context,
         );
 
-        if (!partialApprovalResult) return false;
+        if (!partial.ok) return false;
+        rraLines.addAll(partial.lines);
       }
 
       // Same source as approveSingleItem: Capella embedded items after writes.
-      final refreshed = (await ProxyService.getStrategy(Strategy.capella)
-              .requests(requestId: request.id))
-          .firstOrNull;
+      final refreshed = (await ProxyService.getStrategy(
+        Strategy.capella,
+      ).requests(requestId: request.id)).firstOrNull;
       final List<TransactionItem> approvedItems =
           refreshed?.transactionItems ??
-              await ProxyService.getStrategy(
-                Strategy.capella,
-              ).transactionItems(requestId: request.id);
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).transactionItems(requestId: request.id);
 
-      final anyProcessed = itemApprovalResults.any((r) => r);
+      final anyProcessed =
+          itemApprovalResults.any((r) => r.ok) || rraLines.isNotEmpty;
       if (!anyProcessed &&
           !_atLeastOneItemApproved(approvedItems) &&
           !_atLeastOneItemApproved(items)) {
@@ -103,7 +110,8 @@ mixin StockRequestApprovalLogic {
         return false;
       }
 
-      final bool fullyFromEmbedded = approvedItems.isNotEmpty &&
+      final bool fullyFromEmbedded =
+          approvedItems.isNotEmpty &&
           approvedItems.every(
             (item) =>
                 (item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0) &&
@@ -114,6 +122,7 @@ mixin StockRequestApprovalLogic {
         request: refreshed ?? request,
         isFullyApproved: isFullyApproved || fullyFromEmbedded,
         context: context,
+        rraLines: rraLines,
       );
       return true;
     } catch (e, s) {
@@ -223,27 +232,27 @@ mixin StockRequestApprovalLogic {
             : availableStock.toInt();
       }
 
-      await _processPartialApprovalItem(
+      final rraLine = await _processPartialApprovalItem(
         item: item,
         approvedQuantity: approvedQuantity,
         request: request,
       );
 
       // Re-fetch the request to get updated embedded items
-      final updatedRequest = (await ProxyService.getStrategy(Strategy.capella)
-              .requests(requestId: request.id))
-          .firstOrNull;
+      final updatedRequest = (await ProxyService.getStrategy(
+        Strategy.capella,
+      ).requests(requestId: request.id)).firstOrNull;
 
       if (updatedRequest != null && updatedRequest.transactionItems != null) {
         final bool isFullyApproved = updatedRequest.transactionItems!.every(
-          (line) =>
-              (line.quantityApproved ?? 0) >= (_requestedQty(line)),
+          (line) => (line.quantityApproved ?? 0) >= (_requestedQty(line)),
         );
 
         await _finalizeApproval(
           request: updatedRequest,
           isFullyApproved: isFullyApproved,
           context: context,
+          rraLines: rraLine != null ? [rraLine] : const [],
         );
       }
 
@@ -290,7 +299,7 @@ mixin StockRequestApprovalLogic {
         availableStock >= remainingQuantityToApprove;
   }
 
-  Future<bool> _processItemApproval({
+  Future<_ItemApprovalResult> _processItemApproval({
     required TransactionItem item,
     required String subBranchId,
     required String sourceBranchId,
@@ -298,7 +307,9 @@ mixin StockRequestApprovalLogic {
   }) async {
     try {
       final requested = _requestedQty(item);
-      if (requested < 1) return false;
+      if (requested < 1) {
+        return const _ItemApprovalResult(ok: false);
+      }
 
       // If the item is already fully approved, we don't need to do anything
       if ((item.quantityApproved ?? 0) >= requested) {
@@ -308,26 +319,26 @@ mixin StockRequestApprovalLogic {
           transactionItemId: item.id,
           quantityApproved: item.quantityApproved ?? requested,
         );
-        return true;
+        return const _ItemApprovalResult(ok: true);
       }
 
       if (await _canApproveItem(item: item)) {
-        await _approveItem(
+        final line = await _approveItem(
           item: item,
           subBranchId: subBranchId,
           request: request,
           sourceBranchId: sourceBranchId,
         );
-        return true;
+        return _ItemApprovalResult(ok: true, line: line);
       }
-      return false;
+      return const _ItemApprovalResult(ok: false);
     } catch (e, s) {
       talker.error('Error processing item approval', e, s);
-      return false;
+      return const _ItemApprovalResult(ok: false);
     }
   }
 
-  Future<void> _approveItem({
+  Future<BranchTransferApprovedLine?> _approveItem({
     required TransactionItem item,
     required String subBranchId,
     required String sourceBranchId,
@@ -346,14 +357,16 @@ mixin StockRequestApprovalLogic {
       final int approvedQuantity = availableStock >= requestedQuantity
           ? requestedQuantity
           : availableStock.toInt();
+      if (approvedQuantity <= 0) return null;
 
-      await _processPartialApprovalItem(
+      final line = await _processPartialApprovalItem(
         item: item,
         approvedQuantity: approvedQuantity,
         request: request,
       );
       item.quantityApproved = approvedQuantity;
       item.quantityRequested ??= requestedQuantity;
+      return line;
     } catch (e, s) {
       talker.error('Error in _approveItem', e, s);
       throw Exception('Failed to approve item');
@@ -380,15 +393,17 @@ mixin StockRequestApprovalLogic {
     }
   }
 
-  Future<bool> _handlePartialApproval({
+  Future<_PartialApprovalResult> _handlePartialApproval({
     required List<TransactionItem> items,
     required InventoryRequest request,
     required BuildContext context,
   }) async {
+    final lines = <BranchTransferApprovedLine>[];
     final partialApprovalResult = await _showPartialApprovalDialog(
       items: items,
       request: request,
       context: context,
+      outLines: lines,
     );
 
     if (!partialApprovalResult) {
@@ -397,9 +412,9 @@ mixin StockRequestApprovalLogic {
         context: context,
         isError: true,
       );
-      return false;
+      return const _PartialApprovalResult(ok: false);
     }
-    return partialApprovalResult;
+    return _PartialApprovalResult(ok: true, lines: lines);
   }
 
   /// Prefer embedded [InventoryRequest.transactionItems] (approval qty source of
@@ -428,6 +443,7 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
     required bool isFullyApproved,
     required BuildContext context,
+    List<BranchTransferApprovedLine> rraLines = const [],
   }) async {
     try {
       await ProxyService.strategy.updateStockRequest(
@@ -444,13 +460,12 @@ mixin StockRequestApprovalLogic {
 
       // Send SMS notification to requester (never pop navigator here).
       try {
-        final requesterBranchId =
-            request.branch?.id ?? request.subBranchId;
+        final requesterBranchId = request.branch?.id ?? request.subBranchId;
         if (requesterBranchId != null && requesterBranchId.isNotEmpty) {
           final requesterConfig =
               await SmsNotificationService.getBranchSmsConfig(
-            requesterBranchId,
-          );
+                requesterBranchId,
+              );
           final phone = requesterConfig?.smsPhoneNumber;
           if (phone != null && phone.isNotEmpty) {
             await SmsNotificationService.sendOrderRequestNotification(
@@ -464,6 +479,21 @@ mixin StockRequestApprovalLogic {
       } catch (smsError) {
         talker.error('Failed to send SMS notification: $smsError');
         // Don't show error to user as the main operation succeeded
+      }
+
+      if (rraLines.isNotEmpty) {
+        final rra = await reportBranchTransferToRra(
+          request: request,
+          lines: rraLines,
+        );
+        if (rra.attempted && !rra.succeeded && context.mounted) {
+          _showSnackBar(
+            message:
+                'Approved locally; EBM sync failed${rra.message != null ? ': ${rra.message}' : ''}',
+            context: context,
+            isError: true,
+          );
+        }
       }
 
       if (context.mounted) {
@@ -526,6 +556,7 @@ mixin StockRequestApprovalLogic {
     required List<TransactionItem> items,
     required InventoryRequest request,
     required BuildContext context,
+    required List<BranchTransferApprovedLine> outLines,
   }) async {
     final List<int?> approvedQuantities = List.filled(items.length, null);
 
@@ -564,6 +595,7 @@ mixin StockRequestApprovalLogic {
               approvedQuantities: approvedQuantities,
               request: request,
               context: context,
+              outLines: outLines,
             ),
             child: Text(
               'Approve',
@@ -762,6 +794,7 @@ mixin StockRequestApprovalLogic {
     required List<int?> approvedQuantities,
     required InventoryRequest request,
     required BuildContext context,
+    required List<BranchTransferApprovedLine> outLines,
   }) async {
     try {
       if (!approvedQuantities.any((qty) => qty != null && qty > 0)) {
@@ -778,11 +811,12 @@ mixin StockRequestApprovalLogic {
           final int approvedQuantity =
               approvedQuantities[i]!; // Correctly use the approved quantity from the dialog
 
-          await _processPartialApprovalItem(
+          final line = await _processPartialApprovalItem(
             item: item,
             approvedQuantity: approvedQuantity,
             request: request,
           );
+          if (line != null) outLines.add(line);
         }
       }
 
@@ -802,7 +836,9 @@ mixin StockRequestApprovalLogic {
     }
   }
 
-  Future<void> _processPartialApprovalItem({
+  /// Applies local Capella stock move for [approvedQuantity] and returns an RRA line
+  /// with post-move source/dest variants when both can be resolved.
+  Future<BranchTransferApprovedLine?> _processPartialApprovalItem({
     required TransactionItem item,
     required int approvedQuantity,
     required InventoryRequest request,
@@ -818,7 +854,7 @@ mixin StockRequestApprovalLogic {
       }
 
       // First handle the variant and stock creation/update
-      await _handleVariantAndStockInternal(
+      final destVariant = await _handleVariantAndStockInternal(
         item: item,
         request: request,
         variant: requestedVariant,
@@ -838,6 +874,23 @@ mixin StockRequestApprovalLogic {
         transactionItemId: item.id,
         ignoreForReport: false,
         quantityApproved: approvedQuantity,
+      );
+
+      if (approvedQuantity <= 0) return null;
+
+      final sourceVariant = await ProxyService.strategy.getVariant(
+        id: requestedVariant.id,
+      );
+      final destFresh = await ProxyService.strategy.getVariant(
+        id: destVariant.id,
+      );
+      if (sourceVariant == null || destFresh == null) return null;
+
+      return BranchTransferApprovedLine(
+        sourceVariant: sourceVariant,
+        destVariant: destFresh,
+        approvedQty: approvedQuantity,
+        itemName: item.name,
       );
     } catch (e, s) {
       talker.error('Error in _processPartialApprovalItem', e, s);
@@ -996,4 +1049,18 @@ mixin StockRequestApprovalLogic {
       }
     }
   }
+}
+
+class _ItemApprovalResult {
+  const _ItemApprovalResult({required this.ok, this.line});
+
+  final bool ok;
+  final BranchTransferApprovedLine? line;
+}
+
+class _PartialApprovalResult {
+  const _PartialApprovalResult({required this.ok, this.lines = const []});
+
+  final bool ok;
+  final List<BranchTransferApprovedLine> lines;
 }
