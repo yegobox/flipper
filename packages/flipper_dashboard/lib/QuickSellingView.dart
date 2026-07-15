@@ -22,10 +22,13 @@ import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
+import 'package:flipper_models/providers/park_transaction_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
@@ -68,6 +71,20 @@ String _shortTransactionId(String id) {
       ? id
       : id.substring(0, _kShortTransactionIdLength);
   return short.toUpperCase();
+}
+
+String _ticketDisplayRef(ITransaction ticket) {
+  final r = ticket.reference?.trim();
+  if (r != null && r.isNotEmpty) return r.toUpperCase();
+  final id = ticket.id;
+  if (id.length >= 6) return id.substring(0, 6).toUpperCase();
+  return id.toUpperCase();
+}
+
+int _minutesAgo(DateTime? createdAt) {
+  if (createdAt == null) return 0;
+  final diff = DateTime.now().difference(createdAt);
+  return diff.inMinutes.clamp(0, 99999);
 }
 
 class QuickSellingView extends StatefulHookConsumerWidget {
@@ -459,6 +476,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     final showSaveTicket =
         transaction != null &&
+        ref.watch(settlingTillTicketProvider) == null &&
         ref.watch(posCartDisplayItemsProvider.select((l) => l.isNotEmpty));
 
     return Padding(
@@ -783,6 +801,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   bool _customerFieldsExpanded = false;
 
   bool _transferBusy = false;
+  bool _sendToTillBusy = false;
 
   // Ensure payment initialization runs once when both transaction & items are ready
   String? _lastPaymentInitTransactionId;
@@ -892,6 +911,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final startTime = transaction.createdAt ?? DateTime.now().toUtc();
     final endTime = DateTime.now().toUtc();
     final duration = endTime.difference(startTime).inSeconds;
+
+    final settling = ref.read(settlingTillTicketProvider);
+    if (settling != null) {
+      ref.read(settlingTillTicketProvider.notifier).state = null;
+      final total = (transaction.subTotal ?? 0).toCurrencyFormatted(
+        symbol: ProxyService.box.defaultCurrency(),
+      );
+      if (mounted) {
+        showSuccessNotification(
+          context,
+          'Payment collected · $total',
+        );
+      }
+    }
 
     unawaited(
       analytics.track(
@@ -1991,6 +2024,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                   transactionAsyncValue.value?.id ?? "",
                               wording: payWording,
                               mode: SellingMode.forSelling,
+                              canCollectPayment:
+                                  ref.watch(canCollectPosPaymentProvider),
+                              cartHasItems: ref.watch(
+                                posCartDisplayItemsProvider.select(
+                                  (l) => l.isNotEmpty,
+                                ),
+                              ),
+                              sendToTillBusy: _sendToTillBusy,
+                              sendToTill: () {
+                                final txn = transactionAsyncValue.value;
+                                if (txn == null) return;
+                                unawaited(_sendCartToTill(txn));
+                              },
                               completeTransaction:
                                   (
                                     immediateCompleteTransaction, [
@@ -2216,15 +2262,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required bool pinGrandTotal,
     required bool isTransferMode,
   }) {
+    final settling = ref.watch(settlingTillTicketProvider);
+    final isSettling = settling != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (settling != null) _buildSettlingBanner(settling),
         _buildTopBarCheckoutSummary(
           transactionAsyncValue: transactionAsyncValue,
           model: model,
         ),
-        if (!isOrdering) CheckoutModeBar(enabled: !isOrdering),
-        if (!isOrdering && !isTransferMode) ...[
+        if (!isOrdering)
+          CheckoutModeBar(enabled: !isOrdering && !isSettling),
+        if (!isOrdering && !isTransferMode && !isSettling) ...[
           _buildCompactCustomerCapture(),
         ],
         if (!isOrdering && isTransferMode) ...[
@@ -2240,6 +2290,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   isOrdering,
                   pinGrandTotal: true,
                   cartLines: lines,
+                  readOnly: isSettling,
                 ),
               ),
             ),
@@ -2253,6 +2304,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 isOrdering,
                 pinGrandTotal: false,
                 cartLines: lines,
+                readOnly: isSettling,
               ),
             ),
           ),
@@ -2510,10 +2562,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       focusNode: _formKeyboardListenerFocusNode,
       onKeyEvent: (KeyEvent event) {
         if (event is KeyDownEvent) {
-          // Handle Ctrl+Enter or Cmd+Enter to complete sale
+          // Handle Ctrl+Enter or Cmd+Enter to complete sale (till roles only)
           if ((HardwareKeyboard.instance.isControlPressed ||
                   HardwareKeyboard.instance.isMetaPressed) &&
               event.logicalKey == LogicalKeyboardKey.enter) {
+            if (!ref.read(canCollectPosPaymentProvider)) return;
             // Trigger complete sale action
             final transactionAsyncValue = ref.watch(
               pendingTransactionStreamProvider(
@@ -2603,7 +2656,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         child: Column(
           children: [
             // Payment section only — customer capture lives above the cart list.
-            if (!isOrdering) ...[
+            // Staff cannot tender; till roles keep the existing controls.
+            if (!isOrdering && ref.watch(canCollectPosPaymentProvider)) ...[
               _buildBalanceDueBanner(alreadyPaid),
               _buildDigitalReceiptToggle(),
               _buildReceivedAmountField(
@@ -2631,8 +2685,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 },
               ),
               const SizedBox(height: 10.0),
+              _buildPaymentRow(isOrdering, transactionId, alreadyPaid),
+            ] else if (!isOrdering) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                child: Text(
+                  'Payments are collected at the till. Send this order once '
+                  "it's ready — a manager will collect payment.",
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Colors.grey[600],
+                    height: 1.35,
+                  ),
+                ),
+              ),
             ],
-            _buildPaymentRow(isOrdering, transactionId, alreadyPaid),
           ],
         ),
       ),
@@ -3133,5 +3200,142 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
         transaction;
     await showSharedTicketDialog(context: context, transaction: txn);
+  }
+
+  Future<void> _sendCartToTill(ITransaction transaction) async {
+    if (_sendToTillBusy) return;
+    final items = ref.read(posCartDisplayItemsProvider);
+    if (items.isEmpty) return;
+
+    setState(() => _sendToTillBusy = true);
+    final displayRef = _ticketDisplayRef(transaction);
+    try {
+      await ref.read(parkTransactionProvider.notifier).park(
+            ticketName: 'Till · $displayRef',
+            ticketNote: 'Sent to till for payment',
+            transaction: transaction,
+            customerId: transaction.customerId,
+          );
+
+      ref.read(suppressedCartTransactionIdProvider.notifier).state =
+          transaction.id;
+      clearCartLinesOptimistically();
+      ref
+          .read(optimisticCartProvider.notifier)
+          .clearForTransaction(transaction.id);
+      clearCachedPendingCartTransactionWidget(
+        ref,
+        isExpense: false,
+      );
+      ref.invalidate(
+        transactionItemsStreamProvider(
+          transactionId: transaction.id,
+          branchId: ProxyService.box.getBranchId() ?? '0',
+        ),
+      );
+      _lastAutoSetAmount = 0.0;
+      _lastPaymentInitTransactionId = null;
+      _cachedNonCreditPaid = null;
+      ref.invalidate(paymentMethodsProvider);
+      widget.receivedAmountController.clear();
+      widget.discountController.clear();
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+
+      if (mounted) {
+        showSuccessNotification(
+          context,
+          'Sent to till — Ticket #$displayRef',
+        );
+      }
+    } catch (e, st) {
+      tv_talk.talker.error('Send to till failed: $e', st);
+      if (mounted) {
+        showErrorNotification(
+          context,
+          'Failed to send to till: $e',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sendToTillBusy = false);
+    }
+  }
+
+  Future<void> _backToNewSaleFromSettling() async {
+    final settling = ref.read(settlingTillTicketProvider);
+    if (settling == null) return;
+
+    final branchId = ProxyService.box.getBranchId() ?? '';
+    try {
+      final txn = await ProxyService.getStrategy(Strategy.capella).getTransaction(
+            id: settling.transactionId,
+            branchId: branchId,
+          );
+      if (txn != null &&
+          (txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
+        await ref.read(parkTransactionProvider.notifier).park(
+              ticketName: (settling.ticketName != null &&
+                      settling.ticketName!.trim().isNotEmpty)
+                  ? settling.ticketName!
+                  : 'Till · ${settling.displayRef}',
+              ticketNote: settling.ticketNote ?? 'Sent to till for payment',
+              transaction: txn,
+              customerId: txn.customerId,
+            );
+      }
+    } catch (e, st) {
+      tv_talk.talker.error('Back to new sale re-park failed: $e', st);
+    }
+
+    ref.read(settlingTillTicketProvider.notifier).state = null;
+    clearPinnedPosCartTransactionWidget(ref);
+    clearCartLinesOptimistically();
+    ref.invalidate(paymentMethodsProvider);
+    widget.receivedAmountController.clear();
+    ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+  }
+
+  Widget _buildSettlingBanner(SettlingTillTicket settling) {
+    final mins = _minutesAgo(settling.createdAt);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 0, 2, 8),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFFEEF3FF),
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          border: Border.all(color: const Color(0xFFC7D8FF)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Collecting payment for #${settling.displayRef} · '
+                  'sent by ${settling.creatorName} · $mins min ago',
+                  style: const TextStyle(
+                    color: Color(0xFF1D4ED8),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => unawaited(_backToNewSaleFromSettling()),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF1D4ED8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  '✕ Back to new sale',
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

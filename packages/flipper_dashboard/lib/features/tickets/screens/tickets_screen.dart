@@ -1,5 +1,6 @@
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_dashboard/new_ticket.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -400,13 +401,35 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                     },
                     icon: const Icon(Icons.close, size: 22),
                   ),
-                  title: Text(
-                    'Tickets',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w700,
-                      fontSize: titleFontSize,
-                      color: Colors.black,
-                    ),
+                  title: Consumer(
+                    builder: (context, ref, _) {
+                      final canCollect =
+                          ref.watch(canCollectPosPaymentProvider);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            canCollect ? 'Pending Tickets' : 'My Tickets',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.w700,
+                              fontSize: titleFontSize,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            canCollect
+                                ? 'Orders waiting to be collected at the till'
+                                : "Orders you've sent, and their payment status",
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.w400,
+                              fontSize: isMobile ? 11 : 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   actions: [
                     Consumer(

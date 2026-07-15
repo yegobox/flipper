@@ -23,8 +23,10 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/park_transaction_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
@@ -33,6 +35,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -74,6 +77,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   final Set<String> _optimisticallyDeletedItemIds = {};
   bool _isClearingCustomer = false;
   double _cachedNonCreditPaid = 0.0;
+  bool _sendToTillBusy = false;
 
   String get _transactionId => widget.transaction.id;
 
@@ -134,6 +138,50 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     );
   }
 
+  String _ticketDisplayRef(ITransaction ticket) {
+    final r = ticket.reference?.trim();
+    if (r != null && r.isNotEmpty) return r.toUpperCase();
+    final id = ticket.id;
+    if (id.length >= 6) return id.substring(0, 6).toUpperCase();
+    return id.toUpperCase();
+  }
+
+  Future<void> _sendCartToTill() async {
+    if (_sendToTillBusy) return;
+    final items = ref.read(posCartDisplayItemsProvider);
+    if (items.isEmpty) return;
+
+    setState(() => _sendToTillBusy = true);
+    final txn =
+        ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
+        widget.transaction;
+    final displayRef = _ticketDisplayRef(txn);
+    try {
+      await ref.read(parkTransactionProvider.notifier).park(
+            ticketName: 'Till · $displayRef',
+            ticketNote: 'Sent to till for payment',
+            transaction: txn,
+            customerId: txn.customerId,
+          );
+      if (!mounted) return;
+      showSuccessNotification(
+        context,
+        'Sent to till — Ticket #$displayRef',
+      );
+      final rootNav = Navigator.of(context, rootNavigator: true);
+      if (rootNav.canPop()) {
+        await rootNav.maybePop();
+      }
+    } catch (e, st) {
+      tv_talk.talker.error('Mobile send to till failed: $e', st);
+      if (mounted) {
+        showErrorNotification(context, 'Failed to send to till: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _sendToTillBusy = false);
+    }
+  }
+
   Future<void> _clearCustomer(ITransaction txn) async {
     if (_isClearingCustomer) return;
     HapticFeedback.lightImpact();
@@ -175,6 +223,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     double total, {
     bool immediateCompletion = false,
   }) async {
+    if (!ref.read(canCollectPosPaymentProvider)) {
+      showErrorNotification(
+        context,
+        'Payments are collected at the till. Send this order to a manager.',
+      );
+      return;
+    }
     HapticFeedback.lightImpact();
 
     final payments = ref.read(oldProvider.paymentMethodsProvider);
@@ -723,6 +778,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 ? null
                 : saleCustomerPhone;
 
+            final canCollect = ref.watch(canCollectPosPaymentProvider);
             final isCash =
                 paymentsList.isNotEmpty &&
                 paymentsList.first.method.toUpperCase() == 'CASH';
@@ -741,24 +797,28 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 displaySaleCustomerPhone ??
                 ProxyService.box.currentSaleCustomerPhoneNumber();
             final momoOk = !isMomo || _phoneDigits(momoPhone).length >= 9;
-            final canCharge = _canTapCharge(
-              itemsNotEmpty: items.isNotEmpty,
-              txn: txn,
-              saleCustomerPhone: displaySaleCustomerPhone,
-              momoPayment: isMomo,
-            );
-            final ready =
-                total > 0 &&
-                canCharge &&
-                cashOk &&
-                momoOk &&
-                _chargeState == ChargeButtonState.initial;
+            final canCharge = canCollect &&
+                _canTapCharge(
+                  itemsNotEmpty: items.isNotEmpty,
+                  txn: txn,
+                  saleCustomerPhone: displaySaleCustomerPhone,
+                  momoPayment: isMomo,
+                );
+            final ready = canCollect
+                ? (total > 0 &&
+                    canCharge &&
+                    cashOk &&
+                    momoOk &&
+                    _chargeState == ChargeButtonState.initial)
+                : (items.isNotEmpty && !_sendToTillBusy);
 
             final itemCount = items
                 .fold<double>(0, (s, i) => s + _displayQtyFor(i))
                 .round();
 
-            var footerPrimaryLabel = digitalEnabled && items.isNotEmpty
+            var footerPrimaryLabel = !canCollect
+                ? 'Send to Till →'
+                : digitalEnabled && items.isNotEmpty
                 ? (remaining > 0.01 ? 'Record Payment' : 'Complete Now')
                 : _primaryLabel(
                     items.isEmpty,
@@ -767,7 +827,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                     isMomo,
                     remaining,
                   );
-            if (canCharge && !cashOk && isCash) {
+            if (canCollect && canCharge && !cashOk && isCash) {
               footerPrimaryLabel =
                   'Enter ${mposMoneyLabel(saleOutstanding)} received';
             }
@@ -888,15 +948,31 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                           ),
                         ),
                         const SizedBox(height: 14),
-                        const MposSectionLabel('Payment method'),
-                        const SizedBox(height: 8),
-                        MposPaymentSection(
-                          transactionId: _transactionId,
-                          totalPayable: saleOutstanding > 0
-                              ? saleOutstanding
-                              : total,
-                        ),
-                        const SizedBox(height: 14),
+                        if (canCollect) ...[
+                          const MposSectionLabel('Payment method'),
+                          const SizedBox(height: 8),
+                          MposPaymentSection(
+                            transactionId: _transactionId,
+                            totalPayable: saleOutstanding > 0
+                                ? saleOutstanding
+                                : total,
+                          ),
+                          const SizedBox(height: 14),
+                        ] else ...[
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 14),
+                            child: Text(
+                              'Payments are collected at the till. Send this '
+                              "order once it's ready — a manager will collect "
+                              'payment.',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: PosTokens.ink3,
+                                height: 1.35,
+                              ),
+                            ),
+                          ),
+                        ],
                         const MposSectionLabel('Totals'),
                         const SizedBox(height: 8),
                         MposTotalsCard(
@@ -915,10 +991,16 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                   MposCheckoutFooter(
                     total: total,
                     ready: ready,
-                    isLoading: _isImmediateCompletion && _shouldShowSpinner(),
+                    isLoading: canCollect
+                        ? (_isImmediateCompletion && _shouldShowSpinner())
+                        : _sendToTillBusy,
                     primaryLabel: footerPrimaryLabel,
                     onSaveTicket: items.isEmpty ? null : _showParkDialog,
-                    onPrimary: canCharge
+                    onPrimary: !canCollect
+                        ? (items.isEmpty || _sendToTillBusy
+                            ? null
+                            : () => unawaited(_sendCartToTill()))
+                        : canCharge
                         ? () => _handleCharge(
                             total,
                             immediateCompletion:
@@ -926,7 +1008,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                           )
                         : null,
                     // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
-                    secondaryLabel: digitalEnabled && items.isNotEmpty
+                    secondaryLabel: canCollect &&
+                            digitalEnabled &&
+                            items.isNotEmpty
                         ? _primaryLabel(
                             items.isEmpty,
                             txn,
@@ -935,7 +1019,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                             remaining,
                           )
                         : null,
-                    onSecondary: digitalEnabled && items.isNotEmpty && canCharge
+                    onSecondary: canCollect &&
+                            digitalEnabled &&
+                            items.isNotEmpty &&
+                            canCharge
                         ? () => _handleCharge(total, immediateCompletion: false)
                         : null,
                     secondaryLoading:

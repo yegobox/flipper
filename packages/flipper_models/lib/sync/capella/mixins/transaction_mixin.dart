@@ -360,6 +360,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required bool removeAdjustmentTransactions,
     required bool forceRealData,
     required bool skipOriginalTransactionCheck,
+    bool restrictToCurrentAgent = true,
   }) {
     if (!forceRealData) {
       return Stream.value(
@@ -390,9 +391,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final whereClauses = <String>[];
       final arguments = <String, dynamic>{};
 
-      final agentId = ProxyService.box.getUserId()!;
-      whereClauses.add('agentId = :agentId');
-      arguments['agentId'] = agentId;
+      if (restrictToCurrentAgent) {
+        final agentId = ProxyService.box.getUserId()!;
+        whereClauses.add('agentId = :agentId');
+        arguments['agentId'] = agentId;
+      }
 
       whereClauses.add(
         '(status = :waiting OR status = :parked OR status = :inProgress)',

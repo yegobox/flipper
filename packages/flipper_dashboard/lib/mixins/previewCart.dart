@@ -34,6 +34,7 @@ import 'package:flipper_dashboard/utils/sale_agent_completion.dart';
 import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -397,6 +398,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final capella = ProxyService.getStrategy(Strategy.capella);
 
     try {
+      // Staff cannot complete payment — Send to Till only.
+      if (!ref.read(canCollectPosPaymentProvider)) {
+        talker.warning(
+          'Blocked sale completion: user lacks till payment role | '
+          'userId=${ProxyService.box.getUserId()} | '
+          '(see prior "POS till role decision" log for full breakdown)',
+        );
+        throw Exception(
+          'Payments are collected at the till. Send this order to a manager.',
+        );
+      }
+
       String branchIdInt = ProxyService.box.getBranchId()!;
 
       final resolveSw = Stopwatch()..start();

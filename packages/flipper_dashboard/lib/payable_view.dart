@@ -4,7 +4,7 @@ import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/typeDef.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/access_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 class PayableView extends HookConsumerWidget {
   static const double _kBarButtonHeight = PosTokens.payButtonHeight;
   static const double _kVerticalGap = 10;
+  static const Color _kBadgeRed = Color(0xFFDC2626);
+  static const Color _kPrimaryBlue = Color(0xFF2F6FED);
 
   const PayableView({
     Key? key,
@@ -26,6 +28,10 @@ class PayableView extends HookConsumerWidget {
     required this.transactionId,
     required this.mode,
     required this.digitalPaymentEnabled,
+    this.canCollectPayment = true,
+    this.sendToTill,
+    this.cartHasItems = false,
+    this.sendToTillBusy = false,
   }) : super(key: key);
 
   final Function ticketHandler;
@@ -36,6 +42,15 @@ class PayableView extends HookConsumerWidget {
   final String? wording;
   final SellingMode mode;
   final bool digitalPaymentEnabled;
+
+  /// When false, tender UI's Pay is replaced by Send to Till.
+  final bool canCollectPayment;
+
+  /// Parks the cart for till collection (staff only).
+  final VoidCallback? sendToTill;
+
+  final bool cartHasItems;
+  final bool sendToTillBusy;
 
   /// Stacked Tickets / Pay instead of a single row.
   ///
@@ -72,14 +87,15 @@ class PayableView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync =
-        ref.watch(transactionsProvider(forceRealData: true));
     final showTickets = ref.watch(
       featureAccessProvider(
         userId: ProxyService.box.getUserId() ?? '',
         featureName: AppFeature.Tickets,
       ),
     );
+    // Staff must always reach My Tickets after Send to Till.
+    final ticketsVisible = showTickets || !canCollectPayment;
+    final pendingCount = ref.watch(pendingTillTicketsCountProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -90,14 +106,14 @@ class PayableView extends HookConsumerWidget {
             ? _buildVerticalLayout(
                 context,
                 ref,
-                transactionsAsync,
-                showTickets,
+                ticketsVisible,
+                pendingCount,
               )
             : _buildHorizontalLayout(
                 context,
                 ref,
-                transactionsAsync,
-                showTickets,
+                ticketsVisible,
+                pendingCount,
               );
 
         return Padding(
@@ -108,17 +124,12 @@ class PayableView extends HookConsumerWidget {
     );
   }
 
-  // Vertical layout for small screens and mobile
   Widget _buildVerticalLayout(
     BuildContext context,
     WidgetRef ref,
-    AsyncValue<List<ITransaction>> transactionsAsync,
     bool showTickets,
+    int pendingCount,
   ) {
-    // Fixed outer height so parents (Scaffold bottomNavigationBar, Column
-    // siblings) get a stable intrinsic height. Row/Column + [Expanded] under a
-    // loose vertical max otherwise leaves RenderPadding without a laid-out
-    // child during intrinsic measurement.
     final barHeight = showTickets
         ? (_kBarButtonHeight + _kVerticalGap + _kBarButtonHeight)
         : _kBarButtonHeight;
@@ -133,66 +144,51 @@ class PayableView extends HookConsumerWidget {
           if (showTickets) ...[
             SizedBox(
               height: _kBarButtonHeight,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: PosTokens.surface,
-                  foregroundColor: PosTokens.ink2,
-                  side: const BorderSide(color: PosTokens.line),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-                  ),
-                ),
-                onPressed: () {
-                  ticketHandler();
-                },
-                child: transactionsAsync.when(
-                  data: (transactions) => _buildTicket(
-                    tickets: transactions.length,
-                    transactions: transactions.length,
-                    context: context,
-                    isCompact: true,
-                  ),
-                  loading: () => const CircularProgressIndicator(),
-                  error: (error, stack) => Text('Error: $error'),
-                ),
+              child: _ticketsButton(
+                context,
+                pendingCount: pendingCount,
+                isCompact: true,
               ),
             ),
             const SizedBox(height: _kVerticalGap),
           ],
           SizedBox(
             height: _kBarButtonHeight,
-            child: PreviewSaleButton(
-              digitalPaymentEnabled: digitalPaymentEnabled,
-              transactionId: transactionId,
-              mode: mode,
-              wording: wording ?? "Pay",
-              completeTransaction: completeTransaction,
-              previewCart: previewCart,
-            ),
+            child: canCollectPayment
+                ? PreviewSaleButton(
+                    digitalPaymentEnabled: digitalPaymentEnabled,
+                    transactionId: transactionId,
+                    mode: mode,
+                    wording: wording ?? "Pay",
+                    completeTransaction: completeTransaction,
+                    previewCart: previewCart,
+                  )
+                : _sendToTillButton(context),
           ),
         ],
       ),
     );
   }
 
-  // Horizontal layout for larger screens
   Widget _buildHorizontalLayout(
     BuildContext context,
     WidgetRef ref,
-    AsyncValue<List<ITransaction>> transactionsAsync,
     bool showTickets,
+    int pendingCount,
   ) {
-    Widget payExpanded({required int flex}) {
+    Widget primaryExpanded({required int flex}) {
       return Expanded(
         flex: flex,
-        child: PreviewSaleButton(
-          digitalPaymentEnabled: digitalPaymentEnabled,
-          transactionId: transactionId,
-          mode: mode,
-          wording: wording ?? "Pay",
-          completeTransaction: completeTransaction,
-          previewCart: previewCart,
-        ),
+        child: canCollectPayment
+            ? PreviewSaleButton(
+                digitalPaymentEnabled: digitalPaymentEnabled,
+                transactionId: transactionId,
+                mode: mode,
+                wording: wording ?? "Pay",
+                completeTransaction: completeTransaction,
+                previewCart: previewCart,
+              )
+            : _sendToTillButton(context),
       );
     }
 
@@ -202,7 +198,7 @@ class PayableView extends HookConsumerWidget {
         height: _kBarButtonHeight,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[payExpanded(flex: 1)],
+          children: <Widget>[primaryExpanded(flex: 1)],
         ),
       );
     }
@@ -215,108 +211,111 @@ class PayableView extends HookConsumerWidget {
         children: <Widget>[
           Expanded(
             flex: 2,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
-                side: const BorderSide(color: Color(0xFFE5E7EB)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () {
-                ticketHandler();
-              },
-              child: transactionsAsync.when(
-                data: (transactions) => _buildTicket(
-                  tickets: transactions.length,
-                  transactions: transactions.length,
-                  context: context,
-                  isCompact: false,
-                ),
-                loading: () => const CircularProgressIndicator(),
-                error: (error, stack) => Text('Error: $error'),
-              ),
+            child: _ticketsButton(
+              context,
+              pendingCount: pendingCount,
+              isCompact: false,
             ),
           ),
           const SizedBox(width: 10),
-          payExpanded(flex: 3),
+          primaryExpanded(flex: 3),
         ],
       ),
     );
   }
 
-  Widget _buildTicket({
-    required int tickets,
-    required int transactions,
-    required BuildContext context,
+  Widget _ticketsButton(
+    BuildContext context, {
+    required int pendingCount,
     required bool isCompact,
   }) {
-    final bool hasTickets = tickets > 0;
-    final bool hasNoTransactions = transactions == 0;
-
-    if (isCompact) {
-      // More compact version for small screens
-      return hasTickets || hasNoTransactions
-          ? Text(
-              FLocalization.of(context).tickets,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: primaryTextStyle.copyWith(
-                fontWeight: FontWeight.w400,
-                fontSize: 16,
-              ),
-            )
-          : Text(
-              FLocalization.of(context).save,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: primaryTextStyle.copyWith(
-                fontWeight: FontWeight.w400,
-                fontSize: 16,
-              ),
-            );
-    }
-
-    // Original version for larger screens
-    return hasTickets || hasNoTransactions
-        ? Text(
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        backgroundColor: PosTokens.surface,
+        foregroundColor: PosTokens.ink2,
+        side: const BorderSide(color: PosTokens.line),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+        ),
+      ),
+      onPressed: () => ticketHandler(),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Text(
             FLocalization.of(context).tickets,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: primaryTextStyle.copyWith(
               fontWeight: FontWeight.w400,
-              fontSize: 17,
+              fontSize: isCompact ? 16 : 17,
             ),
-          )
-        : Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                FLocalization.of(context).save,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: primaryTextStyle.copyWith(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 17,
+          ),
+          if (pendingCount > 0)
+            Positioned(
+              top: -10,
+              right: -16,
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: const BoxDecoration(
+                  color: _kBadgeRed,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  pendingCount > 99 ? '99+' : '$pendingCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                  ),
                 ),
               ),
-              Text(
-                'New Transaction${tickets > 1 ? 's' : ''}',
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sendToTillButton(BuildContext context) {
+    final enabled = cartHasItems && !sendToTillBusy && sendToTill != null;
+    return SizedBox(
+      height: _kBarButtonHeight,
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: enabled ? _kPrimaryBlue : const Color(0xFF9CA3AF),
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: const Color(0xFF9CA3AF),
+          disabledForegroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          ),
+        ),
+        onPressed: enabled ? sendToTill : null,
+        child: sendToTillBusy
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Colors.white,
+                ),
+              )
+            : Text(
+                'Send to Till →',
                 style: primaryTextStyle.copyWith(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  color: Colors.white,
                 ),
               ),
-            ],
-          );
+      ),
+    );
   }
 }

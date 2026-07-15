@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Handoff — Split Cart Creation / Payment Roles</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #faf9f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; }
+    #__bundler_thumbnail { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #faf9f5; z-index: 9999; }
+    #__bundler_thumbnail svg { width: 100%; height: 100%; object-fit: contain; }
+    #__bundler_placeholder { color: #999; font-size: 14px; }
+  </style>
+  <noscript>
+    <style>#__bundler_loading { display: none; }</style>
+    <div style="position:fixed;bottom:12px;left:12px;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#999;background:rgba(255,255,255,0.9);padding:6px 12px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);z-index:10000;">
+      This page requires JavaScript to display.
+    </div>
+  </noscript>
+</head>
+<body>
+  <div id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 56"><rect width="80" height="56" fill="#2f6fed"></rect><text x="40" y="33" font-size="20" fill="#fff" text-anchor="middle" font-family="sans-serif" font-weight="700">⇄</text></svg></div>
+  <div id="__bundler_loading">Unpacking...</div>
+
+  <script>
+    
+document.addEventListener('DOMContentLoaded', async function() {
+  const loading = document.getElementById('__bundler_loading');
+  function setStatus(msg) { if (loading) loading.textContent = msg; }
+
+  const FONT_MIME = /^(font[/]|application[/](x-)?font-|application[/]vnd\.ms-fontobject)/i;
+  const MIME_TOKEN = /^[\w.+-]+[/][\w.+-]+$/;
+  function toBase64(bytes) {
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(bin);
+  }
+
+  // Error sink persists across replaceWith since it's on window, not the DOM.
+  window.addEventListener('error', function(e) {
+    // Failed resource loads (CSP-blocked links, scripts, images) fire plain
+    // events at the element — warn only; real JS errors carry message/error.
+    if (!e.message && !e.error && e.target && e.target !== window) {
+      console.warn('[bundle] resource failed to load:',
+        e.target.tagName, String(e.target.src || e.target.href || ''));
+      return;
+    }
+    var p = document.body || document.documentElement;
+    var d = document.getElementById('__bundler_err') || p.appendChild(document.createElement('div'));
+    d.id = '__bundler_err';
+    d.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;white-space:pre-wrap;max-height:40vh;overflow:auto';
+    d.textContent = (d.textContent ? d.textContent + String.fromCharCode(10) : '') +
+      '[bundle] ' + (e.message || e.type) +
+      (e.filename ? ' (' + e.filename.slice(0, 60) + ':' + e.lineno + ')' : '');
+  }, true);
+
+  try {
+    const manifestEl = document.querySelector('script[type="__bundler/manifest"]');
+    const templateEl = document.querySelector('script[type="__bundler/template"]');
+    if (!manifestEl || !templateEl) {
+      setStatus('Error: missing bundle data');
+      console.error('[bundler] Missing script tags — manifestEl:', !!manifestEl, 'templateEl:', !!templateEl);
+      return;
+    }
+
+    const manifest = JSON.parse(manifestEl.textContent);
+    let template = JSON.parse(templateEl.textContent);
+
+    const uuids = Object.keys(manifest);
+    setStatus('Unpacking ' + uuids.length + ' assets...');
+
+    const blobUrls = {};
+    const resourceBlobs = {};
+    await Promise.all(uuids.map(async (uuid) => {
+      const entry = manifest[uuid];
+      try {
+        const binaryStr = atob(entry.data);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+
+        let finalBytes = bytes;
+        if (entry.compressed) {
+          if (typeof DecompressionStream !== 'undefined') {
+            const ds = new DecompressionStream('gzip');
+            const writer = ds.writable.getWriter();
+            const reader = ds.readable.getReader();
+            writer.write(bytes);
+            writer.close();
+            const chunks = [];
+            let totalLen = 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              totalLen += value.length;
+            }
+            finalBytes = new Uint8Array(totalLen);
+            let offset = 0;
+            for (const chunk of chunks) { finalBytes.set(chunk, offset); offset += chunk.length; }
+          } else {
+            console.warn('DecompressionStream not available, asset ' + uuid + ' may not render');
+          }
+        }
+
+        if (FONT_MIME.test(entry.mime) && MIME_TOKEN.test(entry.mime)) {
+          // Strict artifact hosts allow font-src data: but not blob:.
+          blobUrls[uuid] = 'data:' + entry.mime + ';base64,' +
+            (entry.compressed ? toBase64(finalBytes) : entry.data);
+        } else {
+          const blob = new Blob([finalBytes], { type: entry.mime });
+          blobUrls[uuid] = URL.createObjectURL(blob);
+          resourceBlobs[blobUrls[uuid]] = blob;
+        }
+      } catch (err) {
+        console.error('Failed to decode asset ' + uuid + ':', err);
+        const blob = new Blob([], { type: entry.mime });
+        blobUrls[uuid] = URL.createObjectURL(blob);
+        resourceBlobs[blobUrls[uuid]] = blob;
+      }
+    }));
+
+    const extResEl = document.querySelector('script[type="__bundler/ext_resources"]');
+    const extResources = extResEl ? JSON.parse(extResEl.textContent) : [];
+    const resourceMap = {};
+    for (const entry of extResources) {
+      if (blobUrls[entry.uuid]) resourceMap[entry.id] = blobUrls[entry.uuid];
+    }
+
+    // Artifact-host CSP (connect-src 'self') refuses fetch() of blob: URLs —
+    // consumers read these Blobs directly. Survives the swap like the error sink.
+    window.__resourceBlobs = resourceBlobs;
+
+    setStatus('Rendering...');
+    for (const uuid of uuids) template = template.split(uuid).join(blobUrls[uuid]);
+
+    // Strip integrity + crossorigin — blob URLs from a file:// document inherit
+    // a null origin, so crossorigin forces a CORS fetch that SRI then rejects.
+    // The manifest bytes are ours; SRI protects against CDN compromise, not this.
+    template = template.replace(/\s+integrity="[^"]*"/gi, '').replace(/\s+crossorigin="[^"]*"/gi, '');
+
+    const resourceScript = '<script>window.__resources = ' +
+      JSON.stringify(resourceMap).replace(/<\//g, '<\\/') +
+      ';</' + 'script>';
+    // Inject after <head> so the DOCTYPE stays first; prepending the script
+    // would push the parser into quirks mode. DOMParser always emits a <head>
+    // (synthesizing one if the source HTML omitted it) but may carry
+    // attributes through, so match the full opening tag. slice() rather than
+    // replace() keeps us clear of $-pattern substitution in resourceScript.
+    const headOpen = template.match(/<head[^>]*>/i);
+    if (headOpen) {
+      const i = headOpen.index + headOpen[0].length;
+      template = template.slice(0, i) + resourceScript + template.slice(i);
+    }
+
+    // Parse the template and swap the root element. Scripts inserted via
+    // DOMParser/replaceWith are inert per spec — re-create each with
+    // createElement so they execute, awaiting onload for src scripts to
+    // preserve ordering (React before ReactDOM before Babel before text/babel).
+    const doc = new DOMParser().parseFromString(template, 'text/html');
+    document.documentElement.replaceWith(doc.documentElement);
+    const dead = Array.from(document.scripts);
+    for (const old of dead) {
+      const s = document.createElement('script');
+      for (const a of old.attributes) s.setAttribute(a.name, a.value);
+      s.textContent = old.textContent;
+      // text/babel scripts with a src: read and inline. transformScriptTags
+      // does XHR against the src, but blob:null/ from a file:// origin is
+      // silently dropped. Inlining makes it a plain inline babel script,
+      // which transformScriptTags handles unconditionally.
+      if ((s.type === 'text/babel' || s.type === 'text/jsx') && s.src) {
+        const pre = resourceBlobs[s.src.split('#')[0]];
+        s.textContent = pre ? await pre.text() : await (await fetch(s.src)).text();
+        s.removeAttribute('src');
+      }
+      const p = s.src ? new Promise(function(r) { s.onload = s.onerror = r; }) : null;
+      old.replaceWith(s);
+      if (p) await p;
+    }
+    // Babel standalone auto-transforms type=text/babel on DOMContentLoaded,
+    // which fired before we swapped the document. Trigger manually if present.
+    if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
+      window.Babel.transformScriptTags();
+    }
+  } catch (err) {
+    setStatus('Error unpacking: ' + err.message);
+    console.error('Bundle unpack error:', err);
+  }
+});
+
+  </script>
+
+  <script type="__bundler/manifest">
+{"c24469c1-3861-48f0-a4f1-5ac7fb2657fb":{"mime":"text/javascript","compressed":true,"data":"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"}}
+  </script>
+
+  <script type="__bundler/ext_resources">
+[]
+  </script>
+
+  <script type="__bundler/template">
+"<!DOCTYPE html>\n<html lang=\"en\"><head>\n<meta charset=\"UTF-8\">\n<title>Handoff — Split Cart Creation / Payment Roles<\u002Ftitle>\n<style>doc-page:not(:defined){visibility:hidden}\nbody{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,sans-serif;color:#111827;font-size:13px;line-height:1.5}\nh1{font-size:22px;margin-bottom:4px}\nh2{font-size:16px;margin:22px 0 8px;padding-top:10px;border-top:1px solid #e5e7eb}\nh3{font-size:13.5px;margin:14px 0 6px}\n.tag{display:inline-block;background:#eef3ff;color:#1d4ed8;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-bottom:10px}\np{margin:6px 0}\ntable{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:12.5px}\nth{background:#f3f4f6;text-align:left;padding:6px 8px;font-weight:700;border:1px solid #e5e7eb}\ntd{padding:6px 8px;border:1px solid #e5e7eb;vertical-align:top}\ncode,pre{font-family:\"SF Mono\",Consolas,monospace;font-size:12px}\npre{background:#f8f9fb;border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre;margin:8px 0}\ncode{background:#f3f4f6;padding:1px 5px;border-radius:4px}\n.callout{border:1px solid #fde68a;background:#fffbeb;border-radius:8px;padding:10px 14px;margin:10px 0;font-size:12.5px}\n.callout.warn{border-color:#fca5a5;background:#fef2f2}\n.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;border:1px solid rgba(0,0,0,.1)}\nol,ul{margin:4px 0 4px 20px}\nli{margin:2px 0}\n.mono{font-family:\"SF Mono\",Consolas,monospace;font-size:12px}\n<\u002Fstyle>\n<\u002Fhead>\n<body>\n\n<doc-page size=\"letter\" margin=\"0.7in\">\n\n<h1>Handoff: Split Cart-Creation / Payment-Collection Roles<\u002Fh1>\n<span class=\"tag\">Feature addition — no visual redesign<\u002Fspan>\n<p>Adds a role split to the existing Flipper POS cart screen: staff who build a cart cannot collect payment; only Manager/Admin can. This is additive — it introduces a role check and a shared ticket queue on top of the current screen. <b>No existing screen, component, or style should change appearance or behavior for a user who is already a Manager/Admin doing a normal direct sale.<\u002Fb><\u002Fp>\n\n<h2>1. Reference file<\u002Fh2>\n<p>Working prototype: <code>POS Split Roles Prototype.html<\u002Fcode> (same project). It is a <b>design reference<\u002Fb>, not production code — recreate the behavior in the app's existing stack/components. Colors, spacing and copy below are taken directly from it.<\u002Fp>\n\n<h2>2. Scope — what is actually new<\u002Fh2>\n<table>\n<tbody><tr><th>New<\u002Fth><th>Unchanged (do not touch)<\u002Fth><\u002Ftr>\n<tr><td>\n<ul>\n<li>Role check gating payment UI (Manager/Admin only)<\u002Fli>\n<li><code>status<\u002Fcode> field on tickets: <code>pending<\u002Fcode> → <code>paid<\u002Fcode><\u002Fli>\n<li>\"Send to Till\" action replacing \"Pay\" for non-Manager roles<\u002Fli>\n<li>Badge count on existing <b>Tickets<\u002Fb> button<\u002Fli>\n<li>Tickets list content becomes role-scoped (\"My Tickets\" vs \"Pending Tickets\") with a Collect action for Managers<\u002Fli>\n<li>Settling banner in cart header when a Manager pulls a queued ticket in<\u002Fli>\n<\u002Ful>\n<\u002Ftd><td>\n<ul>\n<li>Product grid, search, barcode/add buttons<\u002Fli>\n<li>Sale/Transfer mode toggle<\u002Fli>\n<li>Customer search row + icons<\u002Fli>\n<li>Item list, qty stepper, edit qty/price, delete<\u002Fli>\n<li>Save Ticket button behavior<\u002Fli>\n<li>Grand Total display<\u002Fli>\n<li>Amount field, Exact/5,000/10,000/20,000 quick buttons, Payments accordion — for a Manager doing a normal direct sale, these behave exactly as today<\u002Fli>\n<li>Top bar, sidebar, nav — untouched<\u002Fli>\n<\u002Ful>\n<\u002Ftd><\u002Ftr>\n<\u002Ftbody><\u002Ftable>\n<div class=\"callout warn\"><b>Regression rule:<\u002Fb> if the logged-in user's role is Manager/Admin and there is no active queued ticket being settled, the cart screen must render pixel-identical to the current production screen. The only new thing a Manager ever sees unconditionally is the count badge on the Tickets button.<\u002Fdiv>\n\n<h2>3. Roles &amp; permissions<\u002Fh2>\n<table>\n<tbody><tr><th>Role<\u002Fth><th>Can build cart / add items<\u002Fth><th>Can see prices &amp; total<\u002Fth><th>Can see payment method / cash tendered<\u002Fth><th>Can collect payment (Pay)<\u002Fth><th>Tickets visibility<\u002Fth><\u002Ftr>\n<tr><td>Staff<\u002Ftd><td>Yes<\u002Ftd><td>Yes<\u002Ftd><td>No<\u002Ftd><td>No — sees \"Send to Till\" instead<\u002Ftd><td>Own tickets only<\u002Ftd><\u002Ftr>\n<tr><td>Manager / Admin<\u002Ftd><td>Yes<\u002Ftd><td>Yes<\u002Ftd><td>Yes<\u002Ftd><td>Yes<\u002Ftd><td>All pending tickets (queue), across staff<\u002Ftd><\u002Ftr>\n<\u002Ftbody><\u002Ftable>\n<p>Role comes from the existing PIN/shift login — no new auth UI. Do not build a role switcher in production; the prototype's top-right \"view as\" control is a demo-only aid and must not ship.<\u002Fp>\n\n<h2>4. Cart panel — role-aware bottom zone<\u002Fh2>\n<p>Everything above the Grand Total row (search, mode, customer, items) is identical for both roles. Only the zone below Grand Total changes:<\u002Fp>\n<table>\n<tbody><tr><th>Role / state<\u002Fth><th>Elements shown<\u002Fth><th>Elements hidden<\u002Fth><th>Primary button<\u002Fth><\u002Ftr>\n<tr><td>Staff — building a new cart<\u002Ftd><td>1-line hint text (below), Tickets button (badge), primary button<\u002Ftd><td>Amount field, quick-cash buttons, Payments accordion<\u002Ftd><td><code>Send to Till →<\u002Fcode> — disabled/greyed when cart is empty<\u002Ftd><\u002Ftr>\n<tr><td>Manager — building a new cart (direct sale)<\u002Ftd><td>Amount field, quick-cash buttons, Payments accordion, Tickets button (badge), primary button<\u002Ftd><td>—<\u002Ftd><td><code>Pay<\u002Fcode> (unchanged from current app)<\u002Ftd><\u002Ftr>\n<tr><td>Manager — settling a pulled ticket<\u002Ftd><td>Settling banner (top of panel), amount field pre-filled with ticket total, quick-cash, Payments accordion, primary button<\u002Ftd><td>Customer search row, Mode toggle, item edit controls (read-only quantities, no add/remove)<\u002Ftd><td><code>Pay<\u002Fcode> → marks ticket <code>paid<\u002Fcode><\u002Ftd><\u002Ftr>\n<\u002Ftbody><\u002Ftable>\n<p><b>Staff hint copy<\u002Fb> (small, muted, 12.5px, directly above the action row): <i>\"Payments are collected at the till. Send this order once it's ready — a manager will collect payment.\"<\u002Fi><\u002Fp>\n\n<h3>Settling banner (Manager only, appears above Invoice/Txn row)<\u002Fh3>\n<pre>Collecting payment for #{ticketId} · sent by {creatorName} · {minutesAgo} min ago                    [✕ Back to new sale]<\u002Fpre>\n<p>Background <span class=\"swatch\" style=\"background:#eef3ff\"><\u002Fspan><code>#eef3ff<\u002Fcode>, border <span class=\"swatch\" style=\"background:#c7d8ff\"><\u002Fspan><code>#c7d8ff<\u002Fcode>, text <code>#1d4ed8<\u002Fcode>. \"✕ Back to new sale\" clears <code>settling<\u002Fcode> state and returns to an empty new-sale cart without changing ticket status.<\u002Fp>\n\n<h2>5. Tickets entry point (existing button, reused)<\u002Fh2>\n<p>No new nav item. The current <b>Tickets<\u002Fb> button gains a small count badge, top-right corner, red <code>#dc2626<\u002Fcode> circle, white bold text, only rendered when count &gt; 0.<\u002Fp>\n<table>\n<tbody><tr><th>Role<\u002Fth><th>Badge count = <\u002Fth><th>Modal title<\u002Fth><th>Modal subtitle<\u002Fth><\u002Ftr>\n<tr><td>Staff<\u002Ftd><td>count of tickets where <code>creatorId === currentUser.id AND status === 'pending'<\u002Fcode><\u002Ftd><td>My Tickets<\u002Ftd><td>Orders you've sent, and their payment status<\u002Ftd><\u002Ftr>\n<tr><td>Manager<\u002Ftd><td>count of all tickets where <code>status === 'pending'<\u002Fcode>, any creator<\u002Ftd><td>Pending Tickets<\u002Ftd><td>Orders waiting to be collected at the till<\u002Ftd><\u002Ftr>\n<\u002Ftbody><\u002Ftable>\n\n<h3>Ticket row anatomy<\u002Fh3>\n<pre>[avatar+initials]  #{id} — {itemCount} item(s)          RWF {total}   [status pill]  [Collect →]\n                    {creatorName if Manager} · {minutesAgo} min ago<\u002Fpre>\n<ul>\n<li>Status pill \"Awaiting payment\": bg <span class=\"swatch\" style=\"background:#fef3c7\"><\u002Fspan><code>#fef3c7<\u002Fcode>, text <code>#92400e<\u002Fcode>.<\u002Fli>\n<li>Status pill \"Paid\": bg <span class=\"swatch\" style=\"background:#dcfce7\"><\u002Fspan><code>#dcfce7<\u002Fcode>, text <code>#166534<\u002Fcode>.<\u002Fli>\n<li><code>Collect →<\u002Fcode> button (Manager, pending rows only): solid blue <code>#2f6fed<\u002Fcode>, white text, 12px/700. Click → closes modal, loads that ticket into the cart panel as the \"settling\" state (see §4 row 3).<\u002Fli>\n<li>Staff rows are read-only — no action button, ever (staff cannot act on payment).<\u002Fli>\n<li>Empty state: centered muted text, \"Nothing here yet.\"<\u002Fli>\n<\u002Ful>\n\n<h2>6. Interaction flows<\u002Fh2>\n<h3>Staff<\u002Fh3>\n<ol>\n<li>Build cart as today (search/tap products, adjust qty).<\u002Fli>\n<li>Tap <b>Send to Till →<\u002Fb>.<\u002Fli>\n<li>Ticket is pushed to the shared queue with <code>status: 'pending'<\u002Fcode>, <code>creatorId<\u002Fcode>/<code>creatorName<\u002Fcode> = current user, timestamp = now.<\u002Fli>\n<li>Cart resets to a new empty ticket (next ticket number). Toast: <code>Sent to till — Ticket #{id}<\u002Fcode>.<\u002Fli>\n<li>Staff can check status any time in Tickets → My Tickets.<\u002Fli>\n<\u002Fol>\n<h3>Manager<\u002Fh3>\n<ol>\n<li>Open Tickets → Pending Tickets (badge shows total queue depth).<\u002Fli>\n<li>Tap <b>Collect →<\u002Fb> on any row.<\u002Fli>\n<li>Cart panel loads that ticket's items (read-only quantities) with the settling banner; payment tools become active, amount pre-filled with the ticket total.<\u002Fli>\n<li>Tap <b>Pay<\u002Fb> → ticket <code>status → 'paid'<\u002Fcode>, removed from the pending queue. Toast: <code>Payment collected · RWF {total}<\u002Fcode>. Cart resets to a fresh empty new-sale ticket.<\u002Fli>\n<li>Managers may also ring up a normal direct sale without touching the queue at all — that flow is 100% today's flow.<\u002Fli>\n<\u002Fol>\n\n<h2>7. Data model additions<\u002Fh2>\n<pre>Ticket {\n  id: number                 // ticket/invoice number\n  creatorId: string\n  creatorName: string\n  creatorInitials: string\n  creatorColor: string       // avatar bg, hex\n  items: [{ name, qty, price }]\n  total: number\n  status: 'pending' | 'paid' // NEW field — everything else on Ticket already exists today\n  createdAt: timestamp\n}\n\nCartState {\n  ticketNo: number\n  mode: 'Sale' | 'Transfer'  // unchanged\n  items: [...]\n  settling: Ticket | null    // NEW — non-null while a Manager is paying a queued ticket\n}<\u002Fpre>\n<p>No changes needed to product, inventory, or customer data models.<\u002Fp>\n\n<h2>8. Design tokens (all reused from the current app — nothing new introduced)<\u002Fh2>\n<table>\n<tbody><tr><th>Token<\u002Fth><th>Value<\u002Fth><th>Use<\u002Fth><\u002Ftr>\n<tr><td>Primary blue<\u002Ftd><td><span class=\"swatch\" style=\"background:#2f6fed\"><\u002Fspan><code>#2f6fed<\u002Fcode><\u002Ftd><td>Primary buttons, links, active nav<\u002Ftd><\u002Ftr>\n<tr><td>Primary blue (hover)<\u002Ftd><td><span class=\"swatch\" style=\"background:#1d4ed8\"><\u002Fspan><code>#1d4ed8<\u002Fcode><\u002Ftd><td>Button hover, banner text<\u002Ftd><\u002Ftr>\n<tr><td>Ink<\u002Ftd><td><span class=\"swatch\" style=\"background:#111827\"><\u002Fspan><code>#111827<\u002Fcode><\u002Ftd><td>Primary text<\u002Ftd><\u002Ftr>\n<tr><td>Muted<\u002Ftd><td><span class=\"swatch\" style=\"background:#6b7280\"><\u002Fspan><code>#6b7280<\u002Fcode><\u002Ftd><td>Secondary text, hints<\u002Ftd><\u002Ftr>\n<tr><td>Border<\u002Ftd><td><span class=\"swatch\" style=\"background:#e5e7eb\"><\u002Fspan><code>#e5e7eb<\u002Fcode><\u002Ftd><td>Card/input borders, dividers<\u002Ftd><\u002Ftr>\n<tr><td>Amber pill bg/text<\u002Ftd><td><span class=\"swatch\" style=\"background:#fef3c7\"><\u002Fspan><code>#fef3c7<\u002Fcode> / <code>#92400e<\u002Fcode><\u002Ftd><td>\"Awaiting payment\" pill<\u002Ftd><\u002Ftr>\n<tr><td>Green pill bg/text<\u002Ftd><td><span class=\"swatch\" style=\"background:#dcfce7\"><\u002Fspan><code>#dcfce7<\u002Fcode> / <code>#166534<\u002Fcode><\u002Ftd><td>\"Paid\" pill<\u002Ftd><\u002Ftr>\n<tr><td>Danger<\u002Ftd><td><span class=\"swatch\" style=\"background:#dc2626\"><\u002Fspan><code>#dc2626<\u002Fcode><\u002Ftd><td>Badge count, delete actions<\u002Ftd><\u002Ftr>\n<tr><td>Radius (cards/inputs/buttons)<\u002Ftd><td>8–12px<\u002Ftd><td>Consistent with current app<\u002Ftd><\u002Ftr>\n<\u002Ftbody><\u002Ftable>\n\n<h2>9. QA checklist before ship<\u002Fh2>\n<ul>\n<li>Manager, no pending tickets: cart screen identical to production (screenshot diff = 0).<\u002Fli>\n<li>Staff never sees amount field, quick-cash buttons, or Payments accordion, under any state.<\u002Fli>\n<li>Staff Tickets list never shows another staff member's ticket.<\u002Fli>\n<li>Badge count updates immediately after Send to Till / after Pay (no refresh needed).<\u002Fli>\n<li>Collecting a ticket does not let the Manager edit its items/qty (read-only in that state).<\u002Fli>\n<li>\"Back to new sale\" does not change the ticket's status.<\u002Fli>\n<li>Direct Manager sale (no queue involved) still produces the same receipt/transaction record as today.<\u002Fli>\n<\u002Ful>\n\n<\u002Fdoc-page>\n<script src=\"c24469c1-3861-48f0-a4f1-5ac7fb2657fb\"><\u002Fscript>\n\n\n<\u002Fbody><\u002Fhtml>"
+  </script>
+</body>
+</html>

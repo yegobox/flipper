@@ -1,9 +1,12 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tickets_provider.g.dart';
@@ -30,12 +33,18 @@ Stream<List<ITransaction>> ticketsStream(Ref ref) {
   final capellaStrategy = ProxyService.getStrategy(Strategy.capella);
   final branchId = ProxyService.box.getBranchId();
 
+  // Till roles see the full branch queue; staff see only their own tickets.
+  final userId = ProxyService.box.getUserId() ?? '';
+  final tenantAsync = ref.watch(tenantProvider(userId));
+  final canCollect = tenantCanCollectPosPayment(tenantAsync.asData?.value);
+
   return capellaStrategy
       .openPosTicketsTransactionsStream(
         branchId: branchId,
         removeAdjustmentTransactions: true,
         forceRealData: true,
         skipOriginalTransactionCheck: false,
+        restrictToCurrentAgent: !canCollect,
       )
       .map((tickets) {
         final marked = tickets.map((ticket) {
@@ -65,3 +74,11 @@ Stream<List<ITransaction>> ticketsStream(Ref ref) {
         throw e;
       });
 }
+
+/// PARKED tickets awaiting till collection — drives the Tickets button badge.
+final pendingTillTicketsCountProvider = Provider<int>((ref) {
+  final tickets = ref.watch(ticketsStreamProvider).asData?.value ?? const [];
+  return tickets
+      .where((t) => (t.status ?? '').toLowerCase() == PARKED)
+      .length;
+});
