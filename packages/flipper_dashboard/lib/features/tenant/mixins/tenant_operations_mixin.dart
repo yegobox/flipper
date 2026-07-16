@@ -7,6 +7,7 @@ import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -103,6 +104,67 @@ class TenantOperationsMixin {
       default:
         return null;
     }
+  }
+
+  /// Builds the `p_accesses` payload for [create_agent].
+  ///
+  /// Create: only active modules with a real access level.
+  /// Edit: only rows that differ from [permissionsBaseline] /
+  /// [activeFeaturesBaseline] (including deactivations).
+  ///
+  /// If Active is on but the level is still "No Access" (legacy UI state),
+  /// defaults the level to `write` so toggles are not silently dropped.
+  @visibleForTesting
+  static List<Map<String, String>> buildAccessPermissionsPayload({
+    required bool editMode,
+    required Map<String, String> tenantAllowedFeatures,
+    required Map<String, bool> activeFeatures,
+    Map<String, String>? permissionsBaseline,
+    Map<String, bool>? activeFeaturesBaseline,
+  }) {
+    final accessPermissions = <Map<String, String>>[];
+    final seen = <String>{};
+
+    if (editMode &&
+        permissionsBaseline != null &&
+        activeFeaturesBaseline != null) {
+      for (final feature in features) {
+        if (!seen.add(feature)) continue;
+        final level = tenantAllowedFeatures[feature] ?? 'No Access';
+        final active = activeFeatures[feature] ?? false;
+        final baseLevel = permissionsBaseline[feature] ?? 'No Access';
+        final baseActive = activeFeaturesBaseline[feature] ?? false;
+        if (level == baseLevel && active == baseActive) continue;
+
+        var normalized = _normalizeAccessLevelForApi(level);
+        if (active && normalized == null) {
+          normalized = 'write';
+        }
+        accessPermissions.add({
+          'feature_name': feature,
+          'access_level': normalized ?? 'read',
+          'status': (active && normalized != null) ? 'active' : 'inactive',
+        });
+      }
+      return accessPermissions;
+    }
+
+    for (final feature in features) {
+      if (!seen.add(feature)) continue;
+      final level = tenantAllowedFeatures[feature] ?? 'No Access';
+      final active = activeFeatures[feature] ?? false;
+      var normalized = _normalizeAccessLevelForApi(level);
+      if (active && normalized == null) {
+        normalized = 'write';
+      }
+      if (normalized == null || !active) continue;
+      accessPermissions.add({
+        'feature_name': feature,
+        'access_level': normalized,
+        'status': 'active',
+      });
+    }
+    return accessPermissions;
   }
 
   static Future<void> addUserStatic(
@@ -235,47 +297,14 @@ class TenantOperationsMixin {
       final supabaseClient = Supabase.instance.client;
 
       // Prepare access permissions: on edit, only send rows that changed vs baseline
-      // (new users still send the full map from tenantAllowedFeatures).
-      List<Map<String, String>> accessPermissions = [];
-      if (editMode &&
-          permissionsBaseline != null &&
-          activeFeaturesBaseline != null) {
-        final seen = <String>{};
-        for (final feature in features) {
-          if (!seen.add(feature)) {
-            continue;
-          }
-          final level =
-              tenantAllowedFeatures[feature] ?? 'No Access';
-          final active = activeFeatures[feature] ?? false;
-          final baseLevel = permissionsBaseline[feature] ?? 'No Access';
-          final baseActive = activeFeaturesBaseline[feature] ?? false;
-          if (level == baseLevel && active == baseActive) {
-            continue;
-          }
-          final normalized = _normalizeAccessLevelForApi(level);
-          // If user set "No Access" or toggled inactive, persist as inactive.
-          // We still send a stable access_level value to avoid writing arbitrary strings
-          // like "No Access" into the DB column.
-          accessPermissions.add({
-            'feature_name': feature,
-            'access_level': normalized ?? 'read',
-            'status': (active && normalized != null) ? 'active' : 'inactive',
-          });
-        }
-      } else {
-        for (final entry in tenantAllowedFeatures.entries) {
-          final normalized = _normalizeAccessLevelForApi(entry.value);
-          final active = activeFeatures[entry.key] ?? false;
-          // For new users, do not send "No Access" rows at all.
-          if (normalized == null || !active) continue;
-          accessPermissions.add({
-            'feature_name': entry.key,
-            'access_level': normalized,
-            'status': 'active',
-          });
-        }
-      }
+      // (create sends every active module with a real access level).
+      final accessPermissions = buildAccessPermissionsPayload(
+        editMode: editMode,
+        tenantAllowedFeatures: tenantAllowedFeatures,
+        activeFeatures: activeFeatures,
+        permissionsBaseline: permissionsBaseline,
+        activeFeaturesBaseline: activeFeaturesBaseline,
+      );
 
       // Log the data being sent to create_agent
       talker.info('Creating agent with data:');
