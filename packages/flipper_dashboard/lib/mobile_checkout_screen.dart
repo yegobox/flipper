@@ -155,10 +155,22 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final items = ref.read(posCartDisplayItemsProvider);
     if (items.isEmpty) return;
 
-    setState(() => _sendToTillBusy = true);
     final txn =
         ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
         widget.transaction;
+
+    final hasCustomerId = (txn.customerId ?? '').trim().isNotEmpty;
+    final hasCustomerName = (txn.customerName ?? '').trim().isNotEmpty;
+    final hasCustomerPhone = (txn.customerPhone ?? '').trim().isNotEmpty;
+    if (!hasCustomerId && !hasCustomerName && !hasCustomerPhone) {
+      showErrorNotification(
+        context,
+        'Save a customer name or phone number on this ticket before sending it to the till.',
+      );
+      return;
+    }
+
+    setState(() => _sendToTillBusy = true);
     final displayRef = _ticketDisplayRef(txn);
     try {
       await ref.read(parkTransactionProvider.notifier).park(

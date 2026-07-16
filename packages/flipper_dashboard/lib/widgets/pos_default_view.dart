@@ -62,6 +62,18 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
     final items = ref.read(posCartDisplayItemsProvider);
     if (items.isEmpty) return;
 
+    final hasCustomerId = (transaction.customerId ?? '').trim().isNotEmpty;
+    final hasCustomerName = (transaction.customerName ?? '').trim().isNotEmpty;
+    final hasCustomerPhone =
+        (transaction.customerPhone ?? '').trim().isNotEmpty;
+    if (!hasCustomerId && !hasCustomerName && !hasCustomerPhone) {
+      showErrorNotification(
+        context,
+        'Save a customer name or phone number on this ticket before sending it to the till.',
+      );
+      return;
+    }
+
     setState(() => _sendToTillBusy = true);
     final displayRef = _ticketDisplayRef(transaction);
     try {
