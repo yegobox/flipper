@@ -2271,10 +2271,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
 
     final nowIso = DateTime.now().toUtc().toIso8601String();
+    // Do NOT touch createdAt here: it holds the time the ticket was sent to the
+    // till (stamped when parked), which drives the "sent … N min ago" settling
+    // banner. Resuming re-stamped it to now, so every Collect wrongly showed
+    // "0 min ago". The final sale date is set at completion, not at resume.
     await ditto.store.execute(
       'UPDATE transactions SET '
       'status = :status, agentId = :agentId, deviceId = :deviceId, '
-      'updatedAt = :updatedAt, lastTouched = :lastTouched, createdAt = :lastTouched '
+      'updatedAt = :updatedAt, lastTouched = :lastTouched '
       'WHERE _id = :id OR id = :id',
       arguments: {
         'id': ticket.id,
