@@ -1,12 +1,12 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=/Users/richard/develop/flutter
-FLUTTER_APPLICATION_PATH=/Users/richard/Developer/yego-project/flipper/apps/flipper_web
-FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=/Users/richard/Developer/yego-project/flipper/apps/flipper_web/ios/Flutter/ephemeral/Packages/.packages/FlutterFramework
+FLUTTER_ROOT=C:\Users\HP\Documents\flutter
+FLUTTER_APPLICATION_PATH=c:\Users\HP\Documents\open-source\flipper\apps\flipper_web
+FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=c:\Users\HP\Documents\open-source\flipper\apps\flipper_web\ios\Flutter\ephemeral\Packages\.packages\FlutterFramework
 COCOAPODS_PARALLEL_CODE_SIGN=true
-FLUTTER_TARGET=lib/main.dart
+FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build
-FLUTTER_BUILD_NAME=1.0.767
-FLUTTER_BUILD_NUMBER=1683
+FLUTTER_BUILD_NAME=1.0.768
+FLUTTER_BUILD_NUMBER=1684
 EXCLUDED_ARCHS[sdk=iphonesimulator*]=i386
 EXCLUDED_ARCHS[sdk=iphoneos*]=armv7
 DART_OBFUSCATION=false

@@ -3,13 +3,24 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Supabase Auth for Flipper POS users (`{phoneDigits}@flipper.rw` / password = email).
+/// Supabase Auth for Flipper POS users.
+///
+/// Login key may be a phone or an email (same as POST `/v2/api/user`):
+/// - phone → `{digits}@flipper.rw` / password = that email
+/// - email (contains `@`) → used as-is / password = that email
 class SupabaseSessionService {
   SupabaseSessionService._();
 
   /// Matches `POST /auth/v1/token?grant_type=password` credentials used in ops/tests.
+  ///
+  /// [phone] may already be an email / `@flipper.rw` key (contains `@`); those
+  /// are returned trimmed, matching how `/v2/api/user` treats `phoneNumber`.
   static String emailFromPhone(String phone) {
-    final digits = phone.replaceAll(RegExp(r'\D'), '');
+    final trimmed = phone.trim();
+    if (trimmed.contains('@')) {
+      return trimmed;
+    }
+    final digits = trimmed.replaceAll(RegExp(r'\D'), '');
     if (digits.isEmpty) {
       throw ArgumentError('phone has no digits: $phone');
     }
@@ -96,9 +107,12 @@ class SupabaseSessionService {
   static Future<String> requireAccessToken() async {
     final token = await ensureAccessToken();
     if (token == null || token.isEmpty) {
+      final phone = _phoneFromBox();
+      final expected = phone == null || phone.isEmpty
+          ? 'phone or email login key'
+          : emailFromPhone(phone);
       throw StateError(
-        'No Supabase session. Expected ${emailFromPhone(_phoneFromBox() ?? '')} '
-        '— sign in to the app first.',
+        'No Supabase session. Expected $expected — sign in to the app first.',
       );
     }
     return token;
