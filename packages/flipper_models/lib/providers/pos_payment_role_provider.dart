@@ -1,6 +1,8 @@
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,9 +11,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 ///
 /// Grants collection when:
 /// - [Tenant.type] is Owner / Admin / Manager, **or**
-/// - current user id matches the active business owner (`Business.userId`).
+/// - current user id matches the active business owner (`Business.userId`), **or**
+/// - the user has an active Write/Admin grant on the [AppFeature.Tickets]
+///   permission (lets an owner grant a plain Cashier till-collection rights via
+///   the User Management permission matrix, without making them an Admin).
 ///
-/// Fail-closed while both signals are unknown so staff cannot bypass the gate.
+/// Fail-closed while all signals are unknown so staff cannot bypass the gate.
 final canCollectPosPaymentProvider = Provider<bool>((ref) {
   final userId = ProxyService.box.getUserId() ?? '';
   if (userId.isEmpty) {
@@ -31,7 +36,12 @@ final canCollectPosPaymentProvider = Provider<bool>((ref) {
     userId: userId,
     businessOwnerUserId: businessOwnerUserId,
   );
-  final canCollect = typeMatch || isBusinessOwner;
+  final hasTicketsGrant = _hasActiveTillCollectGrant(
+    ref.watch(userAccessesProvider(userId, featureName: AppFeature.Tickets))
+        .asData
+        ?.value,
+  );
+  final canCollect = typeMatch || isBusinessOwner || hasTicketsGrant;
 
   final tenantState = tenantAsync.hasError
       ? 'error:${tenantAsync.error}'
@@ -56,11 +66,32 @@ final canCollectPosPaymentProvider = Provider<bool>((ref) {
     'tenantName=${tenant?.name} | '
     'typeMatch=$typeMatch | '
     'businessOwnerAsync=$businessOwnerState | '
-    'isBusinessOwner=$isBusinessOwner',
+    'isBusinessOwner=$isBusinessOwner | '
+    'hasTicketsGrant=$hasTicketsGrant',
   );
 
   return canCollect;
 });
+
+/// True when [accesses] contains an active, non-expired Write/Admin grant on the
+/// Tickets feature. Deliberately does NOT use [featureAccessProvider] — that
+/// short-circuits to true in debug builds, which would make every user a
+/// collector and break the cashier/till split during testing.
+bool _hasActiveTillCollectGrant(List<Access>? accesses) {
+  if (accesses == null || accesses.isEmpty) return false;
+  final now = DateTime.now();
+  return accesses.any((a) {
+    final level = (a.accessLevel ?? '').toLowerCase();
+    final isWriteOrAdmin = level == 'write' ||
+        level == 'admin' ||
+        level == 'read_write' ||
+        level == 'readwrite';
+    return a.featureName == AppFeature.Tickets &&
+        isWriteOrAdmin &&
+        a.status == 'active' &&
+        (a.expiresAt == null || a.expiresAt!.isAfter(now));
+  });
+}
 
 /// Active business owner user id (local Brick lookup; best-effort).
 final _businessOwnerUserIdProvider = FutureProvider<String?>((ref) async {

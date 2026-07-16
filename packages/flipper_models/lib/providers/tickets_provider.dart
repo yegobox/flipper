@@ -1,7 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
-import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -34,9 +33,10 @@ Stream<List<ITransaction>> ticketsStream(Ref ref) {
   final branchId = ProxyService.box.getBranchId();
 
   // Till roles see the full branch queue; staff see only their own tickets.
-  final userId = ProxyService.box.getUserId() ?? '';
-  final tenantAsync = ref.watch(tenantProvider(userId));
-  final canCollect = tenantCanCollectPosPayment(tenantAsync.asData?.value);
+  // Use the same ownership-aware decision as the Collect button/Pay controls
+  // (canCollectPosPaymentProvider) — an owner whose tenant.type is null/"Agent"
+  // still qualifies via business ownership, so the cashier's sent tickets show.
+  final canCollect = ref.watch(canCollectPosPaymentProvider);
 
   return capellaStrategy
       .openPosTicketsTransactionsStream(
