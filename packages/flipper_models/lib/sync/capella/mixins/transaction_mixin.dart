@@ -2040,11 +2040,28 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         excludeTransactionId: excludeTransactionId,
       );
 
+      // Ditto DQL does not support subqueries, so resolve the target ids first
+      // and delete children + parents by id list. This keeps the whole clear to
+      // a fixed 3 round-trips instead of the previous slow per-row fallback.
+      final selected = await ditto.store.execute(
+        'SELECT id FROM transactions WHERE $_pendingSaleCartWhere',
+        arguments: args,
+      );
+      final ids = <String>[];
+      for (final item in selected.items) {
+        final id = _dittoDocumentId(Map<String, dynamic>.from(item.value));
+        if (id != null && id.isNotEmpty) ids.add(id);
+      }
+
+      if (ids.isEmpty) {
+        talker.info('clearPendingSaleCartsExcept: no pending sale carts');
+        return;
+      }
+
       try {
         await ditto.store.execute(
-          'DELETE FROM transaction_items WHERE transactionId IN ('
-          'SELECT id FROM transactions WHERE $_pendingSaleCartWhere)',
-          arguments: args,
+          'DELETE FROM transaction_items WHERE transactionId IN (:ids)',
+          arguments: {'ids': ids},
         );
         await ditto.store.execute(
           'DELETE FROM transactions WHERE $_pendingSaleCartWhere',
@@ -2054,14 +2071,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         talker.warning(
           'clearPendingSaleCartsExcept bulk delete failed, falling back: $bulkError',
         );
-        final result = await ditto.store.execute(
-          'SELECT id FROM transactions WHERE $_pendingSaleCartWhere',
-          arguments: args,
-        );
-        for (final item in result.items) {
-          final data = Map<String, dynamic>.from(item.value);
-          final id = _dittoDocumentId(data);
-          if (id == null || id.isEmpty) continue;
+        for (final id in ids) {
           await ditto.store.execute(
             'DELETE FROM transaction_items WHERE transactionId = :id',
             arguments: {'id': id},
@@ -2073,7 +2083,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         }
       }
 
-      talker.info('clearPendingSaleCartsExcept: cleared pending sale carts');
+      talker.info(
+        'clearPendingSaleCartsExcept: cleared ${ids.length} pending sale cart(s)',
+      );
     } catch (e, s) {
       talker.error('clearPendingSaleCartsExcept: $e', s);
     }

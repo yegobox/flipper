@@ -80,6 +80,7 @@ class SettlingTillTicket {
     required this.displayRef,
     required this.creatorName,
     required this.createdAt,
+    this.branchId,
     this.ticketName,
     this.ticketNote,
   });
@@ -88,6 +89,10 @@ class SettlingTillTicket {
   final String displayRef;
   final String creatorName;
   final DateTime createdAt;
+
+  /// Branch the ticket lives in — used to scope the settling cart's line-item
+  /// query to the exact branch. Falls back to the active branch when null.
+  final String? branchId;
   final String? ticketName;
   final String? ticketNote;
 }

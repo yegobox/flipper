@@ -205,6 +205,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   int _deletedCount = 0;
   int _totalCount = 0;
 
+  /// Id of the ticket whose Collect button is mid-resume, so its card shows a
+  /// spinner and blocks re-taps until the checkout hand-off completes.
+  String? _collectingTicketId;
+
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
     final List<String> failedDeletions = [];
     final List<String> skippedTickets = [];
@@ -631,6 +635,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       showCollect: canCollect &&
                           (ticket.status ?? '').toLowerCase() == PARKED,
                       showResume: canCollect,
+                      isCollecting: _collectingTicketId == ticket.id,
                       onTap: () => _handleTicketTap(context, ticket),
                       onCollect: () =>
                           unawaited(_collectTillTicket(context, ticket)),
@@ -656,35 +661,43 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     BuildContext context,
     ITransaction ticket,
   ) async {
-    final originalAgentId = ticket.agentId;
-    var creatorName = 'Staff';
-    if (originalAgentId != null && originalAgentId.isNotEmpty) {
-      try {
-        final tenant = await ProxyService.strategy.tenant(
-          userId: originalAgentId,
-          fetchRemote: false,
-        );
-        final name = tenant?.name?.trim();
-        if (name != null && name.isNotEmpty) creatorName = name;
-      } catch (_) {}
-    }
+    // Ignore re-taps while this ticket is already being collected.
+    if (_collectingTicketId != null) return;
+    setState(() => _collectingTicketId = ticket.id);
+    try {
+      final originalAgentId = ticket.agentId;
+      var creatorName = 'Staff';
+      if (originalAgentId != null && originalAgentId.isNotEmpty) {
+        try {
+          final tenant = await ProxyService.strategy.tenant(
+            userId: originalAgentId,
+            fetchRemote: false,
+          );
+          final name = tenant?.name?.trim();
+          if (name != null && name.isNotEmpty) creatorName = name;
+        } catch (_) {}
+      }
 
-    final ok = await _resumeOrder(ticket);
-    if (!ok || !mounted) return;
+      final ok = await _resumeOrder(ticket);
+      if (!ok || !mounted) return;
 
-    ref.read(settlingTillTicketProvider.notifier).state = SettlingTillTicket(
-      transactionId: ticket.id,
-      displayRef: _ticketDisplayRef(ticket),
-      creatorName: creatorName,
-      createdAt: ticket.createdAt ?? DateTime.now(),
-      ticketName: ticket.ticketName,
-      ticketNote: ticket.note,
-    );
+      ref.read(settlingTillTicketProvider.notifier).state = SettlingTillTicket(
+        transactionId: ticket.id,
+        displayRef: _ticketDisplayRef(ticket),
+        creatorName: creatorName,
+        createdAt: ticket.createdAt ?? DateTime.now(),
+        branchId: ticket.branchId ?? ProxyService.box.getBranchId(),
+        ticketName: ticket.ticketName,
+        ticketNote: ticket.note,
+      );
 
-    if (MediaQuery.sizeOf(context).width < 600) {
-      unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
-    } else {
-      locator<RouterService>().back();
+      if (MediaQuery.sizeOf(context).width < 600) {
+        unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
+      } else {
+        locator<RouterService>().back();
+      }
+    } finally {
+      if (mounted) setState(() => _collectingTicketId = null);
     }
   }
 
@@ -1198,6 +1211,7 @@ class TicketCard extends StatelessWidget {
   final bool showCollect;
   final VoidCallback? onCollect;
   final bool showResume;
+  final bool isCollecting;
   const TicketCard({
     super.key,
     required this.ticket,
@@ -1209,6 +1223,7 @@ class TicketCard extends StatelessWidget {
     this.showCollect = false,
     this.onCollect,
     this.showResume = true,
+    this.isCollecting = false,
   });
 
   Color _leftAccent() {
@@ -1506,10 +1521,13 @@ class TicketCard extends StatelessWidget {
                               ),
                               if (showCollect && onCollect != null) ...[
                                 TextButton(
-                                  onPressed: onCollect,
+                                  onPressed: isCollecting ? null : onCollect,
                                   style: TextButton.styleFrom(
                                     backgroundColor: _kCollectBlue,
                                     foregroundColor: Colors.white,
+                                    disabledBackgroundColor:
+                                        _kCollectBlue.withValues(alpha: 0.7),
+                                    disabledForegroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 8,
@@ -1521,14 +1539,40 @@ class TicketCard extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
-                                  child: Text(
-                                    'Collect →',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                                  child: isCollecting
+                                      ? Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Collecting…',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Text(
+                                          'Collect →',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                 ),
                                 const SizedBox(width: 8),
                               ] else if (showResume) ...[

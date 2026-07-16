@@ -92,6 +92,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final container = _container;
     if (container != null) {
       clearPinnedPosCartTransactionContainer(container);
+      // Leaving the dedicated checkout ends any till-settling session so the
+      // operator's next cart is not scoped to the collected ticket
+      // (posCartDisplayItemsProvider keys off settlingTillTicketProvider).
+      container.read(settlingTillTicketProvider.notifier).state = null;
     }
     super.dispose();
   }
