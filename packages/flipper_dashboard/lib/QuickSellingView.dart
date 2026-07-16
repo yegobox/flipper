@@ -2359,34 +2359,85 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// Search Customer OR Name+Phone — mutually exclusive swap (handover).
   Widget _buildCompactCustomerCapture() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(2, 4, 2, 6),
+      padding: const EdgeInsets.fromLTRB(2, 4, 8, 6),
       child: _customerFieldsExpanded
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 3, child: _customerNameField()),
-                const SizedBox(width: 7),
-                Expanded(flex: 2, child: _buildCustomerPhoneField()),
-                const SizedBox(width: 4),
-                IconButton(
-                  tooltip: 'Close',
-                  onPressed: _collapseCustomerFields,
-                  icon: const Icon(Icons.close, size: 18),
-                  color: PosTokens.ink3,
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
+          ? AnimatedBuilder(
+              animation: Listenable.merge(
+                [_customerNameFocusNode, _customerPhoneFocusNode],
+              ),
+              builder: (context, _) {
+                // Whichever field currently has focus gets more room so it
+                // has enough space to be typed into comfortably; the other
+                // field yields space to it (swap, not stack).
+                final phoneFocused = _customerPhoneFocusNode.hasFocus;
+                final nameFraction = phoneFocused ? 0.45 : 0.6;
+                final phoneFraction = phoneFocused ? 0.55 : 0.4;
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    const spacing = 7.0;
+                    const closeButtonWidth = 40.0;
+                    final availableWidth =
+                        constraints.maxWidth - spacing - closeButtonWidth;
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          width: availableWidth * nameFraction,
+                          child: _customerNameField(),
+                        ),
+                        const SizedBox(width: spacing),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          width: availableWidth * phoneFraction,
+                          child: _buildCustomerPhoneField(),
+                        ),
+                        const SizedBox(width: 6),
+                        Tooltip(
+                          message: 'Close',
+                          child: Material(
+                            color: const Color(0xFFFDECEC),
+                            borderRadius: BorderRadius.circular(9),
+                            child: InkWell(
+                              onTap: _collapseCustomerFields,
+                              borderRadius: BorderRadius.circular(9),
+                              child: Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(9),
+                                  border: Border.all(
+                                    color: const Color(0xFFF3B4B4),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 18,
+                                  color: Color(0xFFC0392B),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             )
           : Row(
               children: [
                 const Expanded(
                   child: SearchInputWithDropdown(embeddedInCheckoutPane: true),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Tooltip(
                   message: 'Add customer',
                   child: Material(
-                    color: PosTokens.surface2,
+                    color: PosLayoutBreakpoints.posAccentBlue
+                        .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(9),
                     child: InkWell(
                       onTap: () {
@@ -2398,13 +2449,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         });
                       },
                       borderRadius: BorderRadius.circular(9),
-                      child: const SizedBox(
-                        width: 34,
-                        height: 34,
-                        child: Icon(
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(
+                            color: PosLayoutBreakpoints.posAccentBlue
+                                .withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: const Icon(
                           FluentIcons.person_add_20_regular,
                           size: 18,
-                          color: PosTokens.ink2,
+                          color: PosLayoutBreakpoints.posAccentBlue,
                         ),
                       ),
                     ),
