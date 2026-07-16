@@ -681,14 +681,33 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final ok = await _resumeOrder(ticket);
       if (!ok || !mounted) return;
 
+      final settlingBranchId = ticket.branchId ?? ProxyService.box.getBranchId();
+
+      // Pre-fetch the ticket's line items while the Collect spinner is still
+      // showing, so the settling cart in QuickSellingView paints on the first
+      // frame instead of waiting for the cold Ditto item stream's first snapshot.
+      List<TransactionItem> seedItems = const <TransactionItem>[];
+      try {
+        seedItems = await ProxyService.getStrategy(Strategy.capella)
+            .transactionItems(
+          transactionId: ticket.id,
+          branchId: settlingBranchId,
+          active: true,
+        );
+      } catch (e, st) {
+        talker.warning('Collect: seed items prefetch failed: $e', st);
+      }
+      if (!mounted) return;
+
       ref.read(settlingTillTicketProvider.notifier).state = SettlingTillTicket(
         transactionId: ticket.id,
         displayRef: _ticketDisplayRef(ticket),
         creatorName: creatorName,
         createdAt: ticket.createdAt ?? DateTime.now(),
-        branchId: ticket.branchId ?? ProxyService.box.getBranchId(),
+        branchId: settlingBranchId,
         ticketName: ticket.ticketName,
         ticketNote: ticket.note,
+        seedItems: seedItems,
       );
 
       if (MediaQuery.sizeOf(context).width < 600) {

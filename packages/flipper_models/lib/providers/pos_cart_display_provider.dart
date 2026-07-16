@@ -161,7 +161,13 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
         (settling.branchId != null && settling.branchId!.isNotEmpty)
             ? settling.branchId!
             : (ProxyService.box.getBranchId() ?? '0');
-    final scoped = ref
+    // The live Ditto stream is the source of truth once it warms up, but on a
+    // cold subscription it resolves AsyncLoading first — so fall back to the
+    // items pre-fetched at Collect time (settling.seedItems) so the cart paints
+    // instantly instead of flashing empty. Settling is read-only, so the
+    // ticket's lines don't legitimately empty out mid-settle; prefer the seed
+    // until the stream actually has rows.
+    final streamItems = ref
             .watch(
               transactionItemsStreamProvider(
                 transactionId: settling.transactionId,
@@ -171,6 +177,8 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
             .asData
             ?.value ??
         const <TransactionItem>[];
+    final scoped =
+        streamItems.isNotEmpty ? streamItems : settling.seedItems;
     return scoped.where((i) => i.active != false).toList();
   }
 

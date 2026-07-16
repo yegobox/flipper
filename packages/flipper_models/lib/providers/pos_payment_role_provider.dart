@@ -114,6 +114,7 @@ class SettlingTillTicket {
     this.branchId,
     this.ticketName,
     this.ticketNote,
+    this.seedItems = const <TransactionItem>[],
   });
 
   final String transactionId;
@@ -126,6 +127,11 @@ class SettlingTillTicket {
   final String? branchId;
   final String? ticketName;
   final String? ticketNote;
+
+  /// Line items pre-fetched at Collect time so the settling cart paints on the
+  /// first frame instead of flashing empty while the cold Ditto item stream
+  /// registers its observer and delivers its first snapshot.
+  final List<TransactionItem> seedItems;
 }
 
 /// Non-null while a Manager/Admin is settling a queued till ticket in the cart.
