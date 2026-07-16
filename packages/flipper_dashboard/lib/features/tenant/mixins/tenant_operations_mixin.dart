@@ -403,7 +403,7 @@ class TenantOperationsMixin {
         successMessage = 'Tenant Created Successfully';
       } else {
         successMessage =
-            'Permissions saved. Other users update automatically when online (or after sign-in).';
+            'Permissions saved. Online users refresh Ditto user_access automatically; offline users pick up changes on next sign-in.';
         final selfId = ProxyService.box.getUserId();
         if (selfId != null &&
             selfId == userIdFromApi &&

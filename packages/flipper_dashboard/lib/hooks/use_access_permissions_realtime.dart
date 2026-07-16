@@ -13,12 +13,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Subscribes to Supabase Realtime on [accesses] for the signed-in user.
 ///
-/// When an admin (or RPC) changes that user's rows, this debounces and calls
-/// [sendLoginRequest] so `/v2/api/user` repopulates Ditto `user_access` and
-/// permission providers refresh.
+/// Feature menus read nested module rows from Ditto `user_access` (written at
+/// login). When an admin updates `public.accesses`, this debounces and calls
+/// [sendLoginRequest] with `refreshUserAccessOnly: true`, which re-fetches
+/// `/v2/api/user` (`get_user_with_nested_data`) and **upserts the entire**
+/// `user_access` document — same businesses → branches → accesses shape —
+/// then invalidates permission providers.
 ///
-/// Requires: Realtime enabled for `public.accesses` in Supabase, and RLS (or
-/// policies) allowing this user to receive changes for their `user_id`.
+/// Requires: `public.accesses` in `supabase_realtime` publication (see
+/// migration `accesses_realtime_for_user_access_refresh`) and RLS that allows
+/// the signed-in user to receive change events for their `user_id`.
 void useAccessPermissionsRealtimeSync(WidgetRef ref) {
   final userId = ProxyService.box.getUserId();
 
