@@ -29,6 +29,7 @@ import 'package:flipper_services/navigation_guard_service.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 
@@ -296,6 +297,10 @@ class CheckOutState extends ConsumerState<CheckOut>
   ) async {
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+
+    // End any till-settling session so the operator's next cart is no longer
+    // scoped to the collected ticket (posCartDisplayItemsProvider keys off it).
+    ref.read(settlingTillTicketProvider.notifier).state = null;
 
     if (!mounted) return;
 

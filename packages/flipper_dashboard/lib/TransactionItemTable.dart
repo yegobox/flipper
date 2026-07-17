@@ -284,6 +284,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool isOrdering, {
     bool pinGrandTotal = false,
     List<TransactionItem>? cartLines,
+    bool readOnly = false,
   }) {
     _tableCartLines = cartLines;
     final lines = _linesForTable;
@@ -320,13 +321,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => _showDeleteAllConfirmation(isOrdering),
-                    icon: Icon(
-                      Icons.delete_outline,
-                      size: 18,
-                      color: Colors.red.shade600,
-                    ),
+                  if (!readOnly)
+                    TextButton.icon(
+                      onPressed: () => _showDeleteAllConfirmation(isOrdering),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: Colors.red.shade600,
+                      ),
                     label: Text(
                       'Delete All',
                       style: TextStyle(
@@ -346,9 +348,19 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 ? Expanded(child: _buildPinnedEmptyStateScrollSlot())
                 : _buildEmptyState()
           else if (pinGrandTotal)
-            Expanded(child: _buildItemsList(isOrdering, scrollable: true))
+            Expanded(
+              child: _buildItemsList(
+                isOrdering,
+                scrollable: true,
+                readOnly: readOnly,
+              ),
+            )
           else
-            _buildItemsList(isOrdering, scrollable: false),
+            _buildItemsList(
+              isOrdering,
+              scrollable: false,
+              readOnly: readOnly,
+            ),
           ValueListenableBuilder<int>(
             valueListenable: _cartTotalsTick,
             builder: (_, __, ___) => _buildModernSummary(),
@@ -422,7 +434,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  Widget _buildItemsList(bool isOrdering, {required bool scrollable}) {
+  Widget _buildItemsList(
+    bool isOrdering, {
+    required bool scrollable,
+    bool readOnly = false,
+  }) {
     final visibleItems = _visibleTransactionItems;
     final listView = ListView.separated(
       controller: scrollable ? _itemsScrollController : null,
@@ -448,8 +464,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         return KeyedSubtree(
           key: _rowKeyFor(item.id),
           child: Consumer(
-            builder: (context, ref, _) =>
-                _buildModernItemRow(item, isOrdering, ref: ref),
+            builder: (context, ref, _) => _buildModernItemRow(
+              item,
+              isOrdering,
+              ref: ref,
+              readOnly: readOnly,
+            ),
           ),
         );
       },
@@ -495,6 +515,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     TransactionItem item,
     bool isOrdering, {
     WidgetRef? ref,
+    bool readOnly = false,
   }) {
     final isExpanded = _expandedItemId == item.id;
     final isSaving = _isItemSaving[item.id] ?? false;
@@ -509,33 +530,37 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       return _buildPosHandoffCartLine(
         item: item,
         isOrdering: isOrdering,
-        isExpanded: isExpanded,
+        isExpanded: isExpanded && !readOnly,
         isSaving: isSaving,
         hasError: hasError,
         lineRef: ref ?? this.ref,
+        readOnly: readOnly,
       );
     }
 
-    return Container(
-      padding: EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: hasError
-            ? Colors.red[50]
-            : hasChanged
-            ? Colors.blue[50]
-            : Colors.transparent,
-        border: isExpanded
-            ? Border.all(color: PosLayoutBreakpoints.posAccentBlue, width: 2)
-            : null,
-      ),
-      child: Column(
-        children: [
-          _buildItemHeader(item, isOrdering, isSaving, hasError),
-          if (isExpanded) ...[
-            const SizedBox(height: 16),
-            _buildExpandedControls(item, isOrdering),
+    return IgnorePointer(
+      ignoring: readOnly,
+      child: Container(
+        padding: EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: hasError
+              ? Colors.red[50]
+              : hasChanged
+              ? Colors.blue[50]
+              : Colors.transparent,
+          border: isExpanded
+              ? Border.all(color: PosLayoutBreakpoints.posAccentBlue, width: 2)
+              : null,
+        ),
+        child: Column(
+          children: [
+            _buildItemHeader(item, isOrdering, isSaving, hasError),
+            if (isExpanded && !readOnly) ...[
+              const SizedBox(height: 16),
+              _buildExpandedControls(item, isOrdering),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -547,9 +572,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     required bool isSaving,
     required bool hasError,
     required WidgetRef lineRef,
+    bool readOnly = false,
   }) {
     _ensureController(item);
-    final qtyLocked = OptimisticCartIds.isOptimistic(item.id);
+    final qtyLocked = OptimisticCartIds.isOptimistic(item.id) || readOnly;
     return ValueListenableBuilder<double>(
       valueListenable: _lineQtyListenable(item),
       builder: (context, displayQty, _) {
@@ -580,13 +606,20 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           errorText: _itemErrors[item.id],
           stockHint: stockHint,
           priceHint: priceHint,
-          onToggleExpand: () =>
-              _toggleExpandedItem(item.id, isSaving: isSaving),
-          onDelete: () => _showDeleteConfirmation(item, isOrdering),
-          onDecrement: () => _decrementQuantity(item, isOrdering),
-          onIncrement: () => _incrementQuantity(item, isOrdering),
-          decrementEnabled: displayQty > 0 && !qtyLocked,
-          incrementEnabled: !qtyLocked,
+          onToggleExpand: readOnly
+              ? () {}
+              : () => _toggleExpandedItem(item.id, isSaving: isSaving),
+          onDelete: readOnly
+              ? () {}
+              : () => _showDeleteConfirmation(item, isOrdering),
+          onDecrement: readOnly
+              ? () {}
+              : () => _decrementQuantity(item, isOrdering),
+          onIncrement: readOnly
+              ? () {}
+              : () => _incrementQuantity(item, isOrdering),
+          decrementEnabled: !readOnly && displayQty > 0 && !qtyLocked,
+          incrementEnabled: !readOnly && !qtyLocked,
           expandedQuantityStepper: isExpanded
               ? PosCartExpandedQtyStepper(
                   qtyText: qtyFormatted,

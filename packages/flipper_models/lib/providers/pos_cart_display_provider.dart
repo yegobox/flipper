@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -149,6 +150,37 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
 /// Single cart list for checkout UI: Ditto rows + unresolved optimistic qty.
 final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   ref.keepAlive();
+
+  // While a till role settles a queued ticket, the whole checkout acts on that
+  // ticket — not the collector's own (usually empty) pending cart. Source the
+  // lines straight from the ticket's item stream so totals, the payment gate,
+  // and completion hints all see it. Read-only; no optimistic merge needed.
+  final settling = ref.watch(settlingTillTicketProvider);
+  if (settling != null && settling.transactionId.isNotEmpty) {
+    final settlingBranchId =
+        (settling.branchId != null && settling.branchId!.isNotEmpty)
+            ? settling.branchId!
+            : (ProxyService.box.getBranchId() ?? '0');
+    // The live Ditto stream is the source of truth once it warms up, but on a
+    // cold subscription it resolves AsyncLoading first — so fall back to the
+    // items pre-fetched at Collect time (settling.seedItems) so the cart paints
+    // instantly instead of flashing empty. Settling is read-only, so the
+    // ticket's lines don't legitimately empty out mid-settle; prefer the seed
+    // until the stream actually has rows.
+    final streamItems = ref
+            .watch(
+              transactionItemsStreamProvider(
+                transactionId: settling.transactionId,
+                branchId: settlingBranchId,
+              ),
+            )
+            .asData
+            ?.value ??
+        const <TransactionItem>[];
+    final scoped =
+        streamItems.isNotEmpty ? streamItems : settling.seedItems;
+    return scoped.where((i) => i.active != false).toList();
+  }
 
   final isExpense = _posCartIsExpense();
   final optimisticState = ref.watch(optimisticCartProvider);

@@ -77,11 +77,16 @@ abstract class TransactionInterface {
   });
 
   /// WAITING + PARKED + IN_PROGRESS for the POS tickets screen (single observer).
+  ///
+  /// When [restrictToCurrentAgent] is true (default), only the signed-in
+  /// agent's tickets are returned. Till roles pass false to see the full
+  /// branch queue.
   Stream<List<ITransaction>> openPosTicketsTransactionsStream({
     String? branchId,
     required bool removeAdjustmentTransactions,
     required bool forceRealData,
     required bool skipOriginalTransactionCheck,
+    bool restrictToCurrentAgent = true,
   });
 
   Future<List<Configurations>> taxes({required String branchId});

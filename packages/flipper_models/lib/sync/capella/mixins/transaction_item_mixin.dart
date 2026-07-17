@@ -518,6 +518,15 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       ttCatCd: data['ttCatCd'],
       taxPercentage: _dittoOptNum(data['taxPercentage']),
       supplyPriceAtSale: _dittoOptNum(data['supplyPriceAtSale']),
+      // Stock-request approval fields (Approve All / Incoming Orders).
+      quantityRequested: _dittoOptNum(data['quantityRequested'])?.toInt(),
+      quantityApproved: _dittoOptNum(data['quantityApproved'])?.toInt(),
+      quantityShipped: _dittoOptNum(data['quantityShipped'])?.toInt(),
+      inventoryRequestId: _dittoFirstString(data, [
+        'inventoryRequestId',
+        'inventory_request_id',
+      ]),
+      ignoreForReport: data['ignoreForReport'] == true,
       createdAt: data['createdAt'] != null
           ? DateTime.tryParse(data['createdAt'].toString())
           : null,

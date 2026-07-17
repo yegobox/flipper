@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Developer Handoff — Orders Management (Stock Transfer Requests)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#2f6bff;--accent-strong:#1e5be6;--accent-wash:#eaf0ff;--green:#1f9d55;--green-wash:#e7f6ee;--red:#e5484d;--red-wash:#fdecec;--amber:#98690a;--amber-wash:#fff3d6;--ink:#1a1f2e;--ink-2:#545b6b;--muted:#8a909c;--faint:#b6bcc6;--line:#ecedf1;--line-2:#e2e5ec;--surface:#fff;--surface-2:#f7f8fb;--surface-3:#eef1f6;--canvas:#f3f5f9;--shadow:0 1px 2px rgba(20,30,60,.05),0 10px 24px -14px rgba(20,30,60,.2)}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Inter",-apple-system,sans-serif;color:var(--ink);background:var(--canvas);-webkit-font-smoothing:antialiased;line-height:1.55}
+.wrap{max-width:960px;margin:0 auto;padding:56px 32px 96px}
+h1{font-size:33px;font-weight:800;letter-spacing:-.025em;margin:0 0 6px}
+h2{font-size:21px;font-weight:800;letter-spacing:-.015em;margin:0 0 14px}
+h3{font-size:15px;font-weight:800;margin:22px 0 10px;letter-spacing:-.01em}
+p{margin:0 0 12px;color:var(--ink-2)}
+a{color:var(--accent-strong)}
+code{font-family:"JetBrains Mono",monospace;font-size:.86em;background:var(--surface-3);padding:1.5px 6px;border-radius:5px;color:#2c3550;white-space:nowrap}
+strong{color:var(--ink);font-weight:700}
+ul{margin:0 0 12px;padding-left:20px;color:var(--ink-2)}
+li{margin:4px 0}
+li::marker{color:var(--faint)}
+.lead{font-size:16.5px;color:var(--ink-2);max-width:72ch}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 4px}
+.chip{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2)}
+.chip.hifi{background:var(--green-wash);color:#178045;border-color:transparent}
+.chip.brand{background:var(--accent-wash);color:var(--accent-strong);border-color:transparent}
+.chip.warn{background:var(--amber-wash);color:#8a5a00;border-color:transparent}
+section{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:30px 32px;margin:18px 0;box-shadow:var(--shadow)}
+.callout{border-radius:18px;padding:26px 30px;margin:18px 0;border:1px solid}
+.callout.ai{background:#fffaf0;border-color:#f0dcae}
+.callout.ai h2{color:#8a5a00;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.callout .tag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#b07a17;background:#fdeecb;padding:3px 9px;border-radius:6px}
+.callout.ai ul{color:#6b5224}.callout.ai li{margin:7px 0}.callout.ai strong{color:#5c4413}
+.callout.open{background:#fdeeee;border-color:#f3c9c9}
+.callout.open h2{color:#9a2f30}
+.callout.open .tag{color:#9a2f30;background:#f8d7d7}
+.callout.open ul{color:#7a3a3a}.callout.open li{margin:8px 0}.callout.open strong{color:#5c1e1e}
+table{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:13.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--surface-2)}
+td{color:var(--ink-2)}
+td:first-child{color:var(--ink);font-weight:600}
+.tok-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px;margin:4px 0 8px}
+.tok{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tok .sw{height:48px}.tok .lab{padding:8px 11px}
+.tok .nm{font-size:12.5px;font-weight:700}.tok .hex{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);margin-top:1px}
+.filerow{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+.filerow:last-child{border-bottom:none}
+.filerow .fn{font-family:"JetBrains Mono",monospace;font-size:12.5px;font-weight:600;color:var(--ink)}
+.filerow .fd{font-size:13.5px;color:var(--ink-2)}
+.note{background:var(--surface-2);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:14px;color:var(--ink-2)}
+.note.warn{border-left-color:var(--amber);background:#fffdf6}
+.note strong{color:var(--ink)}
+.toc{columns:2;column-gap:28px;font-size:14px}
+.toc a{display:block;padding:4px 0;color:var(--ink-2);text-decoration:none}
+.toc a:hover{color:var(--accent-strong)}
+kbd{font-family:"JetBrains Mono",monospace;font-size:11.5px;background:var(--surface);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:6px;padding:1.5px 7px;color:var(--ink)}
+@media (max-width:680px){.toc{columns:1}.filerow{grid-template-columns:1fr;gap:2px}.wrap{padding:32px 18px 64px}}
+@media print{body{background:#fff}section,.callout{box-shadow:none;break-inside:avoid}.wrap{max-width:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Orders Management</h1>
+<p class="lead">Developer handoff for the responsive screen that lists <strong>stock-transfer requests between store locations</strong> — requests other stores send to this store (Incoming) and requests this store sends to other stores (Outgoing) — and lets staff approve/produce/void them.</p>
+<div class="meta">
+<span class="chip hifi">High fidelity</span>
+<span class="chip brand">Flipper design system</span>
+<span class="chip">Inter</span>
+<span class="chip">Responsive — tablet + desktop</span>
+<span class="chip warn">Backend contract assumed — see §8</span>
+</div>
+
+<section>
+<h2>Contents</h2>
+<nav class="toc">
+<a href="#about">1 · About these files</a>
+<a href="#ai">2 · Brief for AI assistants</a>
+<a href="#model">3 · Mental model</a>
+<a href="#data">4 · Data model</a>
+<a href="#anatomy">5 · Screen anatomy</a>
+<a href="#cardstates">6 · Order card states</a>
+<a href="#status">7 · Status &amp; badges</a>
+<a href="#actions">8 · Actions &amp; assumed endpoints</a>
+<a href="#tokens">9 · Tokens &amp; type</a>
+<a href="#responsive">10 · Responsive</a>
+<a href="#files">11 · Files</a>
+<a href="#open">12 · Open questions for product/backend</a>
+</nav>
+</section>
+
+<section id="about">
+<h2>1 · About these files</h2>
+<p>Files in <code>src/</code> are a <strong>design reference</strong> built in HTML/CSS + React (in-browser Babel) — a visual + interaction spec, <strong>not production code</strong>. Recreate the UI in the target codebase using its framework, components, and conventions. Sample data is hard-coded in <code>orders-management.jsx</code>; there is no real API behind this prototype (see §8/§12).</p>
+<div class="note"><strong>Fidelity: high</strong> for layout, tokens, type, states and the accordion/expand interaction. <strong>Fidelity: low/assumed</strong> for backend wiring — this screen was redesigned from a UI screenshot with no API spec attached; treat §8 as a proposal, not a contract.</div>
+</section>
+
+<div class="callout ai" id="ai">
+<h2><span class="tag">Read first</span> 2 · Brief for AI assistants</h2>
+<p style="color:#6b5224;margin-bottom:10px;">This doc is self-sufficient. Implement directly; don't burn tokens re-deriving it.</p>
+<ul>
+<li><strong>Don't echo the spec.</strong> Don't paste file contents or this doc back into chat. Cite section numbers and token/component names.</li>
+<li><strong>Read narrowly.</strong> Open <code>orders-management.css</code> for exact values, <code>ipm.css</code> for the shared design-system tokens/components it reuses (<code>.panel</code>, <code>.sgroup</code>, <code>.seg</code>, <code>.btn</code>, <code>.badge</code>). Skim <code>orders-management.jsx</code> only for structure.</li>
+<li><strong>Map, don't reinvent.</strong> Translate §9 tokens to the existing app theme once; reuse existing buttons/panels/badges/segmented-control components if the codebase already has equivalents.</li>
+<li><strong>Don't invent backend behavior.</strong> §8 lists actions with assumed request shapes flagged <code>ASSUMPTION</code>. Confirm real endpoints with backend before wiring; stub with the same UI states (loading/disabled) meanwhile.</li>
+<li><strong>Plan, then build.</strong> Output a component list + token map + open questions, confirm, implement. No trial-and-error loops.</li>
+<li><strong>Tight diffs, no narration.</strong> Edit in place; state what changed in 1–2 lines. Ask only blocking questions (§12).</li>
+</ul>
+</div>
+
+<section id="model">
+<h2>3 · Mental model</h2>
+<p>Two independent axes, both scoped to the current store/branch:</p>
+<ul>
+<li><strong>Direction</strong> — <strong>Incoming</strong>: requests other store locations have sent <em>to</em> this store, asking this store to send stock. <strong>Outgoing</strong>: requests this store has sent <em>to</em> other locations.</li>
+<li><strong>Status</strong> — <strong>Pending</strong>: awaiting a decision. <strong>Approved</strong>: resolved, read-only history.</li>
+</ul>
+<p>Each request groups one or more line items (product + quantity) moving from one location (<code>from</code>) to another (<code>to</code>). Incoming pending requests are actioned by this store (Produce / Approve / Void). Outgoing pending requests were created by this store and can still have their requested quantities edited while they wait on the receiving store.</p>
+</section>
+
+<section id="data">
+<h2>4 · Data model</h2>
+<p>Proposed shape per request (see <code>ORDERS</code> seed in <code>orders-management.jsx</code>):</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>id</td><td>string/number</td><td>Request identifier.</td></tr>
+<tr><td>direction</td><td>enum</td><td><code>incoming</code> | <code>outgoing</code> — derived from which location the viewer is, not stored on the request itself; a request is "incoming" to its <code>to</code> location and "outgoing" from its <code>from</code> location.</td></tr>
+<tr><td>from / to</td><td>string (location name)</td><td>Sender / receiver store. Should be location IDs in production, resolved to display names.</td></tr>
+<tr><td>status</td><td>enum</td><td><code>pending</code> | <code>approved</code>. Prototype does not model a rejected/voided persisted state — see §12.</td></tr>
+<tr><td>requestedOn</td><td>datetime</td><td>Rendered as e.g. <code>Jul 14, 2026 20:40</code> — format in the viewer's local timezone.</td></tr>
+<tr><td>items[]</td><td>array</td><td><code>{ name, requested, approved? }</code> — <code>approved</code> present once a decision has been made per line (partial-fulfillment tracking); absent/irrelevant while an outgoing request is still self-editable.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="anatomy">
+<h2>5 · Screen anatomy</h2>
+<ul>
+<li><strong>Header</strong> — title "Orders Management" + subtitle, right-aligned <strong>Pending/Approved</strong> segmented control (<code>.seg</code>).</li>
+<li><strong>Direction control</strong> — full-width <strong>Incoming/Outgoing</strong> segmented control (<code>.seg.seg-lg</code>) directly below the header, each option with an icon.</li>
+<li><strong>Stat card</strong> — shown only on the <em>Pending</em> tab: icon + count of pending requests for the active direction + "Pending Requests" label. Deliberately minimal — no secondary badge/decoration.</li>
+<li><strong>Section list</strong> — heading ("Received Orders" for Incoming / "Sent Orders" for Outgoing) + a vertical stack of order cards (<code>.panel.sgroup</code>, one per request), or an empty state if none match the filters.</li>
+</ul>
+</section>
+
+<section id="cardstates">
+<h2>6 · Order card states</h2>
+<p>Each card is a collapsed header (click anywhere, or the chevron, to expand) + an expanded body. Collapsed header: leading icon chip, "Request From {sender}" + item count, an item-count pill, chevron.</p>
+<table>
+<thead><tr><th>Direction × Status</th><th>Header pill</th><th>Item row shows</th><th>Footer actions</th></tr></thead>
+<tbody>
+<tr><td>Incoming · Pending</td><td>"{approved}/{requested} Items" (green)</td><td>"Approved: {approved}/{requested}" per line</td><td>Produce (ghost) · Approve (green-soft) · Void (disabled ghost)</td></tr>
+<tr><td>Incoming · Approved</td><td>"{approved}/{requested} Items" (green)</td><td>"Approved: {approved}/{requested}" per line</td><td>none — read-only history</td></tr>
+<tr><td>Outgoing · Pending</td><td>"{requested total} Items" (green)</td><td>"Requested: {requested}" + pencil/Update controls per line</td><td>none — sender edits quantities inline instead</td></tr>
+<tr><td>Outgoing · Approved</td><td>"{approved}/{requested} Items" (green)</td><td>"Approved: {approved}/{requested}" per line</td><td>none — read-only history</td></tr>
+</tbody>
+</table>
+<p>Expanded body always includes, in order: <strong>From/To flow strip</strong> (swap icon + "From: X" / "To: Y", X in green, Y in accent blue), <strong>Items</strong> list, <strong>Status &amp; Delivery</strong> (two info tiles: status badge-style value + "Requested On" date, each with its own icon chip), then the footer actions row where applicable.</p>
+</section>
+
+<section id="status">
+<h2>7 · Status &amp; badges</h2>
+<table>
+<thead><tr><th>UI key</th><th>Label</th><th>Color</th></tr></thead>
+<tbody>
+<tr><td>pending</td><td>PENDING</td><td>amber (<code>--amber</code> on <code>--amber-wash</code>)</td></tr>
+<tr><td>approved</td><td>APPROVED</td><td>green (<code>--green-strong</code> on <code>--green-wash</code>)</td></tr>
+</tbody>
+</table>
+<p>Item-count pill always uses the green "qtypill" style regardless of request status — it communicates volume, not state, so it shouldn't be confused with the status badge.</p>
+</section>
+
+<div class="callout ai" id="actions" style="background:#fff;border-color:var(--line);">
+<h2 style="color:var(--ink)"><span class="tag" style="color:var(--accent-strong);background:var(--accent-wash);">Proposed</span> 8 · Actions &amp; assumed endpoints</h2>
+<p style="color:var(--ink-2);margin-bottom:10px;">No API contract was provided for this screen. The table below is a <strong>proposal</strong> to unblock implementation — confirm real endpoint names/payloads with backend before wiring.</p>
+<table>
+<thead><tr><th>Action</th><th>Where</th><th>Assumed call</th><th>Expected UI effect</th></tr></thead>
+<tbody>
+<tr><td>Approve</td><td>Incoming · Pending footer</td><td><code>POST /transfer-requests/:id/approve</code> — body: per-line approved qty (defaults to requested)</td><td>Card status → approved; item rows switch to "Approved: n/n"; toast confirmation.</td></tr>
+<tr><td>Produce</td><td>Incoming · Pending footer</td><td><code>ASSUMPTION</code> — likely triggers a production/manufacturing order for line items that are made-to-order rather than pulled from stock. Needs confirmation of what "Produce" means in this business.</td><td>TBD — likely opens a follow-on flow rather than mutating this request directly.</td></tr>
+<tr><td>Void</td><td>Incoming · Pending footer</td><td><code>ASSUMPTION</code> — <code>POST /transfer-requests/:id/void</code></td><td>Rendered disabled in this reference build — real enabled/disabled condition (e.g. only before any approval activity) needs confirmation. See §12.</td></tr>
+<tr><td>Edit quantity + Update</td><td>Outgoing · Pending item row</td><td><code>ASSUMPTION</code> — <code>PATCH /transfer-requests/:id/items/:itemId</code> with new <code>requested</code> qty</td><td>Updates the line in place; no optimistic-then-revert pattern modeled yet — add one when wired to a real save.</td></tr>
+</tbody>
+</table>
+</div>
+
+<section id="tokens">
+<h2>9 · Tokens &amp; type</h2>
+<p>CSS custom properties in <code>ipm.css</code> <code>:root</code> (shared design system) plus screen-specific classes in <code>orders-management.css</code>. Font: <strong>Inter</strong> 400–800; tabular numerals on quantities/dates.</p>
+<div class="tok-grid">
+<div class="tok"><div class="sw" style="background:#2f6bff"></div><div class="lab"><div class="nm">Accent</div><div class="hex">--accent #2F6BFF</div></div></div>
+<div class="tok"><div class="sw" style="background:#1e5be6"></div><div class="lab"><div class="nm">Accent strong</div><div class="hex">--accent-strong #1E5BE6</div></div></div>
+<div class="tok"><div class="sw" style="background:#eaf0ff"></div><div class="lab"><div class="nm">Accent wash</div><div class="hex">--accent-wash #EAF0FF</div></div></div>
+<div class="tok"><div class="sw" style="background:#1f9d55"></div><div class="lab"><div class="nm">Green / approved</div><div class="hex">--green #1F9D55</div></div></div>
+<div class="tok"><div class="sw" style="background:#fff3d6"></div><div class="lab"><div class="nm">Amber wash / pending</div><div class="hex">--amber-wash #FFF3D6</div></div></div>
+<div class="tok"><div class="sw" style="background:#1a1f2e"></div><div class="lab"><div class="nm">Ink</div><div class="hex">--ink #1A1F2E</div></div></div>
+<div class="tok"><div class="sw" style="background:#f3f5f9"></div><div class="lab"><div class="nm">Canvas</div><div class="hex">--canvas #F3F5F9</div></div></div>
+<div class="tok"><div class="sw" style="background:#f1ebfd"></div><div class="lab"><div class="nm">Date chip wash</div><div class="hex">#F1EBFD / icon #7C4FD1</div></div></div>
+</div>
+<table>
+<thead><tr><th>Token</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>--radius-lg / --radius / --radius-sm</td><td><code>18 / 14 / 10px</code></td></tr>
+<tr><td>Card max width</td><td><code>1120px</code>, centered, 32px side padding desktop / 16px ≤880px</td></tr>
+<tr><td>Item-row / meta-tile padding</td><td><code>13px 16px</code> and <code>12px 14px</code> respectively</td></tr>
+</tbody>
+</table>
+<p>Type roles: page title 28/800 (−.02em); section heading 15/800; card title 14.5–16/700–800; body/labels 13–14.5/600–700; overline (Items / Status &amp; Delivery labels) 12/800 uppercase; status value 14/800; stat number 26/800.</p>
+</section>
+
+<section id="responsive">
+<h2>10 · Responsive</h2>
+<table>
+<thead><tr><th>Breakpoint</th><th>Changes</th></tr></thead>
+<tbody>
+<tr><td>≤ 880px</td><td>Content padding shrinks to 16–20px; page title drops to 22px; both segmented controls already render full-width by default; Status &amp; Delivery tiles reflow to a 2-column grid; footer action buttons stretch to fill the row equally.</td></tr>
+<tr><td>Down to phone widths</td><td>Not a target for this screen (tablet + desktop only per brief) — verify visually below ~600px but no dedicated phone layout is required.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="files">
+<h2>11 · Files</h2>
+<div class="filelist">
+<div class="filerow"><span class="fn">src/Orders Management.html</span><span class="fd">Entry point — fonts, React+Babel, CSS, component script.</span></div>
+<div class="filerow"><span class="fn">src/orders-management.css</span><span class="fd">Screen-specific styles: header, segmented sizing, stat card, order card body, from/to flow strip, item rows, status/date tiles, footer actions.</span></div>
+<div class="filerow"><span class="fn">src/orders-management.jsx</span><span class="fd">Icons, seed data (<code>ORDERS</code>), Segmented control, OrderCard, App shell + state (direction/status/open-ids).</span></div>
+<div class="filerow"><span class="fn">src/ipm.css</span><span class="fd">Shared Flipper design-system tokens + reused components: <code>.panel</code>, <code>.sgroup</code> (accordion), <code>.seg</code> (segmented control), <code>.btn</code> variants, <code>.badge</code>, <code>.empty</code>.</span></div>
+</div>
+<div class="note" style="margin-top:18px;">Run the prototype by serving the folder and opening the HTML (in-browser Babel + CDN scripts; needs network). Reference only — not a production build.</div>
+</section>
+
+<div class="callout open" id="open">
+<h2><span class="tag">Confirm before build</span> 12 · Open questions for product/backend</h2>
+<ul>
+<li><strong>What does "Produce" actually do?</strong> No backend action was specified; this reference renders it as a ghost button with no wired behavior.</li>
+<li><strong>Is "Void" ever enabled?</strong> Currently rendered permanently disabled — confirm whether there's an eligibility condition or it should be removed.</li>
+<li><strong>Per-item partial approval</strong> — can an incoming request be approved with a different quantity than requested per line, or is Approve all-or-nothing? The "Approved: n/n" display assumes partial tracking exists.</li>
+<li><strong>Outgoing self-edit</strong> — can the requesting store edit quantities after the receiving store has started acting on the request? What happens to an edit mid-flight?</li>
+<li><strong>Rejected/voided history</strong> — is there a third status the Approved tab should also filter out, or does a voided request disappear entirely?</li>
+<li><strong>Multi-location scale</strong> — does this list need search/pagination once a store has many transfer partners, or is the current unpaginated list sufficient?</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>

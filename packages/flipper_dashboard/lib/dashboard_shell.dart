@@ -10,6 +10,7 @@ enum DashboardPage {
   stockRecount,
   delegations,
   incomingOrders,
+  transfersReport,
   shiftHistory,
   productionOutput,
   dailyReportFiles,

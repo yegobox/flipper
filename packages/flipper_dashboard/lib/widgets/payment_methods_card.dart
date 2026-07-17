@@ -240,7 +240,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
           ? 'Add payment method'
           : 'All payment types are in use — remove one to add another',
       child: Material(
-        color: const Color(0xFFEFF6FF),
+        color: Colors.transparent,
         shape: const CircleBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -251,12 +251,14 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                     isMobile: isMobile,
                   )
               : null,
-          child: const Padding(
-            padding: EdgeInsets.all(8),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
             child: Icon(
               Icons.add_rounded,
               size: 22,
-              color: PosLayoutBreakpoints.posAccentBlue,
+              color: canAdd
+                  ? PosLayoutBreakpoints.posAccentBlue
+                  : PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.4),
             ),
           ),
         ),

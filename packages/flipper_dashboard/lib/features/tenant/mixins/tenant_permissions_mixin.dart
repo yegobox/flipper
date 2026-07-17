@@ -276,8 +276,14 @@ class TenantPermissionsMixin {
                     fontWeight: FontWeight.w500,
                   ),
                   onChanged: (String? newValue) {
+                    if (newValue == null) return;
                     setState(() {
-                      tenantAllowedFeatures[feature] = newValue!;
+                      applyAccessLevelChange(
+                        feature,
+                        newValue,
+                        tenantAllowedFeatures,
+                        activeFeatures,
+                      );
                     });
                   },
                   items: accessLevels.map<DropdownMenuItem<String>>((String value) {
@@ -303,10 +309,12 @@ class TenantPermissionsMixin {
                 value: activeFeatures[feature] ?? false,
                 onChanged: (bool value) {
                   setState(() {
-                    if (!tenantAllowedFeatures.containsKey(feature)) {
-                      tenantAllowedFeatures[feature] = 'write';
-                    }
-                    activeFeatures[feature] = value;
+                    applyActiveToggle(
+                      feature,
+                      value,
+                      tenantAllowedFeatures,
+                      activeFeatures,
+                    );
                   });
                 },
               ),
@@ -315,5 +323,38 @@ class TenantPermissionsMixin {
         ],
       ),
     );
+  }
+
+  /// Keeps Access Level and Active in sync when the dropdown changes.
+  /// Real levels turn Active on; "No Access" turns it off.
+  static void applyAccessLevelChange(
+    String feature,
+    String newLevel,
+    Map<String, String> tenantAllowedFeatures,
+    Map<String, bool> activeFeatures,
+  ) {
+    tenantAllowedFeatures[feature] = newLevel;
+    if (newLevel == 'No Access') {
+      activeFeatures[feature] = false;
+    } else {
+      activeFeatures[feature] = true;
+    }
+  }
+
+  /// Keeps Access Level and Active in sync when the switch changes.
+  /// Turning Active on with "No Access" defaults the level to write
+  /// (maps are often pre-filled with "No Access", so containsKey alone is wrong).
+  static void applyActiveToggle(
+    String feature,
+    bool active,
+    Map<String, String> tenantAllowedFeatures,
+    Map<String, bool> activeFeatures,
+  ) {
+    activeFeatures[feature] = active;
+    if (!active) return;
+    final current = tenantAllowedFeatures[feature];
+    if (current == null || current == 'No Access') {
+      tenantAllowedFeatures[feature] = 'write';
+    }
   }
 }

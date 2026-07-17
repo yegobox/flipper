@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/services/resume_transaction_service.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -31,7 +32,10 @@ const Color _kLoanPurple = Color(0xFF6B4EA2);
 const Color _kLayawayTeal = Color(0xFF0D9488);
 const Color _kRegularGreen = Color(0xFF2E7D32);
 const Color _kAccentBlue = Color(0xff006AFE);
+const Color _kCollectBlue = Color(0xFF2F6FED);
 const Color _kProgressOrange = Color(0xFFE08A2E);
+const Color _kAwaitingBg = Color(0xFFFEF3C7);
+const Color _kAwaitingFg = Color(0xFF92400E);
 
 bool _isStructuredLoanTicket(ITransaction t) {
   if (t.isLoan != true) return false;
@@ -200,6 +204,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   bool _isDeleting = false;
   int _deletedCount = 0;
   int _totalCount = 0;
+
+  /// Id of the ticket whose Collect button is mid-resume, so its card shows a
+  /// spinner and blocks re-taps until the checkout hand-off completes.
+  String? _collectingTicketId;
 
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
     final List<String> failedDeletions = [];
@@ -617,12 +625,20 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         (s) => s.contains(ticket.id),
                       ),
                     );
+                    final canCollect =
+                        ref.watch(canCollectPosPaymentProvider);
                     return TicketCard(
                       key: ValueKey(ticket.id),
                       ticket: ticket,
                       isSelected: isSelected,
                       paidAmount: paymentSumsByTxnId[ticket.id] ?? 0.0,
+                      showCollect: canCollect &&
+                          (ticket.status ?? '').toLowerCase() == PARKED,
+                      showResume: canCollect,
+                      isCollecting: _collectingTicketId == ticket.id,
                       onTap: () => _handleTicketTap(context, ticket),
+                      onCollect: () =>
+                          unawaited(_collectTillTicket(context, ticket)),
                       onDelete: () => _deleteTicket(ticket),
                       onSelectionChanged: (selected) {
                         ref
@@ -640,11 +656,79 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
+  /// Resume a parked ticket into settling mode for till payment collection.
+  Future<void> _collectTillTicket(
+    BuildContext context,
+    ITransaction ticket,
+  ) async {
+    // Ignore re-taps while this ticket is already being collected.
+    if (_collectingTicketId != null) return;
+    setState(() => _collectingTicketId = ticket.id);
+    try {
+      final originalAgentId = ticket.agentId;
+      var creatorName = 'Staff';
+      if (originalAgentId != null && originalAgentId.isNotEmpty) {
+        try {
+          final tenant = await ProxyService.strategy.tenant(
+            userId: originalAgentId,
+            fetchRemote: false,
+          );
+          final name = tenant?.name?.trim();
+          if (name != null && name.isNotEmpty) creatorName = name;
+        } catch (_) {}
+      }
+
+      final ok = await _resumeOrder(ticket);
+      if (!ok || !mounted) return;
+
+      final settlingBranchId = ticket.branchId ?? ProxyService.box.getBranchId();
+
+      // Pre-fetch the ticket's line items while the Collect spinner is still
+      // showing, so the settling cart in QuickSellingView paints on the first
+      // frame instead of waiting for the cold Ditto item stream's first snapshot.
+      List<TransactionItem> seedItems = const <TransactionItem>[];
+      try {
+        seedItems = await ProxyService.getStrategy(Strategy.capella)
+            .transactionItems(
+          transactionId: ticket.id,
+          branchId: settlingBranchId,
+          active: true,
+        );
+      } catch (e, st) {
+        talker.warning('Collect: seed items prefetch failed: $e', st);
+      }
+      if (!mounted) return;
+
+      ref.read(settlingTillTicketProvider.notifier).state = SettlingTillTicket(
+        transactionId: ticket.id,
+        displayRef: _ticketDisplayRef(ticket),
+        creatorName: creatorName,
+        createdAt: ticket.createdAt ?? DateTime.now(),
+        branchId: settlingBranchId,
+        ticketName: ticket.ticketName,
+        ticketNote: ticket.note,
+        seedItems: seedItems,
+      );
+
+      if (MediaQuery.sizeOf(context).width < 600) {
+        unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
+      } else {
+        locator<RouterService>().back();
+      }
+    } finally {
+      if (mounted) setState(() => _collectingTicketId = null);
+    }
+  }
+
   /// Dialog to update ticket status or resume
   Future<void> _handleTicketTap(
     BuildContext context,
     ITransaction ticket,
   ) async {
+    // Staff cannot collect payment — ticket rows stay informational.
+    if (!ref.read(canCollectPosPaymentProvider)) {
+      return;
+    }
     var resumeSucceeded = false;
     await showResumeTicketDialog(
       context: context,
@@ -1143,6 +1227,10 @@ class TicketCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final ValueChanged<bool> onSelectionChanged;
+  final bool showCollect;
+  final VoidCallback? onCollect;
+  final bool showResume;
+  final bool isCollecting;
   const TicketCard({
     super.key,
     required this.ticket,
@@ -1151,6 +1239,10 @@ class TicketCard extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
     required this.onSelectionChanged,
+    this.showCollect = false,
+    this.onCollect,
+    this.showResume = true,
+    this.isCollecting = false,
   });
 
   Color _leftAccent() {
@@ -1202,15 +1294,14 @@ class TicketCard extends StatelessWidget {
       statusLabel = 'Partial';
       statusFg = const Color(0xFFC62828);
       statusBg = const Color(0xFFFFEBEE);
+    } else if ((ticket.status ?? '').toLowerCase() == PARKED) {
+      statusLabel = 'Awaiting payment';
+      statusFg = _kAwaitingFg;
+      statusBg = _kAwaitingBg;
     } else {
       statusLabel = statusExt.displayName;
       statusFg = statusExt.color;
-      final raw = (ticket.status ?? PARKED).toLowerCase();
-      if (raw == PARKED) {
-        statusBg = const Color(0xFFFFF9E6);
-      } else {
-        statusBg = statusExt.color.withValues(alpha: 0.15);
-      }
+      statusBg = statusExt.color.withValues(alpha: 0.15);
     }
 
     final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
@@ -1447,13 +1538,71 @@ class TicketCard extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              _squareIconBtn(
-                                icon: Icons.play_arrow,
-                                color: _kAccentBlue,
-                                onPressed: onTap,
-                                tooltip: 'Resume Order',
-                              ),
-                              const SizedBox(width: 8),
+                              if (showCollect && onCollect != null) ...[
+                                TextButton(
+                                  onPressed: isCollecting ? null : onCollect,
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: _kCollectBlue,
+                                    foregroundColor: Colors.white,
+                                    disabledBackgroundColor:
+                                        _kCollectBlue.withValues(alpha: 0.7),
+                                    disabledForegroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: isCollecting
+                                      ? Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Collecting…',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Text(
+                                          'Collect →',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                ),
+                                const SizedBox(width: 8),
+                              ] else if (showResume) ...[
+                                _squareIconBtn(
+                                  icon: Icons.play_arrow,
+                                  color: _kAccentBlue,
+                                  onPressed: onTap,
+                                  tooltip: 'Resume Order',
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                               _squareIconBtn(
                                 icon: Icons.delete_outline,
                                 color: Colors.red[700]!,

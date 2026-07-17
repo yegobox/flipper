@@ -1269,6 +1269,7 @@ mixin TransactionMixin implements TransactionInterface {
     required bool removeAdjustmentTransactions,
     required bool forceRealData,
     required bool skipOriginalTransactionCheck,
+    bool restrictToCurrentAgent = true,
   }) {
     return ProxyService.getStrategy(
       Strategy.capella,
@@ -1277,6 +1278,7 @@ mixin TransactionMixin implements TransactionInterface {
       removeAdjustmentTransactions: removeAdjustmentTransactions,
       forceRealData: forceRealData,
       skipOriginalTransactionCheck: skipOriginalTransactionCheck,
+      restrictToCurrentAgent: restrictToCurrentAgent,
     );
   }
 

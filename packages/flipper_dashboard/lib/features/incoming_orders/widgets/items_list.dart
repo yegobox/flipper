@@ -1,16 +1,17 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/SnackBarMixin.dart';
+import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
+import 'package:flipper_dashboard/features/incoming_orders/providers/incoming_orders_provider.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/providers/selection_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
-import '../../../features/incoming_orders/providers/incoming_orders_provider.dart';
-import 'package:flipper_models/providers/selection_provider.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class ItemsList extends HookConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
@@ -18,305 +19,280 @@ class ItemsList extends HookConsumerWidget
   final bool isIncoming;
 
   const ItemsList({Key? key, required this.request, this.isIncoming = true})
-    : super(key: key);
+      : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync =
         request.transactionItems != null && request.transactionItems!.isNotEmpty
-        ? AsyncValue.data(request.transactionItems!)
-        : ref.watch(transactionItemsProvider(request.id));
+            ? AsyncValue.data(request.transactionItems!)
+            : ref.watch(transactionItemsProvider(request.id));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Items',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[800],
+          'ITEMS',
+          style: OmTokens.text(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: OmTokens.muted,
+            letterSpacing: 0.05 * 12,
           ),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 10),
         itemsAsync.when(
-          data: (items) => items.isEmpty
-              ? Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: Text('No items in this request')),
-                )
-              : Column(children: _buildItemList(items, context, ref)),
-          loading: () => Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: Text('Error loading items: $error')),
+          data: (items) {
+            if (items.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  'No items in this request',
+                  style: OmTokens.text(color: OmTokens.muted),
+                ),
+              );
+            }
+            final sorted = [...items]
+              ..sort((a, b) => (a.name).compareTo(b.name));
+            return Column(
+              children: [
+                for (var i = 0; i < sorted.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 8),
+                  _ItemRow(
+                    item: sorted[i],
+                    request: request,
+                    isIncoming: isIncoming,
+                    onUpdate: (item, qty) =>
+                        _handleUpdate(context, ref, item, qty),
+                  ),
+                ],
+              ],
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          error: (error, _) => Text(
+            'Error loading items: $error',
+            style: OmTokens.text(color: OmTokens.red),
           ),
         ),
       ],
     );
   }
 
-  List<Widget> _buildItemList(
-    List<TransactionItem> items,
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    items.sort((a, b) => (a.name).compareTo(b.name));
-
-    return items.map((item) => _buildItemCard(item, context, ref)).toList();
-  }
-
-  Widget _buildItemCard(
-    TransactionItem item,
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    final selectedIds = ref.watch(selectionProvider);
-    final isBulkMode = selectedIds.isNotEmpty;
-    // We cannot edit if in bulk mode.
-    // We also only allow edit if status is pending.
-    final canEdit = !isBulkMode && request.status == RequestStatus.pending;
-
-    return _ItemCard(
-      item: item,
-      request: request,
-      canEdit: canEdit,
-      isIncoming: isIncoming,
-      onApprove: (item, qty) =>
-          _handleSingleItemApproval(context, ref, item, qty),
-    );
-  }
-
-  void _handleSingleItemApproval(
+  void _handleUpdate(
     BuildContext context,
     WidgetRef ref,
     TransactionItem item,
     double quantity,
   ) {
     try {
-      if (isIncoming) {
-        approveSingleItem(
-          request: request,
-          item: item,
-          context: context,
-          quantity: quantity,
-        );
-      } else {
-        updateRequestedQuantity(
-          request: request,
-          item: item,
-          newQuantity: quantity.toInt(),
-          context: context,
-        );
-      }
+      updateRequestedQuantity(
+        request: request,
+        item: item,
+        newQuantity: quantity.toInt(),
+        context: context,
+      );
 
       final stringValue = ref.read(stringProvider);
+      final search = stringValue?.isNotEmpty == true ? stringValue : null;
       ref.refresh(
-        stockRequestsProvider(
+        stockRequestsProvider(status: RequestStatus.pending, search: search),
+      );
+      ref.refresh(
+        outgoingStockRequestsProvider(
           status: RequestStatus.pending,
-          search: stringValue?.isNotEmpty == true ? stringValue : null,
+          search: search,
         ),
       );
     } catch (e) {
       showCustomSnackBar(
         context,
-        'Failed to ${isIncoming ? "approve" : "update"} item: ${e.toString()}',
-        backgroundColor: Colors.red[600],
+        'Failed to update item: ${e.toString()}',
+        backgroundColor: OmTokens.red,
       );
     }
   }
 }
 
-class _ItemCard extends HookWidget {
+class _ItemRow extends HookConsumerWidget {
   final TransactionItem item;
   final InventoryRequest request;
-  final bool canEdit;
   final bool isIncoming;
-  final Function(TransactionItem, double) onApprove;
+  final void Function(TransactionItem, double) onUpdate;
 
-  const _ItemCard({
+  const _ItemRow({
     required this.item,
     required this.request,
-    required this.canEdit,
-    this.isIncoming = true,
-    required this.onApprove,
+    required this.isIncoming,
+    required this.onUpdate,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBulkMode = ref.watch(
+      selectionProvider.select((s) => s.isNotEmpty),
+    );
     final isEditing = useState(false);
-
-    // For incoming: default to remaining (Requested - Approved)
-    // For outgoing: default to Requested (since we are editing request)
-    final initialQty = isIncoming
-        ? ((item.quantityRequested ?? 0) - (item.quantityApproved ?? 0))
-        : (item.quantityRequested ?? 0);
-
+    final canEditOutgoing = !isIncoming &&
+        request.status == RequestStatus.pending &&
+        !isBulkMode;
     final quantityController = useTextEditingController(
-      text: initialQty.toString(),
+      text: '${item.quantityRequested ?? 0}',
     );
 
-    // Reset controller text when isEditing changes to false (cancel)
-    // or when we assume the initial value might have changed from props (less likely here without key)
     useEffect(() {
       if (!isEditing.value) {
-        final currentQty = isIncoming
-            ? ((item.quantityRequested ?? 0) - (item.quantityApproved ?? 0))
-            : (item.quantityRequested ?? 0);
-        quantityController.text = currentQty.toString();
+        quantityController.text = '${item.quantityRequested ?? 0}';
       }
       return null;
-    }, [isEditing.value, item.quantityRequested, item.quantityApproved]);
+    }, [isEditing.value, item.quantityRequested]);
 
-    Color _getQuantityColor(TransactionItem item) {
-      final approved = item.quantityApproved ?? 0;
-      final requested = item.quantityRequested ?? 0;
-      if (approved == 0) return Colors.red[700]!;
-      if (approved < requested) return Colors.orange[700]!;
-      return Colors.green[700]!;
-    }
+    // Pending requests (incoming or outgoing) show the requested qty; only
+    // approved/partial requests show the approved-vs-requested split.
+    final isPending = request.status == RequestStatus.pending;
 
-    return Card(
-      margin: EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Colors.grey[200]!),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+      decoration: BoxDecoration(
+        color: OmTokens.surface2,
+        borderRadius: BorderRadius.circular(OmTokens.radiusSm),
+        border: Border.all(color: OmTokens.line),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Column(
-          children: [
-            Row(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      if (!isEditing.value) ...[
-                        Row(
-                          children: [
-                            Text(
-                              isIncoming ? 'Approved: ' : 'Requested: ',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            Text(
-                              isIncoming
-                                  ? '${item.quantityApproved ?? 0}/${item.quantityRequested ?? 0}'
-                                  : '${item.quantityRequested ?? 0}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: _getQuantityColor(item),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (isIncoming &&
-                            (item.quantityRequested ?? 0) >
-                                (item.quantityApproved ?? 0))
-                          Padding(
-                            padding: EdgeInsets.only(top: 2),
-                            child: Text(
-                              'Pending: ${(item.quantityRequested ?? 0) - (item.quantityApproved ?? 0)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.orange[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                      ] else ...[
-                        // Editing Mode UI
-                        Row(
-                          children: [
-                            Text(
-                              isIncoming ? 'Approve Qty: ' : 'Update Qty: ',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            SizedBox(width: 8),
-                            SizedBox(
-                              width: 80,
-                              child: TextFormField(
-                                controller: quantityController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 8,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
+                Text(
+                  item.name,
+                  style: OmTokens.text(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                // Show action buttons only if status is pending
-                // For outgoing: always show edit/update if pending
-                // For incoming: show if not fully approved and not in processing
-                if (request.status == RequestStatus.pending &&
-                    (!isIncoming ||
-                        (item.quantityApproved ?? 0) <
-                            (item.quantityRequested ?? 0)))
+                const SizedBox(height: 3),
+                if (isEditing.value && canEditOutgoing)
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (canEdit)
-                        IconButton(
-                          icon: Icon(
-                            isEditing.value ? Icons.close : Icons.edit,
-                            size: 20,
-                            color: Colors.blue,
+                      Text(
+                        'Update Qty: ',
+                        style: OmTokens.text(
+                          fontSize: 13,
+                          color: OmTokens.muted,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 72,
+                        child: TextFormField(
+                          controller: quantityController,
+                          keyboardType: TextInputType.number,
+                          style: OmTokens.text(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                           ),
-                          onPressed: () {
-                            isEditing.value = !isEditing.value;
-                          },
-                        ),
-                      TextButton.icon(
-                        onPressed: () {
-                          final qty =
-                              double.tryParse(quantityController.text) ?? 0;
-
-                          if (isEditing.value) {
-                            onApprove(item, qty);
-                            isEditing.value = false;
-                          } else {
-                            // If not editing, use the current controller value (which is default)
-                            onApprove(item, qty);
-                          }
-                        },
-                        icon: Icon(
-                          isIncoming ? Icons.check_circle_outline : Icons.save,
-                          size: 18,
-                        ),
-                        label: Text(isIncoming ? 'Approve' : 'Update'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: isIncoming
-                              ? Colors.green[600]
-                              : Colors.blue[600],
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 8,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(OmTokens.radiusXs),
+                              borderSide:
+                                  const BorderSide(color: OmTokens.line2),
+                            ),
+                          ),
                         ),
                       ),
                     ],
+                  )
+                else
+                  Text.rich(
+                    TextSpan(
+                      style: OmTokens.text(
+                        fontSize: 13,
+                        color: OmTokens.muted,
+                      ),
+                      children: isPending
+                          ? [
+                              const TextSpan(text: 'Requested: '),
+                              TextSpan(
+                                text: '${item.quantityRequested ?? 0}',
+                                style: OmTokens.text(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: OmTokens.redStrong,
+                                ),
+                              ),
+                            ]
+                          : [
+                              const TextSpan(text: 'Approved: '),
+                              TextSpan(
+                                text:
+                                    '${item.quantityApproved ?? 0}/${item.quantityRequested ?? 0}',
+                                style: OmTokens.text(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: OmTokens.greenStrong,
+                                ),
+                              ),
+                            ],
+                    ),
                   ),
               ],
             ),
+          ),
+          if (canEditOutgoing) ...[
+            const SizedBox(width: 8),
+            Material(
+              color: OmTokens.surface,
+              borderRadius: BorderRadius.circular(9),
+              child: InkWell(
+                onTap: () => isEditing.value = !isEditing.value,
+                borderRadius: BorderRadius.circular(9),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(color: OmTokens.line2),
+                  ),
+                  child: Icon(
+                    isEditing.value ? Icons.close : Icons.edit_outlined,
+                    size: 17,
+                    color: OmTokens.accentStrong,
+                  ),
+                ),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                final qty = double.tryParse(quantityController.text) ?? 0;
+                onUpdate(item, qty);
+                isEditing.value = false;
+              },
+              icon: const Icon(Icons.save_outlined, size: 17),
+              label: Text(
+                'Update',
+                style: OmTokens.text(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: OmTokens.accentStrong,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: OmTokens.accentStrong,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              ),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

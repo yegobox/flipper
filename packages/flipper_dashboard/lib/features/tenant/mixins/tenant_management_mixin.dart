@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -176,7 +177,16 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     agentBranchNameController.clear();
     setState(() {
       selectedUserType = 'Cashier';
-      tenantAllowedFeatures.clear();
+      tenantAllowedFeatures
+        ..clear()
+        ..addEntries(
+          features.map((f) => MapEntry(f, 'No Access')),
+        );
+      activeFeatures
+        ..clear()
+        ..addEntries(
+          features.map((f) => MapEntry(f, false)),
+        );
       editMode = false;
       userId = null;
       editedTenant = null;
@@ -187,6 +197,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       _hasTenantPermissionBaseline = false;
       allowBusinessLoginForAgent = false;
       _agentBranchNameManuallyEdited = false;
+      _selectedTenantBranchIdForEdit = null;
     });
   }
 

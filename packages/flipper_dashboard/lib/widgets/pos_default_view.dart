@@ -1,15 +1,26 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/park_transaction_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
-class PosDefaultView extends ConsumerWidget {
+class PosDefaultView extends ConsumerStatefulWidget {
   /// When null (pending transaction stream still loading), the cart column
   /// still shows [quickSellingView] but the pay/ticket footer is a loading
   /// placeholder — no [PayableView] with an empty transaction id.
@@ -32,11 +43,93 @@ class PosDefaultView extends ConsumerWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PosDefaultView> createState() => _PosDefaultViewState();
+}
+
+class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
+  bool _sendToTillBusy = false;
+
+  String _ticketDisplayRef(ITransaction ticket) {
+    final r = ticket.reference?.trim();
+    if (r != null && r.isNotEmpty) return r.toUpperCase();
+    final id = ticket.id;
+    if (id.length >= 6) return id.substring(0, 6).toUpperCase();
+    return id.toUpperCase();
+  }
+
+  Future<void> _sendCartToTill(ITransaction transaction) async {
+    if (_sendToTillBusy) return;
+    final items = ref.read(posCartDisplayItemsProvider);
+    if (items.isEmpty) return;
+
+    final hasCustomerId = (transaction.customerId ?? '').trim().isNotEmpty;
+    final hasCustomerName = (transaction.customerName ?? '').trim().isNotEmpty;
+    final hasCustomerPhone =
+        (transaction.customerPhone ?? '').trim().isNotEmpty;
+    if (!hasCustomerId && !hasCustomerName && !hasCustomerPhone) {
+      showErrorNotification(
+        context,
+        'Save a customer name or phone number on this ticket before sending it to the till.',
+      );
+      return;
+    }
+
+    setState(() => _sendToTillBusy = true);
+    final displayRef = _ticketDisplayRef(transaction);
+    try {
+      await ref.read(parkTransactionProvider.notifier).park(
+            ticketName: 'Till · $displayRef',
+            ticketNote: 'Sent to till for payment',
+            transaction: transaction,
+            customerId: transaction.customerId,
+          );
+
+      ref.read(suppressedCartTransactionIdProvider.notifier).state =
+          transaction.id;
+      ref
+          .read(optimisticCartProvider.notifier)
+          .clearForTransaction(transaction.id);
+      clearCachedPendingCartTransactionWidget(
+        ref,
+        isExpense: false,
+      );
+      ref.invalidate(
+        transactionItemsStreamProvider(
+          transactionId: transaction.id,
+          branchId: ProxyService.box.getBranchId() ?? '0',
+        ),
+      );
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+
+      if (mounted) {
+        showSuccessNotification(
+          context,
+          'Sent to till — Ticket #$displayRef',
+        );
+      }
+    } catch (e, st) {
+      tv_talk.talker.error('Desktop send to till failed: $e', st);
+      if (mounted) {
+        showErrorNotification(
+          context,
+          'Failed to send to till: $e',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sendToTillBusy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final branchAsync = ref.watch(activeBranchProvider);
     final isTransfer =
         ref.watch(checkoutCartModeProvider) == CheckoutCartMode.transfer;
     final isOrdering = ProxyService.box.isOrdering() ?? false;
+    final canCollectPayment = ref.watch(canCollectPosPaymentProvider);
+    final cartHasItems = ref.watch(
+      posCartDisplayItemsProvider.select((l) => l.isNotEmpty),
+    );
 
     return branchAsync.when(
       data: (branch) {
@@ -50,7 +143,7 @@ class PosDefaultView extends ConsumerWidget {
             return ViewModelBuilder<CoreViewModel>.reactive(
               viewModelBuilder: () => CoreViewModel(),
               builder: (context, model, child) {
-                final txn = transaction;
+                final txn = widget.transaction;
                 // Transfer CTAs live inside QuickSellingView — hide Pay/Tickets.
                 final showPayBar = !isTransfer && !isOrdering;
                 return Column(
@@ -58,7 +151,7 @@ class PosDefaultView extends ConsumerWidget {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 8.0),
-                        child: quickSellingView,
+                        child: widget.quickSellingView,
                       ),
                     ),
                     if (showPayBar)
@@ -70,10 +163,17 @@ class PosDefaultView extends ConsumerWidget {
                                 transactionId: txn.id,
                                 mode: oldImplementationOfRiverpod
                                     .SellingMode.forSelling,
-                                completeTransaction: onCompleteTransaction,
+                                completeTransaction:
+                                    widget.onCompleteTransaction,
                                 model: model,
-                                ticketHandler: onTicketNavigation,
+                                ticketHandler: widget.onTicketNavigation,
                                 digitalPaymentEnabled: digitalPaymentEnabled,
+                                canCollectPayment: canCollectPayment,
+                                cartHasItems: cartHasItems,
+                                sendToTillBusy: _sendToTillBusy,
+                                sendToTill: () {
+                                  unawaited(_sendCartToTill(txn));
+                                },
                               ),
                       ),
                   ],

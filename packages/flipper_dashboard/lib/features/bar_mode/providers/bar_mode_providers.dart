@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' show Color;
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
@@ -181,10 +182,7 @@ final barTabLinesProvider =
     });
 
 bool barTenantIsManager(Tenant tenant) {
-  final type = tenant.type?.toLowerCase() ?? '';
-  return type.contains('admin') ||
-      type.contains('owner') ||
-      type.contains('manager');
+  return tenantCanCollectPosPayment(tenant);
 }
 
 /// Admin / owner — can manage staff roster (delete, etc.).

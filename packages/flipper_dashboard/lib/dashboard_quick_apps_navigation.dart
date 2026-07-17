@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/personal_goals/personal_goals_screen.
 import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
 import 'package:flipper_dashboard/features/stock_recount/stock_recount_list_screen.dart';
+import 'package:flipper_dashboard/features/transfers_report/transfers_report_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/services_gigs_app.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -136,6 +137,13 @@ Future<void> navigateToDashboardAppPage({
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => const StockRecountListScreen(),
+        ),
+      );
+      break;
+    case 'TransfersReport':
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const TransfersReportScreen(),
         ),
       );
       break;

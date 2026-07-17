@@ -129,11 +129,22 @@ mixin CapellaStockMixin implements StockInterface {
         arguments: {'request': requestDoc},
       );
 
-      // update the items to have the request id
+      // Link lines to the request and persist approval qty fields used by Approve All.
       for (var item in items) {
+        final qtyRequested =
+            item.quantityRequested ?? item.qty.round().clamp(1, 1 << 30);
         await ditto.store.execute(
-          'UPDATE transaction_items SET inventoryRequestId = :requestId WHERE _id = :id',
-          arguments: {'requestId': requestId, 'id': item.id},
+          'UPDATE transaction_items SET '
+          'inventoryRequestId = :requestId, '
+          'quantityRequested = :quantityRequested, '
+          'quantityApproved = :quantityApproved '
+          'WHERE _id = :id OR id = :id',
+          arguments: {
+            'requestId': requestId,
+            'quantityRequested': qtyRequested,
+            'quantityApproved': item.quantityApproved ?? 0,
+            'id': item.id,
+          },
         );
       }
 
@@ -487,11 +498,7 @@ mixin CapellaStockMixin implements StockInterface {
 UPDATE stocks SET currentStock = :currentStock, rsdQty = :rsdQty
 WHERE _id = :stockId OR id = :stockId
 ''',
-        arguments: {
-          'stockId': stockId,
-          'currentStock': current,
-          'rsdQty': rsd,
-        },
+        arguments: {'stockId': stockId, 'currentStock': current, 'rsdQty': rsd},
       );
     }
 
@@ -500,17 +507,14 @@ WHERE _id = :stockId OR id = :stockId
       final end = (i + _batchUpdateStocksConcurrency < entries.length)
           ? i + _batchUpdateStocksConcurrency
           : entries.length;
-      await Future.wait(
-        [
-          for (var j = i; j < end; j++)
-            updateOne(
-              entries[j].key,
-              entries[j].value.currentStock,
-              entries[j].value.rsdQty,
-            ),
-        ],
-        eagerError: true,
-      );
+      await Future.wait([
+        for (var j = i; j < end; j++)
+          updateOne(
+            entries[j].key,
+            entries[j].value.currentStock,
+            entries[j].value.rsdQty,
+          ),
+      ], eagerError: true);
     }
   }
 
@@ -754,6 +758,105 @@ WHERE _id = :stockId OR id = :stockId
     };
 
     return controller.stream;
+  }
+
+  @override
+  Future<List<InventoryRequest>> stockRequestsToBranch({
+    required String destinationBranchId,
+    DateTime? start,
+    DateTime? end,
+    String status = 'all',
+    int limit = 500,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized: stockRequestsToBranch');
+    }
+    if (destinationBranchId.isEmpty) return [];
+
+    String query =
+        'SELECT * FROM stock_requests WHERE subBranchId = :destinationBranchId';
+    final arguments = <String, dynamic>{
+      'destinationBranchId': destinationBranchId,
+      'status': status,
+      'limit': limit,
+    };
+
+    if (status == RequestStatus.pending) {
+      query +=
+          " AND (status = '${RequestStatus.pending}' OR status = '${RequestStatus.processing}')";
+    } else if (status != 'all') {
+      query += ' AND status = :status';
+    }
+
+    // For bounded (date-window) reports, apply the window to ALL candidates
+    // before limiting, otherwise LIMIT would drop older in-window transfers.
+    final bounded = start != null || end != null;
+    query += bounded
+        ? ' ORDER BY createdAt DESC'
+        : ' ORDER BY createdAt DESC LIMIT :limit';
+
+    final result = await ditto.store.execute(query, arguments: arguments);
+
+    var converted = result.items
+        .map(
+          (item) => _convertInventoryRequestFromDitto(
+            Map<String, dynamic>.from(item.value),
+          ),
+        )
+        .toList();
+
+    if (bounded) {
+      final startUtc = start?.toUtc();
+      final endUtc = end?.toUtc();
+      converted = converted
+          .where((r) {
+            final stamp = r.approvedAt ?? r.createdAt;
+            // Bounded reports exclude undated rows (can't confirm the window).
+            if (stamp == null) return false;
+            final t = stamp.toUtc();
+            if (startUtc != null && t.isBefore(startUtc)) return false;
+            if (endUtc != null && t.isAfter(endUtc)) return false;
+            return true;
+          })
+          .take(limit)
+          .toList();
+    }
+
+    // Hydrate source branches, caching by mainBranchId to avoid N+1 queries.
+    final branchCache = <String, Branch?>{};
+    final requests = <InventoryRequest>[];
+    for (final request in converted) {
+      final mainId = request.mainBranchId;
+      if (mainId != null && mainId.isNotEmpty) {
+        Branch? branch;
+        if (branchCache.containsKey(mainId)) {
+          branch = branchCache[mainId];
+        } else {
+          try {
+            final branchResult = await ditto.store.execute(
+              'SELECT * FROM branches WHERE _id = :id',
+              arguments: {'id': mainId},
+            );
+            if (branchResult.items.isNotEmpty) {
+              branch = Branch.fromMap(
+                Map<String, dynamic>.from(branchResult.items.first.value),
+              );
+            }
+          } catch (e) {
+            talker.warning(
+              'stockRequestsToBranch: could not load source branch '
+              '$mainId: $e',
+            );
+          }
+          branchCache[mainId] = branch;
+        }
+        if (branch != null) request.branch = branch;
+      }
+      requests.add(request);
+    }
+
+    return requests;
   }
 
   InventoryRequest _convertInventoryRequestFromDitto(

@@ -34,6 +34,7 @@ import 'package:flipper_dashboard/utils/sale_agent_completion.dart';
 import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -49,13 +50,22 @@ import 'package:supabase_models/brick/repository.dart';
 
 // Stock validation functions have been moved to utils/stock_validator.dart
 
-/// Fetches transaction items for the given transaction ID
+/// Fetches transaction items for the given transaction ID.
+///
+/// Reads with the transaction's own branch so a till ticket collected from the
+/// queue resolves against the branch its line items were saved in (matches the
+/// scoped read in [posCartDisplayItemsProvider]); falls back to the active
+/// branch for a normal in-branch cart.
 Future<List<TransactionItem>> _getTransactionItems({
   required ITransaction transaction,
 }) async {
+  final branchId =
+      (transaction.branchId != null && transaction.branchId!.isNotEmpty)
+          ? transaction.branchId!
+          : ProxyService.box.getBranchId()!;
   final items = await ProxyService.getStrategy(Strategy.capella)
       .transactionItems(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: branchId,
         transactionId: transaction.id,
         doneWithTransaction: false,
         active: true,
@@ -397,6 +407,35 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final capella = ProxyService.getStrategy(Strategy.capella);
 
     try {
+      // Staff cannot complete payment — Send to Till only.
+      if (!ref.read(canCollectPosPaymentProvider)) {
+        talker.warning(
+          'Blocked sale completion: user lacks till payment role | '
+          'userId=${ProxyService.box.getUserId()} | '
+          '(see prior "POS till role decision" log for full breakdown)',
+        );
+        throw Exception(
+          'Payments are collected at the till. Send this order to a manager.',
+        );
+      }
+
+      // Settling a queued till ticket: complete THAT ticket, not the collector's
+      // own pending cart. The desktop checkout is bound to
+      // [pendingTransactionStreamProvider], which can hand completion the
+      // operator's empty pending-cart id during the settling hand-off.
+      final settlingTicket = ref.read(settlingTillTicketProvider);
+      if (settlingTicket != null &&
+          settlingTicket.transactionId.isNotEmpty &&
+          settlingTicket.transactionId != transactionId) {
+        talker.info(
+          'Settling: redirecting completion from $transactionId to '
+          '${settlingTicket.transactionId}',
+        );
+        transactionId = settlingTicket.transactionId;
+        transactionHint =
+            ref.read(transactionByIdProvider(settlingTicket.transactionId)).value;
+      }
+
       String branchIdInt = ProxyService.box.getBranchId()!;
 
       final resolveSw = Stopwatch()..start();
@@ -536,11 +575,39 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // Validate stock levels before proceeding
       final itemsSw = Stopwatch()..start();
-      final persistedCart = await _pollPersistedCartForDisplay(
-        ref: ref,
-        transaction: transaction,
-        transactionId: transactionId,
-      );
+      // Settling a queued till ticket: its line items were persisted by the
+      // staff who created it (no optimistic taps to wait for), so read them
+      // directly instead of polling for a display/Ditto qty match — the poll can
+      // never converge here because the cart is scoped to the ticket's branch.
+      final settling = ref.read(settlingTillTicketProvider);
+      final bool isSettlingThisTicket =
+          settling != null && settling.transactionId == transactionId;
+      final List<TransactionItem>? persistedCart;
+      if (isSettlingThisTicket) {
+        // Read with the exact branch the settling display used (captured at
+        // collect time) so the fetch resolves the same rows shown on screen.
+        final settlingBranchId =
+            (settling.branchId != null && settling.branchId!.isNotEmpty)
+                ? settling.branchId!
+                : (transaction.branchId != null &&
+                        transaction.branchId!.isNotEmpty
+                    ? transaction.branchId!
+                    : ProxyService.box.getBranchId()!);
+        final items = await ProxyService.getStrategy(Strategy.capella)
+            .transactionItems(
+              branchId: settlingBranchId,
+              transactionId: transactionId,
+              doneWithTransaction: false,
+              active: true,
+            );
+        persistedCart = items.isNotEmpty ? items : null;
+      } else {
+        persistedCart = await _pollPersistedCartForDisplay(
+          ref: ref,
+          transaction: transaction,
+          transactionId: transactionId,
+        );
+      }
       if (persistedCart == null) {
         final hasPending = ref
             .read(optimisticCartProvider.notifier)
