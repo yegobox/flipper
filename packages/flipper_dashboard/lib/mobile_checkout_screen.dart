@@ -709,18 +709,34 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   String _phoneDigits(String? raw) => (raw ?? '').replaceAll(RegExp(r'\D'), '');
 
   /// Phone for charge gating — provider alone misses Ditto-only customer fields.
+  ///
+  /// While settling a till ticket, prefer the ticket's denormalized phone so a
+  /// leftover [customerPhoneNumberProvider] from the collector's prior cart
+  /// cannot win.
   String? _resolveSaleCustomerPhone(
     ITransaction txn, {
     String? providerPhone,
     Customer? attached,
   }) {
-    for (final candidate in <String?>[
-      providerPhone,
-      attached?.telNo,
-      txn.customerPhone,
-      txn.currentSaleCustomerPhoneNumber,
-      ProxyService.box.currentSaleCustomerPhoneNumber(),
-    ]) {
+    final settling = ref.read(settlingTillTicketProvider);
+    final settlingThisTicket =
+        settling != null && settling.transactionId == txn.id;
+    final candidates = settlingThisTicket
+        ? <String?>[
+            txn.customerPhone,
+            txn.currentSaleCustomerPhoneNumber,
+            attached?.telNo,
+            providerPhone,
+            ProxyService.box.currentSaleCustomerPhoneNumber(),
+          ]
+        : <String?>[
+            providerPhone,
+            attached?.telNo,
+            txn.customerPhone,
+            txn.currentSaleCustomerPhoneNumber,
+            ProxyService.box.currentSaleCustomerPhoneNumber(),
+          ];
+    for (final candidate in candidates) {
       if (candidate != null && candidate.trim().isNotEmpty) {
         return candidate.trim();
       }

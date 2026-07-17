@@ -69,6 +69,12 @@ import 'package:flipper_models/SyncStrategy.dart';
 
 import 'package:flipper_services/constants.dart';
 
+String? _nonEmptyCustomerField(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return trimmed;
+}
+
 class CapellaSync extends AiStrategyImpl
     with
         CapellaAuthMixin,
@@ -481,18 +487,26 @@ class CapellaSync extends AiStrategyImpl
       final userId = ProxyService.box.getUserId();
       transaction.customerTin = customerTin;
 
-      final resolvedSalePhone =
-          customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+      final resolvedSalePhone = _nonEmptyCustomerField(customerPhone) ??
+          _nonEmptyCustomerField(
+            ProxyService.box.currentSaleCustomerPhoneNumber(),
+          ) ??
+          _nonEmptyCustomerField(transaction.customerPhone);
       if (countryCode != "N/A" &&
           countryCode != "" &&
-          resolvedSalePhone != null &&
-          resolvedSalePhone.isNotEmpty) {
+          resolvedSalePhone != null) {
         transaction.currentSaleCustomerPhoneNumber =
             countryCode + resolvedSalePhone;
       }
-      transaction.customerPhone = resolvedSalePhone;
-      transaction.customerName =
-          customerName ?? ProxyService.box.customerName();
+      if (resolvedSalePhone != null) {
+        transaction.customerPhone = resolvedSalePhone;
+      }
+      final resolvedCustomerName = _nonEmptyCustomerField(customerName) ??
+          _nonEmptyCustomerField(ProxyService.box.customerName()) ??
+          _nonEmptyCustomerField(transaction.customerName);
+      if (resolvedCustomerName != null) {
+        transaction.customerName = resolvedCustomerName;
+      }
 
       // Line items: caller can pass fresh lines to skip an extra Ditto read on hot paths.
       final List<TransactionItem> items;

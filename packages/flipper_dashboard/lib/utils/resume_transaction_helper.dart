@@ -2,6 +2,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,16 +13,33 @@ class TransactionInitializationHelper {
   static Future<void> initializeSession({
     required WidgetRef ref,
     required ITransaction transaction,
+    bool replaceSession = true,
   }) async {
-    await initializeCustomer(ref, transaction);
+    await initializeCustomer(
+      ref,
+      transaction,
+      replaceSession: replaceSession,
+    );
     _initializePaymentWithRemainder(ref, transaction);
   }
 
-  // Generic Customer Initialization - REUSED LOGIC
+  /// Seeds UI/box customer state from a ticket or pending sale.
+  ///
+  /// Till tickets often carry denormalized [ITransaction.customerName] /
+  /// [ITransaction.customerPhone] without a [ITransaction.customerId]. Pay and
+  /// receipt printing read [ProxyService.box] / providers first, so those must
+  /// be overwritten from the ticket — leftover values from a prior sale must
+  /// not win.
+  ///
+  /// Pass [replaceSession] only when switching into a different sale (resume /
+  /// till collect / dedicated mobile checkout). Leaving it false preserves
+  /// in-progress typed name/phone that has not been persisted to the
+  /// transaction yet (e.g. SearchCustomer init while cashier is typing).
   static Future<Customer?> initializeCustomer(
     WidgetRef ref,
-    ITransaction transaction,
-  ) async {
+    ITransaction transaction, {
+    bool replaceSession = false,
+  }) async {
     final container = ref.container;
     // 1. Try to fetch live customer data if ID exists
     if (transaction.customerId != null) {
@@ -31,33 +49,15 @@ class TransactionInitializationHelper {
         );
 
         if (customer != null) {
-          // Centralized Global State Update
-          // 1. Update Riverpod
-          if (customer.telNo != null) {
-            ProxyService.box.writeString(
-              key: 'currentSaleCustomerPhoneNumber',
-              value: customer.telNo!,
-            );
-            // Defer state update to avoid StateController error during initState
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              container.read(customerPhoneNumberProvider.notifier).state =
-                  customer.telNo;
-            });
-          }
-
-          // 2. Update Box (Name, TIN) - needed for SearchCustomer
-          if (customer.custNm != null) {
-            ProxyService.box.writeString(
-              key: 'customerName',
-              value: customer.custNm!,
-            );
-          }
-          if (customer.custTin != null) {
-            ProxyService.box.writeString(
-              key: 'customerTin',
-              value: customer.custTin!,
-            );
-          }
+          _applyCustomerToSession(
+            container,
+            name: customer.custNm ?? transaction.customerName,
+            phone: customer.telNo ??
+                transaction.customerPhone ??
+                transaction.currentSaleCustomerPhoneNumber,
+            tin: customer.custTin ?? transaction.customerTin,
+            replaceSession: replaceSession,
+          );
           return customer;
         }
       } catch (e) {
@@ -65,30 +65,91 @@ class TransactionInitializationHelper {
       }
     }
 
-    // Fallback logic for basic resume (if fetch failed or no ID)
-    final currentPhone = container.read(customerPhoneNumberProvider);
-    String? phoneToUse = transaction.customerPhone;
+    // Fallback / denormalized ticket fields (common for "send to till").
+    _applyCustomerToSession(
+      container,
+      name: transaction.customerName,
+      phone: transaction.customerPhone ??
+          transaction.currentSaleCustomerPhoneNumber,
+      tin: transaction.customerTin,
+      replaceSession: replaceSession,
+    );
 
-    if ((currentPhone == null || currentPhone.isEmpty) &&
-        phoneToUse != null &&
-        phoneToUse.isNotEmpty) {
-      // Also ensure the ProxyService box has it
-      ProxyService.box.writeString(
-        key: 'currentSaleCustomerPhoneNumber',
-        value: phoneToUse,
-      );
-
-      // Defer state update to avoid StateController error during initState
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        container.read(customerPhoneNumberProvider.notifier).state = phoneToUse;
-      });
-
+    final phone = transaction.customerPhone ??
+        transaction.currentSaleCustomerPhoneNumber;
+    if (phone != null && phone.trim().isNotEmpty) {
       talker.info(
-        'Resumed ticket: fallback initialized customer phone $phoneToUse',
+        'Resumed ticket: initialized customer phone ${phone.trim()} '
+        'name=${transaction.customerName}',
       );
     }
 
     return null;
+  }
+
+  static void _applyCustomerToSession(
+    ProviderContainer container, {
+    String? name,
+    String? phone,
+    String? tin,
+    bool replaceSession = false,
+  }) {
+    final trimmedName = name?.trim();
+    if (trimmedName != null && trimmedName.isNotEmpty) {
+      ProxyService.box.writeString(key: 'customerName', value: trimmedName);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          final controller = container.read(customerNameControllerProvider);
+          if (controller.text != trimmedName) {
+            controller.text = trimmedName;
+          }
+        } catch (_) {}
+      });
+    } else if (replaceSession) {
+      ProxyService.box.writeString(key: 'customerName', value: '');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          container.read(customerNameControllerProvider).clear();
+        } catch (_) {}
+      });
+    }
+
+    final trimmedPhone = phone?.trim();
+    if (trimmedPhone != null && trimmedPhone.isNotEmpty) {
+      ProxyService.box.writeString(
+        key: 'currentSaleCustomerPhoneNumber',
+        value: trimmedPhone,
+      );
+      // Write immediately so Pay before the next frame still sees the ticket phone.
+      try {
+        container.read(customerPhoneNumberProvider.notifier).state =
+            trimmedPhone;
+      } catch (_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          container.read(customerPhoneNumberProvider.notifier).state =
+              trimmedPhone;
+        });
+      }
+    } else if (replaceSession) {
+      ProxyService.box.writeString(
+        key: 'currentSaleCustomerPhoneNumber',
+        value: '',
+      );
+      try {
+        container.read(customerPhoneNumberProvider.notifier).state = null;
+      } catch (_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          container.read(customerPhoneNumberProvider.notifier).state = null;
+        });
+      }
+    }
+
+    final trimmedTin = tin?.trim();
+    if (trimmedTin != null && trimmedTin.isNotEmpty) {
+      ProxyService.box.writeString(key: 'customerTin', value: trimmedTin);
+    } else if (replaceSession) {
+      ProxyService.box.remove(key: 'customerTin');
+    }
   }
 
   static void _initializePaymentWithRemainder(

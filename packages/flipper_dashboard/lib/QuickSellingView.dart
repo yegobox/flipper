@@ -732,32 +732,36 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return ref.read(attachedCustomerProvider(customerId)).asData?.value;
   }
 
-  void _prefillCustomerDetails(ITransaction transaction) {
-    if (transaction.customerName != null &&
-        transaction.customerName!.isNotEmpty &&
-        ref.read(customerNameControllerProvider).text.isEmpty) {
-      talker.info('Pre-filling customer name: ${transaction.customerName}');
-      ref.read(customerNameControllerProvider).text = transaction.customerName!;
-      ProxyService.box.writeString(
-        key: 'customerName',
-        value: transaction.customerName!,
-      );
+  void _prefillCustomerDetails(
+    ITransaction transaction, {
+    bool force = false,
+  }) {
+    final name = transaction.customerName?.trim();
+    final nameController = ref.read(customerNameControllerProvider);
+    if (name != null &&
+        name.isNotEmpty &&
+        (force || nameController.text.isEmpty)) {
+      talker.info('Pre-filling customer name: $name (force=$force)');
+      nameController.text = name;
+      ProxyService.box.writeString(key: 'customerName', value: name);
     }
 
     // Never overwrite the field while the cashier is actively typing into it,
     // and never derive a phone via a blind substring (a half-entered "+2507"
     // would otherwise collapse to a single "7" on the printed receipt).
-    if (transaction.customerPhone != null &&
-        transaction.customerPhone!.isNotEmpty &&
-        widget.customerPhoneNumberController.text.isEmpty &&
-        !_customerPhoneFocusNode.hasFocus) {
-      talker.info('Pre-filling customer phone: ${transaction.customerPhone}');
-      final local = _localPhoneFromStored(transaction.customerPhone!);
+    final phone = transaction.customerPhone?.trim();
+    if (phone != null &&
+        phone.isNotEmpty &&
+        !_customerPhoneFocusNode.hasFocus &&
+        (force || widget.customerPhoneNumberController.text.isEmpty)) {
+      talker.info('Pre-filling customer phone: $phone (force=$force)');
+      final local = _localPhoneFromStored(phone);
       widget.customerPhoneNumberController.text = local;
       ProxyService.box.writeString(
         key: 'currentSaleCustomerPhoneNumber',
         value: local,
       );
+      ref.read(customerPhoneNumberProvider.notifier).state = local;
     }
 
     // Payment initialization is deferred to the builder where items
@@ -1142,9 +1146,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           'prev=${previous == null ? 'null' : _qsvPendingLabel(previous)} '
           'next=${_qsvPendingLabel(next)}',
         );
+        // While settling a till ticket, customer fields come from that ticket
+        // (see settlingTillTicketProvider listen below) — not the collector's
+        // own pending cart.
+        if (ref.read(settlingTillTicketProvider) != null) return;
         if (next.hasValue && next.value != null) {
           final isNewTransaction = previous?.value?.id != next.value!.id;
-          _prefillCustomerDetails(next.value!);
+          _prefillCustomerDetails(next.value!, force: isNewTransaction);
           if (isNewTransaction) {
             resetDigitalReceiptToggle(ref);
             _cachedNonCreditPaid = 0.0;
@@ -1154,6 +1162,32 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
       },
     );
+
+    // Till collect: force customer name/phone from the queued ticket so Pay and
+    // receipt printing do not keep a previous sale's box/controller values.
+    ref.listen<SettlingTillTicket?>(settlingTillTicketProvider, (
+      previous,
+      next,
+    ) {
+      if (next == null || next.transactionId.isEmpty) return;
+      if (previous?.transactionId == next.transactionId) return;
+      final txn = ref.read(transactionByIdProvider(next.transactionId)).value;
+      if (txn != null) {
+        _prefillCustomerDetails(txn, force: true);
+        return;
+      }
+      unawaited(() async {
+        final loaded = await ref.read(
+          transactionByIdProvider(next.transactionId).future,
+        );
+        if (!mounted || loaded == null) return;
+        if (ref.read(settlingTillTicketProvider)?.transactionId !=
+            next.transactionId) {
+          return;
+        }
+        _prefillCustomerDetails(loaded, force: true);
+      }());
+    });
 
     // Payment totals track cart line totals (optimistic taps included).
     // Prefer [posCartPaymentRefreshSignalProvider] over list identity — item-row

@@ -201,3 +201,30 @@ List<PaymentLineForSaleCompletion> normalizePaymentLinesToSaleTotal({
 
   return adjusted;
 }
+
+String? _nonEmptyCustomerField(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return trimmed;
+}
+
+/// Resolves customer name/phone for sale completion without wiping ticket fields.
+///
+/// Priority: non-empty box → typed controller name → denormalized transaction.
+({String? name, String? phone}) resolveSaleCustomerFieldsForCompletion({
+  String? boxName,
+  String? boxPhone,
+  String? controllerName,
+  String? transactionName,
+  String? transactionPhone,
+  String? transactionSalePhone,
+}) {
+  return (
+    name: _nonEmptyCustomerField(boxName) ??
+        _nonEmptyCustomerField(controllerName) ??
+        _nonEmptyCustomerField(transactionName),
+    phone: _nonEmptyCustomerField(boxPhone) ??
+        _nonEmptyCustomerField(transactionPhone) ??
+        _nonEmptyCustomerField(transactionSalePhone),
+  );
+}

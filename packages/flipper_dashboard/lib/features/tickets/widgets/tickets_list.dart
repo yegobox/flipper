@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/mobile_checkout_launcher.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/services/resume_transaction_service.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -763,6 +764,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ticket: ticket,
         branchId: branchId,
         agentId: agentId,
+      );
+
+      // Seed box/providers from the ticket's denormalized customer fields so
+      // Pay + receipt print use this ticket's customer, not a prior cart's.
+      await TransactionInitializationHelper.initializeCustomer(
+        ref,
+        ticket,
+        replaceSession: true,
       );
 
       primePosCartForTransactionWidget(
