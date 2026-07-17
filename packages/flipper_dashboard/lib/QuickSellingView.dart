@@ -3442,6 +3442,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref.invalidate(paymentMethodsProvider);
       widget.receivedAmountController.clear();
       ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      // Collect forced the full cart view; return to the normal catalog view.
+      if (ref.read(previewingCart)) {
+        ref.read(previewingCart.notifier).state = false;
+      }
     } finally {
       if (mounted) setState(() => _backToNewSaleBusy = false);
     }
