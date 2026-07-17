@@ -184,6 +184,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             customerId: txn.customerId,
           );
 
+      if (!mounted) return;
+
       // Clear every local representation before returning to the catalog so
       // the ticket that was just sent cannot flash as the next sale's cart.
       ref.read(suppressedCartTransactionIdProvider.notifier).state = txn.id;
@@ -227,11 +229,16 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
     setState(() => _backToNewSaleBusy = true);
     final branchId = settling.branchId ?? _branchId;
+    var recovered = false;
     try {
       try {
         final txn = await ProxyService.getStrategy(
           Strategy.capella,
-        ).getTransaction(id: settling.transactionId, branchId: branchId);
+        ).getTransaction(
+          id: settling.transactionId,
+          branchId: branchId,
+          awaitRemote: true,
+        );
         if (txn != null && (txn.status ?? '').toUpperCase() == 'PENDING') {
           await ref
               .read(parkTransactionProvider.notifier)
@@ -243,9 +250,20 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 transaction: txn,
                 customerId: txn.customerId,
               );
+          recovered = true;
         }
       } catch (e, st) {
         tv_talk.talker.error('Mobile back to new sale re-park failed: $e', st);
+      }
+
+      if (!recovered) {
+        if (mounted) {
+          showErrorNotification(
+            context,
+            'Could not return this ticket to the till. Please try again.',
+          );
+        }
+        return;
       }
 
       ref.read(settlingTillTicketProvider.notifier).state = null;
@@ -493,7 +511,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   }
 
   Future<void> _navigateToSuccessScreen({required double total}) async {
-    final wasSettling = ref.read(settlingTillTicketProvider) != null;
+    final settling = ref.read(settlingTillTicketProvider);
+    final wasSettling = settling != null;
     final items = await ref.read(
       transactionItemsStreamProvider(
         transactionId: _transactionId,
@@ -525,6 +544,15 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     if (!mounted) return;
     if (wasSettling) {
       ref.read(settlingTillTicketProvider.notifier).state = null;
+      // Unwind the resume pin/cache and suppress the ticket's now-completed
+      // lines so the operator's next cart starts empty instead of resolving
+      // back to the collected ticket via the cached pending pointer.
+      if (settling.transactionId.isNotEmpty) {
+        ref.read(suppressedCartTransactionIdProvider.notifier).state =
+            settling.transactionId;
+        clearPinnedPosCartTransactionWidget(ref);
+        clearCachedPendingCartTransactionWidget(ref, isExpense: false);
+      }
       showSuccessNotification(
         context,
         'Payment collected · ${ProxyService.box.defaultCurrency()} '
@@ -973,7 +1001,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                       cashOk &&
                       momoOk &&
                       _chargeState == ChargeButtonState.initial)
-                : (items.isNotEmpty && !_sendToTillBusy);
+                : (items.isNotEmpty &&
+                      !_sendToTillBusy &&
+                      settling == null);
 
             final itemCount = items
                 .fold<double>(0, (s, i) => s + _displayQtyFor(i))
@@ -1169,7 +1199,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                         ? null
                         : _showParkDialog,
                     onPrimary: !canCollect
-                        ? (items.isEmpty || _sendToTillBusy
+                        ? (items.isEmpty ||
+                                  _sendToTillBusy ||
+                                  settling != null
                               ? null
                               : () => unawaited(_sendCartToTill()))
                         : canCharge

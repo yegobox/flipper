@@ -930,6 +930,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final settling = ref.read(settlingTillTicketProvider);
     if (settling != null) {
       ref.read(settlingTillTicketProvider.notifier).state = null;
+      // Resume pinned/cached the cart to the ticket; unwind that (and suppress
+      // the ticket id) so the collected ticket's completed lines don't linger
+      // and the next sale isn't scoped to it. The suppress/cache clear below
+      // key off `transaction.id`, which during settling is the operator's own
+      // pending cart — not the ticket — so it must be done explicitly here.
+      if (settling.transactionId.isNotEmpty) {
+        ref.read(suppressedCartTransactionIdProvider.notifier).state =
+            settling.transactionId;
+        clearPinnedPosCartTransactionWidget(ref);
+        clearCachedPendingCartTransactionWidget(
+          ref,
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        );
+      }
       final total = (transaction.subTotal ?? 0).toCurrencyFormatted(
         symbol: ProxyService.box.defaultCurrency(),
       );

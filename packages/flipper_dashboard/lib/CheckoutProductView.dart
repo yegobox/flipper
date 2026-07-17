@@ -697,14 +697,32 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               // empty cart even though the totals are right.
               final itemTxnIds = activeItems
                   .map((i) => i.transactionId)
-                  .where((id) => id != null && id.isNotEmpty)
+                  .whereType<String>()
+                  .where((id) => id.isNotEmpty)
                   .toSet();
               ITransaction? t = <ITransaction?>[transaction, cached, streamTxn]
                   .firstWhere(
                     (c) => c != null && itemTxnIds.contains(c.id),
                     orElse: () => null,
                   );
-              t ??= transaction ?? cached ?? streamTxn;
+              if (t == null) {
+                if (itemTxnIds.isEmpty) {
+                  t = transaction ?? cached ?? streamTxn;
+                } else {
+                  // Cart lines name a txn that isn't among the usual candidates —
+                  // resolve that owner rather than opening an unrelated pending cart.
+                  t = ref
+                      .read(transactionByIdProvider(itemTxnIds.first))
+                      .value;
+                  if (t == null) {
+                    showErrorNotification(
+                      context,
+                      'Could not open checkout for this cart. Please try again.',
+                    );
+                    return;
+                  }
+                }
+              }
               if (t != null) _openMobileCheckout(t);
             }
           : null,

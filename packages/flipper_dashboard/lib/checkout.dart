@@ -303,11 +303,41 @@ class CheckOutState extends ConsumerState<CheckOut>
     // flag resets above are lifecycle-independent and must always run.
     if (!mounted) return;
 
+    // Capture the settling ticket before clearing so we can also unwind the
+    // resume pin/cache below.
+    final settling = ref.read(settlingTillTicketProvider);
     // End any till-settling session so the operator's next cart is no longer
     // scoped to the collected ticket (posCartDisplayItemsProvider keys off it).
     ref.read(settlingTillTicketProvider.notifier).state = null;
 
     final branchId = ProxyService.box.getBranchId() ?? '0';
+
+    // A collected ticket was resumed by PINNING the cart to it and caching it
+    // (primePosCartForTransactionWidget). Clearing only settlingTillTicketProvider
+    // leaves posCartDisplayItemsProvider still resolving the cart via that
+    // pin/cache, so the ticket's now-completed lines linger instead of clearing.
+    // Drop the pin + cache and suppress the ticket id so the cart empties this
+    // frame — exactly like a normal sale does with its own id.
+    if (settling != null && settling.transactionId.isNotEmpty) {
+      ref.read(suppressedCartTransactionIdProvider.notifier).state =
+          settling.transactionId;
+      clearPinnedPosCartTransactionWidget(ref);
+      clearCachedPendingCartTransactionWidget(
+        ref,
+        isExpense: ProxyService.box.isOrdering() ?? false,
+      );
+      final settleBranch =
+          (settling.branchId != null && settling.branchId!.isNotEmpty)
+              ? settling.branchId!
+              : branchId;
+      ref.invalidate(
+        transactionItemsStreamProvider(
+          transactionId: settling.transactionId,
+          branchId: settleBranch,
+        ),
+      );
+    }
+
     ref.invalidate(
       transactionItemsStreamProvider(
         transactionId: transaction.id,
