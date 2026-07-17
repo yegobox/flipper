@@ -652,23 +652,26 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           final txn =
               ref.read(transactionByIdProvider(_transactionId)).value ??
               widget.transaction;
-          final streamItems = ref
-              .read(
-                transactionItemsStreamProvider(
-                  transactionId: _transactionId,
-                  branchId: _branchId,
-                ),
-              )
-              .asData
-              ?.value;
-          final merged = resolveMobileCheckoutLineItems(
-            transactionId: _transactionId,
-            mergedCart: ref.read(posCartDisplayItemsProvider),
-            scopedStreamItems: streamItems,
-            hasOptimisticPendingForTxn: ref
-                .read(optimisticCartProvider.notifier)
-                .hasPendingFor(_transactionId),
-          );
+          // Use the live cart directly (same source as the on-screen list) so
+          // the receipt total is not zeroed by the transactionId re-filter.
+          var merged = ref
+              .read(posCartDisplayItemsProvider)
+              .where((i) => i.active != false)
+              .toList();
+          if (merged.isEmpty) {
+            merged = (ref
+                        .read(
+                          transactionItemsStreamProvider(
+                            transactionId: _transactionId,
+                            branchId: _branchId,
+                          ),
+                        )
+                        .asData
+                        ?.value ??
+                    const <TransactionItem>[])
+                .where((i) => i.active != false)
+                .toList();
+          }
           final total = calculateTransactionTotal(
             items: merged,
             transaction: txn,
@@ -685,28 +688,29 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       ),
     );
     final mergedAll = ref.watch(posCartDisplayItemsProvider);
-    final hasOptimisticPending = ref.watch(
-      optimisticCartProvider.select(
-        (s) =>
-            s.activeTransactionId == _transactionId &&
-            s.pendingQtyByVariantId.values.any((q) => q > 0),
-      ),
-    );
-    final items =
-        List<TransactionItem>.from(
-            resolveMobileCheckoutLineItems(
-              transactionId: _transactionId,
-              mergedCart: mergedAll,
-              scopedStreamItems: streamAsync.asData?.value,
-              hasOptimisticPendingForTxn: hasOptimisticPending,
-            ),
-          )
-          ..removeWhere((i) => _optimisticallyDeletedItemIds.contains(i.id))
-          ..sort((a, b) {
-            final ad = a.createdAt ?? DateTime(2000);
-            final bd = b.createdAt ?? DateTime(2000);
-            return bd.compareTo(ad);
-          });
+    // Mirror the desktop QuickSellingView: render exactly what
+    // posCartDisplayItemsProvider holds for the active cart. That provider is
+    // pinned to this transaction when the checkout opens (primePosCartFor…) and
+    // is settling-aware for till collection, so it is the single source of
+    // truth for the cart — a regular sale AND a collected ticket alike. The
+    // previous resolveMobileCheckoutLineItems path re-filtered by transactionId
+    // and dropped rows whose stored transactionId did not byte-match
+    // widget.transaction.id, leaving the mobile cart empty while the totals
+    // were right. Fall back to the scoped stream only when the merged cart has
+    // not resolved yet.
+    final displayLines = mergedAll.where((i) => i.active != false).toList();
+    final resolvedLines = displayLines.isNotEmpty
+        ? displayLines
+        : (streamAsync.asData?.value ?? const <TransactionItem>[])
+            .where((i) => i.active != false)
+            .toList();
+    final items = List<TransactionItem>.from(resolvedLines)
+      ..removeWhere((i) => _optimisticallyDeletedItemIds.contains(i.id))
+      ..sort((a, b) {
+        final ad = a.createdAt ?? DateTime(2000);
+        final bd = b.createdAt ?? DateTime(2000);
+        return bd.compareTo(ad);
+      });
 
     final transactionAsync = ref.watch(transactionByIdProvider(_transactionId));
     final customerPhone = ref.watch(customerPhoneNumberProvider);
@@ -761,7 +765,14 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             );
 
             final currentId = txn.id;
-            if (transactionAsync.hasValue && _lastTransactionId != currentId) {
+            // Wait until the cart has resolved line items before initializing
+            // payment (mirrors the desktop guard). Firing during the initial
+            // route-push frame — while items are still empty — mutates
+            // paymentMethodsProvider mid-transition and notifies a watcher whose
+            // element is already defunct (markNeedsBuild assertion).
+            if (transactionAsync.hasValue &&
+                items.isNotEmpty &&
+                _lastTransactionId != currentId) {
               _lastTransactionId = currentId;
               WidgetsBinding.instance.addPostFrameCallback((_) async {
                 if (!mounted) return;

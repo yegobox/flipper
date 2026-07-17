@@ -679,15 +679,29 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
       total: total,
       onReviewPay: count > 0
           ? () {
-              final t =
-                  transaction ??
-                  readCachedPendingCartTransactionWidget(
-                    ref,
-                    isExpense: false,
-                  ) ??
-                  ref
-                      .read(pendingTransactionStreamProvider(isExpense: false))
-                      .value;
+              final cached = readCachedPendingCartTransactionWidget(
+                ref,
+                isExpense: false,
+              );
+              final streamTxn = ref
+                  .read(pendingTransactionStreamProvider(isExpense: false))
+                  .value;
+              // Bind the dedicated mobile checkout to the transaction that
+              // actually OWNS the displayed cart lines. pendingTransactionStream
+              // (and therefore [transaction]) can point at a newer pending cart
+              // than the cache/pin-scoped one the cart bar shows; the checkout
+              // screen queries a single txn id, so that mismatch renders an
+              // empty cart even though the totals are right.
+              final itemTxnIds = activeItems
+                  .map((i) => i.transactionId)
+                  .where((id) => id != null && id.isNotEmpty)
+                  .toSet();
+              ITransaction? t = <ITransaction?>[transaction, cached, streamTxn]
+                  .firstWhere(
+                (c) => c != null && itemTxnIds.contains(c.id),
+                orElse: () => null,
+              );
+              t ??= transaction ?? cached ?? streamTxn;
               if (t != null) _openMobileCheckout(t);
             }
           : null,
