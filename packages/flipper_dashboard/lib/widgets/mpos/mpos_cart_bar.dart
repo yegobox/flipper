@@ -11,12 +11,14 @@ class MposCartBar extends StatelessWidget {
     required this.total,
     required this.onReviewPay,
     this.emptyLabel = 'Tap a product to start a sale',
+    this.actionLabel = 'Review & Pay',
   });
 
   final int itemCount;
   final double total;
   final VoidCallback? onReviewPay;
   final String emptyLabel;
+  final String actionLabel;
 
   bool get _isEmpty => itemCount <= 0;
 
@@ -64,7 +66,7 @@ class MposCartBar extends StatelessWidget {
               )
             : MaestroSemantics(
                 id: MaestroIds.mposReviewPay,
-                label: 'Review and pay',
+                label: actionLabel,
                 button: true,
                 enabled: onReviewPay != null,
                 value: '$itemCount items, RWF ${mposMoneyLabel(total)}',
@@ -125,18 +127,18 @@ class MposCartBar extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const Row(
+                          Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Review & Pay',
-                                style: TextStyle(
+                                actionLabel,
+                                style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
                                 ),
                               ),
-                              Icon(
+                              const Icon(
                                 Icons.chevron_right_rounded,
                                 color: Colors.white,
                                 size: 20,

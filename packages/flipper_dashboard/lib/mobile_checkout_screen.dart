@@ -22,6 +22,7 @@ import 'package:flipper_dashboard/widgets/mpos/mpos_totals_card.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 import 'package:flipper_models/providers/digital_payment_provider.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/park_transaction_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
@@ -78,6 +79,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   bool _isClearingCustomer = false;
   double _cachedNonCreditPaid = 0.0;
   bool _sendToTillBusy = false;
+  bool _backToNewSaleBusy = false;
 
   String get _transactionId => widget.transaction.id;
 
@@ -173,17 +175,37 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     setState(() => _sendToTillBusy = true);
     final displayRef = _ticketDisplayRef(txn);
     try {
-      await ref.read(parkTransactionProvider.notifier).park(
+      await ref
+          .read(parkTransactionProvider.notifier)
+          .park(
             ticketName: 'Till · $displayRef',
             ticketNote: 'Sent to till for payment',
             transaction: txn,
             customerId: txn.customerId,
           );
-      if (!mounted) return;
-      showSuccessNotification(
-        context,
-        'Sent to till — Ticket #$displayRef',
+
+      // Clear every local representation before returning to the catalog so
+      // the ticket that was just sent cannot flash as the next sale's cart.
+      ref.read(suppressedCartTransactionIdProvider.notifier).state = txn.id;
+      ref.read(optimisticCartProvider.notifier).clearForTransaction(txn.id);
+      clearCachedPendingCartTransactionWidget(ref, isExpense: false);
+      ref.invalidate(
+        transactionItemsStreamProvider(
+          transactionId: txn.id,
+          branchId: _branchId,
+        ),
       );
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      ref.read(customerPhoneNumberProvider.notifier).state = null;
+      ref.read(mposMomoPhoneProvider.notifier).state = null;
+      await ProxyService.box.writeString(key: 'customerName', value: '');
+      await ProxyService.box.writeString(
+        key: 'currentSaleCustomerPhoneNumber',
+        value: '',
+      );
+
+      if (!mounted) return;
+      showSuccessNotification(context, 'Sent to till — Ticket #$displayRef');
       final rootNav = Navigator.of(context, rootNavigator: true);
       if (rootNav.canPop()) {
         await rootNav.maybePop();
@@ -196,6 +218,108 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     } finally {
       if (mounted) setState(() => _sendToTillBusy = false);
     }
+  }
+
+  Future<void> _backToNewSaleFromSettling() async {
+    if (_backToNewSaleBusy) return;
+    final settling = ref.read(settlingTillTicketProvider);
+    if (settling == null) return;
+
+    setState(() => _backToNewSaleBusy = true);
+    final branchId = settling.branchId ?? _branchId;
+    try {
+      try {
+        final txn = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).getTransaction(id: settling.transactionId, branchId: branchId);
+        if (txn != null && (txn.status ?? '').toUpperCase() == 'PENDING') {
+          await ref
+              .read(parkTransactionProvider.notifier)
+              .park(
+                ticketName: (settling.ticketName ?? '').trim().isNotEmpty
+                    ? settling.ticketName!
+                    : 'Till · ${settling.displayRef}',
+                ticketNote: settling.ticketNote ?? 'Sent to till for payment',
+                transaction: txn,
+                customerId: txn.customerId,
+              );
+        }
+      } catch (e, st) {
+        tv_talk.talker.error('Mobile back to new sale re-park failed: $e', st);
+      }
+
+      ref.read(settlingTillTicketProvider.notifier).state = null;
+      clearPinnedPosCartTransactionWidget(ref);
+      ref.invalidate(oldProvider.paymentMethodsProvider);
+      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      if (mounted) Navigator.of(context).pop();
+    } finally {
+      if (mounted) setState(() => _backToNewSaleBusy = false);
+    }
+  }
+
+  Widget _buildSettlingBanner(SettlingTillTicket settling) {
+    final minutes = DateTime.now()
+        .difference(settling.createdAt)
+        .inMinutes
+        .clamp(0, 99999);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFFEEF3FF),
+          borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+          border: Border.all(color: const Color(0xFFC7D8FF)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Collecting payment for #${settling.displayRef} · '
+                'sent by ${settling.creatorName} · $minutes min ago',
+                style: const TextStyle(
+                  color: Color(0xFF1D4ED8),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextButton(
+                onPressed: _backToNewSaleBusy
+                    ? null
+                    : () => unawaited(_backToNewSaleFromSettling()),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF1D4ED8),
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: _backToNewSaleBusy
+                    ? const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 8),
+                          Text('Returning…'),
+                        ],
+                      )
+                    : const Text(
+                        'Back to new sale',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _clearCustomer(ITransaction txn) async {
@@ -369,6 +493,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   }
 
   Future<void> _navigateToSuccessScreen({required double total}) async {
+    final wasSettling = ref.read(settlingTillTicketProvider) != null;
     final items = await ref.read(
       transactionItemsStreamProvider(
         transactionId: _transactionId,
@@ -398,6 +523,14 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     );
 
     if (!mounted) return;
+    if (wasSettling) {
+      ref.read(settlingTillTicketProvider.notifier).state = null;
+      showSuccessNotification(
+        context,
+        'Payment collected · ${ProxyService.box.defaultCurrency()} '
+        '${mposMoneyLabel(total)}',
+      );
+    }
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         fullscreenDialog: true,
@@ -659,18 +792,19 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
               .where((i) => i.active != false)
               .toList();
           if (merged.isEmpty) {
-            merged = (ref
-                        .read(
-                          transactionItemsStreamProvider(
-                            transactionId: _transactionId,
-                            branchId: _branchId,
-                          ),
-                        )
-                        .asData
-                        ?.value ??
-                    const <TransactionItem>[])
-                .where((i) => i.active != false)
-                .toList();
+            merged =
+                (ref
+                            .read(
+                              transactionItemsStreamProvider(
+                                transactionId: _transactionId,
+                                branchId: _branchId,
+                              ),
+                            )
+                            .asData
+                            ?.value ??
+                        const <TransactionItem>[])
+                    .where((i) => i.active != false)
+                    .toList();
           }
           final total = calculateTransactionTotal(
             items: merged,
@@ -702,8 +836,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final resolvedLines = displayLines.isNotEmpty
         ? displayLines
         : (streamAsync.asData?.value ?? const <TransactionItem>[])
-            .where((i) => i.active != false)
-            .toList();
+              .where((i) => i.active != false)
+              .toList();
     final items = List<TransactionItem>.from(resolvedLines)
       ..removeWhere((i) => _optimisticallyDeletedItemIds.contains(i.id))
       ..sort((a, b) {
@@ -713,6 +847,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       });
 
     final transactionAsync = ref.watch(transactionByIdProvider(_transactionId));
+    final settling = ref.watch(settlingTillTicketProvider);
     final customerPhone = ref.watch(customerPhoneNumberProvider);
     final digitalEnabled =
         ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
@@ -824,7 +959,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 displaySaleCustomerPhone ??
                 ProxyService.box.currentSaleCustomerPhoneNumber();
             final momoOk = !isMomo || _phoneDigits(momoPhone).length >= 9;
-            final canCharge = canCollect &&
+            final canCharge =
+                canCollect &&
                 _canTapCharge(
                   itemsNotEmpty: items.isNotEmpty,
                   txn: txn,
@@ -833,10 +969,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 );
             final ready = canCollect
                 ? (total > 0 &&
-                    canCharge &&
-                    cashOk &&
-                    momoOk &&
-                    _chargeState == ChargeButtonState.initial)
+                      canCharge &&
+                      cashOk &&
+                      momoOk &&
+                      _chargeState == ChargeButtonState.initial)
                 : (items.isNotEmpty && !_sendToTillBusy);
 
             final itemCount = items
@@ -876,24 +1012,27 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                       Navigator.of(context).pop();
                     },
                   ),
+                  if (settling != null) _buildSettlingBanner(settling),
                   Expanded(
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       children: [
-                        const MposSectionLabel('Customer'),
-                        const SizedBox(height: 8),
-                        MposCustomerSection(
-                          customerName: displayCustomerName,
-                          customerPhone: displaySaleCustomerPhone,
-                          isClearing: _isClearingCustomer,
-                          onAttach: () => MposCustomerSheet.show(
-                            context: context,
-                            ref: ref,
-                            transaction: txn,
+                        if (settling == null) ...[
+                          const MposSectionLabel('Customer'),
+                          const SizedBox(height: 8),
+                          MposCustomerSection(
+                            customerName: displayCustomerName,
+                            customerPhone: displaySaleCustomerPhone,
+                            isClearing: _isClearingCustomer,
+                            onAttach: () => MposCustomerSheet.show(
+                              context: context,
+                              ref: ref,
+                              transaction: txn,
+                            ),
+                            onClear: () => _clearCustomer(txn),
                           ),
-                          onClear: () => _clearCustomer(txn),
-                        ),
-                        const SizedBox(height: 14),
+                          const SizedBox(height: 14),
+                        ],
                         const MposSectionLabel('Items'),
                         const SizedBox(height: 8),
                         if (items.isEmpty)
@@ -926,7 +1065,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                                         (items[i].retailPrice ?? items[i].price)
                                             .toDouble(),
                                     qty: _displayQtyFor(items[i]),
-                                    canEdit: _canModifyItems(txn),
+                                    canEdit:
+                                        settling == null &&
+                                        _canModifyItems(txn),
                                     onDecrement: () => _updateQuantity(
                                       items[i],
                                       _displayQtyFor(items[i]) - 1,
@@ -946,34 +1087,36 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                               ],
                             ),
                           ),
-                        const SizedBox(height: 10),
-                        MaestroSemantics(
-                          id: MaestroIds.mposAddMoreItems,
-                          label: 'Add more items',
-                          button: true,
-                          enabled: true,
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(48),
-                              foregroundColor: PosTokens.blue,
-                              side: const BorderSide(
-                                color: PosTokens.lineStrong,
-                                width: 1.5,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  MposTokens.radiusMd,
+                        if (settling == null) ...[
+                          const SizedBox(height: 10),
+                          MaestroSemantics(
+                            id: MaestroIds.mposAddMoreItems,
+                            label: 'Add more items',
+                            button: true,
+                            enabled: true,
+                            child: OutlinedButton.icon(
+                              onPressed: () => Navigator.of(context).pop(),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48),
+                                foregroundColor: PosTokens.blue,
+                                side: const BorderSide(
+                                  color: PosTokens.lineStrong,
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    MposTokens.radiusMd,
+                                  ),
                                 ),
                               ),
-                            ),
-                            icon: const Icon(Icons.add_rounded, size: 17),
-                            label: const Text(
-                              'Add more items',
-                              style: TextStyle(fontWeight: FontWeight.w700),
+                              icon: const Icon(Icons.add_rounded, size: 17),
+                              label: const Text(
+                                'Add more items',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                         const SizedBox(height: 14),
                         if (canCollect) ...[
                           const MposSectionLabel('Payment method'),
@@ -1022,11 +1165,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                         ? (_isImmediateCompletion && _shouldShowSpinner())
                         : _sendToTillBusy,
                     primaryLabel: footerPrimaryLabel,
-                    onSaveTicket: items.isEmpty ? null : _showParkDialog,
+                    onSaveTicket: items.isEmpty || settling != null
+                        ? null
+                        : _showParkDialog,
                     onPrimary: !canCollect
                         ? (items.isEmpty || _sendToTillBusy
-                            ? null
-                            : () => unawaited(_sendCartToTill()))
+                              ? null
+                              : () => unawaited(_sendCartToTill()))
                         : canCharge
                         ? () => _handleCharge(
                             total,
@@ -1035,9 +1180,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                           )
                         : null,
                     // Digital MoMo: split Charge (wait) vs Complete Now (handoff deviation).
-                    secondaryLabel: canCollect &&
-                            digitalEnabled &&
-                            items.isNotEmpty
+                    secondaryLabel:
+                        canCollect && digitalEnabled && items.isNotEmpty
                         ? _primaryLabel(
                             items.isEmpty,
                             txn,
@@ -1046,7 +1190,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                             remaining,
                           )
                         : null,
-                    onSecondary: canCollect &&
+                    onSecondary:
+                        canCollect &&
                             digitalEnabled &&
                             items.isNotEmpty &&
                             canCharge

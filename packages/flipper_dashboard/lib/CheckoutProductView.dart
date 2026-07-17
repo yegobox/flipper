@@ -18,6 +18,7 @@ import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -660,6 +661,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     ITransaction? transaction,
     List<TransactionItem> items,
   ) {
+    final canCollectPayment = ref.watch(canCollectPosPaymentProvider);
     final activeItems = items.where((i) => i.active != false).toList();
     final count = activeItems
         .fold<double>(0, (s, i) => s + i.qty.toDouble())
@@ -677,6 +679,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     return MposCartBar(
       itemCount: count,
       total: total,
+      actionLabel: canCollectPayment ? 'Review & Pay' : 'Review & Send',
       onReviewPay: count > 0
           ? () {
               final cached = readCachedPendingCartTransactionWidget(
@@ -698,9 +701,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   .toSet();
               ITransaction? t = <ITransaction?>[transaction, cached, streamTxn]
                   .firstWhere(
-                (c) => c != null && itemTxnIds.contains(c.id),
-                orElse: () => null,
-              );
+                    (c) => c != null && itemTxnIds.contains(c.id),
+                    orElse: () => null,
+                  );
               t ??= transaction ?? cached ?? streamTxn;
               if (t != null) _openMobileCheckout(t);
             }
