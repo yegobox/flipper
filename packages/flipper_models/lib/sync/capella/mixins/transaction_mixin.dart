@@ -2041,51 +2041,38 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       );
 
       // Ditto DQL does not support subqueries, so resolve the target ids first
-      // and delete children + parents by id list. This keeps the whole clear to
-      // a fixed 3 round-trips instead of the previous slow per-row fallback.
-      final selected = await ditto.store.execute(
-        'SELECT id FROM transactions WHERE $_pendingSaleCartWhere',
-        arguments: args,
-      );
-      final ids = <String>[];
-      for (final item in selected.items) {
-        final id = _dittoDocumentId(Map<String, dynamic>.from(item.value));
-        if (id != null && id.isNotEmpty) ids.add(id);
-      }
+      // and delete children + parents by that captured id list. Run the select
+      // and both deletes inside ONE write transaction so a concurrently-synced
+      // child row cannot land between the cleanup steps and be left orphaned.
+      await ditto.store.transaction((txn) async {
+        final selected = await txn.execute(
+          'SELECT id FROM transactions WHERE $_pendingSaleCartWhere',
+          arguments: args,
+        );
+        final ids = <String>[];
+        for (final item in selected.items) {
+          final id = _dittoDocumentId(Map<String, dynamic>.from(item.value));
+          if (id != null && id.isNotEmpty) ids.add(id);
+        }
 
-      if (ids.isEmpty) {
-        talker.info('clearPendingSaleCartsExcept: no pending sale carts');
-        return;
-      }
+        if (ids.isEmpty) {
+          talker.info('clearPendingSaleCartsExcept: no pending sale carts');
+          return;
+        }
 
-      try {
-        await ditto.store.execute(
+        await txn.execute(
           'DELETE FROM transaction_items WHERE transactionId IN (:ids)',
           arguments: {'ids': ids},
         );
-        await ditto.store.execute(
-          'DELETE FROM transactions WHERE $_pendingSaleCartWhere',
-          arguments: args,
+        await txn.execute(
+          'DELETE FROM transactions WHERE id IN (:ids)',
+          arguments: {'ids': ids},
         );
-      } catch (bulkError) {
-        talker.warning(
-          'clearPendingSaleCartsExcept bulk delete failed, falling back: $bulkError',
-        );
-        for (final id in ids) {
-          await ditto.store.execute(
-            'DELETE FROM transaction_items WHERE transactionId = :id',
-            arguments: {'id': id},
-          );
-          await ditto.store.execute(
-            'DELETE FROM transactions WHERE _id = :id OR id = :id',
-            arguments: {'id': id},
-          );
-        }
-      }
 
-      talker.info(
-        'clearPendingSaleCartsExcept: cleared ${ids.length} pending sale cart(s)',
-      );
+        talker.info(
+          'clearPendingSaleCartsExcept: cleared ${ids.length} pending sale cart(s)',
+        );
+      });
     } catch (e, s) {
       talker.error('clearPendingSaleCartsExcept: $e', s);
     }

@@ -298,11 +298,14 @@ class CheckOutState extends ConsumerState<CheckOut>
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
+    // Everything below touches `ref`; bail if the checkout was torn down during
+    // the (awaited) completion so `ref` is never used after disposal. The box
+    // flag resets above are lifecycle-independent and must always run.
+    if (!mounted) return;
+
     // End any till-settling session so the operator's next cart is no longer
     // scoped to the collected ticket (posCartDisplayItemsProvider keys off it).
     ref.read(settlingTillTicketProvider.notifier).state = null;
-
-    if (!mounted) return;
 
     final branchId = ProxyService.box.getBranchId() ?? '0';
     ref.invalidate(

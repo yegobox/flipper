@@ -579,7 +579,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // staff who created it (no optimistic taps to wait for), so read them
       // directly instead of polling for a display/Ditto qty match — the poll can
       // never converge here because the cart is scoped to the ticket's branch.
-      final settling = ref.read(settlingTillTicketProvider);
+      // Reuse the settling snapshot captured at the top of this flow. Re-reading
+      // the provider here would let an asynchronously cleared settling state
+      // flip this ticket back to normal cart polling (which never converges for
+      // a settling ticket) after completion was already redirected to it.
+      final settling = settlingTicket;
       final bool isSettlingThisTicket =
           settling != null && settling.transactionId == transactionId;
       final List<TransactionItem>? persistedCart;

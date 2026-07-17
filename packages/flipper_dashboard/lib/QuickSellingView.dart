@@ -3327,6 +3327,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref.invalidate(paymentMethodsProvider);
       widget.receivedAmountController.clear();
       widget.discountController.clear();
+      // Clear customer details too, so the next sale does not inherit the sent
+      // ticket's customer. Name/phone live in controllers + persisted box keys
+      // (mirrors _collapseCustomerFields).
+      ref.read(customerNameControllerProvider).clear();
+      widget.customerPhoneNumberController.clear();
+      ProxyService.box.writeString(key: 'customerName', value: '');
+      ProxyService.box.writeString(
+        key: 'currentSaleCustomerPhoneNumber',
+        value: '',
+      );
       ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
 
       if (mounted) {
