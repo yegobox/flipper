@@ -732,6 +732,70 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return ref.read(attachedCustomerProvider(customerId)).asData?.value;
   }
 
+  /// Customer details that gate sale completion, resolved from any source: the
+  /// typed fields, the persisted box keys, or an attached/searched customer on
+  /// the transaction. Returns a localized error when a required detail is
+  /// missing, else null.
+  ///
+  /// The customer capture panel is collapsible, so its field validators are not
+  /// mounted while collapsed and [formKey] validation alone can be bypassed —
+  /// this enforces the same rules (name always; phone unless a TIN is on file)
+  /// regardless of the panel state.
+  String? _missingCustomerForPay(ITransaction? transaction) {
+    String firstNonEmpty(List<String?> values) {
+      for (final v in values) {
+        final t = v?.trim() ?? '';
+        if (t.isNotEmpty) return t;
+      }
+      return '';
+    }
+
+    // An attached/searched customer already carries name + phone (and TIN).
+    if ((transaction?.customerId ?? '').trim().isNotEmpty) return null;
+
+    // Reliable per-sale sources only — the typed controllers (cleared on
+    // completion) and the transaction row. The persisted box keys are NOT used
+    // here: they can carry a previous sale's customer over and would let Pay
+    // pass with no customer attached to this sale.
+    final name = firstNonEmpty([
+      ref.read(customerNameControllerProvider).text,
+      transaction?.customerName,
+    ]);
+    if (name.isEmpty) return context.flipperL10n.pleaseEnterCustomerName;
+
+    final phone = firstNonEmpty([
+      widget.customerPhoneNumberController.text,
+      transaction?.customerPhone,
+      transaction?.currentSaleCustomerPhoneNumber,
+    ]);
+    if (phone.isEmpty) return context.flipperL10n.phoneRequiredWhenTinMissing;
+
+    return null;
+  }
+
+  /// Guards the Pay action. When customer details are missing it stops the pay
+  /// spinner, surfaces the reason, expands the customer panel (for a normal
+  /// sale) so the cashier can type them, and returns false so completion aborts.
+  bool _ensureCustomerBeforePay(ITransaction? transaction) {
+    final error = _missingCustomerForPay(transaction);
+    if (error == null) return true;
+
+    ref.read(payButtonStateProvider.notifier).stopLoading();
+
+    // Customer details come from the queued ticket while settling; don't pop the
+    // operator's own capture panel open in that case.
+    final settling = ref.read(settlingTillTicketProvider) != null;
+    if (!settling && !_customerFieldsExpanded && mounted) {
+      setState(() => _customerFieldsExpanded = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _customerNameFocusNode.requestFocus();
+      });
+    }
+
+    if (mounted) showErrorNotification(context, error);
+    return false;
+  }
+
   void _prefillCustomerDetails(
     ITransaction transaction, {
     bool force = false,
@@ -2120,6 +2184,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                     talker.warning(
                                       "We are about to complete a sale",
                                     );
+                                    if (!_ensureCustomerBeforePay(
+                                      transactionAsyncValue.value,
+                                    )) {
+                                      return false;
+                                    }
                                     return transactionAsyncValue.when(
                                       data: (ITransaction transaction) async {
                                         await ProxyService.box.writeBool(
@@ -2710,6 +2779,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     ),
                   );
             transactionAsyncValue.whenData((ITransaction transaction) {
+              if (!_ensureCustomerBeforePay(transaction)) return;
               final branchId = ProxyService.box.getBranchId() ?? '0';
               final transactionItemsHint =
                   ref

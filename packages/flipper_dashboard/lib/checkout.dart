@@ -31,7 +31,10 @@ import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 /// Customer search now lives inside [QuickSellingView] (cart column). No top
 /// overlay inset on desktop checkout.
@@ -250,6 +253,13 @@ class CheckOutState extends ConsumerState<CheckOut>
                     if (txn == null) {
                       return false;
                     }
+                    // Desktop Pay bar lives here (not QuickSellingView's), so
+                    // enforce the customer gate before any completion side
+                    // effect — the collapsible capture panel otherwise lets the
+                    // field validators be skipped entirely.
+                    if (!_ensureCustomerBeforePay(txn)) {
+                      return false;
+                    }
                     return await _handleCompleteTransaction(
                       txn,
                       immediateCompletion,
@@ -367,6 +377,71 @@ class CheckOutState extends ConsumerState<CheckOut>
       ref.read(oldImplementationOfRiverpod.previewingCart.notifier).state =
           false;
     }
+  }
+
+  /// Customer gate for the desktop/tablet Pay bar.
+  ///
+  /// The big-screen [PosDefaultView] and small-screen [CheckoutProductView]
+  /// render their own Pay button wired to this handler (not QuickSellingView's
+  /// pay bar), so the customer field validators — which only run when the
+  /// collapsible capture panel is expanded — can be bypassed entirely. This
+  /// enforces name (+ phone) from reliable per-sale sources (the shared typed
+  /// controllers or the transaction row / attached customer), never the stale
+  /// box keys. Returns a localized error when a required detail is missing.
+  String? _missingCustomerForPay(ITransaction transaction) {
+    String firstNonEmpty(List<String?> values) {
+      for (final v in values) {
+        final t = v?.trim() ?? '';
+        if (t.isNotEmpty) return t;
+      }
+      return '';
+    }
+
+    // While settling a queued till ticket, completion targets that ticket (see
+    // startCompleteTransactionFlow), not the operator's own pending cart passed
+    // here. Validate the ticket's customer; if its row has not resolved yet,
+    // defer to the flow rather than risk a false block.
+    final settling = ref.read(settlingTillTicketProvider);
+    final ITransaction target;
+    if (settling != null && settling.transactionId.isNotEmpty) {
+      final ticket =
+          ref.read(transactionByIdProvider(settling.transactionId)).value;
+      if (ticket == null) return null;
+      target = ticket;
+    } else {
+      target = transaction;
+    }
+
+    // An attached/searched customer already carries name + phone (and TIN).
+    if ((target.customerId ?? '').trim().isNotEmpty) return null;
+
+    final name = firstNonEmpty([
+      ref.read(customerNameControllerProvider).text,
+      target.customerName,
+    ]);
+    if (name.isEmpty) return context.flipperL10n.pleaseEnterCustomerName;
+
+    final phone = firstNonEmpty([
+      customerPhoneNumberController.text,
+      target.customerPhone,
+      target.currentSaleCustomerPhoneNumber,
+    ]);
+    if (phone.isEmpty) return context.flipperL10n.phoneRequiredWhenTinMissing;
+
+    return null;
+  }
+
+  /// Runs [_missingCustomerForPay] and, when a detail is missing, stops the pay
+  /// spinner and surfaces the reason. Returns true when the sale may proceed.
+  ///
+  /// [PreviewSaleButton] starts the spinner then delegates to the completion
+  /// path and expects it to stop the spinner, so we stop it on early return.
+  bool _ensureCustomerBeforePay(ITransaction transaction) {
+    final missingCustomer = _missingCustomerForPay(transaction);
+    if (missingCustomer == null) return true;
+    ref.read(payButtonStateProvider.notifier).stopLoading();
+    if (mounted) showErrorNotification(context, missingCustomer);
+    return false;
   }
 
   Future<bool> _handleCompleteTransaction(

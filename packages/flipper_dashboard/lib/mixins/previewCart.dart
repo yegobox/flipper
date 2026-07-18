@@ -9,6 +9,8 @@ import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_dashboard/providers/mpos_momo_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 // ignore: unused_import
 import 'package:flipper_models/SyncStrategy.dart';
@@ -223,6 +225,24 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   void _resetDigitalReceiptToggleAfterSale() {
     if (!mounted) return;
     resetDigitalReceiptToggle(ref);
+  }
+
+  /// Clears the persisted customer context once a sale is finalized so the next
+  /// transaction starts blank instead of inheriting this sale's name/phone.
+  ///
+  /// The customer name/phone/TIN live in box local storage and are also cached
+  /// in [customerPhoneNumberProvider] (a non-autoDispose [StateProvider] that
+  /// only reads the box on first init) and [mposMomoPhoneProvider]. Clearing the
+  /// box alone is not enough — those providers retain stale state across sales,
+  /// so reset them here too. Mirrors the manual clears in
+  /// `_collapseCustomerFields` / `SearchCustomer` / `_clearCustomer`.
+  void _clearSaleCustomerContextAfterSale() {
+    ProxyService.box.remove(key: 'customerName');
+    ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber');
+    ProxyService.box.remove(key: 'customerTin');
+    if (!mounted) return;
+    ref.read(customerPhoneNumberProvider.notifier).state = null;
+    ref.read(mposMomoPhoneProvider.notifier).state = null;
   }
 
   Future<void> _invokeCompleteTransactionCallback(Function callback) async {
@@ -850,6 +870,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 ),
               );
             }
+            _clearSaleCustomerContextAfterSale();
             try {
               await _invokeCompleteTransactionCallback(completeTransaction);
             } catch (e, s) {
@@ -1346,6 +1367,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 _isProcessingPayment = false;
                 _paymentTimeout?.cancel(); // Cancel timeout on success
 
+                _clearSaleCustomerContextAfterSale();
                 unawaited(() async {
                   try {
                     await _invokeCompleteTransactionCallback(
