@@ -34,8 +34,11 @@ class CustomersState extends ConsumerState<Customers> {
   bool _openingCustomerForm = false;
   /// Customer id currently being attached/removed — drives per-row spinner.
   String? _saleActionCustomerId;
+  /// Desktop side panel (add / edit) — null when closed.
+  _CustomerFormPanel? _formPanel;
 
   static const double _desktopContentMaxWidth = 720;
+  static const double _desktopFormPanelWidth = 420;
 
   @override
   void initState() {
@@ -120,7 +123,7 @@ class CustomersState extends ConsumerState<Customers> {
                       .read(customersProvider.notifier)
                       .filterCustomers(allCustomers, searchKeyword);
 
-                  final content = Column(
+                  final listPane = Column(
                     children: [
                       _buildSearchBar(isWide),
                       _buildAddButton(
@@ -143,16 +146,64 @@ class CustomersState extends ConsumerState<Customers> {
                     ],
                   );
 
-                  if (!isWide) return content;
+                  if (!isWide) return listPane;
 
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: _desktopContentMaxWidth,
+                  final panel = _formPanel;
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: panel != null
+                                  ? double.infinity
+                                  : _desktopContentMaxWidth,
+                            ),
+                            child: listPane,
+                          ),
+                        ),
                       ),
-                      child: content,
-                    ),
+                      if (panel != null)
+                        SizedBox(
+                          width: _desktopFormPanelWidth,
+                          child: DecoratedBox(
+                            decoration: const BoxDecoration(
+                              color: PosTokens.surface,
+                              border: Border(
+                                left: BorderSide(color: PosTokens.line),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0x14000000),
+                                  offset: Offset(-4, 0),
+                                  blurRadius: 16,
+                                ),
+                              ],
+                            ),
+                            child: AddCustomer(
+                              key: ValueKey(
+                                'panel-${panel.customer?.id ?? 'new'}-'
+                                '${panel.searchedKey}',
+                              ),
+                              transactionId: panel.transactionId,
+                              searchedKey: panel.searchedKey,
+                              customer: panel.customer,
+                              showSheetHandle: false,
+                              panelMode: true,
+                              onDismissed: _closeFormPanel,
+                              onCompleted: (message) {
+                                _closeFormPanel();
+                                _showCustomersToast(
+                                  message,
+                                  backgroundColor: Colors.green[600],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                    ],
                   );
                 },
               );
@@ -161,6 +212,14 @@ class CustomersState extends ConsumerState<Customers> {
         );
       },
     );
+  }
+
+  void _closeFormPanel() {
+    if (!mounted) return;
+    setState(() {
+      _formPanel = null;
+      _openingCustomerForm = false;
+    });
   }
 
   void _showHelpDialog(BuildContext context, bool isWide) {
@@ -386,15 +445,24 @@ class CustomersState extends ConsumerState<Customers> {
     final avatarColor = _getAvatarColor(customer.custNm ?? '');
     final isSelected = transaction.customerId == customer.id;
     final isSaleActionBusy = _saleActionCustomerId == customer.id;
+    final isEditingInPanel = _formPanel?.customer?.id == customer.id;
 
     final card = Material(
-      color: isSelected ? PosTokens.blueTint : PosTokens.surface,
+      color: isEditingInPanel
+          ? const Color(0xFFFFF8EF)
+          : isSelected
+          ? PosTokens.blueTint
+          : PosTokens.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(PosTokens.radiusMd),
         side: BorderSide(
-          color: isSelected ? PosTokens.blue : PosTokens.line,
-          width: isSelected ? 1.5 : 1,
+          color: isEditingInPanel
+              ? PosTokens.warnAmber
+              : isSelected
+              ? PosTokens.blue
+              : PosTokens.line,
+          width: (isSelected || isEditingInPanel) ? 1.5 : 1,
         ),
       ),
       child: InkWell(
@@ -920,61 +988,51 @@ class CustomersState extends ConsumerState<Customers> {
     String searchedKey = '',
     Customer? customer,
   }) async {
+    if (_openingCustomerForm && _formPanel == null) return;
+
+    final isWide = _isWideLayout(context);
+
+    // Desktop: side-by-side panel so the list stays visible while editing.
+    if (isWide) {
+      setState(() {
+        _openingCustomerForm = false;
+        _formPanel = _CustomerFormPanel(
+          transactionId: transactionId,
+          searchedKey: searchedKey,
+          customer: customer,
+        );
+      });
+      return;
+    }
+
     if (_openingCustomerForm) return;
     setState(() => _openingCustomerForm = true);
-
-    // Let the button rebuild with the spinner before the dialog covers it.
     await WidgetsBinding.instance.endOfFrame;
     await Future<void>.delayed(const Duration(milliseconds: 120));
     if (!mounted) return;
 
-    final isWide = _isWideLayout(context);
-    final form = AddCustomer(
-      transactionId: transactionId,
-      searchedKey: searchedKey,
-      customer: customer,
-      showSheetHandle: !isWide,
-    );
-
     try {
-      final String? message = isWide
-          ? await showDialog<String>(
-              context: context,
-              useRootNavigator: true,
-              builder: (dialogContext) => Dialog(
-                backgroundColor: PosTokens.surface,
-                insetPadding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 24,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MposTokens.sheetRadius),
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: 480,
-                    maxHeight: MediaQuery.sizeOf(dialogContext).height * 0.9,
-                  ),
-                  child: form,
-                ),
-              ),
-            )
-          : await showModalBottomSheet<String>(
-              context: context,
-              useRootNavigator: true,
-              useSafeArea: true,
-              isScrollControlled: true,
-              backgroundColor: PosTokens.surface,
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.92,
-              ),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(MposTokens.sheetRadius),
-                ),
-              ),
-              builder: (sheetContext) => form,
-            );
+      final message = await showModalBottomSheet<String>(
+        context: context,
+        useRootNavigator: true,
+        useSafeArea: true,
+        isScrollControlled: true,
+        backgroundColor: PosTokens.surface,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(MposTokens.sheetRadius),
+          ),
+        ),
+        builder: (sheetContext) => AddCustomer(
+          transactionId: transactionId,
+          searchedKey: searchedKey,
+          customer: customer,
+          showSheetHandle: true,
+        ),
+      );
 
       if (message != null && message.isNotEmpty) {
         _showCustomersToast(
@@ -1087,3 +1145,15 @@ class CustomersState extends ConsumerState<Customers> {
 }
 
 enum _CustomerAction { edit, attach, remove, delete }
+
+class _CustomerFormPanel {
+  const _CustomerFormPanel({
+    required this.transactionId,
+    this.searchedKey = '',
+    this.customer,
+  });
+
+  final String transactionId;
+  final String searchedKey;
+  final Customer? customer;
+}
