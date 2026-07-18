@@ -235,7 +235,7 @@ class CoreSync extends AiStrategyImpl
       transaction.customerTin = customer.custTin;
       transaction.customerPhone = customer.telNo;
       transaction.currentSaleCustomerPhoneNumber = customer.telNo;
-      repository.upsert<ITransaction>(transaction);
+      await repository.upsert<ITransaction>(transaction);
     } catch (e) {
       print('Failed to assign customer to transaction: $e');
       rethrow;
@@ -1456,13 +1456,13 @@ class CoreSync extends AiStrategyImpl
   @override
   FutureOr<void> removeCustomerFromTransaction({
     required ITransaction transaction,
-  }) {
+  }) async {
     transaction.customerId = null;
     transaction.customerName = null;
     transaction.customerTin = null;
     transaction.customerPhone = null;
     transaction.currentSaleCustomerPhoneNumber = null;
-    repository.upsert(transaction);
+    await repository.upsert(transaction);
   }
 
   @override

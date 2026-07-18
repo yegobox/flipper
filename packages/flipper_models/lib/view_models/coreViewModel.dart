@@ -583,11 +583,11 @@ class CoreViewModel extends FlipperBaseModel
     );
   }
 
-  void assignToSale({
+  Future<void> assignToSale({
     required Customer customer,
     required ITransaction transaction,
-  }) {
-    ProxyService.strategy.assignCustomerToTransaction(
+  }) async {
+    await ProxyService.strategy.assignCustomerToTransaction(
       customer: customer,
       transaction: transaction,
     );
@@ -596,7 +596,7 @@ class CoreViewModel extends FlipperBaseModel
   /// given a transactionId and a customer, remove the given customer from the
   /// given transaction
   Future<void> removeFromSale({required ITransaction transaction}) async {
-    ProxyService.strategy.removeCustomerFromTransaction(
+    await ProxyService.strategy.removeCustomerFromTransaction(
       transaction: transaction,
     );
   }

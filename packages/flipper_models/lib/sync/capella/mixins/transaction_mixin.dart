@@ -1065,7 +1065,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       talker.error('Ditto not initialized for assignCustomerToTransaction');
-      return;
+      throw StateError('Ditto not initialized for assignCustomerToTransaction');
     }
 
     // Keep the in-memory model in sync for callers that read it after await.
@@ -1099,14 +1099,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     setIfPresent('customerName', customer.custNm);
     setIfPresent('customerTin', customer.custTin);
     setIfPresent('customerPhone', customer.telNo);
+    setIfPresent('currentSaleCustomerPhoneNumber', customer.telNo);
 
-    // Target the document by its primary key only. `_id == id` is an invariant
-    // for every transaction (both inserts set them equal — see
-    // _transactionToMap and delegation_mixin), so the legacy `OR id = :id`
-    // fallback is unnecessary and only defeated the primary-key index, turning
-    // an O(1) lookup into a full-collection scan.
+    // Match other Capella transaction updates: both `_id` and `id`. Some rows
+    // only resolve on one side depending on how they were inserted/synced.
     final query =
-        'UPDATE transactions SET ${updates.join(', ')} WHERE _id = :id';
+        'UPDATE transactions SET ${updates.join(', ')} '
+        'WHERE _id = :id OR id = :id';
 
     await ditto.store.execute(query, arguments: arguments);
     talker.info(
@@ -1121,7 +1120,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       talker.error('Ditto not initialized for removeCustomerFromTransaction');
-      return;
+      throw StateError('Ditto not initialized for removeCustomerFromTransaction');
     }
 
     final targetId = transaction.id;

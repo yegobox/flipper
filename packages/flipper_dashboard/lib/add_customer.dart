@@ -23,17 +23,21 @@ class AddCustomer extends StatefulHookConsumerWidget {
     required this.transactionId,
     this.searchedKey,
     this.customer,
+    this.showSheetHandle = true,
   }) : super(key: key);
-  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final String transactionId;
   final String? searchedKey;
   final Customer? customer;
+
+  /// When false (desktop dialog), hides the bottom-sheet drag handle.
+  final bool showSheetHandle;
 
   @override
   AddCustomerState createState() => AddCustomerState();
 }
 
 class AddCustomerState extends ConsumerState<AddCustomer> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
@@ -131,229 +135,235 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 10),
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: PosTokens.lineStrong,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 10, 12, 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        isEditing ? 'Edit customer' : 'New customer',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: PosTokens.ink1,
+        // Intrinsic height + scroll — works in dialogs, sheets, and unbounded
+        // parents. Avoid Expanded here; it silently fails to open the form when
+        // the host route (CustomPage / modal) passes loose height constraints.
+        // Local Scaffold so in-form error snackbars appear above the dialog,
+        // not on the dashboard scaffold under the Customers CustomPage.
+        return Scaffold(
+          backgroundColor: PosTokens.surface,
+          body: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.showSheetHandle) ...[
+                    const SizedBox(height: 10),
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: PosTokens.lineStrong,
+                          borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: PosTokens.surface2,
-                      ),
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                    ),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
-                  child: Form(
-                    key: AddCustomer._formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                  ] else
+                    const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 10, 12, 0),
+                    child: Row(
                       children: [
-                        _PreviewCard(
-                          initials: _previewInitials,
-                          title: _previewTitle,
-                          subtitle: _previewSubtitle,
-                          color: mposColorForName(_previewTitle),
+                        Expanded(
+                          child: Text(
+                            isEditing ? 'Edit customer' : 'New customer',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: PosTokens.ink1,
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 18),
-                        const _FieldLabel('Customer type'),
-                        const SizedBox(height: 8),
-                        _CustomerTypeToggle(
-                          isBusiness: _isBusiness,
-                          onChanged: (business) {
-                            setState(() {
-                              selectedCustomerTypeValue =
-                                  business ? 'Business' : 'Individual';
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        _CustomerFormField(
-                          label: _isBusiness ? 'Business name' : 'Full name',
-                          controller: _nameController,
-                          hint: _isBusiness
-                              ? 'e.g. Kigali Traders Ltd'
-                              : 'e.g. Jean Mukamana',
-                          icon: _isBusiness
-                              ? Icons.storefront_outlined
-                              : Icons.person_outline_rounded,
-                          validator: (value) =>
-                              validatePartyName(value, isBusiness: _isBusiness),
-                        ),
-                        const SizedBox(height: 14),
-                        _CustomerFormField(
-                          label: 'Phone number',
-                          controller: _phoneController,
-                          hint: '07XX XXX XXX',
-                          icon: Icons.smartphone_outlined,
-                          keyboardType: TextInputType.phone,
-                          validator: validatePartyPhone,
-                        ),
-                        const SizedBox(height: 14),
-                        _CustomerFormField(
-                          label: 'Email address',
-                          optional: true,
-                          controller: _emailController,
-                          hint: 'name@email.com',
-                          icon: Icons.mail_outline_rounded,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: validatePartyEmail,
-                        ),
-                        const SizedBox(height: 14),
-                        _CustomerFormField(
-                          label: 'TIN number',
-                          optional: true,
-                          controller: _tinNumberController,
-                          hint: 'Tax ID for invoices',
-                          icon: Icons.tag_outlined,
-                          keyboardType: TextInputType.number,
-                          validator: validatePartyTin,
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: PosTokens.surface2,
+                          ),
+                          icon: const Icon(Icons.close_rounded, size: 18),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: MposTokens.checkoutPrimaryHeight,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: isLoading ? null : MposTokens.gradBtn,
-                      color: isLoading ? PosTokens.ink4 : null,
-                      borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-                      boxShadow: isLoading ? null : MposTokens.shadowBlue,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _PreviewCard(
+                            initials: _previewInitials,
+                            title: _previewTitle,
+                            subtitle: _previewSubtitle,
+                            color: mposColorForName(_previewTitle),
+                          ),
+                          const SizedBox(height: 18),
+                          const _FieldLabel('Customer type'),
+                          const SizedBox(height: 8),
+                          _CustomerTypeToggle(
+                            isBusiness: _isBusiness,
+                            onChanged: (business) {
+                              setState(() {
+                                selectedCustomerTypeValue =
+                                    business ? 'Business' : 'Individual';
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          _CustomerFormField(
+                            label: _isBusiness ? 'Business name' : 'Full name',
+                            controller: _nameController,
+                            hint: _isBusiness
+                                ? 'e.g. Kigali Traders Ltd'
+                                : 'e.g. Jean Mukamana',
+                            icon: _isBusiness
+                                ? Icons.storefront_outlined
+                                : Icons.person_outline_rounded,
+                            validator: (value) => validatePartyName(
+                              value,
+                              isBusiness: _isBusiness,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _CustomerFormField(
+                            label: 'Phone number',
+                            controller: _phoneController,
+                            hint: '07XX XXX XXX',
+                            icon: Icons.smartphone_outlined,
+                            keyboardType: TextInputType.phone,
+                            validator: validatePartyPhone,
+                          ),
+                          const SizedBox(height: 14),
+                          _CustomerFormField(
+                            label: 'Email address',
+                            optional: true,
+                            controller: _emailController,
+                            hint: 'name@email.com',
+                            icon: Icons.mail_outline_rounded,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: validatePartyEmail,
+                          ),
+                          const SizedBox(height: 14),
+                          _CustomerFormField(
+                            label: 'TIN number',
+                            optional: true,
+                            controller: _tinNumberController,
+                            hint: 'Tax ID for invoices',
+                            icon: Icons.tag_outlined,
+                            keyboardType: TextInputType.number,
+                            validator: validatePartyTin,
+                          ),
+                        ],
+                      ),
                     ),
-                    child: ElevatedButton(
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              if (!AddCustomer._formKey.currentState!
-                                  .validate()) {
-                                return;
-                              }
-                              setState(() => isLoading = true);
-                              try {
-                                await model.addCustomer(
-                                  id: widget.customer?.id,
-                                  customerType: selectedCustomerTypeValue,
-                                  email: _emailController.text,
-                                  phone: _phoneController.text,
-                                  name: _nameController.text,
-                                  tinNumber: _tinNumberController.text,
-                                  transactionId: widget.transactionId,
-                                );
-                                ref.refresh(customersProvider);
-                                if (!context.mounted) return;
-                                Navigator.of(context).pop();
-                                Future.delayed(
-                                  const Duration(milliseconds: 100),
-                                  () {
-                                    showCustomSnackBarUtil(
-                                      Navigator.of(
-                                        context,
-                                        rootNavigator: true,
-                                      ).context,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: MposTokens.checkoutPrimaryHeight,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: isLoading ? null : MposTokens.gradBtn,
+                          color: isLoading ? PosTokens.ink4 : null,
+                          borderRadius:
+                              BorderRadius.circular(MposTokens.radiusMd),
+                          boxShadow: isLoading ? null : MposTokens.shadowBlue,
+                        ),
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  if (!_formKey.currentState!.validate()) {
+                                    return;
+                                  }
+                                  setState(() => isLoading = true);
+                                  try {
+                                    await model.addCustomer(
+                                      id: widget.customer?.id,
+                                      customerType: selectedCustomerTypeValue,
+                                      email: _emailController.text,
+                                      phone: _phoneController.text,
+                                      name: _nameController.text,
+                                      tinNumber: _tinNumberController.text,
+                                      transactionId: widget.transactionId,
+                                    );
+                                    ref.invalidate(customersProvider);
+                                    model.getTransactionById();
+                                    if (!context.mounted) return;
+                                    // Return message to the Customers screen so the
+                                    // snackbar is shown on that scaffold (above the
+                                    // Customers CustomPage), not behind it.
+                                    Navigator.of(context).pop(
                                       isEditing
                                           ? 'Customer updated successfully!'
                                           : 'Customer added and attached',
-                                      backgroundColor: Colors.green[600],
                                     );
-                                  },
-                                );
-                                model.getTransactionById();
-                              } catch (e) {
-                                if (mounted) {
-                                  showCustomSnackBarUtil(
-                                    Navigator.of(
-                                      context,
-                                      rootNavigator: true,
-                                    ).context,
-                                    e.toString().isNotEmpty
-                                        ? e.toString()
-                                        : 'Failed to add customer',
-                                    backgroundColor: Colors.red,
-                                  );
-                                }
-                              } finally {
-                                if (mounted) setState(() => isLoading = false);
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        disabledBackgroundColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(MposTokens.radiusMd),
+                                  } catch (e) {
+                                    if (mounted) {
+                                      showCustomSnackBarUtil(
+                                        context,
+                                        e.toString().isNotEmpty
+                                            ? e.toString()
+                                            : 'Failed to add customer',
+                                        backgroundColor: Colors.red,
+                                      );
+                                    }
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => isLoading = false);
+                                    }
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            disabledBackgroundColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                MposTokens.radiusMd,
+                              ),
+                            ),
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.check_rounded, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      isEditing
+                                          ? 'Save changes'
+                                          : 'Add & attach customer',
+                                      style: const TextStyle(
+                                        fontSize: 15.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                         ),
                       ),
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.check_rounded, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  isEditing
-                                      ? 'Save changes'
-                                      : 'Add & attach customer',
-                                  style: const TextStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },

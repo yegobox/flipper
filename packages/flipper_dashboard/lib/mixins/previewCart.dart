@@ -1626,10 +1626,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                               ),
                             );
 
-                            // Call onComplete first to trigger transaction completion
-                            onComplete();
-
-                            // Close dialog
+                            // Do NOT call onComplete() here: finalizePayment (run
+                            // from the bloc's onSubmitting) already invoked it on
+                            // RRA success, which marks the transaction complete and
+                            // clears the cart. Calling it again double-completes the
+                            // sale (double markTransactionAsCompleted / stream
+                            // invalidation). Just close the dialog.
                             Navigator.of(dialogContext).pop(true);
                           },
                           onFailure: (context, state) {

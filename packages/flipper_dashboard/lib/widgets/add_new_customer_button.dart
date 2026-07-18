@@ -8,50 +8,64 @@ class AddNewCustomerButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.onPressed,
+    this.isLoading = false,
   });
 
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onPressed != null && !isLoading;
+
     return Material(
-      color: Colors.transparent,
+      color: PosTokens.blueTint,
+      borderRadius: BorderRadius.circular(MposTokens.radiusMd),
       child: InkWell(
-        onTap: onPressed,
+        onTap: enabled ? onPressed : null,
         borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-        child: Container(
-          decoration: BoxDecoration(
-            color: PosTokens.blueTint,
-            borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+        splashColor: PosTokens.blue.withValues(alpha: 0.12),
+        highlightColor: PosTokens.blue.withValues(alpha: 0.08),
+        child: CustomPaint(
+          painter: _AddCustomerDashedBorderPainter(
+            color: enabled ? PosTokens.blue : PosTokens.ink4,
+            borderRadius: MposTokens.radiusMd,
           ),
-          child: CustomPaint(
-            painter: _AddCustomerDashedBorderPainter(
-              color: PosTokens.blue,
-              borderRadius: MposTokens.radiusMd,
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.person_add_outlined,
-                    size: 18,
-                    color: PosTokens.blue,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
+          child: SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isLoading)
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                       color: PosTokens.blue,
                     ),
+                  )
+                else
+                  Icon(
+                    Icons.person_add_outlined,
+                    size: 18,
+                    color: enabled ? PosTokens.blue : PosTokens.ink4,
                   ),
-                ],
-              ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    isLoading ? 'Opening…' : label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                      color: enabled ? PosTokens.blue : PosTokens.ink4,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
