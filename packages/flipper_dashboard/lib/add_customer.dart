@@ -18,25 +18,33 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class AddCustomer extends StatefulHookConsumerWidget {
-  const AddCustomer({
+  // Not const: avoids hot-reload crashes when new fields are added to mounted
+  // widgets (null bool → "Null is not a subtype of type bool").
+  AddCustomer({
     Key? key,
     required this.transactionId,
     this.searchedKey,
     this.customer,
-    this.showSheetHandle = true,
-    this.panelMode = false,
+    bool showSheetHandle = true,
+    bool panelMode = false,
     this.onCompleted,
     this.onDismissed,
-  }) : super(key: key);
+  })  : _showSheetHandle = showSheetHandle,
+        _panelMode = panelMode,
+        super(key: key);
+
   final String transactionId;
   final String? searchedKey;
   final Customer? customer;
 
-  /// When false (desktop panel / dialog), hides the bottom-sheet drag handle.
-  final bool showSheetHandle;
+  /// Nullable storage so hot-reload of older instances cannot throw on read.
+  final bool? _showSheetHandle;
+  final bool? _panelMode;
+
+  bool get showSheetHandle => _showSheetHandle ?? true;
 
   /// Side panel layout: scrollable fields + pinned save button (no empty gap).
-  final bool panelMode;
+  bool get panelMode => _panelMode ?? false;
 
   /// Called with a success message instead of [Navigator.pop] when set
   /// (used by the Customers desktop side panel).

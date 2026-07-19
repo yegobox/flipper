@@ -39,11 +39,36 @@ String _defaultTicketName(ITransaction txn, {Customer? customer}) {
   return '';
 }
 
+/// Prefer an existing ticket name; otherwise use the customer / box name.
+String _ticketNameFromCustomer(Customer? customer, {ITransaction? txn}) {
+  final fromCustomer = customer?.custNm?.trim();
+  if (fromCustomer != null && fromCustomer.isNotEmpty) return fromCustomer;
+  if (txn != null) return _defaultTicketName(txn, customer: customer);
+  return '';
+}
+
 void _applyTicketNameIfEmpty(TextEditingController controller, String name) {
   if (controller.text.trim().isNotEmpty) return;
   final trimmed = name.trim();
   if (trimmed.isEmpty) return;
   controller.text = trimmed;
+}
+
+/// Fill ticket name from [customer], or replace it when it still matches
+/// [previousCustomer] (so picking a different customer updates the name).
+void _syncTicketNameWithCustomer(
+  TextEditingController controller, {
+  required Customer? customer,
+  Customer? previousCustomer,
+  ITransaction? txn,
+}) {
+  final name = _ticketNameFromCustomer(customer, txn: txn);
+  if (name.isEmpty) return;
+  final current = controller.text.trim();
+  final previousName = previousCustomer?.custNm?.trim() ?? '';
+  if (current.isEmpty || current == previousName) {
+    controller.text = name;
+  }
 }
 
 /// Park-transaction sheet (bottom sheet on mobile, centered dialog on wide).
@@ -326,7 +351,38 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     } else if (_dueDate != null) {
       _duePreset = _DuePreset.custom;
     }
+    _resolveAttachedCustomer();
     _loadCustomers();
+  }
+
+  /// Resolve the sale's customer by id (and fill ticket name) without waiting
+  /// for the full branch customer list.
+  Future<void> _resolveAttachedCustomer() async {
+    final id = widget.transaction.customerId;
+    if (id == null || id.isEmpty) {
+      _applyTicketNameIfEmpty(
+        _ticketNameController,
+        _defaultTicketName(widget.transaction),
+      );
+      return;
+    }
+    try {
+      final found = await ProxyService.getStrategy(Strategy.capella).customers(
+        branchId: ProxyService.box.getBranchId() ?? '00',
+        id: id,
+      );
+      if (!mounted || found.isEmpty) return;
+      setState(() {
+        _selectedCustomer = found.first;
+        _syncTicketNameWithCustomer(
+          _ticketNameController,
+          customer: _selectedCustomer,
+          txn: widget.transaction,
+        );
+      });
+    } catch (_) {
+      // Fall back to list load / box name.
+    }
   }
 
   Future<void> _loadCustomers() async {
@@ -345,12 +401,10 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
             );
           } catch (_) {}
         }
-        _applyTicketNameIfEmpty(
+        _syncTicketNameWithCustomer(
           _ticketNameController,
-          _defaultTicketName(
-            widget.transaction,
-            customer: _selectedCustomer,
-          ),
+          customer: _selectedCustomer,
+          txn: widget.transaction,
         );
       });
     } catch (_) {
@@ -536,7 +590,16 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     if (picked == false) {
       setState(() => _selectedCustomer = null);
     } else if (picked is Customer) {
-      setState(() => _selectedCustomer = picked);
+      final previous = _selectedCustomer;
+      setState(() {
+        _selectedCustomer = picked;
+        _syncTicketNameWithCustomer(
+          _ticketNameController,
+          customer: picked,
+          previousCustomer: previous,
+          txn: widget.transaction,
+        );
+      });
     }
   }
 
