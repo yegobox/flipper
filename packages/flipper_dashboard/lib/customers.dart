@@ -949,58 +949,47 @@ class CustomersState extends ConsumerState<Customers> {
     }
   }
 
-  void _confirmDeleteCustomer(Customer customer, CoreViewModel model) {
-    showDialog(
+  Future<void> _confirmDeleteCustomer(
+    Customer customer,
+    CoreViewModel model,
+  ) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       useRootNavigator: true,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete customer'),
-        content: Text(
-          'Are you sure you want to delete ${customer.custNm ?? 'this customer'}?',
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(dialogContext).pop(),
-          ),
-          TextButton(
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: PosTokens.loss),
-            ),
-            onPressed: () async {
-              Navigator.of(dialogContext).pop();
-              final livePending = ref
-                  .read(pendingTransactionStreamProvider(isExpense: false))
-                  .asData
-                  ?.value;
-              // Detach cart only when this customer is the one on the sale.
-              if (livePending?.customerId == customer.id) {
-                await _removeCustomerFromSale(
-                  customer,
-                  livePending!,
-                  model: model,
-                );
-              }
-              // Delete the record without CoreViewModel.deleteCustomer, which
-              // clears any attached cart customer regardless of id match.
-              await ProxyService.strategy.flipperDelete(
-                id: customer.id,
-                endPoint: 'customer',
-                flipperHttpClient: ProxyService.http,
-              );
-              if (!mounted) return;
-              _showCustomersToast(
-                'customer deleted',
-                backgroundColor: PosTokens.blue,
-              );
-              ref.invalidate(customersProvider);
-              ref.invalidate(attachedCustomerProvider(customer.id));
-            },
-          ),
-        ],
-      ),
+      barrierColor: PosTokens.ink1.withValues(alpha: 0.58),
+      builder: (dialogContext) =>
+          _DeleteCustomerDialog(customer: customer),
     );
+    if (confirmed != true || !mounted) return;
+
+    final livePending = ref
+        .read(pendingTransactionStreamProvider(isExpense: false))
+        .asData
+        ?.value;
+    // Detach cart only when this customer is the one on the sale.
+    if (livePending?.customerId == customer.id) {
+      await _removeCustomerFromSale(
+        customer,
+        livePending!,
+        model: model,
+      );
+    }
+    // Delete the record without CoreViewModel.deleteCustomer, which
+    // clears any attached cart customer regardless of id match.
+    // Route through Capella (same store the list observes) so the Ditto
+    // customersStream observer fires and the row disappears on its own.
+    await ProxyService.getStrategy(Strategy.capella).flipperDelete(
+      id: customer.id,
+      endPoint: 'customer',
+      flipperHttpClient: ProxyService.http,
+    );
+    if (!mounted) return;
+    _showCustomersToast(
+      'Customer deleted',
+      backgroundColor: PosTokens.blue,
+    );
+    ref.invalidate(customersProvider);
+    ref.invalidate(attachedCustomerProvider(customer.id));
   }
 
   Future<void> _openCustomerForm(
@@ -1177,4 +1166,244 @@ class _CustomerFormPanel {
   final String transactionId;
   final String searchedKey;
   final Customer? customer;
+}
+
+/// Confirm delete — same chrome as ticket delete ([_DeleteTicketDialog]).
+class _DeleteCustomerDialog extends StatelessWidget {
+  const _DeleteCustomerDialog({required this.customer});
+
+  final Customer customer;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (customer.custNm ?? 'this customer').trim();
+    final phone = (customer.telNo ?? '').trim();
+    final tin = (customer.custTin ?? '').trim();
+    final media = MediaQuery.sizeOf(context);
+    final maxWidth = media.width < 460 ? media.width - 48 : 420.0;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: PosTokens.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: PosTokens.line),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33103240),
+                offset: Offset(0, 24),
+                blurRadius: 48,
+                spreadRadius: -18,
+              ),
+              BoxShadow(
+                color: Color(0x14103240),
+                offset: Offset(0, 8),
+                blurRadius: 18,
+                spreadRadius: -8,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: PosTokens.lossTint,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        color: PosTokens.lossInk,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Delete customer?',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: PosTokens.ink1,
+                              height: 1.15,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Remove $name from your customer list. This cannot be undone.',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              height: 1.35,
+                              color: PosTokens.ink2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (phone.isNotEmpty || tin.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: PosTokens.surface2,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: PosTokens.line),
+                    ),
+                    child: Column(
+                      children: [
+                        _DeleteCustomerDetailRow(label: 'Name', value: name),
+                        if (phone.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          _DeleteCustomerDetailRow(label: 'Phone', value: phone),
+                        ],
+                        if (tin.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          _DeleteCustomerDetailRow(label: 'TIN', value: tin),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: PosTokens.warnTint,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFED7AA)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        size: 20,
+                        color: Color(0xFFC2410C),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'This action cannot be undone.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9A3412),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: PosTokens.ink1,
+                          side: const BorderSide(color: PosTokens.lineStrong),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          minimumSize: const Size.fromHeight(50),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        icon: const Icon(Icons.delete_outline, size: 19),
+                        label: const Text(
+                          'Delete',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: PosTokens.loss,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          minimumSize: const Size.fromHeight(50),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeleteCustomerDetailRow extends StatelessWidget {
+  const _DeleteCustomerDetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: PosTokens.ink3,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: PosTokens.ink1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

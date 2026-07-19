@@ -89,4 +89,16 @@ mixin CustomerMixin implements CustomerInterface {
     if (results.isEmpty) return null;
     return results.first;
   }
+
+  @override
+  Future<List<Customer>> findCustomersByPhone({
+    required String branchId,
+    required String phone,
+  }) async {
+    final key = phone.trim();
+    if (branchId.isEmpty || key.isEmpty) return [];
+    return List<Customer>.from(
+      await customers(branchId: branchId, key: key),
+    );
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/domain/party/party_validation.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/log_service.dart';
@@ -41,7 +42,124 @@ mixin CapellaCustomerMixin implements CustomerInterface {
     required Customer customer,
     String? transactionId,
   }) async {
-    throw UnimplementedError('addCustomer needs to be implemented for Capella');
+    final ditto = dittoService;
+    if (!ditto.isReady()) {
+      talker.warning(
+        'Capella addCustomer: Ditto not ready — skipping upsert for '
+        '${customer.id}',
+      );
+      return null;
+    }
+    final branchId = customer.branchId ?? '';
+    await ditto.upsertPartyDoc('customers', customer.id, {
+      'custNm': customer.custNm,
+      'email': customer.email,
+      'telNo': customer.telNo,
+      'adrs': customer.adrs,
+      'branchId': branchId,
+      'updatedAt':
+          (customer.updatedAt ?? DateTime.now().toUtc()).toIso8601String(),
+      'custNo': customer.custNo,
+      'custTin': customer.custTin,
+      'regrNm': customer.regrNm,
+      'regrId': customer.regrId,
+      'modrNm': customer.modrNm,
+      'modrId': customer.modrId,
+      'ebmSynced': customer.ebmSynced ?? false,
+      'bhfId': customer.bhfId ?? '00',
+      'useYn': customer.useYn ?? 'N',
+      'customerType': customer.customerType,
+    });
+    talker.info(
+      'Capella addCustomer: upserted ${customer.id} (${customer.custNm}) '
+      'branch=$branchId',
+    );
+    return customer;
+  }
+
+  /// One-shot Ditto execute + empty retries — used by [LoanCustomerLinker]
+  /// so phone match does not race Capella [customers]' empty first observer fire.
+  ///
+  /// Prefer a LIKE query on local digits; if that returns nothing (LIKE quirks
+  /// or format drift), fall back to all branch customers filtered in memory.
+  @override
+  Future<List<Customer>> findCustomersByPhone({
+    required String branchId,
+    required String phone,
+  }) async {
+    final localDigits = normalizePartyPhone(phone);
+    if (branchId.isEmpty || localDigits.isEmpty) return [];
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('findCustomersByPhone: Ditto not initialized');
+      return [];
+    }
+
+    List<Customer> parseItems(Iterable items) {
+      return items
+          .map(
+            (doc) => _customerFromDittoMap(
+              Map<String, dynamic>.from(doc.value as Map),
+            ),
+          )
+          .where((c) => partyPhonesMatch(c.telNo, phone))
+          .toList();
+    }
+
+    Future<List<Customer>> runLike() async {
+      final searchKey = '%$localDigits%';
+      const query =
+          'SELECT * FROM customers WHERE branchId = :branchId AND '
+          'UPPER(telNo) LIKE UPPER(:searchKey)';
+      final result = await ditto.store.execute(
+        query,
+        arguments: {
+          'branchId': branchId,
+          'searchKey': searchKey,
+        },
+      );
+      return parseItems(result.items);
+    }
+
+    Future<List<Customer>> runBranchScan() async {
+      const query = 'SELECT * FROM customers WHERE branchId = :branchId';
+      final result = await ditto.store.execute(
+        query,
+        arguments: {'branchId': branchId},
+      );
+      return parseItems(result.items);
+    }
+
+    try {
+      var list = await runLike();
+      if (list.isEmpty) {
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+        list = await runLike();
+      }
+      if (list.isEmpty) {
+        talker.info(
+          'findCustomersByPhone: LIKE empty — scanning branch=$branchId',
+        );
+        list = await runBranchScan();
+      }
+      if (list.isEmpty) {
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
+        list = await runBranchScan();
+      }
+      talker.info(
+        'findCustomersByPhone: ${list.length} row(s) for branch=$branchId',
+      );
+      return list;
+    } catch (e, s) {
+      talker.error('findCustomersByPhone failed: $e', s);
+      // Last resort: branch scan even after LIKE errors.
+      try {
+        return await runBranchScan();
+      } catch (_) {
+        return [];
+      }
+    }
   }
 
   /// Returns a list of customers filtered by [branchId], [key], and/or [id].

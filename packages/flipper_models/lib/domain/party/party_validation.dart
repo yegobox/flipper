@@ -53,3 +53,28 @@ String? normalizeCustNo(String? telNo) {
   if (telNo != null && telNo.startsWith('0')) return telNo.substring(1);
   return telNo;
 }
+
+/// Digits-only local subscriber number for duplicate matching.
+///
+/// Strips non-digits, a leading Rwanda country code (`250`), and a leading
+/// `0` so `0783…`, `+250783…`, and `783…` compare equal.
+String normalizePartyPhone(String? phone) {
+  if (phone == null) return '';
+  var digits = phone.replaceAll(RegExp(r'\D'), '');
+  if (digits.isEmpty) return '';
+  if (digits.startsWith('250') && digits.length >= 12) {
+    digits = digits.substring(3);
+  }
+  if (digits.startsWith('0') && digits.length > 1) {
+    digits = digits.substring(1);
+  }
+  return digits;
+}
+
+/// True when both phones normalize to the same non-empty subscriber number.
+bool partyPhonesMatch(String? a, String? b) {
+  final na = normalizePartyPhone(a);
+  final nb = normalizePartyPhone(b);
+  if (na.isEmpty || nb.isEmpty) return false;
+  return na == nb;
+}
