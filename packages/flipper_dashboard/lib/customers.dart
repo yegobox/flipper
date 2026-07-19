@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
@@ -625,30 +623,32 @@ class CustomersState extends ConsumerState<Customers> {
               endActionPane: ActionPane(
                 motion: const DrawerMotion(),
                 children: [
-                  SlidableAction(
-                    onPressed: (_) {
-                      if (isSaleActionBusy) return;
-                      _attachCustomer(customer, transaction, model: model);
-                    },
-                    backgroundColor: PosTokens.gain,
-                    foregroundColor: Colors.white,
-                    icon: Icons.person_add_alt_1_outlined,
-                    label: 'Add',
-                  ),
-                  SlidableAction(
-                    onPressed: (_) {
-                      if (isSaleActionBusy) return;
-                      _removeCustomerFromSale(
-                        customer,
-                        transaction,
-                        model: model,
-                      );
-                    },
-                    backgroundColor: PosTokens.warnAmber,
-                    foregroundColor: Colors.white,
-                    icon: Icons.person_remove_outlined,
-                    label: 'Remove',
-                  ),
+                  if (!isSelected)
+                    SlidableAction(
+                      onPressed: (_) {
+                        if (isSaleActionBusy) return;
+                        _attachCustomer(customer, transaction, model: model);
+                      },
+                      backgroundColor: PosTokens.gain,
+                      foregroundColor: Colors.white,
+                      icon: Icons.person_add_alt_1_outlined,
+                      label: 'Add',
+                    ),
+                  if (isSelected)
+                    SlidableAction(
+                      onPressed: (_) {
+                        if (isSaleActionBusy) return;
+                        _removeCustomerFromSale(
+                          customer,
+                          transaction,
+                          model: model,
+                        );
+                      },
+                      backgroundColor: PosTokens.warnAmber,
+                      foregroundColor: Colors.white,
+                      icon: Icons.person_remove_outlined,
+                      label: 'Remove',
+                    ),
                 ],
               ),
               child: card,
@@ -833,10 +833,14 @@ class CustomersState extends ConsumerState<Customers> {
         '(listTxn=${transaction.id})',
       );
 
-      // Mirror SearchCustomer._addCustomerToTransaction exactly.
+      // Mirror SearchCustomer attach, but clear stale name/TIN when the new
+      // customer lacks them so a prior sale's session values cannot linger.
       final customerNameController = ref.read(customerNameControllerProvider);
-      if (customer.custNm != null) {
-        customerNameController.text = customer.custNm!;
+      final name = customer.custNm?.trim() ?? '';
+      if (name.isNotEmpty) {
+        customerNameController.text = name;
+      } else {
+        customerNameController.clear();
       }
 
       await ProxyService.getStrategy(Strategy.capella)
@@ -845,21 +849,20 @@ class CustomersState extends ConsumerState<Customers> {
         transaction: target,
       );
 
-      final name = customer.custNm ?? '';
       if (name.isNotEmpty) {
         await ProxyService.box.writeString(key: 'customerName', value: name);
+      } else {
+        await ProxyService.box.writeString(key: 'customerName', value: '');
       }
       await ProxyService.box.writeString(
         key: 'currentSaleCustomerPhoneNumber',
         value: customer.telNo ?? '',
       );
-      if (customer.custTin != null && customer.custTin!.isNotEmpty) {
-        unawaited(
-          ProxyService.box.writeString(
-            key: 'customerTin',
-            value: customer.custTin!,
-          ),
-        );
+      final tin = customer.custTin?.trim() ?? '';
+      if (tin.isNotEmpty) {
+        await ProxyService.box.writeString(key: 'customerTin', value: tin);
+      } else {
+        await ProxyService.box.remove(key: 'customerTin');
       }
 
       ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
@@ -919,9 +922,9 @@ class CustomersState extends ConsumerState<Customers> {
       await ProxyService.getStrategy(Strategy.capella)
           .removeCustomerFromTransaction(transaction: target);
 
-      unawaited(ProxyService.box.remove(key: 'customerName'));
-      unawaited(ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber'));
-      unawaited(ProxyService.box.remove(key: 'customerTin'));
+      await ProxyService.box.remove(key: 'customerName');
+      await ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber');
+      await ProxyService.box.remove(key: 'customerTin');
       ref.read(customerNameControllerProvider).clear();
 
       ref.read(customerPhoneNumberProvider.notifier).state = null;
@@ -967,14 +970,32 @@ class CustomersState extends ConsumerState<Customers> {
             ),
             onPressed: () async {
               Navigator.of(dialogContext).pop();
-              await model.deleteCustomer(
-                customer.id,
-                (message) => _showCustomersToast(
-                  message,
-                  backgroundColor: PosTokens.blue,
-                ),
+              final livePending = ref
+                  .read(pendingTransactionStreamProvider(isExpense: false))
+                  .asData
+                  ?.value;
+              // Detach cart only when this customer is the one on the sale.
+              if (livePending?.customerId == customer.id) {
+                await _removeCustomerFromSale(
+                  customer,
+                  livePending!,
+                  model: model,
+                );
+              }
+              // Delete the record without CoreViewModel.deleteCustomer, which
+              // clears any attached cart customer regardless of id match.
+              await ProxyService.strategy.flipperDelete(
+                id: customer.id,
+                endPoint: 'customer',
+                flipperHttpClient: ProxyService.http,
+              );
+              if (!mounted) return;
+              _showCustomersToast(
+                'customer deleted',
+                backgroundColor: PosTokens.blue,
               );
               ref.invalidate(customersProvider);
+              ref.invalidate(attachedCustomerProvider(customer.id));
             },
           ),
         ],

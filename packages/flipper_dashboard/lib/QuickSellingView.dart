@@ -43,6 +43,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
+import 'package:flipper_dashboard/utils/customer_pay_gate.dart';
 import 'package:flipper_dashboard/widgets/checkout_error_recovery_screen.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_table_host.dart';
@@ -732,45 +733,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return ref.read(attachedCustomerProvider(customerId)).asData?.value;
   }
 
-  /// Customer details that gate sale completion, resolved from any source: the
-  /// typed fields, the persisted box keys, or an attached/searched customer on
-  /// the transaction. Returns a localized error when a required detail is
-  /// missing, else null.
+  /// Customer details that gate sale completion.
   ///
   /// The customer capture panel is collapsible, so its field validators are not
   /// mounted while collapsed and [formKey] validation alone can be bypassed —
-  /// this enforces the same rules (name always; phone unless a TIN is on file)
-  /// regardless of the panel state.
+  /// this enforces the same rules as [missingCustomerDetailsForPay] (name
+  /// always; phone unless a TIN is on file) regardless of the panel state.
   String? _missingCustomerForPay(ITransaction? transaction) {
-    String firstNonEmpty(List<String?> values) {
-      for (final v in values) {
-        final t = v?.trim() ?? '';
-        if (t.isNotEmpty) return t;
-      }
-      return '';
-    }
-
-    // An attached/searched customer already carries name + phone (and TIN).
-    if ((transaction?.customerId ?? '').trim().isNotEmpty) return null;
-
-    // Reliable per-sale sources only — the typed controllers (cleared on
-    // completion) and the transaction row. The persisted box keys are NOT used
-    // here: they can carry a previous sale's customer over and would let Pay
-    // pass with no customer attached to this sale.
-    final name = firstNonEmpty([
-      ref.read(customerNameControllerProvider).text,
-      transaction?.customerName,
-    ]);
-    if (name.isEmpty) return context.flipperL10n.pleaseEnterCustomerName;
-
-    final phone = firstNonEmpty([
-      widget.customerPhoneNumberController.text,
-      transaction?.customerPhone,
-      transaction?.currentSaleCustomerPhoneNumber,
-    ]);
-    if (phone.isEmpty) return context.flipperL10n.phoneRequiredWhenTinMissing;
-
-    return null;
+    final attached =
+        transaction == null ? null : _attachedCustomerHintFor(transaction);
+    return missingCustomerDetailsForPay(
+      transaction: transaction,
+      attachedCustomer: attached,
+      typedName: ref.read(customerNameControllerProvider).text,
+      typedPhone: widget.customerPhoneNumberController.text,
+      pleaseEnterCustomerName: context.flipperL10n.pleaseEnterCustomerName,
+      phoneRequiredWhenTinMissing:
+          context.flipperL10n.phoneRequiredWhenTinMissing,
+    );
   }
 
   /// Guards the Pay action. When customer details are missing it stops the pay
@@ -802,30 +782,42 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }) {
     final name = transaction.customerName?.trim();
     final nameController = ref.read(customerNameControllerProvider);
-    if (name != null &&
-        name.isNotEmpty &&
-        (force || nameController.text.isEmpty)) {
-      talker.info('Pre-filling customer name: $name (force=$force)');
-      nameController.text = name;
-      ProxyService.box.writeString(key: 'customerName', value: name);
+    if (name != null && name.isNotEmpty) {
+      if (force || nameController.text.isEmpty) {
+        talker.info('Pre-filling customer name: $name (force=$force)');
+        nameController.text = name;
+        ProxyService.box.writeString(key: 'customerName', value: name);
+      }
+    } else if (force) {
+      // Settling a ticket with no name must not keep the prior sale's name.
+      nameController.clear();
+      ProxyService.box.writeString(key: 'customerName', value: '');
     }
 
     // Never overwrite the field while the cashier is actively typing into it,
     // and never derive a phone via a blind substring (a half-entered "+2507"
     // would otherwise collapse to a single "7" on the printed receipt).
     final phone = transaction.customerPhone?.trim();
-    if (phone != null &&
-        phone.isNotEmpty &&
-        !_customerPhoneFocusNode.hasFocus &&
-        (force || widget.customerPhoneNumberController.text.isEmpty)) {
-      talker.info('Pre-filling customer phone: $phone (force=$force)');
-      final local = _localPhoneFromStored(phone);
-      widget.customerPhoneNumberController.text = local;
-      ProxyService.box.writeString(
-        key: 'currentSaleCustomerPhoneNumber',
-        value: local,
+    if (phone != null && phone.isNotEmpty) {
+      if (!_customerPhoneFocusNode.hasFocus &&
+          (force || widget.customerPhoneNumberController.text.isEmpty)) {
+        talker.info('Pre-filling customer phone: $phone (force=$force)');
+        final local = _localPhoneFromStored(phone);
+        widget.customerPhoneNumberController.text = local;
+        ProxyService.box.writeString(
+          key: 'currentSaleCustomerPhoneNumber',
+          value: local,
+        );
+        ref.read(customerPhoneNumberProvider.notifier).state = local;
+      }
+    } else if (force) {
+      // Forced settling prefill: clear controller + persisted phone so Pay /
+      // receipts cannot reuse the previous sale's number.
+      widget.customerPhoneNumberController.clear();
+      unawaited(
+        ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber'),
       );
-      ref.read(customerPhoneNumberProvider.notifier).state = local;
+      ref.read(customerPhoneNumberProvider.notifier).state = null;
     }
 
     // Payment initialization is deferred to the builder where items

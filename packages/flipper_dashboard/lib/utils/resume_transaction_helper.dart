@@ -49,13 +49,21 @@ class TransactionInitializationHelper {
         );
 
         if (customer != null) {
-          _applyCustomerToSession(
+          await _applyCustomerToSession(
             container,
-            name: customer.custNm ?? transaction.customerName,
-            phone: customer.telNo ??
-                transaction.customerPhone ??
-                transaction.currentSaleCustomerPhoneNumber,
-            tin: customer.custTin ?? transaction.customerTin,
+            name: _firstNonEmpty([
+              customer.custNm,
+              transaction.customerName,
+            ]),
+            phone: _firstNonEmpty([
+              customer.telNo,
+              transaction.customerPhone,
+              transaction.currentSaleCustomerPhoneNumber,
+            ]),
+            tin: _firstNonEmpty([
+              customer.custTin,
+              transaction.customerTin,
+            ]),
             replaceSession: replaceSession,
           );
           return customer;
@@ -66,37 +74,51 @@ class TransactionInitializationHelper {
     }
 
     // Fallback / denormalized ticket fields (common for "send to till").
-    _applyCustomerToSession(
+    final phone = _firstNonEmpty([
+      transaction.customerPhone,
+      transaction.currentSaleCustomerPhoneNumber,
+    ]);
+    await _applyCustomerToSession(
       container,
-      name: transaction.customerName,
-      phone: transaction.customerPhone ??
-          transaction.currentSaleCustomerPhoneNumber,
-      tin: transaction.customerTin,
+      name: _firstNonEmpty([transaction.customerName]),
+      phone: phone,
+      tin: _firstNonEmpty([transaction.customerTin]),
       replaceSession: replaceSession,
     );
 
-    final phone = transaction.customerPhone ??
-        transaction.currentSaleCustomerPhoneNumber;
-    if (phone != null && phone.trim().isNotEmpty) {
+    if (phone != null) {
       talker.info(
-        'Resumed ticket: initialized customer phone ${phone.trim()} '
-        'name=${transaction.customerName}',
+        'Resumed ticket: customer fields initialized '
+        'transactionId=${transaction.id} '
+        'hasPhone=true '
+        'hasName=${_firstNonEmpty([transaction.customerName]) != null} '
+        'hasTin=${_firstNonEmpty([transaction.customerTin]) != null} '
+        'replaceSession=$replaceSession',
       );
     }
 
     return null;
   }
 
-  static void _applyCustomerToSession(
+  /// First trimmed non-empty string; empty/`null` values do not win via `??`.
+  static String? _firstNonEmpty(List<String?> values) {
+    for (final v in values) {
+      final t = v?.trim() ?? '';
+      if (t.isNotEmpty) return t;
+    }
+    return null;
+  }
+
+  static Future<void> _applyCustomerToSession(
     ProviderContainer container, {
     String? name,
     String? phone,
     String? tin,
     bool replaceSession = false,
-  }) {
+  }) async {
     final trimmedName = name?.trim();
     if (trimmedName != null && trimmedName.isNotEmpty) {
-      ProxyService.box.writeString(key: 'customerName', value: trimmedName);
+      await ProxyService.box.writeString(key: 'customerName', value: trimmedName);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
           final controller = container.read(customerNameControllerProvider);
@@ -106,7 +128,7 @@ class TransactionInitializationHelper {
         } catch (_) {}
       });
     } else if (replaceSession) {
-      ProxyService.box.writeString(key: 'customerName', value: '');
+      await ProxyService.box.writeString(key: 'customerName', value: '');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
           container.read(customerNameControllerProvider).clear();
@@ -116,7 +138,7 @@ class TransactionInitializationHelper {
 
     final trimmedPhone = phone?.trim();
     if (trimmedPhone != null && trimmedPhone.isNotEmpty) {
-      ProxyService.box.writeString(
+      await ProxyService.box.writeString(
         key: 'currentSaleCustomerPhoneNumber',
         value: trimmedPhone,
       );
@@ -131,7 +153,7 @@ class TransactionInitializationHelper {
         });
       }
     } else if (replaceSession) {
-      ProxyService.box.writeString(
+      await ProxyService.box.writeString(
         key: 'currentSaleCustomerPhoneNumber',
         value: '',
       );
@@ -146,9 +168,9 @@ class TransactionInitializationHelper {
 
     final trimmedTin = tin?.trim();
     if (trimmedTin != null && trimmedTin.isNotEmpty) {
-      ProxyService.box.writeString(key: 'customerTin', value: trimmedTin);
+      await ProxyService.box.writeString(key: 'customerTin', value: trimmedTin);
     } else if (replaceSession) {
-      ProxyService.box.remove(key: 'customerTin');
+      await ProxyService.box.remove(key: 'customerTin');
     }
   }
 

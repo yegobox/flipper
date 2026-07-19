@@ -790,26 +790,18 @@ class CoreViewModel extends FlipperBaseModel
           transactionType: TransactionType.sale,
           isExpense: false,
         );
-    if (transaction?.customerId == null) {
-      await ProxyService.strategy.flipperDelete(
-        id: id,
-        endPoint: 'customer',
-        flipperHttpClient: ProxyService.http,
-      );
-      callback("customer deleted");
-    } else {
-      /// first detach the customer from trans
+    // Only detach when the deleted customer is the one on the pending cart.
+    if (transaction?.customerId == id) {
       await ProxyService.getStrategy(
         Strategy.capella,
-      ).updateTransaction(transaction: transaction, customerId: null);
-      await ProxyService.strategy.flipperDelete(
-        id: id,
-        endPoint: 'customer',
-        flipperHttpClient: ProxyService.http,
-      );
-
-      callback("customer deleted");
+      ).removeCustomerFromTransaction(transaction: transaction!);
     }
+    await ProxyService.strategy.flipperDelete(
+      id: id,
+      endPoint: 'customer',
+      flipperHttpClient: ProxyService.http,
+    );
+    callback("customer deleted");
   }
 
   /// This function gets the default tenant for the current user.

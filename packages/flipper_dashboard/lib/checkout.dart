@@ -33,6 +33,7 @@ import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_dashboard/utils/customer_pay_gate.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 
@@ -384,19 +385,10 @@ class CheckOutState extends ConsumerState<CheckOut>
   /// The big-screen [PosDefaultView] and small-screen [CheckoutProductView]
   /// render their own Pay button wired to this handler (not QuickSellingView's
   /// pay bar), so the customer field validators — which only run when the
-  /// collapsible capture panel is expanded — can be bypassed entirely. This
-  /// enforces name (+ phone) from reliable per-sale sources (the shared typed
-  /// controllers or the transaction row / attached customer), never the stale
-  /// box keys. Returns a localized error when a required detail is missing.
+  /// collapsible capture panel is expanded — can be bypassed entirely. Uses
+  /// [missingCustomerDetailsForPay] on the settling ticket or the operator
+  /// transaction.
   String? _missingCustomerForPay(ITransaction transaction) {
-    String firstNonEmpty(List<String?> values) {
-      for (final v in values) {
-        final t = v?.trim() ?? '';
-        if (t.isNotEmpty) return t;
-      }
-      return '';
-    }
-
     // While settling a queued till ticket, completion targets that ticket (see
     // startCompleteTransactionFlow), not the operator's own pending cart passed
     // here. Validate the ticket's customer; if its row has not resolved yet,
@@ -412,23 +404,25 @@ class CheckOutState extends ConsumerState<CheckOut>
       target = transaction;
     }
 
-    // An attached/searched customer already carries name + phone (and TIN).
-    if ((target.customerId ?? '').trim().isNotEmpty) return null;
+    final customerId = target.customerId;
+    final attached = (customerId == null || customerId.isEmpty)
+        ? null
+        : ref
+            .read(oldImplementationOfRiverpod.attachedCustomerProvider(
+              customerId,
+            ))
+            .asData
+            ?.value;
 
-    final name = firstNonEmpty([
-      ref.read(customerNameControllerProvider).text,
-      target.customerName,
-    ]);
-    if (name.isEmpty) return context.flipperL10n.pleaseEnterCustomerName;
-
-    final phone = firstNonEmpty([
-      customerPhoneNumberController.text,
-      target.customerPhone,
-      target.currentSaleCustomerPhoneNumber,
-    ]);
-    if (phone.isEmpty) return context.flipperL10n.phoneRequiredWhenTinMissing;
-
-    return null;
+    return missingCustomerDetailsForPay(
+      transaction: target,
+      attachedCustomer: attached,
+      typedName: ref.read(customerNameControllerProvider).text,
+      typedPhone: customerPhoneNumberController.text,
+      pleaseEnterCustomerName: context.flipperL10n.pleaseEnterCustomerName,
+      phoneRequiredWhenTinMissing:
+          context.flipperL10n.phoneRequiredWhenTinMissing,
+    );
   }
 
   /// Runs [_missingCustomerForPay] and, when a detail is missing, stops the pay
