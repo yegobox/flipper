@@ -1,6 +1,12 @@
 #!/bin/bash
-# Bump app pubspec versions only for apps with staged changes in this commit.
+# Bump app pubspec versions only for apps affected by this commit.
 # This avoids version conflicts when multiple people commit on the same branch.
+#
+# Flutter `version:`  → Major.Minor.Patch+Build (Patch and Build +1 each bump)
+# MSIX `msix_version:` → Major.Minor.Build.0 (Build +1; Major.Minor synced from
+#                        Flutter). Store identity must change whenever the MSIX
+#                        binary changes — including package-only commits that
+#                        still ship inside apps/flipper.
 LOCKFILE=/tmp/pre-commit.lock
 
 cleanup() {
@@ -35,6 +41,26 @@ app_has_staged_changes() {
   return 1
 }
 
+# Windows Store MSIX is built from apps/flipper + workspace packages. Package-
+# only commits still change the binary, so bump Flipper's version + msix_version.
+flipper_msix_has_staged_changes() {
+  local file
+  while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    case "$file" in
+      apps/flipper/*) return 0 ;;
+      packages/flipper_*/*) return 0 ;;
+      packages/supabase_models/*) return 0 ;;
+      packages/flipper_design_system/*) return 0 ;;
+      packages/flipper_localize/*) return 0 ;;
+      packages/flipper_ui/*) return 0 ;;
+      packages/flipper_analytics/*) return 0 ;;
+      melos.yaml) return 0 ;;
+    esac
+  done <<< "$STAGED_FILES"
+  return 1
+}
+
 # Configuration: Add folders to exclude (space-separated list)
 EXCLUDE_FOLDERS=("node_modules" "build" "test" "packages" "open-sources")
 
@@ -54,11 +80,73 @@ else
   }
 fi
 
+# Read active (uncommented) msix_version: value from a pubspec.
+read_msix_version() {
+  awk '/^[[:space:]]*msix_version:[[:space:]]*/ && $1 !~ /^#/ {
+    # Field 1 is "msix_version:", field 2 is the version.
+    print $2
+    exit
+  }' "$1"
+}
+
+# Bump MSIX identity: Major.Minor.Build.0
+# - Sync Major.Minor from Flutter base when provided (keeps Store in step with app)
+# - Always increment Build (3rd); Revision stays 0 (Partner Center convention)
+# - Cap each component at 65535 (MSIX limit) with rollover
+bump_msix_version() {
+  local current="$1"
+  local flutter_major="$2"
+  local flutter_minor="$3"
+
+  if [[ ! "$current" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+    echo "Invalid msix_version format: $current" >&2
+    return 1
+  fi
+
+  local major="${BASH_REMATCH[1]}"
+  local minor="${BASH_REMATCH[2]}"
+  local build="${BASH_REMATCH[3]}"
+
+  if [[ -n "$flutter_major" && -n "$flutter_minor" ]]; then
+    if [[ "$major" != "$flutter_major" || "$minor" != "$flutter_minor" ]]; then
+      # Flutter Major.Minor moved (e.g. 1.170 → 1.185): reset Build.
+      major="$flutter_major"
+      minor="$flutter_minor"
+      build=0
+    else
+      build=$((build + 1))
+    fi
+  else
+    build=$((build + 1))
+  fi
+
+  if (( build > 65535 )); then
+    build=0
+    minor=$((minor + 1))
+  fi
+  if (( minor > 65535 )); then
+    minor=0
+    major=$((major + 1))
+  fi
+
+  echo "$major.$minor.$build.0"
+}
+
 eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PUBSPEC_PATH; do
   APP_DIR=$(dirname "$PUBSPEC_PATH")
+  APP_REL="${APP_DIR#./}"
 
-  if ! app_has_staged_changes "$APP_DIR"; then
-    echo "Skipping $APP_DIR/pubspec.yaml (no staged changes in this app)"
+  should_bump=false
+  if [[ "$APP_REL" == "apps/flipper" ]]; then
+    if flipper_msix_has_staged_changes; then
+      should_bump=true
+    fi
+  elif app_has_staged_changes "$APP_DIR"; then
+    should_bump=true
+  fi
+
+  if [[ "$should_bump" != true ]]; then
+    echo "Skipping $APP_DIR/pubspec.yaml (no staged changes affecting this app)"
     continue
   fi
 
@@ -74,10 +162,14 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   fi
 
   version=$(echo "$version_line" | awk '{print $2}')
+  flutter_major=""
+  flutter_minor=""
 
-  if [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)(\+([0-9]+))?$ ]]; then
-    base_version="${BASH_REMATCH[1]}"
-    build_number="${BASH_REMATCH[3]}"
+  if [[ "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(\+([0-9]+))?$ ]]; then
+    flutter_major="${BASH_REMATCH[1]}"
+    flutter_minor="${BASH_REMATCH[2]}"
+    patch="${BASH_REMATCH[3]}"
+    build_number="${BASH_REMATCH[5]}"
 
     if [[ -z "$build_number" ]]; then
       build_number=1
@@ -85,14 +177,8 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       build_number=$((build_number + 1))
     fi
 
-    if [[ "$base_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-      major="${BASH_REMATCH[1]}"
-      minor="${BASH_REMATCH[2]}"
-      patch="${BASH_REMATCH[3]}"
-      new_patch=$((patch + 1))
-      base_version="$major.$minor.$new_patch"
-    fi
-
+    new_patch=$((patch + 1))
+    base_version="$flutter_major.$flutter_minor.$new_patch"
     new_version="$base_version+$build_number"
   else
     echo "Invalid version format in $APP_DIR/pubspec.yaml: $version"
@@ -101,21 +187,16 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   fi
 
   SED_INPLACE "s|$version_line|version: $new_version|" pubspec.yaml
+  echo "  version: $version → $new_version"
   git add pubspec.yaml
 
-  msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
+  msix_version=$(read_msix_version pubspec.yaml)
   if [[ -n "$msix_version" ]]; then
-    if [[ "$msix_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-      major="${BASH_REMATCH[1]}"
-      minor="${BASH_REMATCH[2]}"
-      build="${BASH_REMATCH[3]}"
-      new_build=$((build + 1))
-      new_msix_version="$major.$minor.$new_build.0"
-
-      SED_INPLACE "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
-      if [[ "$msix_version" != "$new_msix_version" ]]; then
-        git add pubspec.yaml
-      fi
+    if new_msix_version=$(bump_msix_version "$msix_version" "$flutter_major" "$flutter_minor"); then
+      # Replace only the active (uncommented) msix_version line.
+      SED_INPLACE "s|^[[:space:]]*msix_version:[[:space:]]*$msix_version|  msix_version: $new_msix_version|" pubspec.yaml
+      echo "  msix_version: $msix_version → $new_msix_version"
+      git add pubspec.yaml
     else
       echo "Invalid msix_version format in $APP_DIR/pubspec.yaml: $msix_version"
     fi
