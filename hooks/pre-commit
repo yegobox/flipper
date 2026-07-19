@@ -2,11 +2,12 @@
 # Bump app pubspec versions only for apps affected by this commit.
 # This avoids version conflicts when multiple people commit on the same branch.
 #
-# Flutter `version:`  → Major.Minor.Patch+Build (Patch and Build +1 each bump)
-# MSIX `msix_version:` → Major.Minor.Build.0 (Build +1; Major.Minor synced from
-#                        Flutter). Store identity must change whenever the MSIX
-#                        binary changes — including package-only commits that
-#                        still ship inside apps/flipper.
+# Flutter `version:`  → Major.Minor.Patch+Build
+#   For apps/flipper (Store): Minor +1 and Patch reset to 0 (stays in step with MSIX).
+#   For other apps: Patch and Build +1 (unchanged behaviour).
+# MSIX `msix_version:` → Major.Minor.0.0 with Minor +1 each bump
+#   (Partner Center: 1.185.0.0 → 1.186.0.0). Package-only commits that ship
+#   inside apps/flipper still trigger this bump.
 LOCKFILE=/tmp/pre-commit.lock
 
 cleanup() {
@@ -89,14 +90,11 @@ read_msix_version() {
   }' "$1"
 }
 
-# Bump MSIX identity: Major.Minor.Build.0
-# - Sync Major.Minor from Flutter base when provided (keeps Store in step with app)
-# - Always increment Build (3rd); Revision stays 0 (Partner Center convention)
-# - Cap each component at 65535 (MSIX limit) with rollover
+# Bump MSIX identity for Partner Center: Major.Minor.0.0 with Minor +1.
+# Example: 1.185.0.0 → 1.186.0.0 (Build/Revision stay 0).
+# Cap at 65535 (MSIX limit) with rollover into Major.
 bump_msix_version() {
   local current="$1"
-  local flutter_major="$2"
-  local flutter_minor="$3"
 
   if [[ ! "$current" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
     echo "Invalid msix_version format: $current" >&2
@@ -105,31 +103,14 @@ bump_msix_version() {
 
   local major="${BASH_REMATCH[1]}"
   local minor="${BASH_REMATCH[2]}"
-  local build="${BASH_REMATCH[3]}"
 
-  if [[ -n "$flutter_major" && -n "$flutter_minor" ]]; then
-    if [[ "$major" != "$flutter_major" || "$minor" != "$flutter_minor" ]]; then
-      # Flutter Major.Minor moved (e.g. 1.170 → 1.185): reset Build.
-      major="$flutter_major"
-      minor="$flutter_minor"
-      build=0
-    else
-      build=$((build + 1))
-    fi
-  else
-    build=$((build + 1))
-  fi
-
-  if (( build > 65535 )); then
-    build=0
-    minor=$((minor + 1))
-  fi
+  minor=$((minor + 1))
   if (( minor > 65535 )); then
     minor=0
     major=$((major + 1))
   fi
 
-  echo "$major.$minor.$build.0"
+  echo "$major.$minor.0.0"
 }
 
 eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PUBSPEC_PATH; do
@@ -137,7 +118,9 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   APP_REL="${APP_DIR#./}"
 
   should_bump=false
+  is_flipper_windows=false
   if [[ "$APP_REL" == "apps/flipper" ]]; then
+    is_flipper_windows=true
     if flipper_msix_has_staged_changes; then
       should_bump=true
     fi
@@ -162,12 +145,10 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   fi
 
   version=$(echo "$version_line" | awk '{print $2}')
-  flutter_major=""
-  flutter_minor=""
 
   if [[ "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(\+([0-9]+))?$ ]]; then
-    flutter_major="${BASH_REMATCH[1]}"
-    flutter_minor="${BASH_REMATCH[2]}"
+    major="${BASH_REMATCH[1]}"
+    minor="${BASH_REMATCH[2]}"
     patch="${BASH_REMATCH[3]}"
     build_number="${BASH_REMATCH[5]}"
 
@@ -177,8 +158,19 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       build_number=$((build_number + 1))
     fi
 
-    new_patch=$((patch + 1))
-    base_version="$flutter_major.$flutter_minor.$new_patch"
+    if [[ "$is_flipper_windows" == true ]]; then
+      # Keep Flutter Major.Minor aligned with MSIX (1.185.x → 1.186.0+build).
+      minor=$((minor + 1))
+      if (( minor > 65535 )); then
+        minor=0
+        major=$((major + 1))
+      fi
+      patch=0
+    else
+      patch=$((patch + 1))
+    fi
+
+    base_version="$major.$minor.$patch"
     new_version="$base_version+$build_number"
   else
     echo "Invalid version format in $APP_DIR/pubspec.yaml: $version"
@@ -192,7 +184,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
 
   msix_version=$(read_msix_version pubspec.yaml)
   if [[ -n "$msix_version" ]]; then
-    if new_msix_version=$(bump_msix_version "$msix_version" "$flutter_major" "$flutter_minor"); then
+    if new_msix_version=$(bump_msix_version "$msix_version"); then
       # Replace only the active (uncommented) msix_version line.
       SED_INPLACE "s|^[[:space:]]*msix_version:[[:space:]]*$msix_version|  msix_version: $new_msix_version|" pubspec.yaml
       echo "  msix_version: $msix_version → $new_msix_version"
