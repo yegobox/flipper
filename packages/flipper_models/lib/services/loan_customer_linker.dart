@@ -1,10 +1,14 @@
 import 'dart:async';
 
 import 'package:flipper_accounting/audit_trail_recorder.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/domain/party/customer_factory.dart';
 import 'package:flipper_models/domain/party/party_draft.dart';
+import 'package:flipper_models/domain/party/party_validation.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:meta/meta.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:talker/talker.dart';
 
@@ -17,18 +21,31 @@ import 'package:talker/talker.dart';
 ///   1. transaction already linked → no-op
 ///   2. no customer info typed (name and phone both empty) → no-op
 ///      (anonymous walk-in cash sales never create junk customers)
-///   3. an existing customer matches the typed phone (or name when no phone)
-///      → link it
+///   3. an existing customer matches typed phone+name (same phone may map to
+///      different people — name disambiguates; phone-only when name empty)
 ///   4. otherwise → auto-create a customer record from the typed name/phone
 ///      and link it
+///
+/// Customer list/create always go through Capella (Ditto): that is what the
+/// Customers screen and POS attach flows read. Using [ProxyService.strategy]
+/// (Brick/cloudSync on native) looks up a different store and re-creates
+/// duplicates that then get mirrored into Ditto.
 class LoanCustomerLinker {
   LoanCustomerLinker._();
 
   static final Talker _talker = Talker();
 
+  /// POS customer store — same strategy as [customersStreamProvider].
+  static DatabaseSyncInterface get _customers =>
+      ProxyService.getStrategy(Strategy.capella);
+
   /// Delay before processing: lets deferred-persist sale paths write the
   /// transaction first, so the link update never races the initial insert.
   static const _settleDelay = Duration(seconds: 3);
+
+  /// In-flight resolve futures keyed by `branchId:phone|name:…` so concurrent
+  /// [attachBeforeCompletion] + [ensureLinked] share one create.
+  static final Map<String, Future<Customer?>> _inflight = {};
 
   /// Never throws.
   ///
@@ -52,6 +69,15 @@ class LoanCustomerLinker {
 
       await Future.delayed(_settleDelay);
 
+      // attachBeforeCompletion may have linked while we waited.
+      if ((transaction.customerId ?? '').isNotEmpty) {
+        _talker.info(
+          '[LoanCustomerLinker] ensureLinked skipped — already linked to '
+          '${transaction.customerId}',
+        );
+        return;
+      }
+
       final customer = await _resolveCustomer(
         branchId: branchId,
         phone: phone,
@@ -61,7 +87,17 @@ class LoanCustomerLinker {
       );
       if (customer == null) return;
 
-      await ProxyService.strategy.assignCustomerToTransaction(
+      // Re-check after resolve: another path may have linked the same sale.
+      if ((transaction.customerId ?? '').isNotEmpty &&
+          transaction.customerId != customer.id) {
+        _talker.info(
+          '[LoanCustomerLinker] ensureLinked skipped create-link — txn already '
+          'has customerId=${transaction.customerId}',
+        );
+        return;
+      }
+
+      await _customers.assignCustomerToTransaction(
         customer: customer,
         transaction: transaction,
       );
@@ -103,7 +139,7 @@ class LoanCustomerLinker {
   static Future<void> attachBeforeCompletion({
     required ITransaction transaction,
     required String branchId,
-    Duration timeout = const Duration(seconds: 4),
+    Duration timeout = const Duration(seconds: 6),
   }) async {
     try {
       if ((transaction.customerId ?? '').isNotEmpty) return;
@@ -132,59 +168,161 @@ class LoanCustomerLinker {
       );
     } catch (e) {
       // Never block or break sale completion; the backfill linker recovers.
+      // In-flight resolve may still finish and populate _inflight for ensureLinked.
       _talker.warning('[LoanCustomerLinker] pre-completion attach skipped: $e');
     }
   }
 
   /// Match an existing customer by phone (name fallback only when no phone),
   /// else auto-create one. Shared by [ensureLinked] and [attachBeforeCompletion].
+  ///
+  /// Concurrent callers with the same branch+phone (or name) share one Future
+  /// so Capella cannot insert two UUIDs for one typed number.
   static Future<Customer?> _resolveCustomer({
     required String branchId,
     required String phone,
     required String name,
     required String transactionId,
     String? tin,
+  }) {
+    final lockKey = _resolveLockKey(branchId, phone, name);
+    final existing = _inflight[lockKey];
+    if (existing != null) {
+      _talker.info(
+        '[LoanCustomerLinker] reusing in-flight resolve for $lockKey',
+      );
+      return existing;
+    }
+
+    final future = _resolveCustomerUnlocked(
+      branchId: branchId,
+      phone: phone,
+      name: name,
+      tin: tin,
+      transactionId: transactionId,
+    );
+    _inflight[lockKey] = future;
+    future.whenComplete(() {
+      if (identical(_inflight[lockKey], future)) {
+        _inflight.remove(lockKey);
+      }
+    });
+    return future;
+  }
+
+  static String _resolveLockKey(String branchId, String phone, String name) {
+    final normalizedPhone = normalizePartyPhone(phone);
+    if (normalizedPhone.isNotEmpty) {
+      return '$branchId:phone:$normalizedPhone';
+    }
+    return '$branchId:name:${name.trim().toLowerCase()}';
+  }
+
+  static Future<Customer?> _resolveCustomerUnlocked({
+    required String branchId,
+    required String phone,
+    required String name,
+    required String transactionId,
+    String? tin,
   }) async {
-    // Phone is far more unique than a free-text name; only fall back to name
-    // matching when no phone was captured.
     Customer? customer;
     try {
-      final searchKey = phone.isNotEmpty ? phone : name;
-      final matches = await ProxyService.strategy.customers(
+      customer = await _lookupExisting(
         branchId: branchId,
-        key: searchKey,
+        phone: phone,
+        name: name,
       );
-      final exact = matches
-          .where((c) => phone.isNotEmpty
-              ? (c.telNo ?? '').trim() == phone
-              : (c.custNm ?? '').trim().toLowerCase() == name.toLowerCase())
-          .toList()
-        ..sort((a, b) => a.id.compareTo(b.id));
-      if (exact.isNotEmpty) customer = exact.first;
+      if (customer != null) {
+        _talker.info(
+          '[LoanCustomerLinker] matched existing customer ${customer.id} '
+          '(${customer.custNm}) — skip create',
+        );
+      }
     } catch (e) {
       _talker.warning('[LoanCustomerLinker] customer lookup failed: $e');
     }
 
-    customer ??= await _createCustomer(
-      branchId: branchId,
-      name: name.isNotEmpty ? name : phone,
-      phone: phone,
-      tin: tin,
-      transactionId: transactionId,
-    );
+    if (customer == null) {
+      customer = await _createCustomer(
+        branchId: branchId,
+        name: name.isNotEmpty ? name : phone,
+        phone: phone,
+        tin: tin,
+        transactionId: transactionId,
+      );
+    }
 
-    // Mirror the resolved customer into the Ditto `customers` collection so the
-    // Books web client (which reads Ditto, not Brick) shows it immediately.
-    // Covers BOTH a matched-existing customer and a freshly auto-created one:
-    // the native POS (CoreSync) persists customers to Brick/Supabase only, so
-    // without this mirror they never reach the collection Books reads — which
-    // is exactly why "Customer linked" audit events show up with no matching
-    // customer in the list. Fire-and-forget so it never affects the caller's
-    // timeout budget (attachBeforeCompletion) or checkout latency.
+    // Capella addCustomer already upserts into Ditto. Mirror remains a safety
+    // net if create returned a draft without a successful upsert.
     if (customer != null) {
       unawaited(_mirrorCustomerToDitto(customer, branchId));
     }
     return customer;
+  }
+
+  /// Capella phone lookup (execute + retries); name search only when no phone.
+  static Future<Customer?> _lookupExisting({
+    required String branchId,
+    required String phone,
+    required String name,
+  }) async {
+    final List<Customer> matches;
+    if (phone.isNotEmpty) {
+      matches = await _customers.findCustomersByPhone(
+        branchId: branchId,
+        phone: phone,
+      );
+    } else {
+      matches = List<Customer>.from(
+        await _customers.customers(
+          branchId: branchId,
+          key: name,
+        ),
+      );
+    }
+
+    return pickMatchingCustomer(
+      candidates: matches,
+      phone: phone,
+      name: name,
+    );
+  }
+
+  /// Picks a matching customer. Exposed for tests.
+  ///
+  /// Same phone may belong to different people (e.g. mura + Auriella) — that is
+  /// allowed. When both phone and name are typed, require **both** to match so
+  /// a sale typed as Auriella is not linked to an older mura on the same number
+  /// (which would overwrite the receipt name). Phone-only matching applies only
+  /// when no name was typed.
+  @visibleForTesting
+  static Customer? pickMatchingCustomer({
+    required List<Customer> candidates,
+    required String phone,
+    required String name,
+  }) {
+    final trimmedName = name.trim();
+    final nameKey = trimmedName.toLowerCase();
+
+    bool nameMatches(Customer c) =>
+        (c.custNm ?? '').trim().toLowerCase() == nameKey;
+
+    final List<Customer> exact;
+    if (phone.isNotEmpty && trimmedName.isNotEmpty) {
+      exact = candidates
+          .where((c) => partyPhonesMatch(c.telNo, phone) && nameMatches(c))
+          .toList();
+    } else if (phone.isNotEmpty) {
+      exact =
+          candidates.where((c) => partyPhonesMatch(c.telNo, phone)).toList();
+    } else if (trimmedName.isNotEmpty) {
+      exact = candidates.where(nameMatches).toList();
+    } else {
+      return null;
+    }
+
+    exact.sort((a, b) => a.id.compareTo(b.id));
+    return exact.isEmpty ? null : exact.first;
   }
 
   static Future<Customer?> _createCustomer({
@@ -204,14 +342,16 @@ class LoanCustomerLinker {
     );
     final customer = customerFromDraft(draft);
     try {
-      final created = await ProxyService.strategy.addCustomer(
+      final created = await _customers.addCustomer(
         customer: customer,
         transactionId: transactionId,
       );
       return created ?? customer;
     } on UnimplementedError {
-      // Capella strategy has no addCustomer; the Ditto mirror in
-      // [_resolveCustomer] persists the canonical `customers` doc Books reads.
+      _talker.warning(
+        '[LoanCustomerLinker] Capella addCustomer unimplemented — '
+        'using draft + mirror',
+      );
       return customer;
     }
   }
@@ -261,5 +401,53 @@ class LoanCustomerLinker {
     } catch (e) {
       _talker.warning('[LoanCustomerLinker] Ditto customer mirror failed: $e');
     }
+  }
+
+  @visibleForTesting
+  static void clearInflightForTest() => _inflight.clear();
+
+  /// Test seam: resolve with injectable lookup/create (no ProxyService/Ditto).
+  @visibleForTesting
+  static Future<Customer?> resolveWithDepsForTest({
+    required String branchId,
+    required String phone,
+    required String name,
+    required String transactionId,
+    String? tin,
+    required Future<List<Customer>> Function() lookup,
+    required Future<Customer> Function() create,
+  }) {
+    final lockKey = _resolveLockKey(branchId, phone, name);
+    final existing = _inflight[lockKey];
+    if (existing != null) return existing;
+
+    final future = () async {
+      Customer? customer;
+      try {
+        final matches = await lookup();
+        customer = pickMatchingCustomer(
+          candidates: matches,
+          phone: phone,
+          name: name,
+        );
+        if (customer != null) {
+          _talker.info(
+            '[LoanCustomerLinker] matched existing ${customer.id} — skip create',
+          );
+        }
+      } catch (e) {
+        _talker.warning('[LoanCustomerLinker] test lookup failed: $e');
+      }
+      customer ??= await create();
+      return customer;
+    }();
+
+    _inflight[lockKey] = future;
+    future.whenComplete(() {
+      if (identical(_inflight[lockKey], future)) {
+        _inflight.remove(lockKey);
+      }
+    });
+    return future;
   }
 }

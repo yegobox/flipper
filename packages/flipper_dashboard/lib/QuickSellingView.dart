@@ -43,6 +43,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
+import 'package:flipper_dashboard/utils/customer_pay_gate.dart';
 import 'package:flipper_dashboard/widgets/checkout_error_recovery_screen.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_table_host.dart';
@@ -732,32 +733,91 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return ref.read(attachedCustomerProvider(customerId)).asData?.value;
   }
 
-  void _prefillCustomerDetails(ITransaction transaction) {
-    if (transaction.customerName != null &&
-        transaction.customerName!.isNotEmpty &&
-        ref.read(customerNameControllerProvider).text.isEmpty) {
-      talker.info('Pre-filling customer name: ${transaction.customerName}');
-      ref.read(customerNameControllerProvider).text = transaction.customerName!;
-      ProxyService.box.writeString(
-        key: 'customerName',
-        value: transaction.customerName!,
-      );
+  /// Customer details that gate sale completion.
+  ///
+  /// The customer capture panel is collapsible, so its field validators are not
+  /// mounted while collapsed and [formKey] validation alone can be bypassed —
+  /// this enforces the same rules as [missingCustomerDetailsForPay] (name
+  /// always; phone unless a TIN is on file) regardless of the panel state.
+  String? _missingCustomerForPay(ITransaction? transaction) {
+    final attached =
+        transaction == null ? null : _attachedCustomerHintFor(transaction);
+    return missingCustomerDetailsForPay(
+      transaction: transaction,
+      attachedCustomer: attached,
+      typedName: ref.read(customerNameControllerProvider).text,
+      typedPhone: widget.customerPhoneNumberController.text,
+      pleaseEnterCustomerName: context.flipperL10n.pleaseEnterCustomerName,
+      phoneRequiredWhenTinMissing:
+          context.flipperL10n.phoneRequiredWhenTinMissing,
+    );
+  }
+
+  /// Guards the Pay action. When customer details are missing it stops the pay
+  /// spinner, surfaces the reason, expands the customer panel (for a normal
+  /// sale) so the cashier can type them, and returns false so completion aborts.
+  bool _ensureCustomerBeforePay(ITransaction? transaction) {
+    final error = _missingCustomerForPay(transaction);
+    if (error == null) return true;
+
+    ref.read(payButtonStateProvider.notifier).stopLoading();
+
+    // Customer details come from the queued ticket while settling; don't pop the
+    // operator's own capture panel open in that case.
+    final settling = ref.read(settlingTillTicketProvider) != null;
+    if (!settling && !_customerFieldsExpanded && mounted) {
+      setState(() => _customerFieldsExpanded = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _customerNameFocusNode.requestFocus();
+      });
+    }
+
+    if (mounted) showErrorNotification(context, error);
+    return false;
+  }
+
+  void _prefillCustomerDetails(
+    ITransaction transaction, {
+    bool force = false,
+  }) {
+    final name = transaction.customerName?.trim();
+    final nameController = ref.read(customerNameControllerProvider);
+    if (name != null && name.isNotEmpty) {
+      if (force || nameController.text.isEmpty) {
+        talker.info('Pre-filling customer name: $name (force=$force)');
+        nameController.text = name;
+        ProxyService.box.writeString(key: 'customerName', value: name);
+      }
+    } else if (force) {
+      // Settling a ticket with no name must not keep the prior sale's name.
+      nameController.clear();
+      ProxyService.box.writeString(key: 'customerName', value: '');
     }
 
     // Never overwrite the field while the cashier is actively typing into it,
     // and never derive a phone via a blind substring (a half-entered "+2507"
     // would otherwise collapse to a single "7" on the printed receipt).
-    if (transaction.customerPhone != null &&
-        transaction.customerPhone!.isNotEmpty &&
-        widget.customerPhoneNumberController.text.isEmpty &&
-        !_customerPhoneFocusNode.hasFocus) {
-      talker.info('Pre-filling customer phone: ${transaction.customerPhone}');
-      final local = _localPhoneFromStored(transaction.customerPhone!);
-      widget.customerPhoneNumberController.text = local;
-      ProxyService.box.writeString(
-        key: 'currentSaleCustomerPhoneNumber',
-        value: local,
+    final phone = transaction.customerPhone?.trim();
+    if (phone != null && phone.isNotEmpty) {
+      if (!_customerPhoneFocusNode.hasFocus &&
+          (force || widget.customerPhoneNumberController.text.isEmpty)) {
+        talker.info('Pre-filling customer phone: $phone (force=$force)');
+        final local = _localPhoneFromStored(phone);
+        widget.customerPhoneNumberController.text = local;
+        ProxyService.box.writeString(
+          key: 'currentSaleCustomerPhoneNumber',
+          value: local,
+        );
+        ref.read(customerPhoneNumberProvider.notifier).state = local;
+      }
+    } else if (force) {
+      // Forced settling prefill: clear controller + persisted phone so Pay /
+      // receipts cannot reuse the previous sale's number.
+      widget.customerPhoneNumberController.clear();
+      unawaited(
+        ProxyService.box.remove(key: 'currentSaleCustomerPhoneNumber'),
       );
+      ref.read(customerPhoneNumberProvider.notifier).state = null;
     }
 
     // Payment initialization is deferred to the builder where items
@@ -930,6 +990,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final settling = ref.read(settlingTillTicketProvider);
     if (settling != null) {
       ref.read(settlingTillTicketProvider.notifier).state = null;
+      // Resume pinned/cached the cart to the ticket; unwind that (and suppress
+      // the ticket id) so the collected ticket's completed lines don't linger
+      // and the next sale isn't scoped to it. The suppress/cache clear below
+      // key off `transaction.id`, which during settling is the operator's own
+      // pending cart — not the ticket — so it must be done explicitly here.
+      if (settling.transactionId.isNotEmpty) {
+        ref.read(suppressedCartTransactionIdProvider.notifier).state =
+            settling.transactionId;
+        clearPinnedPosCartTransactionWidget(ref);
+        clearCachedPendingCartTransactionWidget(
+          ref,
+          isExpense: ProxyService.box.isOrdering() ?? false,
+        );
+      }
       final total = (transaction.subTotal ?? 0).toCurrencyFormatted(
         symbol: ProxyService.box.defaultCurrency(),
       );
@@ -1128,9 +1202,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           'prev=${previous == null ? 'null' : _qsvPendingLabel(previous)} '
           'next=${_qsvPendingLabel(next)}',
         );
+        // While settling a till ticket, customer fields come from that ticket
+        // (see settlingTillTicketProvider listen below) — not the collector's
+        // own pending cart.
+        if (ref.read(settlingTillTicketProvider) != null) return;
         if (next.hasValue && next.value != null) {
           final isNewTransaction = previous?.value?.id != next.value!.id;
-          _prefillCustomerDetails(next.value!);
+          _prefillCustomerDetails(next.value!, force: isNewTransaction);
           if (isNewTransaction) {
             resetDigitalReceiptToggle(ref);
             _cachedNonCreditPaid = 0.0;
@@ -1140,6 +1218,32 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
       },
     );
+
+    // Till collect: force customer name/phone from the queued ticket so Pay and
+    // receipt printing do not keep a previous sale's box/controller values.
+    ref.listen<SettlingTillTicket?>(settlingTillTicketProvider, (
+      previous,
+      next,
+    ) {
+      if (next == null || next.transactionId.isEmpty) return;
+      if (previous?.transactionId == next.transactionId) return;
+      final txn = ref.read(transactionByIdProvider(next.transactionId)).value;
+      if (txn != null) {
+        _prefillCustomerDetails(txn, force: true);
+        return;
+      }
+      unawaited(() async {
+        final loaded = await ref.read(
+          transactionByIdProvider(next.transactionId).future,
+        );
+        if (!mounted || loaded == null) return;
+        if (ref.read(settlingTillTicketProvider)?.transactionId !=
+            next.transactionId) {
+          return;
+        }
+        _prefillCustomerDetails(loaded, force: true);
+      }());
+    });
 
     // Payment totals track cart line totals (optimistic taps included).
     // Prefer [posCartPaymentRefreshSignalProvider] over list identity — item-row
@@ -2072,6 +2176,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                     talker.warning(
                                       "We are about to complete a sale",
                                     );
+                                    if (!_ensureCustomerBeforePay(
+                                      transactionAsyncValue.value,
+                                    )) {
+                                      return false;
+                                    }
                                     return transactionAsyncValue.when(
                                       data: (ITransaction transaction) async {
                                         await ProxyService.box.writeBool(
@@ -2662,6 +2771,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     ),
                   );
             transactionAsyncValue.whenData((ITransaction transaction) {
+              if (!_ensureCustomerBeforePay(transaction)) return;
               final branchId = ProxyService.box.getBranchId() ?? '0';
               final transactionItemsHint =
                   ref
@@ -3327,6 +3437,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref.invalidate(paymentMethodsProvider);
       widget.receivedAmountController.clear();
       widget.discountController.clear();
+      // Clear customer details too, so the next sale does not inherit the sent
+      // ticket's customer. Name/phone live in controllers + persisted box keys
+      // (mirrors _collapseCustomerFields).
+      ref.read(customerNameControllerProvider).clear();
+      widget.customerPhoneNumberController.clear();
+      ProxyService.box.writeString(key: 'customerName', value: '');
+      ProxyService.box.writeString(
+        key: 'currentSaleCustomerPhoneNumber',
+        value: '',
+      );
       ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
 
       if (mounted) {
@@ -3384,6 +3504,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref.invalidate(paymentMethodsProvider);
       widget.receivedAmountController.clear();
       ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      // Collect forced the full cart view; return to the normal catalog view.
+      if (ref.read(previewingCart)) {
+        ref.read(previewingCart.notifier).state = false;
+      }
     } finally {
       if (mounted) setState(() => _backToNewSaleBusy = false);
     }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -55,18 +56,27 @@ void applySalePaymentFieldsInMemory({
   transaction.customerChangeDue =
       tenderAmount - (transaction.subTotal ?? 0);
 
-  final resolvedPhone =
-      ProxyService.box.currentSaleCustomerPhoneNumber();
+  final resolved = resolveSaleCustomerFieldsForCompletion(
+    boxName: ProxyService.box.customerName(),
+    boxPhone: ProxyService.box.currentSaleCustomerPhoneNumber(),
+    controllerName: customerName,
+    transactionName: transaction.customerName,
+    transactionPhone: transaction.customerPhone,
+    transactionSalePhone: transaction.currentSaleCustomerPhoneNumber,
+  );
   if (countryCode.isNotEmpty &&
       countryCode != 'N/A' &&
-      resolvedPhone != null &&
-      resolvedPhone.isNotEmpty) {
+      resolved.phone != null) {
+    // Preserve historical formatting: countryCode + local/stored phone.
     transaction.currentSaleCustomerPhoneNumber =
-        countryCode + resolvedPhone;
+        countryCode + resolved.phone!;
   }
-  transaction.customerPhone = resolvedPhone;
-  transaction.customerName =
-      ProxyService.box.customerName() ?? customerName;
+  if (resolved.phone != null) {
+    transaction.customerPhone = resolved.phone;
+  }
+  if (resolved.name != null) {
+    transaction.customerName = resolved.name;
+  }
 }
 
 /// Shift totals + personal-goal sweep after the Pay UI (avoids SQLite lock on hot path).

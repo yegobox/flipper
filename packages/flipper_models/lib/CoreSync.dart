@@ -235,7 +235,7 @@ class CoreSync extends AiStrategyImpl
       transaction.customerTin = customer.custTin;
       transaction.customerPhone = customer.telNo;
       transaction.currentSaleCustomerPhoneNumber = customer.telNo;
-      repository.upsert<ITransaction>(transaction);
+      await repository.upsert<ITransaction>(transaction);
     } catch (e) {
       print('Failed to assign customer to transaction: $e');
       rethrow;
@@ -1456,13 +1456,13 @@ class CoreSync extends AiStrategyImpl
   @override
   FutureOr<void> removeCustomerFromTransaction({
     required ITransaction transaction,
-  }) {
+  }) async {
     transaction.customerId = null;
     transaction.customerName = null;
     transaction.customerTin = null;
     transaction.customerPhone = null;
     transaction.currentSaleCustomerPhoneNumber = null;
-    repository.upsert(transaction);
+    await repository.upsert(transaction);
   }
 
   @override
@@ -2204,18 +2204,29 @@ class CoreSync extends AiStrategyImpl
       }
       try {
         final userId = ProxyService.box.getUserId();
-        final resolvedSalePhone =
-            customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+        String? nonEmpty(String? v) {
+          final t = v?.trim();
+          return (t == null || t.isEmpty) ? null : t;
+        }
+
+        final resolvedSalePhone = nonEmpty(customerPhone) ??
+            nonEmpty(ProxyService.box.currentSaleCustomerPhoneNumber()) ??
+            nonEmpty(transaction.customerPhone);
         if (countryCode != "N/A" &&
             countryCode != "" &&
-            resolvedSalePhone != null &&
-            resolvedSalePhone.isNotEmpty) {
+            resolvedSalePhone != null) {
           transaction.currentSaleCustomerPhoneNumber =
               countryCode + resolvedSalePhone;
         }
-        transaction.customerPhone = resolvedSalePhone;
-        transaction.customerName =
-            customerName ?? ProxyService.box.customerName();
+        if (resolvedSalePhone != null) {
+          transaction.customerPhone = resolvedSalePhone;
+        }
+        final resolvedCustomerName = nonEmpty(customerName) ??
+            nonEmpty(ProxyService.box.customerName()) ??
+            nonEmpty(transaction.customerName);
+        if (resolvedCustomerName != null) {
+          transaction.customerName = resolvedCustomerName;
+        }
         // Fetch transaction items (or use caller-provided lines to avoid a duplicate read on hot paths)
         final List<TransactionItem> items;
         if (preloadedLineItems != null && preloadedLineItems.isNotEmpty) {

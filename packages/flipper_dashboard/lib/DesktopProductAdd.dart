@@ -2279,7 +2279,9 @@ class _MobileProductEntry extends StatelessWidget {
     final Map<String, Future<void>> _downloadCache =
         _MobileVariantThumbnail.globalDownloadCache;
 
-    return ColoredBox(
+    // ExpansionTile builds a ListTile, which needs an opaque Material ancestor
+    // for its background and ink effects.
+    return Material(
       color: const Color(0xFFF2F2F7),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),

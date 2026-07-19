@@ -1,6 +1,7 @@
 import 'package:flipper_models/sync/interfaces/delete_operations_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
@@ -134,6 +135,30 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
     if (ditto == null) {
       talker.error("Ditto not initialized");
       return false;
+    }
+
+    if (endPoint == 'customer') {
+      // The customer list is a live Ditto observer, so the row only disappears
+      // once it leaves the Ditto store. Delete from Supabase (best effort) and
+      // Ditto, mirroring the variant dual-store delete.
+      try {
+        await Supabase.instance.client.from('customers').delete().eq('id', id);
+        talker.info('Deleted customer $id from Supabase');
+      } catch (e) {
+        talker.warning('Supabase customer delete skipped or failed: $e');
+      }
+
+      try {
+        await ditto.store.execute(
+          'DELETE FROM customers WHERE _id = :id OR id = :id',
+          arguments: {'id': id},
+        );
+        talker.info('Deleted customer $id from Ditto');
+        return true;
+      } catch (e) {
+        talker.error('Error deleting customer from Ditto: $e');
+        return false;
+      }
     }
 
     if (endPoint == 'transactionItem') {

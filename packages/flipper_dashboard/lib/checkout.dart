@@ -31,7 +31,11 @@ import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_dashboard/utils/customer_pay_gate.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 /// Customer search now lives inside [QuickSellingView] (cart column). No top
 /// overlay inset on desktop checkout.
@@ -250,6 +254,13 @@ class CheckOutState extends ConsumerState<CheckOut>
                     if (txn == null) {
                       return false;
                     }
+                    // Desktop Pay bar lives here (not QuickSellingView's), so
+                    // enforce the customer gate before any completion side
+                    // effect — the collapsible capture panel otherwise lets the
+                    // field validators be skipped entirely.
+                    if (!_ensureCustomerBeforePay(txn)) {
+                      return false;
+                    }
                     return await _handleCompleteTransaction(
                       txn,
                       immediateCompletion,
@@ -298,13 +309,46 @@ class CheckOutState extends ConsumerState<CheckOut>
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
+    // Everything below touches `ref`; bail if the checkout was torn down during
+    // the (awaited) completion so `ref` is never used after disposal. The box
+    // flag resets above are lifecycle-independent and must always run.
+    if (!mounted) return;
+
+    // Capture the settling ticket before clearing so we can also unwind the
+    // resume pin/cache below.
+    final settling = ref.read(settlingTillTicketProvider);
     // End any till-settling session so the operator's next cart is no longer
     // scoped to the collected ticket (posCartDisplayItemsProvider keys off it).
     ref.read(settlingTillTicketProvider.notifier).state = null;
 
-    if (!mounted) return;
-
     final branchId = ProxyService.box.getBranchId() ?? '0';
+
+    // A collected ticket was resumed by PINNING the cart to it and caching it
+    // (primePosCartForTransactionWidget). Clearing only settlingTillTicketProvider
+    // leaves posCartDisplayItemsProvider still resolving the cart via that
+    // pin/cache, so the ticket's now-completed lines linger instead of clearing.
+    // Drop the pin + cache and suppress the ticket id so the cart empties this
+    // frame — exactly like a normal sale does with its own id.
+    if (settling != null && settling.transactionId.isNotEmpty) {
+      ref.read(suppressedCartTransactionIdProvider.notifier).state =
+          settling.transactionId;
+      clearPinnedPosCartTransactionWidget(ref);
+      clearCachedPendingCartTransactionWidget(
+        ref,
+        isExpense: ProxyService.box.isOrdering() ?? false,
+      );
+      final settleBranch =
+          (settling.branchId != null && settling.branchId!.isNotEmpty)
+              ? settling.branchId!
+              : branchId;
+      ref.invalidate(
+        transactionItemsStreamProvider(
+          transactionId: settling.transactionId,
+          branchId: settleBranch,
+        ),
+      );
+    }
+
     ref.invalidate(
       transactionItemsStreamProvider(
         transactionId: transaction.id,
@@ -334,6 +378,64 @@ class CheckOutState extends ConsumerState<CheckOut>
       ref.read(oldImplementationOfRiverpod.previewingCart.notifier).state =
           false;
     }
+  }
+
+  /// Customer gate for the desktop/tablet Pay bar.
+  ///
+  /// The big-screen [PosDefaultView] and small-screen [CheckoutProductView]
+  /// render their own Pay button wired to this handler (not QuickSellingView's
+  /// pay bar), so the customer field validators — which only run when the
+  /// collapsible capture panel is expanded — can be bypassed entirely. Uses
+  /// [missingCustomerDetailsForPay] on the settling ticket or the operator
+  /// transaction.
+  String? _missingCustomerForPay(ITransaction transaction) {
+    // While settling a queued till ticket, completion targets that ticket (see
+    // startCompleteTransactionFlow), not the operator's own pending cart passed
+    // here. Validate the ticket's customer; if its row has not resolved yet,
+    // defer to the flow rather than risk a false block.
+    final settling = ref.read(settlingTillTicketProvider);
+    final ITransaction target;
+    if (settling != null && settling.transactionId.isNotEmpty) {
+      final ticket =
+          ref.read(transactionByIdProvider(settling.transactionId)).value;
+      if (ticket == null) return null;
+      target = ticket;
+    } else {
+      target = transaction;
+    }
+
+    final customerId = target.customerId;
+    final attached = (customerId == null || customerId.isEmpty)
+        ? null
+        : ref
+            .read(oldImplementationOfRiverpod.attachedCustomerProvider(
+              customerId,
+            ))
+            .asData
+            ?.value;
+
+    return missingCustomerDetailsForPay(
+      transaction: target,
+      attachedCustomer: attached,
+      typedName: ref.read(customerNameControllerProvider).text,
+      typedPhone: customerPhoneNumberController.text,
+      pleaseEnterCustomerName: context.flipperL10n.pleaseEnterCustomerName,
+      phoneRequiredWhenTinMissing:
+          context.flipperL10n.phoneRequiredWhenTinMissing,
+    );
+  }
+
+  /// Runs [_missingCustomerForPay] and, when a detail is missing, stops the pay
+  /// spinner and surfaces the reason. Returns true when the sale may proceed.
+  ///
+  /// [PreviewSaleButton] starts the spinner then delegates to the completion
+  /// path and expects it to stop the spinner, so we stop it on early return.
+  bool _ensureCustomerBeforePay(ITransaction transaction) {
+    final missingCustomer = _missingCustomerForPay(transaction);
+    if (missingCustomer == null) return true;
+    ref.read(payButtonStateProvider.notifier).stopLoading();
+    if (mounted) showErrorNotification(context, missingCustomer);
+    return false;
   }
 
   Future<bool> _handleCompleteTransaction(

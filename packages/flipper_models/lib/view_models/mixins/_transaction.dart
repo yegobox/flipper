@@ -556,9 +556,17 @@ mixin TransactionMixinOld {
         ).customers(id: transaction.customerId)).firstOrNull;
       }
 
-      // Prioritize ProxyService.box.customerName() over other sources
-      final finalCustomerName =
-          ProxyService.box.customerName() ?? customer?.custNm ?? customerName;
+      // Prefer non-empty session/typed name, then attached customer, then the
+      // denormalized ticket fields (till finalize) / controller argument.
+      String? nonEmpty(String? v) {
+        final t = v?.trim();
+        return (t == null || t.isEmpty) ? null : t;
+      }
+
+      final finalCustomerName = nonEmpty(ProxyService.box.customerName()) ??
+          nonEmpty(customer?.custNm) ??
+          nonEmpty(customerName) ??
+          nonEmpty(transaction.customerName);
       // Calculate and update tax amount before finalizing payment
       final items =
           preloadedLineItems ??
@@ -615,9 +623,9 @@ mixin TransactionMixinOld {
         paymentType: paymentType,
         discount: discount,
         directlyHandleReceipt: false,
-        customerPhone:
-            customer?.telNo ??
-            ProxyService.box.currentSaleCustomerPhoneNumber(),
+        customerPhone: nonEmpty(customer?.telNo) ??
+            nonEmpty(ProxyService.box.currentSaleCustomerPhoneNumber()) ??
+            nonEmpty(transaction.customerPhone),
         preloadedLineItems: items,
         skipTransactionPersist: skipTransactionPersist,
         completionStatus: derivedCompletion.status,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/mobile_checkout_launcher.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/services/resume_transaction_service.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -13,6 +14,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    show previewingCart;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
@@ -697,6 +700,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       } catch (e, st) {
         talker.warning('Collect: seed items prefetch failed: $e', st);
       }
+      talker.info(
+        '[collect-seed] txn=${ticket.id} branch=$settlingBranchId '
+        'ticketBranch=${ticket.branchId} boxBranch=${ProxyService.box.getBranchId()} '
+        'seedCount=${seedItems.length}',
+      );
       if (!mounted) return;
 
       ref.read(settlingTillTicketProvider.notifier).state = SettlingTillTicket(
@@ -713,6 +721,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (MediaQuery.sizeOf(context).width < 600) {
         unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
       } else {
+        // Force the full cart view (QuickSellingView) for the settling ticket
+        // rather than the catalog/pane layout, so returning to the checkout
+        // lands on the cart with the ticket's items (settling branch of
+        // posCartDisplayItemsProvider). Cleared on sale completion /
+        // back-to-new-sale.
+        ref.read(previewingCart.notifier).state = true;
         locator<RouterService>().back();
       }
     } finally {
@@ -763,6 +777,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ticket: ticket,
         branchId: branchId,
         agentId: agentId,
+      );
+
+      // Seed box/providers from the ticket's denormalized customer fields so
+      // Pay + receipt print use this ticket's customer, not a prior cart's.
+      await TransactionInitializationHelper.initializeCustomer(
+        ref,
+        ticket,
+        replaceSession: true,
       );
 
       primePosCartForTransactionWidget(

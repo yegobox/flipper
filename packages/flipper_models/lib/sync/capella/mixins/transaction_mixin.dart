@@ -1065,7 +1065,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       talker.error('Ditto not initialized for assignCustomerToTransaction');
-      return;
+      throw StateError('Ditto not initialized for assignCustomerToTransaction');
     }
 
     // Keep the in-memory model in sync for callers that read it after await.
@@ -1099,14 +1099,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     setIfPresent('customerName', customer.custNm);
     setIfPresent('customerTin', customer.custTin);
     setIfPresent('customerPhone', customer.telNo);
+    setIfPresent('currentSaleCustomerPhoneNumber', customer.telNo);
 
-    // Target the document by its primary key only. `_id == id` is an invariant
-    // for every transaction (both inserts set them equal — see
-    // _transactionToMap and delegation_mixin), so the legacy `OR id = :id`
-    // fallback is unnecessary and only defeated the primary-key index, turning
-    // an O(1) lookup into a full-collection scan.
+    // Match other Capella transaction updates: both `_id` and `id`. Some rows
+    // only resolve on one side depending on how they were inserted/synced.
     final query =
-        'UPDATE transactions SET ${updates.join(', ')} WHERE _id = :id';
+        'UPDATE transactions SET ${updates.join(', ')} '
+        'WHERE _id = :id OR id = :id';
 
     await ditto.store.execute(query, arguments: arguments);
     talker.info(
@@ -1121,7 +1120,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       talker.error('Ditto not initialized for removeCustomerFromTransaction');
-      return;
+      throw StateError('Ditto not initialized for removeCustomerFromTransaction');
     }
 
     final targetId = transaction.id;
@@ -2041,51 +2040,38 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       );
 
       // Ditto DQL does not support subqueries, so resolve the target ids first
-      // and delete children + parents by id list. This keeps the whole clear to
-      // a fixed 3 round-trips instead of the previous slow per-row fallback.
-      final selected = await ditto.store.execute(
-        'SELECT id FROM transactions WHERE $_pendingSaleCartWhere',
-        arguments: args,
-      );
-      final ids = <String>[];
-      for (final item in selected.items) {
-        final id = _dittoDocumentId(Map<String, dynamic>.from(item.value));
-        if (id != null && id.isNotEmpty) ids.add(id);
-      }
+      // and delete children + parents by that captured id list. Run the select
+      // and both deletes inside ONE write transaction so a concurrently-synced
+      // child row cannot land between the cleanup steps and be left orphaned.
+      await ditto.store.transaction((txn) async {
+        final selected = await txn.execute(
+          'SELECT id FROM transactions WHERE $_pendingSaleCartWhere',
+          arguments: args,
+        );
+        final ids = <String>[];
+        for (final item in selected.items) {
+          final id = _dittoDocumentId(Map<String, dynamic>.from(item.value));
+          if (id != null && id.isNotEmpty) ids.add(id);
+        }
 
-      if (ids.isEmpty) {
-        talker.info('clearPendingSaleCartsExcept: no pending sale carts');
-        return;
-      }
+        if (ids.isEmpty) {
+          talker.info('clearPendingSaleCartsExcept: no pending sale carts');
+          return;
+        }
 
-      try {
-        await ditto.store.execute(
+        await txn.execute(
           'DELETE FROM transaction_items WHERE transactionId IN (:ids)',
           arguments: {'ids': ids},
         );
-        await ditto.store.execute(
-          'DELETE FROM transactions WHERE $_pendingSaleCartWhere',
-          arguments: args,
+        await txn.execute(
+          'DELETE FROM transactions WHERE id IN (:ids)',
+          arguments: {'ids': ids},
         );
-      } catch (bulkError) {
-        talker.warning(
-          'clearPendingSaleCartsExcept bulk delete failed, falling back: $bulkError',
-        );
-        for (final id in ids) {
-          await ditto.store.execute(
-            'DELETE FROM transaction_items WHERE transactionId = :id',
-            arguments: {'id': id},
-          );
-          await ditto.store.execute(
-            'DELETE FROM transactions WHERE _id = :id OR id = :id',
-            arguments: {'id': id},
-          );
-        }
-      }
 
-      talker.info(
-        'clearPendingSaleCartsExcept: cleared ${ids.length} pending sale cart(s)',
-      );
+        talker.info(
+          'clearPendingSaleCartsExcept: cleared ${ids.length} pending sale cart(s)',
+        );
+      });
     } catch (e, s) {
       talker.error('clearPendingSaleCartsExcept: $e', s);
     }

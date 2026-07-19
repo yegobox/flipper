@@ -303,7 +303,9 @@ class _SearchInputWithDropdownState
       ref.invalidate(
         transactionByIdProvider(transaction.value!.id),
       );
-      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      // Same reasoning as the attach path: don't re-subscribe the live pending
+      // observer (it can spawn a new empty pending cart). The by-id invalidate
+      // above plus the live observer already reflect the removed customer.
       setState(() => _searchController.clear());
       ref.read(customerPhoneNumberProvider.notifier).state = null;
       await ProxyService.box.remove(key: 'customerName');
@@ -402,7 +404,15 @@ class _SearchInputWithDropdownState
         description: 'Customer ${customer.custNm} added to the sale!',
         data: {'status': InfoDialogStatus.success},
       );
-      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      // Do NOT invalidate pendingTransactionStreamProvider here. That tears down
+      // the live Ditto pending-cart observer and re-subscribes; the fresh
+      // subscription can momentarily read an empty result and spawn a brand-new
+      // pending cart via _ensureNextPendingCartIfNeeded — clearing the current
+      // cart and losing the sale (the "customer attach completes/regenerates the
+      // transaction" bug). The live observer already re-emits the same row with
+      // the customer attached; just refresh the by-id view, which observes the
+      // same transaction id and can never create a new transaction.
+      ref.invalidate(transactionByIdProvider(transaction.id));
       setState(() {
         _searchResults = [];
         _searchController.clear();

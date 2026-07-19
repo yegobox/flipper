@@ -81,4 +81,24 @@ void main() {
       expect(normalizeCustNo(null), isNull);
     });
   });
+
+  group('normalizePartyPhone', () {
+    test('strips non-digits and leading zero', () {
+      expect(normalizePartyPhone('0783054874'), '783054874');
+      expect(normalizePartyPhone(' 783-054-874 '), '783054874');
+    });
+
+    test('strips Rwanda country code', () {
+      expect(normalizePartyPhone('+250783054874'), '783054874');
+      expect(normalizePartyPhone('250783054874'), '783054874');
+    });
+
+    test('treats format variants as equal via partyPhonesMatch', () {
+      expect(partyPhonesMatch('0783054874', '783054874'), isTrue);
+      expect(partyPhonesMatch('+250783054874', '0783054874'), isTrue);
+      expect(partyPhonesMatch('783054874', '799999999'), isFalse);
+      expect(partyPhonesMatch('', '783054874'), isFalse);
+      expect(partyPhonesMatch(null, '783054874'), isFalse);
+    });
+  });
 }

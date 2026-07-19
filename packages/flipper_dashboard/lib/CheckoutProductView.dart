@@ -18,6 +18,7 @@ import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -660,6 +661,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     ITransaction? transaction,
     List<TransactionItem> items,
   ) {
+    final canCollectPayment = ref.watch(canCollectPosPaymentProvider);
     final activeItems = items.where((i) => i.active != false).toList();
     final count = activeItems
         .fold<double>(0, (s, i) => s + i.qty.toDouble())
@@ -677,17 +679,50 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     return MposCartBar(
       itemCount: count,
       total: total,
+      actionLabel: canCollectPayment ? 'Review & Pay' : 'Review & Send',
       onReviewPay: count > 0
           ? () {
-              final t =
-                  transaction ??
-                  readCachedPendingCartTransactionWidget(
-                    ref,
-                    isExpense: false,
-                  ) ??
-                  ref
-                      .read(pendingTransactionStreamProvider(isExpense: false))
+              final cached = readCachedPendingCartTransactionWidget(
+                ref,
+                isExpense: false,
+              );
+              final streamTxn = ref
+                  .read(pendingTransactionStreamProvider(isExpense: false))
+                  .value;
+              // Bind the dedicated mobile checkout to the transaction that
+              // actually OWNS the displayed cart lines. pendingTransactionStream
+              // (and therefore [transaction]) can point at a newer pending cart
+              // than the cache/pin-scoped one the cart bar shows; the checkout
+              // screen queries a single txn id, so that mismatch renders an
+              // empty cart even though the totals are right.
+              final itemTxnIds = activeItems
+                  .map((i) => i.transactionId)
+                  .whereType<String>()
+                  .where((id) => id.isNotEmpty)
+                  .toSet();
+              ITransaction? t = <ITransaction?>[transaction, cached, streamTxn]
+                  .firstWhere(
+                    (c) => c != null && itemTxnIds.contains(c.id),
+                    orElse: () => null,
+                  );
+              if (t == null) {
+                if (itemTxnIds.isEmpty) {
+                  t = transaction ?? cached ?? streamTxn;
+                } else {
+                  // Cart lines name a txn that isn't among the usual candidates —
+                  // resolve that owner rather than opening an unrelated pending cart.
+                  t = ref
+                      .read(transactionByIdProvider(itemTxnIds.first))
                       .value;
+                  if (t == null) {
+                    showErrorNotification(
+                      context,
+                      'Could not open checkout for this cart. Please try again.',
+                    );
+                    return;
+                  }
+                }
+              }
               if (t != null) _openMobileCheckout(t);
             }
           : null,

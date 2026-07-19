@@ -18,22 +18,47 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class AddCustomer extends StatefulHookConsumerWidget {
-  const AddCustomer({
+  // Not const: avoids hot-reload crashes when new fields are added to mounted
+  // widgets (null bool → "Null is not a subtype of type bool").
+  AddCustomer({
     Key? key,
     required this.transactionId,
     this.searchedKey,
     this.customer,
-  }) : super(key: key);
-  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    bool showSheetHandle = true,
+    bool panelMode = false,
+    this.onCompleted,
+    this.onDismissed,
+  })  : _showSheetHandle = showSheetHandle,
+        _panelMode = panelMode,
+        super(key: key);
+
   final String transactionId;
   final String? searchedKey;
   final Customer? customer;
+
+  /// Nullable storage so hot-reload of older instances cannot throw on read.
+  final bool? _showSheetHandle;
+  final bool? _panelMode;
+
+  bool get showSheetHandle => _showSheetHandle ?? true;
+
+  /// Side panel layout: scrollable fields + pinned save button (no empty gap).
+  bool get panelMode => _panelMode ?? false;
+
+  /// Called with a success message instead of [Navigator.pop] when set
+  /// (used by the Customers desktop side panel).
+  final ValueChanged<String>? onCompleted;
+
+  /// Close without saving (panel X / cancel). Defaults to [Navigator.pop].
+  final VoidCallback? onDismissed;
 
   @override
   AddCustomerState createState() => AddCustomerState();
 }
 
 class AddCustomerState extends ConsumerState<AddCustomer> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
@@ -124,6 +149,22 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
     return 'NC';
   }
 
+  void _dismiss() {
+    if (widget.onDismissed != null) {
+      widget.onDismissed!();
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _complete(String message) {
+    if (widget.onCompleted != null) {
+      widget.onCompleted!(message);
+    } else {
+      Navigator.of(context).pop(message);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.customer != null;
@@ -131,13 +172,10 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        final header = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.showSheetHandle) ...[
               const SizedBox(height: 10),
               Center(
                 child: Container(
@@ -149,212 +187,227 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 10, 12, 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        isEditing ? 'Edit customer' : 'New customer',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: PosTokens.ink1,
-                        ),
+            ] else
+              const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 10, 12, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      isEditing ? 'Edit customer' : 'New customer',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: PosTokens.ink1,
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: PosTokens.surface2,
-                      ),
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                    ),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
-                  child: Form(
-                    key: AddCustomer._formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _PreviewCard(
-                          initials: _previewInitials,
-                          title: _previewTitle,
-                          subtitle: _previewSubtitle,
-                          color: mposColorForName(_previewTitle),
-                        ),
-                        const SizedBox(height: 18),
-                        const _FieldLabel('Customer type'),
-                        const SizedBox(height: 8),
-                        _CustomerTypeToggle(
-                          isBusiness: _isBusiness,
-                          onChanged: (business) {
-                            setState(() {
-                              selectedCustomerTypeValue =
-                                  business ? 'Business' : 'Individual';
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        _CustomerFormField(
-                          label: _isBusiness ? 'Business name' : 'Full name',
-                          controller: _nameController,
-                          hint: _isBusiness
-                              ? 'e.g. Kigali Traders Ltd'
-                              : 'e.g. Jean Mukamana',
-                          icon: _isBusiness
-                              ? Icons.storefront_outlined
-                              : Icons.person_outline_rounded,
-                          validator: (value) =>
-                              validatePartyName(value, isBusiness: _isBusiness),
-                        ),
-                        const SizedBox(height: 14),
-                        _CustomerFormField(
-                          label: 'Phone number',
-                          controller: _phoneController,
-                          hint: '07XX XXX XXX',
-                          icon: Icons.smartphone_outlined,
-                          keyboardType: TextInputType.phone,
-                          validator: validatePartyPhone,
-                        ),
-                        const SizedBox(height: 14),
-                        _CustomerFormField(
-                          label: 'Email address',
-                          optional: true,
-                          controller: _emailController,
-                          hint: 'name@email.com',
-                          icon: Icons.mail_outline_rounded,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: validatePartyEmail,
-                        ),
-                        const SizedBox(height: 14),
-                        _CustomerFormField(
-                          label: 'TIN number',
-                          optional: true,
-                          controller: _tinNumberController,
-                          hint: 'Tax ID for invoices',
-                          icon: Icons.tag_outlined,
-                          keyboardType: TextInputType.number,
-                          validator: validatePartyTin,
-                        ),
-                      ],
                     ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: MposTokens.checkoutPrimaryHeight,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: isLoading ? null : MposTokens.gradBtn,
-                      color: isLoading ? PosTokens.ink4 : null,
-                      borderRadius: BorderRadius.circular(MposTokens.radiusMd),
-                      boxShadow: isLoading ? null : MposTokens.shadowBlue,
+                  IconButton(
+                    onPressed: _dismiss,
+                    style: IconButton.styleFrom(
+                      backgroundColor: PosTokens.surface2,
                     ),
-                    child: ElevatedButton(
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              if (!AddCustomer._formKey.currentState!
-                                  .validate()) {
-                                return;
-                              }
-                              setState(() => isLoading = true);
-                              try {
-                                await model.addCustomer(
-                                  id: widget.customer?.id,
-                                  customerType: selectedCustomerTypeValue,
-                                  email: _emailController.text,
-                                  phone: _phoneController.text,
-                                  name: _nameController.text,
-                                  tinNumber: _tinNumberController.text,
-                                  transactionId: widget.transactionId,
-                                );
-                                ref.refresh(customersProvider);
-                                if (!context.mounted) return;
-                                Navigator.of(context).pop();
-                                Future.delayed(
-                                  const Duration(milliseconds: 100),
-                                  () {
-                                    showCustomSnackBarUtil(
-                                      Navigator.of(
-                                        context,
-                                        rootNavigator: true,
-                                      ).context,
-                                      isEditing
-                                          ? 'Customer updated successfully!'
-                                          : 'Customer added and attached',
-                                      backgroundColor: Colors.green[600],
-                                    );
-                                  },
-                                );
-                                model.getTransactionById();
-                              } catch (e) {
-                                if (mounted) {
-                                  showCustomSnackBarUtil(
-                                    Navigator.of(
-                                      context,
-                                      rootNavigator: true,
-                                    ).context,
-                                    e.toString().isNotEmpty
-                                        ? e.toString()
-                                        : 'Failed to add customer',
-                                    backgroundColor: Colors.red,
-                                  );
-                                }
-                              } finally {
-                                if (mounted) setState(() => isLoading = false);
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        disabledBackgroundColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(MposTokens.radiusMd),
-                        ),
-                      ),
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.check_rounded, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  isEditing
-                                      ? 'Save changes'
-                                      : 'Add & attach customer',
-                                  style: const TextStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
+                    icon: const Icon(Icons.close_rounded, size: 18),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
+          ],
+        );
+
+        final fields = Padding(
+          padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _PreviewCard(
+                  initials: _previewInitials,
+                  title: _previewTitle,
+                  subtitle: _previewSubtitle,
+                  color: mposColorForName(_previewTitle),
+                ),
+                const SizedBox(height: 18),
+                const _FieldLabel('Customer type'),
+                const SizedBox(height: 8),
+                _CustomerTypeToggle(
+                  isBusiness: _isBusiness,
+                  onChanged: (business) {
+                    setState(() {
+                      selectedCustomerTypeValue =
+                          business ? 'Business' : 'Individual';
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                _CustomerFormField(
+                  label: _isBusiness ? 'Business name' : 'Full name',
+                  controller: _nameController,
+                  hint: _isBusiness
+                      ? 'e.g. Kigali Traders Ltd'
+                      : 'e.g. Jean Mukamana',
+                  icon: _isBusiness
+                      ? Icons.storefront_outlined
+                      : Icons.person_outline_rounded,
+                  validator: (value) =>
+                      validatePartyName(value, isBusiness: _isBusiness),
+                ),
+                const SizedBox(height: 14),
+                _CustomerFormField(
+                  label: 'Phone number',
+                  controller: _phoneController,
+                  hint: '07XX XXX XXX',
+                  icon: Icons.smartphone_outlined,
+                  keyboardType: TextInputType.phone,
+                  validator: validatePartyPhone,
+                ),
+                const SizedBox(height: 14),
+                _CustomerFormField(
+                  label: 'Email address',
+                  optional: true,
+                  controller: _emailController,
+                  hint: 'name@email.com',
+                  icon: Icons.mail_outline_rounded,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: validatePartyEmail,
+                ),
+                const SizedBox(height: 14),
+                _CustomerFormField(
+                  label: 'TIN number',
+                  optional: true,
+                  controller: _tinNumberController,
+                  hint: 'Tax ID for invoices',
+                  icon: Icons.tag_outlined,
+                  keyboardType: TextInputType.number,
+                  validator: validatePartyTin,
+                ),
+              ],
+            ),
           ),
+        );
+
+        final saveButton = Padding(
+          padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+          child: SizedBox(
+            width: double.infinity,
+            height: MposTokens.checkoutPrimaryHeight,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: isLoading ? null : MposTokens.gradBtn,
+                color: isLoading ? PosTokens.ink4 : null,
+                borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+                boxShadow: isLoading ? null : MposTokens.shadowBlue,
+              ),
+              child: ElevatedButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (!_formKey.currentState!.validate()) {
+                          return;
+                        }
+                        setState(() => isLoading = true);
+                        try {
+                          await model.addCustomer(
+                            id: widget.customer?.id,
+                            customerType: selectedCustomerTypeValue,
+                            email: _emailController.text,
+                            phone: _phoneController.text,
+                            name: _nameController.text,
+                            tinNumber: _tinNumberController.text,
+                            transactionId: widget.transactionId,
+                          );
+                          ref.invalidate(customersProvider);
+                          model.getTransactionById();
+                          if (!context.mounted) return;
+                          _complete(
+                            isEditing
+                                ? 'Customer updated successfully!'
+                                : 'Customer added and attached',
+                          );
+                        } catch (e) {
+                          if (mounted) {
+                            showCustomSnackBarUtil(
+                              context,
+                              e.toString().isNotEmpty
+                                  ? e.toString()
+                                  : 'Failed to add customer',
+                              backgroundColor: Colors.red,
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() => isLoading = false);
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  disabledBackgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MposTokens.radiusMd),
+                  ),
+                ),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.check_rounded, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            isEditing
+                                ? 'Save changes'
+                                : 'Add & attach customer',
+                            style: const TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        );
+
+        final padded = Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: widget.panelMode
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    header,
+                    Expanded(child: SingleChildScrollView(child: fields)),
+                    saveButton,
+                  ],
+                )
+              : SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [header, fields, saveButton],
+                  ),
+                ),
+        );
+
+        // Scaffold only for snackbar host; panelMode fills the side column.
+        return Scaffold(
+          backgroundColor: PosTokens.surface,
+          resizeToAvoidBottomInset: true,
+          body: padded,
         );
       },
     );
