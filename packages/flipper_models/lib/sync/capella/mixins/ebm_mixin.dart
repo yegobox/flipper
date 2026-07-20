@@ -11,6 +11,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
+/// Branches whose EBM Ditto subscription is already registered this session.
+/// Guards [CapellaEbmMixin.ebm] against re-subscribing + re-delaying on every
+/// call (bulk import calls it many times per row for EBM-less customers).
+final Set<String> _capellaEbmSubscribedBranches = <String>{};
+
 mixin CapellaEbmMixin implements EbmInterface {
   Repository get repository;
   Talker get talker;
@@ -33,19 +38,24 @@ mixin CapellaEbmMixin implements EbmInterface {
         policy: policy,
       );
 
-      if (fetchedEbms.isEmpty) {
+      if (fetchedEbms.isEmpty && fetchRemote) {
         final ditto = dittoService.dittoInstance;
         if (ditto != null) {
           const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';
           final arguments = {'branchId': branchId};
 
-          final preparedEbmFetch =
-              prepareDqlSyncSubscription(dittoQuery, arguments);
-          await ditto.sync.registerSubscription(
-            preparedEbmFetch.dql,
-            arguments: preparedEbmFetch.arguments,
-          );
-          await Future.delayed(const Duration(milliseconds: 500));
+          // Register the subscription (and pay the initial sync wait) only once
+          // per branch; repeat calls reuse the live subscription. Otherwise a
+          // bulk import leaks subscriptions and stalls Ditto sync mid-batch.
+          if (_capellaEbmSubscribedBranches.add(branchId)) {
+            final preparedEbmFetch =
+                prepareDqlSyncSubscription(dittoQuery, arguments);
+            await ditto.sync.registerSubscription(
+              preparedEbmFetch.dql,
+              arguments: preparedEbmFetch.arguments,
+            );
+            await Future.delayed(const Duration(milliseconds: 500));
+          }
 
           final result =
               await ditto.store.execute(dittoQuery, arguments: arguments);

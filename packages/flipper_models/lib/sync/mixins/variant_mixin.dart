@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -30,6 +31,29 @@ mixin VariantMixin implements VariantInterface {
     String? itemNm,
     String? stockId,
   }) async {
+    // Prefer Capella/Ditto — catalog UI and bulk import see variants there,
+    // while Brick/Turso is often empty or lagging (same pattern as getStockById).
+    try {
+      final fromDitto =
+          await ProxyService.getStrategy(Strategy.capella).getVariant(
+        id: id,
+        modrId: modrId,
+        name: name,
+        itemCd: itemCd,
+        bcd: bcd,
+        productId: productId,
+        taskCd: taskCd,
+        itemClsCd: itemClsCd,
+        itemNm: itemNm,
+        stockId: stockId,
+      );
+      if (fromDitto != null) return fromDitto;
+    } catch (e, st) {
+      talker.warning(
+        'getVariant Capella/Ditto lookup failed, trying local Brick: $e\n$st',
+      );
+    }
+
     String branchId = ProxyService.box.getBranchId()!;
     final query = Query(
       where: [
@@ -58,9 +82,11 @@ mixin VariantMixin implements VariantInterface {
         ],
       ],
     );
+    // localOnly fallback: avoid Supabase hydrate of Variant→Stock which can
+    // fail FOREIGN KEY on Turso when association upserts span transactions.
     return (await repository.get<Variant>(
       query: query,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: OfflineFirstGetPolicy.localOnly,
     )).firstOrNull;
   }
 
@@ -82,7 +108,7 @@ mixin VariantMixin implements VariantInterface {
             Where('id').isIn(unique),
           ],
         ),
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        policy: OfflineFirstGetPolicy.localOnly,
       );
       final out = <String, Variant>{};
       for (final v in variants) {
@@ -300,30 +326,29 @@ mixin VariantMixin implements VariantInterface {
               ? variant.copyWith(id: const Uuid().v4(), branchId: branchId)
               : variant.copyWith(branchId: branchId);
 
-          // Handle stock if it exists
+          // Persist Stock first and keep the returned instance (with primaryKey)
+          // so Variant's stock_Stock_brick_id FK points at a committed row.
           if (variantToSave.stock != null) {
             if (variantToSave.stock!.id.isEmpty) {
               final newStockId = const Uuid().v4();
-              // Create a new Stock instance with the new ID
               final updatedStock = variantToSave.stock!.copyWith(
                 id: newStockId,
               );
-              await repository.upsert<Stock>(updatedStock);
-
-              // Update the variant with the new stock and stockId
+              final savedStock = await repository.upsert<Stock>(updatedStock);
               variantToSave = variantToSave.copyWith(
-                stock: updatedStock,
+                stock: savedStock,
                 stockId: newStockId,
               );
             } else {
-              // Even if stock has an ID, upsert it to ensure it's synced to Ditto
-              await repository.upsert<Stock>(variantToSave.stock!);
+              final savedStock =
+                  await repository.upsert<Stock>(variantToSave.stock!);
+              variantToSave = variantToSave.copyWith(
+                stock: savedStock,
+                stockId: savedStock.id,
+              );
             }
           }
           await repository.upsert<Variant>(variantToSave);
-          Ebm? ebm = await ProxyService.strategy.ebm(
-            branchId: ProxyService.box.getBranchId()!,
-          );
           if (variantToSave.splyAmt != null) {
             variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
           }
@@ -352,6 +377,10 @@ mixin VariantMixin implements VariantInterface {
             return;
           }
 
+          // Only fetch EBM once we know an RRA registration is actually needed.
+          final ebm = await ProxyService.strategy.ebm(
+            branchId: ProxyService.box.getBranchId()!,
+          );
           final taxUrl = ebm!.taxServerUrl;
           if (taxUrl == null || taxUrl.isEmpty) {
             return;
@@ -564,18 +593,19 @@ mixin VariantMixin implements VariantInterface {
     Stock? stock,
   }) async {
     if (stock == null) {
-      // Create a new Stock object if none provided
       final newStock = Stock(
         id: const Uuid().v4(),
         currentStock: variant.qty ?? 0,
         branchId: variant.branchId,
         lastTouched: DateTime.now().toUtc(),
       );
-      await repository.upsert<Stock>(newStock);
-      variant.stock = newStock;
-      variant.stockId = newStock.id;
+      final savedStock = await repository.upsert<Stock>(newStock);
+      variant.stock = savedStock;
+      variant.stockId = savedStock.id;
     } else {
-      variant.stock = stock;
+      final savedStock = await repository.upsert<Stock>(stock);
+      variant.stock = savedStock;
+      variant.stockId = savedStock.id;
     }
     return await repository.upsert<Variant>(variant);
   }
