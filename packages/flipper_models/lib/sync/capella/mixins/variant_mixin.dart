@@ -591,8 +591,18 @@ mixin CapellaVariantMixin implements VariantInterface {
           query += 'branchId = :branchId AND ';
           arguments['branchId'] = branchId;
         }
-        query += "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
-        arguments['bcdExact'] = bcd.trim().toLowerCase();
+        // Excel often stores barcodes as numbers ("5" / "5.0"); match both.
+        final normalized = bcd.trim().toLowerCase();
+        final withoutDotZero = normalized.endsWith('.0')
+            ? normalized.substring(0, normalized.length - 2)
+            : normalized;
+        query +=
+            "(LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
+            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdAlt OR "
+            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdDotZero)";
+        arguments['bcdExact'] = normalized;
+        arguments['bcdAlt'] = withoutDotZero;
+        arguments['bcdDotZero'] = '$withoutDotZero.0';
         if (ProxyService.box.getUserLoggingEnabled() ?? false) {
           await logService.logException(
             'Using BCD filter for getVariant',
@@ -695,6 +705,36 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
+      // Fast path: one-shot execute (bulk import / barcode update). Avoids
+      // waiting on the observer when the document is already in the local store.
+      try {
+        final existing = await dittoService.dittoInstance!.store.execute(
+          query,
+          arguments: arguments,
+        );
+        if (existing.items.isNotEmpty) {
+          final data =
+              Map<String, dynamic>.from(existing.items.first.value);
+          final dittoId = data['_id']?.toString();
+          if (dittoId != null &&
+              dittoId.isNotEmpty &&
+              (data['id'] == null || data['id'].toString().isEmpty)) {
+            data['id'] = dittoId;
+          }
+          final variant = Variant.fromJson(data);
+          if (variant.stockId != null) {
+            variant.stock = await (this as StockInterface).getStockById(
+              id: variant.stockId!,
+            );
+          }
+          return variant;
+        }
+      } catch (e, st) {
+        talker.warning(
+          'getVariant execute fast-path failed, falling back to observer: $e\n$st',
+        );
+      }
+
       // Subscribe to ensure we have the latest data
       try {
         final preparedGetVariant = prepareDqlSyncSubscription(query, arguments);
@@ -737,11 +777,15 @@ mixin CapellaVariantMixin implements VariantInterface {
           // Complete the completer to avoid hanging
           if (!completer.isCompleted) {
             if (result.items.isNotEmpty) {
-              completer.complete(
-                Variant.fromJson(
-                  Map<String, dynamic>.from(result.items.first.value),
-                ),
-              );
+              final data =
+                  Map<String, dynamic>.from(result.items.first.value);
+              final dittoId = data['_id']?.toString();
+              if (dittoId != null &&
+                  dittoId.isNotEmpty &&
+                  (data['id'] == null || data['id'].toString().isEmpty)) {
+                data['id'] = dittoId;
+              }
+              completer.complete(Variant.fromJson(data));
             } else {
               completer.complete(null);
             }

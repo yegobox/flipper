@@ -57,49 +57,56 @@ Future<void> runBulkProcessItem(
       throw Exception('TIN is required for bulk product registration');
     }
 
-    if (item.bcdU != null && item.bcdU!.isNotEmpty) {
-      final variant = await host.getVariant(bcd: item.barCode) as Variant?;
-      if (variant == null) {
-        throw Exception('no variant found with modrId:${item.barCode}');
-      }
-      variant.bcd = item.bcdU!.endsWith('.0')
+    // bcdU = optional "new barcode" for updating an existing catalog row
+    // identified by BarCode. If nothing matches locally, fall through and
+    // create — do not abort the whole bulk save.
+    if (item.bcdU != null && item.bcdU!.trim().isNotEmpty) {
+      final cleanedBcdU = item.bcdU!.endsWith('.0')
           ? item.bcdU!.substring(0, item.bcdU!.length - 2)
-          : item.bcdU;
-      variant.name = item.name;
-      variant.itemNm = item.name;
-      variant.itemClsCd =
-          itemClasses[item.barCode] ?? variant.itemClsCd ?? '5020230602';
-      variant.itemTyCd = itemTypes[item.barCode] ?? variant.itemTyCd ?? '2';
-      variant.taxTyCd = bulkTaxFor(item.barCode);
-      variant.taxName = variant.taxTyCd;
+          : item.bcdU!.trim();
+      Variant? variant =
+          await host.getVariant(bcd: item.barCode) as Variant?;
+      // Already updated on a prior import — match on the new barcode too.
+      variant ??=
+          await host.getVariant(bcd: cleanedBcdU) as Variant?;
+      if (variant != null) {
+        variant.bcd = cleanedBcdU;
+        variant.name = item.name;
+        variant.itemNm = item.name;
+        variant.itemClsCd =
+            itemClasses[item.barCode] ?? variant.itemClsCd ?? '5020230602';
+        variant.itemTyCd = itemTypes[item.barCode] ?? variant.itemTyCd ?? '2';
+        variant.taxTyCd = bulkTaxFor(item.barCode);
+        variant.taxName = variant.taxTyCd;
 
-      if (item.retailPrice != null) {
-        variant.retailPrice = item.retailPrice;
-        variant.prc = item.retailPrice;
-        variant.dftPrc = item.retailPrice;
+        if (item.retailPrice != null) {
+          variant.retailPrice = item.retailPrice;
+          variant.prc = item.retailPrice;
+          variant.dftPrc = item.retailPrice;
+        }
+        if (item.supplyPrice != null) {
+          variant.supplyPrice = item.supplyPrice;
+          variant.splyAmt = item.supplyPrice;
+        }
+
+        final stock = await host.getStockById(id: variant.stock!.id) as Stock;
+        final qty = _bulkItemQuantity(item, quantitis);
+        stock.currentStock = qty;
+        stock.rsdQty = qty;
+        stock.initialStock = qty;
+        stock.value = qty * variant.retailPrice!;
+        await repository.upsert(stock);
+        variant.stock = stock;
+        variant.qty = qty;
+        variant.rsdQty = qty;
+
+        await host.addVariant(
+          skipRRaCall: false,
+          variations: [variant],
+          branchId: branchId,
+        );
+        return;
       }
-      if (item.supplyPrice != null) {
-        variant.supplyPrice = item.supplyPrice;
-        variant.splyAmt = item.supplyPrice;
-      }
-
-      final stock = await host.getStockById(id: variant.stock!.id) as Stock;
-      final qty = _bulkItemQuantity(item, quantitis);
-      stock.currentStock = qty;
-      stock.rsdQty = qty;
-      stock.initialStock = qty;
-      stock.value = qty * variant.retailPrice!;
-      await repository.upsert(stock);
-      variant.stock = stock;
-      variant.qty = qty;
-      variant.rsdQty = qty;
-
-      await host.addVariant(
-        skipRRaCall: false,
-        variations: [variant],
-        branchId: branchId,
-      );
-      return;
     }
 
     final businessId = ProxyService.box.getBusinessId()!;
@@ -151,8 +158,11 @@ Future<void> runBulkProcessItem(
     if (existingByName != null &&
         item.bcdU != null &&
         item.bcdU!.trim().isNotEmpty) {
+      final cleanedBcdU = item.bcdU!.endsWith('.0')
+          ? item.bcdU!.substring(0, item.bcdU!.length - 2)
+          : item.bcdU!.trim();
       final variant = existingByName;
-      variant.bcd = item.bcdU;
+      variant.bcd = cleanedBcdU;
       variant.name = item.name;
       variant.itemNm = item.name;
       variant.color = _randomizeColor();
@@ -200,6 +210,15 @@ Future<void> runBulkProcessItem(
         itemClasses[item.barCode] ?? item.itemClsCd ?? '5020230602';
     final itemTy = itemTypes[item.barCode] ?? item.itemTyCd ?? '2';
     final taxTy = bulkTaxFor(item.barCode);
+    // Prefer Excel BarCode for new rows; only fall back to bcdU when BarCode
+    // is missing (bcdU alone is for updating an existing catalog barcode).
+    final createBarCode = () {
+      final fromBar = item.barCode?.trim();
+      if (fromBar != null && fromBar.isNotEmpty) return fromBar;
+      final u = item.bcdU?.trim();
+      if (u == null || u.isEmpty) return item.barCode;
+      return u.endsWith('.0') ? u.substring(0, u.length - 2) : u;
+    }();
 
     final createdProduct = await host.createProduct(
       skipRRaCall: true,
@@ -216,7 +235,7 @@ Future<void> runBulkProcessItem(
         branchId: branchId,
         businessId: businessId,
         createdAt: DateTime.now().toUtc(),
-        barCode: item.barCode,
+        barCode: createBarCode,
         categoryId: categoryId,
       ),
       supplyPrice: supply,
@@ -241,7 +260,7 @@ Future<void> runBulkProcessItem(
       itemTyCd: itemTy,
       retailPrice: retail,
       supplyPrice: supply,
-      barCode: item.barCode,
+      barCode: createBarCode,
       sku: randomNumber(),
       countryCode: item.orgnNatCd ?? 'RW',
       packagingUnitCode: 'CT',
