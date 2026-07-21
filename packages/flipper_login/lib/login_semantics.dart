@@ -13,7 +13,6 @@ abstract final class LoginMaestroIds {
   static const pinSubmit = 'flipper.login.pin.submit';
   static const pinShowToggle = 'flipper.login.pin.showToggle';
   static const pinHelp = 'flipper.login.pin.help';
-  static const pinAccountSwitch = 'flipper.login.pin.accountSwitch';
   static const otpField = 'flipper.login.otp.field';
   static const authAuthenticator = 'flipper.login.auth.authenticator';
   static const authSms = 'flipper.login.auth.sms';
