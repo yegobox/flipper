@@ -11,7 +11,6 @@ import 'package:flipper_login/signin_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';
@@ -20,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_login/pin_login_signin_text.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 enum AuthMethod { authenticator, sms }
 
@@ -29,10 +27,6 @@ const Duration _kLoginPipelineTimeout = Duration(seconds: 300);
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
-
-  /// Set by "Not you?" so returning to PIN login does not re-show the previous
-  /// remembered account until a successful sign-in saves a new local PIN.
-  static bool suppressAccountChip = false;
 
   @override
   State<PinLogin> createState() => _PinLoginState();
@@ -99,10 +93,6 @@ class _PinLoginState extends State<PinLogin>
       );
 
   Future<void> _loadLocalAccount() async {
-    if (PinLogin.suppressAccountChip) {
-      if (mounted) setState(() => _localPin = null);
-      return;
-    }
     try {
       final pin = await ProxyService.strategy.getPinLocal(
         alwaysHydrate: false,
@@ -193,7 +183,6 @@ class _PinLoginState extends State<PinLogin>
   }
 
   void _markSignInSuccess() {
-    PinLogin.suppressAccountChip = false;
     if (!mounted) return;
     setState(() => _isDone = true);
   }
@@ -256,31 +245,6 @@ class _PinLoginState extends State<PinLogin>
           : 'OTP must be a 6-digit number.';
     }
     return null;
-  }
-
-  Future<void> _switchAccount() async {
-    PinLogin.suppressAccountChip = true;
-    _pinController.clear();
-    _otpController.clear();
-    if (mounted) {
-      setState(() {
-        _showOtpField = false;
-        _hasError = false;
-        _errorMessage = '';
-        _localPin = null;
-        _isProcessing = false;
-        _isDone = false;
-      });
-    }
-
-    // Drop draft session keys so Login/PIN no longer bind to this phone.
-    ProxyService.box.remove(key: 'userPhone');
-    ProxyService.box.remove(key: 'userId');
-
-    final router = locator<RouterService>();
-    // clearStackAndShow matches other logout/exit-login paths; replaceWith can
-    // no-op when PinLogin already replaced Login on the stack.
-    await router.clearStackAndShow(const LoginRoute());
   }
 
   Future<void> _handleLogin() async {
@@ -535,31 +499,6 @@ class _PinLoginState extends State<PinLogin>
     );
   }
 
-  String get _accountName {
-    final owner = _localPin?.ownerName?.trim();
-    if (owner != null && owner.isNotEmpty) return owner;
-    final phone = _localPin?.phoneNumber?.trim();
-    if (phone != null && phone.isNotEmpty) return phone;
-    return FLocalization.of(context).welcomeBack;
-  }
-
-  String get _accountSubtitle {
-    final owner = _localPin?.ownerName?.trim();
-    if (owner != null && owner.isNotEmpty) {
-      return 'Your Flipper account';
-    }
-    return 'Sign in with your PIN';
-  }
-
-  String get _accountInitial {
-    final name = _accountName.trim();
-    if (name.isEmpty) return 'F';
-    // Phone chips often start with '+'; use the first letter/digit instead.
-    final usable =
-        name.startsWith('+') && name.length > 1 ? name.substring(1) : name;
-    return usable[0].toUpperCase();
-  }
-
   bool _useSignInDesktopLayout(BoxConstraints constraints) {
     return constraints.maxWidth >= SignInTokens.desktopSplitBreakpoint;
   }
@@ -640,15 +579,6 @@ class _PinLoginState extends State<PinLogin>
                 ),
               ),
               SizedBox(height: compact ? 28 : 36),
-              if (_localPin != null) ...[
-                SignInAccountChip(
-                  initial: _accountInitial,
-                  name: _accountName,
-                  subtitle: _accountSubtitle,
-                  onNotYou: _switchAccount,
-                ),
-                const SizedBox(height: 24),
-              ],
               _buildPinEntrySection(compact: compact),
               if (_showOtpField) ...[
                 const SizedBox(height: 24),

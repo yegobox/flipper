@@ -83,6 +83,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
 
+/// (business|branch) keys whose ebms Ditto subscription is already registered
+/// this session. Guards [CoreSync.isTaxEnabled] against re-subscribing on every
+/// call (bulk import calls it once per row), which otherwise leaks Ditto
+/// subscriptions until sync stalls mid-batch.
+final Set<String> _taxEnabledSubscribed = <String>{};
+
 class CoreSync extends AiStrategyImpl
     with
         Booting,
@@ -2685,15 +2691,6 @@ class CoreSync extends AiStrategyImpl
         talker.error('Ditto not initialized:001');
         return false;
       }
-      final preparedEbm = prepareDqlSyncSubscription(
-        "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
-        {'businessId': businessId, 'branchId': branchId},
-      );
-      ditto.sync.registerSubscription(
-        preparedEbm.dql,
-        arguments: preparedEbm.arguments,
-      );
-
       // Query the ebms table using Ditto
       String query =
           'SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId';
@@ -2702,12 +2699,16 @@ class CoreSync extends AiStrategyImpl
         'branchId': branchId,
       };
 
-      // Subscribe to ensure we have the latest data from Ditto mesh
-      final preparedEbm2 = prepareDqlSyncSubscription(query, arguments);
-      await ditto.sync.registerSubscription(
-        preparedEbm2.dql,
-        arguments: preparedEbm2.arguments,
-      );
+      // Register the ebms subscription only once per (business, branch).
+      // isTaxEnabled runs once per row during bulk import; re-registering the
+      // same subscription every call leaks subscriptions and stalls Ditto sync.
+      if (_taxEnabledSubscribed.add('$businessId|$branchId')) {
+        final preparedEbm = prepareDqlSyncSubscription(query, arguments);
+        await ditto.sync.registerSubscription(
+          preparedEbm.dql,
+          arguments: preparedEbm.arguments,
+        );
+      }
 
       // Use registerObserver to wait for data
       final completer = Completer<List<dynamic>>();

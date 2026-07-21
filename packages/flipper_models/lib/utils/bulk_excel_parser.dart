@@ -72,7 +72,8 @@ class BulkExcelParser {
     'stock': 'Quantity',
     'bcdu': 'bcdU',
     'bcdunit': 'bcdU',
-    'unit': 'bcdU',
+    // Do not map generic "Unit" → bcdU: packaging/unit columns would trigger
+    // the barcode-update path and abort when no existing variant matches.
   };
 
   static bool isSupportedExtension(String pathOrName) {

@@ -506,6 +506,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     String? itemNm,
     String? itemCd,
     String? productId,
+    bool fetchRemote = false,
   }) async {
     final logService = LogService();
     try {
@@ -533,6 +534,7 @@ mixin CapellaVariantMixin implements VariantInterface {
             'itemNm': itemNm != null ? '***' : 'null',
             'itemCd': itemCd?.toString() ?? 'null',
             'productId': productId?.toString() ?? 'null',
+            'fetchRemote': fetchRemote.toString(),
           },
         );
       }
@@ -591,8 +593,18 @@ mixin CapellaVariantMixin implements VariantInterface {
           query += 'branchId = :branchId AND ';
           arguments['branchId'] = branchId;
         }
-        query += "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact";
-        arguments['bcdExact'] = bcd.trim().toLowerCase();
+        // Excel often stores barcodes as numbers ("5" / "5.0"); match both.
+        final normalized = bcd.trim().toLowerCase();
+        final withoutDotZero = normalized.endsWith('.0')
+            ? normalized.substring(0, normalized.length - 2)
+            : normalized;
+        query +=
+            "(LOWER(TRIM(COALESCE(bcd, ''))) = :bcdExact OR "
+            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdAlt OR "
+            "LOWER(TRIM(COALESCE(bcd, ''))) = :bcdDotZero)";
+        arguments['bcdExact'] = normalized;
+        arguments['bcdAlt'] = withoutDotZero;
+        arguments['bcdDotZero'] = '$withoutDotZero.0';
         if (ProxyService.box.getUserLoggingEnabled() ?? false) {
           await logService.logException(
             'Using BCD filter for getVariant',
@@ -695,10 +707,53 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
-      // Subscribe to ensure we have the latest data
+      // Local store execute — enough when the document is already present.
+      try {
+        final existing = await dittoService.dittoInstance!.store.execute(
+          query,
+          arguments: arguments,
+        );
+        if (existing.items.isNotEmpty) {
+          final data =
+              Map<String, dynamic>.from(existing.items.first.value);
+          final dittoId = data['_id']?.toString();
+          if (dittoId != null &&
+              dittoId.isNotEmpty &&
+              (data['id'] == null || data['id'].toString().isEmpty)) {
+            data['id'] = dittoId;
+          }
+          final variant = Variant.fromJson(data);
+          if (variant.stockId != null) {
+            variant.stock = await (this as StockInterface).getStockById(
+              id: variant.stockId!,
+            );
+          }
+          return variant;
+        }
+      } catch (e, st) {
+        talker.warning(
+          'getVariant execute fast-path failed: $e\n$st',
+        );
+      }
+
+      // Interactive POS/checkout: return after local execute — do not wait on
+      // subscription/observer (up to 10s) after a miss.
+      if (!fetchRemote) {
+        return null;
+      }
+
+      // Bulk / fetchRemote: subscribe and wait for a non-empty hit.
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.warning(
+          'getVariant: Ditto unavailable for observer fallback',
+        );
+        return null;
+      }
+
       try {
         final preparedGetVariant = prepareDqlSyncSubscription(query, arguments);
-        await dittoService.dittoInstance!.sync.registerSubscription(
+        await ditto.sync.registerSubscription(
           preparedGetVariant.dql,
           arguments: preparedGetVariant.arguments,
         );
@@ -729,27 +784,27 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       final completer = Completer<Variant?>();
-      final observer = dittoService.dittoInstance!.store.registerObserver(
+      final observer = ditto.store.registerObserver(
         query,
         arguments: arguments,
         onChange: (result) {
-          final itemCount = result.items.length;
-          // Complete the completer to avoid hanging
-          if (!completer.isCompleted) {
-            if (result.items.isNotEmpty) {
-              completer.complete(
-                Variant.fromJson(
-                  Map<String, dynamic>.from(result.items.first.value),
-                ),
-              );
-            } else {
-              completer.complete(null);
-            }
+          // Keep waiting on empty — first empty callback must not short-circuit
+          // bulk sync that is still pulling the document.
+          if (completer.isCompleted || result.items.isEmpty) {
+            return;
           }
-          // Log asynchronously without waiting for completion
+          final data =
+              Map<String, dynamic>.from(result.items.first.value);
+          final dittoId = data['_id']?.toString();
+          if (dittoId != null &&
+              dittoId.isNotEmpty &&
+              (data['id'] == null || data['id'].toString().isEmpty)) {
+            data['id'] = dittoId;
+          }
+          completer.complete(Variant.fromJson(data));
           if (ProxyService.box.getUserLoggingEnabled() ?? false) {
             logService.logException(
-              'GetVariant observer onChange triggered with $itemCount items',
+              'GetVariant observer onChange triggered with ${result.items.length} items',
               type: 'business_fetch',
               tags: {
                 'userId':
@@ -760,7 +815,7 @@ mixin CapellaVariantMixin implements VariantInterface {
                         .toString()) ??
                     'unknown',
                 'method': 'getVariant',
-                'itemCount': itemCount.toString(),
+                'itemCount': result.items.length.toString(),
               },
             );
           }
@@ -768,9 +823,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       );
 
       try {
-        // Wait for data or timeout
-        // If data is already there, onChange is called immediately
-        // If not, we wait up to 10 seconds for sync
+        // Wait for synced data or timeout (bulk import only).
         final variant = await completer.future.timeout(
           const Duration(seconds: 10),
           onTimeout: () {

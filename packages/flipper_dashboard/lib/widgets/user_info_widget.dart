@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -16,13 +17,11 @@ class UserInfoWidget extends StatefulHookConsumerWidget {
 
 class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
   String _userName = 'Loading...';
-  String? _branchName;
 
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
-    _loadBranchName();
   }
 
   Future<void> _loadUserInfo() async {
@@ -83,20 +82,6 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
     return 'User';
   }
 
-  void _loadBranchName() {
-    try {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId != null && branchId.toString().isNotEmpty) {
-        // Here we could also fetch branch details if needed
-        setState(() {
-          _branchName = 'Branch';
-        });
-      }
-    } catch (e) {
-      // Ignore errors
-    }
-  }
-
   String _getInitials(String name) {
     name = name.trim();
     if (name.isEmpty) return 'U';
@@ -122,11 +107,59 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
         .join(' ');
   }
 
+  String? _activeBranchName() {
+    final name = ref.watch(
+      activeBranchProvider.select((async) => async.asData?.value.name),
+    );
+    final trimmed = name?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed;
+  }
+
+  Widget _nameColumn({
+    required BuildContext context,
+    required String displayName,
+    required String? branchName,
+    required TextStyle nameStyle,
+    required TextStyle branchStyle,
+  }) {
+    // Cap width so long business/branch names ellipsize instead of
+    // overflowing the top bar icons.
+    final maxTextWidth = (MediaQuery.sizeOf(context).width * 0.18)
+        .clamp(96.0, 180.0);
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxTextWidth),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+            style: nameStyle,
+          ),
+          if (branchName != null)
+            Text(
+              branchName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              style: branchStyle,
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final displayName = widget.handoffTopBarStyle
         ? _userName.toUpperCase()
         : _userName;
+    final branchName = _activeBranchName();
 
     if (widget.handoffTopBarStyle) {
       return Padding(
@@ -152,29 +185,21 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
               ),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  displayName,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: PosTokens.ink1,
-                    height: 1.15,
-                  ),
-                ),
-                if (_branchName != null)
-                  Text(
-                    _branchName!,
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      color: PosTokens.ink3,
-                      height: 1.15,
-                    ),
-                  ),
-              ],
+            _nameColumn(
+              context: context,
+              displayName: displayName,
+              branchName: branchName,
+              nameStyle: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: PosTokens.ink1,
+                height: 1.15,
+              ),
+              branchStyle: const TextStyle(
+                fontSize: 11.5,
+                color: PosTokens.ink3,
+                height: 1.15,
+              ),
             ),
           ],
         ),
@@ -201,24 +226,16 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
             ),
           ),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                displayName,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              if (_branchName != null)
-                Text(
-                  _branchName!,
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                ),
-            ],
+          _nameColumn(
+            context: context,
+            displayName: displayName,
+            branchName: branchName,
+            nameStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+            branchStyle: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
         ],
       ),

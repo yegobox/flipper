@@ -47,6 +47,7 @@ class SearchField extends StatefulHookConsumerWidget {
     required this.showDatePicker,
     this.hintText,
     this.showTrailingToolbar = true,
+    this.showNoticesButton = true,
   }) : super(key: key);
 
   final TextEditingController controller;
@@ -54,6 +55,7 @@ class SearchField extends StatefulHookConsumerWidget {
   final bool showIncomingButton;
   final bool showAddButton;
   final bool showDatePicker;
+  final bool showNoticesButton;
   final String? hintText;
 
   /// Full suffix (scan, notices, orders, …). When false, only a clear button
@@ -192,12 +194,13 @@ class SearchFieldState extends ConsumerState<SearchField>
                             );
                           },
                         ),
-                        Consumer(
-                          builder: (context, ref, child) {
-                            final notice = ref.watch(noticesProvider);
-                            return notices(notice: notice.value ?? []);
-                          },
-                        ),
+                        if (widget.showNoticesButton)
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final notice = ref.watch(noticesProvider);
+                              return notices(notice: notice.value ?? []);
+                            },
+                          ),
                         Consumer(
                           builder: (context, ref, child) {
                             final orders = ref.watch(

@@ -302,7 +302,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                         controller: linked,
                         hintText: FLocalization.of(context).searchProducts,
                         densePadding: true,
-                        showTrailingToolbar: false,
+                        showNoticesButton: false,
+                        showOrderButton: false,
+                        showIncomingButton: false,
                       )
                     : PosCatalogSearchRow(
                         controller: linked,

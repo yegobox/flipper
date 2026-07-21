@@ -11,6 +11,13 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ebm_helper.dart';
 
+/// Branches whose EBM Ditto subscription has already been registered this
+/// session. `ebm()` is called many times per bulk import; without this guard
+/// every call for an EBM-less (offline / non-VAT) customer re-registers the
+/// same subscription and blocks 500ms, leaking subscriptions until the Ditto
+/// sync engine stalls (observed as the import freezing mid-batch).
+final Set<String> _ebmSubscribedBranches = <String>{};
+
 mixin EbmMixin implements EbmInterface {
   DittoService get dittoService => DittoService.instance;
   Repository get repository;
@@ -118,20 +125,27 @@ mixin EbmMixin implements EbmInterface {
       );
 
       // If no data found locally and fetchRemote is true, try Ditto direct query
-      if (fetchedEbms.isEmpty) {
+      if (fetchedEbms.isEmpty && fetchRemote) {
         final ditto = dittoService.dittoInstance;
         if (ditto != null) {
           const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';
           final arguments = {'branchId': branchId};
 
-          final preparedEbmFetch =
-              prepareDqlSyncSubscription(dittoQuery, arguments);
-          await ditto.sync.registerSubscription(
-            preparedEbmFetch.dql,
-            arguments: preparedEbmFetch.arguments,
-          );
-          // Give it a moment to sync
-          await Future.delayed(const Duration(milliseconds: 500));
+          // Register the subscription only once per branch. Re-registering the
+          // identical subscription on every call leaks subscriptions and, in
+          // bulk imports (many ebm() calls), eventually stalls Ditto sync.
+          final firstSubscription = _ebmSubscribedBranches.add(branchId);
+          if (firstSubscription) {
+            final preparedEbmFetch =
+                prepareDqlSyncSubscription(dittoQuery, arguments);
+            await ditto.sync.registerSubscription(
+              preparedEbmFetch.dql,
+              arguments: preparedEbmFetch.arguments,
+            );
+            // Give the initial subscription a moment to sync. Subsequent calls
+            // reuse the live subscription and must not pay this 500ms again.
+            await Future.delayed(const Duration(milliseconds: 500));
+          }
 
           // Execute query directly
           final result =

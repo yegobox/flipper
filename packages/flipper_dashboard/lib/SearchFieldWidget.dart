@@ -10,12 +10,18 @@ class SearchFieldWidget extends ConsumerWidget {
     this.hintText,
     this.densePadding = false,
     this.showTrailingToolbar = true,
+    this.showNoticesButton = true,
+    this.showOrderButton = true,
+    this.showIncomingButton = true,
   }) : super(key: key);
 
   final TextEditingController controller;
   final String? hintText;
   final bool densePadding;
   final bool showTrailingToolbar;
+  final bool showNoticesButton;
+  final bool showOrderButton;
+  final bool showIncomingButton;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,8 +35,9 @@ class SearchFieldWidget extends ConsumerWidget {
         controller: controller,
         showAddButton: true,
         showDatePicker: showDatePicker,
-        showIncomingButton: true,
-        showOrderButton: true,
+        showIncomingButton: showIncomingButton,
+        showOrderButton: showOrderButton,
+        showNoticesButton: showNoticesButton,
         hintText: hintText ?? 'Search products, transactions...',
         showTrailingToolbar: showTrailingToolbar,
       ),
