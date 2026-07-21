@@ -57,6 +57,8 @@ Future<void> runBulkProcessItem(
       throw Exception('TIN is required for bulk product registration');
     }
 
+    Variant? existingVariant;
+
     // bcdU = optional "new barcode" for updating an existing catalog row
     // identified by BarCode. If nothing matches locally, fall through and
     // create — do not abort the whole bulk save.
@@ -64,14 +66,13 @@ Future<void> runBulkProcessItem(
       final cleanedBcdU = item.bcdU!.endsWith('.0')
           ? item.bcdU!.substring(0, item.bcdU!.length - 2)
           : item.bcdU!.trim();
-      Variant? variant =
-          await host.getVariant(bcd: item.barCode, fetchRemote: true)
-              as Variant?;
-      // Already updated on a prior import — match on the new barcode too.
-      variant ??=
-          await host.getVariant(bcd: cleanedBcdU, fetchRemote: true)
-              as Variant?;
-      if (variant != null) {
+      existingVariant = await _bulkFetchVariantByBcd(
+        host,
+        primaryBcd: item.barCode,
+        fallbackBcd: cleanedBcdU,
+      );
+      if (existingVariant != null) {
+        final variant = existingVariant;
         variant.bcd = cleanedBcdU;
         variant.name = item.name;
         variant.itemNm = item.name;
@@ -109,12 +110,14 @@ Future<void> runBulkProcessItem(
     final bhfId = await ProxyService.box.bhfId();
 
     final barCodeKey = item.barCode ?? '';
-    if (barCodeKey.isNotEmpty) {
-      final existingByBcd =
-          await host.getVariant(bcd: barCodeKey, fetchRemote: true)
-              as Variant?;
-      if (existingByBcd != null) {
-        final variant = existingByBcd;
+    // bcdU path already fetchRemote'd item.barCode (+ cleanedBcdU fallback).
+    if (barCodeKey.isNotEmpty &&
+        existingVariant == null &&
+        (item.bcdU == null || item.bcdU!.trim().isEmpty)) {
+      existingVariant =
+          await host.getVariant(bcd: barCodeKey, fetchRemote: true) as Variant?;
+      if (existingVariant != null) {
+        final variant = existingVariant;
         variant.name = item.name;
         variant.itemNm = item.name;
         variant.itemClsCd =
@@ -144,44 +147,46 @@ Future<void> runBulkProcessItem(
       }
     }
 
-    final existingByName =
-        await host.getVariant(name: item.name, fetchRemote: true) as Variant?;
-    if (existingByName != null &&
+    if (existingVariant == null &&
         item.bcdU != null &&
         item.bcdU!.trim().isNotEmpty) {
       final cleanedBcdU = item.bcdU!.endsWith('.0')
           ? item.bcdU!.substring(0, item.bcdU!.length - 2)
           : item.bcdU!.trim();
-      final variant = existingByName;
-      variant.bcd = cleanedBcdU;
-      variant.name = item.name;
-      variant.itemNm = item.name;
-      variant.color = _randomizeColor();
-      variant.lastTouched = DateTime.now();
-      variant.itemClsCd =
-          itemClasses[item.barCode] ?? variant.itemClsCd ?? '5020230602';
-      variant.itemTyCd = itemTypes[item.barCode] ?? variant.itemTyCd ?? '2';
-      variant.taxTyCd = bulkTaxFor(item.barCode);
-      variant.taxName = variant.taxTyCd;
-      if (item.retailPrice != null) {
-        variant.retailPrice = item.retailPrice;
-        variant.prc = item.retailPrice;
-        variant.dftPrc = item.retailPrice;
-      }
-      if (item.supplyPrice != null) {
-        variant.supplyPrice = item.supplyPrice;
-        variant.splyAmt = item.supplyPrice;
-      }
+      existingVariant =
+          await host.getVariant(name: item.name, fetchRemote: true) as Variant?;
+      if (existingVariant != null) {
+        final variant = existingVariant;
+        variant.bcd = cleanedBcdU;
+        variant.name = item.name;
+        variant.itemNm = item.name;
+        variant.color = _randomizeColor();
+        variant.lastTouched = DateTime.now();
+        variant.itemClsCd =
+            itemClasses[item.barCode] ?? variant.itemClsCd ?? '5020230602';
+        variant.itemTyCd = itemTypes[item.barCode] ?? variant.itemTyCd ?? '2';
+        variant.taxTyCd = bulkTaxFor(item.barCode);
+        variant.taxName = variant.taxTyCd;
+        if (item.retailPrice != null) {
+          variant.retailPrice = item.retailPrice;
+          variant.prc = item.retailPrice;
+          variant.dftPrc = item.retailPrice;
+        }
+        if (item.supplyPrice != null) {
+          variant.supplyPrice = item.supplyPrice;
+          variant.splyAmt = item.supplyPrice;
+        }
 
-      if (await _bulkUpdateExistingVariantStock(
-        host: host,
-        repository: repository,
-        variant: variant,
-        item: item,
-        quantitis: quantitis,
-        branchId: branchId,
-      )) {
-        return;
+        if (await _bulkUpdateExistingVariantStock(
+          host: host,
+          repository: repository,
+          variant: variant,
+          item: item,
+          quantitis: quantitis,
+          branchId: branchId,
+        )) {
+          return;
+        }
       }
     }
 
@@ -292,6 +297,35 @@ double _bulkItemQuantity(Variant item, Map<String, String> quantitis) {
   return parsed != null && parsed > 0 ? parsed : 1;
 }
 
+String _normalizeBulkBcd(String raw) {
+  final trimmed = raw.trim().toLowerCase();
+  return trimmed.endsWith('.0')
+      ? trimmed.substring(0, trimmed.length - 2)
+      : trimmed;
+}
+
+/// Remote barcode lookups for bulk import — one sync wait per distinct key.
+Future<Variant?> _bulkFetchVariantByBcd(
+  dynamic host, {
+  required String? primaryBcd,
+  String? fallbackBcd,
+}) async {
+  Variant? variant;
+  final primary = primaryBcd?.trim();
+  if (primary != null && primary.isNotEmpty) {
+    variant =
+        await host.getVariant(bcd: primary, fetchRemote: true) as Variant?;
+  }
+  if (variant != null) return variant;
+
+  final fallback = fallbackBcd?.trim();
+  if (fallback == null || fallback.isEmpty) return null;
+  if (_normalizeBulkBcd(fallback) == _normalizeBulkBcd(primary ?? '')) {
+    return null;
+  }
+  return await host.getVariant(bcd: fallback, fetchRemote: true) as Variant?;
+}
+
 /// Updates stock + [addVariant] for an existing catalog row.
 /// Returns false when stock id or retail price is missing so the caller can
 /// fall through to create instead of aborting the bulk save.
@@ -314,7 +348,18 @@ Future<bool> _bulkUpdateExistingVariantStock({
     return false;
   }
 
-  final stock = await host.getStockById(id: stockId) as Stock;
+  Stock stock;
+  try {
+    stock = await host.getStockById(id: stockId) as Stock;
+  } catch (e, st) {
+    talker.warning(
+      'bulk: getStockById failed for "${variant.name}" '
+      '(stockId=$stockId): $e; falling through',
+    );
+    talker.debug('$st');
+    return false;
+  }
+
   final qty = _bulkItemQuantity(item, quantitis);
   stock.currentStock = qty;
   stock.rsdQty = qty;
