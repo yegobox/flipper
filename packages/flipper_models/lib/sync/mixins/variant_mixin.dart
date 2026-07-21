@@ -30,28 +30,33 @@ mixin VariantMixin implements VariantInterface {
     String? itemClsCd,
     String? itemNm,
     String? stockId,
+    bool fetchRemote = false,
   }) async {
-    // Prefer Capella/Ditto — catalog UI and bulk import see variants there,
-    // while Brick/Turso is often empty or lagging (same pattern as getStockById).
-    try {
-      final fromDitto =
-          await ProxyService.getStrategy(Strategy.capella).getVariant(
-        id: id,
-        modrId: modrId,
-        name: name,
-        itemCd: itemCd,
-        bcd: bcd,
-        productId: productId,
-        taskCd: taskCd,
-        itemClsCd: itemClsCd,
-        itemNm: itemNm,
-        stockId: stockId,
-      );
-      if (fromDitto != null) return fromDitto;
-    } catch (e, st) {
-      talker.warning(
-        'getVariant Capella/Ditto lookup failed, trying local Brick: $e\n$st',
-      );
+    // Capella/Ditto first only for bulk (fetchRemote): catalog may exist in
+    // Ditto while Brick/Turso lags. Interactive POS must stay local-first so a
+    // miss does not pay Capella's sync-wait path.
+    if (fetchRemote) {
+      try {
+        final fromDitto =
+            await ProxyService.getStrategy(Strategy.capella).getVariant(
+          id: id,
+          modrId: modrId,
+          name: name,
+          itemCd: itemCd,
+          bcd: bcd,
+          productId: productId,
+          taskCd: taskCd,
+          itemClsCd: itemClsCd,
+          itemNm: itemNm,
+          stockId: stockId,
+          fetchRemote: true,
+        );
+        if (fromDitto != null) return fromDitto;
+      } catch (e, st) {
+        talker.warning(
+          'getVariant Capella/Ditto lookup failed, trying local Brick: $e\n$st',
+        );
+      }
     }
 
     String branchId = ProxyService.box.getBranchId()!;
@@ -82,8 +87,7 @@ mixin VariantMixin implements VariantInterface {
         ],
       ],
     );
-    // localOnly fallback: avoid Supabase hydrate of Variant→Stock which can
-    // fail FOREIGN KEY on Turso when association upserts span transactions.
+    // localOnly: avoid Supabase hydrate of Variant→Stock (Turso FK races).
     return (await repository.get<Variant>(
       query: query,
       policy: OfflineFirstGetPolicy.localOnly,

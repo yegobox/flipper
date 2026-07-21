@@ -23,7 +23,7 @@ mixin CapellaEbmMixin implements EbmInterface {
   DittoService get dittoService => DittoService.instance;
 
   @override
-  Future<Ebm?> ebm({required String branchId, bool fetchRemote = false}) async {
+  Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async {
     try {
       final query = Query(
         where: [Where('branchId').isExactly(branchId)],

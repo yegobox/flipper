@@ -65,10 +65,12 @@ Future<void> runBulkProcessItem(
           ? item.bcdU!.substring(0, item.bcdU!.length - 2)
           : item.bcdU!.trim();
       Variant? variant =
-          await host.getVariant(bcd: item.barCode) as Variant?;
+          await host.getVariant(bcd: item.barCode, fetchRemote: true)
+              as Variant?;
       // Already updated on a prior import — match on the new barcode too.
       variant ??=
-          await host.getVariant(bcd: cleanedBcdU) as Variant?;
+          await host.getVariant(bcd: cleanedBcdU, fetchRemote: true)
+              as Variant?;
       if (variant != null) {
         variant.bcd = cleanedBcdU;
         variant.name = item.name;
@@ -89,23 +91,17 @@ Future<void> runBulkProcessItem(
           variant.splyAmt = item.supplyPrice;
         }
 
-        final stock = await host.getStockById(id: variant.stock!.id) as Stock;
-        final qty = _bulkItemQuantity(item, quantitis);
-        stock.currentStock = qty;
-        stock.rsdQty = qty;
-        stock.initialStock = qty;
-        stock.value = qty * variant.retailPrice!;
-        await repository.upsert(stock);
-        variant.stock = stock;
-        variant.qty = qty;
-        variant.rsdQty = qty;
-
-        await host.addVariant(
-          skipRRaCall: false,
-          variations: [variant],
+        if (await _bulkUpdateExistingVariantStock(
+          host: host,
+          repository: repository,
+          variant: variant,
+          item: item,
+          quantitis: quantitis,
           branchId: branchId,
-        );
-        return;
+        )) {
+          return;
+        }
+        // Missing stock or retail — fall through to create path.
       }
     }
 
@@ -115,7 +111,8 @@ Future<void> runBulkProcessItem(
     final barCodeKey = item.barCode ?? '';
     if (barCodeKey.isNotEmpty) {
       final existingByBcd =
-          await host.getVariant(bcd: barCodeKey) as Variant?;
+          await host.getVariant(bcd: barCodeKey, fetchRemote: true)
+              as Variant?;
       if (existingByBcd != null) {
         final variant = existingByBcd;
         variant.name = item.name;
@@ -134,27 +131,21 @@ Future<void> runBulkProcessItem(
           variant.supplyPrice = item.supplyPrice;
           variant.splyAmt = item.supplyPrice;
         }
-        final stock =
-            await host.getStockById(id: variant.stock!.id) as Stock;
-        final qty = _bulkItemQuantity(item, quantitis);
-        stock.currentStock = qty;
-        stock.rsdQty = qty;
-        stock.initialStock = qty;
-        stock.value = qty * variant.retailPrice!;
-        await repository.upsert(stock);
-        variant.stock = stock;
-        variant.qty = qty;
-        variant.rsdQty = qty;
-        await host.addVariant(
-          variations: [variant],
+        if (await _bulkUpdateExistingVariantStock(
+          host: host,
+          repository: repository,
+          variant: variant,
+          item: item,
+          quantitis: quantitis,
           branchId: branchId,
-          skipRRaCall: false,
-        );
-        return;
+        )) {
+          return;
+        }
       }
     }
 
-    final existingByName = await host.getVariant(name: item.name) as Variant?;
+    final existingByName =
+        await host.getVariant(name: item.name, fetchRemote: true) as Variant?;
     if (existingByName != null &&
         item.bcdU != null &&
         item.bcdU!.trim().isNotEmpty) {
@@ -182,23 +173,16 @@ Future<void> runBulkProcessItem(
         variant.splyAmt = item.supplyPrice;
       }
 
-      final stock = await host.getStockById(id: variant.stock!.id) as Stock;
-      final qty = _bulkItemQuantity(item, quantitis);
-      stock.currentStock = qty;
-      stock.rsdQty = qty;
-      stock.initialStock = qty;
-      stock.value = qty * variant.retailPrice!;
-      await repository.upsert(stock);
-      variant.stock = stock;
-      variant.qty = qty;
-      variant.rsdQty = qty;
-
-      await host.addVariant(
-        variations: [variant],
+      if (await _bulkUpdateExistingVariantStock(
+        host: host,
+        repository: repository,
+        variant: variant,
+        item: item,
+        quantitis: quantitis,
         branchId: branchId,
-        skipRRaCall: false,
-      );
-      return;
+      )) {
+        return;
+      }
     }
 
     final categoryId = item.categoryId;
@@ -306,6 +290,48 @@ double _bulkItemQuantity(Variant item, Map<String, String> quantitis) {
   }
   final parsed = double.tryParse(raw.trim());
   return parsed != null && parsed > 0 ? parsed : 1;
+}
+
+/// Updates stock + [addVariant] for an existing catalog row.
+/// Returns false when stock id or retail price is missing so the caller can
+/// fall through to create instead of aborting the bulk save.
+Future<bool> _bulkUpdateExistingVariantStock({
+  required dynamic host,
+  required Repository repository,
+  required Variant variant,
+  required Variant item,
+  required Map<String, String> quantitis,
+  required String branchId,
+}) async {
+  final stockId = variant.stock?.id ?? variant.stockId;
+  final retail = variant.retailPrice;
+  if (stockId == null || stockId.isEmpty || retail == null) {
+    talker.warning(
+      'bulk: skip update for "${variant.name}" '
+      '(stockId=${stockId ?? 'null'}, retail=${retail ?? 'null'}); '
+      'falling through',
+    );
+    return false;
+  }
+
+  final stock = await host.getStockById(id: stockId) as Stock;
+  final qty = _bulkItemQuantity(item, quantitis);
+  stock.currentStock = qty;
+  stock.rsdQty = qty;
+  stock.initialStock = qty;
+  stock.value = qty * retail;
+  await repository.upsert(stock);
+  variant.stock = stock;
+  variant.stockId = stock.id;
+  variant.qty = qty;
+  variant.rsdQty = qty;
+
+  await host.addVariant(
+    skipRRaCall: false,
+    variations: [variant],
+    branchId: branchId,
+  );
+  return true;
 }
 
 String _randomizeColor() {

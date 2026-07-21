@@ -314,6 +314,10 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? itemNm,
     String? itemCd,
     String? productId,
+
+    /// When true (bulk import), wait for Capella/Ditto sync after a local miss.
+    /// Interactive POS/checkout must leave this false to avoid multi-second stalls.
+    bool fetchRemote = false,
   });
   Future<bool> isTaxEnabled({
     required String businessId,
