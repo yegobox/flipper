@@ -26,6 +26,23 @@ class PaymentVerificationNavigator {
     'BarModeHost',
   };
 
+  /// Routes that exist before the user has authenticated. Background/periodic
+  /// payment verification must never force navigation away from these — doing
+  /// so would silently "log in" a user sitting on the PIN/login screen by
+  /// pushing them straight to the authenticated home once verification errors
+  /// out (e.g. because no business/branch is selected yet).
+  static const _preAuthRoutes = {
+    'StartUpView',
+    'Login',
+    'PinLogin',
+    'Landing',
+    'Auth',
+    'CountryPicker',
+    'PhoneInputScreen',
+    'LoginChoices',
+    'SignUpView',
+  };
+
   static const _barModeEnabledKey = BarModeBranchSettingsService.enabledKey;
 
   /// Verifies payment online and navigates. Use after signup when payment was just completed.
@@ -50,6 +67,13 @@ class PaymentVerificationNavigator {
       if (_criticalRoutes.contains(currentRoute)) {
         talker.info(
           'Skipping payment verification navigation - user on critical page: $currentRoute',
+        );
+        return;
+      }
+
+      if (_preAuthRoutes.contains(currentRoute)) {
+        talker.info(
+          'Skipping payment verification navigation - user not yet authenticated: $currentRoute',
         );
         return;
       }
