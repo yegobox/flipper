@@ -20,6 +20,7 @@ import 'package:pdf/pdf.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flipper_models/widgets/printer_picker_dialog.dart';
 
 // adjust if needed
 
@@ -268,7 +269,12 @@ mixin TransactionMixinOld {
                 try {
                   formKey.currentState?.reset();
                 } catch (_) {}
-                await printing(bytes, context);
+                await printing(
+                  bytes,
+                  context,
+                  transaction: transaction,
+                  transactionItems: items,
+                );
               }
             }
           } catch (e, s) {
@@ -297,7 +303,12 @@ mixin TransactionMixinOld {
     }
   }
 
-  Future<void> printing(Uint8List? bytes, BuildContext context) async {
+  Future<void> printing(
+    Uint8List? bytes,
+    BuildContext context, {
+    ITransaction? transaction,
+    List<TransactionItem>? transactionItems,
+  }) async {
     if (Platform.isAndroid || Platform.isIOS) {
       print("can't direct pring on ios, android using direct printer.");
     } else {
@@ -305,6 +316,8 @@ mixin TransactionMixinOld {
 
       if (printers.isNotEmpty) {
         Printer? selectedPrinter;
+        bool saveAsPdf = false;
+        int copies = 1;
 
         // Try to find default printer
         final String? savedPrinterName = ProxyService.box.readString(
@@ -339,11 +352,23 @@ mixin TransactionMixinOld {
         if (selectedPrinter == null) {
           // If we have context and it's mounted, ask user
           if (context.mounted) {
-            selectedPrinter = await Printing.pickPrinter(
+            final result = await showPrinterPickerDialog(
               context: context,
-              title: "List of printers",
+              printers: printers,
+              defaultPrinterName: savedPrinterName,
+              itemCount: transactionItems?.length ?? 1,
+              amount: transaction?.subTotal ?? 0,
+              currency: ProxyService.box.defaultCurrency(),
+              invoiceNumber: transaction?.invoiceNumber,
             );
-            // Save as default if selected
+            if (result == null) {
+              talker.info("Printer selection cancelled by user.");
+              return;
+            }
+            selectedPrinter = result.printer;
+            saveAsPdf = result.saveAsPdf;
+            copies = result.copies;
+            // Save as default if a physical printer was selected
             if (selectedPrinter != null) {
               ProxyService.box.writeString(
                 key: 'defaultPrinter',
@@ -358,11 +383,31 @@ mixin TransactionMixinOld {
           }
         }
 
-        if (selectedPrinter != null && bytes != null) {
-          await Printing.directPrintPdf(
-            printer: selectedPrinter,
-            onLayout: (PdfPageFormat format) async => bytes,
-          );
+        if (bytes == null) return;
+
+        if (saveAsPdf) {
+          await Printing.sharePdf(bytes: bytes, filename: 'receipt.pdf');
+          return;
+        }
+
+        if (selectedPrinter != null) {
+          for (var i = 0; i < copies; i++) {
+            await Printing.directPrintPdf(
+              printer: selectedPrinter,
+              onLayout: (PdfPageFormat format) async => bytes,
+            );
+          }
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Sent ${copies > 1 ? '$copies copies' : '1 copy'} to ${selectedPrinter.name}',
+                ),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(milliseconds: 2400),
+              ),
+            );
+          }
         }
       }
     }
@@ -440,7 +485,12 @@ mixin TransactionMixinOld {
         } catch (_) {}
 
         if (bytes != null && !sendDigitalReceipt) {
-          await printing(bytes, context);
+          await printing(
+            bytes,
+            context,
+            transaction: transaction,
+            transactionItems: transactionItems,
+          );
         }
       }
       return (
@@ -481,7 +531,12 @@ mixin TransactionMixinOld {
         formKey.currentState?.reset();
       } catch (_) {}
       if (bytes != null && !sendDigitalReceipt) {
-        await printing(bytes, context);
+        await printing(
+          bytes,
+          context,
+          transaction: transaction,
+          transactionItems: transactionItems,
+        );
       }
     } catch (e, s) {
       talker.error('Deferred receipt print failed: $e', s);
