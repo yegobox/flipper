@@ -130,6 +130,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         if (txn.status == PENDING) return;
       }
 
+      talker.warning(
+        'No local pending row found for branch=$branchId '
+        'type=$transactionType isExpense=$isExpense — creating a new one. '
+        'If a pending transaction already exists remotely but has not synced '
+        'yet, this mints a second transaction id and orphans any cart lines '
+        'already optimistically added against the old one.',
+      );
       await manageTransaction(
         transactionType: transactionType,
         isExpense: isExpense,

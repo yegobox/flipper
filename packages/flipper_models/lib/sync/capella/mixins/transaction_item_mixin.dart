@@ -642,6 +642,11 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
             talker.error('Error converting transaction item: $e');
           }
         }
+        talker.debug(
+          'transactionItemsStreams onChange txn=$transactionId branch=$branchId: '
+          '${items.length} item(s) '
+          '(variantIds=${items.map((i) => '${i.variantId}:${i.qty}').toList()})',
+        );
         controller.add(items);
       },
     );

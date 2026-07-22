@@ -212,16 +212,11 @@ Future<bool> persistItemToTransaction({
       }
     }
 
-    final persistedLines = await capella.transactionItems(
-      branchId: branchId,
-      transactionId: pendingTransaction.id,
-      doneWithTransaction: false,
-      active: true,
-    );
-    ref.read(optimisticCartProvider.notifier).reconcileFromPersistedItems(
-      transactionId: pendingTransaction.id,
-      items: persistedLines,
-    );
+    // Ghost clears only when transactionItemsStreamProvider itself reflects
+    // the save (via the passive onStreamEmitted reconciliation) — a direct
+    // Ditto read here used to confirm-and-clear faster, but that raced ahead
+    // of the live stream the cart actually renders from: the ghost would
+    // disappear before the real row was visible, flashing the cart empty.
   });
 
   if (itemAddAbortedStale) return false;
