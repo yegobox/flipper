@@ -14,8 +14,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
-    show previewingCart;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
@@ -721,12 +719,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (MediaQuery.sizeOf(context).width < 600) {
         unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
       } else {
-        // Force the full cart view (QuickSellingView) for the settling ticket
-        // rather than the catalog/pane layout, so returning to the checkout
-        // lands on the cart with the ticket's items (settling branch of
-        // posCartDisplayItemsProvider). Cleared on sale completion /
-        // back-to-new-sale.
-        ref.read(previewingCart.notifier).state = true;
+        // Return to checkout with [settlingTillTicketProvider] set so the cart
+        // shows this ticket's lines. Do not flip [previewingCart] — that used
+        // to replace [PosDefaultView] with bare QuickSellingView and hide the
+        // Tickets/Pay bar (manual close worked because it left previewingCart
+        // false). Cleared on sale completion / back-to-new-sale.
         locator<RouterService>().back();
       }
     } finally {

@@ -207,30 +207,52 @@ class CheckOutState extends ConsumerState<CheckOut>
             widget.isBigScreen ||
             constraints.maxWidth >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
         return useDesktopLayout
-            ? _buildBigScreenLayout(transaction, showCart: showCart)
+            ? _buildBigScreenLayout(transaction)
             : _buildSmallScreenLayout(showCart: showCart);
       },
     );
   }
 
-  Widget _buildBigScreenLayout(
-    ITransaction? transaction, {
-    required bool showCart,
-  }) {
+  Widget _buildBigScreenLayout(ITransaction? transaction) {
+    // [previewingCart] must not drop [PosDefaultView]: Collect used to set
+    // previewingCart then auto-back from tickets, which rendered bare
+    // [QuickSellingView] and hid Tickets/Pay. Manual close left previewingCart
+    // false, so Pay stayed — that mismatch is the bug.
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return !showCart
-            ? _buildBigScreenContent(transaction, model)
-            : _buildQuickSellingView();
+        return _buildBigScreenContent(transaction, model);
       },
     );
+  }
+
+  /// Prefer the till ticket being collected over the operator's pending cart
+  /// so [PosDefaultView]'s Pay bar is wired to the same txn as the cart UI.
+  ITransaction? _activeCheckoutTransaction(ITransaction? pending) {
+    final settling = ref.watch(settlingTillTicketProvider);
+    if (settling != null && settling.transactionId.isNotEmpty) {
+      final ticket =
+          ref.watch(transactionByIdProvider(settling.transactionId)).value;
+      if (ticket != null) return ticket;
+    }
+    return pending;
+  }
+
+  ITransaction? _resolveActiveCheckoutTransaction(ITransaction? pending) {
+    final settling = ref.read(settlingTillTicketProvider);
+    if (settling != null && settling.transactionId.isNotEmpty) {
+      final ticket =
+          ref.read(transactionByIdProvider(settling.transactionId)).value;
+      if (ticket != null) return ticket;
+    }
+    return pending;
   }
 
   Widget _buildBigScreenContent(
     ITransaction? transaction,
     CoreViewModel model,
   ) {
+    final activeTransaction = _activeCheckoutTransaction(transaction);
     return LayoutBuilder(
       builder: (context, constraints) {
         return SizedBox(
@@ -242,7 +264,7 @@ class CheckOutState extends ConsumerState<CheckOut>
           child: Padding(
             padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
             child: PosDefaultView(
-              transaction: transaction,
+              transaction: activeTransaction,
               quickSellingView: _buildQuickSellingView(),
               onCompleteTransaction:
                   (
@@ -250,7 +272,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                     onPaymentConfirmed,
                     onPaymentFailed,
                   ]) async {
-                    final txn = transaction;
+                    // Re-resolve at tap time — settling ticket may load after
+                    // the first frame that built this callback.
+                    final txn = _resolveActiveCheckoutTransaction(transaction);
                     if (txn == null) {
                       return false;
                     }
@@ -269,7 +293,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                     );
                   },
               onTicketNavigation: () {
-                final txn = transaction;
+                final txn = _resolveActiveCheckoutTransaction(transaction);
                 if (txn != null) {
                   handleTicketNavigation(txn);
                 }
