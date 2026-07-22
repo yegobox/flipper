@@ -87,6 +87,10 @@ Future<void> showSharedTicketDialog({
 }) {
   final formKey = GlobalKey<SharedTicketFormState>();
   final isSaving = ValueNotifier(false);
+  // A ticket must have a customer attached before it can be parked — starts
+  // false and SharedTicketFormState keeps it in sync as the customer field
+  // changes, so the footer button can gray out reactively.
+  final hasCustomer = ValueNotifier(false);
   final useBottomSheet = MediaQuery.sizeOf(context).width < 600;
 
   return WoltModalSheet.show(
@@ -102,13 +106,17 @@ Future<void> showSharedTicketDialog({
           transaction,
           formKey,
           isSaving,
+          hasCustomer,
           onParked: onParked,
           useBottomSheet: useBottomSheet,
           displayAmount: displayAmount,
         ),
       ];
     },
-  ).whenComplete(isSaving.dispose);
+  ).whenComplete(() {
+    isSaving.dispose();
+    hasCustomer.dispose();
+  });
 }
 
 double _parkTicketScrollBottomInset(BuildContext context) {
@@ -121,7 +129,8 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
   BuildContext context,
   ITransaction transaction,
   GlobalKey<SharedTicketFormState> formKey,
-  ValueNotifier<bool> isSaving, {
+  ValueNotifier<bool> isSaving,
+  ValueNotifier<bool> hasCustomer, {
   VoidCallback? onParked,
   required bool useBottomSheet,
   double? displayAmount,
@@ -142,6 +151,8 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
             transaction: transaction,
             isSavingNotifier: isSaving,
             scrollBottomInset: _parkTicketScrollBottomInset(context),
+            displayAmount: displayAmount,
+            hasCustomerNotifier: hasCustomer,
           ),
         ),
       ),
@@ -152,6 +163,7 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
       isSavingNotifier: isSaving,
       onParked: onParked,
       displayAmount: displayAmount,
+      hasCustomerNotifier: hasCustomer,
     ),
   );
 }
@@ -161,6 +173,7 @@ class _ParkTicketFooter extends StatelessWidget {
     required this.transaction,
     required this.formKey,
     required this.isSavingNotifier,
+    required this.hasCustomerNotifier,
     this.onParked,
     this.displayAmount,
   });
@@ -170,6 +183,9 @@ class _ParkTicketFooter extends StatelessWidget {
   final ValueNotifier<bool> isSavingNotifier;
   final VoidCallback? onParked;
   final double? displayAmount;
+
+  /// A ticket requires a customer before it can be parked.
+  final ValueNotifier<bool> hasCustomerNotifier;
 
   @override
   Widget build(BuildContext context) {
@@ -230,19 +246,27 @@ class _ParkTicketFooter extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       flex: 6,
-                      child: AsyncActionGradientButton(
-                        idleLabel: 'Park transaction',
-                        loadingLabel: 'Parking…',
-                        icon: Icons.bookmark_rounded,
-                        syncNotifier: isSavingNotifier,
-                        canStart: () =>
-                            formKey.currentState?.validate() ?? false,
-                        onPressed: () async {
-                          final ok =
-                              await formKey.currentState?.submit() ?? false;
-                          if (!ok || !context.mounted) return;
-                          onParked?.call();
-                          Navigator.of(context).pop();
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: hasCustomerNotifier,
+                        builder: (context, hasCustomer, _) {
+                          return AsyncActionGradientButton(
+                            idleLabel: 'Park transaction',
+                            loadingLabel: 'Parking…',
+                            icon: Icons.bookmark_rounded,
+                            syncNotifier: isSavingNotifier,
+                            enabled: hasCustomer,
+                            canStart: () =>
+                                hasCustomer &&
+                                (formKey.currentState?.validate() ?? false),
+                            onPressed: () async {
+                              final ok =
+                                  await formKey.currentState?.submit() ??
+                                  false;
+                              if (!ok || !context.mounted) return;
+                              onParked?.call();
+                              Navigator.of(context).pop();
+                            },
+                          );
                         },
                       ),
                     ),
@@ -274,10 +298,12 @@ class SharedTicketDialog extends StatefulWidget {
 class _SharedTicketDialogState extends State<SharedTicketDialog> {
   final GlobalKey<SharedTicketFormState> _formKey = GlobalKey();
   final ValueNotifier<bool> _isSaving = ValueNotifier(false);
+  final ValueNotifier<bool> _hasCustomer = ValueNotifier(false);
 
   @override
   void dispose() {
     _isSaving.dispose();
+    _hasCustomer.dispose();
     super.dispose();
   }
 
@@ -303,6 +329,7 @@ class _SharedTicketDialogState extends State<SharedTicketDialog> {
                   transaction: widget.transaction,
                   isSavingNotifier: _isSaving,
                   scrollBottomInset: 8,
+                  hasCustomerNotifier: _hasCustomer,
                 ),
               ),
             ),
@@ -310,6 +337,7 @@ class _SharedTicketDialogState extends State<SharedTicketDialog> {
               transaction: widget.transaction,
               formKey: _formKey,
               isSavingNotifier: _isSaving,
+              hasCustomerNotifier: _hasCustomer,
             ),
           ],
         ),
@@ -322,15 +350,27 @@ class SharedTicketForm extends ConsumerStatefulWidget {
   const SharedTicketForm({
     super.key,
     required this.transaction,
+    required this.hasCustomerNotifier,
     this.onSuccess,
     this.isSavingNotifier,
     this.scrollBottomInset = 120,
+    this.displayAmount,
   });
 
   final ITransaction transaction;
   final VoidCallback? onSuccess;
   final ValueNotifier<bool>? isSavingNotifier;
   final double scrollBottomInset;
+
+  /// Live sale total from the caller's checkout screen. When provided, it is
+  /// written onto [transaction.subTotal] before parking so the persisted
+  /// ticket (and every screen that later reads it, e.g. the tickets list)
+  /// reflects the same amount the operator saw, not a stale in-memory value.
+  final double? displayAmount;
+
+  /// Kept in sync with whether a customer is currently attached, so the park
+  /// footer button can gray out until one is selected.
+  final ValueNotifier<bool> hasCustomerNotifier;
 
   @override
   SharedTicketFormState createState() => SharedTicketFormState();
@@ -393,6 +433,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
           txn: widget.transaction,
         );
       });
+      widget.hasCustomerNotifier.value = _selectedCustomer != null;
     } catch (_) {
       // Fall back to list load / box name.
     }
@@ -420,6 +461,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
           txn: widget.transaction,
         );
       });
+      widget.hasCustomerNotifier.value = _selectedCustomer != null;
     } catch (_) {
       if (mounted) setState(() => _loadingCustomers = false);
     }
@@ -457,6 +499,10 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     try {
       widget.transaction.isLoan = _isLoan;
       widget.transaction.dueDate = _isLoan ? _dueDate?.toUtc() : null;
+      final displayAmount = widget.displayAmount;
+      if (displayAmount != null && displayAmount > 0) {
+        widget.transaction.subTotal = displayAmount;
+      }
 
       await ParkTransactionService.park(
         ticketName: _ticketNameController.text.trim(),
@@ -602,6 +648,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     if (!mounted) return;
     if (picked == false) {
       setState(() => _selectedCustomer = null);
+      widget.hasCustomerNotifier.value = false;
     } else if (picked is Customer) {
       final previous = _selectedCustomer;
       setState(() {
@@ -613,6 +660,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
           txn: widget.transaction,
         );
       });
+      widget.hasCustomerNotifier.value = true;
     }
   }
 

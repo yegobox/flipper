@@ -186,6 +186,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     setState(() => _sendToTillBusy = true);
     final displayRef = _ticketDisplayRef(txn);
     try {
+      // Same staleness guard as the Save Ticket dialog: transaction.subTotal
+      // can lag behind an in-flight optimistic qty edit, and a merge into an
+      // existing ticket for this customer trusts this field directly.
+      final liveTotal = calculateTransactionTotal(items: items, transaction: txn);
+      if (liveTotal > 0) {
+        txn.subTotal = liveTotal;
+      }
       await ref
           .read(parkTransactionProvider.notifier)
           .park(

@@ -27,6 +27,7 @@ class AsyncActionGradientButton extends StatefulWidget {
     required this.onPressed,
     this.syncNotifier,
     this.canStart,
+    this.enabled = true,
   });
 
   final String idleLabel;
@@ -39,6 +40,10 @@ class AsyncActionGradientButton extends StatefulWidget {
 
   /// Optional footer chrome (progress bar) driven by the same loading flag.
   final ValueNotifier<bool>? syncNotifier;
+
+  /// When false, renders a grayed-out, non-interactive button (e.g. a
+  /// precondition like "customer attached" is not met yet).
+  final bool enabled;
 
   @override
   State<AsyncActionGradientButton> createState() =>
@@ -55,7 +60,7 @@ class _AsyncActionGradientButtonState extends State<AsyncActionGradientButton> {
   }
 
   Future<void> _handleTap() async {
-    if (_loading || widget.onPressed == null) return;
+    if (_loading || !widget.enabled || widget.onPressed == null) return;
     if (widget.canStart != null && !widget.canStart!()) return;
 
     setState(() => _loading = true);
@@ -82,17 +87,20 @@ class _AsyncActionGradientButtonState extends State<AsyncActionGradientButton> {
   @override
   Widget build(BuildContext context) {
     final loading = _loading;
+    final disabled = !widget.enabled;
+    final foreground = disabled ? Colors.grey.shade500 : Colors.white;
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: _kPrimaryGradient,
+        gradient: disabled ? null : _kPrimaryGradient,
+        color: disabled ? Colors.grey.shade300 : null,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: _kPrimaryShadow,
+        boxShadow: disabled ? null : _kPrimaryShadow,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: loading ? null : _handleTap,
+          onTap: (loading || disabled) ? null : _handleTap,
           borderRadius: BorderRadius.circular(16),
           child: SizedBox(
             height: 56,
@@ -100,23 +108,23 @@ class _AsyncActionGradientButtonState extends State<AsyncActionGradientButton> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (loading)
-                  const SizedBox(
+                  SizedBox(
                     width: 24,
                     height: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: Colors.white,
+                      color: foreground,
                     ),
                   )
                 else
-                  Icon(widget.icon, color: Colors.white, size: 20),
+                  Icon(widget.icon, color: foreground, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   loading ? widget.loadingLabel : widget.idleLabel,
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
-                    color: Colors.white,
+                    color: foreground,
                   ),
                 ),
               ],

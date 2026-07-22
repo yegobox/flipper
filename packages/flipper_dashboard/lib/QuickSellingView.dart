@@ -2603,6 +2603,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final isTransferMode =
         !isOrdering &&
         ref.watch(checkoutCartModeProvider) == CheckoutCartMode.transfer;
+    // Collecting a till ticket adds a settling banner + invoice/txn row above
+    // the cart (see _buildSharedViewItemsPane) that the height heuristic below
+    // does not budget for. The "tall pane" branch's payment form is not
+    // scrollable on its own, so that extra height can overflow past its
+    // Expanded allocation and visually bury the Pay bar (PosDefaultView renders
+    // it as a fixed sibling below QuickSellingView, so it is never literally
+    // missing — just painted over). Force the scrollable fallback here so the
+    // whole pane scrolls instead of overflowing.
+    final isSettling = ref.watch(settlingTillTicketProvider) != null;
 
     final pinnedBottomColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2655,10 +2664,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           );
         }
 
-        // Phone landscape and other short panels: one vertical scroll fallback.
-        if (PosLayoutBreakpoints.useSingleScrollCheckoutPane(
-          constraints.maxHeight,
-        )) {
+        // Phone landscape and other short panels (or the taller settling
+        // banner eating into the same budget): one vertical scroll fallback.
+        if (isSettling ||
+            PosLayoutBreakpoints.useSingleScrollCheckoutPane(
+              constraints.maxHeight,
+            )) {
           if (isOrdering) {
             return SizedBox(
               width: constraints.maxWidth,
@@ -3416,6 +3427,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     setState(() => _sendToTillBusy = true);
     final displayRef = _ticketDisplayRef(transaction);
     try {
+      // Same staleness guard as the Save Ticket dialog: transaction.subTotal
+      // can lag behind an in-flight optimistic qty edit, and a merge into an
+      // existing ticket for this customer trusts this field directly.
+      final liveTotal = totalAfterDiscountAndShipping;
+      if (liveTotal > 0) {
+        transaction.subTotal = liveTotal;
+      }
       await ref.read(parkTransactionProvider.notifier).park(
             ticketName: 'Till · $displayRef',
             ticketNote: 'Sent to till for payment',
