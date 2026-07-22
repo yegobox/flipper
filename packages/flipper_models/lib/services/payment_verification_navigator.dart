@@ -71,7 +71,12 @@ class PaymentVerificationNavigator {
         return;
       }
 
-      if (_preAuthRoutes.contains(currentRoute)) {
+      // The pre-auth guard is only meant to stop *background/periodic*
+      // verification from yanking a user off a login/PIN screen. The initial
+      // startup verification legitimately runs while sitting on StartUpView and
+      // must be allowed to navigate to the authenticated home — otherwise the
+      // app freezes on the splash screen at 100%.
+      if (!isInitialStartup && _preAuthRoutes.contains(currentRoute)) {
         talker.info(
           'Skipping payment verification navigation - user not yet authenticated: $currentRoute',
         );
