@@ -646,8 +646,102 @@ class TaxController<OBJ> {
     return bytes;
   }
 
+  /// Builds and prints a plain (non-fiscal) receipt for branches that are not
+  /// EBM-registered. Unlike [_buildReceiptPdfBytes], this never calls the RRA
+  /// tax service, never touches [Ebm]/[Receipt] records or counters, and omits
+  /// SDC info, QR code, receipt signature and MRC from the printed page.
+  Future<Uint8List?> buildNonFiscalReceiptPdfBytes({
+    required ITransaction transaction,
+    required List<TransactionItem> transactionItems,
+    void Function()? onSuccess,
+  }) async {
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null) return null;
+
+    final business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: businessId);
+    if (business == null) return null;
+
+    final paymentTypes = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getPaymentType(transactionId: transaction.id);
+
+    var customerNameForPrint =
+        transaction.customerName ?? ProxyService.box.customerName() ?? '';
+    customerNameForPrint = customerNameForPrint.trim();
+    if (customerNameForPrint.isEmpty) {
+      customerNameForPrint = 'Walk-in Customer';
+    }
+
+    Uint8List? bytes;
+    await Print().print(
+      vatEnabled: false,
+      taxTT: 0,
+      totalTaxTT: 0,
+      customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
+          ? transaction.customerPhone
+          : ProxyService.box.currentSaleCustomerPhoneNumber(),
+      totalDiscount: 0,
+      whenCreated: transaction.lastPaymentDate ?? DateTime.now(),
+      timeFromServer: transaction.lastPaymentDate ?? DateTime.now(),
+      taxB: 0,
+      taxC: 0,
+      taxA: 0,
+      taxD: 0,
+      grandTotal: transaction.subTotal ?? 0,
+      totalTaxA: 0,
+      totalTaxB: 0,
+      totalTaxC: 0,
+      totalTaxD: 0,
+      currencySymbol: "RW",
+      transaction: transaction,
+      totalTax: 0.toStringAsFixed(2),
+      items: transactionItems,
+      cash: transaction.subTotal ?? 0,
+      received: transaction.cashReceived ?? 0,
+      payMode: paymentTypes.isEmpty
+          ? "CASH".toPaymentType()
+          : paymentTypes.last.paymentMethod?.toPaymentType() ?? "CASH",
+      mrc: "",
+      internalData: "",
+      receiptQrCode: "",
+      receiptSignature: "",
+      cashierName: business.name ?? "",
+      sdcId: "",
+      invoiceNum: 0,
+      rcptNo: 0,
+      totRcptNo: 0,
+      brandName: business.name ?? "",
+      brandAddress: business.adrs ?? "",
+      brandTel: business.phoneNumber ?? "",
+      brandTIN: business.tinNumber?.toString() ?? "",
+      brandDescription: business.name ?? "",
+      brandFooter: business.name ?? "",
+      emails: [business.email ?? ""],
+      brandEmail: business.email ?? "info@yegobox.com",
+      customerTin: (transaction.customerTin?.isNotEmpty ?? false)
+          ? transaction.customerTin
+          : ProxyService.box.customerTin(),
+      receiptType: TransactionReceptType.NS,
+      customerName: customerNameForPrint,
+      isFiscalReceipt: false,
+      printCallback: (Uint8List data) {
+        bytes = data;
+        onSuccess?.call();
+      },
+      skipPresentation: false,
+    );
+
+    transaction.receiptPrinted = true;
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).updateTransaction(transactionId: transaction.id, receiptPrinted: true);
+    return bytes;
+  }
+
   /**
-   * Generates a receipt signature by calling the EBM API, updates the receipt 
+   * Generates a receipt signature by calling the EBM API, updates the receipt
    * counter, and saves the receipt to the local database.
    * 
    * @param items - List of transaction items 

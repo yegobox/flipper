@@ -3397,7 +3397,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final txn =
         ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
         transaction;
-    await showSharedTicketDialog(context: context, transaction: txn);
+    // transaction.subTotal is a persisted/streamed snapshot that can lag
+    // behind optimistic cart edits and discounts — pass the live sale total
+    // (same source the checkout screen renders) so the dialog never shows a
+    // different amount than what the operator just saw.
+    await showSharedTicketDialog(
+      context: context,
+      transaction: txn,
+      displayAmount: totalAfterDiscountAndShipping,
+    );
   }
 
   Future<void> _sendCartToTill(ITransaction transaction) async {
