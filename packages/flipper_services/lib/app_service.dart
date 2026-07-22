@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
@@ -453,24 +454,39 @@ class AppService with ListenableServiceMixin {
     final ditto = DittoSingleton.instance.ditto;
     if (ditto == null || branchId.isEmpty) return;
 
-    unawaited(
-      ensureBranchCatalogCloudSubscriptions(
-        ditto: ditto,
-        branchId: branchId,
-        businessId: ProxyService.box.getBusinessId(),
-      ),
+    // Sequenced (not all fired concurrently): registering all 5 branch
+    // subscriptions at once starts an unbounded "SELECT *" catalog pull for
+    // every collection in the same instant the destination screen is
+    // querying/rendering that same data, spiking memory/CPU right during the
+    // branch->home transition. Running them one after another spreads that
+    // load out; the end state (all subscriptions registered) is unchanged.
+    unawaited(_registerBranchDittoSubscriptionsSequentially(
+      ditto: ditto,
+      branchId: branchId,
+    ));
+  }
+
+  Future<void> _registerBranchDittoSubscriptionsSequentially({
+    required Ditto ditto,
+    required String branchId,
+  }) async {
+    await ensureBranchCatalogCloudSubscriptions(
+      ditto: ditto,
+      branchId: branchId,
+      businessId: ProxyService.box.getBusinessId(),
     );
-    unawaited(
-      ensureBranchCounterCloudSubscription(ditto: ditto, branchId: branchId),
+    await ensureBranchCounterCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
     );
-    unawaited(
-      ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId),
+    await ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId);
+    await ensureBranchDelegationCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
     );
-    unawaited(
-      ensureBranchDelegationCloudSubscription(ditto: ditto, branchId: branchId),
-    );
-    unawaited(
-      ensureDailyReportFilesCloudSubscription(ditto: ditto, branchId: branchId),
+    await ensureDailyReportFilesCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
     );
   }
 
