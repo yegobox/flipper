@@ -4,7 +4,7 @@ publish_to: "none"
 #  ios : 1.184
 # macos : 1.181
 
-version: 1.190.0+1756529677
+version: 1.198.0+1756529685
 
 
 
@@ -210,7 +210,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
   # Store package identity — pre-commit bumps Minor each time (1.185.0.0 → 1.186.0.0).
-  msix_version: 1.190.0.0
+  msix_version: 1.202.0.0
 
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE

@@ -398,12 +398,6 @@ class _SearchInputWithDropdownState
       }
       ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
       ref.invalidate(attachedCustomerProvider(customer.id));
-      await _dialogService.showCustomDialog(
-        variant: DialogType.info,
-        title: 'Success',
-        description: 'Customer ${customer.custNm} added to the sale!',
-        data: {'status': InfoDialogStatus.success},
-      );
       // Do NOT invalidate pendingTransactionStreamProvider here. That tears down
       // the live Ditto pending-cart observer and re-subscribes; the fresh
       // subscription can momentarily read an empty result and spawn a brand-new

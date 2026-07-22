@@ -128,9 +128,20 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final txn =
         ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
         widget.transaction;
+    // transaction.subTotal is a persisted/streamed snapshot that can lag
+    // behind optimistic cart edits — pass the live sale total (same
+    // calculateTransactionTotal source the checkout screen renders in
+    // MposTotalsCard) so the dialog never shows a different amount than what
+    // the operator just saw.
+    final items = ref
+        .read(posCartDisplayItemsProvider)
+        .where((i) => i.active != false)
+        .toList();
+    final total = calculateTransactionTotal(items: items, transaction: txn);
     await showSharedTicketDialog(
       context: context,
       transaction: txn,
+      displayAmount: total,
       onParked: () => parked = true,
     );
     if (!parked || !mounted) return;
@@ -175,6 +186,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     setState(() => _sendToTillBusy = true);
     final displayRef = _ticketDisplayRef(txn);
     try {
+      // Same staleness guard as the Save Ticket dialog: transaction.subTotal
+      // can lag behind an in-flight optimistic qty edit, and a merge into an
+      // existing ticket for this customer trusts this field directly.
+      final liveTotal = calculateTransactionTotal(items: items, transaction: txn);
+      if (liveTotal > 0) {
+        txn.subTotal = liveTotal;
+      }
       await ref
           .read(parkTransactionProvider.notifier)
           .park(

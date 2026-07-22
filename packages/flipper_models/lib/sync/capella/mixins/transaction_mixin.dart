@@ -2995,19 +2995,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         branchId: to.branchId!,
       );
 
-      // Get items for toId to calculate subTotal
-      final itemsQueryResult = await ditto.store.execute(
-        'SELECT * FROM transaction_items WHERE transactionId = :toId',
-        arguments: {'toId': to.id},
-      );
-
-      double newSubTotal = 0.0;
-      for (final item in itemsQueryResult.items) {
-        final data = Map<String, dynamic>.from(item.value);
-        final price = data['price'] ?? 0.0;
-        final qty = data['qty'] ?? 0.0;
-        newSubTotal += (data['totAmt'] ?? (price * qty)) ?? 0.0;
-      }
+      // Sum the two sides' already-known-correct totals instead of re-summing
+      // transaction_items straight from Ditto: a cart +/- flush is debounced
+      // (see TransactionItemTable._scheduleLineQtyFlush), so right after a
+      // qty tap the moved-in items may not have landed in Ditto yet and a
+      // fresh SELECT would silently merge in the stale pre-tap quantity.
+      // [from.subTotal] is the live sale total the operator just saw on
+      // screen (set by the park-dialog caller before this merge runs).
+      final newSubTotal = (to.subTotal ?? 0.0) + (from.subTotal ?? 0.0);
 
       await updateTransaction(
         transaction: to,

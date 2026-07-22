@@ -148,10 +148,14 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
                 final showPayBar = !isTransfer && !isOrdering;
                 return Column(
                   children: [
+                    // Clip so a tall cart/payment form cannot paint over Pay.
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 8.0),
-                        child: widget.quickSellingView,
+                      child: ClipRect(
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 8.0),
+                          child: widget.quickSellingView,
+                        ),
                       ),
                     ),
                     if (showPayBar)
