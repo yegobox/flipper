@@ -72,9 +72,17 @@ void _syncTicketNameWithCustomer(
 }
 
 /// Park-transaction sheet (bottom sheet on mobile, centered dialog on wide).
+///
+/// [displayAmount], when provided, overrides [transaction.subTotal] in the
+/// footer's "AMOUNT" readout. Callers should pass the same live sale total
+/// they render on their own checkout screen — [transaction.subTotal] is a
+/// persisted/streamed snapshot that can lag behind optimistic cart edits or
+/// discounts, which otherwise shows a different number than what the operator
+/// just saw on screen.
 Future<void> showSharedTicketDialog({
   required BuildContext context,
   required ITransaction transaction,
+  double? displayAmount,
   VoidCallback? onParked,
 }) {
   final formKey = GlobalKey<SharedTicketFormState>();
@@ -96,6 +104,7 @@ Future<void> showSharedTicketDialog({
           isSaving,
           onParked: onParked,
           useBottomSheet: useBottomSheet,
+          displayAmount: displayAmount,
         ),
       ];
     },
@@ -115,6 +124,7 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
   ValueNotifier<bool> isSaving, {
   VoidCallback? onParked,
   required bool useBottomSheet,
+  double? displayAmount,
 }) {
   return SliverWoltModalSheetPage(
     backgroundColor: Colors.white,
@@ -141,6 +151,7 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
       formKey: formKey,
       isSavingNotifier: isSaving,
       onParked: onParked,
+      displayAmount: displayAmount,
     ),
   );
 }
@@ -151,17 +162,19 @@ class _ParkTicketFooter extends StatelessWidget {
     required this.formKey,
     required this.isSavingNotifier,
     this.onParked,
+    this.displayAmount,
   });
 
   final ITransaction transaction;
   final GlobalKey<SharedTicketFormState> formKey;
   final ValueNotifier<bool> isSavingNotifier;
   final VoidCallback? onParked;
+  final double? displayAmount;
 
   @override
   Widget build(BuildContext context) {
     final currency = ProxyService.box.defaultCurrency();
-    final amount = (transaction.subTotal ?? 0.0)
+    final amount = (displayAmount ?? transaction.subTotal ?? 0.0)
         .toCurrencyFormatted(symbol: currency);
 
     return ValueListenableBuilder<bool>(

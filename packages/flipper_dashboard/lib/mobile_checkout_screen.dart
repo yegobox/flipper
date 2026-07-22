@@ -128,9 +128,20 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final txn =
         ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
         widget.transaction;
+    // transaction.subTotal is a persisted/streamed snapshot that can lag
+    // behind optimistic cart edits — pass the live sale total (same
+    // calculateTransactionTotal source the checkout screen renders in
+    // MposTotalsCard) so the dialog never shows a different amount than what
+    // the operator just saw.
+    final items = ref
+        .read(posCartDisplayItemsProvider)
+        .where((i) => i.active != false)
+        .toList();
+    final total = calculateTransactionTotal(items: items, transaction: txn);
     await showSharedTicketDialog(
       context: context,
       transaction: txn,
+      displayAmount: total,
       onParked: () => parked = true,
     );
     if (!parked || !mounted) return;
