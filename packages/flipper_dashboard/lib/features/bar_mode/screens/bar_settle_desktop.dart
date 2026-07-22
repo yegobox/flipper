@@ -523,6 +523,7 @@ class _BarSettleDesktopScreenState extends ConsumerState<BarSettleDesktopScreen>
 
       final businessId = ProxyService.box.getBusinessId();
       final branchId = ProxyService.box.getBranchId();
+      bool fiscalReceiptHandled = false;
       if (businessId != null && branchId != null) {
         final taxEnabled = await sync.isTaxEnabled(
           businessId: businessId,
@@ -553,7 +554,22 @@ class _BarSettleDesktopScreenState extends ConsumerState<BarSettleDesktopScreen>
             if (result.response.resultCd != '000') {
               throw Exception(result.response.resultMsg);
             }
+            fiscalReceiptHandled = true;
           }
+        }
+      }
+
+      // Branch is not EBM-registered (or the tax checks above didn't apply):
+      // there's no RRA-signed receipt, but the tab is still a real completed
+      // sale, so print a plain, non-fiscal receipt instead.
+      if (!fiscalReceiptHandled && lines.isNotEmpty) {
+        try {
+          await TaxController(object: txn).buildNonFiscalReceiptPdfBytes(
+            transaction: txn,
+            transactionItems: lines,
+          );
+        } catch (e) {
+          debugPrint('Non-fiscal bar receipt print failed: $e');
         }
       }
 

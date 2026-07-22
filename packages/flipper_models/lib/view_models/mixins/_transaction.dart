@@ -246,6 +246,35 @@ mixin TransactionMixinOld {
           tenderAmount: amount,
           skipTransactionPersist: skipTransactionPersist,
         );
+
+        // Branch is not EBM-registered (or EBM/tax checks above failed for
+        // another reason): there's no RRA-signed receipt to print, but the
+        // sale is still a completed sale, so print a plain, non-fiscal
+        // receipt instead. Only for a real, fully paid sale completion —
+        // never for partial loan payments, which never got a receipt either.
+        if (!isLoan && shouldComplete && isFullyPaid && !sendDigitalReceipt) {
+          try {
+            final items = preloadedLineItemsForCollectPayment ??
+                await ProxyService.getStrategy(
+                  Strategy.capella,
+                ).transactionItems(transactionId: transaction.id);
+            if (items.isNotEmpty) {
+              final bytes = await TaxController(object: transaction)
+                  .buildNonFiscalReceiptPdfBytes(
+                transaction: transaction,
+                transactionItems: items,
+              );
+              if (bytes != null) {
+                try {
+                  formKey.currentState?.reset();
+                } catch (_) {}
+                await printing(bytes, context);
+              }
+            }
+          } catch (e, s) {
+            talker.error('Non-fiscal receipt print failed: $e', s);
+          }
+        }
       }
 
       if (response == null) {
