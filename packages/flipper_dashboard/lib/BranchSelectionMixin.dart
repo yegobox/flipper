@@ -19,6 +19,7 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'dart:async'; // Add missing import for Timer
 
 mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
@@ -174,6 +175,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         branchesProvider(businessId: ProxyService.box.getBusinessId()),
       );
       ref.invalidate(activeBranchProvider);
+      ref.invalidate(customersProvider);
 
       await BarModeBranchSettingsService.hydrateForActiveBranch();
 
