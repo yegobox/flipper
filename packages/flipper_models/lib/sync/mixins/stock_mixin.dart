@@ -87,6 +87,26 @@ mixin StockMixin implements StockInterface {
     }
 
     await repository.upsert(stock);
+
+    // Keep Capella/Ditto in sync — POS tiles and transfers read stock there.
+    // Brick-only upsert previously left Capella ahead/behind and caused false OOS.
+    try {
+      await ProxyService.getStrategy(Strategy.capella).updateStock(
+        stockId: stockId,
+        qty: qty,
+        rsdQty: stock.rsdQty,
+        initialStock: stock.initialStock,
+        ebmSynced: stock.ebmSynced,
+        currentStock: stock.currentStock,
+        value: stock.value,
+        appending: false,
+        lastTouched: stock.lastTouched,
+      );
+    } catch (e, st) {
+      talker.warning(
+        'updateStock Capella mirror failed for $stockId: $e\n$st',
+      );
+    }
   }
 
   @override

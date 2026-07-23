@@ -1,4 +1,5 @@
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/utils/branch_transfer_rra.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
@@ -13,6 +14,12 @@ import 'dart:async';
 import 'package:flipper_ui/snack_bar_utils.dart';
 
 mixin StockRequestApprovalLogic {
+  /// Stock quantities and transfer mutations must use Capella/Ditto — the same
+  /// source as POS catalog tiles. Default [ProxyService.strategy] on native is
+  /// Brick/CoreSync, whose variant→stock association often lags.
+  DatabaseSyncInterface get _capella =>
+      ProxyService.getStrategy(Strategy.capella);
+
   /// Returns true when approval is finalized; false when left pending/unapproved.
   /// Unexpected failures are surfaced via snackbar then rethrown.
   Future<bool> approveRequest({
@@ -199,7 +206,7 @@ mixin StockRequestApprovalLogic {
         return;
       }
 
-      final Variant? variant = await ProxyService.strategy.getVariant(
+      final Variant? variant = await _capella.getVariant(
         id: item.variantId!,
       );
       if (variant == null) {
@@ -282,15 +289,17 @@ mixin StockRequestApprovalLogic {
   }
 
   Future<bool> _canApproveItem({required TransactionItem item}) async {
-    final Variant? variant = await ProxyService.strategy.getVariant(
+    final Variant? variant = await _capella.getVariant(
       id: item.variantId!,
     );
 
-    if (variant == null || variant.stock?.currentStock == null) {
+    final availableStock = variant?.stock?.currentStock;
+    if (variant == null ||
+        availableStock == null ||
+        (variant.stock?.branchId.trim().isEmpty ?? true)) {
       return false;
     }
 
-    final double availableStock = variant.stock!.currentStock!;
     final int quantityRequested = _requestedQty(item);
     final int quantityApproved = item.quantityApproved ?? 0;
     final int remainingQuantityToApprove = quantityRequested - quantityApproved;
@@ -345,7 +354,7 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
-      final Variant? variant = await ProxyService.strategy.getVariant(
+      final Variant? variant = await _capella.getVariant(
         id: item.variantId!,
       );
       if (variant == null) {
@@ -379,7 +388,7 @@ mixin StockRequestApprovalLogic {
     required String destinationBranchId,
   }) async {
     try {
-      return await ProxyService.strategy.saveStock(
+      return await _capella.saveStock(
         rsdQty: item.quantityRequested!.toDouble(),
         currentStock: item.quantityRequested!.toDouble(),
         value: (item.quantityRequested! * variant.retailPrice!).toDouble(),
@@ -844,7 +853,7 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
-      final Variant? requestedVariant = await ProxyService.strategy.getVariant(
+      final Variant? requestedVariant = await _capella.getVariant(
         id: item.variantId!,
       );
 
@@ -878,10 +887,10 @@ mixin StockRequestApprovalLogic {
 
       if (approvedQuantity <= 0) return null;
 
-      final sourceVariant = await ProxyService.strategy.getVariant(
+      final sourceVariant = await _capella.getVariant(
         id: requestedVariant.id,
       );
-      final destFresh = await ProxyService.strategy.getVariant(
+      final destFresh = await _capella.getVariant(
         id: destVariant.id,
       );
       if (sourceVariant == null || destFresh == null) return null;
@@ -918,13 +927,14 @@ mixin StockRequestApprovalLogic {
 
     if (existingVariantBranch != null) {
       // Variant already exists for this branch, use the existing one
-      final existingVariant = await ProxyService.strategy.getVariant(
+      final existingVariant = await _capella.getVariant(
         id: existingVariantBranch.newVariantId,
       );
       if (existingVariant != null) {
         // Update the existing variant's stock if it exists
-        if (existingVariant.stock != null) {
-          await ProxyService.strategy.updateStock(
+        if (existingVariant.stock != null &&
+            existingVariant.stock!.branchId.trim().isNotEmpty) {
+          await _capella.updateStock(
             stockId: existingVariant.stock!.id,
             currentStock:
                 existingVariant.stock!.currentStock! + approvedQuantity,
@@ -1008,21 +1018,22 @@ mixin StockRequestApprovalLogic {
     required bool isDeducting,
   }) async {
     try {
-      final Variant? variant = await ProxyService.strategy.getVariant(
+      final Variant? variant = await _capella.getVariant(
         id: variantId,
       );
 
-      if (variant?.stock == null) {
+      if (variant?.stock == null ||
+          variant!.stock!.branchId.trim().isEmpty) {
         talker.error('Stock not found for variant: $variantId');
         throw Exception('Stock not found');
       }
 
-      final double currentStock = variant!.stock!.currentStock!;
+      final double currentStock = variant.stock!.currentStock!;
       final double updatedStock = isDeducting
           ? (currentStock - approvedQuantity.toDouble())
           : (currentStock + approvedQuantity.toDouble());
 
-      await ProxyService.strategy.updateStock(
+      await _capella.updateStock(
         stockId: variant.stock!.id,
         currentStock: updatedStock,
         value: updatedStock * variant.retailPrice!,

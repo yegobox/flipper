@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
+import 'package:flipper_dashboard/utils/branch_transfer_stock.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -34,25 +35,56 @@ class BranchTransferService with StockRequestApprovalLogic {
       throw StateError('Select a different destination branch');
     }
 
+    final variantIds = items
+        .map((i) => i.variantId)
+        .whereType<String>()
+        .where((id) => id.trim().isNotEmpty)
+        .toList();
+    final onHandByVariant =
+        await resolveCapellaOnHandByVariantIds(variantIds);
+
     final clamped = <TransactionItem>[];
     for (final item in items) {
       if (item.variantId == null || item.variantId!.isEmpty) {
         throw Exception('Item ${item.name} is missing a product variant');
       }
-      final variant = await ProxyService.strategy.getVariant(
-        id: item.variantId!,
-      );
-      final onHand = variant?.stock?.currentStock ?? 0;
+      final resolved = onHandByVariant[item.variantId!];
+      final onHand = resolved?.onHand ?? 0;
       final requested = item.qty.round();
       if (requested < 1) {
         throw Exception('${item.name}: quantity must be at least 1');
       }
-      if (onHand < 1) {
-        throw Exception('${item.name}: no stock available to transfer');
+      if (resolved?.variant == null) {
+        talker.error(
+          'Branch transfer: variant ${item.variantId} not found in Capella '
+          'for ${item.name}',
+        );
+        throw Exception(
+          '${item.name}: product record not found; refresh catalog and retry',
+        );
+      }
+      if (resolved?.stock == null || onHand < 1) {
+        talker.error(
+          'Branch transfer: no Capella stock for ${item.name} '
+          '(variant=${item.variantId}, stockId=${resolved?.variant?.stockId}, '
+          'onHand=$onHand)',
+        );
+        throw Exception(
+          '${item.name}: no stock available to transfer '
+          '(on hand: ${onHand.toInt()})',
+        );
       }
       final qty = requested > onHand.toInt() ? onHand.toInt() : requested;
       if (qty < 1) {
-        throw Exception('${item.name}: no stock available to transfer');
+        throw Exception(
+          '${item.name}: no stock available to transfer (on hand: ${onHand.toInt()})',
+        );
+      }
+      if (qty < requested) {
+        talker.info(
+          'Branch transfer: clamped ${item.name} from $requested to $qty '
+          '(on hand: ${onHand.toInt()})',
+        );
       }
       clamped.add(
         item.copyWith(
@@ -98,7 +130,7 @@ class BranchTransferService with StockRequestApprovalLogic {
 
     // Approval path expects [request.branch] (= destination / requester).
     if (request.branch == null && request.subBranchId != null) {
-      request.branch = await ProxyService.strategy.branch(
+      request.branch = await ProxyService.getStrategy(Strategy.capella).branch(
         serverId: request.subBranchId,
       );
     }

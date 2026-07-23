@@ -308,19 +308,33 @@ class Variant extends OfflineFirstWithSupabaseModel {
         return s.isEmpty ? null : s;
       }
 
-      // Extract stock information if present
+      // Prefer real stockId from the document. Never invent a UUID when missing —
+      // a random id makes Capella getStockById return a zero placeholder and
+      // falsely report out-of-stock on transfer/sale while qty still displays.
+      final stockId = optionalString(json['stockId'] ?? json['stock_id']);
+      final qtyValue = (parseNum(json['qty']) ?? 0.0).toDouble();
+      final branchIdForStock = ProxyService.box.getBranchId() ?? '';
       Stock? stock;
-      String? stockId =
-          parseOrDefault<String?>(json['stockId'], const Uuid().v4());
-
-      stock = Stock(
-        id: stockId,
-        lastTouched: DateTime.now().toUtc(),
-        rsdQty: (parseNum(json['qty']) ?? 0.0).toDouble(),
-        initialStock: (parseNum(json['qty']) ?? 0.0).toDouble(),
-        branchId: ProxyService.box.getBranchId()!,
-        currentStock: (parseNum(json['qty']) ?? 0.0).toDouble(),
-      );
+      if (stockId != null) {
+        stock = Stock(
+          id: stockId,
+          lastTouched: DateTime.now().toUtc(),
+          rsdQty: qtyValue,
+          initialStock: qtyValue,
+          branchId: branchIdForStock,
+          currentStock: qtyValue,
+        );
+      } else if (qtyValue > 0 && branchIdForStock.isNotEmpty) {
+        // Display-only placeholder until a real stock row is attached.
+        stock = Stock(
+          id: '',
+          lastTouched: DateTime.now().toUtc(),
+          rsdQty: qtyValue,
+          initialStock: qtyValue,
+          branchId: branchIdForStock,
+          currentStock: qtyValue,
+        );
+      }
 
       return Variant(
         stock: stock,
