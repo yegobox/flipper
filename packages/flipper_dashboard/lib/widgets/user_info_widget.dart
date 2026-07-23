@@ -1,8 +1,17 @@
+import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_dashboard/logout/dashboard_sign_out.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    show branchSelectionProvider, businessesProvider, buttonIndexProvider;
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
 
 /// A compact widget showing user information in the top bar
 class UserInfoWidget extends StatefulHookConsumerWidget {
@@ -15,8 +24,10 @@ class UserInfoWidget extends StatefulHookConsumerWidget {
   ConsumerState<UserInfoWidget> createState() => _UserInfoWidgetState();
 }
 
-class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
+class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
+    with BranchSelectionMixin {
   String _userName = 'Loading...';
+  String? _loadingItemId;
 
   @override
   void initState() {
@@ -116,6 +127,66 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
     return trimmed;
   }
 
+  Future<void> _setDefaultBranch(Branch branch) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+    // ignore: unused_result
+    ref.refresh(businessesProvider);
+    // ignore: unused_result
+    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
+  }
+
+  Future<void> _signOut() async {
+    final dialogService = locator<DialogService>();
+    final routerService = locator<RouterService>();
+    await completeDashboardSignOut(
+      context: context,
+      dialogService: dialogService,
+      routerService: routerService,
+      loaderUseRootNavigator: true,
+    );
+  }
+
+  Future<void> _openBranchSwitchDialog() async {
+    ref.read(buttonIndexProvider.notifier).setIndex(2);
+    await showBranchSwitchDialog(
+      context: context,
+      branches: null,
+      loadingItemId: _loadingItemId,
+      setDefaultBranch: (branch) async {
+        await handleBranchSelection(
+          branch,
+          context,
+          setLoadingState: (String? id) {
+            setState(() {
+              _loadingItemId = id;
+            });
+          },
+          setDefaultBranch: _setDefaultBranch,
+          onComplete: () {
+            Navigator.of(context).pop();
+          },
+          setIsLoading: (_) {},
+        );
+      },
+      handleBranchSelection: handleBranchSelection,
+      onLogout: _signOut,
+      setLoadingState: (String? id) {
+        setState(() {
+          _loadingItemId = id;
+        });
+      },
+    );
+  }
+
+  void _onMenuSelected(String value) {
+    switch (value) {
+      case 'switchBranch':
+        _openBranchSwitchDialog();
+      case 'logOut':
+        _signOut();
+    }
+  }
+
   Widget _nameColumn({
     required BuildContext context,
     required String displayName,
@@ -154,13 +225,10 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final displayName = widget.handoffTopBarStyle
-        ? _userName.toUpperCase()
-        : _userName;
-    final branchName = _activeBranchName();
-
+  Widget _profileChip({
+    required String displayName,
+    required String? branchName,
+  }) {
     if (widget.handoffTopBarStyle) {
       return Padding(
         padding: const EdgeInsets.only(left: 6),
@@ -201,6 +269,12 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
                 height: 1.15,
               ),
             ),
+            const SizedBox(width: 2),
+            const Icon(
+              Icons.expand_more,
+              size: 18,
+              color: PosTokens.ink3,
+            ),
           ],
         ),
       );
@@ -237,7 +311,62 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
             ),
             branchStyle: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
+          Icon(Icons.expand_more, size: 18, color: Colors.grey.shade600),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = widget.handoffTopBarStyle
+        ? _userName.toUpperCase()
+        : _userName;
+    final branchName = _activeBranchName();
+
+    return PopupMenuButton<String>(
+      tooltip: 'Account',
+      offset: const Offset(0, 48),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      onSelected: _onMenuSelected,
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem<String>(
+          value: 'switchBranch',
+          child: Row(
+            children: [
+              Icon(Icons.swap_horiz, color: Colors.grey.shade800, size: 20),
+              const SizedBox(width: 10),
+              const Text(
+                'Switch Branch',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'logOut',
+          child: Row(
+            children: [
+              Icon(Icons.logout, color: Colors.grey.shade800, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                FLocalization.of(context).logOut,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: _profileChip(
+          displayName: displayName,
+          branchName: branchName,
+        ),
       ),
     );
   }
