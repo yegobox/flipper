@@ -65,6 +65,9 @@ double _parseClosingBalance(dynamic raw) {
 /// When [confirmWhenNoOpenShift] is true, the user must confirm leaving when
 /// no shift is open (sidebar and mobile after they chose Logout).
 ///
+/// When [forUserSwitch] is true, uses switch-user copy, skips login-screen
+/// snackbars/delays, and does not ask to confirm when no shift is open.
+///
 /// [loaderUseRootNavigator] should be **false** when this runs from another
 /// dialog (e.g. stacked logout). Using the root navigator can replace or obscure
 /// that dialog so the confirmation never appears.
@@ -76,20 +79,25 @@ Future<bool> prepareSessionExitAfterShiftHandling({
   required DialogService dialogService,
   bool confirmWhenNoOpenShift = true,
   bool loaderUseRootNavigator = true,
+  bool forUserSwitch = false,
 }) async {
   final userId = ProxyService.box.getUserId();
   if (userId == null) return true;
 
-  _presentBlockingLoader(
-    context,
-    'Checking your shift…',
-    useRootNavigator: loaderUseRootNavigator,
-  );
+  final askConfirmNoShift = confirmWhenNoOpenShift && !forUserSwitch;
+
+  if (!forUserSwitch) {
+    _presentBlockingLoader(
+      context,
+      'Checking your shift…',
+      useRootNavigator: loaderUseRootNavigator,
+    );
+  }
   try {
     final currentShift = await shiftSync
         .getCurrentShift(userId: userId)
         .timeout(_kGetCurrentShiftTimeout);
-    if (context.mounted) {
+    if (!forUserSwitch && context.mounted) {
       _hideBlockingLoader(
         context,
         rootNavigator: loaderUseRootNavigator,
@@ -104,9 +112,11 @@ Future<bool> prepareSessionExitAfterShiftHandling({
           await dialogService.showCustomDialog(
             variant: DialogType.info,
             title: 'Cannot close shift',
-            description:
-                'The open shift belongs to another user. Sign out without '
-                'closing it, or ask that agent to close their shift first.',
+            description: forUserSwitch
+                ? 'The open shift belongs to another user. Ask that agent '
+                    'to close their shift first, then try switching again.'
+                : 'The open shift belongs to another user. Sign out without '
+                    'closing it, or ask that agent to close their shift first.',
           );
         }
         return false;
@@ -129,7 +139,9 @@ Future<bool> prepareSessionExitAfterShiftHandling({
 
       final dialogResponse = await dialogService.showCustomDialog(
         variant: DialogType.closeShift,
-        title: 'Close shift to sign out',
+        title: forUserSwitch
+            ? 'Close shift to switch user'
+            : 'Close shift to sign out',
         data: {
           'openingBalance': currentShift.openingBalance,
           'cashSales': currentShift.cashSales,
@@ -163,7 +175,7 @@ Future<bool> prepareSessionExitAfterShiftHandling({
       }
 
       if (context.mounted) {
-        if (confirmWhenNoOpenShift) {
+        if (askConfirmNoShift) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -173,13 +185,13 @@ Future<bool> prepareSessionExitAfterShiftHandling({
               duration: Duration(seconds: 4),
             ),
           );
+          await Future<void>.delayed(kPostShiftCloseLogoutDelay);
         }
-        await Future<void>.delayed(kPostShiftCloseLogoutDelay);
       }
       return true;
     }
 
-    if (confirmWhenNoOpenShift) {
+    if (askConfirmNoShift) {
       final confirmed = await showDialog<bool>(
         context: context,
         useRootNavigator: true,
@@ -203,25 +215,25 @@ Future<bool> prepareSessionExitAfterShiftHandling({
       if (confirmed != true) return false;
     }
 
-    if (context.mounted) {
-      if (confirmWhenNoOpenShift) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signing out…'),
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
+    if (context.mounted && askConfirmNoShift) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Signing out…'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 3),
+        ),
+      );
       await Future<void>.delayed(kNoOpenShiftLogoutDelay);
     }
     return true;
   } on TimeoutException catch (e) {
     if (context.mounted) {
-      _hideBlockingLoader(
-        context,
-        rootNavigator: loaderUseRootNavigator,
-      );
+      if (!forUserSwitch) {
+        _hideBlockingLoader(
+          context,
+          rootNavigator: loaderUseRootNavigator,
+        );
+      }
       await dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Could not verify shift',
@@ -232,10 +244,12 @@ Future<bool> prepareSessionExitAfterShiftHandling({
     return false;
   } catch (e) {
     if (context.mounted) {
-      _hideBlockingLoader(
-        context,
-        rootNavigator: loaderUseRootNavigator,
-      );
+      if (!forUserSwitch) {
+        _hideBlockingLoader(
+          context,
+          rootNavigator: loaderUseRootNavigator,
+        );
+      }
       await dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Could not verify shift',

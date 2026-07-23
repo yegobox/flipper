@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_dashboard/controllers/checkout_controller.dart';
 import 'package:flipper_dashboard/widgets/checkout_error_recovery_screen.dart';
 import 'package:flipper_dashboard/widgets/pos_default_view.dart';
+import 'package:flipper_dashboard/widgets/pos_shift_gate.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
@@ -34,7 +35,6 @@ import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/utils/customer_pay_gate.dart';
-import 'package:flipper_dashboard/widgets/pos_shift_gate.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 

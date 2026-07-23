@@ -1,5 +1,7 @@
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/logout/dashboard_sign_out.dart';
+import 'package:flipper_dashboard/logout/pos_user_switch.dart';
+import 'package:flipper_dashboard/logout/pos_user_switch_lock_provider.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -36,60 +38,39 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
   }
 
   Future<void> _loadUserInfo() async {
-    final userId = ProxyService.box.getUserId();
-    if (userId != null) {
-      // Fetch user access from DittoService as requested
-      try {
-        final userAccess = await ProxyService.ditto.getUserAccess(userId);
-
-        if (userAccess != null && userAccess.containsKey('businesses')) {
-          final businesses = userAccess['businesses'] as List;
-          if (businesses.isNotEmpty) {
-            // As per requirement: business is same name as user
-            final business = businesses.first;
-            if (business['name'] != null) {
-              if (mounted) {
-                setState(() {
-                  _userName = business['name'];
-                });
-              }
-              return;
-            }
-          }
-        }
-      } catch (e) {
-        // Fallback to local data if fetching fails
-      }
-    }
-
-    // Fallback if Ditto fetch fails or no business name found
+    final name = _resolveLoggedInUserName();
     if (mounted) {
       setState(() {
-        _userName = _AuthenticationFallback();
+        _userName = name;
       });
     }
   }
 
-  String _AuthenticationFallback() {
-    // Try to get user ID or phone from ProxyService
+  /// Primary label is the signed-in person; branch stays on the second line.
+  String _resolveLoggedInUserName() {
+    final storedName = ProxyService.box.getUserName()?.trim();
+    if (storedName != null && storedName.isNotEmpty) {
+      return storedName;
+    }
+
+    final cachedName = ProxyService.box.readString(key: 'userName')?.trim();
+    if (cachedName != null && cachedName.isNotEmpty) {
+      return cachedName;
+    }
+
     final userId = ProxyService.box.getUserId();
     if (userId != null && userId.isNotEmpty) {
-      // If userId looks like an email, format it nicely
       if (userId.contains('@')) {
-        final name = userId.split('@').first;
-        return _formatName(name);
+        return _formatName(userId.split('@').first);
       }
-      // Otherwise use the userId directly (might be a name or ID)
       return userId;
     }
 
-    // Try phone number as fallback
     final phone = ProxyService.box.getUserPhone();
     if (phone != null && phone.isNotEmpty) {
       return phone;
     }
 
-    // Final fallback
     return 'User';
   }
 
@@ -178,10 +159,21 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
     );
   }
 
+  Future<void> _openSwitchUserDialog() async {
+    final dialogService = locator<DialogService>();
+    await beginPosUserSwitchLock(
+      context: context,
+      ref: ref,
+      dialogService: dialogService,
+    );
+  }
+
   void _onMenuSelected(String value) {
     switch (value) {
       case 'switchBranch':
         _openBranchSwitchDialog();
+      case 'switchUser':
+        _openSwitchUserDialog();
       case 'logOut':
         _signOut();
     }
@@ -196,8 +188,10 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
   }) {
     // Cap width so long business/branch names ellipsize instead of
     // overflowing the top bar icons.
-    final maxTextWidth = (MediaQuery.sizeOf(context).width * 0.18)
-        .clamp(96.0, 180.0);
+    final maxTextWidth = (MediaQuery.sizeOf(context).width * 0.18).clamp(
+      96.0,
+      180.0,
+    );
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxTextWidth),
@@ -270,11 +264,7 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
               ),
             ),
             const SizedBox(width: 2),
-            const Icon(
-              Icons.expand_more,
-              size: 18,
-              color: PosTokens.ink3,
-            ),
+            const Icon(Icons.expand_more, size: 18, color: PosTokens.ink3),
           ],
         ),
       );
@@ -319,10 +309,17 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(posUserSwitchLockProvider, (prev, next) {
+      if (prev == true && next == false) {
+        _loadUserInfo();
+      }
+    });
+
     final displayName = widget.handoffTopBarStyle
         ? _userName.toUpperCase()
         : _userName;
     final branchName = _activeBranchName();
+    final locked = ref.watch(posUserSwitchLockProvider);
 
     return PopupMenuButton<String>(
       tooltip: 'Account',
@@ -344,6 +341,24 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
             ],
           ),
         ),
+        if (!locked)
+          PopupMenuItem<String>(
+            value: 'switchUser',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.switch_account,
+                  color: Colors.grey.shade800,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Switch User',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
         PopupMenuItem<String>(
           value: 'logOut',
           child: Row(
@@ -363,10 +378,7 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
       ],
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: _profileChip(
-          displayName: displayName,
-          branchName: branchName,
-        ),
+        child: _profileChip(displayName: displayName, branchName: branchName),
       ),
     );
   }
