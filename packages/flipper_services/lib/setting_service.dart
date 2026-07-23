@@ -37,6 +37,9 @@ class SettingsService with ListenableServiceMixin {
   final _isCurrencyDecimal = ReactiveValue<bool>(false);
   bool get isCurrencyDecimal => _isCurrencyDecimal.value;
 
+  final _enableTicketReviewWorkflow = ReactiveValue<bool>(false);
+  bool get enableTicketReviewWorkflow => _enableTicketReviewWorkflow.value;
+
   Future<bool> updateSettings({required Map map}) async {
     String? userId = ProxyService.box.getUserId();
     String? businessId = map['businessId'] ?? ProxyService.box.getBusinessId();
@@ -81,6 +84,15 @@ class SettingsService with ListenableServiceMixin {
       if (map.containsKey('allowSellingBelowStock')) {
         setting.allowSellingBelowStock = map['allowSellingBelowStock'];
       }
+      if (map.containsKey('enableTicketReviewWorkflow')) {
+        setting.enableTicketReviewWorkflow =
+            map['enableTicketReviewWorkflow'];
+        _enableTicketReviewWorkflow.value = map['enableTicketReviewWorkflow'];
+        await ProxyService.box.writeBool(
+          key: 'ticketReviewWorkflowEnabled',
+          value: map['enableTicketReviewWorkflow'] as bool,
+        );
+      }
       setting.lastTouched = DateTime.now().toUtc();
 
       await ProxyService.getStrategy(
@@ -106,6 +118,8 @@ class SettingsService with ListenableServiceMixin {
             map['enablePriceQuantityAdjustment'] ?? false,
         isCurrencyDecimal: map['isCurrencyDecimal'] ?? false,
         allowSellingBelowStock: map['allowSellingBelowStock'] ?? false,
+        enableTicketReviewWorkflow:
+            map['enableTicketReviewWorkflow'] ?? false,
         lastTouched: DateTime.now().toUtc(),
       );
 
@@ -240,6 +254,15 @@ class SettingsService with ListenableServiceMixin {
     _enablePriceQuantityAdjustment.value =
         setting.enablePriceQuantityAdjustment ?? false;
     _isCurrencyDecimal.value = setting.isCurrencyDecimal ?? false;
+    _enableTicketReviewWorkflow.value =
+        setting.enableTicketReviewWorkflow ?? false;
+    // Payment-finalization call sites (`_transaction.dart`,
+    // `previewCart.dart`) read this synchronously mid-payment-flow via the
+    // box cache rather than awaiting `settings()`.
+    await ProxyService.box.writeBool(
+      key: 'ticketReviewWorkflowEnabled',
+      value: _enableTicketReviewWorkflow.value,
+    );
     notifyListeners();
   }
 
@@ -280,6 +303,17 @@ class SettingsService with ListenableServiceMixin {
     notifyListeners();
   }
 
+  Future<void> toggleTicketReviewWorkflow({
+    required bool enabled,
+    required String businessId,
+  }) async {
+    await updateSettings(
+      map: {'enableTicketReviewWorkflow': enabled, 'businessId': businessId},
+    );
+    _enableTicketReviewWorkflow.value = enabled;
+    notifyListeners();
+  }
+
   Future<void> setAdminPin({
     required String pin,
     required String businessId,
@@ -314,6 +348,7 @@ class SettingsService with ListenableServiceMixin {
       _isAdminPinEnabled,
       _enablePriceQuantityAdjustment,
       _isCurrencyDecimal,
+      _enableTicketReviewWorkflow,
     ]);
   }
 }

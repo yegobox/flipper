@@ -1098,6 +1098,13 @@ class _AdminControlState extends State<AdminControl> {
     );
   }
 
+  void toggleTicketReviewWorkflow(bool value) async {
+    await settingsService.toggleTicketReviewWorkflow(
+      enabled: value,
+      businessId: ProxyService.box.getBusinessId()!,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final titleFontSize = MediaQuery.sizeOf(context).width < 600 ? 16.0 : 20.0;
@@ -2131,6 +2138,23 @@ class _AdminControlState extends State<AdminControl> {
                   ),
                   value: settingsService.isCurrencyDecimal,
                   onChanged: toggleCurrencyDecimal,
+                );
+              },
+            ),
+            ListenableBuilder(
+              listenable: settingsService,
+              builder: (context, child) {
+                return SwitchSettingsCard(
+                  title: 'Ticket Review + Handover',
+                  subtitle:
+                      'Require reviewer sign-off and stock-manager handover '
+                      'before a paid ticket is fully completed',
+                  leading: _adminLeadingSvg(
+                    AdminDashboardSvgs.leadsCheckmark,
+                    const Color(0xFF7C3AED).withValues(alpha: 0.1),
+                  ),
+                  value: settingsService.enableTicketReviewWorkflow,
+                  onChanged: toggleTicketReviewWorkflow,
                 );
               },
             ),

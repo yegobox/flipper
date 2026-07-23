@@ -220,9 +220,23 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         arguments['parkedStatus'] = PARKED;
         arguments['waitingMomoStatus'] = WAITING_MOMO_COMPLETE;
       } else {
-        // Only include the specified status (default COMPLETE)
-        whereClauses.add('status = :status');
-        arguments['status'] = status ?? COMPLETE;
+        // Only include the specified status (default COMPLETE). When that
+        // resolves to COMPLETE, also OR in the Ticket Review + Handover
+        // workflow's two intermediate statuses — money/tax already landed at
+        // payment time for those rows, only Tickets-list visibility is
+        // deferred. Harmless no-op for businesses that never write them.
+        final effectiveStatus = status ?? COMPLETE;
+        if (effectiveStatus == COMPLETE) {
+          whereClauses.add(
+            '(status = :status OR status = :pendingReviewStatus OR status = :awaitingHandoverStatus)',
+          );
+          arguments['status'] = effectiveStatus;
+          arguments['pendingReviewStatus'] = PENDING_REVIEW;
+          arguments['awaitingHandoverStatus'] = AWAITING_HANDOVER;
+        } else {
+          whereClauses.add('status = :status');
+          arguments['status'] = effectiveStatus;
+        }
       }
 
       // SubTotal filter
@@ -405,11 +419,15 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
 
       whereClauses.add(
-        '(status = :waiting OR status = :parked OR status = :inProgress)',
+        '(status = :waiting OR status = :parked OR status = :inProgress OR status = :awaitingHandover)',
       );
       arguments['waiting'] = WAITING;
       arguments['parked'] = PARKED;
       arguments['inProgress'] = IN_PROGRESS;
+      // Ticket Review + Handover workflow: a reviewed ticket stays visible in
+      // the normal Tickets list (not `pendingReview`, which only shows in the
+      // Review Queue). Harmless no-op for businesses that never write this status.
+      arguments['awaitingHandover'] = AWAITING_HANDOVER;
 
       whereClauses.add('subTotal > 0');
 
@@ -512,6 +530,137 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  /// Ticket Review + Handover workflow: tickets awaiting reviewer sign-off
+  /// (`pendingReview`). Deliberately excluded from
+  /// [openPosTicketsTransactionsStream] — these only show here, in the
+  /// Review Queue, until a Reviewer confirms the declared payment.
+  @override
+  Stream<List<ITransaction>> reviewQueueTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
+    required bool skipOriginalTransactionCheck,
+  }) {
+    if (!forceRealData) {
+      return Stream.value(const <ITransaction>[]);
+    }
+
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized: reviewQueueTransactionsStream');
+        return Stream.value([]);
+      }
+
+      final preparedTx = prepareDqlSyncSubscription(
+        'SELECT * FROM transactions WHERE branchId = :branchId',
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedTx.dql,
+        arguments: preparedTx.arguments,
+      );
+
+      final whereClauses = <String>['status = :pendingReview'];
+      final arguments = <String, dynamic>{'pendingReview': PENDING_REVIEW};
+
+      whereClauses.add('subTotal > 0');
+
+      if (!skipOriginalTransactionCheck) {
+        whereClauses.add('isOriginalTransaction = :isOriginal');
+        arguments['isOriginal'] = true;
+      }
+
+      if (branchId != null) {
+        whereClauses.add('branchId = :branchId');
+        arguments['branchId'] = branchId;
+      }
+
+      if (removeAdjustmentTransactions) {
+        whereClauses.add('transactionType != :adjustmentType');
+        arguments['adjustmentType'] = 'Adjustment';
+      }
+
+      final query =
+          'SELECT * FROM transactions WHERE ${whereClauses.join(' AND ')} ORDER BY createdAt DESC';
+
+      dynamic observer;
+      var cancelled = false;
+      var listenStarted = false;
+
+      List<ITransaction> convertItems(dynamic queryResult) {
+        final transactions = <ITransaction>[];
+        for (final item in queryResult.items) {
+          try {
+            final transactionData = Map<String, dynamic>.from(item.value);
+            transactions.add(_convertFromDittoDocument(transactionData));
+          } catch (e) {
+            talker.error('Error converting review-queue transaction: $e');
+          }
+        }
+        return transactions;
+      }
+
+      late final StreamController<List<ITransaction>> controller;
+      controller = StreamController<List<ITransaction>>(
+        onListen: () {
+          if (listenStarted) return;
+          listenStarted = true;
+          unawaited(() async {
+            try {
+              Future<void> emitIfOpen(dynamic queryResult) async {
+                if (cancelled || controller.isClosed) return;
+                controller.add(convertItems(queryResult));
+              }
+
+              Future<void> executeAndEmit() async {
+                if (cancelled || controller.isClosed) return;
+                final snapshot = await ditto.store.execute(
+                  query,
+                  arguments: arguments,
+                );
+                if (cancelled || controller.isClosed) return;
+                controller.add(convertItems(snapshot));
+              }
+
+              if (cancelled || controller.isClosed) return;
+
+              observer = ditto.store.registerObserver(
+                query,
+                arguments: arguments,
+                onChange: (queryResult) {
+                  unawaited(emitIfOpen(queryResult));
+                },
+              );
+
+              await executeAndEmit();
+            } catch (e, s) {
+              talker.error(
+                'Error in reviewQueueTransactionsStream setup: $e',
+                s,
+              );
+              if (!cancelled && !controller.isClosed) {
+                controller.add(const <ITransaction>[]);
+              }
+            }
+          }());
+        },
+        onCancel: () async {
+          cancelled = true;
+          await cancelDittoStoreObserver(observer);
+          if (!controller.isClosed) {
+            await controller.close();
+          }
+        },
+      );
+
+      return controller.stream;
+    } catch (e) {
+      talker.error('Error in reviewQueueTransactionsStream: $e');
+      return Stream.value([]);
+    }
+  }
+
   /// Convert Ditto document to ITransaction model
   ITransaction _convertFromDittoDocument(Map<String, dynamic> data) {
     DateTime? parseDateTime(dynamic value) {
@@ -548,6 +697,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       agentCommissionType: data['agentCommissionType'] as String?,
       agentCommissionValue: parseDouble(data['agentCommissionValue']),
       agentCommissionAmount: parseDouble(data['agentCommissionAmount']),
+      reviewedBy: data['reviewedBy'] as String?,
+      reviewedAt: parseDateTime(data['reviewedAt']),
+      handoverBy: data['handoverBy'] as String?,
+      handoverAt: parseDateTime(data['handoverAt']),
       id: _dittoDocumentId(data),
       reference: data['reference'],
       categoryId: data['categoryId'],
@@ -723,8 +876,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           arguments['parkedStatus'] = PARKED;
           arguments['waitingMomoStatus'] = WAITING_MOMO_COMPLETE;
         } else {
-          whereClauses.add('status = :status');
-          arguments['status'] = status ?? COMPLETE;
+          // Only include the specified status (default COMPLETE). When that
+          // resolves to COMPLETE, also OR in the Ticket Review + Handover
+          // workflow's two intermediate statuses (see the analogous branch in
+          // [transactions] above for the full rationale).
+          final effectiveStatus = status ?? COMPLETE;
+          if (effectiveStatus == COMPLETE) {
+            whereClauses.add(
+              '(status = :status OR status = :pendingReviewStatus OR status = :awaitingHandoverStatus)',
+            );
+            arguments['status'] = effectiveStatus;
+            arguments['pendingReviewStatus'] = PENDING_REVIEW;
+            arguments['awaitingHandoverStatus'] = AWAITING_HANDOVER;
+          } else {
+            whereClauses.add('status = :status');
+            arguments['status'] = effectiveStatus;
+          }
         }
 
         // SubTotal filter
@@ -1782,6 +1949,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     double? remainingBalance,
     bool skipDittoSync = false,
     bool deferEnsureNextPendingCart = false,
+    String? reviewedBy,
+    DateTime? reviewedAt,
+    String? handoverBy,
+    DateTime? handoverAt,
+    String? requireCurrentStatus,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -1892,6 +2064,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (receiptPrinted != null) addUpdate('receiptPrinted', receiptPrinted);
     if (isUnclassfied) addUpdate('isUnclassfied', isUnclassfied);
     if (isTrainingMode != null) addUpdate('isTrainingMode', isTrainingMode);
+    if (reviewedBy != null) addUpdate('reviewedBy', reviewedBy);
+    if (reviewedAt != null) addUpdate('reviewedAt', reviewedAt);
+    if (handoverBy != null) addUpdate('handoverBy', handoverBy);
+    if (handoverAt != null) addUpdate('handoverAt', handoverAt);
 
     if (updates.isEmpty) return;
 
@@ -1917,8 +2093,15 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
     }
 
+    final statusGuardClause = requireCurrentStatus != null
+        ? ' AND status = :requireCurrentStatus'
+        : '';
+    if (requireCurrentStatus != null) {
+      arguments['requireCurrentStatus'] = requireCurrentStatus;
+    }
+
     final query =
-        'UPDATE transactions SET ${updates.join(', ')} WHERE _id = :id OR id = :id';
+        'UPDATE transactions SET ${updates.join(', ')} WHERE (_id = :id OR id = :id)$statusGuardClause';
 
     try {
       // Skip Ditto write if skipDittoSync is true (for batch operations)

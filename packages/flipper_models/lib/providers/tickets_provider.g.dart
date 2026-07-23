@@ -53,10 +53,22 @@ final class TicketsPaymentSumsProvider
 }
 
 String _$ticketsPaymentSumsHash() =>
-    r'10c1d49b0c807cfe4ea55d9453095a4748d0646c';
+    r'37f97952721cdab3013a4baef9523ee7fb56f8af';
+
+/// Branch-wide open tickets stream (PARKED / WAITING / IN_PROGRESS).
+///
+/// Does **not** watch [canCollectPosPaymentProvider] — that async role used to
+/// tear down and recreate the Ditto observer (losing emits; badge flashed to 0).
+/// Staff vs till filtering happens in [visibleTicketsProvider].
 
 @ProviderFor(ticketsStream)
 const ticketsStreamProvider = TicketsStreamProvider._();
+
+/// Branch-wide open tickets stream (PARKED / WAITING / IN_PROGRESS).
+///
+/// Does **not** watch [canCollectPosPaymentProvider] — that async role used to
+/// tear down and recreate the Ditto observer (losing emits; badge flashed to 0).
+/// Staff vs till filtering happens in [visibleTicketsProvider].
 
 final class TicketsStreamProvider
     extends
@@ -68,6 +80,11 @@ final class TicketsStreamProvider
     with
         $FutureModifier<List<ITransaction>>,
         $StreamProvider<List<ITransaction>> {
+  /// Branch-wide open tickets stream (PARKED / WAITING / IN_PROGRESS).
+  ///
+  /// Does **not** watch [canCollectPosPaymentProvider] — that async role used to
+  /// tear down and recreate the Ditto observer (losing emits; badge flashed to 0).
+  /// Staff vs till filtering happens in [visibleTicketsProvider].
   const TicketsStreamProvider._()
     : super(
         from: null,
@@ -94,4 +111,56 @@ final class TicketsStreamProvider
   }
 }
 
-String _$ticketsStreamHash() => r'594d1a73ae785bd1adc7013c8cb82028eba9b0a6';
+String _$ticketsStreamHash() => r'07d5e457c80998fde1ec25e1824c2d0bfeafe7e8';
+
+/// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer
+/// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
+/// these tickets do not appear in the normal Tickets list.
+
+@ProviderFor(reviewQueueStream)
+const reviewQueueStreamProvider = ReviewQueueStreamProvider._();
+
+/// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer
+/// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
+/// these tickets do not appear in the normal Tickets list.
+
+final class ReviewQueueStreamProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<ITransaction>>,
+          List<ITransaction>,
+          Stream<List<ITransaction>>
+        >
+    with
+        $FutureModifier<List<ITransaction>>,
+        $StreamProvider<List<ITransaction>> {
+  /// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer
+  /// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
+  /// these tickets do not appear in the normal Tickets list.
+  const ReviewQueueStreamProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'reviewQueueStreamProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$reviewQueueStreamHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<ITransaction>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<ITransaction>> create(Ref ref) {
+    return reviewQueueStream(ref);
+  }
+}
+
+String _$reviewQueueStreamHash() => r'986d5f00cdf2506fae93731cc333cc8aeb5b87f8';

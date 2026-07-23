@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260705114226.migration.dart';
+part '20260723122459.migration.dart';
 part '20260522081221.migration.dart';
 part '20260527030019.migration.dart';
 part '20260603185233.migration.dart';
@@ -10,10 +10,11 @@ part '20260611094026.migration.dart';
 part '20260617083057.migration.dart';
 part '20260630125158.migration.dart';
 part '20260702191831.migration.dart';
+part '20260705114226.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260705114226(),
+  const Migration20260723122459(),
   const Migration20260522081221(),
   const Migration20260527030019(),
   const Migration20260603185233(),
@@ -22,11 +23,12 @@ final migrations = <Migration>{
   const Migration20260617083057(),
   const Migration20260630125158(),
   const Migration20260702191831(),
+  const Migration20260705114226(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260702191831,
+  20260705114226,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1288,6 +1290,7 @@ final schema = Schema(
         SchemaColumn('enable_price_quantity_adjustment', Column.boolean),
         SchemaColumn('is_currency_decimal', Column.boolean),
         SchemaColumn('allow_selling_below_stock', Column.boolean),
+        SchemaColumn('enable_ticket_review_workflow', Column.boolean),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('deleted_at', Column.datetime),
       },
@@ -1631,6 +1634,10 @@ final schema = Schema(
         SchemaColumn('agent_commission_type', Column.varchar),
         SchemaColumn('agent_commission_value', Column.num),
         SchemaColumn('agent_commission_amount', Column.num),
+        SchemaColumn('reviewed_by', Column.varchar),
+        SchemaColumn('reviewed_at', Column.datetime),
+        SchemaColumn('handover_by', Column.varchar),
+        SchemaColumn('handover_at', Column.datetime),
         SchemaColumn('cashier_name', Column.varchar),
         SchemaColumn('device_id', Column.varchar),
       },

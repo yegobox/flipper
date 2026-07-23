@@ -89,6 +89,16 @@ abstract class TransactionInterface {
     bool restrictToCurrentAgent = true,
   });
 
+  /// Ticket Review + Handover workflow: tickets awaiting reviewer sign-off
+  /// (`pendingReview`), deliberately excluded from
+  /// [openPosTicketsTransactionsStream].
+  Stream<List<ITransaction>> reviewQueueTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
+    required bool skipOriginalTransactionCheck,
+  });
+
   Future<List<Configurations>> taxes({required String branchId});
 
   Future<Configurations> saveTax({
@@ -209,6 +219,17 @@ abstract class TransactionInterface {
     /// When true, creates the next pending POS cart after the UPDATE returns,
     /// not on the caller's await chain (Quick Selling completion).
     bool deferEnsureNextPendingCart = false,
+
+    /// Ticket Review + Handover workflow audit fields.
+    String? reviewedBy,
+    DateTime? reviewedAt,
+    String? handoverBy,
+    DateTime? handoverAt,
+
+    /// When set, the update is a no-op unless the transaction's current
+    /// status equals this value — guards `markTicketReviewed`/
+    /// `recordTicketHandover` against double-submission races.
+    String? requireCurrentStatus,
   });
   Future<ITransaction?> getTransaction({
     String? sarNo,

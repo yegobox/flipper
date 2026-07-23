@@ -124,3 +124,31 @@ final pendingTillTicketsCountProvider = Provider<int>((ref) {
       .where((t) => (t.status ?? '').toLowerCase() == PARKED)
       .length;
 });
+
+/// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer
+/// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
+/// these tickets do not appear in the normal Tickets list.
+@riverpod
+Stream<List<ITransaction>> reviewQueueStream(Ref ref) {
+  final capellaStrategy = ProxyService.getStrategy(Strategy.capella);
+  final branchId = ProxyService.box.getBranchId();
+
+  return capellaStrategy
+      .reviewQueueTransactionsStream(
+        branchId: branchId,
+        removeAdjustmentTransactions: true,
+        forceRealData: true,
+        skipOriginalTransactionCheck: false,
+      )
+      .handleError((e, st) {
+        talker.error('Review queue stream error: $e', st);
+        throw e;
+      });
+}
+
+/// Review Queue badge count. Uses [AsyncValue.value] so a reload keeps the
+/// previous count instead of flashing to 0 (same rationale as
+/// [pendingTillTicketsCountProvider]).
+final reviewQueueCountProvider = Provider<int>((ref) {
+  return ref.watch(reviewQueueStreamProvider).value?.length ?? 0;
+});

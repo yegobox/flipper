@@ -71,6 +71,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'currentOrderId',
     'isProformaMode',
     'isTrainingMode',
+    'ticketReviewWorkflowEnabled',
     'isAutoPrintEnabled',
     'isAutoBackupEnabled',
     'transactionId',

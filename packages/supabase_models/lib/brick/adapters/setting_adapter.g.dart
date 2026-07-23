@@ -62,6 +62,9 @@ Future<Setting> _$SettingFromSupabase(
     allowSellingBelowStock: data['allow_selling_below_stock'] == null
         ? null
         : data['allow_selling_below_stock'] as bool?,
+    enableTicketReviewWorkflow: data['enable_ticket_review_workflow'] == null
+        ? null
+        : data['enable_ticket_review_workflow'] as bool?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -104,6 +107,7 @@ Future<Map<String, dynamic>> _$SettingToSupabase(
     'enable_price_quantity_adjustment': instance.enablePriceQuantityAdjustment,
     'is_currency_decimal': instance.isCurrencyDecimal,
     'allow_selling_below_stock': instance.allowSellingBelowStock,
+    'enable_ticket_review_workflow': instance.enableTicketReviewWorkflow,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -170,6 +174,9 @@ Future<Setting> _$SettingFromSqlite(
     allowSellingBelowStock: data['allow_selling_below_stock'] == null
         ? null
         : data['allow_selling_below_stock'] == 1,
+    enableTicketReviewWorkflow: data['enable_ticket_review_workflow'] == null
+        ? null
+        : data['enable_ticket_review_workflow'] == 1,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -236,6 +243,9 @@ Future<Map<String, dynamic>> _$SettingToSqlite(
     'allow_selling_below_stock': instance.allowSellingBelowStock == null
         ? null
         : (instance.allowSellingBelowStock! ? 1 : 0),
+    'enable_ticket_review_workflow': instance.enableTicketReviewWorkflow == null
+        ? null
+        : (instance.enableTicketReviewWorkflow! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -342,6 +352,10 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     'allowSellingBelowStock': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'allow_selling_below_stock',
+    ),
+    'enableTicketReviewWorkflow': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'enable_ticket_review_workflow',
     ),
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -499,6 +513,12 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     'allowSellingBelowStock': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'allow_selling_below_stock',
+      iterable: false,
+      type: bool,
+    ),
+    'enableTicketReviewWorkflow': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'enable_ticket_review_workflow',
       iterable: false,
       type: bool,
     ),

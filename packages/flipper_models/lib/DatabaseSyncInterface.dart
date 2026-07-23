@@ -228,6 +228,10 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? note,
     /// When set (e.g. [COMPLETE]), written in the same transaction update as payment fields.
     String? completionStatus,
+    /// Status to use for personal-goal/shift financial-sweep eligibility when
+    /// it must differ from the persisted [completionStatus] (Ticket Review +
+    /// Handover workflow). Defaults to [completionStatus] when omitted.
+    String? financialCompletionStatus,
     /// When set, skip loading line items from the local DB (faster for cash book after a fresh insert).
     List<TransactionItem>? preloadedLineItems,
     /// Set by [completeCashMovement] so auto-allocation uses cash amount, not SKU margin.

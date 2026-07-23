@@ -700,6 +700,18 @@ mixin TransactionMixinOld {
         priorAlreadyPaidNonCredit: priorPaidForDerived,
       );
 
+      // Ticket Review + Handover workflow (opt-in per business): a fully-paid
+      // ticket is persisted as PENDING_REVIEW instead of COMPLETE so it stays
+      // visible in the Review Queue. Payment/tax timing is unchanged — only
+      // the persisted status is redirected; `derivedCompletion.status` below
+      // still carries the real outcome for financial-sweep eligibility.
+      final persistedCompletionStatus = applyTicketReviewWorkflowRedirect(
+        derivedStatus: derivedCompletion.status,
+        ticketReviewWorkflowEnabled:
+            ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
+                false,
+      );
+
       // NOTE: do NOT mutate transaction.isLoan here. Setting it before
       // collectPayment forces its loan branch, which changes cashReceived /
       // lastPaymentDate handling and breaks the parked-as-loan completion
@@ -733,7 +745,8 @@ mixin TransactionMixinOld {
         preloadedLineItems: items,
         skipTransactionPersist: skipTransactionPersist,
         skipCashMutation: skipTransactionPersist,
-        completionStatus: derivedCompletion.status,
+        completionStatus: persistedCompletionStatus,
+        financialCompletionStatus: derivedCompletion.status,
       );
       // Clean up temporary storage
       ProxyService.box.remove(key: 'pendingCustomerName');

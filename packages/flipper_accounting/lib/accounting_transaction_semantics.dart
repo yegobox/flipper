@@ -12,6 +12,13 @@ const accountingSaleStatusParked = 'parked';
 const _completedSaleStatuses = {
   accountingSaleStatusCompleted,
   'complete', // legacy alias
+  // Ticket Review + Handover workflow (opt-in, `flipper_services/constants.dart`
+  // PENDING_REVIEW / AWAITING_HANDOVER): payment/tax signing already happened
+  // at the same moment it does for a normal sale — only the ticket's
+  // visibility in the POS Tickets list is deferred until reviewed/handed
+  // over. Revenue must still be recognized at payment time, not deferred.
+  'pendingreview',
+  'awaitinghandover',
 };
 
 /// Normalizes [raw] to lowercase trimmed string (empty when null).

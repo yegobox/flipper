@@ -175,6 +175,10 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "agentCommissionType": model.agentCommissionType,
       "agentCommissionValue": model.agentCommissionValue,
       "agentCommissionAmount": model.agentCommissionAmount,
+      "reviewedBy": model.reviewedBy,
+      "reviewedAt": model.reviewedAt?.toIso8601String(),
+      "handoverBy": model.handoverBy,
+      "handoverAt": model.handoverAt?.toIso8601String(),
       "cashierName": model.cashierName,
       "deviceId": model.deviceId,
     };
@@ -282,6 +286,10 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       agentCommissionType: document["agentCommissionType"],
       agentCommissionValue: document["agentCommissionValue"],
       agentCommissionAmount: document["agentCommissionAmount"],
+      reviewedBy: document["reviewedBy"],
+      reviewedAt: DateTime.tryParse(document["reviewedAt"]?.toString() ?? ""),
+      handoverBy: document["handoverBy"],
+      handoverAt: DateTime.tryParse(document["handoverAt"]?.toString() ?? ""),
       cashierName: document["cashierName"],
       deviceId: document["deviceId"],
       dataSource: null, // Excluded from Ditto sync

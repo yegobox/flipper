@@ -1,7 +1,10 @@
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_dashboard/new_ticket.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
+import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -15,6 +18,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../widgets/tickets_list.dart';
+import 'review_queue_screen.dart';
 
 const Color _ticketFilterBlue = Color(0xff006AFE);
 const Color _ticketFilterLoanPurple = Color(0xFF6B4EA2);
@@ -22,6 +26,7 @@ const Color _ticketFilterLayawayTeal = Color(0xFF0D9488);
 const Color _ticketFilterRegularGreen = Color(0xFF2E7D32);
 const Color _ticketHeaderStripBg = Color(0xFFF2F4F7);
 const Color _ticketIconCircleBorder = Color(0xFFE0E4EB);
+const Color _kReviewQueueBadge = Color(0xFF7C3AED);
 
 class TicketsScreen extends StatefulHookConsumerWidget {
   const TicketsScreen({
@@ -471,6 +476,64 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                 ),
                               ),
                             ],
+                            if (locator<SettingsService>()
+                                    .enableTicketReviewWorkflow &&
+                                ref.watch(
+                                  featureAccessProvider(
+                                    userId:
+                                        ProxyService.box.getUserId() ?? '',
+                                    featureName: AppFeature.TicketReview,
+                                  ),
+                                ))
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    IconButton(
+                                      style: _headerCircleIconStyle(),
+                                      tooltip: 'Review Queue',
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const ReviewQueueScreen(),
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.fact_check_outlined,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    if (ref.watch(reviewQueueCountProvider) >
+                                        0)
+                                      Positioned(
+                                        right: 2,
+                                        top: 2,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 1,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _kReviewQueueBadge,
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          child: Text(
+                                            '${ref.watch(reviewQueueCountProvider)}',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
                             Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: PopupMenuButton<String>(

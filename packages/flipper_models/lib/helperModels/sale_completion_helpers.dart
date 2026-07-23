@@ -38,6 +38,39 @@ bool saleLineQtyMapsMatch(
 const String saleCompletionStatusComplete = 'completed';
 const String saleCompletionStatusParked = 'parked';
 
+/// Aligned with [PENDING_REVIEW] / [AWAITING_HANDOVER] in
+/// `flipper_services/constants.dart` (VM-safe — this file must stay
+/// Flutter/Ditto-free).
+const String saleCompletionStatusPendingReview = 'pendingReview';
+const String saleCompletionStatusAwaitingHandover = 'awaitingHandover';
+
+/// Redirects a derived-complete sale to [saleCompletionStatusPendingReview]
+/// when the business has the Ticket Review + Handover workflow enabled, so
+/// the ticket stays visible in the Review Queue instead of disappearing.
+/// Parked/loan outcomes are never redirected — the workflow only intercepts
+/// the fully-paid branch, and only the *persisted* status changes; payment
+/// collection and tax signing still happen at the same moment they do today.
+String applyTicketReviewWorkflowRedirect({
+  required String derivedStatus,
+  required bool ticketReviewWorkflowEnabled,
+}) {
+  if (!ticketReviewWorkflowEnabled) return derivedStatus;
+  if (derivedStatus != saleCompletionStatusComplete) return derivedStatus;
+  return saleCompletionStatusPendingReview;
+}
+
+/// Statuses that mean "money already collected, tax already signed" for
+/// accounting/reporting purposes, even though the ticket is not yet in its
+/// final [saleCompletionStatusComplete] state.
+const Set<String> financiallySettledSaleStatuses = {
+  saleCompletionStatusComplete,
+  saleCompletionStatusPendingReview,
+  saleCompletionStatusAwaitingHandover,
+};
+
+bool isFinanciallySettledSaleStatus(String? status) =>
+    status != null && financiallySettledSaleStatuses.contains(status);
+
 const double _paymentEpsilon = 0.0001;
 
 /// Minimal tender line for completion math (no Flutter controllers).

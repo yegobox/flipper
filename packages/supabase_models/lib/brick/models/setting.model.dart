@@ -38,6 +38,12 @@ class Setting extends OfflineFirstWithSupabaseModel {
   /// RRA stock IO/master are capped to units that were available at sale start.
   bool? allowSellingBelowStock;
 
+  /// Ticket Review + Handover workflow (opt-in, default off). When enabled, a
+  /// fully-paid ticket is held at `pendingReview`/`awaitingHandover` until a
+  /// Reviewer confirms the payment and a Stock Manager records handover,
+  /// instead of completing immediately.
+  bool? enableTicketReviewWorkflow;
+
   DateTime? lastTouched;
 
   DateTime? deletedAt;
@@ -65,6 +71,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
     this.enablePriceQuantityAdjustment,
     this.isCurrencyDecimal,
     this.allowSellingBelowStock,
+    this.enableTicketReviewWorkflow,
     this.lastTouched,
     this.deletedAt,
   }) : id = id ?? const Uuid().v4();
@@ -98,6 +105,8 @@ class Setting extends OfflineFirstWithSupabaseModel {
       allowSellingBelowStock:
           json['allowSellingBelowStock'] as bool? ??
               json['allow_selling_below_stock'] as bool?,
+      enableTicketReviewWorkflow:
+          json['enableTicketReviewWorkflow'] as bool?,
       lastTouched: json['lastTouched'] != null
           ? DateTime.tryParse(json['lastTouched'] as String)
           : null,
@@ -133,6 +142,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
       'enablePriceQuantityAdjustment': enablePriceQuantityAdjustment,
       'isCurrencyDecimal': isCurrencyDecimal,
       'allowSellingBelowStock': allowSellingBelowStock,
+      'enableTicketReviewWorkflow': enableTicketReviewWorkflow,
       'lastTouched': lastTouched?.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
     };

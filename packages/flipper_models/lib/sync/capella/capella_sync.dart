@@ -476,6 +476,14 @@ class CapellaSync extends AiStrategyImpl
     required String countryCode,
     String? note,
     String? completionStatus,
+
+    /// Status to use for personal-goal/shift financial-sweep eligibility,
+    /// when it must differ from the *persisted* [completionStatus] (e.g. the
+    /// Ticket Review + Handover workflow persists `pendingReview` but the
+    /// goal sweep must still fire as if the sale completed normally).
+    /// Defaults to [completionStatus] when omitted, so every other existing
+    /// caller is unaffected.
+    String? financialCompletionStatus,
     List<TransactionItem>? preloadedLineItems,
     bool isUtilityCashbookMovement = false,
     bool skipPersonalGoalAutoSweep = false,
@@ -625,7 +633,7 @@ class CapellaSync extends AiStrategyImpl
       if (skipTransactionPersist && skipCashMutation) {
         try {
           final resolvedCompletionForGoals =
-              completionStatus ?? transaction.status;
+              financialCompletionStatus ?? completionStatus ?? transaction.status;
           await applyPersonalGoalAutoSweepIfEligible(
             branchId: branchId,
             transactionId: transaction.id,
@@ -645,7 +653,7 @@ class CapellaSync extends AiStrategyImpl
         }
       } else if (skipTransactionPersist) {
         final resolvedCompletionForGoals =
-            completionStatus ?? transaction.status;
+            financialCompletionStatus ?? completionStatus ?? transaction.status;
         final sweepItems = List<TransactionItem>.from(items);
         unawaited(
           applyPersonalGoalAutoSweepIfEligible(
@@ -668,7 +676,7 @@ class CapellaSync extends AiStrategyImpl
       } else {
         try {
           final resolvedCompletionForGoals =
-              completionStatus ?? transaction.status;
+              financialCompletionStatus ?? completionStatus ?? transaction.status;
           await applyPersonalGoalAutoSweepIfEligible(
             branchId: branchId,
             transactionId: transaction.id,
