@@ -25,6 +25,7 @@ import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/log_mixin.dart';
 import 'package:flipper_models/sync/mixins/production_output_mixin.dart';
 import 'package:flipper_models/sync/mixins/shift_mixin.dart';
+import 'package:flipper_models/sync/shift_operations.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 import 'package:flipper_models/sync/mixins/bulk_process_item_mixin.dart';
 
@@ -2339,7 +2340,7 @@ class CoreSync extends AiStrategyImpl
               cashSales: updatedCashSales,
               expectedCash: updatedExpectedCash,
             );
-            await repository.upsert<Shift>(updatedShift);
+            await ShiftOperations().saveShift(updatedShift);
           }
         }
 

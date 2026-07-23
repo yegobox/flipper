@@ -505,7 +505,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
       await shiftSync.startShift(
         userId: userId,
         openingBalance: openingBalance,
-        // notes: notes.isEmpty ? null : notes,
+        note: notes.isEmpty ? null : notes,
       );
 
       // Success - close dialog

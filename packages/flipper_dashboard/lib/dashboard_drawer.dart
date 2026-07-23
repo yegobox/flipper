@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/widgets/pos_shift_gate.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/secrets.dart';
@@ -1098,15 +1099,12 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
         title: 'Start New Shift',
       );
       if (response != null && response.confirmed) {
-        final openingBalance =
-            response.data['openingBalance'] as double? ?? 0.0;
-        final notes = response.data['notes'] as String?;
-        await shiftSync.startShift(
-          userId: userId,
-          openingBalance: openingBalance,
-          note: notes,
-        );
+        // StartShiftDialog already persisted the shift in Ditto.
         _loadShiftStatus();
+        try {
+          ProviderScope.containerOf(context, listen: false)
+              .invalidate(currentOpenShiftProvider);
+        } catch (_) {}
       }
     }
   }

@@ -2,11 +2,9 @@ import 'package:flipper_models/sync/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/shift_operations.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flutter/material.dart';
-import 'package:supabase_models/brick/repository.dart';
 
 mixin CapellaShiftMixin implements ShiftApi {
-  final Repository repository = Repository();
-  ShiftOperations get _shiftOps => ShiftOperations(repository: repository);
+  ShiftOperations get _shiftOps => ShiftOperations();
 
   @override
   Future<models.Shift> startShift(

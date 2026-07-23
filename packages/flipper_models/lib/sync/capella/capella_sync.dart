@@ -534,12 +534,11 @@ class CapellaSync extends AiStrategyImpl
       transaction.customerChangeDue =
           cashReceived - (transaction.subTotal ?? 0);
 
-      // Update shift totals via SQLite (shifts aren't managed in Ditto yet);
-      // must run after [transaction.subTotal] is known from line items.
+      // Update shift totals in Ditto after [transaction.subTotal] is known.
       Future<void> updateOpenShiftTotals() async {
         if (userId == null) return;
         try {
-          final shiftOps = ShiftOperations(repository: repository);
+          final shiftOps = ShiftOperations();
           final currentShift = await shiftOps.getCurrentShift(userId: userId);
           if (currentShift != null) {
             num saleAmount = transaction.subTotal ?? 0.0;
@@ -551,7 +550,7 @@ class CapellaSync extends AiStrategyImpl
             final updatedExpectedCash =
                 currentShift.openingBalance + updatedCashSales;
 
-            await repository.upsert<Shift>(
+            await shiftOps.saveShift(
               currentShift.copyWith(
                 cashSales: updatedCashSales,
                 expectedCash: updatedExpectedCash,
