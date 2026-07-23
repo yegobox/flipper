@@ -10,10 +10,56 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tickets_provider.g.dart';
 
+List<ITransaction> _sortOpenTickets(List<ITransaction> tickets) {
+  final marked = tickets.map((ticket) {
+    ticket.dataSource = Strategy.capella;
+    return ticket;
+  }).toList();
+
+  marked.sort((a, b) {
+    final priority = <String, int>{
+      WAITING: 3,
+      PARKED: 2,
+      IN_PROGRESS: 1,
+    };
+    final aPrio = priority[a.status] ?? 0;
+    final bPrio = priority[b.status] ?? 0;
+    if (aPrio != bPrio) return bPrio.compareTo(aPrio);
+
+    final aDate = a.createdAt ?? DateTime(1970);
+    final bDate = b.createdAt ?? DateTime(1970);
+    return bDate.compareTo(aDate);
+  });
+
+  return marked;
+}
+
+List<ITransaction> _filterTicketsForRole(
+  List<ITransaction> tickets, {
+  required bool canCollect,
+  required String? agentId,
+}) {
+  if (canCollect || agentId == null || agentId.isEmpty) return tickets;
+  return tickets.where((t) => t.agentId == agentId).toList();
+}
+
 /// Batch payment sums for all visible tickets (one query per stream update).
 @riverpod
 Future<Map<String, double>> ticketsPaymentSums(Ref ref) async {
-  final tickets = await ref.watch(ticketsStreamProvider.future);
+  final ticketsAsync = ref.watch(visibleTicketsProvider);
+  final tickets = ticketsAsync.value;
+  if (tickets == null) {
+    // First load: wait for the branch stream so sums stay in sync with the list.
+    await ref.watch(ticketsStreamProvider.future);
+    final after = ref.read(visibleTicketsProvider).value ?? const [];
+    return _paymentSumsForTickets(after);
+  }
+  return _paymentSumsForTickets(tickets);
+}
+
+Future<Map<String, double>> _paymentSumsForTickets(
+  List<ITransaction> tickets,
+) async {
   final ids = tickets.map((t) => t.id).where((id) => id.isNotEmpty).toList();
   if (ids.isEmpty) return {};
 
@@ -27,16 +73,15 @@ Future<Map<String, double>> ticketsPaymentSums(Ref ref) async {
   return {for (final e in sums.entries) e.key: e.value.byHand};
 }
 
+/// Branch-wide open tickets stream (PARKED / WAITING / IN_PROGRESS).
+///
+/// Does **not** watch [canCollectPosPaymentProvider] — that async role used to
+/// tear down and recreate the Ditto observer (losing emits; badge flashed to 0).
+/// Staff vs till filtering happens in [visibleTicketsProvider].
 @riverpod
 Stream<List<ITransaction>> ticketsStream(Ref ref) {
   final capellaStrategy = ProxyService.getStrategy(Strategy.capella);
   final branchId = ProxyService.box.getBranchId();
-
-  // Till roles see the full branch queue; staff see only their own tickets.
-  // Use the same ownership-aware decision as the Collect button/Pay controls
-  // (canCollectPosPaymentProvider) — an owner whose tenant.type is null/"Agent"
-  // still qualifies via business ownership, so the cashier's sent tickets show.
-  final canCollect = ref.watch(canCollectPosPaymentProvider);
 
   return capellaStrategy
       .openPosTicketsTransactionsStream(
@@ -44,40 +89,37 @@ Stream<List<ITransaction>> ticketsStream(Ref ref) {
         removeAdjustmentTransactions: true,
         forceRealData: true,
         skipOriginalTransactionCheck: false,
-        restrictToCurrentAgent: !canCollect,
+        restrictToCurrentAgent: false,
       )
-      .map((tickets) {
-        final marked = tickets.map((ticket) {
-          ticket.dataSource = Strategy.capella;
-          return ticket;
-        }).toList();
-
-        marked.sort((a, b) {
-          final priority = <String, int>{
-            WAITING: 3,
-            PARKED: 2,
-            IN_PROGRESS: 1,
-          };
-          final aPrio = priority[a.status] ?? 0;
-          final bPrio = priority[b.status] ?? 0;
-          if (aPrio != bPrio) return bPrio.compareTo(aPrio);
-
-          final aDate = a.createdAt ?? DateTime(1970);
-          final bDate = b.createdAt ?? DateTime(1970);
-          return bDate.compareTo(aDate);
-        });
-
-        return marked;
-      })
+      .map(_sortOpenTickets)
       .handleError((e, st) {
         talker.error('Ticket stream error: $e', st);
         throw e;
       });
 }
 
+/// Tickets visible to the current POS role (full branch queue for till roles,
+/// own tickets only for staff). Keeps prior data while the stream reloads.
+final visibleTicketsProvider = Provider<AsyncValue<List<ITransaction>>>((ref) {
+  final asyncTickets = ref.watch(ticketsStreamProvider);
+  final canCollect = ref.watch(canCollectPosPaymentProvider);
+  final agentId = ProxyService.box.getUserId();
+
+  return asyncTickets.whenData(
+    (tickets) => _filterTicketsForRole(
+      tickets,
+      canCollect: canCollect,
+      agentId: agentId,
+    ),
+  );
+});
+
 /// PARKED tickets awaiting till collection — drives the Tickets button badge.
+///
+/// Uses [AsyncValue.value] (not [AsyncValue.asData]) so a reload keeps the
+/// previous count instead of flashing to 0.
 final pendingTillTicketsCountProvider = Provider<int>((ref) {
-  final tickets = ref.watch(ticketsStreamProvider).asData?.value ?? const [];
+  final tickets = ref.watch(visibleTicketsProvider).value ?? const [];
   return tickets
       .where((t) => (t.status ?? '').toLowerCase() == PARKED)
       .length;

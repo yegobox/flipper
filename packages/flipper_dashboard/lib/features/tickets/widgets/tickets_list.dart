@@ -331,17 +331,27 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             Expanded(
               child: Consumer(
                 builder: (context, ref, _) {
-                  final ticketsAsync = ref.watch(ticketsStreamProvider);
+                  final ticketsAsync = ref.watch(visibleTicketsProvider);
                   final paymentSumsAsync = ref.watch(
                     ticketsPaymentSumsProvider,
                   );
                   final paymentSums = paymentSumsAsync.hasValue
                       ? paymentSumsAsync.requireValue
                       : const <String, double>{};
-                  return ticketsAsync.when(
-                    data: (tickets) => _buildTicketList(
+                  // Prefer prior list while reloading so a park/invalidate does
+                  // not blank the screen; show spinner only on first load.
+                  final tickets = ticketsAsync.value;
+                  if (tickets != null) {
+                    return _buildTicketList(
                       context,
                       tickets,
+                      paymentSumsByTxnId: paymentSums,
+                    );
+                  }
+                  return ticketsAsync.when(
+                    data: (data) => _buildTicketList(
+                      context,
+                      data,
                       paymentSumsByTxnId: paymentSums,
                     ),
                     loading: () => _buildLoadingState(context),

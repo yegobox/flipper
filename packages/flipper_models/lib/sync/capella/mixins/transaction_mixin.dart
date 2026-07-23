@@ -431,34 +431,79 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final query =
           'SELECT * FROM transactions WHERE ${whereClauses.join(' AND ')} ORDER BY createdAt DESC';
 
-      final controller = StreamController<List<ITransaction>>.broadcast();
+      // Single-subscription + onListen (same pattern as personalGoalsStream):
+      // a broadcast observer can fire before Riverpod subscribes and drop the
+      // snapshot, so a freshly parked ticket never reaches the badge/list until
+      // another store change. Register and seed only after the first listener.
       dynamic observer;
+      var cancelled = false;
+      var listenStarted = false;
 
-      observer = ditto.store.registerObserver(
-        query,
-        arguments: arguments,
-        onChange: (queryResult) {
-          if (controller.isClosed) return;
-
-          final transactions = <ITransaction>[];
-          for (final item in queryResult.items) {
-            try {
-              final transactionData = Map<String, dynamic>.from(item.value);
-              transactions.add(_convertFromDittoDocument(transactionData));
-            } catch (e) {
-              talker.error('Error converting open ticket transaction: $e');
-            }
+      List<ITransaction> convertItems(dynamic queryResult) {
+        final transactions = <ITransaction>[];
+        for (final item in queryResult.items) {
+          try {
+            final transactionData = Map<String, dynamic>.from(item.value);
+            transactions.add(_convertFromDittoDocument(transactionData));
+          } catch (e) {
+            talker.error('Error converting open ticket transaction: $e');
           }
-          controller.add(transactions);
+        }
+        return transactions;
+      }
+
+      late final StreamController<List<ITransaction>> controller;
+      controller = StreamController<List<ITransaction>>(
+        onListen: () {
+          if (listenStarted) return;
+          listenStarted = true;
+          unawaited(() async {
+            try {
+              Future<void> emitIfOpen(dynamic queryResult) async {
+                if (cancelled || controller.isClosed) return;
+                controller.add(convertItems(queryResult));
+              }
+
+              Future<void> executeAndEmit() async {
+                if (cancelled || controller.isClosed) return;
+                final snapshot = await ditto.store.execute(
+                  query,
+                  arguments: arguments,
+                );
+                if (cancelled || controller.isClosed) return;
+                controller.add(convertItems(snapshot));
+              }
+
+              if (cancelled || controller.isClosed) return;
+
+              observer = ditto.store.registerObserver(
+                query,
+                arguments: arguments,
+                onChange: (queryResult) {
+                  unawaited(emitIfOpen(queryResult));
+                },
+              );
+
+              await executeAndEmit();
+            } catch (e, s) {
+              talker.error(
+                'Error in openPosTicketsTransactionsStream setup: $e',
+                s,
+              );
+              if (!cancelled && !controller.isClosed) {
+                controller.add(const <ITransaction>[]);
+              }
+            }
+          }());
+        },
+        onCancel: () async {
+          cancelled = true;
+          await cancelDittoStoreObserver(observer);
+          if (!controller.isClosed) {
+            await controller.close();
+          }
         },
       );
-
-      controller.onCancel = () async {
-        await cancelDittoStoreObserver(observer);
-        if (!controller.isClosed) {
-          await controller.close();
-        }
-      };
 
       return controller.stream;
     } catch (e) {
@@ -2192,11 +2237,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
     }
 
+    // POS tickets list filters `isOriginalTransaction = true`; ensure park
+    // always lands in that set (kitchen already skips this check).
+    transaction.isOriginalTransaction = true;
+
     final setClauses = <String>[
       'status = :status',
       'ticketName = :ticketName',
       'note = :note',
       'isLoan = :isLoan',
+      'isOriginalTransaction = :isOriginal',
       'updatedAt = :updatedAt',
       'lastTouched = :lastTouched',
       'createdAt = :lastTouched',
@@ -2207,6 +2257,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'ticketName': ticketName.trim(),
       'note': ticketNote,
       'isLoan': transaction.isLoan ?? false,
+      'isOriginal': true,
       'updatedAt': nowIso,
       'lastTouched': nowIso,
     };
@@ -2214,6 +2265,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (subTotal > 0) {
       setClauses.add('subTotal = :subTotal');
       args['subTotal'] = subTotal;
+    } else {
+      talker.warning(
+        'parkSaleTicketFast: subTotal still <= 0 after line-item sum '
+        '(txn=$targetId); ticket may be hidden by tickets stream filter',
+      );
     }
     if (transaction.cashReceived != null) {
       setClauses.add('cashReceived = :cashReceived');
