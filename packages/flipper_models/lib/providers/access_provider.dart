@@ -5,7 +5,8 @@ import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:flutter/foundation.dart' hide Category;
+// ignore: unused_import
+import 'package:flutter/foundation.dart' hide Category; // kDebugMode — kept for the commented-out bypass below, see featureAccess
 part 'access_provider.g.dart';
 
 @riverpod
@@ -60,9 +61,13 @@ bool featureAccess(
     if (isCommissionOnlySession()) {
       return featureName == AppFeature.Commission;
     }
-    if (kDebugMode) {
-      return true;
-    }
+    // TEMP (local QA only): disabled so real Access grants are enforced in
+    // debug builds while testing the Ticket Review + Handover permission
+    // gating. Restore this bypass before committing — other debug-mode
+    // workflows in this app rely on it.
+    // if (kDebugMode) {
+    //   return true;
+    // }
     if (accesses.isEmpty) {
       talker.info(
         "Access DENIED for userId: $userId, feature: $featureName (no access records)",
