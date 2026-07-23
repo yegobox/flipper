@@ -22,9 +22,13 @@ mixin StockRequestApprovalLogic {
 
   /// Returns true when approval is finalized; false when left pending/unapproved.
   /// Unexpected failures are surfaced via snackbar then rethrown.
+  ///
+  /// When [suppressCompletionSnackbars] is true (e.g. POS auto-approve), success
+  /// toasts are left to the caller; EBM soft-failures are still shown.
   Future<bool> approveRequest({
     required InventoryRequest request,
     required BuildContext context,
+    bool suppressCompletionSnackbars = false,
   }) async {
     var loadingVisible = false;
     try {
@@ -130,6 +134,7 @@ mixin StockRequestApprovalLogic {
         isFullyApproved: isFullyApproved || fullyFromEmbedded,
         context: context,
         rraLines: rraLines,
+        suppressCompletionSnackbars: suppressCompletionSnackbars,
       );
       return true;
     } catch (e, s) {
@@ -453,6 +458,7 @@ mixin StockRequestApprovalLogic {
     required bool isFullyApproved,
     required BuildContext context,
     List<BranchTransferApprovedLine> rraLines = const [],
+    bool suppressCompletionSnackbars = false,
   }) async {
     try {
       await ProxyService.strategy.updateStockRequest(
@@ -496,16 +502,16 @@ mixin StockRequestApprovalLogic {
           lines: rraLines,
         );
         if (!rra.succeeded && context.mounted) {
-          _showSnackBar(
-            message:
-                'Approved locally; EBM sync failed${rra.message != null ? ': ${rra.message}' : ''}',
-            context: context,
-            isError: true,
+          // Soft failure: local stock already moved. Never surface Dio dumps.
+          showWarningNotification(
+            context,
+            rra.message ?? userFacingBranchTransferRraFailure(),
           );
+          return;
         }
       }
 
-      if (context.mounted) {
+      if (!suppressCompletionSnackbars && context.mounted) {
         _showSnackBar(
           message:
               'Request ${isFullyApproved ? 'approved' : 'partially approved'} successfully',
