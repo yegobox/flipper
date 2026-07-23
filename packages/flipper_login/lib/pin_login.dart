@@ -300,10 +300,12 @@ class _PinLoginState extends State<PinLogin>
             return;
           }
 
+          final forceOffline = await _shouldForceOfflineLogin(pinRecord);
           final ok = await _withLoginPipelineTimeout(
             _mfa.validateTotpThenLogin(
               pin: pinRecord,
               code: otpCode,
+              forceOffline: forceOffline,
             ),
           );
           if (!ok) {
@@ -338,6 +340,11 @@ class _PinLoginState extends State<PinLogin>
         }
       } else {
         if (_authMethod == AuthMethod.sms) {
+          final pinRecord = await _getPin();
+          if (pinRecord != null && await _shouldForceOfflineLogin(pinRecord)) {
+            await _loginWithCachedPin(pinRecord, forceOffline: true);
+            return;
+          }
           final response =
               await _mfa.requestSmsOtp(pinString: _pinController.text);
           if (response['requiresOtp']) {
@@ -345,34 +352,15 @@ class _PinLoginState extends State<PinLogin>
               _showOtpField = true;
               _otpFocusNode.requestFocus();
             });
+          } else if (pinRecord != null) {
+            await _loginWithCachedPin(pinRecord, forceOffline: false);
           } else {
-            final pinRecord = await _getPin();
-            if (pinRecord != null) {
-              _markSignInSuccess();
-              await _withLoginPipelineTimeout(
-                ProxyService.strategy.login(
-                  userPhone: pinRecord.phoneNumber,
-                  isInSignUpProgress: false,
-                  skipDefaultAppSetup: false,
-                  pin: Pin(
-                    userId: pinRecord.userId,
-                    pin: pinRecord.pin,
-                    businessId: pinRecord.businessId,
-                    branchId: pinRecord.branchId,
-                    ownerName: pinRecord.ownerName ?? '',
-                    phoneNumber: pinRecord.phoneNumber,
-                  ),
-                  flipperHttpClient: ProxyService.http,
-                ),
-              );
-            } else {
-              setState(() {
-                _hasError = true;
-                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
-              });
-              _pinController.clear();
-              _playPinShake();
-            }
+            setState(() {
+              _hasError = true;
+              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+            });
+            _pinController.clear();
+            _playPinShake();
           }
         } else {
           final pinRecord = await _getPin();
@@ -383,6 +371,12 @@ class _PinLoginState extends State<PinLogin>
             });
             _pinController.clear();
             _playPinShake();
+            return;
+          }
+          // Cached PIN + offline: skip MFA (TOTP needs network) and force
+          // offline auth from local Brick/Ditto tenant data.
+          if (await _shouldForceOfflineLogin(pinRecord)) {
+            await _loginWithCachedPin(pinRecord, forceOffline: true);
             return;
           }
           setState(() {
@@ -408,6 +402,40 @@ class _PinLoginState extends State<PinLogin>
     return await ProxyService.strategy.getPin(
       pinString: _pinController.text,
       flipperHttpClient: ProxyService.http,
+    );
+  }
+
+  /// True when there is no network and the entered PIN matches a local cache.
+  Future<bool> _shouldForceOfflineLogin(IPin pinRecord) async {
+    final online = await ProxyService.status.isInternetAvailable();
+    if (online) return false;
+    final entered = int.tryParse(_pinController.text);
+    if (entered == null) return false;
+    return pinRecord.pin == entered;
+  }
+
+  Future<void> _loginWithCachedPin(
+    IPin pinRecord, {
+    required bool forceOffline,
+  }) async {
+    _markSignInSuccess();
+    await _withLoginPipelineTimeout(
+      ProxyService.strategy.login(
+        userPhone: pinRecord.phoneNumber,
+        isInSignUpProgress: false,
+        skipDefaultAppSetup: false,
+        forceOffline: forceOffline,
+        pin: Pin(
+          userId: pinRecord.userId,
+          pin: pinRecord.pin,
+          businessId: pinRecord.businessId,
+          branchId: pinRecord.branchId,
+          ownerName: pinRecord.ownerName ?? '',
+          phoneNumber: pinRecord.phoneNumber,
+          tokenUid: pinRecord.tokenUid,
+        ),
+        flipperHttpClient: ProxyService.http,
+      ),
     );
   }
 

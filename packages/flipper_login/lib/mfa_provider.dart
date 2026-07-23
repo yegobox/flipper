@@ -10,23 +10,27 @@ class MfaProvider {
   Future<bool> validateTotpThenLogin({
     required IPin pin,
     required String code,
+    bool forceOffline = false,
   }) async {
     final String? userId = pin.userId;
     if (userId == null) {
       return false;
     }
 
-    final bool isValid = await MfaService().verifyTotpForUser(
-      userId: userId,
-      code: code,
-    );
+    if (!forceOffline) {
+      final bool isValid = await MfaService().verifyTotpForUser(
+        userId: userId,
+        code: code,
+      );
 
-    if (!isValid) return false;
+      if (!isValid) return false;
+    }
 
     await ProxyService.strategy.login(
       userPhone: pin.phoneNumber,
       isInSignUpProgress: false,
       skipDefaultAppSetup: false,
+      forceOffline: forceOffline,
       pin: Pin(
         userId: userId,
         pin: pin.pin,
@@ -34,6 +38,7 @@ class MfaProvider {
         branchId: pin.branchId,
         ownerName: pin.ownerName ?? '',
         phoneNumber: pin.phoneNumber,
+        tokenUid: pin.tokenUid,
       ),
       flipperHttpClient: ProxyService.http,
     );

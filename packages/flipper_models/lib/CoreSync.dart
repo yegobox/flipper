@@ -1141,34 +1141,11 @@ class CoreSync extends AiStrategyImpl
     final Uri uri = Uri.parse("$apihub/v2/api/pin/$pinString");
 
     try {
-      final localPin = await repository.get<Pin>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(pinString)]),
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      );
-
-      if (localPin.firstOrNull != null) {
-        Business? business = await getBusinessById(
-          businessId: localPin.firstOrNull!.businessId!,
-        );
-        Branch? branchE = await branch(
-          serverId: localPin.firstOrNull!.branchId!,
-        );
-        if (branchE != null || business != null) {
-          return IPin(
-            id: localPin.firstOrNull?.id,
-            pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
-            userId: localPin.firstOrNull!.userId!.toString(),
-            phoneNumber: localPin.firstOrNull!.phoneNumber!,
-            branchId: localPin.firstOrNull!.branchId!,
-            businessId: localPin.firstOrNull!.businessId!,
-            ownerName: localPin.firstOrNull!.ownerName ?? "N/A",
-            tokenUid: localPin.firstOrNull!.tokenUid ?? "N/A",
-          );
-        } else {
-          clearData(data: ClearData.Branch, identifier: branchE?.id ?? "");
-          clearData(data: ClearData.Business, identifier: business?.id ?? "");
-        }
+      final local = await _findLocalPinForLogin(pinString);
+      if (local != null) {
+        return local;
       }
+
       final response = await flipperHttpClient.get(uri);
 
       if (response.statusCode == 200) {
@@ -1179,8 +1156,82 @@ class CoreSync extends AiStrategyImpl
         throw PinError(term: "Not found");
       }
     } catch (e) {
+      // Offline / network failure: reuse a previously cached PIN if present.
+      final local = await _findLocalPinForLogin(pinString);
+      if (local != null) return local;
       rethrow;
     }
+  }
+
+  /// Resolves a cached [Pin] for offline (and online cache-hit) login.
+  ///
+  /// Users type the PIN digits (`pins.pin`), not `pins.userId`. Prefer lookup
+  /// by [pin], then fall back to [userId] for callers that pass an API user id.
+  Future<IPin?> _findLocalPinForLogin(String pinString) async {
+    Pin? match;
+
+    final pinDigits = int.tryParse(pinString);
+    if (pinDigits != null) {
+      final byPin = await repository.get<Pin>(
+        query: brick.Query(where: [brick.Where('pin').isExactly(pinDigits)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+      match = byPin.firstOrNull;
+    }
+
+    if (match == null) {
+      final byUserId = await repository.get<Pin>(
+        query: brick.Query(where: [brick.Where('userId').isExactly(pinString)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+      match = byUserId.firstOrNull;
+    }
+
+    if (match == null) return null;
+
+    final userId = match.userId;
+    final phoneNumber = match.phoneNumber;
+    final businessId = match.businessId;
+    final branchId = match.branchId;
+    if (userId == null ||
+        userId.isEmpty ||
+        phoneNumber == null ||
+        phoneNumber.isEmpty ||
+        businessId == null ||
+        businessId.isEmpty ||
+        branchId == null ||
+        branchId.isEmpty) {
+      return null;
+    }
+
+    // Prefer confirming local tenant rows exist, but do not block offline login
+    // solely on Brick Business/Branch hydrate — Ditto user_access can supply them.
+    Business? business;
+    Branch? branchE;
+    try {
+      business = await getBusinessById(businessId: businessId);
+      branchE = await branch(serverId: branchId);
+    } catch (_) {
+      // Ignore hydrate errors; PIN row alone is enough to attempt offline auth.
+    }
+
+    if (business == null && branchE == null) {
+      talker.debug(
+        'Local PIN found for $pinString but no Brick business/branch yet; '
+        'returning PIN for offline auth attempt',
+      );
+    }
+
+    return IPin(
+      id: match.id,
+      pin: match.pin ?? pinDigits ?? int.tryParse(pinString) ?? 0,
+      userId: userId,
+      phoneNumber: phoneNumber,
+      branchId: branchId,
+      businessId: businessId,
+      ownerName: match.ownerName ?? "N/A",
+      tokenUid: match.tokenUid ?? "N/A",
+    );
   }
 
   @override
@@ -1729,6 +1780,9 @@ class CoreSync extends AiStrategyImpl
         existingPin.ownerName = pin.ownerName;
         existingPin.tokenUid = pin.tokenUid;
         existingPin.uid = pin.uid;
+        if (pin.pin != null) {
+          existingPin.pin = pin.pin;
+        }
 
         // Use the existing PIN object with updated fields
         pin = existingPin;
