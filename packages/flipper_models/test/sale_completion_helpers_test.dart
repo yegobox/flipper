@@ -78,6 +78,55 @@ void main() {
       expect(d.status, saleCompletionStatusParked);
       expect(d.remainingBalance, closeTo(100.0, 0.001));
     });
+
+    test('resumed loan installment that clears balance completes', () {
+      // Ticket 708, prior paid 8, cashier tenders remaining 700.
+      final d = deriveSaleCompletionState(
+        transactionCashReceived: 8,
+        finalSubTotal: 708,
+        paymentMethods: const [
+          PaymentLineForSaleCompletion(amount: 700, method: 'CASH'),
+        ],
+        priorAlreadyPaidNonCredit: 8,
+      );
+      expect(d.shouldBeLoan, false);
+      expect(d.status, saleCompletionStatusComplete);
+      expect(d.remainingBalance, 0.0);
+      // cashReceived persisted on the ticket must be cumulative.
+      expect(d.nonCreditCashReceived, closeTo(708.0, 0.001));
+    });
+
+    test('resumed loan with cumulative cashReceived still completes', () {
+      // collectPayment may have already summed prior+tender in memory (8+700)
+      // before markTransactionAsCompleted runs.
+      final d = deriveSaleCompletionState(
+        transactionCashReceived: 708,
+        finalSubTotal: 708,
+        paymentMethods: const [
+          PaymentLineForSaleCompletion(amount: 700, method: 'CASH'),
+        ],
+        priorAlreadyPaidNonCredit: 8,
+      );
+      expect(d.shouldBeLoan, false);
+      expect(d.status, saleCompletionStatusComplete);
+      expect(d.remainingBalance, 0.0);
+      expect(d.nonCreditCashReceived, closeTo(708.0, 0.001));
+    });
+
+    test('partial resumed installment parks with remaining balance', () {
+      final d = deriveSaleCompletionState(
+        transactionCashReceived: 8,
+        finalSubTotal: 708,
+        paymentMethods: const [
+          PaymentLineForSaleCompletion(amount: 100, method: 'CASH'),
+        ],
+        priorAlreadyPaidNonCredit: 8,
+      );
+      expect(d.shouldBeLoan, true);
+      expect(d.status, saleCompletionStatusParked);
+      expect(d.remainingBalance, closeTo(600.0, 0.001));
+      expect(d.nonCreditCashReceived, closeTo(108.0, 0.001));
+    });
   });
 
   group('normalizePaymentLinesToSaleTotal', () {

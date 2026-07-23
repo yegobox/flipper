@@ -970,11 +970,26 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     final paymentLines = paymentLinesForSaleCompletion(paymentMethods);
 
+    // Resumed loans: if the caller omitted prior paid, recover it from the
+    // ticket. cashReceived is normally prior-only; after an older collectPayment
+    // path it may already be prior+tender — strip the current tender in that case.
+    final priorPaid = () {
+      if (overrideAlreadyPaid > 0.0001) return overrideAlreadyPaid;
+      if (transaction.isLoan != true) return 0.0;
+      final loanCash = transaction.cashReceived ?? 0.0;
+      if (loanCash <= 0.0001) return 0.0;
+      final tenderSum = paymentLines.fold<double>(0, (s, p) => s + p.amount);
+      if (tenderSum > 0.0001 && loanCash > tenderSum + 0.0001) {
+        return loanCash - tenderSum;
+      }
+      return loanCash;
+    }();
+
     final derived = deriveSaleCompletionState(
       transactionCashReceived: transaction.cashReceived ?? 0,
       finalSubTotal: finalSubTotal,
       paymentMethods: paymentLines,
-      priorAlreadyPaidNonCredit: overrideAlreadyPaid,
+      priorAlreadyPaidNonCredit: priorPaid,
     );
 
     final paymentsToPersist = normalizePaymentLinesToSaleTotal(
@@ -1040,10 +1055,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     talker.debug(
       '[sale_completion_timing] update_transaction_ms=${txnSw.elapsedMilliseconds}',
     );
+    // Keep the in-memory row aligned with what we just persisted. collectPayment
+    // / applySalePaymentFieldsInMemory may have mutated cashReceived to a
+    // cumulative total and remainingBalance to 0 before this mark; if those
+    // stale fields leak into a later partial updateTransaction they can
+    // re-park a fully-paid ticket with remainingBalance 0.
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
     transaction.createdAt = now;
     transaction.status = derived.status;
+    transaction.isLoan = derived.shouldBeLoan;
+    transaction.remainingBalance = derived.remainingBalance;
+    transaction.cashReceived = derived.nonCreditCashReceived;
 
     if (!deferPaymentPersist) {
       final paySw = Stopwatch()..start();

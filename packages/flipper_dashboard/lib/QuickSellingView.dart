@@ -233,11 +233,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   double _effectiveAlreadyPaid(ITransaction? transaction) {
     // Ditto stream / async fetch can hold a stale prior while qty +/- is optimistic.
     if (hasOptimisticLineQtyDrift()) return 0.0;
-    if (_cachedNonCreditPaid != null) return _cachedNonCreditPaid!;
-    if (transaction?.isLoan == true) {
-      return transaction?.cashReceived ?? 0.0;
-    }
-    return 0.0;
+    // [transaction.cashReceived] is written synchronously as part of sale
+    // completion, while the payment-records fetch behind [_cachedNonCreditPaid]
+    // is persisted in a deferred/fire-and-forget write (see
+    // `_persistSalePaymentLines`) and can resolve to a stale/low value shortly
+    // after a prior installment. Floor the fetched value with cashReceived on a
+    // resumed loan so a lagging fetch never makes a fully-paid ticket look
+    // underpaid and get re-parked. Never used for non-loan sales, where
+    // cashReceived may just mirror the in-progress tender.
+    final loanFloor = transaction?.isLoan == true
+        ? (transaction?.cashReceived ?? 0.0)
+        : 0.0;
+    final cached = _cachedNonCreditPaid;
+    if (cached == null) return loanFloor;
+    return math.max(cached, loanFloor);
   }
 
   double get totalAfterDiscountAndShipping {
@@ -1357,7 +1366,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ref: ref,
           transaction: txn,
           total: _calculateTotal(),
-          overrideAlreadyPaid: nonCreditPaid,
+          overrideAlreadyPaid: _effectiveAlreadyPaid(txn),
         );
         _updateReceivedAmountIfNeeded(txn);
       });
