@@ -126,6 +126,8 @@ mixin TransactionMixinOld {
           }
           final collectSw = Stopwatch()..start();
           if (skipTransactionPersist) {
+            // Do not accumulate cashReceived here — markTransactionAsCompleted
+            // (onComplete) owns the authoritative loan/complete balances.
             applySalePaymentFieldsInMemory(
               transaction: transaction,
               tenderAmount: amount,
@@ -133,6 +135,7 @@ mixin TransactionMixinOld {
               customerName: customerNameController.text,
               countryCode: countryCodeController.text,
               preloadedLineItems: preloadedLineItemsForCollectPayment,
+              mutateCashFields: false,
             );
             final items = preloadedLineItemsForCollectPayment ?? const [];
             final saleTotal = items.isEmpty
@@ -142,6 +145,12 @@ mixin TransactionMixinOld {
                     (sum, item) =>
                         sum + item.price.toDouble() * item.qty.toDouble(),
                   );
+            // Prior paid is still on the row (loan cashReceived); amount is this
+            // installment. Passing cashReceived+amount without prior made the
+            // "yield to lower payment rows" branch drop the prior and park.
+            final priorPaid = transaction.isLoan == true
+                ? (transaction.cashReceived ?? 0.0)
+                : 0.0;
             final derived = deriveSaleCompletionState(
               transactionCashReceived: transaction.cashReceived ?? 0,
               finalSubTotal: saleTotal,
@@ -151,6 +160,7 @@ mixin TransactionMixinOld {
                   method: paymentType,
                 ),
               ],
+              priorAlreadyPaidNonCredit: priorPaid,
             );
             scheduleDeferredSaleCollectSideEffects(
               transaction: transaction,
@@ -675,12 +685,19 @@ mixin TransactionMixinOld {
               0,
               (a, b) => a + (b.price.toDouble() * b.qty.toDouble()),
             );
+      // For resumed loans, cashReceived is prior paid; [amount] is this
+      // installment. Do not pre-sum them into transactionCashReceived — that
+      // tripped "yield to lower payment rows" and parked a fully-paid ticket.
+      final priorPaidForDerived = transaction.isLoan == true
+          ? (transaction.cashReceived ?? 0.0)
+          : 0.0;
       final derivedCompletion = deriveSaleCompletionState(
-        transactionCashReceived: (transaction.cashReceived ?? 0) + amount,
+        transactionCashReceived: transaction.cashReceived ?? 0,
         finalSubTotal: saleTotalForDerived,
         paymentMethods: [
           PaymentLineForSaleCompletion(amount: amount, method: paymentType),
         ],
+        priorAlreadyPaidNonCredit: priorPaidForDerived,
       );
 
       // NOTE: do NOT mutate transaction.isLoan here. Setting it before
@@ -690,7 +707,10 @@ mixin TransactionMixinOld {
       // signals the loan; the journal poster and customer linker derive
       // loan-ness from completionStatus (see PosJournalPoster / LoanCustomerLinker).
 
-      // Collect payment via Capella so items are read from Ditto
+      // Collect payment via Capella so items are read from Ditto.
+      // When the caller will persist via markTransactionAsCompleted, skip both
+      // the Ditto write and in-memory cash accumulation so stale
+      // remainingBalance=0 cannot leak into a later partial update.
       await ProxyService.getStrategy(Strategy.capella).collectPayment(
         branchId: branchId,
         isProformaMode: ProxyService.box.isProformaMode(),
@@ -712,6 +732,7 @@ mixin TransactionMixinOld {
             nonEmpty(transaction.customerPhone),
         preloadedLineItems: items,
         skipTransactionPersist: skipTransactionPersist,
+        skipCashMutation: skipTransactionPersist,
         completionStatus: derivedCompletion.status,
       );
       // Clean up temporary storage

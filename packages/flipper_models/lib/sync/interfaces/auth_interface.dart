@@ -14,6 +14,7 @@ abstract class AuthInterface {
     required bool skipDefaultAppSetup,
     bool stopAfterConfigure = false,
     required Pin pin,
+    bool forceOffline = false,
     required HttpClientInterface flipperHttpClient,
     IUser? existingUser,
   });

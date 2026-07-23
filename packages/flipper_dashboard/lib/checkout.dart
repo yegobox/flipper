@@ -34,6 +34,7 @@ import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/utils/customer_pay_gate.dart';
+import 'package:flipper_dashboard/widgets/pos_shift_gate.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 
@@ -131,7 +132,9 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return Material(color: Colors.white, child: _buildMainContent());
+    return PosShiftGate(
+      child: Material(color: Colors.white, child: _buildMainContent()),
+    );
   }
 
   Widget _buildMainContent() {

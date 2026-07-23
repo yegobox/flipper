@@ -45,6 +45,7 @@ mixin CapellaAuthMixin implements AuthInterface {
     required bool isInSignUpProgress,
     bool stopAfterConfigure = false,
     required Pin pin,
+    bool forceOffline = false,
     required HttpClientInterface flipperHttpClient,
   }) async {
     throw UnimplementedError('login needs to be implemented for Capella');

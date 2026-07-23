@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
@@ -73,39 +74,19 @@ class CustomersState extends ConsumerState<Customers> {
       builder: (context, model, child) {
         return Scaffold(
           backgroundColor: PosTokens.posBg,
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: PosTokens.surface,
-            surfaceTintColor: Colors.transparent,
-            title: Text(
-              'Customers',
-              style: TextStyle(
-                color: PosTokens.ink1,
-                fontWeight: FontWeight.w700,
-                fontSize: isWide ? 22 : 20,
-              ),
-            ),
-            leading: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: PosTokens.blue,
-                size: 20,
-              ),
-              // Do not invalidate pendingTransactionStream here — that tears
-              // down the Capella observer and can spawn a new empty cart,
-              // dropping the customer just attached on this screen.
-              onPressed: () => _routerService.pop(),
-            ),
-            actions: [
-              IconButton(
-                tooltip: 'Help',
-                icon: const Icon(Icons.help_outline, color: PosTokens.blue),
-                onPressed: () => _showHelpDialog(context, isWide),
-              ),
-            ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Container(height: 1, color: PosTokens.line),
+          // Shared CustomAppBar so the close button matches the rest of the app
+          // (circular outlined AppBarRoundIconButton, e.g. Cash Book).
+          appBar: CustomAppBar(
+            title: 'Customers',
+            barBackgroundColor: PosTokens.surface,
+            // Do not invalidate pendingTransactionStream here — that tears
+            // down the Capella observer and can spawn a new empty cart,
+            // dropping the customer just attached on this screen.
+            onPop: () => _routerService.pop(),
+            customTrailingWidget: AppBarRoundIconButton(
+              icon: Icons.help_outline,
+              tooltip: 'Help',
+              onPressed: () => _showHelpDialog(context, isWide),
             ),
           ),
           body: transactionAsyncValue.when(

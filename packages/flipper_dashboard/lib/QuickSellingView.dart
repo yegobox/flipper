@@ -233,11 +233,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   double _effectiveAlreadyPaid(ITransaction? transaction) {
     // Ditto stream / async fetch can hold a stale prior while qty +/- is optimistic.
     if (hasOptimisticLineQtyDrift()) return 0.0;
-    if (_cachedNonCreditPaid != null) return _cachedNonCreditPaid!;
-    if (transaction?.isLoan == true) {
-      return transaction?.cashReceived ?? 0.0;
-    }
-    return 0.0;
+    // [transaction.cashReceived] is written synchronously as part of sale
+    // completion, while the payment-records fetch behind [_cachedNonCreditPaid]
+    // is persisted in a deferred/fire-and-forget write (see
+    // `_persistSalePaymentLines`) and can resolve to a stale/low value shortly
+    // after a prior installment. Floor the fetched value with cashReceived on a
+    // resumed loan so a lagging fetch never makes a fully-paid ticket look
+    // underpaid and get re-parked. Never used for non-loan sales, where
+    // cashReceived may just mirror the in-progress tender.
+    final loanFloor = transaction?.isLoan == true
+        ? (transaction?.cashReceived ?? 0.0)
+        : 0.0;
+    final cached = _cachedNonCreditPaid;
+    if (cached == null) return loanFloor;
+    return math.max(cached, loanFloor);
   }
 
   double get totalAfterDiscountAndShipping {
@@ -482,6 +491,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   /// Desktop shared view: stays **above** the scrolling line items (not inside the list).
   /// Invoice / Txn ID columns + Save ticket; balance due lives above payment input.
+  /// Appearance must stay stable — pin via layout, do not restyle for stickiness.
   Widget _buildTopBarCheckoutSummary({
     required AsyncValue<ITransaction> transactionAsyncValue,
     required CoreViewModel model,
@@ -1356,7 +1366,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ref: ref,
           transaction: txn,
           total: _calculateTotal(),
-          overrideAlreadyPaid: nonCreditPaid,
+          overrideAlreadyPaid: _effectiveAlreadyPaid(txn),
         );
         _updateReceivedAmountIfNeeded(txn);
       });
@@ -2384,22 +2394,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return qty.toStringAsFixed(qty.truncateToDouble() == qty ? 0 : 2);
   }
 
-  /// Cart column: checkout summary, mode, customer/branch, items table, optional delivery.
-  /// When [pinGrandTotal] is true, the table keeps Grand Total pinned at the
-  /// bottom of this pane; parent must provide bounded height ([Expanded]).
-  /// The top summary bar is outside the list [ListView] so it stays visible
-  /// while line items scroll.
-  Widget _buildSharedViewItemsPane({
-    required double alreadyPaid,
+  /// Settling banner + Invoice / Txn / Save ticket. Visuals unchanged; callers
+  /// pin this above scroll so it stays visible.
+  Widget _buildSharedViewPinnedHeader({
     required AsyncValue<ITransaction> transactionAsyncValue,
     required CoreViewModel model,
-    required bool isOrdering,
-    required bool pinGrandTotal,
-    required bool isTransferMode,
   }) {
     final settling = ref.watch(settlingTillTicketProvider);
-    final isSettling = settling != null;
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (settling != null) _buildSettlingBanner(settling),
@@ -2407,6 +2410,35 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           transactionAsyncValue: transactionAsyncValue,
           model: model,
         ),
+      ],
+    );
+  }
+
+  /// Cart column: checkout summary, mode, customer/branch, items table, optional delivery.
+  /// When [pinGrandTotal] is true, the table keeps Grand Total pinned at the
+  /// bottom of this pane; parent must provide bounded height ([Expanded]).
+  /// The top summary bar is outside the list [ListView] so it stays visible
+  /// while line items scroll. Set [includePinnedHeader] false when the parent
+  /// already renders [_buildSharedViewPinnedHeader] above a scroll view.
+  Widget _buildSharedViewItemsPane({
+    required double alreadyPaid,
+    required AsyncValue<ITransaction> transactionAsyncValue,
+    required CoreViewModel model,
+    required bool isOrdering,
+    required bool pinGrandTotal,
+    required bool isTransferMode,
+    bool includePinnedHeader = true,
+  }) {
+    final settling = ref.watch(settlingTillTicketProvider);
+    final isSettling = settling != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (includePinnedHeader)
+          _buildSharedViewPinnedHeader(
+            transactionAsyncValue: transactionAsyncValue,
+            model: model,
+          ),
         if (!isOrdering)
           CheckoutModeBar(enabled: !isOrdering && !isSettling),
         if (!isOrdering && !isTransferMode && !isSettling) ...[
@@ -2462,6 +2494,37 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
         ],
       ],
+    );
+  }
+
+  /// Bounded short/settling pane: pin invoice bar; scroll the rest.
+  Widget _buildPinnedHeaderScrollCheckout({
+    required BoxConstraints constraints,
+    required AsyncValue<ITransaction> transactionAsyncValue,
+    required CoreViewModel model,
+    required Widget scrollChild,
+  }) {
+    return SizedBox(
+      width: constraints.maxWidth,
+      height: constraints.maxHeight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+            child: _buildSharedViewPinnedHeader(
+              transactionAsyncValue: transactionAsyncValue,
+              model: model,
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(2, 0, 2, 2),
+              child: scrollChild,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2665,31 +2728,33 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
 
         // Phone landscape and other short panels (or the taller settling
-        // banner eating into the same budget): one vertical scroll fallback.
+        // banner eating into the same budget): pin invoice/Save ticket, scroll
+        // the rest so the Pay bar stays reachable without burying the header.
         if (isSettling ||
             PosLayoutBreakpoints.useSingleScrollCheckoutPane(
               constraints.maxHeight,
             )) {
           if (isOrdering) {
-            return SizedBox(
-              width: constraints.maxWidth,
-              height: constraints.maxHeight,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(2.0),
-                child: _buildSharedViewItemsPane(
-                  alreadyPaid: alreadyPaid,
-                  transactionAsyncValue: transactionAsyncValue,
-                  model: model,
-                  isOrdering: isOrdering,
-                  pinGrandTotal: false,
-                  isTransferMode: isTransferMode,
-                ),
+            return _buildPinnedHeaderScrollCheckout(
+              constraints: constraints,
+              transactionAsyncValue: transactionAsyncValue,
+              model: model,
+              scrollChild: _buildSharedViewItemsPane(
+                alreadyPaid: alreadyPaid,
+                transactionAsyncValue: transactionAsyncValue,
+                model: model,
+                isOrdering: isOrdering,
+                pinGrandTotal: false,
+                isTransferMode: isTransferMode,
+                includePinnedHeader: false,
               ),
             );
           }
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(2.0),
-            child: Column(
+          return _buildPinnedHeaderScrollCheckout(
+            constraints: constraints,
+            transactionAsyncValue: transactionAsyncValue,
+            model: model,
+            scrollChild: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildSharedViewItemsPane(
@@ -2699,6 +2764,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   isOrdering: isOrdering,
                   pinGrandTotal: false,
                   isTransferMode: isTransferMode,
+                  includePinnedHeader: false,
                 ),
                 const SizedBox(height: 12),
                 pinnedBottomColumn,

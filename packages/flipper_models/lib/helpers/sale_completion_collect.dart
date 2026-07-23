@@ -8,6 +8,12 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// Synchronous in-memory payment fields before [markTransactionAsCompleted] (no Ditto/SQLite).
+///
+/// When [mutateCashFields] is false (preferred on the Capella sale path where
+/// [markTransactionAsCompleted] is about to persist the authoritative
+/// loan/complete balances), skip accumulating [cashReceived] /
+/// [remainingBalance] so a later partial update cannot overwrite a completed
+/// sale with a stale in-memory remainingBalance of 0.
 void applySalePaymentFieldsInMemory({
   required ITransaction transaction,
   required double tenderAmount,
@@ -15,6 +21,7 @@ void applySalePaymentFieldsInMemory({
   required String customerName,
   required String countryCode,
   List<TransactionItem>? preloadedLineItems,
+  bool mutateCashFields = true,
 }) {
   final items = preloadedLineItems ?? const <TransactionItem>[];
   transaction.taxAmount = items.fold<double>(
@@ -35,17 +42,19 @@ void applySalePaymentFieldsInMemory({
     (sum, item) => sum + (item.dcAmt?.toDouble() ?? 0),
   );
 
-  if (transaction.isLoan == true) {
-    transaction.originalLoanAmount ??= computedSubTotal;
-    final totalPaidSoFar = (transaction.cashReceived ?? 0.0) + tenderAmount;
-    transaction.cashReceived = totalPaidSoFar;
-    transaction.remainingBalance = computedSubTotal - totalPaidSoFar;
-    transaction.lastPaymentDate = DateTime.now().toUtc();
-    transaction.lastPaymentAmount = tenderAmount;
-  } else {
-    transaction.cashReceived = (transaction.cashReceived ?? 0) + tenderAmount;
-    transaction.remainingBalance =
-        computedSubTotal - (transaction.cashReceived ?? 0.0);
+  if (mutateCashFields) {
+    if (transaction.isLoan == true) {
+      transaction.originalLoanAmount ??= computedSubTotal;
+      final totalPaidSoFar = (transaction.cashReceived ?? 0.0) + tenderAmount;
+      transaction.cashReceived = totalPaidSoFar;
+      transaction.remainingBalance = computedSubTotal - totalPaidSoFar;
+      transaction.lastPaymentDate = DateTime.now().toUtc();
+      transaction.lastPaymentAmount = tenderAmount;
+    } else {
+      transaction.cashReceived = (transaction.cashReceived ?? 0) + tenderAmount;
+      transaction.remainingBalance =
+          computedSubTotal - (transaction.cashReceived ?? 0.0);
+    }
   }
 
   transaction.transactionType =

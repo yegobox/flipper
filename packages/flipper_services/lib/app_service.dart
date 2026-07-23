@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
@@ -337,11 +338,8 @@ class AppService with ListenableServiceMixin {
       );
     }
 
-    final effectiveApp = ProxyService.box.getDefaultApp() ?? 'POS';
-    if (effectiveApp == 'POS') {
-      await checkAndStartShift(userId: userId);
-    }
-
+    // Shift open is intentional (POS Sales gate / drawer Open Shift) — do not
+    // auto-prompt here after login; that caused random mid-session dialogs.
     await _saveDesktopDeviceRecordIfNeeded();
     unawaited(ProxyService.cron.setupDelegationMonitoringIfNeeded());
   }
@@ -453,24 +451,39 @@ class AppService with ListenableServiceMixin {
     final ditto = DittoSingleton.instance.ditto;
     if (ditto == null || branchId.isEmpty) return;
 
-    unawaited(
-      ensureBranchCatalogCloudSubscriptions(
-        ditto: ditto,
-        branchId: branchId,
-        businessId: ProxyService.box.getBusinessId(),
-      ),
+    // Sequenced (not all fired concurrently): registering all 5 branch
+    // subscriptions at once starts an unbounded "SELECT *" catalog pull for
+    // every collection in the same instant the destination screen is
+    // querying/rendering that same data, spiking memory/CPU right during the
+    // branch->home transition. Running them one after another spreads that
+    // load out; the end state (all subscriptions registered) is unchanged.
+    unawaited(_registerBranchDittoSubscriptionsSequentially(
+      ditto: ditto,
+      branchId: branchId,
+    ));
+  }
+
+  Future<void> _registerBranchDittoSubscriptionsSequentially({
+    required Ditto ditto,
+    required String branchId,
+  }) async {
+    await ensureBranchCatalogCloudSubscriptions(
+      ditto: ditto,
+      branchId: branchId,
+      businessId: ProxyService.box.getBusinessId(),
     );
-    unawaited(
-      ensureBranchCounterCloudSubscription(ditto: ditto, branchId: branchId),
+    await ensureBranchCounterCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
     );
-    unawaited(
-      ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId),
+    await ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId);
+    await ensureBranchDelegationCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
     );
-    unawaited(
-      ensureBranchDelegationCloudSubscription(ditto: ditto, branchId: branchId),
-    );
-    unawaited(
-      ensureDailyReportFilesCloudSubscription(ditto: ditto, branchId: branchId),
+    await ensureDailyReportFilesCloudSubscription(
+      ditto: ditto,
+      branchId: branchId,
     );
   }
 
@@ -639,7 +652,6 @@ class AppService with ListenableServiceMixin {
       );
       unawaited(_hydrateSettingsToggles());
       Future.delayed(Duration.zero, () async {
-        await checkAndStartShift(userId: userId);
         if (ProxyService.ditto.isReady()) {
           loadFeatures();
         }
@@ -722,10 +734,6 @@ class AppService with ListenableServiceMixin {
           "✅ Using locally cached businessId=$businessId, branchId=$branchId",
         );
         await _hydrateSettingsToggles();
-        // Defer shift check to avoid blocking startup
-        Future.delayed(Duration.zero, () async {
-          await checkAndStartShift(userId: userId);
-        });
         return;
       } else {
         // No local data and no Ditto — user must be online for first setup
@@ -765,48 +773,53 @@ class AppService with ListenableServiceMixin {
 
     await _hydrateSettingsToggles();
 
-    // After successful business/branch selection, defer shift check to avoid blocking
     Future.delayed(Duration.zero, () async {
-      await checkAndStartShift(userId: userId);
       if (ProxyService.ditto.isReady()) {
         loadFeatures();
       }
     });
   }
 
-  /// Returns `true` if a shift is open (or was just started), `false` if the
-  /// user cancelled the start-shift dialog.
-  Future<bool> checkAndStartShift({required String userId}) async {
-    dynamic currentShift;
+  /// Returns `true` if an open shift exists for [userId] (Ditto). Does not show UI.
+  Future<bool> hasOpenShift({required String userId}) async {
     try {
-      currentShift = await shiftSync
+      final currentShift = await shiftSync
           .getCurrentShift(userId: userId)
           .timeout(const Duration(seconds: 12));
+      return currentShift != null;
     } on TimeoutException {
-      print(
-        '⚠️ getCurrentShift timed out during login; continuing without blocking',
-      );
+      print('⚠️ getCurrentShift timed out; treating as no open shift');
+      return false;
+    } catch (e) {
+      print('⚠️ hasOpenShift failed: $e');
+      return false;
+    }
+  }
+
+  /// Opens the Start Shift dialog when no shift is open. Call only from
+  /// intentional surfaces (POS Sales gate, drawer Open Shift).
+  ///
+  /// Returns `true` if a shift is open (or was just started), `false` if the
+  /// user cancelled.
+  Future<bool> promptStartShiftIfNeeded({required String userId}) async {
+    if (await hasOpenShift(userId: userId)) {
       return true;
     }
-    if (currentShift == null) {
-      final dialogService = locator<DialogService>();
-      final response = await dialogService.showCustomDialog(
-        variant: DialogType.startShift,
-        title: 'Start New Shift',
-      );
-      if (response == null || !response.confirmed) {
-        return false;
-      }
-      final openingBalance = response.data['openingBalance'] as double? ?? 0.0;
-      final notes = response.data['notes'] as String?;
-      await shiftSync.startShift(
-        userId: userId,
-        openingBalance: openingBalance,
-        note: notes,
-      );
+    final dialogService = locator<DialogService>();
+    final response = await dialogService.showCustomDialog(
+      variant: DialogType.startShift,
+      title: 'Start New Shift',
+    );
+    if (response == null || !response.confirmed) {
+      return false;
     }
+    // [StartShiftDialog] already persists via shiftSync.startShift.
     return true;
   }
+
+  /// @deprecated Use [promptStartShiftIfNeeded] from POS/drawer only.
+  Future<bool> checkAndStartShift({required String userId}) =>
+      promptStartShiftIfNeeded(userId: userId);
 
   // NFCManager nfc = NFCManager();
   static final StreamController<String> cleanedDataController =

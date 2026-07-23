@@ -192,15 +192,18 @@ class PaymentVerificationNavigator {
 
   static Future<void> navigateToAuthenticatedHome({
     bool skipPersonalCheck = false,
+    bool skipCommissionCheck = false,
     bool clearStack = false,
   }) =>
       _navigateToAuthenticatedHome(
         skipPersonalCheck: skipPersonalCheck,
+        skipCommissionCheck: skipCommissionCheck,
         clearStack: clearStack,
       );
 
   static Future<void> _navigateToAuthenticatedHome({
     bool skipPersonalCheck = false,
+    bool skipCommissionCheck = false,
     bool clearStack = false,
   }) async {
     if (!skipPersonalCheck) {
@@ -212,7 +215,13 @@ class PaymentVerificationNavigator {
       }
     }
 
-    if (await _navigateCommissionOnlyIfNeeded()) return;
+    // Callers that already resolved commission-only status (e.g. LoginChoices,
+    // which just awaited refreshCommissionOnlySession) can skip this so we
+    // don't repeat the same 5s-bounded Supabase round trip during the
+    // branch->home transition.
+    if (!skipCommissionCheck && await _navigateCommissionOnlyIfNeeded()) {
+      return;
+    }
 
     await BarModeBranchSettingsService.hydrateForActiveBranch();
 

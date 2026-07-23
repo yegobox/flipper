@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
+import 'package:flipper_dashboard/widgets/pos_shift_gate.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_services/constants.dart';
@@ -29,37 +30,34 @@ class InventoryApp extends HookConsumerWidget {
     ).shouldSeeTheApp(ref, featureName: AppFeature.Sales);
   }
 
+  Widget _salesContent(bool isScanningMode, WidgetRef ref) {
+    if (BarModeSettings.enabled) {
+      return const BarModeHost()
+          .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+          .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+    }
+    return isScanningMode
+        ? buildReceiptUI().shouldSeeTheApp(
+            ref,
+            featureName: AppFeature.Sales,
+          )
+        : CheckOut(isBigScreen: true)
+              .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+              .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+  }
+
   Widget buildMainContent(bool isScanningMode, WidgetRef ref) {
     final selectedMenuItem = ref.watch(selectedMenuItemProvider);
 
     switch (selectedMenuItem) {
-      case 0: // Sales
-        if (BarModeSettings.enabled) {
-          return const BarModeHost()
-              .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
-              .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
-        }
-        return isScanningMode
-            ? buildReceiptUI().shouldSeeTheApp(
-                ref,
-                featureName: AppFeature.Sales,
-              )
-            : CheckOut(isBigScreen: true)
-                  .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
-                  .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+      case 0: // Sales (shift gated by [PosShiftGate] in build)
+        return _salesContent(isScanningMode, ref);
       case 1: // Inventory
         return Center(child: Ai());
       case 2: // Tickets
         return const TransactionWidget();
       default:
-        return isScanningMode
-            ? buildReceiptUI().shouldSeeTheApp(
-                ref,
-                featureName: AppFeature.Sales,
-              )
-            : CheckOut(isBigScreen: true)
-                  .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
-                  .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+        return _salesContent(isScanningMode, ref);
     }
   }
 
@@ -89,64 +87,73 @@ class InventoryApp extends HookConsumerWidget {
       );
     }
 
-    if (isScanningMode) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: buildMainContent(isScanningMode, ref)),
-          buildProductSection(ref),
-        ],
-      );
+    if (selectedMenuItem == 2) {
+      return buildMainContent(isScanningMode, ref);
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final useCartDrawer = constraints.maxWidth <
-            PosLayoutBreakpoints.desktopSplitMinWidth;
+    // Sales (0 / default): require open shift before any POS interaction.
+    final salesBody = () {
+      if (isScanningMode) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: buildMainContent(isScanningMode, ref)),
+            buildProductSection(ref),
+          ],
+        );
+      }
 
-        if (!useCartDrawer) {
-          return ColoredBox(
-            color: PosTokens.posBg,
-            child: Row(
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final useCartDrawer = constraints.maxWidth <
+              PosLayoutBreakpoints.desktopSplitMinWidth;
+
+          if (!useCartDrawer) {
+            return ColoredBox(
+              color: PosTokens.posBg,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  buildProductSection(ref),
+                  Expanded(child: buildMainContent(isScanningMode, ref)),
+                ],
+              ),
+            );
+          }
+
+          final drawerWidth =
+              PosLayoutBreakpoints.cartDrawerWidth(constraints.maxWidth);
+
+          return Scaffold(
+            key: scaffoldKey,
+            backgroundColor: PosTokens.posBg,
+            body: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 buildProductSection(ref),
-                Expanded(child: buildMainContent(isScanningMode, ref)),
               ],
             ),
-          );
-        }
-
-        final drawerWidth =
-            PosLayoutBreakpoints.cartDrawerWidth(constraints.maxWidth);
-
-        return Scaffold(
-          key: scaffoldKey,
-          backgroundColor: PosTokens.posBg,
-          body: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              buildProductSection(ref),
-            ],
-          ),
-          endDrawer: Drawer(
-            width: drawerWidth,
-            child: Material(
-              color: Colors.white,
-              child: SafeArea(
-                child: buildMainContent(isScanningMode, ref),
+            endDrawer: Drawer(
+              width: drawerWidth,
+              child: Material(
+                color: Colors.white,
+                child: SafeArea(
+                  child: buildMainContent(isScanningMode, ref),
+                ),
               ),
             ),
-          ),
-          floatingActionButton: _CartFab(
-            onPressed: () => scaffoldKey.currentState?.openEndDrawer(),
-            isNarrow: constraints.maxWidth < 360,
-          ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        );
-      },
-    );
+            floatingActionButton: _CartFab(
+              onPressed: () => scaffoldKey.currentState?.openEndDrawer(),
+              isNarrow: constraints.maxWidth < 360,
+            ),
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          );
+        },
+      );
+    }();
+
+    return PosShiftGate(child: salesBody);
   }
 }
 

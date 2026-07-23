@@ -74,7 +74,127 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       'Capella addCustomer: upserted ${customer.id} (${customer.custNm}) '
       'branch=$branchId',
     );
+
+    // Denormalized customerTin/name/phone on pending & parked sales must track
+    // the live customer — otherwise clearing TIN still prompts for purchase code.
+    await _syncCustomerFieldsOntoOpenTransactions(customer);
+
+    final tid = transactionId?.trim() ?? '';
+    if (tid.isNotEmpty) {
+      await _attachOrRefreshCustomerOnTransaction(
+        customer: customer,
+        transactionId: tid,
+      );
+    }
+
     return customer;
+  }
+
+  /// Push live customer fields onto every open (pending/parked) sale that
+  /// already references this customer. Clears [customerTin] when empty.
+  Future<void> _syncCustomerFieldsOntoOpenTransactions(
+    Customer customer,
+  ) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    final customerId = customer.id;
+    if (customerId == null || customerId.isEmpty) return;
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final tin = customer.custTin?.trim() ?? '';
+    final tinClause =
+        tin.isEmpty ? 'customerTin = NULL' : 'customerTin = :customerTin';
+    final arguments = <String, dynamic>{
+      'customerId': customerId,
+      'customerName': customer.custNm,
+      'customerPhone': customer.telNo,
+      'updatedAt': now,
+      'lastTouched': now,
+      'pending': 'pending',
+      'parked': 'parked',
+    };
+    if (tin.isNotEmpty) {
+      arguments['customerTin'] = tin;
+    }
+
+    try {
+      await ditto.store.execute(
+        'UPDATE transactions SET '
+        'customerName = :customerName, '
+        '$tinClause, '
+        'customerPhone = :customerPhone, '
+        'currentSaleCustomerPhoneNumber = :customerPhone, '
+        'updatedAt = :updatedAt, '
+        'lastTouched = :lastTouched '
+        'WHERE customerId = :customerId '
+        'AND (status = :pending OR status = :parked)',
+        arguments: arguments,
+      );
+      talker.info(
+        'Capella addCustomer: synced open transactions for customer '
+        '$customerId (tinCleared=${tin.isEmpty})',
+      );
+    } catch (e, s) {
+      talker.warning(
+        'Capella addCustomer: failed syncing open transactions for '
+        '$customerId: $e',
+        s,
+      );
+    }
+  }
+
+  /// Attach a new/edited customer onto the form's transaction (sets customerId
+  /// and denormalized fields, clearing TIN when empty).
+  Future<void> _attachOrRefreshCustomerOnTransaction({
+    required Customer customer,
+    required String transactionId,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    final customerId = customer.id;
+    if (customerId == null || customerId.isEmpty) return;
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final tin = customer.custTin?.trim() ?? '';
+    final tinClause =
+        tin.isEmpty ? 'customerTin = NULL' : 'customerTin = :customerTin';
+    final arguments = <String, dynamic>{
+      'id': transactionId,
+      'customerId': customerId,
+      'customerName': customer.custNm,
+      'customerPhone': customer.telNo,
+      'updatedAt': now,
+      'lastTouched': now,
+    };
+    if (tin.isNotEmpty) {
+      arguments['customerTin'] = tin;
+    }
+
+    try {
+      await ditto.store.execute(
+        'UPDATE transactions SET '
+        'customerId = :customerId, '
+        'customerName = :customerName, '
+        '$tinClause, '
+        'customerPhone = :customerPhone, '
+        'currentSaleCustomerPhoneNumber = :customerPhone, '
+        'updatedAt = :updatedAt, '
+        'lastTouched = :lastTouched '
+        'WHERE _id = :id OR id = :id',
+        arguments: arguments,
+      );
+      talker.info(
+        'Capella addCustomer: attached customer $customerId to '
+        'transaction $transactionId (tinCleared=${tin.isEmpty})',
+      );
+    } catch (e, s) {
+      talker.warning(
+        'Capella addCustomer: attach to $transactionId failed: $e',
+        s,
+      );
+    }
   }
 
   /// One-shot Ditto execute + empty retries — used by [LoanCustomerLinker]

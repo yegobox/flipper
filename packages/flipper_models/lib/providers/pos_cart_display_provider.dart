@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
@@ -251,9 +252,33 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
       );
 
   return streamAsync.when(
-    data: merge,
-    loading: () => merge(const []),
-    error: (_, __) => merge(const []),
+    data: (raw) {
+      if (raw.isEmpty) {
+        talker.warning(
+          'posCartDisplayItemsProvider: no-pending branch, '
+          'transactionItemsStreamProvider(txn=$mergeTxnId, branch=$mergeBranchId) '
+          'has 0 rows this frame — cart will render empty unless another '
+          'source has lines.',
+        );
+      }
+      return merge(raw);
+    },
+    loading: () {
+      talker.warning(
+        'posCartDisplayItemsProvider: no-pending branch, '
+        'transactionItemsStreamProvider(txn=$mergeTxnId, branch=$mergeBranchId) '
+        'is still loading — rendering empty rows this frame.',
+      );
+      return merge(const []);
+    },
+    error: (e, _) {
+      talker.warning(
+        'posCartDisplayItemsProvider: no-pending branch, '
+        'transactionItemsStreamProvider(txn=$mergeTxnId, branch=$mergeBranchId) '
+        'errored: $e — rendering empty rows this frame.',
+      );
+      return merge(const []);
+    },
   );
 });
 

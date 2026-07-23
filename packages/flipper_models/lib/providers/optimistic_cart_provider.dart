@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/transaction_item_line_order.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:meta/meta.dart';
@@ -154,6 +155,20 @@ class OptimisticCart extends _$OptimisticCart {
 
   /// Call right after the pending transaction is known, before the Ditto save lock.
   void addPendingLine({required String transactionId, required Variant variant}) {
+    final prev = state;
+    final prevActive = prev.activeTransactionId;
+    if (prevActive != null &&
+        prevActive.isNotEmpty &&
+        !OptimisticCartBootstrap.isBootstrap(prevActive) &&
+        prevActive != transactionId &&
+        prev.pendingQtyByVariantId.isNotEmpty) {
+      talker.warning(
+        'OptimisticCart: active transaction switched '
+        '$prevActive -> $transactionId while '
+        '${prev.pendingQtyByVariantId.length} variant(s) were still '
+        'unconfirmed (${prev.pendingQtyByVariantId}) — discarding them.',
+      );
+    }
     state = addOptimisticPendingLine(
       state,
       transactionId: transactionId,
@@ -194,7 +209,11 @@ class OptimisticCart extends _$OptimisticCart {
     if (grace != null && DateTime.now().isBefore(grace)) {
       return;
     }
-    _reconcileStreamItems(transactionId: transactionId, items: items);
+    _reconcileStreamItems(
+      transactionId: transactionId,
+      items: items,
+      source: 'stream',
+    );
   }
 
   /// Reconcile from a direct Ditto read (Pay path, post-save). Ignores tap grace.
@@ -203,12 +222,17 @@ class OptimisticCart extends _$OptimisticCart {
     required List<TransactionItem> items,
   }) {
     if (transactionId.isEmpty) return;
-    _reconcileStreamItems(transactionId: transactionId, items: items);
+    _reconcileStreamItems(
+      transactionId: transactionId,
+      items: items,
+      source: 'direct-read',
+    );
   }
 
   void _reconcileStreamItems({
     required String transactionId,
     required List<TransactionItem> items,
+    required String source,
   }) {
     final active = state.activeTransactionId;
     if (active != null && active != transactionId) {
@@ -242,6 +266,12 @@ class OptimisticCart extends _$OptimisticCart {
         final p = nextPending[vid] ?? 0;
         final remaining = p - inc;
         if (remaining <= 0) {
+          talker.warning(
+            'OptimisticCart[$source]: clearing pending for variant=$vid '
+            'txn=$transactionId (was pending=$p, stream now shows qty=$now) — '
+            'cart display now depends entirely on transactionItemsStreamProvider '
+            'having caught up.',
+          );
           nextPending.remove(vid);
         } else {
           nextPending[vid] = remaining;

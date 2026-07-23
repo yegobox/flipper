@@ -94,4 +94,60 @@ class Shift extends OfflineFirstWithSupabaseModel {
       refunds: refunds ?? this.refunds,
     );
   }
+
+  /// Document shape for Ditto `shifts` collection (direct store access).
+  Map<String, dynamic> toDittoDocument() {
+    return {
+      '_id': id,
+      'id': id,
+      'businessId': businessId,
+      'userId': userId,
+      'startAt': startAt.toUtc().toIso8601String(),
+      if (endAt != null) 'endAt': endAt!.toUtc().toIso8601String(),
+      'openingBalance': openingBalance,
+      if (closingBalance != null) 'closingBalance': closingBalance,
+      'status': status.name,
+      if (cashSales != null) 'cashSales': cashSales,
+      if (expectedCash != null) 'expectedCash': expectedCash,
+      if (cashDifference != null) 'cashDifference': cashDifference,
+      if (note != null) 'note': note,
+      if (refunds != null) 'refunds': refunds,
+    };
+  }
+
+  static Shift fromDittoDocument(Map<String, dynamic> raw) {
+    DateTime? parseDt(dynamic v) {
+      if (v == null) return null;
+      if (v is DateTime) return v.toUtc();
+      return DateTime.tryParse(v.toString())?.toUtc();
+    }
+
+    num? parseNum(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v;
+      return num.tryParse(v.toString());
+    }
+
+    final statusRaw = (raw['status'] ?? ShiftStatus.Open.name).toString();
+    final status = ShiftStatus.values.firstWhere(
+      (s) => s.name == statusRaw,
+      orElse: () => ShiftStatus.Open,
+    );
+
+    return Shift(
+      id: (raw['id'] ?? raw['_id'] ?? '').toString(),
+      businessId: (raw['businessId'] ?? '').toString(),
+      userId: (raw['userId'] ?? '').toString(),
+      startAt: parseDt(raw['startAt']) ?? DateTime.now().toUtc(),
+      endAt: parseDt(raw['endAt']),
+      openingBalance: parseNum(raw['openingBalance']) ?? 0,
+      closingBalance: parseNum(raw['closingBalance']),
+      status: status,
+      cashSales: parseNum(raw['cashSales']),
+      expectedCash: parseNum(raw['expectedCash']),
+      cashDifference: parseNum(raw['cashDifference']),
+      note: raw['note']?.toString(),
+      refunds: parseNum(raw['refunds']),
+    );
+  }
 }

@@ -472,6 +472,17 @@ mixin AuthMixin implements AuthInterface {
       throw Exception('Cannot authenticate offline without a saved user id');
     }
 
+    // Re-open local Ditto for this user when offline so user_access can be read
+    // after logout disposed the previous session.
+    try {
+      if (!ProxyService.ditto.isReady()) {
+        await _initializeDitto(accessUserId, loginFastPath: true);
+        _bridgeDittoServiceIfNeeded();
+      }
+    } catch (e, s) {
+      talker.warning('Offline Ditto init before user_access: $e\n$s');
+    }
+
     var userAccess = await ProxyService.ditto.getUserAccess(accessUserId);
     if (userAccess == null &&
         pin.userId != null &&
@@ -488,20 +499,60 @@ mixin AuthMixin implements AuthInterface {
       final List<dynamic> businessesJson = userAccess['businesses'];
       businessesE = businessesJson.map((j) => Business.fromMap(j)).toList();
 
-      final businessJson = businessesJson.firstWhere(
-        (b) => b['id'] == pin.businessId,
-        orElse: () => null,
-      );
+      Map<String, dynamic>? businessJson;
+      for (final raw in businessesJson) {
+        if (raw is Map && _userAccessBusinessMatchesPin(raw, pin)) {
+          businessJson = Map<String, dynamic>.from(raw);
+          break;
+        }
+      }
+      businessJson ??= businessesJson.isNotEmpty && businessesJson.first is Map
+          ? Map<String, dynamic>.from(businessesJson.first as Map)
+          : null;
 
       if (businessJson != null && businessJson.containsKey('branches')) {
-        final List<dynamic> branchesJson = businessJson['branches'];
+        final List<dynamic> branchesJson = businessJson['branches'] as List;
         branchesE = branchesJson.map((j) => Branch.fromMap(j)).toList();
       }
     }
 
+    // Brick fallback when Ditto user_access is missing after logout.
+    if (businessesE.isEmpty) {
+      try {
+        businessesE = await businesses(userId: accessUserId);
+        if (businessesE.isEmpty &&
+            pin.userId != null &&
+            pin.userId != accessUserId) {
+          businessesE = await businesses(userId: pin.userId!);
+        }
+      } catch (e, s) {
+        talker.warning('Offline Brick businesses fallback failed: $e\n$s');
+      }
+    }
+    if (branchesE.isEmpty) {
+      String? businessId = pin.businessId;
+      if (businessId == null || businessId.isEmpty) {
+        final matched = businessesE.where((b) => _pinMatchesBusiness(pin, b));
+        businessId = matched.isNotEmpty
+            ? matched.first.id
+            : (businessesE.isNotEmpty ? businessesE.first.id : null);
+      }
+      if (businessId != null && businessId.isNotEmpty) {
+        try {
+          branchesE = await ProxyService.strategy.branches(
+            businessId: businessId,
+            localOnly: true,
+          );
+        } catch (e, s) {
+          talker.warning('Offline Brick branches fallback failed: $e\n$s');
+        }
+      }
+    }
+
+    final bool hasOfflineTenantData =
+        businessesE.isNotEmpty && branchesE.isNotEmpty;
     final bool shouldEnableOfflineLogin =
-        forceOffline ||
-        (businessesE.isNotEmpty && branchesE.isNotEmpty && !isOnline);
+        hasOfflineTenantData && (forceOffline || !isOnline);
 
     talker.debug('Offline login decision factors:');
     talker.debug('- forceOffline: $forceOffline');
@@ -530,6 +581,14 @@ mixin AuthMixin implements AuthInterface {
     throw Exception('Login requires an internet connection');
   }
 
+  bool _userAccessBusinessMatchesPin(Map raw, Pin pin) {
+    final target = pin.businessId?.toString();
+    if (target == null || target.isEmpty) return false;
+    final id = raw['id']?.toString();
+    final serverId = raw['serverId']?.toString() ?? raw['server_id']?.toString();
+    return id == target || serverId == target;
+  }
+
   @override
   Future<IUser> login({
     required String userPhone,
@@ -538,6 +597,7 @@ mixin AuthMixin implements AuthInterface {
     required Pin pin,
     required bool isInSignUpProgress,
     bool freshUser = false,
+    bool forceOffline = false,
     required HttpClientInterface flipperHttpClient,
     IUser? existingUser,
   }) async {
@@ -556,9 +616,29 @@ mixin AuthMixin implements AuthInterface {
           pin,
           flipperHttpClient,
           freshUser: freshUser,
+          forceOffline: forceOffline,
           isInSignUpProgress: isInSignUpProgress,
         );
     print('After _authenticateUser');
+
+    // Cache PIN locally so the same PIN can authenticate offline later.
+    try {
+      final sessionUserId = ProxyService.box.getUserId() ?? user.id;
+      await ProxyService.strategy.savePin(
+        pin: Pin(
+          userId: sessionUserId.isNotEmpty ? sessionUserId : pin.userId,
+          pin: pin.pin,
+          businessId: pin.businessId ?? ProxyService.box.getBusinessId(),
+          branchId: pin.branchId ?? ProxyService.box.getBranchId(),
+          ownerName: pin.ownerName ?? user.name ?? '',
+          phoneNumber: pin.phoneNumber ?? userPhone,
+          tokenUid: pin.tokenUid ?? pin.uid ?? user.uid,
+          uid: pin.uid ?? user.uid,
+        ),
+      );
+    } catch (e, s) {
+      talker.warning('Failed to cache PIN after login: $e\n$s');
+    }
 
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
     print('After configureSystem');

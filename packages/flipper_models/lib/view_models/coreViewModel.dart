@@ -577,10 +577,36 @@ class CoreViewModel extends FlipperBaseModel
       branchId: branchId,
       bhfId: await ProxyService.box.bhfId() ?? "00",
     );
+    final saved = customerFromDraft(draft);
     await ProxyService.strategy.addCustomer(
-      customer: customerFromDraft(draft),
+      customer: saved,
       transactionId: transactionId,
     );
+
+    // Keep checkout session box in sync when this customer is on the active sale
+    // (purchase-code / TaxController also read box.customerTin).
+    final tin = saved.custTin?.trim() ?? '';
+    final pending = await ProxyService.getStrategy(Strategy.capella)
+        .manageTransaction(
+      branchId: branchId,
+      transactionType: TransactionType.sale,
+      isExpense: false,
+    );
+    if (pending?.customerId == saved.id || pending?.id == transactionId) {
+      if (tin.isEmpty) {
+        await ProxyService.box.remove(key: 'customerTin');
+      } else {
+        await ProxyService.box.writeString(key: 'customerTin', value: tin);
+      }
+      final nameTrim = saved.custNm?.trim() ?? '';
+      if (nameTrim.isNotEmpty) {
+        await ProxyService.box.writeString(key: 'customerName', value: nameTrim);
+      }
+      await ProxyService.box.writeString(
+        key: 'currentSaleCustomerPhoneNumber',
+        value: saved.telNo ?? '',
+      );
+    }
   }
 
   Future<void> assignToSale({

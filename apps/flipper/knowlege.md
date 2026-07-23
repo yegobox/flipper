@@ -2,6 +2,16 @@
 - Look at the old feature implementation improve it but do not ever break it
 - Document change in knowlege.md
 
+## 2026-07-23: Offline PIN Login Regression Fix
+- **Root cause:** Local `getPin` looked up Brick `pins` by `userId == typedPin`, but users type `pins.pin` digits. After identity realignment, `userId` is the API user id, so offline cache misses fell through to HTTP and failed.
+- **Also:** PIN MFA login never reliably cached the PIN digits for reuse; offline auth only read Ditto `user_access` (often missing after logout); MFA/TOTP always required network.
+- **Fixes:**
+  - `CoreSync.getPin` / `_findLocalPinForLogin`: look up by `pin` first, then `userId`; on network errors return the local PIN when present.
+  - `savePin` updates the `pin` field on existing rows; `login()` caches the PIN after auth.
+  - `_authenticateUser`: re-init Ditto offline, match business by id/serverId, Brick businesses/branches fallback; require tenant data before offline success.
+  - `pin_login` + `MfaProvider`: when offline and local PIN matches, skip MFA and call `login(forceOffline: true)`.
+- **Regression prevention:** Never look up login PIN cache only by `userId`. Offline path must work from Brick PIN + local tenant data after one successful online login with the same PIN.
+
 ## 2025-04-15: Login Dialog & Navigation Improvement
 - Improved the login flow loading dialog in `login.dart`:
   - The loading dialog now remains open until after navigation is triggered, preventing flicker or premature dismissal.

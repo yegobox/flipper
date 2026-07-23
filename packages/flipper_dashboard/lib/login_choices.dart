@@ -918,8 +918,11 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     } else {
       await locator<AppService>().completeDittoAfterLoginChoices();
       locator<AppService>().ensureBranchDittoSubscriptionsForCurrentBranch();
+      // commissionOnly was just resolved above (false, or we'd be in the
+      // branch above): skip the redundant re-check inside navigation.
       await PaymentVerificationNavigator.navigateToAuthenticatedHome(
         clearStack: true,
+        skipCommissionCheck: true,
       );
     }
 

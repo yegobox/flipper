@@ -77,13 +77,16 @@ class DerivedSaleCompletionState {
 /// loan/layaway). Pass 0 for a fresh sale. When provided, the current tender
 /// ([paymentMethods]) is treated as the new installment, and both amounts are
 /// added when deciding whether the sale is fully covered.
+///
+/// [nonCreditCashReceived] in the result is the **cumulative** non-credit total
+/// that should be stored on [ITransaction.cashReceived] (prior + this tender).
 DerivedSaleCompletionState deriveSaleCompletionState({
   required double transactionCashReceived,
   required double finalSubTotal,
   required List<PaymentLineForSaleCompletion> paymentMethods,
   double priorAlreadyPaidNonCredit = 0.0,
 }) {
-  var effectiveCashReceived = transactionCashReceived;
+  var currentInstallment = transactionCashReceived;
   final sumFromPaymentLines = paymentMethods.fold<double>(
     0,
     (sum, p) => sum + p.amount,
@@ -92,27 +95,28 @@ DerivedSaleCompletionState deriveSaleCompletionState({
   // When explicit prior payments are known and there's a current tender, use
   // sumFromPaymentLines as the current-installment tender so prior payments are
   // counted separately below (avoids double-counting transactionCashReceived,
-  // which for resumed loans holds the prior-paid amount stored in Ditto).
+  // which for resumed loans holds the prior-paid amount stored in Ditto — or
+  // the already-accumulated total after collectPayment mutates in memory).
   if (priorAlreadyPaidNonCredit > _paymentEpsilon &&
       sumFromPaymentLines > _paymentEpsilon) {
-    effectiveCashReceived = sumFromPaymentLines;
-  } else if (effectiveCashReceived <= _paymentEpsilon) {
+    currentInstallment = sumFromPaymentLines;
+  } else if (currentInstallment <= _paymentEpsilon) {
     // Do not assume full payment when tender is unknown — that skipped loan/park.
-    effectiveCashReceived = sumFromPaymentLines > _paymentEpsilon
+    currentInstallment = sumFromPaymentLines > _paymentEpsilon
         ? sumFromPaymentLines
         : 0.0;
   } else if (sumFromPaymentLines > _paymentEpsilon &&
-      sumFromPaymentLines + _paymentEpsilon < effectiveCashReceived) {
+      sumFromPaymentLines + _paymentEpsilon < currentInstallment) {
     // Payment rows are authoritative when the received-amount field is stale
     // (auto-filled to full total while the user underpaid on the payment card).
-    effectiveCashReceived = sumFromPaymentLines;
+    currentInstallment = sumFromPaymentLines;
   } else if (sumFromPaymentLines > _paymentEpsilon &&
-      sumFromPaymentLines > effectiveCashReceived + _paymentEpsilon) {
+      sumFromPaymentLines > currentInstallment + _paymentEpsilon) {
     // Payment rows show more than the cached cashReceived field — the field is
     // stale (e.g. item-add Ditto update hasn't propagated to the stream yet
     // while the in-memory payment methods already reflect the correct tender).
     // Use the authoritative in-memory value to avoid a spurious loan flag.
-    effectiveCashReceived = sumFromPaymentLines;
+    currentInstallment = sumFromPaymentLines;
   }
 
   final totalCredit = paymentMethods
@@ -121,26 +125,32 @@ DerivedSaleCompletionState deriveSaleCompletionState({
 
   final saleTotal = finalSubTotal;
 
-  final nonCreditCashReceivedRaw = effectiveCashReceived - totalCredit;
-  final nonCreditCashReceived = nonCreditCashReceivedRaw < 0
-      ? 0.0
-      : nonCreditCashReceivedRaw;
+  final installmentNonCreditRaw = currentInstallment - totalCredit;
+  final installmentNonCredit =
+      installmentNonCreditRaw < 0 ? 0.0 : installmentNonCreditRaw;
 
-  // Include prior non-credit payments (resumed loans/layaway) when checking
-  // whether the full sale amount has been covered.
+  // Cumulative non-credit paid after this tender (what cashReceived must store).
+  final nonCreditCashReceived =
+      installmentNonCredit + priorAlreadyPaidNonCredit;
+
+  final remainingAfterAll = saleTotal - nonCreditCashReceived;
+  final remainingClamped =
+      remainingAfterAll < 0 ? 0.0 : remainingAfterAll;
+
+  // Fully paid when cumulative non-credit covers the sale. Also treat a
+  // sub-epsilon leftover as paid so we never park a ticket with remaining 0.
   final isFullyPaid =
-      (nonCreditCashReceived + priorAlreadyPaidNonCredit + _paymentEpsilon) >=
-      saleTotal;
+      (nonCreditCashReceived + _paymentEpsilon) >= saleTotal ||
+      (totalCredit <= _paymentEpsilon && remainingClamped <= _paymentEpsilon);
 
-  final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
-  final status = shouldBeLoan ? saleCompletionStatusParked : saleCompletionStatusComplete;
+  // Credit lines always park; otherwise park only while money is still owed.
+  final shouldBeLoan = totalCredit > _paymentEpsilon || !isFullyPaid;
+  final status = shouldBeLoan
+      ? saleCompletionStatusParked
+      : saleCompletionStatusComplete;
 
-  final remainingAfterAll =
-      saleTotal - nonCreditCashReceived - priorAlreadyPaidNonCredit;
   final remainingBalance = shouldBeLoan
-      ? (totalCredit > 0
-            ? totalCredit
-            : (remainingAfterAll < 0 ? 0.0 : remainingAfterAll))
+      ? (totalCredit > _paymentEpsilon ? totalCredit : remainingClamped)
       : 0.0;
 
   return DerivedSaleCompletionState(
@@ -148,7 +158,7 @@ DerivedSaleCompletionState deriveSaleCompletionState({
     status: status,
     remainingBalance: remainingBalance,
     nonCreditCashReceived: nonCreditCashReceived,
-    effectiveCashReceived: effectiveCashReceived,
+    effectiveCashReceived: currentInstallment,
     totalCredit: totalCredit,
   );
 }
