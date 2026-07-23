@@ -77,6 +77,15 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
     setState(() => _sendToTillBusy = true);
     final displayRef = _ticketDisplayRef(transaction);
     try {
+      // Same staleness guard as QuickSelling/mobile: tickets streams filter
+      // `subTotal > 0`, so a stale 0 hides a successfully parked ticket.
+      final liveTotal = items.fold<double>(
+        0,
+        (sum, item) => sum + (item.price.toDouble() * item.qty.toDouble()),
+      );
+      if (liveTotal > 0) {
+        transaction.subTotal = liveTotal;
+      }
       await ref.read(parkTransactionProvider.notifier).park(
             ticketName: 'Till · $displayRef',
             ticketNote: 'Sent to till for payment',

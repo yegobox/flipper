@@ -28,8 +28,25 @@ mixin CapellaVariantMixin implements VariantInterface {
     if (ditto == null) return;
     await ditto.store.execute(
       "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+
       arguments: {'doc': stock.toJson()},
     );
+  }
+
+  /// [getStockById] returns a zero placeholder with empty [Stock.branchId] when
+  /// the document is missing. Do not overwrite a qty-based display stock with it.
+  Future<void> _attachAuthenticCapellaStock(Variant variant) async {
+    final sid = variant.stockId?.trim();
+    if (sid == null || sid.isEmpty) return;
+    try {
+      final fetched = await (this as StockInterface).getStockById(id: sid);
+      if (fetched == null || fetched.branchId.trim().isEmpty) return;
+      variant.stock = fetched;
+    } catch (e, st) {
+      talker.warning(
+        '_attachAuthenticCapellaStock($sid) failed: $e\n$st',
+      );
+    }
   }
 
   Future<void> _syncVariantToDitto(Variant variant) async {
@@ -428,17 +445,26 @@ mixin CapellaVariantMixin implements VariantInterface {
           : await (this as StockInterface).batchGetStocksByIds(stockIds);
 
       for (final id in stockIds) {
-        if (stocksById.containsKey(id)) continue;
+        if (stocksById.containsKey(id) &&
+            (stocksById[id]?.branchId.trim().isNotEmpty ?? false)) {
+          continue;
+        }
         final stock = await (this as StockInterface).getStockById(id: id);
-        if (stock != null) stocksById[id] = stock;
+        if (stock != null && stock.branchId.trim().isNotEmpty) {
+          stocksById[id] = stock;
+        }
       }
 
       // Parse results
       final pagedVariants = <Variant>[];
       for (var doc in items) {
         final variant = Variant.fromJson(Map<String, dynamic>.from(doc.value));
-        if (variant.stockId != null) {
-          variant.stock = stocksById[variant.stockId];
+        final sid = variant.stockId?.trim();
+        if (sid != null && sid.isNotEmpty) {
+          final attached = stocksById[sid];
+          if (attached != null && attached.branchId.trim().isNotEmpty) {
+            variant.stock = attached;
+          }
         }
         pagedVariants.add(variant);
       }
@@ -723,11 +749,7 @@ mixin CapellaVariantMixin implements VariantInterface {
             data['id'] = dittoId;
           }
           final variant = Variant.fromJson(data);
-          if (variant.stockId != null) {
-            variant.stock = await (this as StockInterface).getStockById(
-              id: variant.stockId!,
-            );
-          }
+          await _attachAuthenticCapellaStock(variant);
           return variant;
         }
       } catch (e, st) {
@@ -872,10 +894,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           );
         }
 
-        if (variant != null && variant.stockId != null) {
-          variant.stock = await (this as StockInterface).getStockById(
-            id: variant.stockId!,
-          );
+        if (variant != null) {
+          await _attachAuthenticCapellaStock(variant);
         }
         return variant;
       } finally {
@@ -1320,11 +1340,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       final variants = <Variant>[];
       for (var item in items) {
         final variant = Variant.fromJson(Map<String, dynamic>.from(item.value));
-        if (variant.stockId != null) {
-          variant.stock = await (this as StockInterface).getStockById(
-            id: variant.stockId!,
-          );
-        }
+        await _attachAuthenticCapellaStock(variant);
         variants.add(variant);
       }
 

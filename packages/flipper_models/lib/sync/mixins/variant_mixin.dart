@@ -88,10 +88,31 @@ mixin VariantMixin implements VariantInterface {
       ],
     );
     // localOnly: avoid Supabase hydrate of Variant→Stock (Turso FK races).
-    return (await repository.get<Variant>(
+    // Stock quantities live in Capella/Ditto — Brick associations often lag and
+    // caused false "no stock available to transfer" while POS tiles showed qty.
+    final variant = (await repository.get<Variant>(
       query: query,
       policy: OfflineFirstGetPolicy.localOnly,
     )).firstOrNull;
+    if (variant == null) return null;
+    await _attachCapellaStockOntoVariant(variant);
+    return variant;
+  }
+
+  Future<void> _attachCapellaStockOntoVariant(Variant variant) async {
+    final sid = variant.stockId?.trim();
+    if (sid == null || sid.isEmpty) return;
+    try {
+      final stock = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getStockById(id: sid);
+      if (stock.branchId.trim().isEmpty) return;
+      variant.stock = stock;
+    } catch (e, st) {
+      talker.warning(
+        '_attachCapellaStockOntoVariant($sid) failed: $e\n$st',
+      );
+    }
   }
 
   @override
