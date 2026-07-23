@@ -118,6 +118,15 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         await appService.updateAllBranchesInactive();
         await _updateBranchActive(branch);
 
+        // Register (idempotent, sequenced) Ditto cloud subscriptions for the
+        // newly active branch. In-app switching never called this before, so
+        // a branch with no subscription yet would only get one reactively —
+        // from the first variants query the destination screen fires — right
+        // as that screen mounts, piling the whole-catalog pull on top of the
+        // render. Kicking it off now, during this loading state, spreads that
+        // out instead. Fire-and-forget: does not block the switch.
+        appService.ensureBranchDittoSubscriptionsForCurrentBranch();
+
         // Call setDefaultBranch but wrap it in try/catch to prevent app reload
         try {
           // We're manually setting a flag to prevent app reload during branch switch
