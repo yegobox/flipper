@@ -3,6 +3,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -49,6 +50,10 @@ class TransactionInitializationHelper {
         );
 
         if (customer != null) {
+          // Live customer is source of truth for TIN. Do not fall back to
+          // denormalized transaction.customerTin — an edited customer with TIN
+          // removed would otherwise keep prompting for a purchase code.
+          final liveTin = _firstNonEmpty([customer.custTin]);
           await _applyCustomerToSession(
             container,
             name: _firstNonEmpty([
@@ -60,12 +65,36 @@ class TransactionInitializationHelper {
               transaction.customerPhone,
               transaction.currentSaleCustomerPhoneNumber,
             ]),
-            tin: _firstNonEmpty([
-              customer.custTin,
-              transaction.customerTin,
-            ]),
+            tin: liveTin,
             replaceSession: replaceSession,
           );
+
+          // Heal stale denormalized ticket fields so pay/purchase-code gates
+          // that read transaction.customerTin see the live customer.
+          final staleTin = _firstNonEmpty([transaction.customerTin]);
+          final tinDiverged = liveTin != staleTin;
+          final nameDiverged =
+              _firstNonEmpty([customer.custNm]) !=
+              _firstNonEmpty([transaction.customerName]);
+          final phoneDiverged =
+              _firstNonEmpty([customer.telNo]) !=
+              _firstNonEmpty([
+                transaction.customerPhone,
+                transaction.currentSaleCustomerPhoneNumber,
+              ]);
+          if (tinDiverged || nameDiverged || phoneDiverged) {
+            try {
+              await ProxyService.getStrategy(Strategy.capella)
+                  .assignCustomerToTransaction(
+                customer: customer,
+                transaction: transaction,
+              );
+            } catch (e) {
+              talker.warning(
+                'Failed to sync live customer onto resumed transaction: $e',
+              );
+            }
+          }
           return customer;
         }
       } catch (e) {

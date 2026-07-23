@@ -238,7 +238,8 @@ class CoreSync extends AiStrategyImpl
     try {
       transaction.customerId = customer.id;
       transaction.customerName = customer.custNm;
-      transaction.customerTin = customer.custTin;
+      final tin = customer.custTin?.trim() ?? '';
+      transaction.customerTin = tin.isEmpty ? null : tin;
       transaction.customerPhone = customer.telNo;
       transaction.currentSaleCustomerPhoneNumber = customer.telNo;
       await repository.upsert<ITransaction>(transaction);

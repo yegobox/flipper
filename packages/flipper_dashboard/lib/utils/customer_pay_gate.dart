@@ -3,11 +3,13 @@ import 'package:flipper_models/db_model_export.dart';
 /// Shared Pay-gate customer completeness check for [QuickSellingView] and
 /// [CheckOut].
 ///
-/// Resolves name, phone, and TIN from typed fields, the transaction row, and an
-/// attached/searched customer. Does **not** accept [ITransaction.customerId]
-/// alone. Name is always required; phone is required only when no TIN is
-/// present. Persisted box keys are intentionally excluded (they can carry a
-/// previous sale's customer).
+/// Resolves name, phone, and TIN from typed fields, an attached/searched
+/// customer, then the transaction row. Does **not** accept
+/// [ITransaction.customerId] alone. Name is always required; phone is required
+/// only when no TIN is present. When [attachedCustomer] is present, its TIN is
+/// authoritative over denormalized [ITransaction.customerTin] (so clearing TIN
+/// on the customer is respected). Persisted box keys are intentionally
+/// excluded (they can carry a previous sale's customer).
 ///
 /// Returns a localized error message when a required detail is missing, else
 /// null. Callers supply the localized strings.
@@ -30,23 +32,27 @@ String? missingCustomerDetailsForPay({
 
   final name = firstNonEmpty([
     typedName,
-    transaction?.customerName,
     attachedCustomer?.custNm,
+    transaction?.customerName,
   ]);
   if (name.isEmpty) return pleaseEnterCustomerName;
 
-  final tin = firstNonEmpty([
-    typedTin,
-    transaction?.customerTin,
-    attachedCustomer?.custTin,
-  ]);
+  // Typed TIN wins. When a live/attached customer is present, their TIN is
+  // authoritative (including empty) so a cleared TIN is not overridden by a
+  // stale denormalized transaction.customerTin.
+  final typedTinValue = typedTin?.trim() ?? '';
+  final tin = typedTinValue.isNotEmpty
+      ? typedTinValue
+      : attachedCustomer != null
+          ? (attachedCustomer.custTin?.trim() ?? '')
+          : (transaction?.customerTin?.trim() ?? '');
   if (tin.isNotEmpty) return null;
 
   final phone = firstNonEmpty([
     typedPhone,
+    attachedCustomer?.telNo,
     transaction?.customerPhone,
     transaction?.currentSaleCustomerPhoneNumber,
-    attachedCustomer?.telNo,
   ]);
   if (phone.isEmpty) return phoneRequiredWhenTinMissing;
 

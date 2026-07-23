@@ -1427,8 +1427,27 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         return false;
       }
 
-      if (transaction.customerTin != null &&
-          transaction.customerTin!.isNotEmpty) {
+      // Prefer live customer TIN over a stale denormalized ticket field so
+      // clearing TIN on the customer no longer forces a purchase-code dialog.
+      Customer? liveCustomer = customer;
+      if (transaction.customerId != null &&
+          transaction.customerId!.isNotEmpty) {
+        try {
+          final fetched = (await ProxyService.getStrategy(Strategy.capella)
+                  .customers(id: transaction.customerId))
+              .firstOrNull;
+          if (fetched != null) liveCustomer = fetched;
+        } catch (_) {}
+      }
+
+      var effectiveTin = liveCustomer != null
+          ? (liveCustomer.custTin?.trim() ?? '')
+          : (transaction.customerTin?.trim() ?? '');
+      if (effectiveTin != (transaction.customerTin?.trim() ?? '')) {
+        transaction.customerTin = effectiveTin.isEmpty ? null : effectiveTin;
+      }
+
+      if (effectiveTin.isNotEmpty) {
         // Show dialog and capture whether the dialog completed successfully
         final bool? dialogResult =
             await additionalInformationIsRequiredToCompleteTransaction(
@@ -1438,7 +1457,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               paymentType: paymentTypeController.text,
               transaction: transaction,
               context: context,
-              customer: customer,
+              customer: liveCustomer,
             );
 
         // If user cancelled or dialog didn't complete, propagate false
@@ -1481,7 +1500,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           skipTransactionPersist: skipCollectPaymentTransactionPersist,
           deferPersistTaxReceiptFields: true,
           sendDigitalReceipt: sendDigitalReceipt,
-          customer: customer,
+          customer: liveCustomer,
           onSuccess: () {
             ref.read(payButtonStateProvider.notifier).stopLoading();
           },

@@ -1078,9 +1078,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // Keep the in-memory model in sync for callers that read it after await.
     transaction.customerId = customer.id;
     transaction.customerName = customer.custNm;
-    transaction.customerTin = customer.custTin;
     transaction.customerPhone = customer.telNo;
     transaction.currentSaleCustomerPhoneNumber = customer.telNo;
+    // customerTin is set in setTinOrClear below (including NULL clears).
 
     final now = DateTime.now();
     final arguments = <String, dynamic>{
@@ -1093,8 +1093,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'lastTouched = :lastTouched',
     ];
 
-    // Preserve the previous non-null write semantics exactly (the old path
-    // routed through updateTransaction, which only wrote non-null fields).
+    // Non-null fields keep prior write semantics. TIN must also clear when the
+    // customer no longer has one — otherwise parked/pending sales keep a stale
+    // customerTin and still demand a purchase code at pay time.
     void setIfPresent(String field, dynamic value) {
       if (value != null) {
         updates.add('$field = :$field');
@@ -1102,9 +1103,21 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
     }
 
+    void setTinOrClear(String? tin) {
+      final trimmed = tin?.trim() ?? '';
+      if (trimmed.isEmpty) {
+        updates.add('customerTin = NULL');
+        transaction.customerTin = null;
+      } else {
+        updates.add('customerTin = :customerTin');
+        arguments['customerTin'] = trimmed;
+        transaction.customerTin = trimmed;
+      }
+    }
+
     setIfPresent('customerId', customer.id);
     setIfPresent('customerName', customer.custNm);
-    setIfPresent('customerTin', customer.custTin);
+    setTinOrClear(customer.custTin);
     setIfPresent('customerPhone', customer.telNo);
     setIfPresent('currentSaleCustomerPhoneNumber', customer.telNo);
 
