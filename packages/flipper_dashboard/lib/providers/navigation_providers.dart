@@ -156,6 +156,15 @@ final sideMenuVisibilityProvider = Provider<SideMenuVisibility>((ref) {
 final sideMenuShowShiftHistoryProvider = Provider<bool>((ref) {
   final uid = ProxyService.box.getUserId() ?? '';
   if (uid.isEmpty) return false;
+  // Shift History is a pure read-only screen (no mutations), so anyone with
+  // view (read+) access can see it — not just admins.
+  final hasViewAccess = ref.watch(
+    featureViewAccessProvider(
+      userId: uid,
+      featureName: AppFeature.ShiftHistory,
+    ),
+  );
+  if (hasViewAccess) return true;
   final adminAsync = ref.watch(
     isAdminProvider(uid, featureName: AppFeature.ShiftHistory),
   );
