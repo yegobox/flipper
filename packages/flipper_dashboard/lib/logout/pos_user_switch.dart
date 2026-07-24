@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/pos_shift_gate.dart';
 import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
@@ -249,12 +250,15 @@ Future<bool> completePosUserSwitchAfterPin({
 
   if (!context.mounted) return true;
 
-  final response = await dialogService.showCustomDialog(
-    variant: DialogType.startShift,
-    title: 'Start New Shift',
-  );
-  if (response != null && response.confirmed) {
-    ref.invalidate(currentOpenShiftProvider);
+  // Only Cashiers work a shift — other roles skip the prompt entirely.
+  if (tenantIsCashier(tenant)) {
+    final response = await dialogService.showCustomDialog(
+      variant: DialogType.startShift,
+      title: 'Start New Shift',
+    );
+    if (response != null && response.confirmed) {
+      ref.invalidate(currentOpenShiftProvider);
+    }
   }
 
   return true;

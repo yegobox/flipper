@@ -11,6 +11,14 @@ bool tenantTypeCanCollectPosPayment(String? type) {
       normalized.contains('manager');
 }
 
+/// Whether a tenant type string is the Cashier role.
+///
+/// Only Cashiers are required to open a POS shift before selling — Admins,
+/// Owners, Managers, and other roles are never prompted.
+bool tenantTypeIsCashier(String? type) {
+  return (type?.toLowerCase() ?? '').contains('cashier');
+}
+
 /// Signed-in user owns the active business (`businesses.user_id`).
 ///
 /// Owners are often stored with null/`Agent` [Tenant.type] in Supabase; User
