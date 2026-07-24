@@ -167,16 +167,19 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
                               ),
                             ),
                           if (widget.showPrice) const SizedBox(width: 8),
-                          Text(
-                            widget.stockLabel,
-                            style: PosTokens.posMonoStyle(
-                              Theme.of(context).textTheme,
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: widget.stockLabelColor ??
-                                  posStockTextColor(widget.stockVisual),
+                          // Empty label hides the stock quantity (e.g. a user
+                          // with the Hide Stock Quantity grant).
+                          if (widget.stockLabel.isNotEmpty)
+                            Text(
+                              widget.stockLabel,
+                              style: PosTokens.posMonoStyle(
+                                Theme.of(context).textTheme,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: widget.stockLabelColor ??
+                                    posStockTextColor(widget.stockVisual),
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ],

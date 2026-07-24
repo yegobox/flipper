@@ -20,7 +20,7 @@ class TransactionWidget extends ConsumerWidget {
                   return TicketsList(
                     showAppBar: false,
                     transaction: transaction,
-                  ).shouldSeeTheApp(ref, featureName: AppFeature.Tickets);
+                  ).shouldViewTheApp(ref, featureName: AppFeature.Tickets);
                 },
                 error: (error, stackTrace) {
                   return Center(child: Text('Error: $error'));

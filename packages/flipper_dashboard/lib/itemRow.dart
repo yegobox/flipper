@@ -132,6 +132,15 @@ class _RowItemState extends ConsumerState<RowItem>
         ),
       );
 
+  /// True when stock quantities should be hidden from this user — an opt-in
+  /// privacy grant (grant-to-hide). Absence of the grant shows quantities.
+  bool _hideStockQuantity(WidgetRef ref) => ref.watch(
+        featureViewAccessProvider(
+          userId: ProxyService.box.getUserId() ?? '',
+          featureName: AppFeature.HideStockQuantity,
+        ),
+      );
+
   String _truncateString(String text, int maxLength) {
     if (text.length <= maxLength) {
       return text;
@@ -285,7 +294,9 @@ class _RowItemState extends ConsumerState<RowItem>
         currencySymbol: currency,
         priceAmount: price,
         stockVisual: visual,
-        stockLabel: posStockLabel(visual, stockValue),
+        stockLabel: _hideStockQuantity(ref)
+            ? ''
+            : posStockLabel(visual, stockValue),
         inCartQty: inCartQty,
         showSelectionBorder: isMultiSelectActive && isSelected,
         isOutOfStock: isOut,
@@ -579,6 +590,7 @@ class _RowItemState extends ConsumerState<RowItem>
         RepaintBoundary(
           child: Consumer(
             builder: (context, ref, child) {
+              if (_hideStockQuantity(ref)) return const SizedBox.shrink();
               final stockValue = _resolveStockValue(ref);
 
               return Text(
@@ -715,6 +727,9 @@ class _RowItemState extends ConsumerState<RowItem>
                     RepaintBoundary(
                       child: Consumer(
                         builder: (context, ref, child) {
+                          if (_hideStockQuantity(ref)) {
+                            return const SizedBox.shrink();
+                          }
                           final stockValue = _resolveStockValue(ref);
 
                           return Text(
