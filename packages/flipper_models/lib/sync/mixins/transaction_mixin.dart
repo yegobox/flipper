@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
+import 'package:flipper_models/sync/utils/ticket_reference_sequence.dart';
 import 'package:flipper_models/sync/transaction_query_helpers.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -11,7 +12,6 @@ import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart'
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -464,14 +464,19 @@ mixin TransactionMixin implements TransactionInterface {
         if (existTransaction != null) return existTransaction;
 
         final now = DateTime.now();
-        final randomRef = randomNumber().toString();
+        // Per-branch, best-effort sequential ticket reference (starts at 1) —
+        // distinct from this transaction's Ditto id.
+        final ticketReference = (await nextTicketReferenceNumber(
+          ditto: DittoService.instance.dittoInstance,
+          branchId: branchId,
+        )).toString();
 
         final transaction = ITransaction(
           agentId: ProxyService.box.getUserId()!,
           deviceId: saleDeviceId,
           lastTouched: now,
-          reference: randomRef,
-          transactionNumber: randomRef,
+          reference: ticketReference,
+          transactionNumber: ticketReference,
           status: PENDING,
           isExpense: isExpense,
           isIncome: !isExpense,
@@ -593,18 +598,24 @@ mixin TransactionMixin implements TransactionInterface {
 
     try {
       final now = DateTime.now().toUtc();
-      final randomRef = randomNumber().toString();
 
       final userId = ProxyService.box.getUserId();
       if (userId == null) {
         throw StateError('User ID is null. Cannot create transaction.');
       }
 
+      // Per-branch, best-effort sequential ticket reference (starts at 1) —
+      // distinct from this transaction's Ditto id.
+      final ticketReference = (await nextTicketReferenceNumber(
+        ditto: DittoService.instance.dittoInstance,
+        branchId: branchId,
+      )).toString();
+
       final newTransaction = ITransaction(
         agentId: userId,
         lastTouched: now,
-        reference: randomRef,
-        transactionNumber: randomRef,
+        reference: ticketReference,
+        transactionNumber: ticketReference,
         status: PENDING,
         isExpense: isExpense,
         isIncome: !isExpense,
