@@ -115,6 +115,7 @@ class ReviewQueueScreen extends ConsumerWidget {
                   paidAmount: paid,
                   showResume: false,
                   showMarkReviewed: canReview,
+                  canManage: false,
                   onTap: () {},
                   onMarkReviewed: () => _markReviewed(context, ticket),
                   onDelete: () => showCustomSnackBarUtil(

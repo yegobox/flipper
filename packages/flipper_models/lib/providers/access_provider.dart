@@ -101,6 +101,44 @@ bool featureAccess(
   }
 }
 
+/// True when the user has ANY active, non-expired grant for [featureName]
+/// (read / read_write / write / admin) — i.e. the user may VIEW the feature.
+///
+/// Contrast with [featureAccess], which requires write/admin (may EDIT). Gate a
+/// feature's tile/screen *visibility* on this so read-only staff can see it;
+/// every mutating action inside that screen must still gate on [featureAccess].
+/// Fails closed (denies view) on error so a lookup failure never leaks a screen.
+@riverpod
+bool featureViewAccess(
+  Ref ref, {
+  required String userId,
+  required String featureName,
+}) {
+  try {
+    final accesses =
+        ref
+            .watch(userAccessesProvider(userId, featureName: featureName))
+            .value ??
+        [];
+    final now = DateTime.now();
+
+    if (isCommissionOnlySession()) {
+      return featureName == AppFeature.Commission;
+    }
+
+    // Any active, non-expired grant for this feature counts as at least read.
+    return accesses.any(
+      (access) =>
+          access.featureName == featureName &&
+          access.status == 'active' &&
+          (access.expiresAt == null || access.expiresAt!.isAfter(now)),
+    );
+  } catch (e, s) {
+    talker.error(e, s);
+    return false; // Fail-safe: deny view on error
+  }
+}
+
 /// this check if a user has one accessLevel required to grant him access regardles of the feature
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
 /// to whatever he is trying to access

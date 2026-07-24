@@ -371,7 +371,7 @@ final class FeatureAccessProvider extends $FunctionalProvider<bool, bool, bool>
   }
 }
 
-String _$featureAccessHash() => r'c121cc25251a15877612316e61192190d993dd89';
+String _$featureAccessHash() => r'9f759d7b4c0017caf929a1cc449d01ea0cdb6de3';
 
 final class FeatureAccessFamily extends $Family
     with
@@ -395,6 +395,132 @@ final class FeatureAccessFamily extends $Family
 
   @override
   String toString() => r'featureAccessProvider';
+}
+
+/// True when the user has ANY active, non-expired grant for [featureName]
+/// (read / read_write / write / admin) — i.e. the user may VIEW the feature.
+///
+/// Contrast with [featureAccess], which requires write/admin (may EDIT). Gate a
+/// feature's tile/screen *visibility* on this so read-only staff can see it;
+/// every mutating action inside that screen must still gate on [featureAccess].
+/// Fails closed (denies view) on error so a lookup failure never leaks a screen.
+
+@ProviderFor(featureViewAccess)
+const featureViewAccessProvider = FeatureViewAccessFamily._();
+
+/// True when the user has ANY active, non-expired grant for [featureName]
+/// (read / read_write / write / admin) — i.e. the user may VIEW the feature.
+///
+/// Contrast with [featureAccess], which requires write/admin (may EDIT). Gate a
+/// feature's tile/screen *visibility* on this so read-only staff can see it;
+/// every mutating action inside that screen must still gate on [featureAccess].
+/// Fails closed (denies view) on error so a lookup failure never leaks a screen.
+
+final class FeatureViewAccessProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// True when the user has ANY active, non-expired grant for [featureName]
+  /// (read / read_write / write / admin) — i.e. the user may VIEW the feature.
+  ///
+  /// Contrast with [featureAccess], which requires write/admin (may EDIT). Gate a
+  /// feature's tile/screen *visibility* on this so read-only staff can see it;
+  /// every mutating action inside that screen must still gate on [featureAccess].
+  /// Fails closed (denies view) on error so a lookup failure never leaks a screen.
+  const FeatureViewAccessProvider._({
+    required FeatureViewAccessFamily super.from,
+    required ({String userId, String featureName}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'featureViewAccessProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$featureViewAccessHash();
+
+  @override
+  String toString() {
+    return r'featureViewAccessProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    final argument = this.argument as ({String userId, String featureName});
+    return featureViewAccess(
+      ref,
+      userId: argument.userId,
+      featureName: argument.featureName,
+    );
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is FeatureViewAccessProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$featureViewAccessHash() => r'70cc6486a2921c73fb09ba8d2b1ffaf50dc16f75';
+
+/// True when the user has ANY active, non-expired grant for [featureName]
+/// (read / read_write / write / admin) — i.e. the user may VIEW the feature.
+///
+/// Contrast with [featureAccess], which requires write/admin (may EDIT). Gate a
+/// feature's tile/screen *visibility* on this so read-only staff can see it;
+/// every mutating action inside that screen must still gate on [featureAccess].
+/// Fails closed (denies view) on error so a lookup failure never leaks a screen.
+
+final class FeatureViewAccessFamily extends $Family
+    with
+        $FunctionalFamilyOverride<bool, ({String userId, String featureName})> {
+  const FeatureViewAccessFamily._()
+    : super(
+        retry: null,
+        name: r'featureViewAccessProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// True when the user has ANY active, non-expired grant for [featureName]
+  /// (read / read_write / write / admin) — i.e. the user may VIEW the feature.
+  ///
+  /// Contrast with [featureAccess], which requires write/admin (may EDIT). Gate a
+  /// feature's tile/screen *visibility* on this so read-only staff can see it;
+  /// every mutating action inside that screen must still gate on [featureAccess].
+  /// Fails closed (denies view) on error so a lookup failure never leaks a screen.
+
+  FeatureViewAccessProvider call({
+    required String userId,
+    required String featureName,
+  }) => FeatureViewAccessProvider._(
+    argument: (userId: userId, featureName: featureName),
+    from: this,
+  );
+
+  @override
+  String toString() => r'featureViewAccessProvider';
 }
 
 /// this check if a user has one accessLevel required to grant him access regardles of the feature

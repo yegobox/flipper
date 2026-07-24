@@ -654,6 +654,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       showCollect: canCollect &&
                           (ticket.status ?? '').toLowerCase() == PARKED,
                       showResume: canCollect,
+                      canManage: canCollect,
                       isCollecting: _collectingTicketId == ticket.id,
                       showRecordHandover: canRecordHandover,
                       onTap: () => _handleTicketTap(context, ticket),
@@ -1334,6 +1335,13 @@ class TicketCard extends StatelessWidget {
   /// Review Queue screen.
   final bool showMarkReviewed;
   final VoidCallback? onMarkReviewed;
+
+  /// When false, hides the selection checkbox and delete button so users
+  /// without ticket-management rights (e.g. review-only or handover-only
+  /// staff) get a read-only ticket row. Gate this on
+  /// `canCollectPosPaymentProvider` (`AppFeature.Tickets` write) at the call
+  /// site — the same population allowed to collect/complete tickets.
+  final bool canManage;
   const TicketCard({
     super.key,
     required this.ticket,
@@ -1350,6 +1358,7 @@ class TicketCard extends StatelessWidget {
     this.onRecordHandover,
     this.showMarkReviewed = false,
     this.onMarkReviewed,
+    this.canManage = true,
   });
 
   Color _leftAccent() {
@@ -1446,14 +1455,15 @@ class TicketCard extends StatelessWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Checkbox(
-                                value: isSelected,
-                                onChanged: (v) =>
-                                    onSelectionChanged(v ?? false),
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
-                              ),
+                              if (canManage)
+                                Checkbox(
+                                  value: isSelected,
+                                  onChanged: (v) =>
+                                      onSelectionChanged(v ?? false),
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
                               Expanded(
                                 flex: 2,
                                 child: Text(
@@ -1768,12 +1778,13 @@ class TicketCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                               ],
-                              _squareIconBtn(
-                                icon: Icons.delete_outline,
-                                color: Colors.red[700]!,
-                                onPressed: onDelete,
-                                tooltip: 'Delete Ticket',
-                              ),
+                              if (canManage)
+                                _squareIconBtn(
+                                  icon: Icons.delete_outline,
+                                  color: Colors.red[700]!,
+                                  onPressed: onDelete,
+                                  tooltip: 'Delete Ticket',
+                                ),
                             ],
                           ),
                         ],

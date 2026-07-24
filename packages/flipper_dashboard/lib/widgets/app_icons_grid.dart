@@ -157,6 +157,28 @@ class AppIconsGrid extends ConsumerWidget {
       if (app['feature'] == 'Settings') return true;
       if (app['feature'] == 'AgentCommission') return showCommission;
       final feature = app['feature'] as String;
+      // The Tickets screen also hosts the Review Queue and Record Handover
+      // actions, so let review-only / handover-only staff reach it. Each
+      // action inside the screen is gated on its own feature (TicketReview /
+      // StockHandover); management actions (collect/delete) stay gated on
+      // Tickets write.
+      if (feature == 'Tickets') {
+        return ref.watch(
+              featureAccessProvider(userId: uid, featureName: AppFeature.Tickets),
+            ) ||
+            ref.watch(
+              featureAccessProvider(
+                userId: uid,
+                featureName: AppFeature.TicketReview,
+              ),
+            ) ||
+            ref.watch(
+              featureAccessProvider(
+                userId: uid,
+                featureName: AppFeature.StockHandover,
+              ),
+            );
+      }
       // POS hosts "Add product"; show tile if user can sell or add catalog items.
       if (feature == 'Sales' || app['page'] == 'POS') {
         final canSell = ref.watch(
@@ -169,6 +191,13 @@ class AppIconsGrid extends ConsumerWidget {
           ),
         );
         return canSell || canAddProduct;
+      }
+      // Read-only viewable surfaces: show under view-access (any active grant);
+      // their mutations are gated on edit-access inside the screen.
+      if (feature == 'Transactions') {
+        return ref.watch(
+          featureViewAccessProvider(userId: uid, featureName: feature),
+        );
       }
       return ref.watch(
         featureAccessProvider(userId: uid, featureName: feature),

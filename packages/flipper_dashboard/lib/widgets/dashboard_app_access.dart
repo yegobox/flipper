@@ -36,6 +36,37 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
     return canSell || canAddProduct;
   }
 
+  // The Tickets screen also hosts the Review Queue and Record Handover
+  // actions, so let review-only / handover-only staff reach it. Each action
+  // inside is gated on its own feature; management (collect/delete) stays
+  // gated on Tickets write.
+  if (feature == 'Tickets') {
+    return ref.watch(
+          featureAccessProvider(userId: uid, featureName: AppFeature.Tickets),
+        ) ||
+        ref.watch(
+          featureAccessProvider(
+            userId: uid,
+            featureName: AppFeature.TicketReview,
+          ),
+        ) ||
+        ref.watch(
+          featureAccessProvider(
+            userId: uid,
+            featureName: AppFeature.StockHandover,
+          ),
+        );
+  }
+
+  // Read-only viewable surfaces: show under view-access (any active grant).
+  // Their mutating actions (e.g. transaction refund) are gated on edit-access
+  // inside the screen, so exposing the tile to read-only staff is safe.
+  if (feature == 'Transactions') {
+    return ref.watch(
+      featureViewAccessProvider(userId: uid, featureName: feature),
+    );
+  }
+
   return ref.watch(featureAccessProvider(userId: uid, featureName: feature));
 }
 

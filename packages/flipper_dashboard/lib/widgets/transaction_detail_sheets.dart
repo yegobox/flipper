@@ -41,7 +41,9 @@ Future<void> showTransactionActionsSheet({
   required BuildContext context,
   required ITransaction transaction,
   required String referenceLabel,
-  required VoidCallback onRefund,
+  // Null when the viewer lacks Transactions edit access — the Refund row is
+  // then hidden so read-only users cannot trigger a refund.
+  VoidCallback? onRefund,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -51,10 +53,12 @@ Future<void> showTransactionActionsSheet({
       transaction: transaction,
       referenceLabel: referenceLabel,
       hostContext: context,
-      onRefund: () {
-        Navigator.of(ctx).pop();
-        onRefund();
-      },
+      onRefund: onRefund == null
+          ? null
+          : () {
+              Navigator.of(ctx).pop();
+              onRefund();
+            },
     ),
   );
 }
@@ -88,7 +92,7 @@ class _TransactionActionsSheet extends StatelessWidget {
 
   final ITransaction transaction;
   final String referenceLabel;
-  final VoidCallback onRefund;
+  final VoidCallback? onRefund;
   final BuildContext hostContext;
 
   static final _receiptActions = TransactionReceiptActionsService();
@@ -146,17 +150,18 @@ class _TransactionActionsSheet extends StatelessWidget {
                     _receiptActions.printReceipt,
                   ),
                 ),
-                _ActionRow(
-                  iconSvg: TransactionDetailSvgs.refresh(),
-                  title: refunded ? 'Already refunded' : 'Refund payment',
-                  subtitle: refunded
-                      ? 'This income has been refunded'
-                      : 'Return money to the customer',
-                  danger: true,
-                  showChevron: !refunded,
-                  enabled: !refunded,
-                  onTap: refunded ? null : onRefund,
-                ),
+                if (onRefund != null)
+                  _ActionRow(
+                    iconSvg: TransactionDetailSvgs.refresh(),
+                    title: refunded ? 'Already refunded' : 'Refund payment',
+                    subtitle: refunded
+                        ? 'This income has been refunded'
+                        : 'Return money to the customer',
+                    danger: true,
+                    showChevron: !refunded,
+                    enabled: !refunded,
+                    onTap: refunded ? null : onRefund,
+                  ),
               ],
             ),
           ),

@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -85,11 +86,19 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
   final _receiptActions = TransactionReceiptActionsService();
 
   Future<void> _openMoreActions() async {
+    // Refund is a mutation — only offer it to users with Transactions edit
+    // (write/admin) access. Read-only viewers get the receipt actions only.
+    final canRefund = ref.read(
+      featureAccessProvider(
+        userId: ProxyService.box.getUserId() ?? '',
+        featureName: 'Transactions',
+      ),
+    );
     await showTransactionActionsSheet(
       context: context,
       transaction: _transaction,
       referenceLabel: _referenceLabel,
-      onRefund: _openRefundSheet,
+      onRefund: canRefund ? _openRefundSheet : null,
     );
   }
 
