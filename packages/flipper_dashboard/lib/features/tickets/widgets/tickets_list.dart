@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/mobile_checkout_launcher.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
+import 'package:flipper_dashboard/utils/ticket_handover_finalize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/services/resume_transaction_service.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -874,7 +875,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         false;
     if (!confirmed || !mounted) return;
 
+    // Ticket Review + Handover workflow: when on, Pay only flagged the ticket
+    // paid — finalization (RRA sign + receipt + fiscal counters + stock) was
+    // deferred to here. Run it BEFORE flipping to completed; if signing fails
+    // the ticket stays in awaitingHandover so nothing is lost and the user
+    // can retry. When the workflow is off, the sale was already finalized at Pay.
+    final reviewWorkflowOn =
+        ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
     try {
+      if (reviewWorkflowOn) {
+        await finalizeTicketHandover(context: context, ticket: ticket);
+      }
       await recordTicketHandover(
         transactionId: ticket.id,
         handoverByUserId: ProxyService.box.getUserId() ?? '',
@@ -882,7 +893,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Handover recorded',
+          reviewWorkflowOn
+              ? 'Handover recorded — receipt issued'
+              : 'Handover recorded',
           backgroundColor: Colors.green,
         );
       }
@@ -891,7 +904,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Failed to record handover',
+          'Failed to finalize handover — the receipt was not issued. '
+          'Please try again.',
           backgroundColor: Colors.red,
         );
       }

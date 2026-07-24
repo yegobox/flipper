@@ -86,6 +86,76 @@ mixin TransactionMixinOld {
           (transaction.subTotal ?? 0);
       final shouldComplete = !isLoan || isFullyPaid;
 
+      // Ticket Review + Handover workflow (opt-in per business): when enabled, a
+      // fully-paid sale is only FLAGGED paid at Pay — payment is recorded and the
+      // caller's onComplete persists status `pendingReview`. Tax signing, RRA
+      // receipt, fiscal counters and stock deduction are ALL deferred to the
+      // Stock Manager's handover step (see [finalizeSaleForHandover] + the
+      // handover action). Loan / partial / parked sales are never deferred and
+      // behave exactly as today. When the setting is OFF this branch is skipped
+      // and completion is byte-identical to before.
+      final ticketReviewWorkflowEnabled =
+          ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
+      final deferForReview =
+          ticketReviewWorkflowEnabled && !isLoan && shouldComplete && isFullyPaid;
+      if (deferForReview) {
+        if (skipTransactionPersist) {
+          // Record payment fields in memory; onComplete persists the balances.
+          applySalePaymentFieldsInMemory(
+            transaction: transaction,
+            tenderAmount: amount,
+            paymentType: ProxyService.box.paymentType() ?? paymentType,
+            customerName: customerNameController.text,
+            countryCode: countryCodeController.text,
+            preloadedLineItems: preloadedLineItemsForCollectPayment,
+            mutateCashFields: false,
+          );
+          final items =
+              preloadedLineItemsForCollectPayment ?? const <TransactionItem>[];
+          final saleTotal = items.isEmpty
+              ? amount
+              : items.fold<double>(
+                  0,
+                  (sum, item) =>
+                      sum + item.price.toDouble() * item.qty.toDouble(),
+                );
+          final derived = deriveSaleCompletionState(
+            transactionCashReceived: transaction.cashReceived ?? 0,
+            finalSubTotal: saleTotal,
+            paymentMethods: [
+              PaymentLineForSaleCompletion(amount: amount, method: paymentType),
+            ],
+          );
+          // Shift totals + personal-goal sweep (money IS collected now). This
+          // does NOT sign tax or print a receipt.
+          scheduleDeferredSaleCollectSideEffects(
+            transaction: transaction,
+            branchId: branchId,
+            bhfId: (await ProxyService.box.bhfId()) ?? '',
+            items: items,
+            completionStatus: derived.status,
+            isProformaMode: ProxyService.box.isProformaMode(),
+            isTrainingMode: ProxyService.box.isTrainingMode(),
+          );
+          ProxyService.box.remove(key: 'pendingCustomerName');
+          ProxyService.box.remove(key: 'pendingCustomerTin');
+        } else {
+          await _completeTransactionAfterTaxValidation(
+            transaction,
+            customerName: customerNameController.text,
+            countryCode: countryCodeController.text,
+            preloadedLineItems: preloadedLineItemsForCollectPayment,
+            tenderAmount: amount,
+            skipTransactionPersist: skipTransactionPersist,
+          );
+        }
+        await _awaitPossibleFuture(onComplete());
+        return RwApiResponse(
+          resultCd: "001",
+          resultMsg: "Payment recorded — pending review",
+        );
+      }
+
       // Skip receipt generation entirely for loan tickets — additional payments
       // on resumed loans should never trigger a receipt.
       if (taxEnabled &&
@@ -311,6 +381,92 @@ mixin TransactionMixinOld {
       talker.error('Error in finalizePayment: $e');
       rethrow;
     }
+  }
+
+  /// Ticket Review + Handover workflow: finalize a paid ticket at the Stock
+  /// Manager's handover step — RRA sign + receipt + fiscal counters. Payment was
+  /// already recorded at Pay (the ticket is in `awaitingHandover`), so this does
+  /// NOT record payment, touch shift totals, or flip status. The caller runs
+  /// stock deduction (dashboard side) and the status flip to COMPLETE only on
+  /// success. Throws on RRA signing failure so the ticket stays awaiting handover.
+  Future<RwApiResponse> finalizeSaleForHandover({
+    required ITransaction transaction,
+    required BuildContext context,
+    required List<TransactionItem> items,
+    String? purchaseCode,
+  }) async {
+    final businessId = ProxyService.box.getBusinessId();
+    final branchId = ProxyService.box.getBranchId();
+    if (businessId == null || branchId == null) {
+      throw Exception('Business ID or Branch ID not found');
+    }
+    final taxEnabled = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).isTaxEnabled(businessId: businessId, branchId: branchId);
+    final ebm =
+        await ProxyService.getStrategy(Strategy.capella).ebm(branchId: branchId);
+    final hasUser = (await ProxyService.box.bhfId()) != null;
+    final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
+    final formKey = GlobalKey<FormState>();
+
+    if (taxEnabled &&
+        ebm?.taxServerUrl != null &&
+        hasUser &&
+        !isTaxServiceStoped) {
+      ProxyService.box.writeString(key: "getServerUrl", value: ebm!.taxServerUrl!);
+      ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId);
+
+      final signOutcome = await handleReceiptGeneration(
+        formKey: formKey,
+        context: context,
+        transaction: transaction,
+        purchaseCode: purchaseCode,
+        persistReceiptTransactionFields: false,
+        signOnly: true,
+        transactionItems: items,
+      );
+      final response = signOutcome.response;
+      if (response.resultCd != "000") {
+        throw Exception(response.resultMsg);
+      }
+      if (context.mounted) {
+        await _presentReceiptAfterSale(
+          formKey: formKey,
+          context: context,
+          transaction: transaction,
+          signedResponse: response,
+          purchaseCode: purchaseCode,
+          sendDigitalReceipt: false,
+          transactionItems: items,
+          presentationReceipt: signOutcome.presentationReceipt,
+        );
+      }
+      scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
+      return response;
+    }
+
+    // Branch not EBM-registered: no RRA signature, but still print a plain
+    // non-fiscal receipt at handover so the customer gets a document.
+    if (items.isNotEmpty && context.mounted) {
+      try {
+        final bytes = await TaxController(object: transaction)
+            .buildNonFiscalReceiptPdfBytes(
+          transaction: transaction,
+          transactionItems: items,
+        );
+        if (bytes != null) {
+          await printing(
+            bytes,
+            context,
+            transaction: transaction,
+            transactionItems: items,
+          );
+        }
+      } catch (e, s) {
+        talker.error('Non-fiscal handover receipt print failed: $e', s);
+      }
+    }
+    return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
   }
 
   Future<void> printing(
