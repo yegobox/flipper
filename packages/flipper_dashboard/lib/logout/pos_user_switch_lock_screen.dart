@@ -30,6 +30,22 @@ class _PosUserSwitchLockScreenState
     extends ConsumerState<PosUserSwitchLockScreen> {
   Tenant? _selected;
   bool _busy = false;
+  bool _refreshing = false;
+
+  Future<void> _refreshStaff() async {
+    if (_busy || _refreshing) return;
+    setState(() => _refreshing = true);
+    try {
+      final staff = await ref.refresh(barStaffProvider.future);
+      if (!mounted) return;
+      final selected = _selected;
+      if (selected != null && !staff.any((t) => t.id == selected.id)) {
+        setState(() => _selected = null);
+      }
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
+  }
 
   Future<void> _onPinSubmit(String pin) async {
     final selected = _selected;
@@ -49,6 +65,55 @@ class _PosUserSwitchLockScreenState
       return;
     }
     ref.read(posUserSwitchLockProvider.notifier).state = false;
+  }
+
+  Widget _staffLoadError() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Could not load staff',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              color: BarTokens.ink3,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: _refreshing ? null : _refreshStaff,
+            icon: _refreshing
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh, size: 18),
+            label: Text(
+              'Retry',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _refreshIconButton({Color? color}) {
+    return IconButton(
+      tooltip: 'Refresh staff list',
+      onPressed: (_busy || _refreshing) ? null : _refreshStaff,
+      icon: _refreshing
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: color ?? BarTokens.ink3,
+              ),
+            )
+          : Icon(Icons.refresh, size: 20, color: color ?? BarTokens.ink3),
+    );
   }
 
   @override
@@ -105,17 +170,27 @@ class _PosUserSwitchLockScreenState
                               padding:
                                   const EdgeInsets.fromLTRB(22, 26, 22, 26),
                               child: staffAsync.when(
+                                skipLoadingOnReload: true,
                                 loading: () => const Center(
                                   child: CircularProgressIndicator(),
                                 ),
-                                error: (_, __) =>
-                                    const Text('Could not load staff'),
+                                error: (_, __) => _staffLoadError(),
                                 data: (allStaff) {
                                   if (allStaff.isEmpty) {
-                                    return const Center(
-                                      child: Text(
-                                        'No staff members available.',
-                                      ),
+                                    return Column(
+                                      children: [
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: _refreshIconButton(),
+                                        ),
+                                        const Expanded(
+                                          child: Center(
+                                            child: Text(
+                                              'No staff members available.',
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     );
                                   }
                                   return _peoplePane(allStaff);
@@ -181,72 +256,82 @@ class _PosUserSwitchLockScreenState
         child: Stack(
           children: [
             staffAsync.when(
+              skipLoadingOnReload: true,
               loading: () =>
                   const Center(child: CircularProgressIndicator()),
-              error: (_, __) =>
-                  const Center(child: Text('Could not load staff')),
-              data: (staff) => SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                child: AbsorbPointer(
-                  absorbing: _busy,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 8),
-                      const BarFlipperBrand(),
-                      const SizedBox(height: 14),
-                      Text(
-                        'POS · SHARED REGISTER',
-                        style: GoogleFonts.outfit(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
-                          color: BarTokens.ink4,
+              error: (_, __) => _staffLoadError(),
+              data: (staff) => RefreshIndicator(
+                color: BarTokens.blue,
+                onRefresh: _refreshStaff,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                  child: AbsorbPointer(
+                    absorbing: _busy,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Expanded(child: BarFlipperBrand()),
+                            _refreshIconButton(),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        "Who's serving?",
-                        style: GoogleFonts.outfit(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.4,
+                        const SizedBox(height: 14),
+                        Text(
+                          'POS · SHARED REGISTER',
+                          style: GoogleFonts.outfit(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1,
+                            color: BarTokens.ink4,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 18),
-                      if (staff.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text('No staff members available.'),
-                        )
-                      else ...[
-                        BarMobilePeopleStrip(
-                          staff: staff,
-                          selected: _selected,
-                          onSelect: (p) => setState(() => _selected = p),
+                        const SizedBox(height: 3),
+                        Text(
+                          "Who's serving?",
+                          style: GoogleFonts.outfit(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.4,
+                          ),
                         ),
-                        const SizedBox(height: 20),
-                        BarKeypad(
-                          mobile: true,
-                          enabled: _selected != null && !_busy,
-                          title: _selected?.name ?? '—',
-                          hint: _selected == null
-                              ? 'Tap your name above, then enter your PIN'
-                              : 'Enter your 6-digit PIN to open POS',
-                          avatarLabel: _selected == null
-                              ? null
-                              : barTenantInitials(_selected!.name),
-                          avatarColor: _selected == null
-                              ? null
-                              : barColorForTenant(_selected!.id, staff),
-                          verifyPin: (pin) async {
-                            final selected = _selected;
-                            if (selected == null) return false;
-                            return barVerifyStaffPin(selected, pin);
-                          },
-                          onSubmit: _onPinSubmit,
-                        ),
+                        const SizedBox(height: 18),
+                        if (staff.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text('No staff members available.'),
+                          )
+                        else ...[
+                          BarMobilePeopleStrip(
+                            staff: staff,
+                            selected: _selected,
+                            onSelect: (p) => setState(() => _selected = p),
+                          ),
+                          const SizedBox(height: 20),
+                          BarKeypad(
+                            mobile: true,
+                            enabled: _selected != null && !_busy,
+                            title: _selected?.name ?? '—',
+                            hint: _selected == null
+                                ? 'Tap your name above, then enter your PIN'
+                                : 'Enter your 6-digit PIN to open POS',
+                            avatarLabel: _selected == null
+                                ? null
+                                : barTenantInitials(_selected!.name),
+                            avatarColor: _selected == null
+                                ? null
+                                : barColorForTenant(_selected!.id, staff),
+                            verifyPin: (pin) async {
+                              final selected = _selected;
+                              if (selected == null) return false;
+                              return barVerifyStaffPin(selected, pin);
+                            },
+                            onSubmit: _onPinSubmit,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -265,30 +350,47 @@ class _PosUserSwitchLockScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'WHO\'S ON THE REGISTER?',
-          style: GoogleFonts.outfit(
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1,
-            color: BarTokens.ink4,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Who\'s on the register?',
-          style: GoogleFonts.outfit(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: BarTokens.ink1,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'WHO\'S ON THE REGISTER?',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                      color: BarTokens.ink4,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Who\'s on the register?',
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: BarTokens.ink1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _refreshIconButton(),
+          ],
         ),
         const SizedBox(height: 18),
         Expanded(
-          child: ListView.separated(
-            itemCount: staff.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 9),
-            itemBuilder: (context, i) {
+          child: RefreshIndicator(
+            color: BarTokens.blue,
+            onRefresh: _refreshStaff,
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: staff.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 9),
+              itemBuilder: (context, i) {
               final person = staff[i];
               final selected = _selected?.id == person.id;
               final color = barColorForTenant(person.id, staff);
@@ -374,6 +476,7 @@ class _PosUserSwitchLockScreenState
                 ),
               );
             },
+            ),
           ),
         ),
       ],
