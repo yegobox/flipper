@@ -194,7 +194,7 @@ class AppIconsGrid extends ConsumerWidget {
       }
       // Read-only viewable surfaces: show under view-access (any active grant);
       // their mutations are gated on edit-access inside the screen.
-      if (feature == 'Transactions') {
+      if (feature == AppFeature.Transactions) {
         return ref.watch(
           featureViewAccessProvider(userId: uid, featureName: feature),
         );

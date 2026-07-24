@@ -61,7 +61,7 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   // Read-only viewable surfaces: show under view-access (any active grant).
   // Their mutating actions (e.g. transaction refund) are gated on edit-access
   // inside the screen, so exposing the tile to read-only staff is safe.
-  if (feature == 'Transactions') {
+  if (feature == AppFeature.Transactions) {
     return ref.watch(
       featureViewAccessProvider(userId: uid, featureName: feature),
     );

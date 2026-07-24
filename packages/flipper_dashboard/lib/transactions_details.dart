@@ -91,7 +91,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
     final canRefund = ref.read(
       featureAccessProvider(
         userId: ProxyService.box.getUserId() ?? '',
-        featureName: 'Transactions',
+        featureName: AppFeature.Transactions,
       ),
     );
     await showTransactionActionsSheet(

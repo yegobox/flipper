@@ -75,6 +75,7 @@ final features = [
   AppFeature.Inventory,
   AppFeature.Settings,
   AppFeature.Reports,
+  AppFeature.Transactions,
   AppFeature.Tickets,
   AppFeature.Orders,
   AppFeature.Leads,
@@ -97,6 +98,9 @@ class AppFeature {
   static const String Leads = "Leads";
   static const String AddProduct = "Add Product";
   static const String Orders = "Orders";
+  /// Read-only transaction history view (grantable at `read` for view-only
+  /// staff). Its one mutation — refund — is gated on write/admin.
+  static const String Transactions = "Transactions";
   static const String CustomAmount = "Custom Amount";
   static const String Driver = "Driver";
   static const String Stock = "Stock";
