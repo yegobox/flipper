@@ -1,3 +1,4 @@
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -39,6 +40,9 @@ class PosShiftGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // View-only staff cannot sell, so they browse the catalog without needing
+    // an open shift; the shift gate only applies to users who can transact.
+    if (!ref.watch(canSellProvider)) return child;
     final shiftAsync = ref.watch(currentOpenShiftProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;

@@ -17,6 +17,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -119,6 +120,17 @@ class RowItem extends StatefulHookConsumerWidget {
 class _RowItemState extends ConsumerState<RowItem>
     with Refresh, CoreMiscellaneous, SnackBarMixin {
   final _routerService = locator<RouterService>();
+
+  /// Product management (multi-select → bulk delete, edit/delete) requires an
+  /// admin-level grant — same check the per-tile edit/delete buttons use. This
+  /// gates entering multi-select so view-only/non-admin staff can't reach the
+  /// bulk-delete bar.
+  bool _canManageProducts() => ref.read(
+        featureAccessLevelProvider(
+          accessLevel: UserType.ADMIN,
+          userId: ProxyService.box.getUserId() ?? '',
+        ),
+      );
 
   String _truncateString(String text, int maxLength) {
     if (text.length <= maxLength) {
@@ -294,7 +306,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 itemId: itemId,
               ),
         onLongPress: () {
-          if (itemId != null && !widget.isOrdering) {
+          if (itemId != null && !widget.isOrdering && _canManageProducts()) {
             ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
           }
         },
@@ -421,7 +433,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 itemId: itemId,
               ),
               onLongPress: () {
-                if (itemId != null && !widget.isOrdering) {
+                if (itemId != null && !widget.isOrdering && _canManageProducts()) {
                   ref
                       .read(selectedItemIdsProvider.notifier)
                       .toggleSelection(itemId);
@@ -778,7 +790,7 @@ class _RowItemState extends ConsumerState<RowItem>
             }
           : null,
       onLongPress: () {
-        if (itemId != null && !widget.isOrdering) {
+        if (itemId != null && !widget.isOrdering && _canManageProducts()) {
           ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
         }
       },

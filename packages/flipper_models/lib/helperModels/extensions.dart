@@ -317,6 +317,27 @@ extension AccessControlWidget on Widget {
   }
 }
 
+extension ViewAccessControlWidget on Widget {
+  /// Like [AccessControlWidget.shouldSeeTheApp] but gates on VIEW (read+)
+  /// access instead of write/admin — the widget renders for anyone who may
+  /// *view* the feature. Use for browse-only surfaces (e.g. the POS/inventory
+  /// catalog); the mutating actions inside must still be gated on write/admin
+  /// (e.g. canSellProvider / an admin grant).
+  Widget shouldViewTheApp(WidgetRef ref, {required String featureName}) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final hasAccess = ref.watch(
+          featureViewAccessProvider(
+            featureName: featureName,
+            userId: ProxyService.box.getUserId() ?? "",
+          ),
+        );
+        return hasAccess ? this : const SizedBox.shrink();
+      },
+    );
+  }
+}
+
 /// I need extension when given MTN MOMO to return M-PAY
 /// and when given CARD  tu return C-PAY
 /// and when given bannk to return B-PAY

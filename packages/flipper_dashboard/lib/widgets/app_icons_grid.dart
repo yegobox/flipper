@@ -179,18 +179,28 @@ class AppIconsGrid extends ConsumerWidget {
               ),
             );
       }
-      // POS hosts "Add product"; show tile if user can sell or add catalog items.
+      // POS hosts "Add product"; browse under view (read+) access on Sales,
+      // Add Product, or Inventory. Selling and product management inside are
+      // gated on their own edit-access (canSellProvider / admin).
       if (feature == 'Sales' || app['page'] == 'POS') {
-        final canSell = ref.watch(
-          featureAccessProvider(userId: uid, featureName: AppFeature.Sales),
-        );
-        final canAddProduct = ref.watch(
-          featureAccessProvider(
-            userId: uid,
-            featureName: AppFeature.AddProduct,
-          ),
-        );
-        return canSell || canAddProduct;
+        return ref.watch(
+              featureViewAccessProvider(
+                userId: uid,
+                featureName: AppFeature.Sales,
+              ),
+            ) ||
+            ref.watch(
+              featureViewAccessProvider(
+                userId: uid,
+                featureName: AppFeature.AddProduct,
+              ),
+            ) ||
+            ref.watch(
+              featureViewAccessProvider(
+                userId: uid,
+                featureName: AppFeature.Inventory,
+              ),
+            );
       }
       // Read-only viewable surfaces: show under view-access (any active grant);
       // their mutations are gated on edit-access inside the screen.

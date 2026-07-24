@@ -25,25 +25,27 @@ class InventoryApp extends HookConsumerWidget {
     : super(key: key);
 
   Widget buildProductSection(WidgetRef ref) {
+    // Browse-only under view (read+) access; add-to-cart etc. are gated on
+    // canSellProvider inside the catalog.
     return Expanded(
       child: ProductView.normalMode(linkedSearchController: searchController),
-    ).shouldSeeTheApp(ref, featureName: AppFeature.Sales);
+    ).shouldViewTheApp(ref, featureName: AppFeature.Sales);
   }
 
   Widget _salesContent(bool isScanningMode, WidgetRef ref) {
     if (BarModeSettings.enabled) {
       return const BarModeHost()
-          .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
-          .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+          .shouldViewTheApp(ref, featureName: AppFeature.Sales)
+          .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
     }
     return isScanningMode
-        ? buildReceiptUI().shouldSeeTheApp(
+        ? buildReceiptUI().shouldViewTheApp(
             ref,
             featureName: AppFeature.Sales,
           )
         : CheckOut(isBigScreen: true)
-              .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
-              .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+              .shouldViewTheApp(ref, featureName: AppFeature.Sales)
+              .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
   }
 
   Widget buildMainContent(bool isScanningMode, WidgetRef ref) {

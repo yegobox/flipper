@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -31,7 +32,8 @@ class ResetTransactionButton extends ConsumerWidget {
             (transaction.cashReceived ?? 0) > 0 ||
             (transaction.payments?.isNotEmpty ?? false);
 
-        if (isTicket || hasPayments) {
+        // View-only staff cannot delete the pending sale.
+        if (isTicket || hasPayments || !ref.watch(canSellProvider)) {
           return const SizedBox.shrink();
         }
 

@@ -73,6 +73,28 @@ final canCollectPosPaymentProvider = Provider<bool>((ref) {
   return canCollect;
 });
 
+/// True when the signed-in user may build/edit a sale cart — add items, change
+/// quantities, park, checkout, attach a customer, transfer stock.
+///
+/// Broader than [canCollectPosPaymentProvider] (which only governs *tendering*
+/// payment): a plain cashier with Sales write builds carts and parks them for a
+/// till role even when they cannot collect. Defined as write/admin on Sales OR
+/// Add Product, OR the collector population. Read-only staff (read grants only)
+/// get a browse-only catalog and this returns false.
+final canSellProvider = Provider<bool>((ref) {
+  final userId = ProxyService.box.getUserId() ?? '';
+  if (userId.isEmpty) return false;
+  final canSellCatalog = ref.watch(
+    featureAccessProvider(userId: userId, featureName: AppFeature.Sales),
+  );
+  final canManageCatalog = ref.watch(
+    featureAccessProvider(userId: userId, featureName: AppFeature.AddProduct),
+  );
+  return canSellCatalog ||
+      canManageCatalog ||
+      ref.watch(canCollectPosPaymentProvider);
+});
+
 /// True when [accesses] contains an active, non-expired Write/Admin grant on the
 /// Tickets feature. Deliberately does NOT use [featureAccessProvider] — that
 /// short-circuits to true in debug builds, which would make every user a

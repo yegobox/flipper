@@ -1127,6 +1127,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Future<void> _confirmOutgoingTransfer(
     AsyncValue<ITransaction> transactionAsyncValue,
   ) async {
+    if (!ref.read(canSellProvider)) {
+      showErrorNotification(
+        context,
+        'View-only access — you cannot transfer stock.',
+      );
+      return;
+    }
     if (_transferBusy) return;
     final txn = transactionAsyncValue.asData?.value;
     if (txn == null) return;
@@ -1674,6 +1681,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Future<void> _deleteAllItems(
     AsyncValue<ITransaction> transactionAsyncValue,
   ) async {
+    if (!ref.read(canSellProvider)) return; // view-only: no cart edits
     // Check if there's a partial payment
     if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
       showErrorNotification(
@@ -2283,6 +2291,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     TransactionItem item,
     AsyncValue<ITransaction> transactionAsyncValue,
   ) {
+    if (!ref.read(canSellProvider)) return; // view-only: no cart edits
     // Check if there's a partial payment
     if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
       showErrorNotification(
@@ -2342,6 +2351,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     int newQty,
     AsyncValue<ITransaction> transactionAsyncValue,
   ) async {
+    if (!ref.read(canSellProvider)) return; // view-only: no cart edits
     // Check if there's a partial payment
     if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
       showErrorNotification(
@@ -2431,6 +2441,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }) {
     final settling = ref.watch(settlingTillTicketProvider);
     final isSettling = settling != null;
+    // View-only staff get a read-only cart table (no price/qty/delete controls).
+    final readOnlyCart = isSettling || !ref.watch(canSellProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -2441,7 +2453,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
         if (!isOrdering)
           CheckoutModeBar(enabled: !isOrdering && !isSettling),
-        if (!isOrdering && !isTransferMode && !isSettling) ...[
+        if (!isOrdering && !isTransferMode && !isSettling && !readOnlyCart) ...[
           _buildCompactCustomerCapture(),
         ],
         if (!isOrdering && isTransferMode) ...[
@@ -2457,7 +2469,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   isOrdering,
                   pinGrandTotal: true,
                   cartLines: lines,
-                  readOnly: isSettling,
+                  readOnly: readOnlyCart,
                 ),
               ),
             ),
@@ -2471,7 +2483,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 isOrdering,
                 pinGrandTotal: false,
                 cartLines: lines,
-                readOnly: isSettling,
+                readOnly: readOnlyCart,
               ),
             ),
           ),
@@ -3471,6 +3483,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ITransaction transaction,
     CoreViewModel model,
   ) async {
+    if (!ref.read(canSellProvider)) return; // view-only: cannot park a sale
     final txn =
         ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
         transaction;
@@ -3486,6 +3499,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Future<void> _sendCartToTill(ITransaction transaction) async {
+    if (!ref.read(canSellProvider)) return; // view-only: cannot send to till
     if (_sendToTillBusy) return;
     final items = ref.read(posCartDisplayItemsProvider);
     if (items.isEmpty) return;
