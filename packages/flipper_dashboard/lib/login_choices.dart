@@ -949,6 +949,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     // Refresh providers to reflect changes
     ref.invalidate(businessesProvider);
     ref.invalidate(activeBranchProvider);
+    ref.invalidate(customersProvider);
     final businessId = ref.read(selectedBusinessIdProvider);
     if (businessId != null) {
       ref.invalidate(branchesProvider(businessId: businessId));

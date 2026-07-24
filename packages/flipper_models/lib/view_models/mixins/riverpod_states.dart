@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
@@ -271,6 +272,11 @@ final customersProvider =
 class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
   @override
   AsyncValue<List<Customer>> build() {
+    // Non-autoDispose: rebuild when branch/business changes (logout/login,
+    // branch switch) instead of reusing the prior session's cached list.
+    ref.watch(
+      activeBranchProvider.select((async) => async.asData?.value.id),
+    );
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null || branchId.isEmpty) {
       return const AsyncValue.data([]);

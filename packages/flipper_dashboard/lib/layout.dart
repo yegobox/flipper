@@ -19,6 +19,7 @@ import 'package:flipper_dashboard/shift_history_content.dart';
 import 'package:flipper_dashboard/import_purchase_page_view.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/hooks/use_access_permissions_realtime.dart';
+import 'package:flipper_dashboard/logout/pos_user_switch_lock_screen.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
@@ -72,81 +73,83 @@ class DashboardLayout extends HookConsumerWidget {
           final selectedPageWidget = _buildSelectedApp(ref, searchController);
 
           return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) {
-            // Silently prevent back navigation.
-          },
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Handle the case when constraints are not yet available
-              if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
-                return const SizedBox.shrink();
-              }
-              if (constraints.maxWidth <
-                  PosLayoutBreakpoints.mobileLayoutMaxWidth) {
-                return MobileView(
-                  isBigScreen: false,
-                  controller: searchController,
-                  model: model,
-                );
-              }
-              // Desktop: header row spans logo column + top bar so the logo aligns
-              // with FLIPPER; body row is sidebar + content.
-              return Column(
-                children: [
-                  DecoratedBox(
-                    decoration: const BoxDecoration(
-                      color: PosTokens.surface,
-                      border: Border(
-                        bottom: BorderSide(color: PosTokens.line),
-                      ),
-                    ),
-                    child: SizedBox(
-                      height: PosLayoutBreakpoints.desktopTopBarHeight,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: PosLayoutBreakpoints.sideMenuWidth,
-                            child: Center(
-                              child: PosHandoffIcons.svg(
-                                'flipper-logo',
-                                size: 30,
-                              ),
-                            ),
-                          ),
-                          const Expanded(child: UnifiedTopBar()),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(
-                          width: PosLayoutBreakpoints.sideMenuWidth,
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              border: Border(
-                                right: BorderSide(
-                                  color: Color(0xFFE5E7EB),
-                                  width: 1,
-                                ),
-                              ),
-                            ),
-                            child: const EnhancedSideMenu(),
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              // Silently prevent back navigation.
+            },
+            child: PosUserSwitchGate(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Handle the case when constraints are not yet available
+                  if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
+                    return const SizedBox.shrink();
+                  }
+                  if (constraints.maxWidth <
+                      PosLayoutBreakpoints.mobileLayoutMaxWidth) {
+                    return MobileView(
+                      isBigScreen: false,
+                      controller: searchController,
+                      model: model,
+                    );
+                  }
+                  // Desktop: header row spans logo column + top bar so the logo aligns
+                  // with FLIPPER; body row is sidebar + content.
+                  return Column(
+                    children: [
+                      DecoratedBox(
+                        decoration: const BoxDecoration(
+                          color: PosTokens.surface,
+                          border: Border(
+                            bottom: BorderSide(color: PosTokens.line),
                           ),
                         ),
-                        Expanded(child: selectedPageWidget),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                        child: SizedBox(
+                          height: PosLayoutBreakpoints.desktopTopBarHeight,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: PosLayoutBreakpoints.sideMenuWidth,
+                                child: Center(
+                                  child: PosHandoffIcons.svg(
+                                    'flipper-logo',
+                                    size: 30,
+                                  ),
+                                ),
+                              ),
+                              const Expanded(child: UnifiedTopBar()),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(
+                              width: PosLayoutBreakpoints.sideMenuWidth,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFFE5E7EB),
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                child: const EnhancedSideMenu(),
+                              ),
+                            ),
+                            Expanded(child: selectedPageWidget),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
           );
         },
       ),
